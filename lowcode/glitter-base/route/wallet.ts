@@ -157,7 +157,7 @@ export class ApiWallet {
         });
     }
 
-    public static getRebate(json: { limit: number; page: number; search?: string; id?: string; type?: 'me' | 'all'; dataType?: 'one' | 'all' }) {
+    public static getRebate(json: { limit: number; page: number; search?: string; id?: string; type?: 'me' | 'all'; dataType?: 'one' | 'all' ,email_or_phone?:string}) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -166,6 +166,7 @@ export class ApiWallet {
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
                     json.dataType && par.push(`dataType=${json.dataType}`);
+                    json.email_or_phone && par.push(`email_or_phone=${json.email_or_phone}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',

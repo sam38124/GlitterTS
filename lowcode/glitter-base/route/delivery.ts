@@ -13,7 +13,7 @@ export class ApiDelivery {
         });
     }
 
-    static getOrderInfo(json: { order_id: string }) {
+    static getOrderInfo(json: { order_id: string,shipment_date?:string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/delivery/orderInfo`,
             type: 'POST',

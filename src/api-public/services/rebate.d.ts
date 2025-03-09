@@ -12,6 +12,7 @@ export interface IRebateSearch {
     page: number;
     low?: number;
     high?: number;
+    email_or_phone?: string;
     type?: string;
 }
 export interface RebateProof {

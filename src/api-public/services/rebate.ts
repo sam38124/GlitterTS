@@ -20,6 +20,7 @@ export interface IRebateSearch {
   page: number;
   low?: number;
   high?: number;
+  email_or_phone?:string;
   type?: string;
 }
 
@@ -209,16 +210,22 @@ export class Rebate {
     const high = query.high ?? 10000000000;
     let rebateSearchSQL = '';
 
-    const getUsersSQL = `
+
+    const getUsersSQL = (query.email_or_phone) ? `
+        SELECT userID, JSON_EXTRACT(userData, '$.name') as name
+        FROM \`${this.app}\`.t_user
+        WHERE
+            (JSON_EXTRACT(userData, '$.phone') = ${db.escape(query.email_or_phone)}
+            OR JSON_EXTRACT(userData, '$.email') = ${db.escape(query.email_or_phone)});
+    `:`
             SELECT userID, JSON_EXTRACT(userData, '$.name') as name 
             FROM \`${this.app}\`.t_user 
             WHERE 
                 (JSON_EXTRACT(userData, '$.name') LIKE '%${query.search ?? ''}%'
                 OR JSON_EXTRACT(userData, '$.email') LIKE '%${query.search ?? ''}%');
         `;
-
     try {
-      if (query.search) {
+      if (query.search || query.email_or_phone) {
         const users = (await db.query(getUsersSQL, [])).map((user: { userID: number }) => user.userID);
         rebateSearchSQL = `AND r.user_id in (${users.join(',')})`;
       }

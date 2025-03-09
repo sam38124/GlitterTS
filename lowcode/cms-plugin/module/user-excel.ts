@@ -110,9 +110,17 @@ export class UserExcel {
                     'FB UID': user.userData['fb-id'],
                     最後購買日期: dateFormat(new Date(user.latest_order_date), 'yyyy-MM-dd hh:mm:ss'),
                     最後消費金額: user.latest_order_total,
+                    最後出貨日期:(()=>{
+                        if((user as any).firstShipment){
+                            return dateFormat(new Date((user as any).firstShipment.orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm')
+                        }else{
+                            return `無`
+                        }
+                    })(),
                     累積消費金額: user.checkout_total,
                     累積消費次數: user.checkout_count,
                     會員標籤: (user.userData.tags ?? []).join(','),
+
                 };
             });
 

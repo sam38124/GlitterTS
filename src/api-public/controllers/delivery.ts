@@ -96,6 +96,7 @@ router.post('/orderInfo', async (req: express.Request, resp: express.Response) =
     try {
         const data = await new Delivery(req.get('g-app') as string).getOrderInfo({
             cart_token: `${req.body.order_id}`,
+            shipment_date:req.body.shipment_date,
         });
         return response.succ(resp, {data});
     } catch (err) {

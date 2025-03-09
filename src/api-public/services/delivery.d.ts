@@ -76,6 +76,7 @@ export declare class Delivery {
     generatorDeliveryId(id: string, carData: any, keyData: any): Promise<string>;
     getOrderInfo(obj: {
         cart_token: string;
+        shipment_date?: string;
     }): Promise<{
         result: boolean;
         message: string;

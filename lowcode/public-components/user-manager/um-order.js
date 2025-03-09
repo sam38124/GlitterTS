@@ -814,6 +814,30 @@ export class UMOrder {
                                 })(),
                             },
                         ];
+                        if (vm.data.invoice_number) {
+                            arr.push({
+                                title: Language.text('invoice_number'),
+                                value: vm.data.invoice_number,
+                            });
+                        }
+                        if (vm.data.orderData.user_info.shipment_number) {
+                            arr.push({
+                                title: Language.text('shipment_number'),
+                                value: vm.data.orderData.user_info.shipment_number,
+                            });
+                        }
+                        if (vm.data.orderData.user_info.shipment_date) {
+                            arr.push({
+                                title: Language.text('shipment_date'),
+                                value: gvc.glitter.ut.dateFormat(new Date(vm.data.orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm'),
+                            });
+                        }
+                        if (vm.data.orderData.user_info.shipment_detail && vm.data.orderData.user_info.shipment_detail.paymentno) {
+                            arr.push({
+                                title: Language.text('track_number'),
+                                value: vm.data.orderData.user_info.shipment_detail.paymentno,
+                            });
+                        }
                         if (['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].find((dd) => {
                             return dd === orderData.user_info.shipment;
                         })) {

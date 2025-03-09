@@ -93,7 +93,7 @@ export class ShoppingOrderManager {
                 const fileName = `訂單列表_${glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
                 const blobData = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
                 const url = URL.createObjectURL(blobData);
-                const a = document.createElement("a");
+                const a = document.createElement('a');
                 a.href = url;
                 a.download = fileName;
                 a.click();
@@ -153,7 +153,7 @@ export class ShoppingOrderManager {
                         }
                     })())}
               <div class="flex-fill"></div>
-              <div class="" style=" gap: 14px;">
+              <div class="d-flex" style=" gap: 14px;">
                 <input
                   class="d-none"
                   type="file"
@@ -178,7 +178,10 @@ export class ShoppingOrderManager {
                                         filter: vm.filter,
                                         archived: `${query.isArchived}`,
                                         is_pos: vm.filter_type === 'pos',
-                                    }).then(res => {
+                                        is_shipment: query.isShipment,
+                                    }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                                        const shipment_methods = yield ShipmentConfig.allShipmentMethod();
+                                        const payment_methods = yield PaymentConfig.getSupportPayment(true);
                                         dialog.dataLoading({ visible: false });
                                         if (!res.result) {
                                             dialog.errorMessage({ text: '訂單資料讀取錯誤' });
@@ -217,7 +220,7 @@ export class ShoppingOrderManager {
                                         res.response.data.map((order) => {
                                             const orderData = order.orderData;
                                             orderData.lineItems.map((item) => {
-                                                var _a, _b, _c, _d, _e, _f, _g;
+                                                var _a, _b, _c, _d, _e, _f, _g, _h;
                                                 exportData.push({
                                                     訂單編號: order.cart_token,
                                                     訂單來源: orderData.orderSource === 'POS' ? 'POS' : '手動',
@@ -264,7 +267,12 @@ export class ShoppingOrderManager {
                                                                 return '已退貨';
                                                             case 'wait':
                                                             default:
-                                                                return '未出貨';
+                                                                if (orderData.user_info.shipment_number) {
+                                                                    return '備貨中';
+                                                                }
+                                                                else {
+                                                                    return '未出貨';
+                                                                }
                                                         }
                                                     })(),
                                                     訂單小計: orderData.total +
@@ -290,12 +298,42 @@ export class ShoppingOrderManager {
                                                     收件人姓名: orderData.user_info.name,
                                                     收件人手機: orderData.user_info.phone,
                                                     收件人信箱: orderData.user_info.email,
-                                                    備註: (_g = orderData.user_info.note) !== null && _g !== void 0 ? _g : '',
+                                                    付款方式: (() => {
+                                                        var _a;
+                                                        if (payment_methods.find(dd => {
+                                                            return dd.key === orderData.customer_info.payment_select;
+                                                        })) {
+                                                            return (_a = shipment_methods.find(dd => {
+                                                                return dd.key === orderData.customer_info.payment_select;
+                                                            })) === null || _a === void 0 ? void 0 : _a.name;
+                                                        }
+                                                        else {
+                                                            return `未知`;
+                                                        }
+                                                    })(),
+                                                    配送方式: (() => {
+                                                        var _a;
+                                                        if (shipment_methods.find(dd => {
+                                                            return dd.key === orderData.user_info.shipment;
+                                                        })) {
+                                                            return (_a = shipment_methods.find(dd => {
+                                                                return dd.key === orderData.user_info.shipment;
+                                                            })) === null || _a === void 0 ? void 0 : _a.name;
+                                                        }
+                                                        else {
+                                                            return `未知`;
+                                                        }
+                                                    })(),
+                                                    出貨單號碼: orderData.user_info.shipment_number,
+                                                    出貨單日期: gvc.glitter.ut.dateFormat(new Date(orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm'),
+                                                    發票號碼: (_g = order.invoice_number) !== null && _g !== void 0 ? _g : '',
+                                                    會員等級: order.user_data && order.user_data.member_level.tag_name,
+                                                    備註: (_h = orderData.user_info.note) !== null && _h !== void 0 ? _h : '',
                                                 });
                                             });
                                         });
                                         exportDataTo(firstRow, exportData);
-                                    });
+                                    }));
                                 }
                             },
                         });
@@ -430,6 +468,31 @@ export class ShoppingOrderManager {
                                                         value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
                                                     },
                                                     {
+                                                        key: '出貨狀態',
+                                                        value: (() => {
+                                                            var _a;
+                                                            switch ((_a = dd.orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
+                                                                case 'pre_order':
+                                                                    return BgWidget.notifyInsignia('待預購');
+                                                                case 'wait':
+                                                                    if (dd.orderData.user_info.shipment_number) {
+                                                                        return BgWidget.secondaryInsignia('備貨中');
+                                                                    }
+                                                                    else {
+                                                                        return BgWidget.notifyInsignia('未出貨');
+                                                                    }
+                                                                case 'shipping':
+                                                                    return BgWidget.warningInsignia('已出貨');
+                                                                case 'finish':
+                                                                    return BgWidget.infoInsignia('已取貨');
+                                                                case 'arrived':
+                                                                    return BgWidget.warningInsignia('已送達');
+                                                                case 'returns':
+                                                                    return BgWidget.dangerInsignia('已退貨');
+                                                            }
+                                                        })(),
+                                                    },
+                                                    {
                                                         key: '出貨單號碼',
                                                         value: dd.orderData.user_info.shipment_number,
                                                     },
@@ -496,7 +559,12 @@ export class ShoppingOrderManager {
                                                                 case 'pre_order':
                                                                     return BgWidget.notifyInsignia('待預購');
                                                                 case 'wait':
-                                                                    return BgWidget.notifyInsignia('未出貨');
+                                                                    if (dd.orderData.user_info.shipment_number) {
+                                                                        return BgWidget.secondaryInsignia('備貨中');
+                                                                    }
+                                                                    else {
+                                                                        return BgWidget.notifyInsignia('未出貨');
+                                                                    }
                                                                 case 'shipping':
                                                                     return BgWidget.warningInsignia('已出貨');
                                                                 case 'finish':
@@ -504,7 +572,7 @@ export class ShoppingOrderManager {
                                                                 case 'arrived':
                                                                     return BgWidget.warningInsignia('已送達');
                                                                 case 'returns':
-                                                                    return BgWidget.notifyInsignia('已退貨');
+                                                                    return BgWidget.dangerInsignia('已退貨');
                                                             }
                                                         })(),
                                                     },
@@ -546,61 +614,215 @@ export class ShoppingOrderManager {
                                 vm.type = 'replace';
                             },
                             filter: [
-                                {
-                                    name: '列印托運單',
-                                    option: true,
-                                    event: () => {
-                                        const checkArray = vm.dataList.filter((dd) => dd.checked);
-                                        const strArray = checkArray.map((dd) => {
-                                            try {
-                                                return dd.orderData.user_info.shipment;
-                                            }
-                                            catch (error) {
-                                                return undefined;
-                                            }
-                                        });
-                                        if (strArray.includes(undefined)) {
-                                            dialog.errorMessage({
-                                                text: html ` <div class="text-center">
-                              已勾選訂單中不可含有<br />非超商店到店的配送方式
-                            </div>`,
-                                            });
-                                            return;
-                                        }
-                                        const allEqual = strArray.every((val) => val && val === strArray[0]);
-                                        if (!allEqual) {
-                                            dialog.errorMessage({ text: '配送的方式必須相同' });
-                                            return;
-                                        }
-                                        if (strArray.includes('HILIFEC2C') && strArray.length > 1) {
-                                            dialog.errorMessage({ text: '萊爾富不支援一次列印多張托運單' });
-                                            return;
-                                        }
-                                        return this.printStoreOrderInfo({
-                                            gvc,
-                                            cart_token: checkArray.map((dd) => dd.cart_token).join(','),
-                                            print: true,
-                                        });
-                                    },
-                                },
-                                {
-                                    name: '列印揀貨單',
-                                    option: true,
-                                    event: () => {
-                                        const checkArray = vm.dataList.filter((dd) => dd.checked);
-                                        return DeliveryHTML.print(gvc, checkArray, 'pick');
-                                    },
-                                },
-                                {
-                                    name: '合併訂單',
-                                    option: true,
-                                    event: () => {
-                                        const checkArray = vm.dataList.filter((dd) => dd.checked);
-                                        return OrderSetting.combineOrders(gvc, checkArray, () => {
-                                            gvc.notifyDataChange(vm.id);
-                                        });
-                                    },
-                                },
+                                ...(!query.isShipment
+                                    ? [
+                                        {
+                                            name: '合併訂單',
+                                            option: true,
+                                            event: () => {
+                                                const checkArray = vm.dataList.filter((dd) => dd.checked);
+                                                return OrderSetting.combineOrders(gvc, checkArray, () => {
+                                                    gvc.notifyDataChange(vm.id);
+                                                });
+                                            },
+                                        },
+                                        {
+                                            name: '批量出貨取號',
+                                            option: true,
+                                            event: () => {
+                                                const checkArray = vm.dataList.filter((dd) => dd.checked);
+                                                const strArray = checkArray.map((dd) => {
+                                                    try {
+                                                        return dd.orderData.user_info.shipment;
+                                                    }
+                                                    catch (error) {
+                                                        return undefined;
+                                                    }
+                                                });
+                                                const allEqual = strArray.every((val) => val && val === strArray[0]);
+                                                if (!allEqual) {
+                                                    dialog.errorMessage({ text: '配送的方式必須相同' });
+                                                    return;
+                                                }
+                                                if (checkArray.find((dd) => dd.orderData.user_info.shipment_number)) {
+                                                    dialog.errorMessage({ text: `已取號訂單無法再次取號 !!` });
+                                                    return;
+                                                }
+                                                this.printStoreOrderInfo({
+                                                    gvc,
+                                                    cart_token: checkArray.map((dd) => dd.cart_token).join(','),
+                                                    print: false,
+                                                    callback: () => {
+                                                        gvc.notifyDataChange(vm.id);
+                                                    },
+                                                });
+                                            },
+                                        },
+                                        {
+                                            name: '批量手動出貨',
+                                            option: true,
+                                            event: () => __awaiter(this, void 0, void 0, function* () {
+                                                const checkArray = vm.dataList.filter((dd) => dd.checked);
+                                                if (checkArray.find((dd) => dd.orderData.user_info.shipment_number)) {
+                                                    dialog.errorMessage({ text: `已取號訂單無法再次取號 !!` });
+                                                    return;
+                                                }
+                                                if (checkArray.find((dd) => { var _a; return !['', 'wait'].includes((_a = dd.orderData.progress) !== null && _a !== void 0 ? _a : ''); })) {
+                                                    dialog.errorMessage({ text: `未出貨的訂單才可以進行取號 !!` });
+                                                    return;
+                                                }
+                                                dialog.checkYesOrNot({
+                                                    text: '系統將自動生成配號並產生出貨單',
+                                                    callback: (response) => {
+                                                        if (response) {
+                                                            let shipment_date = gvc.glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd');
+                                                            let shipment_time = gvc.glitter.ut.dateFormat(new Date(), 'hh:mm');
+                                                            function next() {
+                                                                return __awaiter(this, void 0, void 0, function* () {
+                                                                    dialog.dataLoading({
+                                                                        visible: true,
+                                                                    });
+                                                                    let index_number = 0;
+                                                                    yield Promise.all(checkArray.map((orderData) => {
+                                                                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                            orderData.orderData.user_info.shipment_number = `${new Date().getTime()}${index_number++}`;
+                                                                            orderData.orderData.user_info.shipment_date = new Date(`${shipment_date} ${shipment_time}:00`).toISOString();
+                                                                            ApiShop.putOrder({
+                                                                                id: `${orderData.id}`,
+                                                                                order_data: orderData.orderData,
+                                                                            }).then(response => {
+                                                                                resolve(true);
+                                                                            });
+                                                                        }));
+                                                                    }));
+                                                                    dialog.dataLoading({
+                                                                        visible: false,
+                                                                    });
+                                                                    gvc.notifyDataChange(vm.id);
+                                                                });
+                                                            }
+                                                            BgWidget.settingDialog({
+                                                                gvc: gvc,
+                                                                title: '設定出貨日期',
+                                                                innerHTML: (gvc) => {
+                                                                    return [
+                                                                        BgWidget.editeInput({
+                                                                            gvc: gvc,
+                                                                            title: '出貨日期',
+                                                                            default: shipment_date,
+                                                                            callback: text => {
+                                                                                shipment_date = text;
+                                                                            },
+                                                                            type: 'date',
+                                                                            placeHolder: '請輸入出貨日期',
+                                                                        }),
+                                                                        BgWidget.editeInput({
+                                                                            gvc: gvc,
+                                                                            title: '出貨時間',
+                                                                            default: shipment_time,
+                                                                            callback: text => {
+                                                                                shipment_time = text;
+                                                                            },
+                                                                            type: 'time',
+                                                                            placeHolder: '請輸入出貨時間',
+                                                                        }),
+                                                                    ].join('');
+                                                                },
+                                                                footer_html: (gvc) => {
+                                                                    return [
+                                                                        BgWidget.cancel(gvc.event(() => {
+                                                                            gvc.closeDialog();
+                                                                        }), '取消'),
+                                                                        BgWidget.save(gvc.event(() => {
+                                                                            gvc.closeDialog();
+                                                                            next();
+                                                                        }), '儲存'),
+                                                                    ].join('');
+                                                                },
+                                                                width: 350,
+                                                            });
+                                                        }
+                                                    }
+                                                });
+                                            }),
+                                        },
+                                    ]
+                                    : [
+                                        {
+                                            name: '取消配號/出貨',
+                                            option: true,
+                                            event: () => __awaiter(this, void 0, void 0, function* () {
+                                                dialog.dataLoading({
+                                                    visible: true,
+                                                });
+                                                const checkArray = vm.dataList.filter((dd) => dd.checked);
+                                                yield Promise.all(checkArray.map((orderData) => {
+                                                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                        ApiDelivery.cancelOrder({
+                                                            cart_token: orderData.cart_token,
+                                                            logistic_number: orderData.orderData.user_info.shipment_number,
+                                                            total_amount: orderData.orderData.total,
+                                                        })
+                                                            .then(res => {
+                                                            resolve(true);
+                                                        })
+                                                            .catch(err => {
+                                                            resolve(true);
+                                                        });
+                                                    }));
+                                                }));
+                                                dialog.dataLoading({
+                                                    visible: false,
+                                                });
+                                                gvc.recreateView();
+                                            }),
+                                        },
+                                        {
+                                            name: '列印托運單',
+                                            option: true,
+                                            event: () => {
+                                                const checkArray = vm.dataList.filter((dd) => dd.checked);
+                                                const strArray = checkArray.map((dd) => {
+                                                    try {
+                                                        return dd.orderData.user_info.shipment;
+                                                    }
+                                                    catch (error) {
+                                                        return undefined;
+                                                    }
+                                                });
+                                                if (strArray.includes(undefined)) {
+                                                    dialog.errorMessage({
+                                                        text: html ` <div class="text-center">
+                                    已勾選訂單中不可含有<br />非超商店到店的配送方式
+                                  </div>`,
+                                                    });
+                                                    return;
+                                                }
+                                                const allEqual = strArray.every((val) => val && val === strArray[0]);
+                                                if (!allEqual) {
+                                                    dialog.errorMessage({ text: '配送的方式必須相同' });
+                                                    return;
+                                                }
+                                                if (strArray.includes('HILIFEC2C') && strArray.length > 1) {
+                                                    dialog.errorMessage({ text: '萊爾富不支援一次列印多張托運單' });
+                                                    return;
+                                                }
+                                                return this.printStoreOrderInfo({
+                                                    gvc,
+                                                    cart_token: checkArray.map((dd) => dd.cart_token).join(','),
+                                                    print: true,
+                                                });
+                                            },
+                                        },
+                                        {
+                                            name: '列印揀貨單',
+                                            option: true,
+                                            event: () => {
+                                                const checkArray = vm.dataList.filter((dd) => dd.checked);
+                                                return DeliveryHTML.print(gvc, checkArray, 'pick');
+                                            },
+                                        },
+                                    ]),
                                 {
                                     name: query.isArchived ? '解除封存' : '批量封存',
                                     event: () => {
@@ -984,7 +1206,7 @@ export class ShoppingOrderManager {
                                                                 value: 'pre_order',
                                                             },
                                                             {
-                                                                title: '未出貨',
+                                                                title: orderData.orderData.user_info.shipment_number ? `備貨中` : '未出貨',
                                                                 value: 'wait',
                                                             },
                                                             {
@@ -1008,13 +1230,17 @@ export class ShoppingOrderManager {
                                                                 }
                                                             }
                                                             if (['', 'wait'].includes(orderData.orderData.progress) &&
-                                                                !orderData.orderData.user_info.shipment_number) {
+                                                                !orderData.orderData.user_info.shipment_number &&
+                                                                text !== 'pre_order') {
                                                                 const dialog = new ShareDialog(gvc.glitter);
                                                                 dialog.checkYesOrNot({
-                                                                    text: '尚未新增出貨單，是否確認變更狀態?',
+                                                                    text: '尚未新增出貨單，是否隨機取號並變更出貨狀態?',
                                                                     callback: response => {
                                                                         if (response) {
+                                                                            orderData.orderData.user_info.shipment_number =
+                                                                                new Date().getTime();
                                                                             next();
+                                                                            saveEvent();
                                                                         }
                                                                         gvc.notifyDataChange('Edit');
                                                                     },
@@ -4359,52 +4585,103 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(gvc.glitter);
-        dialog.dataLoading({ visible: true, text: '處理中...' });
-        ApiDelivery.getOrderInfo({
-            order_id: obj.cart_token,
-        }).then((res) => __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            gvc.notifyDataChange('orderDetailRefresh');
-            dialog.dataLoading({ visible: false });
-            if (!obj.print) {
-                return;
-            }
-            if (res.result && res.response.data) {
-                const data = res.response.data;
-                if (data.result) {
-                    if (data.link) {
-                        if (window.parent.glitter.share.PayConfig.posType === 'SUNMI') {
-                            glitter.runJsInterFace('print-web-view', {
-                                url: data.link,
-                            }, () => { });
+        let shipment_date = gvc.glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd');
+        let shipment_time = gvc.glitter.ut.dateFormat(new Date(), 'hh:mm');
+        function next() {
+            dialog.dataLoading({ visible: true, text: '處理中...' });
+            ApiDelivery.getOrderInfo({
+                order_id: obj.cart_token,
+                shipment_date: obj.print ? undefined : new Date(`${shipment_date} ${shipment_time}:00`).toISOString(),
+            }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b;
+                gvc.notifyDataChange('orderDetailRefresh');
+                dialog.dataLoading({ visible: false });
+                if (!obj.print) {
+                    (_a = obj.callback) === null || _a === void 0 ? void 0 : _a.call(obj);
+                    return;
+                }
+                if (res.result && res.response.data) {
+                    const data = res.response.data;
+                    if (data.result) {
+                        if (data.link) {
+                            if (window.parent.glitter.share.PayConfig.posType === 'SUNMI') {
+                                glitter.runJsInterFace('print-web-view', {
+                                    url: data.link,
+                                }, () => { });
+                            }
+                            else {
+                                glitter.openNewTab(data.link);
+                            }
+                        }
+                        else if (data.id) {
+                            const url = ApiDelivery.getFormURL(data.id);
+                            if (window.parent.glitter.share.PayConfig.posType === 'SUNMI') {
+                                glitter.runJsInterFace('print-web-view', {
+                                    url: url,
+                                }, () => { });
+                            }
+                            else {
+                                glitter.openNewTab(url);
+                            }
                         }
                         else {
-                            glitter.openNewTab(data.link);
-                        }
-                    }
-                    else if (data.id) {
-                        const url = ApiDelivery.getFormURL(data.id);
-                        if (window.parent.glitter.share.PayConfig.posType === 'SUNMI') {
-                            glitter.runJsInterFace('print-web-view', {
-                                url: url,
-                            }, () => { });
-                        }
-                        else {
-                            glitter.openNewTab(url);
+                            dialog.errorMessage({ text: '列印失敗' });
                         }
                     }
                     else {
-                        dialog.errorMessage({ text: '列印失敗' });
+                        dialog.errorMessage({ text: (_b = data.message) !== null && _b !== void 0 ? _b : '發生錯誤' });
                     }
                 }
                 else {
-                    dialog.errorMessage({ text: (_a = data.message) !== null && _a !== void 0 ? _a : '發生錯誤' });
+                    dialog.errorMessage({ text: '列印失敗' });
                 }
-            }
-            else {
-                dialog.errorMessage({ text: '列印失敗' });
-            }
-        }));
+            }));
+        }
+        if (!obj.print) {
+            BgWidget.settingDialog({
+                gvc: gvc,
+                title: '設定出貨日期',
+                innerHTML: (gvc) => {
+                    return [
+                        BgWidget.editeInput({
+                            gvc: gvc,
+                            title: '出貨日期',
+                            default: shipment_date,
+                            callback: text => {
+                                shipment_date = text;
+                            },
+                            type: 'date',
+                            placeHolder: '請輸入出貨日期',
+                        }),
+                        BgWidget.editeInput({
+                            gvc: gvc,
+                            title: '出貨時間',
+                            default: shipment_time,
+                            callback: text => {
+                                shipment_time = text;
+                            },
+                            type: 'time',
+                            placeHolder: '請輸入出貨時間',
+                        }),
+                    ].join('');
+                },
+                footer_html: (gvc) => {
+                    return [
+                        BgWidget.cancel(gvc.event(() => {
+                            gvc.closeDialog();
+                        }), '取消'),
+                        BgWidget.save(gvc.event(() => {
+                            gvc.closeDialog();
+                            next();
+                        }), '儲存'),
+                    ].join('');
+                },
+                width: 350,
+            });
+        }
+        else {
+            next();
+        }
         return;
     }
 }

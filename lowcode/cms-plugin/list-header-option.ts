@@ -8,7 +8,7 @@ export class ListHeaderOption {
       key: 'headerColumn',
       type: 'multi_checkbox',
       name: '欄位顯示',
-      data: ['顧客名稱', '電子信箱', '訂單', '會員等級', '累積消費', '上次登入時間', '社群綁定', '用戶狀態'].map(t => ({
+      data: ['顧客名稱', '電子信箱', '訂單', '會員等級', '累積消費', '上次登入時間','最後出貨時間', '社群綁定', '用戶狀態'].map(t => ({
         key: t,
         name: t,
       })),

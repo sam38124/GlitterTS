@@ -1,4 +1,4 @@
-import { Cart } from "./shopping.js";
+import { Cart } from './shopping.js';
 export declare class OrderEvent {
     static insertOrder(obj: {
         cartData: Cart | any;

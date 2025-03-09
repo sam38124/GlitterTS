@@ -227,6 +227,10 @@ export class Language {
             { key: 'recipient_info', tw: '收件人資料', cn: '收件人资料', en: 'Recipient information' },
             { key: 'invoice_recipient', tw: '發票開立對象', cn: '发票开立对象', en: 'Invoice recipient' },
             { key: 'invoice_method', tw: '開立方式', cn: '开立方式', en: 'Invoice method' },
+            { key: 'invoice_number', tw: '發票號碼', cn: '發票號碼', en: 'Invoice number' },
+            { key: 'shipment_date', tw: '出貨日期', cn: '出貨日期', en: 'Shipment date' },
+            { key: 'track_number', tw: '物流追蹤碼', cn: '物流追蹤碼', en: 'Track number' },
+            { key: 'shipment_number', tw: '出貨單號碼', cn: '出貨單號碼', en: 'Shipment number' },
             { key: 'delivery_notes', tw: '送貨備註', cn: '送货备注', en: 'Delivery notes' },
             {
                 key: 'enter_delivery_notes',

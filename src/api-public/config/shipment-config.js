@@ -47,6 +47,12 @@ ShipmentConfig.list = [
         paynow_id: '03'
     },
     {
+        title: '全家冷凍店到店',
+        value: 'FAMIC2CFREEZE',
+        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734396302-e970be63c9acb23e41cf80c77b7ca35b.jpeg',
+        paynow_id: '23'
+    },
+    {
         title: '萊爾富店到店',
         value: 'HILIFEC2C',
         src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734423037-6e2664ad52332c40b4106868ada74646.png',

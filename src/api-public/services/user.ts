@@ -1174,13 +1174,18 @@ export class User {
       obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : '';
     const orderCountingSQL = await this.getCheckoutCountingModeSQL();
 
+    // return  `
+    //  SELECT ${obj.select} from \`${this.app}\`.t_user  WHERE (${whereClause})
+    //  ORDER BY ${orderByClause} ${limitClause}
+    // `
+    //o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time
     const sql = `
         SELECT ${obj.select}
         FROM (
             SELECT 
                 email,
                 COUNT(*) AS order_count,
-                SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
+                SUM(total) AS total_amount
             FROM \`${this.app}\`.t_checkout
             WHERE ${orderCountingSQL}
             GROUP BY email
@@ -1189,7 +1194,7 @@ export class User {
         LEFT JOIN (
             SELECT 
                 email,
-                JSON_EXTRACT(orderData, '$.total') AS last_order_total,
+                total AS last_order_total,
                 created_time AS last_order_time,
                 ROW_NUMBER() OVER(PARTITION BY email ORDER BY created_time DESC) AS rn
             FROM \`${this.app}\`.t_checkout
@@ -1233,7 +1238,6 @@ export class User {
         const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
         if (getGroup.result && getGroup.data[0]) {
           const users = getGroup.data[0].users;
-
           // 加入有訂閱但未註冊者
           users.map((user, index) => {
             if (user.userID === null) {
@@ -1247,7 +1251,6 @@ export class User {
               });
             }
           });
-
           const ids = query.id
             ? query.id.split(',').filter(id => {
                 return users.find(item => {
@@ -1429,6 +1432,7 @@ export class User {
         querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
       }
 
+      // 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time'
       const dataSQL = await this.getUserAndOrderSQL({
         select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
         where: querySql,
@@ -1508,7 +1512,11 @@ export class User {
 
       return {
         // 所有註冊會員的詳細資料
-        data: userData,
+        data: userData.map((user: any) => {
+          user.order_count=user.order_count || 0;
+          user.total_amount=user.total_amount || 0;
+          return user;
+        }),
         // 所有註冊會員的數量
         total: (await db.query(countSQL, []))[0]['count(1)'],
         // 額外資料（例如未註冊的訂閱者資料）
@@ -2644,7 +2652,7 @@ export class User {
     const sqlQuery: string[] = [];
     const sqlObject: Record<string, { key: string; options: Set<string>; addNull: Set<string> }> = {
       orderStatus: {
-        key: `orderData->>'$.orderStatus'`,
+        key: `order_status`,
         options: new Set(['1', '0', '-1']),
         addNull: new Set(['0']),
       },
@@ -2654,7 +2662,7 @@ export class User {
         addNull: new Set(),
       },
       progress: {
-        key: `orderData->>'$.progress'`,
+        key: `progress`,
         options: new Set(['finish', 'arrived', 'shipping', 'pre_order', 'wait', 'returns']),
         addNull: new Set(['wait']),
       },

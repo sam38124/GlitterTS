@@ -150,7 +150,13 @@ class Rebate {
         const low = (_c = query.low) !== null && _c !== void 0 ? _c : 0;
         const high = (_d = query.high) !== null && _d !== void 0 ? _d : 10000000000;
         let rebateSearchSQL = '';
-        const getUsersSQL = `
+        const getUsersSQL = (query.email_or_phone) ? `
+        SELECT userID, JSON_EXTRACT(userData, '$.name') as name
+        FROM \`${this.app}\`.t_user
+        WHERE
+            (JSON_EXTRACT(userData, '$.phone') = ${database_1.default.escape(query.email_or_phone)}
+            OR JSON_EXTRACT(userData, '$.email') = ${database_1.default.escape(query.email_or_phone)});
+    ` : `
             SELECT userID, JSON_EXTRACT(userData, '$.name') as name 
             FROM \`${this.app}\`.t_user 
             WHERE 
@@ -158,7 +164,7 @@ class Rebate {
                 OR JSON_EXTRACT(userData, '$.email') LIKE '%${(_f = query.search) !== null && _f !== void 0 ? _f : ''}%');
         `;
         try {
-            if (query.search) {
+            if (query.search || query.email_or_phone) {
                 const users = (await database_1.default.query(getUsersSQL, [])).map((user) => user.userID);
                 rebateSearchSQL = `AND r.user_id in (${users.join(',')})`;
             }

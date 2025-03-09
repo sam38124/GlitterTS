@@ -972,7 +972,7 @@ class User {
             SELECT 
                 email,
                 COUNT(*) AS order_count,
-                SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
+                SUM(total) AS total_amount
             FROM \`${this.app}\`.t_checkout
             WHERE ${orderCountingSQL}
             GROUP BY email
@@ -981,7 +981,7 @@ class User {
         LEFT JOIN (
             SELECT 
                 email,
-                JSON_EXTRACT(orderData, '$.total') AS last_order_total,
+                total AS last_order_total,
                 created_time AS last_order_time,
                 ROW_NUMBER() OVER(PARTITION BY email ORDER BY created_time DESC) AS rn
             FROM \`${this.app}\`.t_checkout
@@ -1254,7 +1254,11 @@ class User {
                 }
             }
             return {
-                data: userData,
+                data: userData.map((user) => {
+                    user.order_count = user.order_count || 0;
+                    user.total_amount = user.total_amount || 0;
+                    return user;
+                }),
                 total: (await database_1.default.query(countSQL, []))[0]['count(1)'],
                 extra: {
                     noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
@@ -2121,7 +2125,7 @@ class User {
         const sqlQuery = [];
         const sqlObject = {
             orderStatus: {
-                key: `orderData->>'$.orderStatus'`,
+                key: `order_status`,
                 options: new Set(['1', '0', '-1']),
                 addNull: new Set(['0']),
             },
@@ -2131,7 +2135,7 @@ class User {
                 addNull: new Set(),
             },
             progress: {
-                key: `orderData->>'$.progress'`,
+                key: `progress`,
                 options: new Set(['finish', 'arrived', 'shipping', 'pre_order', 'wait', 'returns']),
                 addNull: new Set(['wait']),
             },

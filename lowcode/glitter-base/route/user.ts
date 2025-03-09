@@ -389,6 +389,7 @@ export class ApiUser {
         status?: number;
         group?: any;
         filter_type?: string;
+        with_level?:boolean
     }) {
         const filterString = this.formatFilterString(json.filter);
         const groupString = this.userListGroupString(json.group);
@@ -429,31 +430,21 @@ export class ApiUser {
             if (array.length > 0) {
                 await Promise.allSettled(
                     array.map(async (item: any) => {
-                        const [userLevel, userOrders] = await Promise.allSettled([
-                            ApiUser.getUserLevel(getConfig().config.token, item.userID),
-                            ApiShop.getOrder({
-                                page: 0,
-                                limit: 99999,
-                                data_from: 'manager',
-                                email: item.account,
-                                valid: true,
-                            }),
-                        ]);
+                        const firstShipment=(await ApiShop.getOrder({
+                            page: 0,
+                            limit: 1,
+                            data_from: 'manager',
+                            email: item.account || '-1',
+                            phone: item.account || '-1',
+                            valid: true,
+                            is_shipment:true
+                        })).response.data[0];
 
-                        if (userLevel.status === 'fulfilled' && userLevel.value.result) {
-                            item.tag_name = userLevel.value.response[0]?.data.tag_name ?? '一般會員';
-                        } else {
+                        if (item.tag_name ) {
                             item.tag_name = '一般會員'; // 失敗時提供預設值
                         }
-
-                        if (userOrders.status === 'fulfilled' && userOrders.value.result && Array.isArray(userOrders.value.response.data) && userOrders.value.response.data.length > 0) {
-                            item.latest_order_date = userOrders.value.response.data[0].created_time;
-                            item.latest_order_total = userOrders.value.response.data[0].orderData.total;
-                            item.checkout_total = userOrders.value.response.data.reduce((sum: number, order: any) => sum + order.orderData.total, 0);
-                            item.checkout_count = userOrders.value.response.total as number;
-                        } else {
-                            item.checkout_total = 0;
-                            item.checkout_count = 0;
+                        if(firstShipment){
+                            item.firstShipment = firstShipment;
                         }
                     }),
                 );
@@ -675,6 +666,10 @@ export class ApiUser {
             }
 
             function callback(res: any) {
+                //暫存配送說明
+                if(key.indexOf('shipment_config_') ===0 && ((window.parent as any).glitter.getUrlParameter('function') !== 'backend-manger')){
+                    config[key + user_id] = res;
+                }
                 switch (key) {
                     case 'collection':
                     case 'footer-setting':

@@ -1152,708 +1152,697 @@ export class CheckoutIndex {
                   `;
                 }
 
-                return html` <div class="container ${gClass('container')}" style="margin-top:0px !important;">
+                return html` <div class="w-100" style="margin-top:0 !important;">
                   ${gvc.bindView(
                     (() => {
                       return {
                         bind: ids.cart,
                         view: () => {
+                          const padding = (document.body.clientWidth - 1200) / 2;
                           return html`
-                            <section>
+                            <div
+                              class="d-flex flex-column flex-md-row justify-content-between w-100"
+                              style="${document.body.clientWidth > 800
+                                ? `height:calc(100vh - 150px);overflow-y:auto;`
+                                : `gap:20px;`}
+padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? padding : 10}px;
+"
+                            >
                               <div
-                                class="d-flex flex-column flex-md-row justify-content-between w-100"
                                 style="${document.body.clientWidth > 800
-                                  ? `height:calc(100vh - 150px);overflow-y:auto;`
-                                  : `gap:20px;`}"
+                                  ? `width:calc(66% - 10px);`
+                                  : `width:calc(100%);`}"
                               >
-                                <div
-                                  style="${document.body.clientWidth > 800
-                                    ? `width:calc(66% - 10px);`
-                                    : `width:calc(100%);`}"
-                                >
-                                  <div style="padding-top:20px;" class="${gClass('banner-text')} fs-4 mb-3 pt-3">
-                                    ${Language.text(
-                                      ApiCart.checkoutCart === ApiCart.buyItNow ? 'buy_it_now' : 'your_shopping_cart'
-                                    )}
-                                  </div>
-                                  <div style="" class="rounded-3 bg-white w-100 ">
-                                    ${gvc.bindView({
-                                      bind: glitter.getUUID(),
-                                      view: () => {
-                                        try {
-                                          return vm.cartData.lineItems
-                                            .map((item: any, index: number) => {
-                                              // min_qty
-                                              function getBadgeClass() {
-                                                if (item.is_add_on_items) {
-                                                  return addItemBadge();
-                                                } else if (item.is_gift) {
-                                                  return giftBadge();
-                                                } else if (item.is_hidden) {
-                                                  return hiddenBadge();
-                                                } else {
-                                                  return ``;
-                                                }
+                                <div style="padding-top:20px;" class="${gClass('banner-text')} fs-4 mb-3 pt-3">
+                                  ${Language.text(
+                                    ApiCart.checkoutCart === ApiCart.buyItNow ? 'buy_it_now' : 'your_shopping_cart'
+                                  )}
+                                </div>
+                                <div style="" class="rounded-3 bg-white w-100 ">
+                                  ${gvc.bindView({
+                                    bind: glitter.getUUID(),
+                                    view: () => {
+                                      try {
+                                        return vm.cartData.lineItems
+                                          .map((item: any, index: number) => {
+                                            // min_qty
+                                            function getBadgeClass() {
+                                              if (item.is_add_on_items) {
+                                                return addItemBadge();
+                                              } else if (item.is_gift) {
+                                                return giftBadge();
+                                              } else if (item.is_hidden) {
+                                                return hiddenBadge();
+                                              } else {
+                                                return ``;
                                               }
+                                            }
 
-                                              const title =
-                                                (item.language_data &&
-                                                  item.language_data[Language.getLanguage()].title) ||
-                                                item.title;
-                                              const spec = (() => {
-                                                if (item.spec) {
-                                                  return item.spec.map((dd: string, index: number) => {
-                                                    try {
-                                                      return (
-                                                        item.specs[index].option.find((d1: any) => {
-                                                          return d1.title === dd;
-                                                        }).language_title[Language.getLanguage()] || dd
-                                                      );
-                                                    } catch (e) {
-                                                      return dd;
-                                                    }
-                                                  });
-                                                } else {
-                                                  return ``;
-                                                }
-                                              })();
-
-                                              if (vm.cartData.lineItems.length === index + 1) {
-                                                gvc.notifyDataChange(ids.shipping);
+                                            const title =
+                                              (item.language_data &&
+                                                item.language_data[Language.getLanguage()].title) ||
+                                              item.title;
+                                            const spec = (() => {
+                                              if (item.spec) {
+                                                return item.spec.map((dd: string, index: number) => {
+                                                  try {
+                                                    return (
+                                                      item.specs[index].option.find((d1: any) => {
+                                                        return d1.title === dd;
+                                                      }).language_title[Language.getLanguage()] || dd
+                                                    );
+                                                  } catch (e) {
+                                                    return dd;
+                                                  }
+                                                });
+                                              } else {
+                                                return ``;
                                               }
+                                            })();
 
-                                              return html`
-                                                <div class="d-flex flex-column p-lg-3 px-2 py-3 gap-2">
-                                                  <div class="d-flex w-100 position-relative" style="gap:20px;">
-                                                    <div class=" justify-content-start  ">
-                                                      <div
-                                                        style="width: 88px;height: 88px;border-radius: 10px;background: 50%/cover url('${item.preview_image}')"
-                                                      ></div>
-                                                    </div>
+                                            if (vm.cartData.lineItems.length === index + 1) {
+                                              gvc.notifyDataChange(ids.shipping);
+                                            }
+
+                                            return html`
+                                              <div class="d-flex flex-column p-lg-3 px-2 py-3 gap-2">
+                                                <div class="d-flex w-100 position-relative" style="gap:20px;">
+                                                  <div class=" justify-content-start  ">
                                                     <div
-                                                      class="d-flex  flex-column  position-relative"
-                                                      style="gap: 2px; position: relative; width:calc(100% - 115px);"
-                                                    >
-                                                      <span
-                                                        class="fw-bold pe-4"
-                                                        style="gap:5px;font-size:${document.body.clientWidth > 800
-                                                          ? `16`
-                                                          : `14`}px;max-width:calc(100% - 10px); display: -webkit-box;
+                                                      style="width: 88px;height: 88px;border-radius: 10px;background: 50%/cover url('${item.preview_image}')"
+                                                    ></div>
+                                                  </div>
+                                                  <div
+                                                    class="d-flex  flex-column  position-relative"
+                                                    style="gap: 2px; position: relative; width:calc(100% - 115px);"
+                                                  >
+                                                    <span
+                                                      class="fw-bold pe-4"
+                                                      style="gap:5px;font-size:${document.body.clientWidth > 800
+                                                        ? `16`
+                                                        : `14`}px;max-width:calc(100% - 10px); display: -webkit-box;
   -webkit-line-clamp: 2; 
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis; "
-                                                        >${title}</span
-                                                      >
-                                                      <div class="${gClass(['66text'])} fs-sm">
-                                                        ${spec ? spec.join(' / ') : ''}
-                                                      </div>
-                                                      <div>${getBadgeClass()}</div>
-                                                      <div
-                                                        class="d-flex flex-column align-items-start "
-                                                        style="gap:2px;"
-                                                      >
-                                                        <div class="fw-bold fs-6 ${gClass('price-text')}">
-                                                          ${(() => {
-                                                            if (item.is_gift) {
-                                                              return Currency.convertCurrencyText(0);
-                                                            }
-                                                            return Currency.convertCurrencyText(
-                                                              parseFloat(item.sale_price)
-                                                            );
-                                                          })()}
-                                                        </div>
+                                                      >${title}</span
+                                                    >
+                                                    <div class="${gClass(['66text'])} fs-sm">
+                                                      ${spec ? spec.join(' / ') : ''}
+                                                    </div>
+                                                    <div>${getBadgeClass()}</div>
+                                                    <div class="d-flex flex-column align-items-start " style="gap:2px;">
+                                                      <div class="fw-bold fs-6 ${gClass('price-text')}">
                                                         ${(() => {
-                                                          if (item.is_gift || item.sale_price >= item.origin_price) {
-                                                            return '';
+                                                          if (item.is_gift) {
+                                                            return Currency.convertCurrencyText(0);
                                                           }
-                                                          return html` <div
-                                                            style="text-decoration: line-through; font-size: 12px;"
-                                                          >
-                                                            ${Currency.convertCurrencyText(
-                                                              parseFloat(item.origin_price)
-                                                            )}
-                                                          </div>`;
+                                                          return Currency.convertCurrencyText(
+                                                            parseFloat(item.sale_price)
+                                                          );
                                                         })()}
                                                       </div>
-                                                      <div class="w-100 d-flex">
-                                                        <div class="flex-fill"></div>
-                                                        <div
-                                                          class="d-flex align-items-center border rounded-2"
-                                                          style="overflow: hidden;"
+                                                      ${(() => {
+                                                        if (item.is_gift || item.sale_price >= item.origin_price) {
+                                                          return '';
+                                                        }
+                                                        return html` <div
+                                                          style="text-decoration: line-through; font-size: 12px;"
                                                         >
-                                                          <div
-                                                            class="${item.is_gift
-                                                              ? `d-none`
-                                                              : `d-flex`} align-items-center justify-content-center"
-                                                            style="width:38px;height: 38px;cursor: pointer;"
-                                                            onclick="${gvc.event(() => {
-                                                              apiCart.setCart(cartItem => {
-                                                                const find = cartItem.line_items.find(dd => {
-                                                                  return (
-                                                                    dd.id === item.id &&
-                                                                    item.spec.join('') === dd.spec.join('')
-                                                                  );
-                                                                })!;
-                                                                if (find.count - 1 > 0) {
-                                                                  find.count = find.count - 1;
-                                                                  refreshCartData();
-                                                                }
-                                                              });
-                                                            })}"
-                                                          >
-                                                            <i class="fa-solid fa-minus" style="color:black;"></i>
-                                                          </div>
-                                                          <select
-                                                            class="form-select custom-select mx-0 p-0 "
-                                                            style="
-                                                            
-                                                            ${item.is_gift
-                                                              ? `border:none;`
-                                                              : `border-top:none;border-bottom: none;`}
-                                                            border-radius: 0px; color: #575757; width: 50px;height:38px;background-image:none;${parseInt(
-                                                              vm.quantity,
-                                                              10
-                                                            ) < 10
-                                                              ? `text-indent: 43%;`
-                                                              : `text-indent: 40%;`}"
-                                                            onchange="${gvc.event(e => {
-                                                              apiCart.setCart(cartItem => {
-                                                                cartItem.line_items.find(dd => {
-                                                                  return (
-                                                                    dd.id === item.id &&
-                                                                    item.spec.join('') === dd.spec.join('')
-                                                                  );
-                                                                })!.count = parseInt(e.value, 10);
-                                                                refreshCartData();
-                                                              });
-                                                            })}"
-                                                            ${item.is_gift ? `disabled` : ``}
-                                                          >
-                                                            ${[
-                                                              ...new Array(
-                                                                (() => {
-                                                                  if (item.show_understocking === 'false') {
-                                                                    return 50;
-                                                                  }
-                                                                  return item.stock < 50 ? item.stock : 50;
-                                                                })()
-                                                              ),
-                                                            ]
-                                                              .map((_, index) => {
-                                                                return html` <option
-                                                                  value="${index + 1}"
-                                                                  ${index + 1 === item.count ? `selected` : ``}
-                                                                >
-                                                                  ${index + 1}
-                                                                </option>`;
-                                                              })
-                                                              .join('')}
-                                                          </select>
-                                                          <div
-                                                            class=" align-items-center justify-content-center ${item.is_gift
-                                                              ? `d-none`
-                                                              : `d-flex`}"
-                                                            style="width:38px;height: 38px;cursor: pointer;"
-                                                            onclick="${gvc.event(() => {
-                                                              apiCart.setCart(cartItem => {
-                                                                const find = cartItem.line_items.find(dd => {
-                                                                  return (
-                                                                    dd.id === item.id &&
-                                                                    item.spec.join('') === dd.spec.join('')
-                                                                  );
-                                                                })!;
-                                                                if (
-                                                                  item.show_understocking === 'false' ||
-                                                                  find.count + 1 < item.stock
-                                                                ) {
-                                                                  find.count = find.count + 1;
-                                                                  refreshCartData();
-                                                                }
-                                                              });
-                                                            })}"
-                                                          >
-                                                            <i class="fa-solid fa-plus" style="color:black;"></i>
-                                                          </div>
-                                                        </div>
-                                                      </div>
+                                                          ${Currency.convertCurrencyText(parseFloat(item.origin_price))}
+                                                        </div>`;
+                                                      })()}
+                                                    </div>
+                                                    <div class="w-100 d-flex">
+                                                      <div class="flex-fill"></div>
                                                       <div
-                                                        class="d-block "
-                                                        style="position: absolute; right: 5px; top:0px;"
+                                                        class="d-flex align-items-center border rounded-2"
+                                                        style="overflow: hidden;"
                                                       >
-                                                        <i
-                                                          class="fa-solid fa-xmark-large"
-                                                          style="cursor: pointer;color:gray;"
+                                                        <div
+                                                          class="${item.is_gift
+                                                            ? `d-none`
+                                                            : `d-flex`} align-items-center justify-content-center"
+                                                          style="width:38px;height: 38px;cursor: pointer;"
                                                           onclick="${gvc.event(() => {
                                                             apiCart.setCart(cartItem => {
-                                                              cartItem.line_items = cartItem.line_items.filter(dd => {
-                                                                return !(
+                                                              const find = cartItem.line_items.find(dd => {
+                                                                return (
                                                                   dd.id === item.id &&
                                                                   item.spec.join('') === dd.spec.join('')
                                                                 );
-                                                              });
+                                                              })!;
+                                                              if (find.count - 1 > 0) {
+                                                                find.count = find.count - 1;
+                                                                refreshCartData();
+                                                              }
+                                                            });
+                                                          })}"
+                                                        >
+                                                          <i class="fa-solid fa-minus" style="color:black;"></i>
+                                                        </div>
+                                                        <select
+                                                          class="form-select custom-select mx-0 p-0 "
+                                                          style="
+                                                            
+                                                            ${item.is_gift
+                                                            ? `border:none;`
+                                                            : `border-top:none;border-bottom: none;`}
+                                                            border-radius: 0px; color: #575757; width: 50px;height:38px;background-image:none;${parseInt(
+                                                            vm.quantity,
+                                                            10
+                                                          ) < 10
+                                                            ? `text-indent: 43%;`
+                                                            : `text-indent: 40%;`}"
+                                                          onchange="${gvc.event(e => {
+                                                            apiCart.setCart(cartItem => {
+                                                              cartItem.line_items.find(dd => {
+                                                                return (
+                                                                  dd.id === item.id &&
+                                                                  item.spec.join('') === dd.spec.join('')
+                                                                );
+                                                              })!.count = parseInt(e.value, 10);
                                                               refreshCartData();
                                                             });
                                                           })}"
-                                                        ></i>
+                                                          ${item.is_gift ? `disabled` : ``}
+                                                        >
+                                                          ${[
+                                                            ...new Array(
+                                                              (() => {
+                                                                if (item.show_understocking === 'false') {
+                                                                  return 50;
+                                                                }
+                                                                return item.stock < 50 ? item.stock : 50;
+                                                              })()
+                                                            ),
+                                                          ]
+                                                            .map((_, index) => {
+                                                              return html` <option
+                                                                value="${index + 1}"
+                                                                ${index + 1 === item.count ? `selected` : ``}
+                                                              >
+                                                                ${index + 1}
+                                                              </option>`;
+                                                            })
+                                                            .join('')}
+                                                        </select>
+                                                        <div
+                                                          class=" align-items-center justify-content-center ${item.is_gift
+                                                            ? `d-none`
+                                                            : `d-flex`}"
+                                                          style="width:38px;height: 38px;cursor: pointer;"
+                                                          onclick="${gvc.event(() => {
+                                                            apiCart.setCart(cartItem => {
+                                                              const find = cartItem.line_items.find(dd => {
+                                                                return (
+                                                                  dd.id === item.id &&
+                                                                  item.spec.join('') === dd.spec.join('')
+                                                                );
+                                                              })!;
+                                                              if (
+                                                                item.show_understocking === 'false' ||
+                                                                find.count + 1 < item.stock
+                                                              ) {
+                                                                find.count = find.count + 1;
+                                                                refreshCartData();
+                                                              }
+                                                            });
+                                                          })}"
+                                                        >
+                                                          <i class="fa-solid fa-plus" style="color:black;"></i>
+                                                        </div>
                                                       </div>
                                                     </div>
-                                                  </div>
-                                                  <div>
-                                                    ${vm.cartData.voucherList
-                                                      .filter((dd: any) => {
-                                                        return (
-                                                          dd.bind.find((d2: any) => {
-                                                            return d2.id === item.id;
-                                                          }) &&
-                                                          dd.reBackType !== 'giveaway' &&
-                                                          dd.reBackType !== 'add_on_items'
-                                                        );
-                                                      })
-                                                      .map((dd: any) => {
-                                                        return `<div class=" w-100 " style="${document.body.clientWidth < 800 ? `font-size:12px;` : `font-size:14px;`}"><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
-                                                      })
-                                                      .join('<div class="my-1"></div>')}
-                                                    ${(() => {
-                                                      let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
-                                                      let count = 0;
-                                                      for (const b of vm.cartData.lineItems) {
-                                                        if (b.id === item.id) {
-                                                          count += b.count;
-                                                        }
-                                                      }
-                                                      if (count < min) {
-                                                        return `<div class="text-danger">${Language.text('min_p_count').replace('_c_', min)}</div>`;
-                                                      } else {
-                                                        return ``;
-                                                      }
-                                                    })()}
-                                                    ${(() => {
-                                                      let max_qty =
-                                                        (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
-                                                      let count = 0;
-                                                      for (const b of vm.cartData.lineItems) {
-                                                        if (b.id === item.id) {
-                                                          count += b.count;
-                                                        }
-                                                      }
-                                                      if (count > max_qty) {
-                                                        return `<div class="text-danger">${Language.text('max_p_count').replace('_c_', max_qty)}</div>`;
-                                                      } else {
-                                                        return ``;
-                                                      }
-                                                    })()}
+                                                    <div
+                                                      class="d-block "
+                                                      style="position: absolute; right: 5px; top:0px;"
+                                                    >
+                                                      <i
+                                                        class="fa-solid fa-xmark-large"
+                                                        style="cursor: pointer;color:gray;"
+                                                        onclick="${gvc.event(() => {
+                                                          apiCart.setCart(cartItem => {
+                                                            cartItem.line_items = cartItem.line_items.filter(dd => {
+                                                              return !(
+                                                                dd.id === item.id &&
+                                                                item.spec.join('') === dd.spec.join('')
+                                                              );
+                                                            });
+                                                            refreshCartData();
+                                                          });
+                                                        })}"
+                                                      ></i>
+                                                    </div>
                                                   </div>
                                                 </div>
-                                              `;
-                                            })
-                                            .join(`<div class="border-bottom w-100"></div>`);
-                                        } catch (e) {
-                                          console.error(`error 1 =>`, e);
-                                          return '';
-                                        }
-                                      },
-                                    })}
-                                  </div>
-                                  <!--加購品-->
-                                  ${(() => {
-                                    let add_on: any[] = [];
-                                    vm.cartData.voucherList.filter((dd: any) => {
-                                      if (dd.reBackType === 'add_on_items') {
-                                        add_on = add_on.concat(dd.add_on_products);
-                                      }
-                                    });
-                                    if (add_on.length) {
-                                      return gvc.bindView(() => {
-                                        const id = gvc.glitter.getUUID();
-                                        return {
-                                          bind: id,
-                                          view: async () => {
-                                            const add_products = await ApiShop.getProduct({
-                                              page: 0,
-                                              limit: 100,
-                                              productType: 'addProduct',
-                                              id_list: add_on.join(','),
-                                            });
-                                            if (!add_products.response.data.length) {
-                                              return ``;
-                                            }
-                                            return html`
-                                              <div class="rounded-3 mt-3 p-3 bg-white">
-                                                <span class="${gClass('banner-text')}"
-                                                  >${Language.text('additional_purchase_items')}</span
-                                                >
-                                                <div
-                                                  class="d-flex align-items-center w-100"
-                                                  style="overflow-x:auto;gap:10px;"
-                                                >
-                                                  ${add_products.response.data
-                                                    .map((dd: any) => {
-                                                      return html` <div
-                                                        class="d-flex py-3 align-items-center"
-                                                        style="gap:10px;"
-                                                      >
-                                                        <div
-                                                          class="img-fluid img-106px"
-                                                          style="background-image: url('${dd.content
-                                                            .preview_image[0]}');"
-                                                        ></div>
-                                                        <div class="d-flex flex-column" style="gap:5px;">
-                                                          <div class="${gClass('banner-text')} banner-font-15">
-                                                            ${dd.content.title}
-                                                          </div>
-                                                          <div class="ntd-font-14">
-                                                            ${Currency.convertCurrencyText(dd.content.min_price)}
-                                                          </div>
-                                                          <button
-                                                            class="${gClass('button-bgr')} mb-0 mt-2"
-                                                            onclick="${gvc.event(() => {
-                                                              const titleFontColor =
-                                                                glitter.share.globalValue['theme_color.0.title'] ??
-                                                                '#333333';
-                                                              gvc.glitter.innerDialog(
-                                                                (gvc: GVC) => {
-                                                                  return html` <div
-                                                                    class=" bg-white shadow  ${document.body
-                                                                      .clientWidth > 768
-                                                                      ? `rounded-3`
-                                                                      : ` position-absolute bottom-0`}"
-                                                                    style=" ${document.body.clientWidth > 768
-                                                                      ? `min-width: 400px; width: 1000px;max-height:calc(100% - 150px);overflow-y: auto;`
-                                                                      : 'width:calc(100vw);height:100%;'}"
-                                                                  >
-                                                                    <div
-                                                                      class="bg-white shadow  ${document.body
-                                                                        .clientWidth > 768
-                                                                        ? `rounded-3`
-                                                                        : `h-100`}"
-                                                                      style="
-                width: 100%;  position: relative;${document.body.clientWidth > 768 ? `` : `overflow-y: auto;`}"
-                                                                    >
-                                                                      <div
-                                                                        class="w-100 d-flex align-items-center p-3 border-bottom"
-                                                                        style="position: sticky; top: 0; background: #fff;z-index:12;"
-                                                                      >
-                                                                        <div
-                                                                          class="fw-bold fs-5"
-                                                                          style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;"
-                                                                        >
-                                                                          ${dd.content.title}
-                                                                        </div>
-                                                                        <div class="flex-fill"></div>
-                                                                        <i
-                                                                          class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                                                          style="cursor: pointer"
-                                                                          onclick="${gvc.event(() => {
-                                                                            gvc.closeDialog();
-                                                                          })}"
-                                                                        ></i>
-                                                                      </div>
-                                                                      <div
-                                                                        class="c_dialog_main"
-                                                                        style="gap: 24px;  max-height: calc(100% - 100px); ${document
-                                                                          .body.clientWidth < 800
-                                                                          ? `padding: 12px 20px;`
-                                                                          : `padding: 30px;`}"
-                                                                      >
-                                                                        ${PdClass.selectSpec({
-                                                                          gvc,
-                                                                          titleFontColor:
-                                                                            glitter.share.globalValue[
-                                                                              'theme_color.0.title'
-                                                                            ] ?? '#333333',
-                                                                          prod: dd.content,
-                                                                          vm: {
-                                                                            specs: dd.content.specs.map(
-                                                                              (spec: {
-                                                                                option: {
-                                                                                  title: string;
-                                                                                }[];
-                                                                              }) => {
-                                                                                return spec.option[0].title;
-                                                                              }
-                                                                            ),
-                                                                            quantity: '1',
-                                                                            wishStatus: (
-                                                                              glitter.share.wishList ?? []
-                                                                            ).some((item: { id: number }) => {
-                                                                              return item.id === dd.id;
-                                                                            }),
-                                                                          },
-                                                                          preview: true,
-                                                                          with_qty: false,
-                                                                          is_gift: true,
-                                                                          callback: () => {
-                                                                            gvc.closeDialog();
-                                                                            console.log(`vm.cartData=>`, vm.cartData);
-                                                                            let find = vm.cartData.lineItems.find(
-                                                                              (d1: any) => {
-                                                                                return dd.add_on_products.find(
-                                                                                  (d2: any) => {
-                                                                                    return d2.id === d1.id;
-                                                                                  }
-                                                                                );
-                                                                              }
-                                                                            );
-                                                                            console.log(`find=>`, find);
-                                                                            if (find) {
-                                                                              apiCart.setCart(cartItem => {
-                                                                                cartItem.line_items.map(dd => {
-                                                                                  if (dd.id === find.id) {
-                                                                                    dd.count--;
-                                                                                  }
-                                                                                });
-                                                                                cartItem.line_items =
-                                                                                  cartItem.line_items.filter(dd => {
-                                                                                    return dd.count > 0;
-                                                                                  });
-                                                                                refreshCartData();
-                                                                                gvc.closeDialog();
-                                                                              });
-                                                                            } else {
-                                                                              refreshCartData();
-                                                                              gvc.closeDialog();
-                                                                            }
-                                                                          },
-                                                                        })}
-                                                                        <div
-                                                                          class="d-sm-none"
-                                                                          style="height:100px;"
-                                                                        ></div>
-                                                                      </div>
-                                                                    </div>
-                                                                  </div>`;
-                                                                },
-                                                                Tool.randomString(7),
-                                                                {
-                                                                  animation:
-                                                                    document.body.clientWidth < 768
-                                                                      ? Animation.popup
-                                                                      : Animation.fade,
-                                                                }
-                                                              );
-                                                            })}"
-                                                          >
-                                                            <span class="${gClass('button-text')}"
-                                                              >${Language.text('add_to_cart')}</span
-                                                            >
-                                                          </button>
-                                                        </div>
-                                                      </div>`;
+                                                <div>
+                                                  ${vm.cartData.voucherList
+                                                    .filter((dd: any) => {
+                                                      return (
+                                                        dd.bind.find((d2: any) => {
+                                                          return d2.id === item.id;
+                                                        }) &&
+                                                        dd.reBackType !== 'giveaway' &&
+                                                        dd.reBackType !== 'add_on_items'
+                                                      );
                                                     })
-                                                    .join('')}
+                                                    .map((dd: any) => {
+                                                      return `<div class=" w-100 " style="${document.body.clientWidth < 800 ? `font-size:12px;` : `font-size:14px;`}"><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
+                                                    })
+                                                    .join('<div class="my-1"></div>')}
+                                                  ${(() => {
+                                                    let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                                    let count = 0;
+                                                    for (const b of vm.cartData.lineItems) {
+                                                      if (b.id === item.id) {
+                                                        count += b.count;
+                                                      }
+                                                    }
+                                                    if (count < min) {
+                                                      return `<div class="text-danger">${Language.text('min_p_count').replace('_c_', min)}</div>`;
+                                                    } else {
+                                                      return ``;
+                                                    }
+                                                  })()}
+                                                  ${(() => {
+                                                    let max_qty =
+                                                      (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
+                                                    let count = 0;
+                                                    for (const b of vm.cartData.lineItems) {
+                                                      if (b.id === item.id) {
+                                                        count += b.count;
+                                                      }
+                                                    }
+                                                    if (count > max_qty) {
+                                                      return `<div class="text-danger">${Language.text('max_p_count').replace('_c_', max_qty)}</div>`;
+                                                    } else {
+                                                      return ``;
+                                                    }
+                                                  })()}
                                                 </div>
                                               </div>
                                             `;
-                                          },
-                                          divCreate: {
-                                            class: `w-100`,
-                                          },
-                                        };
-                                      });
-                                    } else {
-                                      return '';
+                                          })
+                                          .join(`<div class="border-bottom w-100"></div>`);
+                                      } catch (e) {
+                                        console.error(`error 1 =>`, e);
+                                        return '';
+                                      }
+                                    },
+                                  })}
+                                </div>
+                                <!--加購品-->
+                                ${(() => {
+                                  let add_on: any[] = [];
+                                  vm.cartData.voucherList.filter((dd: any) => {
+                                    if (dd.reBackType === 'add_on_items') {
+                                      add_on = add_on.concat(dd.add_on_products);
                                     }
-                                  })()}
-                                  <!--贈品-->
-                                  ${(() => {
-                                    let already_add: any[] = vm.cartData.lineItems.filter((dd: any) => {
-                                      return dd.is_gift;
-                                    });
-                                    const giftHtml = vm.cartData.voucherList
-                                      .filter((d1: any) => {
-                                        return d1.reBackType === 'giveaway';
-                                      })
-                                      .map((dd: any) => {
-                                        let isSelected = already_add.find(d2 => {
-                                          return dd.add_on_products.find((d1: any) => {
-                                            return d1.id === d2.id;
+                                  });
+                                  if (add_on.length) {
+                                    return gvc.bindView(() => {
+                                      const id = gvc.glitter.getUUID();
+                                      return {
+                                        bind: id,
+                                        view: async () => {
+                                          const add_products = await ApiShop.getProduct({
+                                            page: 0,
+                                            limit: 100,
+                                            productType: 'addProduct',
+                                            id_list: add_on.join(','),
                                           });
-                                        });
-                                        already_add = already_add.filter(dd => {
-                                          return !dd === isSelected;
-                                        });
-                                        return html`
-                                          <span class="${gClass('banner-text')}">${dd.title}</span>
-                                          <div
-                                            class="d-flex align-items-center w-100"
-                                            style="overflow-x:auto;gap:10px;"
-                                          >
-                                            ${dd.add_on_products
-                                              .map((pd: any) => {
-                                                try {
-                                                  return html` <div
-                                                    class="d-flex py-3 align-items-center"
-                                                    style="gap:10px;"
-                                                  >
-                                                    <div
-                                                      class="img-fluid img-106px"
-                                                      style="background-image: url('${pd.preview_image[0]}');"
-                                                    ></div>
-                                                    <div class="d-flex flex-column" style="gap:5px;">
-                                                      <div class="${gClass('banner-text')} banner-font-15">
-                                                        ${pd.title}
-                                                      </div>
-                                                      <div class="text-decoration-line-through text-danger ntd-font-14">
-                                                        ${Currency.convertCurrencyText(pd.min_price)}
-                                                      </div>
-                                                      <button
-                                                        class="${gClass('button-bgr')} mb-0 mt-2"
-                                                        style="${isSelected
-                                                          ? isSelected.id === pd.id
-                                                            ? `background: gray !important;`
-                                                            : ``
-                                                          : ``}"
-                                                        onclick="${gvc.event(() => {
-                                                          if (isSelected && isSelected.id === pd.id) {
-                                                            return;
-                                                          }
-                                                          const titleFontColor =
-                                                            glitter.share.globalValue['theme_color.0.title'] ??
-                                                            '#333333';
-                                                          gvc.glitter.innerDialog(
-                                                            (gvc: GVC) => {
-                                                              return html` <div
-                                                                class=" bg-white shadow  ${document.body.clientWidth >
-                                                                768
-                                                                  ? `rounded-3`
-                                                                  : ` position-absolute bottom-0`}"
-                                                                style=" ${document.body.clientWidth > 768
-                                                                  ? `min-width: 400px; width: 1000px;max-height:calc(100% - 150px);overflow-y: auto;`
-                                                                  : 'width:calc(100vw);height:100%;'}"
-                                                              >
-                                                                <div
-                                                                  class="bg-white shadow  ${document.body.clientWidth >
+                                          if (!add_products.response.data.length) {
+                                            return ``;
+                                          }
+                                          return html`
+                                            <div class="rounded-3 mt-3 p-3 bg-white">
+                                              <span class="${gClass('banner-text')}"
+                                                >${Language.text('additional_purchase_items')}</span
+                                              >
+                                              <div
+                                                class="d-flex align-items-center w-100"
+                                                style="overflow-x:auto;gap:10px;"
+                                              >
+                                                ${add_products.response.data
+                                                  .map((dd: any) => {
+                                                    return html` <div
+                                                      class="d-flex py-3 align-items-center"
+                                                      style="gap:10px;"
+                                                    >
+                                                      <div
+                                                        class="img-fluid img-106px"
+                                                        style="background-image: url('${dd.content.preview_image[0]}');"
+                                                      ></div>
+                                                      <div class="d-flex flex-column" style="gap:5px;">
+                                                        <div class="${gClass('banner-text')} banner-font-15">
+                                                          ${dd.content.title}
+                                                        </div>
+                                                        <div class="ntd-font-14">
+                                                          ${Currency.convertCurrencyText(dd.content.min_price)}
+                                                        </div>
+                                                        <button
+                                                          class="${gClass('button-bgr')} mb-0 mt-2"
+                                                          onclick="${gvc.event(() => {
+                                                            const titleFontColor =
+                                                              glitter.share.globalValue['theme_color.0.title'] ??
+                                                              '#333333';
+                                                            gvc.glitter.innerDialog(
+                                                              (gvc: GVC) => {
+                                                                return html` <div
+                                                                  class=" bg-white shadow  ${document.body.clientWidth >
                                                                   768
                                                                     ? `rounded-3`
-                                                                    : `h-100`}"
-                                                                  style="
-                width: 100%;  position: relative;${document.body.clientWidth > 768 ? `` : `overflow-y: auto;`}"
+                                                                    : ` position-absolute bottom-0`}"
+                                                                  style=" ${document.body.clientWidth > 768
+                                                                    ? `min-width: 400px; width: 1000px;max-height:calc(100% - 150px);overflow-y: auto;`
+                                                                    : 'width:calc(100vw);height:100%;'}"
                                                                 >
                                                                   <div
-                                                                    class="w-100 d-flex align-items-center p-3 border-bottom"
-                                                                    style="position: sticky; top: 0; background: #fff;z-index:12;"
+                                                                    class="bg-white shadow  ${document.body
+                                                                      .clientWidth > 768
+                                                                      ? `rounded-3`
+                                                                      : `h-100`}"
+                                                                    style="
+                width: 100%;  position: relative;${document.body.clientWidth > 768 ? `` : `overflow-y: auto;`}"
                                                                   >
                                                                     <div
-                                                                      class="fw-bold fs-5"
-                                                                      style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;"
+                                                                      class="w-100 d-flex align-items-center p-3 border-bottom"
+                                                                      style="position: sticky; top: 0; background: #fff;z-index:12;"
                                                                     >
-                                                                      ${pd.title}
+                                                                      <div
+                                                                        class="fw-bold fs-5"
+                                                                        style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;"
+                                                                      >
+                                                                        ${dd.content.title}
+                                                                      </div>
+                                                                      <div class="flex-fill"></div>
+                                                                      <i
+                                                                        class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                                                        style="cursor: pointer"
+                                                                        onclick="${gvc.event(() => {
+                                                                          gvc.closeDialog();
+                                                                        })}"
+                                                                      ></i>
                                                                     </div>
-                                                                    <div class="flex-fill"></div>
-                                                                    <i
-                                                                      class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                                                      style="cursor: pointer"
-                                                                      onclick="${gvc.event(() => {
-                                                                        gvc.closeDialog();
-                                                                      })}"
-                                                                    ></i>
-                                                                  </div>
-                                                                  <div
-                                                                    class="c_dialog_main"
-                                                                    style="gap: 24px;  max-height: calc(100% - 100px); ${document
-                                                                      .body.clientWidth < 800
-                                                                      ? `padding: 12px 20px;`
-                                                                      : `padding: 30px;`}"
-                                                                  >
-                                                                    ${PdClass.selectSpec({
-                                                                      gvc,
-                                                                      titleFontColor:
-                                                                        glitter.share.globalValue[
-                                                                          'theme_color.0.title'
-                                                                        ] ?? '#333333',
-                                                                      prod: pd,
-                                                                      vm: {
-                                                                        specs: pd.specs.map(
-                                                                          (spec: {
-                                                                            option: {
-                                                                              title: string;
-                                                                            }[];
-                                                                          }) => {
-                                                                            return spec.option[0].title;
-                                                                          }
-                                                                        ),
-                                                                        quantity: '1',
-                                                                        wishStatus: (glitter.share.wishList ?? []).some(
-                                                                          (item: { id: number }) => {
+                                                                    <div
+                                                                      class="c_dialog_main"
+                                                                      style="gap: 24px;  max-height: calc(100% - 100px); ${document
+                                                                        .body.clientWidth < 800
+                                                                        ? `padding: 12px 20px;`
+                                                                        : `padding: 30px;`}"
+                                                                    >
+                                                                      ${PdClass.selectSpec({
+                                                                        gvc,
+                                                                        titleFontColor:
+                                                                          glitter.share.globalValue[
+                                                                            'theme_color.0.title'
+                                                                          ] ?? '#333333',
+                                                                        prod: dd.content,
+                                                                        vm: {
+                                                                          specs: dd.content.specs.map(
+                                                                            (spec: {
+                                                                              option: {
+                                                                                title: string;
+                                                                              }[];
+                                                                            }) => {
+                                                                              return spec.option[0].title;
+                                                                            }
+                                                                          ),
+                                                                          quantity: '1',
+                                                                          wishStatus: (
+                                                                            glitter.share.wishList ?? []
+                                                                          ).some((item: { id: number }) => {
                                                                             return item.id === dd.id;
-                                                                          }
-                                                                        ),
-                                                                      },
-                                                                      preview: true,
-                                                                      with_qty: false,
-                                                                      is_gift: true,
-                                                                      callback: () => {
-                                                                        console.log(`vm.cartData=>`, vm.cartData);
-                                                                        let find = vm.cartData.lineItems.find(
-                                                                          (d1: any) => {
-                                                                            return dd.add_on_products.find(
-                                                                              (d2: any) => {
-                                                                                return d2.id === d1.id;
-                                                                              }
-                                                                            );
-                                                                          }
-                                                                        );
-                                                                        console.log(`find=>`, find);
-                                                                        if (find) {
-                                                                          apiCart.setCart(cartItem => {
-                                                                            cartItem.line_items.map(dd => {
-                                                                              if (dd.id === find.id) {
-                                                                                dd.count--;
-                                                                              }
-                                                                            });
-                                                                            cartItem.line_items =
-                                                                              cartItem.line_items.filter(dd => {
-                                                                                return dd.count > 0;
+                                                                          }),
+                                                                        },
+                                                                        preview: true,
+                                                                        with_qty: false,
+                                                                        is_gift: true,
+                                                                        callback: () => {
+                                                                          gvc.closeDialog();
+                                                                          console.log(`vm.cartData=>`, vm.cartData);
+                                                                          let find = vm.cartData.lineItems.find(
+                                                                            (d1: any) => {
+                                                                              return dd.add_on_products.find(
+                                                                                (d2: any) => {
+                                                                                  return d2.id === d1.id;
+                                                                                }
+                                                                              );
+                                                                            }
+                                                                          );
+                                                                          console.log(`find=>`, find);
+                                                                          if (find) {
+                                                                            apiCart.setCart(cartItem => {
+                                                                              cartItem.line_items.map(dd => {
+                                                                                if (dd.id === find.id) {
+                                                                                  dd.count--;
+                                                                                }
                                                                               });
+                                                                              cartItem.line_items =
+                                                                                cartItem.line_items.filter(dd => {
+                                                                                  return dd.count > 0;
+                                                                                });
+                                                                              refreshCartData();
+                                                                              gvc.closeDialog();
+                                                                            });
+                                                                          } else {
                                                                             refreshCartData();
                                                                             gvc.closeDialog();
+                                                                          }
+                                                                        },
+                                                                      })}
+                                                                      <div
+                                                                        class="d-sm-none"
+                                                                        style="height:100px;"
+                                                                      ></div>
+                                                                    </div>
+                                                                  </div>
+                                                                </div>`;
+                                                              },
+                                                              Tool.randomString(7),
+                                                              {
+                                                                animation:
+                                                                  document.body.clientWidth < 768
+                                                                    ? Animation.popup
+                                                                    : Animation.fade,
+                                                              }
+                                                            );
+                                                          })}"
+                                                        >
+                                                          <span class="${gClass('button-text')}"
+                                                            >${Language.text('add_to_cart')}</span
+                                                          >
+                                                        </button>
+                                                      </div>
+                                                    </div>`;
+                                                  })
+                                                  .join('')}
+                                              </div>
+                                            </div>
+                                          `;
+                                        },
+                                        divCreate: {
+                                          class: `w-100`,
+                                        },
+                                      };
+                                    });
+                                  } else {
+                                    return '';
+                                  }
+                                })()}
+                                <!--贈品-->
+                                ${(() => {
+                                  let already_add: any[] = vm.cartData.lineItems.filter((dd: any) => {
+                                    return dd.is_gift;
+                                  });
+                                  const giftHtml = vm.cartData.voucherList
+                                    .filter((d1: any) => {
+                                      return d1.reBackType === 'giveaway';
+                                    })
+                                    .map((dd: any) => {
+                                      let isSelected = already_add.find(d2 => {
+                                        return dd.add_on_products.find((d1: any) => {
+                                          return d1.id === d2.id;
+                                        });
+                                      });
+                                      already_add = already_add.filter(dd => {
+                                        return !dd === isSelected;
+                                      });
+                                      return html`
+                                        <span class="${gClass('banner-text')}">${dd.title}</span>
+                                        <div class="d-flex align-items-center w-100" style="overflow-x:auto;gap:10px;">
+                                          ${dd.add_on_products
+                                            .map((pd: any) => {
+                                              try {
+                                                return html` <div
+                                                  class="d-flex py-3 align-items-center"
+                                                  style="gap:10px;"
+                                                >
+                                                  <div
+                                                    class="img-fluid img-106px"
+                                                    style="background-image: url('${pd.preview_image[0]}');"
+                                                  ></div>
+                                                  <div class="d-flex flex-column" style="gap:5px;">
+                                                    <div class="${gClass('banner-text')} banner-font-15">
+                                                      ${pd.title}
+                                                    </div>
+                                                    <div class="text-decoration-line-through text-danger ntd-font-14">
+                                                      ${Currency.convertCurrencyText(pd.min_price)}
+                                                    </div>
+                                                    <button
+                                                      class="${gClass('button-bgr')} mb-0 mt-2"
+                                                      style="${isSelected
+                                                        ? isSelected.id === pd.id
+                                                          ? `background: gray !important;`
+                                                          : ``
+                                                        : ``}"
+                                                      onclick="${gvc.event(() => {
+                                                        if (isSelected && isSelected.id === pd.id) {
+                                                          return;
+                                                        }
+                                                        const titleFontColor =
+                                                          glitter.share.globalValue['theme_color.0.title'] ?? '#333333';
+                                                        gvc.glitter.innerDialog(
+                                                          (gvc: GVC) => {
+                                                            return html` <div
+                                                              class=" bg-white shadow  ${document.body.clientWidth > 768
+                                                                ? `rounded-3`
+                                                                : ` position-absolute bottom-0`}"
+                                                              style=" ${document.body.clientWidth > 768
+                                                                ? `min-width: 400px; width: 1000px;max-height:calc(100% - 150px);overflow-y: auto;`
+                                                                : 'width:calc(100vw);height:100%;'}"
+                                                            >
+                                                              <div
+                                                                class="bg-white shadow  ${document.body.clientWidth >
+                                                                768
+                                                                  ? `rounded-3`
+                                                                  : `h-100`}"
+                                                                style="
+                width: 100%;  position: relative;${document.body.clientWidth > 768 ? `` : `overflow-y: auto;`}"
+                                                              >
+                                                                <div
+                                                                  class="w-100 d-flex align-items-center p-3 border-bottom"
+                                                                  style="position: sticky; top: 0; background: #fff;z-index:12;"
+                                                                >
+                                                                  <div
+                                                                    class="fw-bold fs-5"
+                                                                    style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;"
+                                                                  >
+                                                                    ${pd.title}
+                                                                  </div>
+                                                                  <div class="flex-fill"></div>
+                                                                  <i
+                                                                    class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                                                    style="cursor: pointer"
+                                                                    onclick="${gvc.event(() => {
+                                                                      gvc.closeDialog();
+                                                                    })}"
+                                                                  ></i>
+                                                                </div>
+                                                                <div
+                                                                  class="c_dialog_main"
+                                                                  style="gap: 24px;  max-height: calc(100% - 100px); ${document
+                                                                    .body.clientWidth < 800
+                                                                    ? `padding: 12px 20px;`
+                                                                    : `padding: 30px;`}"
+                                                                >
+                                                                  ${PdClass.selectSpec({
+                                                                    gvc,
+                                                                    titleFontColor:
+                                                                      glitter.share.globalValue[
+                                                                        'theme_color.0.title'
+                                                                      ] ?? '#333333',
+                                                                    prod: pd,
+                                                                    vm: {
+                                                                      specs: pd.specs.map(
+                                                                        (spec: {
+                                                                          option: {
+                                                                            title: string;
+                                                                          }[];
+                                                                        }) => {
+                                                                          return spec.option[0].title;
+                                                                        }
+                                                                      ),
+                                                                      quantity: '1',
+                                                                      wishStatus: (glitter.share.wishList ?? []).some(
+                                                                        (item: { id: number }) => {
+                                                                          return item.id === dd.id;
+                                                                        }
+                                                                      ),
+                                                                    },
+                                                                    preview: true,
+                                                                    with_qty: false,
+                                                                    is_gift: true,
+                                                                    callback: () => {
+                                                                      console.log(`vm.cartData=>`, vm.cartData);
+                                                                      let find = vm.cartData.lineItems.find(
+                                                                        (d1: any) => {
+                                                                          return dd.add_on_products.find((d2: any) => {
+                                                                            return d2.id === d1.id;
                                                                           });
-                                                                        } else {
+                                                                        }
+                                                                      );
+                                                                      console.log(`find=>`, find);
+                                                                      if (find) {
+                                                                        apiCart.setCart(cartItem => {
+                                                                          cartItem.line_items.map(dd => {
+                                                                            if (dd.id === find.id) {
+                                                                              dd.count--;
+                                                                            }
+                                                                          });
+                                                                          cartItem.line_items =
+                                                                            cartItem.line_items.filter(dd => {
+                                                                              return dd.count > 0;
+                                                                            });
                                                                           refreshCartData();
                                                                           gvc.closeDialog();
-                                                                        }
-                                                                      },
-                                                                    })}
-                                                                    <div class="d-sm-none" style="height:100px;"></div>
-                                                                  </div>
+                                                                        });
+                                                                      } else {
+                                                                        refreshCartData();
+                                                                        gvc.closeDialog();
+                                                                      }
+                                                                    },
+                                                                  })}
+                                                                  <div class="d-sm-none" style="height:100px;"></div>
                                                                 </div>
-                                                              </div>`;
-                                                            },
-                                                            Tool.randomString(7),
-                                                            {
-                                                              animation:
-                                                                document.body.clientWidth < 768
-                                                                  ? Animation.popup
-                                                                  : Animation.fade,
-                                                            }
-                                                          );
-                                                        })}"
+                                                              </div>
+                                                            </div>`;
+                                                          },
+                                                          Tool.randomString(7),
+                                                          {
+                                                            animation:
+                                                              document.body.clientWidth < 768
+                                                                ? Animation.popup
+                                                                : Animation.fade,
+                                                          }
+                                                        );
+                                                      })}"
+                                                    >
+                                                      <span class="${gClass('button-text')}"
+                                                        >${isSelected
+                                                          ? isSelected.id === pd.id
+                                                            ? Language.text('selected')
+                                                            : Language.text('change_gift')
+                                                          : Language.text('select_gift')}</span
                                                       >
-                                                        <span class="${gClass('button-text')}"
-                                                          >${isSelected
-                                                            ? isSelected.id === pd.id
-                                                              ? Language.text('selected')
-                                                              : Language.text('change_gift')
-                                                            : Language.text('select_gift')}</span
-                                                        >
-                                                      </button>
-                                                    </div>
-                                                  </div>`;
-                                                } catch (e) {
-                                                  console.error(`error 2 =>`, e);
-                                                }
-                                              })
-                                              .join('')}
-                                          </div>
-                                        `;
-                                      })
-                                      .join('');
-                                    return giftHtml && `<div class="rounded-3 bg-white p-3 mt-3">${giftHtml}</div>`;
-                                  })()}
-                                  <!--配送資訊-->
-                                  <div class="rounded-3 bg-white w-100 p-1 mt-3">
-                                    ${` <section>
+                                                    </button>
+                                                  </div>
+                                                </div>`;
+                                              } catch (e) {
+                                                console.error(`error 2 =>`, e);
+                                              }
+                                            })
+                                            .join('')}
+                                        </div>
+                                      `;
+                                    })
+                                    .join('');
+                                  return giftHtml && `<div class="rounded-3 bg-white p-3 mt-3">${giftHtml}</div>`;
+                                })()}
+                                <!--配送資訊-->
+                                <div class="rounded-3 bg-white w-100 p-1 mt-3">
+                                  ${` <section>
                  <div class="${gClass('banner-text')} px-2 pt-3">${Language.text('payment_and_shipping_methods')}</div>
                     ${
                       vm.cartData.shipment_info
@@ -1948,6 +1937,27 @@ export class CheckoutIndex {
                           },
                         })}
                       </div>
+                      <div class="col-12">${gvc.bindView(() => {
+                        return {
+                          bind: gvc.glitter.getUUID(),
+                          view: async () => {
+                            const log_config = (
+                              await ApiUser.getPublicConfig(
+                                'shipment_config_' + vm.cartData.user_info.shipment,
+                                'manager'
+                              )
+                            ).response.value;
+                            if(log_config.content){
+                              return `
+<label class="${gClass('label')}">${Language.text('shipping_instructions')}</label>
+<div class="border rounded-3 p-2">
+${log_config.content}
+</div>`
+                            }
+                            return ``;
+                          },
+                        };
+                      })}</div>
                       <!-- 配送地址 -->
                       ${
                         ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
@@ -2196,1030 +2206,1020 @@ export class CheckoutIndex {
                       })()}
                     </div>
                   </section>`}
-                                  </div>
-                                  <!--顧客資訊-->
-                                  <div class="rounded-3 bg-white w-100 p-1 mt-3">
-                                    <div class="${gClass('banner-text')} px-3 pt-3 w-100 d-flex align-items-center">
-                                      ${Language.text('customer_info')}
-                                      <div class="flex-fill"></div>
-                                      <div
-                                        class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
-                                        style="cursor: pointer; color: #3366bb;"
-                                        onclick="${gvc.event(() => {
-                                          ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
-                                            console.log(`res.response.userData=>`, res.response.userData);
-                                            ['name', 'phone', 'email'].map(dd => {
-                                              vm.cartData.customer_info[dd] =
-                                                res.response.userData[dd] || vm.cartData.customer_info[dd];
-                                            });
-                                            this.storeLocalData(vm.cartData);
-                                            gvc.notifyDataChange('customer-info');
+                                </div>
+                                <!--顧客資訊-->
+                                <div class="rounded-3 bg-white w-100 p-1 mt-3">
+                                  <div class="${gClass('banner-text')} px-3 pt-3 w-100 d-flex align-items-center">
+                                    ${Language.text('customer_info')}
+                                    <div class="flex-fill"></div>
+                                    <div
+                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
+                                      style="cursor: pointer; color: #3366bb;"
+                                      onclick="${gvc.event(() => {
+                                        ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
+                                          console.log(`res.response.userData=>`, res.response.userData);
+                                          ['name', 'phone', 'email'].map(dd => {
+                                            vm.cartData.customer_info[dd] =
+                                              res.response.userData[dd] || vm.cartData.customer_info[dd];
                                           });
-                                        })}"
-                                      >
-                                        ${Language.text('quick_input')}
-                                      </div>
+                                          this.storeLocalData(vm.cartData);
+                                          gvc.notifyDataChange('customer-info');
+                                        });
+                                      })}"
+                                    >
+                                      ${Language.text('quick_input')}
                                     </div>
-                                    ${gvc.bindView(() => {
-                                      const id = 'customer-info';
-                                      const vm_info: {
-                                        loading: boolean;
-                                        list: any[];
-                                      } = {
-                                        loading: true,
-                                        list: [],
-                                      };
-                                      vm_info.list = widget.share.custom_form_checkout;
-                                      return {
-                                        bind: id,
-                                        view: () => {
-                                          return new Promise(async (resolve, reject) => {
-                                            vm_info.list = widget.share.custom_form_checkout;
-                                            resolve(
-                                              [
-                                                html` <div class="row m-0 mt-3 mb-2">
-                                                  ${[
-                                                    {
-                                                      name: Language.text('name'),
-                                                      key: 'name',
-                                                    },
-                                                    {
-                                                      name: Language.text('contact_number'),
-                                                      key: 'phone',
-                                                    },
-                                                    {
-                                                      name: Language.text('email'),
-                                                      key: 'email',
-                                                    },
-                                                  ]
-                                                    .filter(dd => {
-                                                      return vm_info.list.find(d1 => {
-                                                        return d1.key === dd.key && `${d1.hidden}` !== 'true';
-                                                      });
-                                                    })
-                                                    .map(dd => {
-                                                      return html` <div class="col-12 col-md-4 mb-2">
-                                                        <label class="${gClass('label')}">${dd.name}</label>
-                                                        <input
-                                                          class="${gClass('input')}"
-                                                          type="${dd.key}"
-                                                          value="${vm.cartData.customer_info[dd.key] || ''}"
-                                                          onchange="${gvc.event((e, event) => {
-                                                            vm.cartData.customer_info[dd.key] = e.value;
-                                                            this.storeLocalData(vm.cartData);
-                                                          })}"
-                                                        />
-                                                      </div>`;
-                                                    })
-                                                    .join('')}
-                                                </div>`,
-                                                gvc.bindView(() => {
-                                                  const id = gvc.glitter.getUUID();
-                                                  return {
-                                                    bind: id,
-                                                    view: () => {
-                                                      const form_array = JSON.parse(JSON.stringify(vm_info.list));
-                                                      form_array.map((dd: any) => {
-                                                        dd.col = '4';
-                                                        dd.form_config.title_style = {
-                                                          list: [
-                                                            {
-                                                              class: gClass('label') + ' mb-2',
-                                                              style:
-                                                                'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',
-                                                              stylist: [],
-                                                              dataType: 'code',
-                                                              style_from: 'code',
-                                                              classDataType: 'static',
-                                                            },
-                                                          ],
-                                                          class: 'form-label',
-                                                          style:
-                                                            'font-size: 20px;font-style: normal;font-weight: 400;line-height: 140%; color:#393939 !important;',
-                                                          stylist: [],
-                                                          version: 'v2',
-                                                          dataType: 'static',
-                                                          style_from: 'code',
-                                                          classDataType: 'static',
-                                                        };
-                                                        dd.form_config.input_style = {
-                                                          list: [
-                                                            {
-                                                              class: gClass('input'),
-                                                              style:
-                                                                'return `border-radius: ${widget.formData.radius}px !important;`',
-                                                              stylist: [],
-                                                              dataType: 'code',
-                                                              style_from: 'code',
-                                                              classDataType: 'static',
-                                                            },
-                                                          ],
-                                                          class: ' mb-3',
-                                                          style: 'background: #FFF;',
-                                                          stylist: [],
-                                                          version: 'v2',
-                                                          dataType: 'static',
-                                                          style_from: 'code',
-                                                          classDataType: 'static',
-                                                        };
-                                                      });
-                                                      return [
-                                                        FormWidget.editorView({
-                                                          gvc: gvc,
-                                                          array: form_array.filter((dd: any) => {
-                                                            return !['name', 'email', 'phone'].includes(dd.key);
-                                                          }),
-                                                          refresh: () => {
-                                                            this.storeLocalData(vm.cartData);
+                                  </div>
+                                  ${gvc.bindView(() => {
+                                    const id = 'customer-info';
+                                    const vm_info: {
+                                      loading: boolean;
+                                      list: any[];
+                                    } = {
+                                      loading: true,
+                                      list: [],
+                                    };
+                                    vm_info.list = widget.share.custom_form_checkout;
+                                    return {
+                                      bind: id,
+                                      view: () => {
+                                        return new Promise(async (resolve, reject) => {
+                                          vm_info.list = widget.share.custom_form_checkout;
+                                          resolve(
+                                            [
+                                              html` <div class="row m-0 mt-3 mb-2">
+                                                ${[
+                                                  {
+                                                    name: Language.text('name'),
+                                                    key: 'name',
+                                                  },
+                                                  {
+                                                    name: Language.text('contact_number'),
+                                                    key: 'phone',
+                                                  },
+                                                  {
+                                                    name: Language.text('email'),
+                                                    key: 'email',
+                                                  },
+                                                ]
+                                                  .filter(dd => {
+                                                    return vm_info.list.find(d1 => {
+                                                      return d1.key === dd.key && `${d1.hidden}` !== 'true';
+                                                    });
+                                                  })
+                                                  .map(dd => {
+                                                    return html` <div class="col-12 col-md-4 mb-2">
+                                                      <label class="${gClass('label')}">${dd.name}</label>
+                                                      <input
+                                                        class="${gClass('input')}"
+                                                        type="${dd.key}"
+                                                        value="${vm.cartData.customer_info[dd.key] || ''}"
+                                                        onchange="${gvc.event((e, event) => {
+                                                          vm.cartData.customer_info[dd.key] = e.value;
+                                                          this.storeLocalData(vm.cartData);
+                                                        })}"
+                                                      />
+                                                    </div>`;
+                                                  })
+                                                  .join('')}
+                                              </div>`,
+                                              gvc.bindView(() => {
+                                                const id = gvc.glitter.getUUID();
+                                                return {
+                                                  bind: id,
+                                                  view: () => {
+                                                    const form_array = JSON.parse(JSON.stringify(vm_info.list));
+                                                    form_array.map((dd: any) => {
+                                                      dd.col = '4';
+                                                      dd.form_config.title_style = {
+                                                        list: [
+                                                          {
+                                                            class: gClass('label') + ' mb-2',
+                                                            style:
+                                                              'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',
+                                                            stylist: [],
+                                                            dataType: 'code',
+                                                            style_from: 'code',
+                                                            classDataType: 'static',
                                                           },
-                                                          formData: vm.cartData.custom_form_data,
+                                                        ],
+                                                        class: 'form-label',
+                                                        style:
+                                                          'font-size: 20px;font-style: normal;font-weight: 400;line-height: 140%; color:#393939 !important;',
+                                                        stylist: [],
+                                                        version: 'v2',
+                                                        dataType: 'static',
+                                                        style_from: 'code',
+                                                        classDataType: 'static',
+                                                      };
+                                                      dd.form_config.input_style = {
+                                                        list: [
+                                                          {
+                                                            class: gClass('input'),
+                                                            style:
+                                                              'return `border-radius: ${widget.formData.radius}px !important;`',
+                                                            stylist: [],
+                                                            dataType: 'code',
+                                                            style_from: 'code',
+                                                            classDataType: 'static',
+                                                          },
+                                                        ],
+                                                        class: ' mb-3',
+                                                        style: 'background: #FFF;',
+                                                        stylist: [],
+                                                        version: 'v2',
+                                                        dataType: 'static',
+                                                        style_from: 'code',
+                                                        classDataType: 'static',
+                                                      };
+                                                    });
+                                                    return [
+                                                      FormWidget.editorView({
+                                                        gvc: gvc,
+                                                        array: form_array.filter((dd: any) => {
+                                                          return !['name', 'email', 'phone'].includes(dd.key);
                                                         }),
-                                                      ].join('');
+                                                        refresh: () => {
+                                                          this.storeLocalData(vm.cartData);
+                                                        },
+                                                        formData: vm.cartData.custom_form_data,
+                                                      }),
+                                                    ].join('');
+                                                  },
+                                                  divCreate: {
+                                                    class: `w-100 `,
+                                                  },
+                                                };
+                                              }),
+                                            ].join('')
+                                          );
+                                        });
+                                      },
+                                    };
+                                  })}
+                                </div>
+                                <!--收件人資料-->
+                                <div class="rounded-3 bg-white w-100 p-1 mt-3">
+                                  <div class="${gClass('banner-text')} px-3 pt-3 d-flex align-items-center">
+                                    ${Language.text('recipient_info')}
+                                    <div class="flex-fill"></div>
+                                    <div
+                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
+                                      style="cursor: pointer; color: #3366bb;"
+                                      onclick="${gvc.event(() => {
+                                        ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
+                                          console.log(`res.response.userData=>`, res.response.userData);
+                                          ['name', 'phone', 'email'].map(dd => {
+                                            vm.cartData.user_info[dd] =
+                                              res.response.userData[dd] || vm.cartData.user_info[dd];
+                                          });
+
+                                          [
+                                            {
+                                              key: 'carrier_num',
+                                              refer: res.response.userData['carrier_number'],
+                                            },
+                                            {
+                                              key: 'gui_number',
+                                              refer: res.response.userData['gui_number'],
+                                            },
+                                            {
+                                              key: 'send_type',
+                                              refer:
+                                                res.response.userData['gui_number'] ||
+                                                !res.response.userData['carrier_number']
+                                                  ? 'email'
+                                                  : 'carrier_num',
+                                            },
+                                            {
+                                              key: 'invoice_type',
+                                              refer: res.response.userData['gui_number'] ? 'company' : 'me',
+                                            },
+                                            {
+                                              key: 'company',
+                                              refer: res.response.userData['company'],
+                                            },
+                                          ].map(dd => {
+                                            vm.cartData.user_info[dd.key] = dd.refer || vm.cartData.user_info[dd.key];
+                                          });
+
+                                          this.storeLocalData(vm.cartData);
+                                          gvc.notifyDataChange('invoice_place');
+                                        });
+                                      })}"
+                                    >
+                                      ${Language.text('quick_input')}
+                                    </div>
+                                  </div>
+                                  ${gvc.bindView(() => {
+                                    const id = 'invoice_place';
+                                    const vm_info: {
+                                      loading: boolean;
+                                      list: any[];
+                                    } = {
+                                      loading: true,
+                                      list: [],
+                                    };
+                                    //nouse
+                                    let method = widget.share.invoice_method || '';
+                                    if (widget.share.invoice_method) {
+                                      vm_info.loading = false;
+                                      gvc.notifyDataChange(id);
+                                    } else {
+                                      ApiShop.getInvoiceType().then((res: any) => {
+                                        method = res.response.method;
+                                        vm_info.loading = false;
+                                        widget.share.invoice_method = method;
+                                        gvc.notifyDataChange(id);
+                                      });
+                                    }
+                                    const checkbox = this.getCheckedClass(gvc, '#393939');
+                                    return {
+                                      bind: id,
+                                      view: async () => {
+                                        try {
+                                          if (vm_info.loading) {
+                                            return ``;
+                                          }
+                                          const receipt_form = JSON.parse(
+                                            JSON.stringify(widget.share.receipt_form)
+                                          ).map((dd: any) => {
+                                            switch (dd.key) {
+                                              case 'name':
+                                                dd.form_config.place_holder = Language.text('please_enter_name');
+                                                dd.title = Language.text('name');
+                                                break;
+                                              case 'phone':
+                                                dd.form_config.place_holder =
+                                                  Language.text('please_enter_contact_number');
+                                                dd.title = Language.text('contact_number');
+                                                break;
+                                              case 'email':
+                                                dd.form_config.place_holder = Language.text('please_enter_email');
+                                                dd.title = Language.text('email');
+                                                break;
+                                            }
+                                            dd.col = '4';
+                                            return dd;
+                                          });
+                                          vm_info.list = [
+                                            ...receipt_form,
+                                            ...(method === 'nouse'
+                                              ? []
+                                              : [
+                                                  {
+                                                    col: '6',
+                                                    key: 'invoice_type',
+                                                    page: 'form-select',
+                                                    type: 'form_plugin_v2',
+                                                    group: '',
+                                                    title: Language.text('invoice_recipient'),
+                                                    col_sm: '12',
+                                                    appName: 'cms_system',
+                                                    require: 'true',
+                                                    readonly: 'write',
+                                                    formFormat: '{}',
+                                                    moduleName: '下拉選單',
+                                                    style_data: {
+                                                      input: {
+                                                        list: [],
+                                                        class: '',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                      label: {
+                                                        list: [],
+                                                        class: 'form-label fs-base ',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                      container: {
+                                                        list: [],
+                                                        class: '',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
                                                     },
-                                                    divCreate: {
-                                                      class: `w-100 `,
+                                                    form_config: {
+                                                      type: 'name',
+                                                      title: '',
+                                                      option: [
+                                                        {
+                                                          name: Language.text('personal'),
+                                                          index: 0,
+                                                          value: 'me',
+                                                        },
+                                                        {
+                                                          name: Language.text('company'),
+                                                          index: 1,
+                                                          value: 'company',
+                                                        },
+                                                        {
+                                                          name: Language.text('donate_invoice'),
+                                                          index: 2,
+                                                          value: 'donate',
+                                                        },
+                                                      ],
+                                                      input_style: { list: [], version: 'v2' },
+                                                      title_style: { list: [], version: 'v2' },
+                                                      place_holder: '',
                                                     },
-                                                  };
-                                                }),
-                                              ].join('')
+                                                    hidden_code: "return (form_data['invoice_method']==='nouse')",
+                                                  },
+                                                  {
+                                                    col: '6',
+                                                    key: 'send_type',
+                                                    page: 'form-select',
+                                                    type: 'form_plugin_v2',
+                                                    group: '',
+                                                    title: Language.text('invoice_method'),
+                                                    col_sm: '12',
+                                                    appName: 'cms_system',
+                                                    require: 'true',
+                                                    readonly: 'write',
+                                                    formFormat: '{}',
+                                                    moduleName: '下拉選單',
+                                                    style_data: {
+                                                      input: {
+                                                        list: [],
+                                                        class: '',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                      label: {
+                                                        list: [],
+                                                        class: 'form-label fs-base ',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                      container: {
+                                                        list: [],
+                                                        class: '',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                    },
+                                                    form_config: {
+                                                      type: 'name',
+                                                      title: '',
+                                                      option: [
+                                                        {
+                                                          name: Language.text('send_to_user_email'),
+                                                          index: 0,
+                                                          value: 'email',
+                                                        },
+                                                        {
+                                                          name: Language.text('mobile_barcode_device'),
+                                                          index: 1,
+                                                          value: 'carrier',
+                                                        },
+                                                      ],
+                                                      input_style: { list: [], version: 'v2' },
+                                                      title_style: { list: [], version: 'v2' },
+                                                      place_holder: '',
+                                                    },
+                                                    hidden_code:
+                                                      "    if(form_data['invoice_type']!=='me' || (form_data['invoice_method']==='nouse') || (form_data['invoice_method']==='off_line')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                  },
+                                                  {
+                                                    key: 'carrier_num',
+                                                    page: 'input',
+                                                    type: 'form_plugin_v2',
+                                                    group: '',
+                                                    title: Language.text('carrier_number'),
+                                                    appName: 'cms_system',
+                                                    require: 'false',
+                                                    readonly: 'write',
+                                                    formFormat: '{}',
+                                                    moduleName: '輸入框',
+                                                    col: '3',
+                                                    col_sm: '12',
+                                                    style_data: {
+                                                      input: {
+                                                        list: [],
+                                                        class: '',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                      label: {
+                                                        list: [],
+                                                        class: 'form-label fs-base ',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                      container: {
+                                                        list: [],
+                                                        class: '',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                    },
+                                                    form_config: {
+                                                      type: 'name',
+                                                      title: '',
+                                                      input_style: { list: [], version: 'v2' },
+                                                      title_style: { list: [], version: 'v2' },
+                                                      place_holder: Language.text('please_enter_carrier_number'),
+                                                    },
+                                                    hidden_code:
+                                                      "    \n    if(form_data['invoice_type']!=='me' || form_data['send_type']!=='carrier'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                  },
+                                                  {
+                                                    key: 'company',
+                                                    page: 'input',
+                                                    type: 'form_plugin_v2',
+                                                    group: '',
+                                                    title: Language.text('company_name'),
+                                                    appName: 'cms_system',
+                                                    require: 'false',
+                                                    readonly: 'write',
+                                                    formFormat: '{}',
+                                                    moduleName: '輸入框',
+                                                    col: '3',
+                                                    col_sm: '12',
+                                                    style_data: {
+                                                      input: {
+                                                        list: [],
+                                                        class: '',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                      label: {
+                                                        list: [],
+                                                        class: 'form-label fs-base ',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                      container: {
+                                                        list: [],
+                                                        class: '',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                    },
+                                                    form_config: {
+                                                      type: 'name',
+                                                      title: '',
+                                                      input_style: { list: [], version: 'v2' },
+                                                      title_style: { list: [], version: 'v2' },
+                                                      place_holder: Language.text('please_enter_company_name'),
+                                                    },
+                                                    hidden_code:
+                                                      "    if(form_data['invoice_type']!=='company' || (form_data['invoice_method']==='nouse')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                  },
+                                                  {
+                                                    key: 'gui_number',
+                                                    page: 'input',
+                                                    type: 'form_plugin_v2',
+                                                    group: '',
+                                                    title: Language.text('company_tax_id'),
+                                                    col: '3',
+                                                    col_sm: '12',
+                                                    appName: 'cms_system',
+                                                    require: 'false',
+                                                    readonly: 'write',
+                                                    formFormat: '{}',
+                                                    moduleName: '輸入框',
+                                                    style_data: {
+                                                      input: {
+                                                        list: [],
+                                                        class: '',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                      label: {
+                                                        list: [],
+                                                        class: 'form-label fs-base ',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                      container: {
+                                                        list: [],
+                                                        class: '',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                    },
+                                                    form_config: {
+                                                      type: 'name',
+                                                      title: '',
+                                                      input_style: { list: [], version: 'v2' },
+                                                      title_style: { list: [], version: 'v2' },
+                                                      place_holder: Language.text('please_enter_company_tax_id'),
+                                                    },
+                                                    hidden_code:
+                                                      "    if(form_data['invoice_type']!=='company'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                  },
+                                                  {
+                                                    col: '6',
+                                                    key: 'love_code',
+                                                    page: 'input',
+                                                    type: 'form_plugin_v2',
+                                                    group: '',
+                                                    title: Language.text('donation_code'),
+                                                    col_sm: '12',
+                                                    appName: 'cms_system',
+                                                    require: 'false',
+                                                    readonly: 'write',
+                                                    formFormat: '{}',
+                                                    moduleName: '輸入框',
+                                                    style_data: {
+                                                      input: {
+                                                        list: [],
+                                                        class: '',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                      label: {
+                                                        list: [],
+                                                        class: 'form-label fs-base ',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                      container: {
+                                                        list: [],
+                                                        class: '',
+                                                        style: '',
+                                                        version: 'v2',
+                                                      },
+                                                    },
+                                                    form_config: {
+                                                      type: 'name',
+                                                      title: '',
+                                                      input_style: { list: [], version: 'v2' },
+                                                      title_style: { list: [], version: 'v2' },
+                                                      place_holder: Language.text('please_enter_donation_code'),
+                                                    },
+                                                    hidden_code:
+                                                      "    if(form_data['invoice_type']!=='donate' || (form_data['invoice_method']==='nouse')){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                  },
+                                                ]),
+                                            {
+                                              col: '12',
+                                              key: 'note',
+                                              page: 'multiple_line_text',
+                                              type: 'form_plugin_v2',
+                                              group: '',
+                                              title: Language.text('delivery_notes'),
+                                              col_sm: '12',
+                                              appName: 'cms_system',
+                                              require: 'false',
+                                              readonly: 'write',
+                                              formFormat: '{}',
+                                              moduleName: '多行文字區塊',
+                                              style_data: {
+                                                input: {
+                                                  list: [],
+                                                  class: '',
+                                                  style: '',
+                                                  version: 'v2',
+                                                },
+                                                label: {
+                                                  list: [],
+                                                  class: 'form-label fs-base ',
+                                                  style: '',
+                                                  version: 'v2',
+                                                },
+                                                container: {
+                                                  list: [],
+                                                  class: '',
+                                                  style: '',
+                                                  version: 'v2',
+                                                },
+                                              },
+                                              form_config: {
+                                                type: 'text',
+                                                title: '',
+                                                title_style: { list: [], version: 'v2' },
+                                                place_holder: Language.text('enter_delivery_notes'),
+                                              },
+                                              hidden_code: 'return false',
+                                            },
+                                          ].filter(dd => {
+                                            return (
+                                              (dd.key !== 'name' && dd.key !== 'phone' && dd.key !== 'email') ||
+                                              !vm.cartData.user_info_same ||
+                                              !widget.share.custom_form_checkout.find((d1: any) => {
+                                                return d1.key === dd.key && d1.require;
+                                              })
                                             );
                                           });
-                                        },
-                                      };
-                                    })}
-                                  </div>
-                                  <!--收件人資料-->
-                                  <div class="rounded-3 bg-white w-100 p-1 mt-3">
-                                    <div class="${gClass('banner-text')} px-3 pt-3 d-flex align-items-center">
-                                      ${Language.text('recipient_info')}
-                                      <div class="flex-fill"></div>
-                                      <div
-                                        class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
-                                        style="cursor: pointer; color: #3366bb;"
-                                        onclick="${gvc.event(() => {
-                                          ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
-                                            console.log(`res.response.userData=>`, res.response.userData);
-                                            ['name', 'phone', 'email'].map(dd => {
-                                              vm.cartData.user_info[dd] =
-                                                res.response.userData[dd] || vm.cartData.user_info[dd];
-                                            });
+                                          vm.cartData.user_info.invoice_method = method;
+                                          vm.cartData.user_info.invoice_type =
+                                            vm.cartData.user_info.invoice_type || 'me';
+                                          vm.cartData.user_info.send_type = vm.cartData.user_info.send_type || 'email';
 
-                                            [
-                                              {
-                                                key: 'carrier_num',
-                                                refer: res.response.userData['carrier_number'],
-                                              },
-                                              {
-                                                key: 'gui_number',
-                                                refer: res.response.userData['gui_number'],
-                                              },
-                                              {
-                                                key: 'send_type',
-                                                refer:
-                                                  res.response.userData['gui_number'] ||
-                                                  !res.response.userData['carrier_number']
-                                                    ? 'email'
-                                                    : 'carrier_num',
-                                              },
-                                              {
-                                                key: 'invoice_type',
-                                                refer: res.response.userData['gui_number'] ? 'company' : 'me',
-                                              },
-                                              {
-                                                key: 'company',
-                                                refer: res.response.userData['company'],
-                                              },
-                                            ].map(dd => {
-                                              vm.cartData.user_info[dd.key] = dd.refer || vm.cartData.user_info[dd.key];
-                                            });
+                                          const form_array = JSON.parse(JSON.stringify(vm_info.list));
 
-                                            this.storeLocalData(vm.cartData);
-                                            gvc.notifyDataChange('invoice_place');
-                                          });
-                                        })}"
-                                      >
-                                        ${Language.text('quick_input')}
-                                      </div>
-                                    </div>
-                                    ${gvc.bindView(() => {
-                                      const id = 'invoice_place';
-                                      const vm_info: {
-                                        loading: boolean;
-                                        list: any[];
-                                      } = {
-                                        loading: true,
-                                        list: [],
-                                      };
-                                      //nouse
-                                      let method = widget.share.invoice_method || '';
-                                      if (widget.share.invoice_method) {
-                                        vm_info.loading = false;
-                                        gvc.notifyDataChange(id);
-                                      } else {
-                                        ApiShop.getInvoiceType().then((res: any) => {
-                                          method = res.response.method;
-                                          vm_info.loading = false;
-                                          widget.share.invoice_method = method;
-                                          gvc.notifyDataChange(id);
-                                        });
-                                      }
-                                      const checkbox = this.getCheckedClass(gvc, '#393939');
-                                      return {
-                                        bind: id,
-                                        view: async () => {
-                                          try {
-                                            if (vm_info.loading) {
-                                              return ``;
+                                          form_array.map((dd: any) => {
+                                            if (
+                                              dd.key === 'send_type' &&
+                                              vm.cartData.user_info.send_type === 'carrier'
+                                            ) {
+                                              dd.col = 3;
                                             }
-                                            const receipt_form = JSON.parse(
-                                              JSON.stringify(widget.share.receipt_form)
-                                            ).map((dd: any) => {
-                                              switch (dd.key) {
-                                                case 'name':
-                                                  dd.form_config.place_holder = Language.text('please_enter_name');
-                                                  dd.title = Language.text('name');
-                                                  break;
-                                                case 'phone':
-                                                  dd.form_config.place_holder =
-                                                    Language.text('please_enter_contact_number');
-                                                  dd.title = Language.text('contact_number');
-                                                  break;
-                                                case 'email':
-                                                  dd.form_config.place_holder = Language.text('please_enter_email');
-                                                  dd.title = Language.text('email');
-                                                  break;
-                                              }
-                                              dd.col = '4';
-                                              return dd;
-                                            });
-                                            vm_info.list = [
-                                              ...receipt_form,
-                                              ...(method === 'nouse'
-                                                ? []
-                                                : [
-                                                    {
-                                                      col: '6',
-                                                      key: 'invoice_type',
-                                                      page: 'form-select',
-                                                      type: 'form_plugin_v2',
-                                                      group: '',
-                                                      title: Language.text('invoice_recipient'),
-                                                      col_sm: '12',
-                                                      appName: 'cms_system',
-                                                      require: 'true',
-                                                      readonly: 'write',
-                                                      formFormat: '{}',
-                                                      moduleName: '下拉選單',
-                                                      style_data: {
-                                                        input: {
-                                                          list: [],
-                                                          class: '',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                        label: {
-                                                          list: [],
-                                                          class: 'form-label fs-base ',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                        container: {
-                                                          list: [],
-                                                          class: '',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                      },
-                                                      form_config: {
-                                                        type: 'name',
-                                                        title: '',
-                                                        option: [
-                                                          {
-                                                            name: Language.text('personal'),
-                                                            index: 0,
-                                                            value: 'me',
-                                                          },
-                                                          {
-                                                            name: Language.text('company'),
-                                                            index: 1,
-                                                            value: 'company',
-                                                          },
-                                                          {
-                                                            name: Language.text('donate_invoice'),
-                                                            index: 2,
-                                                            value: 'donate',
-                                                          },
-                                                        ],
-                                                        input_style: { list: [], version: 'v2' },
-                                                        title_style: { list: [], version: 'v2' },
-                                                        place_holder: '',
-                                                      },
-                                                      hidden_code: "return (form_data['invoice_method']==='nouse')",
-                                                    },
-                                                    {
-                                                      col: '6',
-                                                      key: 'send_type',
-                                                      page: 'form-select',
-                                                      type: 'form_plugin_v2',
-                                                      group: '',
-                                                      title: Language.text('invoice_method'),
-                                                      col_sm: '12',
-                                                      appName: 'cms_system',
-                                                      require: 'true',
-                                                      readonly: 'write',
-                                                      formFormat: '{}',
-                                                      moduleName: '下拉選單',
-                                                      style_data: {
-                                                        input: {
-                                                          list: [],
-                                                          class: '',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                        label: {
-                                                          list: [],
-                                                          class: 'form-label fs-base ',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                        container: {
-                                                          list: [],
-                                                          class: '',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                      },
-                                                      form_config: {
-                                                        type: 'name',
-                                                        title: '',
-                                                        option: [
-                                                          {
-                                                            name: Language.text('send_to_user_email'),
-                                                            index: 0,
-                                                            value: 'email',
-                                                          },
-                                                          {
-                                                            name: Language.text('mobile_barcode_device'),
-                                                            index: 1,
-                                                            value: 'carrier',
-                                                          },
-                                                        ],
-                                                        input_style: { list: [], version: 'v2' },
-                                                        title_style: { list: [], version: 'v2' },
-                                                        place_holder: '',
-                                                      },
-                                                      hidden_code:
-                                                        "    if(form_data['invoice_type']!=='me' || (form_data['invoice_method']==='nouse') || (form_data['invoice_method']==='off_line')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
-                                                    },
-                                                    {
-                                                      key: 'carrier_num',
-                                                      page: 'input',
-                                                      type: 'form_plugin_v2',
-                                                      group: '',
-                                                      title: Language.text('carrier_number'),
-                                                      appName: 'cms_system',
-                                                      require: 'false',
-                                                      readonly: 'write',
-                                                      formFormat: '{}',
-                                                      moduleName: '輸入框',
-                                                      col: '3',
-                                                      col_sm: '12',
-                                                      style_data: {
-                                                        input: {
-                                                          list: [],
-                                                          class: '',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                        label: {
-                                                          list: [],
-                                                          class: 'form-label fs-base ',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                        container: {
-                                                          list: [],
-                                                          class: '',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                      },
-                                                      form_config: {
-                                                        type: 'name',
-                                                        title: '',
-                                                        input_style: { list: [], version: 'v2' },
-                                                        title_style: { list: [], version: 'v2' },
-                                                        place_holder: Language.text('please_enter_carrier_number'),
-                                                      },
-                                                      hidden_code:
-                                                        "    \n    if(form_data['invoice_type']!=='me' || form_data['send_type']!=='carrier'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
-                                                    },
-                                                    {
-                                                      key: 'company',
-                                                      page: 'input',
-                                                      type: 'form_plugin_v2',
-                                                      group: '',
-                                                      title: Language.text('company_name'),
-                                                      appName: 'cms_system',
-                                                      require: 'false',
-                                                      readonly: 'write',
-                                                      formFormat: '{}',
-                                                      moduleName: '輸入框',
-                                                      col: '3',
-                                                      col_sm: '12',
-                                                      style_data: {
-                                                        input: {
-                                                          list: [],
-                                                          class: '',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                        label: {
-                                                          list: [],
-                                                          class: 'form-label fs-base ',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                        container: {
-                                                          list: [],
-                                                          class: '',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                      },
-                                                      form_config: {
-                                                        type: 'name',
-                                                        title: '',
-                                                        input_style: { list: [], version: 'v2' },
-                                                        title_style: { list: [], version: 'v2' },
-                                                        place_holder: Language.text('please_enter_company_name'),
-                                                      },
-                                                      hidden_code:
-                                                        "    if(form_data['invoice_type']!=='company' || (form_data['invoice_method']==='nouse')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
-                                                    },
-                                                    {
-                                                      key: 'gui_number',
-                                                      page: 'input',
-                                                      type: 'form_plugin_v2',
-                                                      group: '',
-                                                      title: Language.text('company_tax_id'),
-                                                      col: '3',
-                                                      col_sm: '12',
-                                                      appName: 'cms_system',
-                                                      require: 'false',
-                                                      readonly: 'write',
-                                                      formFormat: '{}',
-                                                      moduleName: '輸入框',
-                                                      style_data: {
-                                                        input: {
-                                                          list: [],
-                                                          class: '',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                        label: {
-                                                          list: [],
-                                                          class: 'form-label fs-base ',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                        container: {
-                                                          list: [],
-                                                          class: '',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                      },
-                                                      form_config: {
-                                                        type: 'name',
-                                                        title: '',
-                                                        input_style: { list: [], version: 'v2' },
-                                                        title_style: { list: [], version: 'v2' },
-                                                        place_holder: Language.text('please_enter_company_tax_id'),
-                                                      },
-                                                      hidden_code:
-                                                        "    if(form_data['invoice_type']!=='company'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
-                                                    },
-                                                    {
-                                                      col: '6',
-                                                      key: 'love_code',
-                                                      page: 'input',
-                                                      type: 'form_plugin_v2',
-                                                      group: '',
-                                                      title: Language.text('donation_code'),
-                                                      col_sm: '12',
-                                                      appName: 'cms_system',
-                                                      require: 'false',
-                                                      readonly: 'write',
-                                                      formFormat: '{}',
-                                                      moduleName: '輸入框',
-                                                      style_data: {
-                                                        input: {
-                                                          list: [],
-                                                          class: '',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                        label: {
-                                                          list: [],
-                                                          class: 'form-label fs-base ',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                        container: {
-                                                          list: [],
-                                                          class: '',
-                                                          style: '',
-                                                          version: 'v2',
-                                                        },
-                                                      },
-                                                      form_config: {
-                                                        type: 'name',
-                                                        title: '',
-                                                        input_style: { list: [], version: 'v2' },
-                                                        title_style: { list: [], version: 'v2' },
-                                                        place_holder: Language.text('please_enter_donation_code'),
-                                                      },
-                                                      hidden_code:
-                                                        "    if(form_data['invoice_type']!=='donate' || (form_data['invoice_method']==='nouse')){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
-                                                    },
-                                                  ]),
-                                              {
-                                                col: '12',
-                                                key: 'note',
-                                                page: 'multiple_line_text',
-                                                type: 'form_plugin_v2',
-                                                group: '',
-                                                title: Language.text('delivery_notes'),
-                                                col_sm: '12',
-                                                appName: 'cms_system',
-                                                require: 'false',
-                                                readonly: 'write',
-                                                formFormat: '{}',
-                                                moduleName: '多行文字區塊',
-                                                style_data: {
-                                                  input: {
-                                                    list: [],
-                                                    class: '',
-                                                    style: '',
-                                                    version: 'v2',
-                                                  },
-                                                  label: {
-                                                    list: [],
-                                                    class: 'form-label fs-base ',
-                                                    style: '',
-                                                    version: 'v2',
-                                                  },
-                                                  container: {
-                                                    list: [],
-                                                    class: '',
-                                                    style: '',
-                                                    version: 'v2',
-                                                  },
+                                            dd.form_config.title_style = {
+                                              list: [
+                                                {
+                                                  class: ['company', 'gui_number', 'carrier_num'].includes(dd.key)
+                                                    ? gClass('label') + ' mt-2'
+                                                    : gClass('label') + ' mb-2',
+                                                  style:
+                                                    'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',
+                                                  stylist: [],
+                                                  dataType: 'code',
+                                                  style_from: 'code',
+                                                  classDataType: 'static',
                                                 },
-                                                form_config: {
-                                                  type: 'text',
-                                                  title: '',
-                                                  title_style: { list: [], version: 'v2' },
-                                                  place_holder: Language.text('enter_delivery_notes'),
+                                              ],
+                                              class: 'form-label',
+                                              style:
+                                                'font-size: 20px;font-style: normal;font-weight: 400;line-height: 140%; color:#393939 !important;',
+                                              stylist: [],
+                                              version: 'v2',
+                                              dataType: 'static',
+                                              style_from: 'code',
+                                              classDataType: 'static',
+                                            };
+                                            dd.form_config.input_style = {
+                                              list: [
+                                                {
+                                                  class: gClass('input'),
+                                                  style:
+                                                    'return `border-radius: ${widget.formData.radius}px !important;`',
+                                                  stylist: [],
+                                                  dataType: 'code',
+                                                  style_from: 'code',
+                                                  classDataType: 'static',
                                                 },
-                                                hidden_code: 'return false',
-                                              },
-                                            ].filter(dd => {
-                                              return (
-                                                (dd.key !== 'name' && dd.key !== 'phone' && dd.key !== 'email') ||
-                                                !vm.cartData.user_info_same ||
-                                                !widget.share.custom_form_checkout.find((d1: any) => {
-                                                  return d1.key === dd.key && d1.require;
-                                                })
-                                              );
-                                            });
-                                            vm.cartData.user_info.invoice_method = method;
-                                            vm.cartData.user_info.invoice_type =
-                                              vm.cartData.user_info.invoice_type || 'me';
-                                            vm.cartData.user_info.send_type =
-                                              vm.cartData.user_info.send_type || 'email';
-
-                                            const form_array = JSON.parse(JSON.stringify(vm_info.list));
-
-                                            form_array.map((dd: any) => {
-                                              if (
-                                                dd.key === 'send_type' &&
-                                                vm.cartData.user_info.send_type === 'carrier'
-                                              ) {
-                                                dd.col = 3;
-                                              }
-                                              dd.form_config.title_style = {
-                                                list: [
-                                                  {
-                                                    class: ['company', 'gui_number', 'carrier_num'].includes(dd.key)
-                                                      ? gClass('label') + ' mt-2'
-                                                      : gClass('label') + ' mb-2',
-                                                    style:
-                                                      'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',
-                                                    stylist: [],
-                                                    dataType: 'code',
-                                                    style_from: 'code',
-                                                    classDataType: 'static',
-                                                  },
-                                                ],
-                                                class: 'form-label',
-                                                style:
-                                                  'font-size: 20px;font-style: normal;font-weight: 400;line-height: 140%; color:#393939 !important;',
-                                                stylist: [],
-                                                version: 'v2',
-                                                dataType: 'static',
-                                                style_from: 'code',
-                                                classDataType: 'static',
-                                              };
-                                              dd.form_config.input_style = {
-                                                list: [
-                                                  {
-                                                    class: gClass('input'),
-                                                    style:
-                                                      'return `border-radius: ${widget.formData.radius}px !important;`',
-                                                    stylist: [],
-                                                    dataType: 'code',
-                                                    style_from: 'code',
-                                                    classDataType: 'static',
-                                                  },
-                                                ],
-                                                class: ' mb-3',
-                                                style: 'background: #FFF;',
-                                                stylist: [],
-                                                version: 'v2',
-                                                dataType: 'static',
-                                                style_from: 'code',
-                                                classDataType: 'static',
-                                              };
-                                              return dd;
-                                            });
-                                            return [
-                                              html` <div
-                                                class="d-flex ms-2 my-3"
-                                                style="gap:10px;cursor:pointer;"
-                                                onclick="${gvc.event(() => {
-                                                  vm.cartData.user_info_same = !vm.cartData.user_info_same;
-                                                  if (vm.cartData.user_info_same) {
-                                                    vm.cartData.user_info.name = vm.cartData.customer_info.name;
-                                                    vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
-                                                    vm.cartData.user_info.email = vm.cartData.customer_info.email;
-                                                  }
-                                                  gvc.notifyDataChange(id);
-                                                })}"
-                                              >
-                                                <input
-                                                  class="form-check-input form-checkbox  ${checkbox}"
-                                                  type="checkbox"
-                                                  ${vm.cartData.user_info_same ? `checked` : ''}
-                                                />
-                                                ${Language.text('same_as_buyer_info')}
-                                              </div>`,
-                                              FormWidget.editorView({
-                                                gvc: gvc,
-                                                array: form_array.map((dd: any, index: number) => {
-                                                  dd.col = '6';
-                                                  if (index === form_array.length - 1) {
-                                                    dd.col = '12';
-                                                  }
-                                                  return dd;
-                                                }),
-                                                refresh: () => {
-                                                  this.storeLocalData(vm.cartData);
-                                                  gvc.notifyDataChange(id);
-                                                },
-                                                formData: vm.cartData.user_info,
+                                              ],
+                                              class: ' mb-3',
+                                              style: 'background: #FFF;',
+                                              stylist: [],
+                                              version: 'v2',
+                                              dataType: 'static',
+                                              style_from: 'code',
+                                              classDataType: 'static',
+                                            };
+                                            return dd;
+                                          });
+                                          return [
+                                            html` <div
+                                              class="d-flex ms-2 my-3"
+                                              style="gap:10px;cursor:pointer;"
+                                              onclick="${gvc.event(() => {
+                                                vm.cartData.user_info_same = !vm.cartData.user_info_same;
+                                                if (vm.cartData.user_info_same) {
+                                                  vm.cartData.user_info.name = vm.cartData.customer_info.name;
+                                                  vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
+                                                  vm.cartData.user_info.email = vm.cartData.customer_info.email;
+                                                }
+                                                gvc.notifyDataChange(id);
+                                              })}"
+                                            >
+                                              <input
+                                                class="form-check-input form-checkbox  ${checkbox}"
+                                                type="checkbox"
+                                                ${vm.cartData.user_info_same ? `checked` : ''}
+                                              />
+                                              ${Language.text('same_as_buyer_info')}
+                                            </div>`,
+                                            FormWidget.editorView({
+                                              gvc: gvc,
+                                              array: form_array.map((dd: any, index: number) => {
+                                                dd.col = '6';
+                                                if (index === form_array.length - 1) {
+                                                  dd.col = '12';
+                                                }
+                                                return dd;
                                               }),
-                                            ].join('<div class="my-2"></div>');
-                                          } catch (e) {
-                                            console.error(`error 4 =>`, e);
-                                            return '';
-                                          }
-                                        },
-                                        divCreate: {
-                                          class: `w-100 mt-2`,
-                                        },
-                                      };
-                                    })}
-                                    ${(() => {
-                                      const verify = [];
-                                      const shipment = vm.cartData.shipment_selector.find(
-                                        (item: any) => item.value === vm.cartData.user_info.shipment
+                                              refresh: () => {
+                                                this.storeLocalData(vm.cartData);
+                                                gvc.notifyDataChange(id);
+                                              },
+                                              formData: vm.cartData.user_info,
+                                            }),
+                                          ].join('<div class="my-2"></div>');
+                                        } catch (e) {
+                                          console.error(`error 4 =>`, e);
+                                          return '';
+                                        }
+                                      },
+                                      divCreate: {
+                                        class: `w-100 mt-2`,
+                                      },
+                                    };
+                                  })}
+                                  ${(() => {
+                                    const verify = [];
+                                    const shipment = vm.cartData.shipment_selector.find(
+                                      (item: any) => item.value === vm.cartData.user_info.shipment
+                                    );
+                                    if (shipment.isExcludedByTotal) {
+                                      verify.push(
+                                        '提示：若總金額超過20,000元，結帳系統無法提供四大超商配送，請調整購買項目'
                                       );
-                                      if (shipment.isExcludedByTotal) {
-                                        verify.push(
-                                          '提示：若總金額超過20,000元，結帳系統無法提供四大超商配送，請調整購買項目'
-                                        );
-                                      }
-                                      if (shipment.isExcludedByWeight) {
-                                        verify.push(
-                                          '提示：若訂單總重超過20公斤，無法提供中華郵政/黑貓宅配服務，請調整購買項目'
-                                        );
-                                      }
-                                      return html`
-                                        <div style="height:100px;"></div>
+                                    }
+                                    if (shipment.isExcludedByWeight) {
+                                      verify.push(
+                                        '提示：若訂單總重超過20公斤，無法提供中華郵政/黑貓宅配服務，請調整購買項目'
+                                      );
+                                    }
+                                    return html`
+                                      <div style="height:100px;"></div>
+                                      <div
+                                        class="w-100 d-flex align-items-center justify-content-center position-fixed bottom-0 start-0 p-2 shadow bg-white"
+                                        style="height:76px;"
+                                      >
                                         <div
-                                          class="w-100 d-flex align-items-center justify-content-center position-fixed bottom-0 start-0 p-2 shadow bg-white"
-                                          style="height:76px;"
+                                          class="d-flex align-items-center justify-content-end"
+                                          style="width:1180px;max-width: 100%;gap:24px;"
                                         >
-                                          <div
-                                            class="d-flex align-items-center justify-content-end"
-                                            style="width:1180px;max-width: 100%;gap:24px;"
-                                          >
-                                            <div class="d-flex align-items-end fs-base" style="gap:5px;">
-                                              <span style="white-space:nowrap;" class="fw-bold fs-sm">
-                                                ${Language.text('total_amount')}</span
-                                              >
-                                              <div class="${gClass(['price-row', 'text-1', 'bold'])}">
-                                                <div class="fs-5 fw-bold ${gClass('price-text')}">
-                                                  ${Currency.convertCurrencyText(vm.cartData.total)}
-                                                </div>
+                                          <div class="d-flex align-items-end fs-base" style="gap:5px;">
+                                            <span style="white-space:nowrap;" class="fw-bold fs-sm">
+                                              ${Language.text('total_amount')}</span
+                                            >
+                                            <div class="${gClass(['price-row', 'text-1', 'bold'])}">
+                                              <div class="fs-5 fw-bold ${gClass('price-text')}">
+                                                ${Currency.convertCurrencyText(vm.cartData.total)}
                                               </div>
                                             </div>
-                                            <div class="flex-fill d-block d-sm-none"></div>
-                                            <div class="">
-                                              <button
-                                                class="${gClass(
-                                                  verify.length > 0 ? 'button-bgr-disable' : 'button-bgr'
-                                                )}"
-                                                style="${document.body.clientWidth < 800
-                                                  ? `min-width:100px;`
-                                                  : `min-width:380px;`}"
-                                                onclick="${gvc.event(() => {
-                                                  if (
-                                                    (window as any).login_config.login_in_to_order &&
-                                                    !GlobalUser.token
-                                                  ) {
-                                                    GlobalUser.loginRedirect = location.href;
-                                                    gvc.glitter.href = '/login';
+                                          </div>
+                                          <div class="flex-fill d-block d-sm-none"></div>
+                                          <div class="">
+                                            <button
+                                              class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
+                                              style="${document.body.clientWidth < 800
+                                                ? `min-width:100px;`
+                                                : `min-width:380px;`}"
+                                              onclick="${gvc.event(() => {
+                                                if (
+                                                  (window as any).login_config.login_in_to_order &&
+                                                  !GlobalUser.token
+                                                ) {
+                                                  GlobalUser.loginRedirect = location.href;
+                                                  gvc.glitter.href = '/login';
+                                                  return;
+                                                }
+
+                                                if (vm.cartData.user_info_same) {
+                                                  vm.cartData.user_info.name = vm.cartData.customer_info.name;
+                                                  vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
+                                                  vm.cartData.user_info.email = vm.cartData.customer_info.email;
+                                                }
+                                                if (verify.length > 0) {
+                                                  return;
+                                                }
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                if (!this.checkFormData(gvc, vm.cartData, widget)) {
+                                                  return;
+                                                }
+                                                for (const item of vm.cartData.lineItems) {
+                                                  const title =
+                                                    (item.language_data &&
+                                                      item.language_data[Language.getLanguage()].title) ||
+                                                    item.title;
+                                                  let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                                  let max_qty =
+                                                    (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
+                                                  let count = 0;
+                                                  for (const b of vm.cartData.lineItems) {
+                                                    if (b.id === item.id) {
+                                                      count += b.count;
+                                                    }
+                                                  }
+                                                  if (count < min) {
+                                                    dialog.errorMessage({
+                                                      text: Language.text('min_p_count_d')
+                                                        .replace('_c_', min)
+                                                        .replace('_p_', `『${title}』`),
+                                                    });
                                                     return;
                                                   }
-
-                                                  if (vm.cartData.user_info_same) {
-                                                    vm.cartData.user_info.name = vm.cartData.customer_info.name;
-                                                    vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
-                                                    vm.cartData.user_info.email = vm.cartData.customer_info.email;
-                                                  }
-                                                  if (verify.length > 0) {
+                                                  if (count > max_qty) {
+                                                    dialog.errorMessage({
+                                                      text: Language.text('max_p_count_d')
+                                                        .replace('_c_', min)
+                                                        .replace('_p_', `『${title}』`),
+                                                    });
                                                     return;
                                                   }
-                                                  const dialog = new ShareDialog(gvc.glitter);
-                                                  if (!this.checkFormData(gvc, vm.cartData, widget)) {
-                                                    return;
+                                                }
+                                                [
+                                                  'MerchantTradeNo',
+                                                  'LogisticsSubType',
+                                                  'CVSStoreID',
+                                                  'CVSStoreName',
+                                                  'CVSTelephone',
+                                                  'CVSOutSide',
+                                                  'ExtraData',
+                                                  'CVSAddress',
+                                                ].map(dd => {
+                                                  if (gvc.glitter.getUrlParameter(dd)) {
+                                                    vm.cartData.user_info[dd] = decodeURI(glitter.getUrlParameter(dd));
                                                   }
-                                                  for (const item of vm.cartData.lineItems) {
-                                                    const title =
-                                                      (item.language_data &&
-                                                        item.language_data[Language.getLanguage()].title) ||
-                                                      item.title;
-                                                    let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
-                                                    let max_qty =
-                                                      (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
-                                                    let count = 0;
-                                                    for (const b of vm.cartData.lineItems) {
-                                                      if (b.id === item.id) {
-                                                        count += b.count;
-                                                      }
-                                                    }
-                                                    if (count < min) {
-                                                      dialog.errorMessage({
-                                                        text: Language.text('min_p_count_d')
-                                                          .replace('_c_', min)
-                                                          .replace('_p_', `『${title}』`),
-                                                      });
-                                                      return;
-                                                    }
-                                                    if (count > max_qty) {
-                                                      dialog.errorMessage({
-                                                        text: Language.text('max_p_count_d')
-                                                          .replace('_c_', min)
-                                                          .replace('_p_', `『${title}』`),
-                                                      });
-                                                      return;
-                                                    }
-                                                  }
-                                                  [
-                                                    'MerchantTradeNo',
-                                                    'LogisticsSubType',
-                                                    'CVSStoreID',
-                                                    'CVSStoreName',
-                                                    'CVSTelephone',
-                                                    'CVSOutSide',
-                                                    'ExtraData',
-                                                    'CVSAddress',
-                                                  ].map(dd => {
-                                                    if (gvc.glitter.getUrlParameter(dd)) {
-                                                      vm.cartData.user_info[dd] = decodeURI(
-                                                        glitter.getUrlParameter(dd)
-                                                      );
-                                                    }
-                                                  });
+                                                });
 
-                                                  dialog.dataLoading({ visible: true });
+                                                dialog.dataLoading({ visible: true });
 
-                                                  ApiShop.toCheckout({
-                                                    line_items: vm.cartData.lineItems.map((dd: any) => {
-                                                      return {
-                                                        id: dd.id,
-                                                        spec: dd.spec,
-                                                        count: dd.count,
-                                                      };
-                                                    }),
-                                                    customer_info: vm.cartData.customer_info,
-                                                    return_url: (() => {
-                                                      const originalUrl =
-                                                        glitter.root_path + 'order_detail' + location.search;
-                                                      const urlObject = new URL(originalUrl);
-                                                      urlObject.searchParams.set('EndCheckout', '1');
-                                                      const newUrl = urlObject.toString();
-                                                      return newUrl;
-                                                    })(),
-                                                    user_info: vm.cartData.user_info,
-                                                    code: apiCart.cart.code,
-                                                    use_rebate: apiCart.cart.use_rebate,
-                                                    custom_form_format: vm.cartData.custom_form_format,
-                                                    custom_form_data: vm.cartData.custom_form_data,
-                                                    custom_receipt_form: vm.cartData.receipt_form,
-                                                    distribution_code: localStorage.getItem('distributionCode') ?? '',
-                                                    give_away: apiCart.cart.give_away,
-                                                  }).then(res => {
-                                                    dialog.dataLoading({ visible: false });
-                                                    if (vm.cartData.customer_info.payment_select == 'paynow') {
-                                                      if (!res.response?.data?.result?.secret) {
-                                                        return 'paynow API失敗';
-                                                      }
-                                                      glitter.innerDialog(
-                                                        (gvc: GVC) => {
-                                                          document.body.style.setProperty(
-                                                            'overflow-y',
-                                                            'hidden',
-                                                            'important'
-                                                          );
-                                                          return gvc.bindView({
-                                                            bind: `paynow`,
-                                                            view: () => {
-                                                              return html` <div
-                                                                class="w-100 h-100 d-flex align-items-center justify-content-center"
-                                                              >
-                                                                ${document.body.clientWidth < 800
-                                                                  ? `
+                                                ApiShop.toCheckout({
+                                                  line_items: vm.cartData.lineItems.map((dd: any) => {
+                                                    return {
+                                                      id: dd.id,
+                                                      spec: dd.spec,
+                                                      count: dd.count,
+                                                    };
+                                                  }),
+                                                  customer_info: vm.cartData.customer_info,
+                                                  return_url: (() => {
+                                                    const originalUrl =
+                                                      glitter.root_path + 'order_detail' + location.search;
+                                                    const urlObject = new URL(originalUrl);
+                                                    urlObject.searchParams.set('EndCheckout', '1');
+                                                    const newUrl = urlObject.toString();
+                                                    return newUrl;
+                                                  })(),
+                                                  user_info: vm.cartData.user_info,
+                                                  code: apiCart.cart.code,
+                                                  use_rebate: apiCart.cart.use_rebate,
+                                                  custom_form_format: vm.cartData.custom_form_format,
+                                                  custom_form_data: vm.cartData.custom_form_data,
+                                                  custom_receipt_form: vm.cartData.receipt_form,
+                                                  distribution_code: localStorage.getItem('distributionCode') ?? '',
+                                                  give_away: apiCart.cart.give_away,
+                                                }).then(res => {
+                                                  dialog.dataLoading({ visible: false });
+                                                  if (vm.cartData.customer_info.payment_select == 'paynow') {
+                                                    if (!res.response?.data?.result?.secret) {
+                                                      return 'paynow API失敗';
+                                                    }
+                                                    glitter.innerDialog(
+                                                      (gvc: GVC) => {
+                                                        document.body.style.setProperty(
+                                                          'overflow-y',
+                                                          'hidden',
+                                                          'important'
+                                                        );
+                                                        return gvc.bindView({
+                                                          bind: `paynow`,
+                                                          view: () => {
+                                                            return html` <div
+                                                              class="w-100 h-100 d-flex align-items-center justify-content-center"
+                                                            >
+                                                              ${document.body.clientWidth < 800
+                                                                ? `
                                                                             <div class="pt-5  bg-white position-relative vw-100" style="height: ${window.innerHeight}px;overflow-y: auto;">
                                                                             `
-                                                                  : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
-                                                                <div
-                                                                  style="position: absolute; right: 15px;top:15px;z-index:1;"
+                                                                : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
+                                                              <div
+                                                                style="position: absolute; right: 15px;top:15px;z-index:1;"
+                                                                onclick="${gvc.event(() => {
+                                                                  gvc.closeDialog();
+                                                                })}"
+                                                              >
+                                                                <i
+                                                                  class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                                                ></i>
+                                                              </div>
+                                                              <div id="paynow-container" class="" style="">
+                                                                <div style="width:200px;height:200px;">loading...</div>
+                                                              </div>
+                                                              <div class="px-3 px-sm-0 w-100">
+                                                                <button
+                                                                  class="${gClass(
+                                                                    verify.length > 0
+                                                                      ? 'button-bgr-disable'
+                                                                      : 'button-bgr'
+                                                                  )} "
+                                                                  id="checkoutButton"
                                                                   onclick="${gvc.event(() => {
-                                                                    gvc.closeDialog();
+                                                                    // const inputGroup = document.querySelector('#paynow-container');
+                                                                    // console.log("inputGroup -- " , inputGroup)
+                                                                    const PayNow = (window as any).PayNow;
+                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                    dialog.dataLoading({ visible: true });
+                                                                    PayNow.checkout().then((response: any) => {
+                                                                      dialog.dataLoading({ visible: false });
+                                                                      console.log('response -- ', response);
+                                                                      if (response.error) {
+                                                                        dialog.errorMessage({
+                                                                          text: response.error.message,
+                                                                        });
+                                                                        // handle error
+                                                                      }
+                                                                      // handle success
+                                                                    });
                                                                   })}"
                                                                 >
-                                                                  <i
-                                                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
-                                                                  ></i>
-                                                                </div>
-                                                                <div id="paynow-container" class="" style="">
-                                                                  <div style="width:200px;height:200px;">
-                                                                    loading...
-                                                                  </div>
-                                                                </div>
-                                                                <div class="px-3 px-sm-0 w-100">
-                                                                  <button
-                                                                    class="${gClass(
-                                                                      verify.length > 0
-                                                                        ? 'button-bgr-disable'
-                                                                        : 'button-bgr'
-                                                                    )} "
-                                                                    id="checkoutButton"
-                                                                    onclick="${gvc.event(() => {
-                                                                      // const inputGroup = document.querySelector('#paynow-container');
-                                                                      // console.log("inputGroup -- " , inputGroup)
-                                                                      const PayNow = (window as any).PayNow;
-                                                                      const dialog = new ShareDialog(gvc.glitter);
-                                                                      dialog.dataLoading({ visible: true });
-                                                                      PayNow.checkout().then((response: any) => {
-                                                                        dialog.dataLoading({ visible: false });
-                                                                        console.log('response -- ', response);
-                                                                        if (response.error) {
-                                                                          dialog.errorMessage({
-                                                                            text: response.error.message,
-                                                                          });
-                                                                          // handle error
-                                                                        }
-                                                                        // handle success
-                                                                      });
-                                                                    })}"
-                                                                  >
-                                                                    <span class="${gClass('button-text')}"
-                                                                      >確認結帳</span
-                                                                    >
-                                                                  </button>
-                                                                </div>
-                                                              </div>`;
-                                                            },
-                                                            divCreate: {
-                                                              class: ` h-100 d-flex align-items-center justify-content-center`,
-                                                              style: `max-width:100vw;${document.body.clientWidth < 800 ? 'width:100%;' : 'width:400px;'};`,
-                                                            },
-                                                            onCreate: () => {
-                                                              const publicKey = res.response.publicKey;
-                                                              const secret = res.response.data.result.secret;
-                                                              const env =
-                                                                res.response.BETA == 'true' ? 'sandbox' : 'production';
-                                                              // res.response.result.secret
-                                                              const PayNow = (window as any).PayNow;
-                                                              PayNow.createPayment({
-                                                                publicKey: publicKey,
-                                                                secret: secret,
-                                                                env: env,
-                                                              });
-                                                              PayNow.mount('#paynow-container', {
-                                                                locale: 'zh_tw',
-                                                                appearance: {
-                                                                  variables: {
-                                                                    fontFamily: 'monospace',
-                                                                    colorPrimary: '#0078ab',
-                                                                    colorDefault: '#0a0a0a',
-                                                                    colorBorder: '#cccccc',
-                                                                    colorPlaceholder: '#eeeeee',
-                                                                    borderRadius: '.3rem',
-                                                                    colorDanger: '#ff3d3d',
-                                                                  },
-                                                                },
-                                                              });
-                                                            },
-                                                          });
-                                                        },
-                                                        `paynow`,
-                                                        {
-                                                          animation:
-                                                            document.body.clientWidth > 800
-                                                              ? Animation.fade
-                                                              : Animation.popup,
-                                                          dismiss: () => {
-                                                            document.body.style.setProperty('overflow-y', 'auto');
+                                                                  <span class="${gClass('button-text')}">確認結帳</span>
+                                                                </button>
+                                                              </div>
+                                                            </div>`;
                                                           },
-                                                        }
-                                                      );
-                                                    }
-
-                                                    localStorage.setItem(
-                                                      'clear_cart_items',
-                                                      JSON.stringify(vm.cartData.lineItems.map((item: any) => item.id))
-                                                    );
-
-                                                    if (res.response.off_line || res.response.is_free) {
-                                                      location.href = res.response.return_url;
-                                                    } else {
-                                                      if (
-                                                        res.response.returnCode == '0000' &&
-                                                        vm.cartData.customer_info.payment_select == 'line_pay'
-                                                      ) {
-                                                        console.log(
-                                                          'res.response.form.info.paymentUrl.web -- ',
-                                                          res.response.info.paymentUrl.web
-                                                        );
-                                                        location.href = res.response.info.paymentUrl.web;
-                                                        // todo 手機跳轉用這個
-                                                        //     location.href = res.response.form.info.paymentUrl.app;
-                                                      } else if (res.response.approveLink) {
-                                                        location.href = res.response.approveLink;
-                                                      } else {
-                                                        const id = gvc.glitter.getUUID();
-                                                        $('body').append(
-                                                          html` <div id="${id}" style="display: none;">
-                                                            ${res.response.form}
-                                                          </div>`
-                                                        );
-                                                        (document.querySelector(`#${id} #submit`) as any).click();
+                                                          divCreate: {
+                                                            class: ` h-100 d-flex align-items-center justify-content-center`,
+                                                            style: `max-width:100vw;${document.body.clientWidth < 800 ? 'width:100%;' : 'width:400px;'};`,
+                                                          },
+                                                          onCreate: () => {
+                                                            const publicKey = res.response.publicKey;
+                                                            const secret = res.response.data.result.secret;
+                                                            const env =
+                                                              res.response.BETA == 'true' ? 'sandbox' : 'production';
+                                                            // res.response.result.secret
+                                                            const PayNow = (window as any).PayNow;
+                                                            PayNow.createPayment({
+                                                              publicKey: publicKey,
+                                                              secret: secret,
+                                                              env: env,
+                                                            });
+                                                            PayNow.mount('#paynow-container', {
+                                                              locale: 'zh_tw',
+                                                              appearance: {
+                                                                variables: {
+                                                                  fontFamily: 'monospace',
+                                                                  colorPrimary: '#0078ab',
+                                                                  colorDefault: '#0a0a0a',
+                                                                  colorBorder: '#cccccc',
+                                                                  colorPlaceholder: '#eeeeee',
+                                                                  borderRadius: '.3rem',
+                                                                  colorDanger: '#ff3d3d',
+                                                                },
+                                                              },
+                                                            });
+                                                          },
+                                                        });
+                                                      },
+                                                      `paynow`,
+                                                      {
+                                                        animation:
+                                                          document.body.clientWidth > 800
+                                                            ? Animation.fade
+                                                            : Animation.popup,
+                                                        dismiss: () => {
+                                                          document.body.style.setProperty('overflow-y', 'auto');
+                                                        },
                                                       }
+                                                    );
+                                                  }
+
+                                                  localStorage.setItem(
+                                                    'clear_cart_items',
+                                                    JSON.stringify(vm.cartData.lineItems.map((item: any) => item.id))
+                                                  );
+
+                                                  if (res.response.off_line || res.response.is_free) {
+                                                    location.href = res.response.return_url;
+                                                  } else {
+                                                    if (
+                                                      res.response.returnCode == '0000' &&
+                                                      vm.cartData.customer_info.payment_select == 'line_pay'
+                                                    ) {
+                                                      console.log(
+                                                        'res.response.form.info.paymentUrl.web -- ',
+                                                        res.response.info.paymentUrl.web
+                                                      );
+                                                      location.href = res.response.info.paymentUrl.web;
+                                                      // todo 手機跳轉用這個
+                                                      //     location.href = res.response.form.info.paymentUrl.app;
+                                                    } else if (res.response.approveLink) {
+                                                      location.href = res.response.approveLink;
+                                                    } else {
+                                                      const id = gvc.glitter.getUUID();
+                                                      $('body').append(
+                                                        html` <div id="${id}" style="display: none;">
+                                                          ${res.response.form}
+                                                        </div>`
+                                                      );
+                                                      (document.querySelector(`#${id} #submit`) as any).click();
                                                     }
-                                                  });
-                                                })}"
+                                                  }
+                                                });
+                                              })}"
+                                            >
+                                              <span class="${gClass('button-text')}"
+                                                >${(window as any).login_config.login_in_to_order && !GlobalUser.token
+                                                  ? Language.text('login_in_to_checkout')
+                                                  : Language.text('next')}</span
                                               >
-                                                <span class="${gClass('button-text')}"
-                                                  >${(window as any).login_config.login_in_to_order && !GlobalUser.token
-                                                    ? Language.text('login_in_to_checkout')
-                                                    : Language.text('next')}</span
-                                                >
-                                              </button>
-                                            </div>
+                                            </button>
                                           </div>
                                         </div>
-                                      `;
-                                    })()}
-                                  </div>
-                                  <div class="d-none d-sm-block" style="height:120px;"></div>
+                                      </div>
+                                    `;
+                                  })()}
                                 </div>
-                                <div
-                                  style="${document.body.clientWidth > 800
-                                    ? `width:calc(34% - 10px);position: sticky; top: 65px;`
-                                    : `width:calc(100% );`}"
-                                >
-                                  <!--明細-->
-                                  <div style="" class="rounded-3 bg-white w-100 p-3">${detail_info}</div>
-                                  <div class="d-sm-none" style="height:120px;"></div>
-                                </div>
+                                <div class="d-none d-sm-block" style="height:120px;"></div>
                               </div>
-                            </section>
+                              <div
+                                style="${document.body.clientWidth > 800
+                                  ? `width:calc(34% - 10px);position: sticky; top: 65px;`
+                                  : `width:calc(100% );`}"
+                              >
+                                <!--明細-->
+                                <div style="" class="rounded-3 bg-white w-100 p-3">${detail_info}</div>
+                                <div class="d-sm-none" style="height:120px;"></div>
+                              </div>
+                            </div>
                           `;
                         },
                       };

@@ -1,7 +1,8 @@
 import db from "../../modules/database.js";
-import {Cart, Order} from "./shopping.js";
+import { Cart, Order, Shopping } from './shopping.js';
 import {FbApi} from "./fb-api.js";
 import express from "express";
+import { CheckoutService } from './checkout.js';
 
 export class OrderEvent {
     //添加訂單時的事件
@@ -10,11 +11,17 @@ export class OrderEvent {
         status:number,
         app:string
     }){
-        await db.execute(
-            `INSERT INTO \`${obj.app}\`.t_checkout (cart_token, status, email, orderData)
+        const insert=await db.execute(
+            `replace INTO \`${obj.app}\`.t_checkout (cart_token, status, email, orderData)
                              values (?, ?, ?, ?)`,
             [obj.cartData.orderID, obj.status, obj.cartData.email, obj.cartData]
         );
+        //添加索引
+        await new Shopping(obj.app).putOrder({
+            cart_token:obj.cartData.orderID,
+            status:undefined,
+            orderData:obj.cartData
+        })
         await new FbApi(obj.app).checkOut(obj.cartData);
     }
 }

@@ -514,6 +514,32 @@ export class ShoppingSettingAdvance {
                                 ].join(``)
                             ),
                             BgWidget.mainCard(
+                              [
+                                  html`
+                                        <div class="d-flex flex-column guide5-4">
+                                            <div style="font-weight: 700;" class="mb-2">商品稅額</div>
+                                        </div>
+                                    `,
+                                  BgWidget.select({
+                                      gvc:gvc,
+                                      callback:(text)=>{
+                                          (postMD).tax=text
+                                      },
+                                      default:(postMD).tax ?? '5',
+                                      options:[
+                                          {
+                                              key:'5',
+                                              value:'一般稅額(5%)'
+                                          },
+                                          {
+                                              key:'0',
+                                              value:'免稅商品(0%)'
+                                          }
+                                      ]
+                                  })
+                              ].join(``)
+                            ),
+                            BgWidget.mainCard(
                                 (() => {
                                     const priceVM = {
                                         id: gvc.glitter.getUUID(),

@@ -13,6 +13,8 @@ const private_config_js_1 = require("../../services/private_config.js");
 const shipment_config_js_1 = require("../config/shipment-config.js");
 const axios_1 = __importDefault(require("axios"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
+const shopping_js_1 = require("./shopping.js");
+const user_js_1 = require("./user.js");
 const html = String.raw;
 class PayNowLogistics {
     constructor(app_name) {
@@ -38,14 +40,41 @@ class PayNowLogistics {
         const key = tool_js_1.default.randomString(6);
         await redis_js_1.default.setValue('redirect_' + key, return_url);
         const code = await this.encrypt(process_1.default.env.logistic_apicode);
+        const shipment_config = (await new user_js_1.User(this.app_name).getConfigV2({
+            key: `shipment_config_${type}`,
+            user_id: 'manager'
+        }));
         const cf = {
             user_account: process_1.default.env.logistic_account,
             apicode: encodeURIComponent(code),
-            Logistic_serviceID: shipment_config_js_1.ShipmentConfig.list.find((dd) => {
-                return dd.value === type;
-            }).paynow_id,
+            Logistic_serviceID: (() => {
+                const paynow_id = shipment_config_js_1.ShipmentConfig.list.find((dd) => {
+                    return dd.value === type;
+                }).paynow_id;
+                if (shipment_config.bulk) {
+                    if (paynow_id === '01') {
+                        return '02';
+                    }
+                    else if (paynow_id === '21') {
+                        return '22';
+                    }
+                    else if (paynow_id === '03') {
+                        return '04';
+                    }
+                    else if (paynow_id === '23') {
+                        return '24';
+                    }
+                    else {
+                        return `-1`;
+                    }
+                }
+                else {
+                    return paynow_id;
+                }
+            })(),
             returnUrl: `${process_1.default.env.DOMAIN}/api-public/v1/ec/logistics/redirect?g-app=${this.app_name}&return=${key}`
         };
+        console.log(`Logistic_serviceID`, cf.Logistic_serviceID);
         return html `
             <form action="https://logistic.paynow.com.tw/Member/Order/Choselogistics" method="post"
                   enctype="application/x-www-form-urlencoded"
@@ -86,9 +115,11 @@ class PayNowLogistics {
                                            where cart_token = ?`, [orderNO]))[0];
             delete order.orderData.user_info.shipment_number;
             delete order.orderData.user_info.shipment_refer;
-            await database_js_1.default.query(`update \`${this.app_name}\`.t_checkout
-                            set orderData=?
-                            where cart_token = ?`, [JSON.stringify(order.orderData), orderNO]);
+            await new shopping_js_1.Shopping(this.app_name).putOrder({
+                cart_token: orderNO,
+                orderData: order.orderData,
+                status: undefined
+            });
         }
         return response.data;
     }
@@ -117,9 +148,35 @@ class PayNowLogistics {
     async printLogisticsOrder(carData) {
         const l_config = await this.config();
         const url = `${l_config.link}/api/Orderapi/Add_Order`;
-        const service = shipment_config_js_1.ShipmentConfig.list.find((dd) => {
-            return dd.value === carData.user_info.shipment;
-        }).paynow_id;
+        const shipment_config = (await new user_js_1.User(this.app_name).getConfigV2({
+            key: `shipment_config_${carData.user_info.shipment}`,
+            user_id: 'manager'
+        }));
+        const service = (() => {
+            const paynow_id = shipment_config_js_1.ShipmentConfig.list.find((dd) => {
+                return dd.value === carData.user_info.shipment;
+            }).paynow_id;
+            if (shipment_config.bulk) {
+                if (paynow_id === '01') {
+                    return '02';
+                }
+                else if (paynow_id === '21') {
+                    return '22';
+                }
+                else if (paynow_id === '03') {
+                    return '04';
+                }
+                else if (paynow_id === '23') {
+                    return '24';
+                }
+                else {
+                    return `-1`;
+                }
+            }
+            else {
+                return paynow_id;
+            }
+        })();
         const data = await (async () => {
             if (service === '36') {
                 return {
@@ -184,8 +241,16 @@ class PayNowLogistics {
                 };
             }
         })();
+        function getDaysDifference(date1, date2) {
+            const timeDifference = Math.abs(date2.getTime() - date1.getTime());
+            const daysDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+            return daysDifference;
+        }
         if (service === '36') {
             data.Deadline = '0';
+        }
+        else if (['02', '22', '04', '24'].includes(service)) {
+            data.Deadline = getDaysDifference(new Date(), new Date(carData.user_info.shipment_date));
         }
         Object.keys(data).map((dd) => {
             data[dd] = `${data[dd]}`;
@@ -206,7 +271,6 @@ class PayNowLogistics {
         return response.data;
     }
     async encrypt(content) {
-        console.log(`content`, content);
         try {
             var ivbyte = crypto_js_1.default.enc.Utf8.parse("12345678");
             console.log(`ivbyte=>`, ivbyte);

@@ -162,7 +162,7 @@ async function doAuthAction(req, resp, next_step) {
         return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_APP', 'invalid app'));
     }
     await public_table_check_js_1.ApiPublic.createScheme((_b = req.get('g-app')) !== null && _b !== void 0 ? _b : req.query['g-app']);
-    const refer_app = public_table_check_js_1.ApiPublic.checkApp.find((dd) => {
+    const refer_app = public_table_check_js_1.ApiPublic.checkedApp.find((dd) => {
         return dd.app_name === req.headers['g-app'];
     });
     req.headers['g-app'] = (refer_app && refer_app.refer_app) || ((_c = req.get('g-app')) !== null && _c !== void 0 ? _c : req.query['g-app']);

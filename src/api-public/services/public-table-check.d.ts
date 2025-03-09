@@ -1,5 +1,9 @@
 export declare class ApiPublic {
-    static checkApp: {
+    static checkedApp: {
+        app_name: string;
+        refer_app: string;
+    }[];
+    static checkingApp: {
         app_name: string;
         refer_app: string;
     }[];

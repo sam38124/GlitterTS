@@ -88,6 +88,7 @@ router.post('/orderInfo', async (req, resp) => {
     try {
         const data = await new delivery_js_1.Delivery(req.get('g-app')).getOrderInfo({
             cart_token: `${req.body.order_id}`,
+            shipment_date: req.body.shipment_date,
         });
         return response_1.default.succ(resp, { data });
     }

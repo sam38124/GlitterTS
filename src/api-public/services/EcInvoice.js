@@ -88,6 +88,7 @@ class EcInvoice {
                     e instanceof Error && console.log(e.message);
                 }
                 const resp = JSON.parse(decodeURIComponent(decrypted));
+                console.log(`invoice_data--->`, resp);
                 await database_1.default.query(`insert into \`${obj.app_name}\`.t_invoice_memory
                                     set ?`, [
                     {

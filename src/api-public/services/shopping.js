@@ -57,6 +57,7 @@ const ses_js_1 = require("../../services/ses.js");
 const shopee_1 = require("./shopee");
 const shipment_config_js_1 = require("../config/shipment-config.js");
 const paynow_logistics_js_1 = require("./paynow-logistics.js");
+const checkout_js_1 = require("./checkout.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -951,7 +952,7 @@ class Shopping {
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
         const check_time = new Date().getTime();
         try {
             data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
@@ -1023,38 +1024,43 @@ class Shopping {
                 !(this.token && this.token.userID) &&
                 !data.email &&
                 !(data.user_info && data.user_info.email)) {
-                if (data.user_info.phone) {
-                    data.email = data.user_info.phone;
-                }
-                else {
+                if (!data.user_info.phone) {
                     throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
                 }
             }
+            const checkOutType = (_c = data.checkOutType) !== null && _c !== void 0 ? _c : 'manual';
+            console.log(`checkOutType==>`, checkOutType);
             const getUserDataAsync = async (type, token, data) => {
-                if (type === 'preview' && !((token === null || token === void 0 ? void 0 : token.userID) || (data.user_info && data.user_info.email))) {
+                if (type === 'preview' && !((token === null || token === void 0 ? void 0 : token.userID) || (data.user_info && data.user_info.email) || (data.user_info && data.user_info.phone))) {
                     return {};
                 }
-                if (token === null || token === void 0 ? void 0 : token.userID) {
+                if ((token === null || token === void 0 ? void 0 : token.userID) && (type !== 'POS' && checkOutType !== 'POS')) {
                     return await userClass.getUserData(`${token.userID}`, 'userID');
                 }
-                const email = data.email || data.user_info.email;
-                const dataByAccount = await userClass.getUserData(email, 'account');
-                if (dataByAccount && Object.keys(dataByAccount).length > 0) {
-                    return dataByAccount;
-                }
-                return await userClass.getUserData(email, 'email_or_phone');
+                return ((data.user_info.email && (await userClass.getUserData(data.user_info.email, 'email_or_phone'))) ||
+                    (data.user_info.phone && (await userClass.getUserData(data.user_info.phone, 'email_or_phone')))) || {};
             };
             const userData = await getUserDataAsync(type, this.token, data);
             console.log(`checkout-time-02=>`, new Date().getTime() - check_time);
-            if (userData && userData.account) {
-                data.email = userData.account;
+            console.log(`the-userData-is=>`, userData);
+            if (userData && userData.userData && userData.userData.email) {
+                data.email = userData.userData.email || userData.userData.phone;
+            }
+            if (!data.email || (data.email === 'no-email')) {
+                if (data.user_info.email && (data.user_info.email !== 'no-email')) {
+                    data.email = data.user_info.email;
+                }
+                else if (data.user_info.phone) {
+                    data.email = data.user_info.phone;
+                }
             }
             if (!data.email && type !== 'preview') {
-                data.email = ((_c = data.user_info) === null || _c === void 0 ? void 0 : _c.email) || 'no-email';
+                data.email = ((_d = data.user_info) === null || _d === void 0 ? void 0 : _d.email) || 'no-email';
             }
             const appStatus = await rebateClass.mainStatus();
             if (appStatus && userData && data.use_rebate && data.use_rebate > 0) {
                 const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
+                console.log(`userRebate==>`, userRebate);
                 const sum = userRebate ? userRebate.point : 0;
                 if (sum < data.use_rebate) {
                     data.use_rebate = 0;
@@ -1123,7 +1129,7 @@ class Shopping {
                 }
             });
             console.log(`checkout-time-05=>`, new Date().getTime() - check_time);
-            shipment_setting.custom_delivery = (_d = shipment_setting.custom_delivery) !== null && _d !== void 0 ? _d : [];
+            shipment_setting.custom_delivery = (_e = shipment_setting.custom_delivery) !== null && _e !== void 0 ? _e : [];
             for (const form of shipment_setting.custom_delivery) {
                 form.form =
                     (await new user_js_1.User(this.app).getConfigV2({
@@ -1131,17 +1137,17 @@ class Shopping {
                         key: `form_delivery_${form.id}`,
                     })).list || [];
             }
-            shipment_setting.support = (_e = shipment_setting.support) !== null && _e !== void 0 ? _e : [];
+            shipment_setting.support = (_f = shipment_setting.support) !== null && _f !== void 0 ? _f : [];
             shipment_setting.info =
-                (_f = (shipment_setting.language_data &&
+                (_g = (shipment_setting.language_data &&
                     shipment_setting.language_data[data.language] &&
-                    shipment_setting.language_data[data.language].info)) !== null && _f !== void 0 ? _f : shipment_setting.info;
+                    shipment_setting.language_data[data.language].info)) !== null && _g !== void 0 ? _g : shipment_setting.info;
             console.log(`checkout-time-06=>`, new Date().getTime() - check_time);
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                email: (_g = data.email) !== null && _g !== void 0 ? _g : ((data.user_info && data.user_info.email) || ''),
+                email: (_h = data.email) !== null && _h !== void 0 ? _h : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
@@ -1157,7 +1163,7 @@ class Shopping {
                         value: dd.value,
                     };
                 })
-                    .concat(((_h = shipment_setting.custom_delivery) !== null && _h !== void 0 ? _h : []).map((dd) => {
+                    .concat(((_j = shipment_setting.custom_delivery) !== null && _j !== void 0 ? _j : []).map((dd) => {
                     return {
                         form: dd.form,
                         name: dd.name,
@@ -1235,7 +1241,7 @@ class Shopping {
                             const isUnderstockingVisible = variant.show_understocking !== 'false';
                             const isManualType = type === 'manual' || type === 'manual-preview';
                             if (isPOS && isUnderstockingVisible && !data.isExhibition) {
-                                variant.stock = ((_k = (_j = variant.stockList) === null || _j === void 0 ? void 0 : _j[data.pos_store]) === null || _k === void 0 ? void 0 : _k.count) || 0;
+                                variant.stock = ((_l = (_k = variant.stockList) === null || _k === void 0 ? void 0 : _k[data.pos_store]) === null || _l === void 0 ? void 0 : _l.count) || 0;
                             }
                             if (variant.stock < b.count && isUnderstockingVisible && !isManualType) {
                                 if (isPOS) {
@@ -1260,7 +1266,7 @@ class Shopping {
                                     show_understocking: variant.show_understocking,
                                     stockList: variant.stockList,
                                     weight: parseInt(variant.weight || '0', 10),
-                                    designated_logistics: (_l = pd.designated_logistics) !== null && _l !== void 0 ? _l : { type: 'all', list: [] },
+                                    designated_logistics: (_m = pd.designated_logistics) !== null && _m !== void 0 ? _m : { type: 'all', list: [] },
                                 });
                                 const shipmentValue = (() => {
                                     if (!variant.shipment_type || variant.shipment_type === 'none')
@@ -1452,7 +1458,7 @@ class Shopping {
                 await this.checkVoucher(carData);
                 console.log(`checkout-time-check-voucher-2=>`, new Date().getTime() - check_time);
                 let can_add_gift = [];
-                (_m = carData.voucherList) === null || _m === void 0 ? void 0 : _m.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
+                (_o = carData.voucherList) === null || _o === void 0 ? void 0 : _o.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
                 gift_product.forEach(dd => {
                     const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
                     if (dd.count <= max_count) {
@@ -1464,17 +1470,17 @@ class Shopping {
                 });
                 for (const dd of carData.voucherList.filter(dd => dd.reBackType === 'giveaway')) {
                     let index = -1;
-                    for (const b of (_o = dd.add_on_products) !== null && _o !== void 0 ? _o : []) {
+                    for (const b of (_p = dd.add_on_products) !== null && _p !== void 0 ? _p : []) {
                         index++;
                         console.log('3 getProduct');
-                        const pdDqlData = ((_p = (await this.getProduct({
+                        const pdDqlData = ((_q = (await this.getProduct({
                             page: 0,
                             limit: 50,
                             id: `${b}`,
                             status: 'inRange',
                             channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
                             whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
-                        })).data) !== null && _p !== void 0 ? _p : { content: {} }).content;
+                        })).data) !== null && _q !== void 0 ? _q : { content: {} }).content;
                         pdDqlData.voucher_id = dd.id;
                         dd.add_on_products[index] = pdDqlData;
                     }
@@ -1527,7 +1533,7 @@ class Shopping {
                     return dd.type !== 'pos';
                 }
             });
-            keyData.cash_on_delivery = (_q = keyData.cash_on_delivery) !== null && _q !== void 0 ? _q : { support: [] };
+            keyData.cash_on_delivery = (_r = keyData.cash_on_delivery) !== null && _r !== void 0 ? _r : { support: [] };
             const is_support_cash = keyData.cash_on_delivery.support.find((item, index) => {
                 return carData.shipment_selector.find(dd => {
                     return dd.value === item;
@@ -1641,7 +1647,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_r = data.total) !== null && _r !== void 0 ? _r : 0;
+                carData.total = (_s = data.total) !== null && _s !== void 0 ? _s : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1660,8 +1666,11 @@ class Shopping {
                         await rebateClass.insertRebate(customerData.userID, carData.rebate, `手動新增訂單 - 優惠券購物金：${tempVoucher.title}`);
                     }
                 }
-                await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-           values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, carData]);
+                await order_event_js_1.OrderEvent.insertOrder({
+                    cartData: carData,
+                    status: data.pay_status,
+                    app: this.app,
+                });
                 console.log(`checkout-time-13=>`, new Date().getTime() - check_time);
                 return {
                     data: carData,
@@ -1672,7 +1681,7 @@ class Shopping {
                 if (data.checkOutType === 'POS' && Array.isArray(data.voucherList)) {
                     const manualVoucher = data.voucherList.find((item) => item.id === 0);
                     if (manualVoucher) {
-                        manualVoucher.discount = (_s = manualVoucher.discount_total) !== null && _s !== void 0 ? _s : 0;
+                        manualVoucher.discount = (_t = manualVoucher.discount_total) !== null && _t !== void 0 ? _t : 0;
                         carData.total -= manualVoucher.discount;
                     }
                 }
@@ -1696,9 +1705,11 @@ class Shopping {
                     carData.orderStatus = '1';
                     carData.progress = 'finish';
                 }
-                await trans.execute(`replace
-          INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                     values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
+                await order_event_js_1.OrderEvent.insertOrder({
+                    cartData: carData,
+                    status: data.pay_status,
+                    app: this.app,
+                });
                 if (data.invoice_select !== 'nouse') {
                     carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
                 }
@@ -1707,7 +1718,7 @@ class Shopping {
                 await Promise.all(saveStockArray.map(dd => {
                     return dd();
                 }));
-                await new Shopping(this.app).releaseCheckout((_t = data.pay_status) !== null && _t !== void 0 ? _t : 0, carData.orderID);
+                await new Shopping(this.app).releaseCheckout((_u = data.pay_status) !== null && _u !== void 0 ? _u : 0, carData.orderID);
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
             const id = 'redirect_' + tool_js_1.default.randomString(6);
@@ -1748,7 +1759,7 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                let kd = (_u = keyData[carData.customer_info.payment_select]) !== null && _u !== void 0 ? _u : {
+                let kd = (_v = keyData[carData.customer_info.payment_select]) !== null && _v !== void 0 ? _v : {
                     ReturnURL: '',
                     NotifyURL: '',
                 };
@@ -2001,9 +2012,12 @@ class Shopping {
                     }
                 };
                 feedsOrder.forEach(order => mergeOrders(order.orderData));
-                const newCartToken = `${Date.now()}`;
-                await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-           VALUES (?, ?, ?, ?)`, [newCartToken, targetOrder.status, targetOrder.email, JSON.stringify(base)]);
+                base.orderID = `${Date.now()}`;
+                await order_event_js_1.OrderEvent.insertOrder({
+                    cartData: base,
+                    status: targetOrder.status,
+                    app: this.app,
+                });
                 await Promise.all(orders.map(async (order) => {
                     order.orderData.orderStatus = '-1';
                     order.orderData.archived = 'true';
@@ -2351,9 +2365,17 @@ class Shopping {
         try {
             const update = {};
             const storeConfig = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
-            const origin = (await database_js_1.default.query(`SELECT *
+            let origin = undefined;
+            if (data.id) {
+                origin = (await database_js_1.default.query(`SELECT *
            FROM \`${this.app}\`.t_checkout
            WHERE id = ?;`, [data.id]))[0];
+            }
+            if (data.cart_token) {
+                origin = (await database_js_1.default.query(`SELECT *
+           FROM \`${this.app}\`.t_checkout
+           WHERE cart_token = ?;`, [data.cart_token]))[0];
+            }
             if (!origin) {
                 return {
                     result: 'error',
@@ -2381,10 +2403,10 @@ class Shopping {
                     await this.restoreStock(origin.orderData.lineItems);
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', orderData.orderID, orderData.email, orderData.language);
                 }
-                if ((update.orderData.user_info.shipment_number) && (!update.orderData.user_info.shipment_date)) {
-                    update.orderData.user_info.shipment_date = (new Date()).toISOString();
+                if (update.orderData.user_info.shipment_number && !update.orderData.user_info.shipment_date) {
+                    update.orderData.user_info.shipment_date = new Date().toISOString();
                 }
-                else {
+                else if (!update.orderData.user_info.shipment_number) {
                     delete update.orderData.user_info.shipment_date;
                 }
                 if (prevProgress !== updateProgress) {
@@ -2405,13 +2427,13 @@ class Shopping {
             const updateData = Object.entries(update).reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: typeof value === 'object' ? JSON.stringify(value) : value })), {});
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
          SET ?
-         WHERE id = ?;`, [updateData, data.id]);
+         WHERE id = ?;`, [updateData, origin.id]);
             const orderCountingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
             const orderCount = await database_js_1.default.query(`SELECT *
          FROM \`${this.app}\`.t_checkout
          WHERE id = ?
            AND ${orderCountingSQL};
-        `, [data.id]);
+        `, [origin.id]);
             if (orderCount[0]) {
                 await this.shareVoucherRebate(orderCount[0]);
             }
@@ -2432,6 +2454,11 @@ class Shopping {
                     });
                 }
             }));
+            await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
+                id: origin.id,
+                orderData: update.orderData,
+                app_name: this.app
+            });
             return {
                 result: 'success',
                 orderData: data.orderData,
@@ -2516,9 +2543,11 @@ class Shopping {
                     orderData.editRecord = [record];
                 }
             }
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-         SET orderData = ?
-         WHERE cart_token = ?;`, [JSON.stringify(orderData), order_id]);
+            await this.putOrder({
+                cart_token: order_id,
+                orderData: orderData,
+                status: undefined
+            });
             return { data: true };
         }
         catch (e) {
@@ -2556,9 +2585,11 @@ class Shopping {
                 await line.sendCustomerLine('line-proof-purchase', order_id, orderData.customer_info.lineID);
                 console.log('付款成功line訊息寄送成功');
             }
-            await database_js_1.default.query(`update \`${this.app}\`.t_checkout
-         set orderData=?
-         where cart_token = ?`, [JSON.stringify(orderData), order_id]);
+            await this.putOrder({
+                orderData: orderData,
+                cart_token: order_id,
+                status: undefined
+            });
             return {
                 result: true,
             };
@@ -2606,9 +2637,19 @@ class Shopping {
                 querySql.push(`(orderData->>'$.user_info.shipment_number' IS NOT NULL) and (orderData->>'$.user_info.shipment_number' != '')`);
             }
             if (query.payment_select) {
-                querySql.push(`(orderData->>'$.customer_info.payment_select') in (${query.payment_select.split(',').map(d => `'${d}'`).join(',')})`);
+                querySql.push(`(orderData->>'$.customer_info.payment_select') in (${query.payment_select
+                    .split(',')
+                    .map(d => `'${d}'`)
+                    .join(',')})`);
             }
             if (query.progress) {
+                if (query.progress === 'in_stock') {
+                    query.progress = 'wait';
+                    querySql.push(`shipment_number is NOT null`);
+                }
+                else if (query.progress === 'wait') {
+                    querySql.push(`shipment_number is null`);
+                }
                 let newArray = query.progress.split(',');
                 let temp = '';
                 if (newArray.includes('wait')) {
@@ -2749,7 +2790,8 @@ class Shopping {
                 appName: this.app,
                 key: 'glitter_finance',
             }))[0].value;
-            await Promise.all(obMap.map(async (order) => {
+            await Promise.all(obMap
+                .map(async (order) => {
                 try {
                     if (order.orderData.customer_info.payment_select === 'ecPay') {
                         order.orderData.cash_flow = await new financial_service_js_1.EcPay(this.app).checkPaymentStatus(order.cart_token);
@@ -2760,6 +2802,7 @@ class Shopping {
                     if (order.orderData.user_info.shipment_refer === 'paynow') {
                         const pay_now = new paynow_logistics_js_1.PayNowLogistics(this.app);
                         order.orderData.user_info.shipment_detail = await pay_now.getOrderInfo(order.cart_token);
+                        console.log(`PayNowLogisticCode=>`, order.orderData.user_info.shipment_detail.PayNowLogisticCode);
                         const status = (() => {
                             switch (order.orderData.user_info.shipment_detail.PayNowLogisticCode) {
                                 case '0000':
@@ -2772,8 +2815,11 @@ class Shopping {
                                 case '9411':
                                     return 'shipping';
                                 case '0103':
+                                case '4019':
+                                case '4033':
                                 case '4031':
                                 case '4032':
+                                case '4036':
                                 case '4040':
                                 case '5001':
                                 case '8100':
@@ -2788,7 +2834,7 @@ class Shopping {
                                     return 'finish';
                             }
                         })();
-                        if (order.orderData.progress !== status) {
+                        if (status && (order.orderData.progress !== status)) {
                             order.orderData.progress = status;
                             await this.putOrder({
                                 status: undefined,
@@ -2799,7 +2845,19 @@ class Shopping {
                     }
                 }
                 catch (e) { }
-            }));
+            })
+                .concat(obMap.map(async (order) => {
+                const invoice = (await new invoice_js_1.Invoice(this.app).getInvoice({
+                    page: 0,
+                    limit: 1,
+                    search: order.orderData.invoice_number,
+                    searchType: order.orderData.order_number
+                })).data[0];
+                order.invoice_number = (invoice) && invoice.invoice_no;
+            }))
+                .concat(obMap.map(async (order) => {
+                order.user_data = (await new user_js_1.User(this.app).getUserData(order.email, 'email_or_phone'));
+            })));
             return response_data;
         }
         catch (e) {

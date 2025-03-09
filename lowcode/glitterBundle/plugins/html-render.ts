@@ -262,6 +262,22 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }, 50);
                 },
             }));
+            function acceptAd(){
+                // 設定所有 Google 服務的同意模式為 "granted"
+                const gtag = (window as any).gtag;
+                if(gtag){
+                    gtag('consent', 'default', {
+                        'ad_storage': 'granted',          // 允許廣告 Cookie（Google Ads 轉換追蹤）
+                        'analytics_storage': 'granted',   // 允許分析數據（GA4）
+                        'personalization_storage': 'granted', // 允許個人化（如 YouTube 影片嵌入）
+                        'security_storage': 'granted',    // 允許安全性 Cookie
+                        'functionality_storage': 'granted' // 允許功能性 Cookie（如登入狀態）
+                    });
+                }
+            }
+            if((localStorage.getItem('cookie_accept') == 'true')){
+                acceptAd();
+            }
             if ((localStorage.getItem('cookie_accept') != 'true') && ((window as any).store_info.cookie_check) && !glitter.htmlGenerate.isEditMode()) {
                 map.push(`
             <div class="position-fixed  rounded-3 d-flex align-items-center flex-column flex-sm-row p-3 privacy-notice" style="width:852px;max-width:calc(100vw - 30px);background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
@@ -275,18 +291,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     for (const b of document.querySelectorAll('.privacy-notice')) {
                         b.remove();
                     }
-                    // 設定所有 Google 服務的同意模式為 "granted"
-                    const gtag = (window as any).gtag;
-                    if(gtag){
-                        gtag('consent', 'default', {
-                            'ad_storage': 'granted',          // 允許廣告 Cookie（Google Ads 轉換追蹤）
-                            'analytics_storage': 'granted',   // 允許分析數據（GA4）
-                            'personalization_storage': 'granted', // 允許個人化（如 YouTube 影片嵌入）
-                            'security_storage': 'granted',    // 允許安全性 Cookie
-                            'functionality_storage': 'granted' // 允許功能性 Cookie（如登入狀態）
-                        });
-                    }
-                  
+                    acceptAd();
                 })}">${Language.text('i_known')}</div>
 </div>
             `);

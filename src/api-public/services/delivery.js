@@ -99,15 +99,11 @@ class EcPay {
                 else {
                     checkout.orderData.deliveryNotifyList = [json];
                 }
-                await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_checkout
-                     SET ?
-                     WHERE id = ?
-                    `, [
-                    {
-                        orderData: JSON.stringify(checkout.orderData),
-                    },
-                    checkout.id,
-                ]);
+                await new shopping_js_1.Shopping(this.appName).putOrder({
+                    id: checkout.id,
+                    orderData: checkout.orderData,
+                    status: undefined
+                });
             }
             return '1|OK';
         }
@@ -200,15 +196,11 @@ class Delivery {
             : `https://logistics-stage.ecpay.com.tw/${storePath[deliveryData.LogisticsSubType]}`;
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
         const random_id = tool_js_1.default.randomString(6);
-        await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_checkout
-             SET ?
-             WHERE id = ?
-            `, [
-            {
-                orderData: JSON.stringify(carData),
-            },
-            id,
-        ]);
+        await new shopping_js_1.Shopping(this.appName).putOrder({
+            id: id,
+            orderData: carData,
+            status: undefined
+        });
         await redis_js_1.default.setValue('delivery_' + random_id, JSON.stringify({
             actionURL,
             params,
@@ -260,6 +252,9 @@ class Delivery {
                 await Promise.all(cart.map((dd) => {
                     return new Promise(async (resolve, reject) => {
                         try {
+                            if (obj.shipment_date) {
+                                dd[0].orderData.user_info.shipment_date = obj.shipment_date;
+                            }
                             const data = await pay_now.printLogisticsOrder(dd[0].orderData);
                             if (data.ErrorMsg && data.ErrorMsg !== '訂單已成立') {
                                 error_text = data.ErrorMsg;
@@ -300,8 +295,14 @@ class Delivery {
                         if (her_.searchParams.get('LogisticNumbers')) {
                             carData.user_info.shipment_number = her_.searchParams.get('LogisticNumbers');
                             carData.user_info.shipment_refer = 'paynow';
-                            carData.user_info.shipment_date = (new Date()).toISOString();
-                            await database_js_1.default.query(`update \`${this.appName}\`.t_checkout set orderData=? where cart_token=?`, [JSON.stringify(carData), dd[0].cart_token]);
+                            if (obj.shipment_date) {
+                                carData.user_info.shipment_date = obj.shipment_date;
+                            }
+                            await new shopping_js_1.Shopping(this.appName).putOrder({
+                                cart_token: dd[0].cart_token,
+                                orderData: carData,
+                                status: undefined
+                            });
                         }
                     }
                     catch (e) {

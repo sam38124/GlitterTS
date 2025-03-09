@@ -784,6 +784,7 @@ export class PosFunction {
                                                 <div
                                                     style="display: flex; padding: 14px 16px; justify-content: center; align-items: center; gap: 10px; flex: 1 0 0; border-radius: 10px; border: 1px solid #DDD; background: #FFF; box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);"
                                                     onclick="${gvc.event(() => {
+                                                        gvc.closeDialog()
                                                         item.event(() => {
                                                             gvc.closeDialog();
                                                         });
@@ -1003,7 +1004,7 @@ export class PosFunction {
                                         page: 0,
                                         limit: 10000,
                                         date_confirm: true,
-                                        user_email: orderDetail.user_info.email || 'guest',
+                                        user_email: (orderDetail.user_info.email!=='no-email' && orderDetail.user_info.email) || orderDetail.user_info.phone || ('guest'),
                                     }).then(async (res) => {
                                         if (res.result && res.response.data) {
                                             vm.dataList = res.response.data.filter((item: Voucher) => item.content.trigger === 'code');

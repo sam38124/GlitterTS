@@ -7,6 +7,9 @@ import {Private_config} from "../../services/private_config.js";
 import {ShipmentConfig} from "../config/shipment-config.js";
 import axios from "axios";
 import db from "../../modules/database.js";
+import { CheckoutService } from './checkout.js';
+import { Shopping } from './shopping.js';
+import { User } from './user.js';
 
 const html = String.raw
 
@@ -24,6 +27,7 @@ export class PayNowLogistics {
                 key: 'glitter_delivery',
             })
         )[0];
+
         return {
             pwd: deliveryConfig.value.pay_now.pwd,
             link: deliveryConfig.value.pay_now.Action === 'test' ? `https://testlogistic.paynow.com.tw` : `https://logistic.paynow.com.tw`,
@@ -41,14 +45,38 @@ export class PayNowLogistics {
         const key = tool.randomString(6)
         await redis.setValue('redirect_' + key, return_url)
         const code = await this.encrypt(process.env.logistic_apicode as string)
+        const shipment_config=(await new User(this.app_name).getConfigV2({
+            key:`shipment_config_${type}`,
+            user_id:'manager'
+        }))
+
+
         const cf: any = {
             user_account: process.env.logistic_account,
             apicode: encodeURIComponent(code as string),
-            Logistic_serviceID: ShipmentConfig.list.find((dd) => {
-                return dd.value === type
-            })!!.paynow_id,
+            Logistic_serviceID: (()=>{
+                const paynow_id=ShipmentConfig.list.find((dd) => {
+                    return dd.value === type
+                })!!.paynow_id;
+                if (shipment_config.bulk){
+                    if(paynow_id==='01'){
+                        return '02'
+                    }else if(paynow_id==='21'){
+                        return '22'
+                    }else if(paynow_id==='03'){
+                        return '04'
+                    }else if(paynow_id==='23'){
+                        return '24'
+                    }else{
+                        return `-1`
+                    }
+                }else{
+                    return paynow_id
+                }
+            })(),
             returnUrl: `${process.env.DOMAIN}/api-public/v1/ec/logistics/redirect?g-app=${this.app_name}&return=${key}`
         }
+        console.log(`Logistic_serviceID`,cf.Logistic_serviceID)
         return html`
             <form action="https://logistic.paynow.com.tw/Member/Order/Choselogistics" method="post"
                   enctype="application/x-www-form-urlencoded"
@@ -93,9 +121,11 @@ export class PayNowLogistics {
                                            where cart_token = ?`, [orderNO]))[0]
             delete order.orderData.user_info.shipment_number;
             delete order.orderData.user_info.shipment_refer;
-            await db.query(`update \`${this.app_name}\`.t_checkout
-                            set orderData=?
-                            where cart_token = ?`, [JSON.stringify(order.orderData), orderNO])
+            await new Shopping(this.app_name).putOrder({
+                cart_token:orderNO,
+                orderData:order.orderData,
+                status:undefined
+            })
         }
         return response.data;
     }
@@ -128,9 +158,33 @@ export class PayNowLogistics {
 
         const l_config = await this.config()
         const url = `${l_config.link}/api/Orderapi/Add_Order`;
-        const service = ShipmentConfig.list.find((dd) => {
-            return dd.value === carData.user_info.shipment
-        })!!.paynow_id
+        const shipment_config=(await new User(this.app_name).getConfigV2({
+            key:`shipment_config_${carData.user_info.shipment}`,
+            user_id:'manager'
+        }))
+        const service =  (()=>{
+            const paynow_id=ShipmentConfig.list.find((dd) => {
+                return dd.value === carData.user_info.shipment
+            })!!.paynow_id;
+            if (shipment_config.bulk){
+                if(paynow_id==='01'){
+                    return '02'
+                }else if(paynow_id==='21'){
+                    return '22'
+                }else if(paynow_id==='03'){
+                    return '04'
+                }else if(paynow_id==='23'){
+                    return '24'
+                }else{
+                    return `-1`
+                }
+            }else{
+                return paynow_id
+            }
+        })()
+
+
+
         const data: any = await (async () => {
             if (service === '36') {
                 return {
@@ -194,8 +248,20 @@ export class PayNowLogistics {
                 }
             }
         })();
+        function getDaysDifference(date1:Date, date2:Date) {
+            // 獲取毫秒時間戳，使用 Math.abs() 確保不受前後順序影響
+            const timeDifference = Math.abs(date2.getTime() - date1.getTime());
+            // 將毫秒轉換為天數 (1 天 = 1000 毫秒 * 60 秒 * 60 分鐘 * 24 小時)
+            const daysDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+            return daysDifference;
+        }
+
         if (service === '36') {
             data.Deadline = '0'
+        }else if(['02','22','04','24'].includes(service as string)){
+            data.Deadline=getDaysDifference(
+              new Date()
+              ,new Date(carData.user_info.shipment_date))
         }
         //轉成純字串
         Object.keys(data).map((dd) => {
@@ -218,7 +284,6 @@ export class PayNowLogistics {
     }
 
     async encrypt(content: string) {
-        console.log(`content`, content)
 
         try {
             var ivbyte = CryptoJS.enc.Utf8.parse("12345678");

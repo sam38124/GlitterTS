@@ -188,6 +188,7 @@ export class FilterOptions {
     { key: 'shipping', name: '配送中' },
     { key: 'pre_order', name: '待預購' },
     { key: 'wait', name: '未出貨' },
+    { key: 'in_stock', name: '備貨中' },
     { key: 'returns', name: '已退貨' },
   ];
 

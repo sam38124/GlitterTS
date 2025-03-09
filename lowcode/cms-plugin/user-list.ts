@@ -149,7 +149,7 @@ export class UserList {
           },
           {
             key: '訂單',
-            value: `<span class="fs-7">${dd.checkout_count} 筆</span>`,
+            value: `<span class="fs-7">${dd.order_count} 筆</span>`,
           },
           {
             key: '會員等級',
@@ -157,11 +157,15 @@ export class UserList {
           },
           {
             key: '累積消費',
-            value: `<span class="fs-7">$ ${parseInt(`${dd.checkout_total}`, 10).toLocaleString()}</span>`,
+            value: `<span class="fs-7">$ ${parseInt(`${dd.total_amount}`, 10).toLocaleString()}</span>`,
           },
           {
             key: '上次登入時間',
             value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span>`,
+          },
+          {
+            key: '最後出貨時間',
+            value: `<span class="d-flex w-100 d-flex align-items-center justify-content-center">${dd.firstShipment ? glitter.ut.dateFormat(new Date(dd.firstShipment.orderData.user_info.shipment_date), 'yyyy-MM-dd'):"-"}</span>`,
           },
           {
             key: '社群綁定',
@@ -473,7 +477,7 @@ export class UserList {
                                 orderString: vm.orderString || '',
                                 filter: vm.filter,
                                 filter_type: vm.filter_type,
-                                group: vm.group,
+                                group: vm.group
                               }).then(data => {
                                 vm.dataList = data.response.data;
                                 vmi.pageSize = Math.ceil(data.response.total / limit);
@@ -864,6 +868,7 @@ export class UserList {
             key: '上次登入時間',
             value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span>`,
           },
+
           {
             key: '用戶狀態',
             value: (() => {
@@ -1812,6 +1817,107 @@ export class UserList {
                             ].join(BgWidget.mbContainer(18));
                           })()
                         ),
+                        // 消費概覽
+                        BgWidget.mainCard( (() => {
+                          const id = gvc.glitter.getUUID();
+                          return [gvc.bindView({
+                            bind: id,
+                            view: () => {
+                              return new Promise<string>(async (resolve, reject) => {
+                                function renderInfoBlock(title: string, content: string | typeof html) {
+                                  return html`
+                                                    <div class="tx_700">${title}</div>
+                                                    <div style="font-size: 16px; font-weight: 400; color: #393939;">
+                                                      ${content}
+                                                    </div>
+                                                  `;
+                                }
+                                const firstShipment=(await ApiShop.getOrder({
+                                  page: 0,
+                                  limit: 1,
+                                  data_from: 'manager',
+                                  email: vm.data.userData.email,
+                                  phone: vm.data.userData.phone,
+                                  valid: true,
+                                  is_shipment:true
+                                })).response.data[0];
+
+                                console.log(firstShipment);
+                                ApiShop.getOrder({
+                                  page: 0,
+                                  limit: 99999,
+                                  data_from: 'manager',
+                                  email: vm.data.userData.email,
+                                  phone: vm.data.userData.phone,
+                                  valid: true,
+                                })
+                                  .then(({ response }) => {
+                                    const orders = response.data;
+                                    const totalOrders = response.total;
+                                    const firstData = orders.length > 0 ? orders[0] : undefined;
+                                    const totalPrice = orders.reduce(
+                                      (sum: number, item: any) => sum + item.orderData.total,
+                                      0
+                                    );
+
+                                    const formatNum = (n: string | number) =>
+                                      parseInt(`${n}`, 10).toLocaleString();
+                                    const formatDate = (dateStr: string) =>
+                                      gvc.glitter.ut.dateFormat(new Date(dateStr), 'yyyy-MM-dd hh:mm');
+
+                                    resolve(html`
+                                                      <div>
+                                                        ${[
+                                      renderInfoBlock(
+                                        '累積消費金額',
+                                        totalPrice
+                                          ? html`<div
+                                                                  style="font-size: 32px; font-weight: 400; color: #393939;"
+                                                                >
+                                                                  ${formatNum(totalPrice)}
+                                                                </div>`
+                                          : '尚無消費紀錄'
+                                      ),
+                                      renderInfoBlock(
+                                        '累計消費次數',
+                                        `<div
+                                                                  style="font-size: 32px; font-weight: 400; color: #393939;"
+                                                                >
+                                                                 ${formatNum(totalOrders)}次
+                                                                </div>`
+                                      ),
+                                      renderInfoBlock(
+                                        '最後消費金額',
+                                        firstData
+                                          ? html`<div
+                                                                  style="font-size: 32px; font-weight: 400; color: #393939;"
+                                                                >
+                                                                  ${formatNum(firstData.orderData.total)}
+                                                                </div>`
+                                          : '尚無消費紀錄'
+                                      ),
+                                      renderInfoBlock(
+                                        '最後購買日期',
+                                        firstData
+                                          ? formatDate(firstData.created_time)
+                                          : '尚無消費紀錄'
+                                      ),
+                                      renderInfoBlock(
+                                        '最後出貨日期',
+                                        firstShipment
+                                          ? formatDate(firstShipment.orderData.user_info.shipment_date)
+                                          : '尚無最後出貨紀錄'
+                                      )
+                                    ].join(html`<div class="my-3 w-100 border-top"></div>`)}
+                                                      </div>
+                                                    `);
+                                  })
+                                  .catch(reject);
+                              });
+                            },
+                          })].join('');
+                        })())
+                        ,
                         // 訂單記錄
                         gvc.bindView(() => {
                           const id = gvc.glitter.getUUID();
@@ -1878,7 +1984,31 @@ export class UserList {
                                     html` <div
                                       style="display: flex; justify-content: space-between; align-items: center;"
                                     >
-                                      <span class="tx_700">購物金</span>
+                                      <div
+                                        style="display: flex; align-items: center; gap: 18px"
+                                      >
+                                        <span class="tx_700">現有購物金</span>
+                                        <span style="font-size: 24px; font-weight: 400; color: #393939;"
+                                        >${gvc.bindView(() => {
+                                          const id = gvc.glitter.getUUID();
+                                          return {
+                                            bind: id,
+                                            view: () => {
+                                              return new Promise<string>((resolve, reject) => {
+                                                ApiWallet.getRebateSum({
+                                                  userID: vm.data.userID,
+                                                }).then(data => {
+                                                  if (data.result) {
+                                                    resolve(parseInt(data.response.sum, 10).toLocaleString());
+                                                  }
+                                                  resolve('發生錯誤');
+                                                });
+                                              });
+                                            },
+                                          };
+                                        })}</span
+                                        >
+                                      </div>
                                       <div>
                                         ${BgWidget.grayButton(
                                           '添加購物金',
@@ -1929,31 +2059,6 @@ export class UserList {
                                         )}
                                       </div>
                                     </div>` +
-                                      html` <div
-                                        style="display: flex; margin-bottom: 18px; align-items: center; gap: 18px"
-                                      >
-                                        <span class="tx_700">現有購物金</span>
-                                        <span style="font-size: 24px; font-weight: 400; color: #393939;"
-                                          >${gvc.bindView(() => {
-                                            const id = gvc.glitter.getUUID();
-                                            return {
-                                              bind: id,
-                                              view: () => {
-                                                return new Promise<string>((resolve, reject) => {
-                                                  ApiWallet.getRebateSum({
-                                                    userID: vm.data.userID,
-                                                  }).then(data => {
-                                                    if (data.result) {
-                                                      resolve(parseInt(data.response.sum, 10).toLocaleString());
-                                                    }
-                                                    resolve('發生錯誤');
-                                                  });
-                                                });
-                                              },
-                                            };
-                                          })}</span
-                                        >
-                                      </div>` +
                                       html` <div style="display: flex; margin-bottom: 18px;">
                                         <span class="tx_700">購物金紀錄</span>
                                       </div>` +
@@ -1970,7 +2075,7 @@ export class UserList {
                                                   ApiWallet.getRebate({
                                                     page: vd.page - 1,
                                                     limit: limit,
-                                                    search: vm.data.userData.email,
+                                                    email_or_phone: vm.data.userData.email || vm.data.userData.phone,
                                                   }).then(data => {
                                                     vm.dataList = data.response.data;
                                                     vd.pageSize = Math.ceil(data.response.total / limit);
@@ -2046,7 +2151,7 @@ export class UserList {
                                           </div>
                                         </div>
                                         ${vm.plan > 0
-                                          ? html` <div class="gray-bottom-line-18">
+                                          ? html` <div class="">
                                               <div class="tx_700 mb-3">社群綁定</div>
                                               ${[
                                                 {
@@ -2095,85 +2200,6 @@ export class UserList {
                                                 .join(`<div class="my-3"></div>`)}
                                             </div>`
                                           : ''}
-                                        ${(() => {
-                                          const id = gvc.glitter.getUUID();
-                                          return gvc.bindView({
-                                            bind: id,
-                                            view: () => {
-                                              return new Promise<string>((resolve, reject) => {
-                                                function renderInfoBlock(title: string, content: string | typeof html) {
-                                                  return html`
-                                                    <div class="tx_700">${title}</div>
-                                                    <div style="font-size: 16px; font-weight: 400; color: #393939;">
-                                                      ${content}
-                                                    </div>
-                                                  `;
-                                                }
-
-                                                ApiShop.getOrder({
-                                                  page: 0,
-                                                  limit: 99999,
-                                                  data_from: 'manager',
-                                                  email: vm.data.userData.email,
-                                                  phone: vm.data.userData.phone,
-                                                  valid: true,
-                                                })
-                                                  .then(({ response }) => {
-                                                    const orders = response.data;
-                                                    const totalOrders = response.total;
-                                                    const firstData = orders.length > 0 ? orders[0] : undefined;
-                                                    const totalPrice = orders.reduce(
-                                                      (sum: number, item: any) => sum + item.orderData.total,
-                                                      0
-                                                    );
-
-                                                    const formatNum = (n: string | number) =>
-                                                      parseInt(`${n}`, 10).toLocaleString();
-                                                    const formatDate = (dateStr: string) =>
-                                                      gvc.glitter.ut.dateFormat(new Date(dateStr), 'yyyy-MM-dd hh:mm');
-
-                                                    resolve(html`
-                                                      <div>
-                                                        ${[
-                                                          renderInfoBlock(
-                                                            '累積消費金額',
-                                                            totalPrice
-                                                              ? html`<div
-                                                                  style="font-size: 32px; font-weight: 400; color: #393939;"
-                                                                >
-                                                                  ${formatNum(totalPrice)}
-                                                                </div>`
-                                                              : '尚無消費紀錄'
-                                                          ),
-                                                          renderInfoBlock(
-                                                            '累計消費次數',
-                                                            `${formatNum(totalOrders)}次`
-                                                          ),
-                                                          renderInfoBlock(
-                                                            '最後消費金額',
-                                                            firstData
-                                                              ? html`<div
-                                                                  style="font-size: 32px; font-weight: 400; color: #393939;"
-                                                                >
-                                                                  ${formatNum(firstData.orderData.total)}
-                                                                </div>`
-                                                              : '尚無消費紀錄'
-                                                          ),
-                                                          renderInfoBlock(
-                                                            '最後購買日期',
-                                                            firstData
-                                                              ? formatDate(firstData.created_time)
-                                                              : '尚無消費紀錄'
-                                                          ),
-                                                        ].join(html`<div class="my-3 w-100 border-top"></div>`)}
-                                                      </div>
-                                                    `);
-                                                  })
-                                                  .catch(reject);
-                                              });
-                                            },
-                                          });
-                                        })()}
                                       `;
                                       resolve(
                                         html` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`
@@ -2461,6 +2487,7 @@ export class UserList {
             key: '上次登入時間',
             value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span>`,
           },
+
           {
             key: '用戶狀態',
             value: (() => {

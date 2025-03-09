@@ -167,7 +167,7 @@ async function doAuthAction(req: express.Request, resp: express.Response, next_s
     }
     //Check database scheme
     await ApiPublic.createScheme((req.get('g-app') as any) ?? req.query['g-app']);
-    const refer_app = ApiPublic.checkApp.find((dd) => {
+    const refer_app = ApiPublic.checkedApp.find((dd) => {
         return (dd.app_name as any) === (req.headers['g-app'] as any);
     });
     req.headers['g-app'] = (refer_app && refer_app.refer_app) || ((req.get('g-app') as any) ?? req.query['g-app']);

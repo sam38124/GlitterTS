@@ -30,6 +30,7 @@ import { sendmail } from '../../services/ses.js';
 import { Shopee } from './shopee';
 import { ShipmentConfig as Shipment_support_config } from '../config/shipment-config.js';
 import { PayNowLogistics } from './paynow-logistics.js';
+import { CheckoutService } from './checkout.js';
 
 type BindItem = {
   id: string;
@@ -1502,49 +1503,49 @@ export class Shopping {
         !data.email &&
         !(data.user_info && data.user_info.email)
       ) {
-        if (data.user_info.phone) {
-          data.email = data.user_info.phone;
-        } else {
+        if (!data.user_info.phone) {
           throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
         }
       }
 
+      const checkOutType = data.checkOutType ?? 'manual';
+      console.log(`checkOutType==>`,checkOutType)
       const getUserDataAsync = async (
         type: string,
         token: IToken | undefined,
         data: {
           email?: string;
-          user_info: { email: string };
+          user_info: { email: string ,phone:string};
         }
       ) => {
         // 檢查預覽模式下的條件
-        if (type === 'preview' && !(token?.userID || (data.user_info && data.user_info.email))) {
+        if (type === 'preview' && !(token?.userID || (data.user_info && data.user_info.email) || (data.user_info && data.user_info.phone))) {
           return {};
         }
 
         // 根據 token 獲取用戶數據
-        if (token?.userID) {
+        if (token?.userID && (type !== 'POS' && checkOutType !== 'POS')) {
           return await userClass.getUserData(`${token.userID}`, 'userID');
         }
 
-        // 獲取 email 並從帳號獲取數據
-        const email = data.email || data.user_info.email;
-        const dataByAccount = await userClass.getUserData(email, 'account');
-
-        // 如果找到帳號數據，則返回
-        if (dataByAccount && Object.keys(dataByAccount).length > 0) {
-          return dataByAccount;
-        }
-
         // 否則根據 email 或電話獲取數據
-        return await userClass.getUserData(email, 'email_or_phone');
+        return ((data.user_info.email && (await userClass.getUserData(data.user_info.email, 'email_or_phone')) ) ||
+          (data.user_info.phone && (await userClass.getUserData( data.user_info.phone, 'email_or_phone')))) || {};
       };
 
       const userData = await getUserDataAsync(type, this.token, data);
 
       console.log(`checkout-time-02=>`, new Date().getTime() - check_time);
-      if (userData && userData.account) {
-        data.email = userData.account;
+      console.log(`the-userData-is=>`, userData);
+      if (userData && userData.userData && userData.userData.email) {
+        data.email = userData.userData.email || userData.userData.phone;
+      }
+      if(!data.email || (data.email==='no-email')){
+        if(data.user_info.email && (data.user_info.email !== 'no-email')){
+          data.email = data.user_info.email;
+        }else if(data.user_info.phone){
+          data.email=data.user_info.phone
+        }
       }
       if (!data.email && type !== 'preview') {
         data.email = data.user_info?.email || 'no-email';
@@ -1554,6 +1555,7 @@ export class Shopping {
       const appStatus = await rebateClass.mainStatus();
       if (appStatus && userData && data.use_rebate && data.use_rebate > 0) {
         const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
+        console.log(`userRebate==>`,userRebate)
         const sum = userRebate ? userRebate.point : 0;
         if (sum < data.use_rebate) {
           data.use_rebate = 0;
@@ -2128,9 +2130,9 @@ export class Shopping {
       (carData as any).payment_info_atm = keyData.payment_info_atm;
       //當未找到支援的貨到付款選項把貨到付款功能關掉
       if (!is_support_cash) {
-          (carData as any).off_line_support.cash_on_delivery=false
-      }else{
-          (carData as any).cash_on_delivery_support=(keyData as any).cash_on_delivery.support;
+        (carData as any).off_line_support.cash_on_delivery = false;
+      } else {
+        (carData as any).cash_on_delivery_support = (keyData as any).cash_on_delivery.support;
       }
       // 防止帶入購物金時，總計小於0
       let subtotal = 0;
@@ -2280,11 +2282,11 @@ export class Shopping {
           }
         }
         // 手動訂單新增
-        await db.execute(
-          `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-           values (?, ?, ?, ?)`,
-          [carData.orderID, data.pay_status, carData.email, carData]
-        );
+       await  OrderEvent.insertOrder({
+          cartData:carData,
+          status:data.pay_status as any,
+          app:this.app,
+        })
         console.log(`checkout-time-13=>`, new Date().getTime() - check_time);
         return {
           data: carData,
@@ -2320,13 +2322,11 @@ export class Shopping {
           (carData as any).orderStatus = '1';
           (carData as any).progress = 'finish';
         }
-        await trans.execute(
-          `replace
-          INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                     values (?, ?, ?, ?)`,
-          [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]
-        );
-
+        await  OrderEvent.insertOrder({
+          cartData:carData,
+          status:data.pay_status as any,
+          app:this.app,
+        })
         if (data.invoice_select !== 'nouse') {
           (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(
             carData,
@@ -2748,14 +2748,13 @@ export class Shopping {
 
         feedsOrder.forEach(order => mergeOrders(order.orderData));
 
-        const newCartToken = `${Date.now()}`;
-
+        base.orderID= `${Date.now()}`
         // 新增合併後的訂單
-        await db.execute(
-          `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-           VALUES (?, ?, ?, ?)`,
-          [newCartToken, targetOrder.status, targetOrder.email, JSON.stringify(base)]
-        );
+        await OrderEvent.insertOrder({
+          cartData:base,
+          status:targetOrder.status,
+          app: this.app,
+        })
 
         // 批次封存原始訂單
         await Promise.all(
@@ -3159,18 +3158,31 @@ export class Shopping {
     return cart;
   }
 
-  async putOrder(data: { id: string; orderData: any; status: any }) {
+  async putOrder(data: { id?: string;cart_token?:string, orderData: any; status: any }) {
     try {
       const update: any = {};
       const storeConfig = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
-      const origin = (
-        await db.query(
-          `SELECT *
+      let origin = undefined;
+      if(data.id){
+        origin=(
+          await db.query(
+            `SELECT *
            FROM \`${this.app}\`.t_checkout
            WHERE id = ?;`,
-          [data.id]
-        )
-      )[0];
+            [data.id]
+          )
+        )[0]
+      }
+      if(data.cart_token){
+        origin=(
+          await db.query(
+            `SELECT *
+           FROM \`${this.app}\`.t_checkout
+           WHERE cart_token = ?;`,
+            [data.cart_token]
+          )
+        )[0]
+      }
 
       if (!origin) {
         return {
@@ -3222,10 +3234,10 @@ export class Shopping {
         }
 
         //當訂單多了出貨單號碼，新增出貨日期，反之清空出貨日期。
-        if((update.orderData.user_info.shipment_number) && (!update.orderData.user_info.shipment_date)){
-          update.orderData.user_info.shipment_date=(new Date()).toISOString()
-        }else{
-          delete update.orderData.user_info.shipment_date
+        if (update.orderData.user_info.shipment_number && !update.orderData.user_info.shipment_date) {
+          update.orderData.user_info.shipment_date = new Date().toISOString();
+        } else if(!update.orderData.user_info.shipment_number){
+          delete update.orderData.user_info.shipment_date;
         }
 
         // 當訂單出貨狀態變更，觸發通知事件
@@ -3258,7 +3270,7 @@ export class Shopping {
         `UPDATE \`${this.app}\`.t_checkout
          SET ?
          WHERE id = ?;`,
-        [updateData, data.id]
+        [updateData, origin.id]
       );
 
       // 若符合有效訂單設定，則發放類型為購物金的優惠券
@@ -3269,7 +3281,7 @@ export class Shopping {
          WHERE id = ?
            AND ${orderCountingSQL};
         `,
-        [data.id]
+        [origin.id]
       );
       if (orderCount[0]) {
         await this.shareVoucherRebate(orderCount[0]);
@@ -3297,6 +3309,12 @@ export class Shopping {
         })
       );
 
+      //加入到索引欄位
+      await CheckoutService.updateAndMigrateToTableColumn({
+        id:origin.id,
+        orderData:update.orderData,
+        app_name:this.app
+      })
       return {
         result: 'success',
         orderData: data.orderData,
@@ -3407,12 +3425,11 @@ export class Shopping {
         }
       }
 
-      await db.query(
-        `UPDATE \`${this.app}\`.t_checkout
-         SET orderData = ?
-         WHERE cart_token = ?;`,
-        [JSON.stringify(orderData), order_id]
-      );
+      await this.putOrder({
+        cart_token:order_id,
+        orderData:orderData,
+        status:undefined
+      })
 
       return { data: true };
     } catch (e) {
@@ -3462,12 +3479,11 @@ export class Shopping {
         await line.sendCustomerLine('line-proof-purchase', order_id, orderData.customer_info.lineID);
         console.log('付款成功line訊息寄送成功');
       }
-      await db.query(
-        `update \`${this.app}\`.t_checkout
-         set orderData=?
-         where cart_token = ?`,
-        [JSON.stringify(orderData), order_id]
-      );
+      await this.putOrder({
+        orderData:orderData,
+        cart_token:order_id,
+        status:undefined
+      })
       return {
         result: true,
       };
@@ -3491,14 +3507,14 @@ export class Shopping {
     progress?: string;
     orderStatus?: string;
     created_time?: string;
-    shipment_time?:string;
+    shipment_time?: string;
     orderString?: string;
     archived?: string;
     returnSearch?: string;
     distribution_code?: string;
     valid?: boolean;
-    is_shipment?:boolean;
-    payment_select?:string
+    is_shipment?: boolean;
+    payment_select?: string;
   }) {
     try {
       let querySql = ['1=1'];
@@ -3542,13 +3558,28 @@ export class Shopping {
         querySql.push(countingSQL);
       }
 
-      if(query.is_shipment) {
-        querySql.push(`(orderData->>'$.user_info.shipment_number' IS NOT NULL) and (orderData->>'$.user_info.shipment_number' != '')`);
+      if (query.is_shipment) {
+        querySql.push(
+          `(orderData->>'$.user_info.shipment_number' IS NOT NULL) and (orderData->>'$.user_info.shipment_number' != '')`
+        );
       }
-      if(query.payment_select){
-        querySql.push(`(orderData->>'$.customer_info.payment_select') in (${query.payment_select.split(',').map(d => `'${d}'`).join(',')})`);
+      if (query.payment_select) {
+        querySql.push(
+          `(orderData->>'$.customer_info.payment_select') in (${query.payment_select
+            .split(',')
+            .map(d => `'${d}'`)
+            .join(',')})`
+        );
       }
+
       if (query.progress) {
+        //備貨中
+        if(query.progress === 'in_stock'){
+          query.progress='wait'
+          querySql.push(`shipment_number is NOT null`);
+        }else if(query.progress === 'wait'){
+          querySql.push(`shipment_number is null`);
+        }
         let newArray = query.progress.split(',');
         let temp = '';
         if (newArray.includes('wait')) {
@@ -3716,59 +3747,78 @@ export class Shopping {
         })
       )[0].value;
       await Promise.all(
-        obMap.map(async (order: any) => {
-          try {
-            if (order.orderData.customer_info.payment_select === 'ecPay') {
-              order.orderData.cash_flow = await new EcPay(this.app).checkPaymentStatus(order.cart_token);
-            }
-            if (order.orderData.customer_info.payment_select === 'paynow') {
-              order.orderData.cash_flow = (
-                await new PayNow(this.app, keyData['paynow']).confirmAndCaptureOrder(order.orderData.paynow_id)
-              ).result;
-            }
-            if (order.orderData.user_info.shipment_refer === 'paynow') {
-              const pay_now = new PayNowLogistics(this.app);
-              order.orderData.user_info.shipment_detail = await pay_now.getOrderInfo(order.cart_token);
-              const status = (() => {
-                switch (order.orderData.user_info.shipment_detail.PayNowLogisticCode) {
-                  case '0000':
-                  case '7101':
-                  case '7201':
-                    return 'wait';
-                  case '0101':
-                  case '4000':
-                  case '0102':
-                  case '9411':
-                    return 'shipping';
-                  case '0103':
-                  case '4031':
-                  case '4032':
-                  case '4040':
-                  case '5001':
-                  case '8100':
-                  case '8110':
-                  case '8120':
-                    return 'returns';
-                  case '5000':
-                    return 'arrived';
-                  case '8000':
-                  case '8010':
-                  case '8020':
-                    return 'finish';
-                }
-              })();
-              //貨態更新
-              if (order.orderData.progress !== status) {
-                order.orderData.progress = status;
-                await this.putOrder({
-                  status: undefined,
-                  orderData: order.orderData,
-                  id: order.id,
-                });
+        obMap
+          .map(async (order: any) => {
+            try {
+              if (order.orderData.customer_info.payment_select === 'ecPay') {
+                order.orderData.cash_flow = await new EcPay(this.app).checkPaymentStatus(order.cart_token);
               }
-            }
-          } catch (e) {}
-        })
+              if (order.orderData.customer_info.payment_select === 'paynow') {
+                order.orderData.cash_flow = (
+                  await new PayNow(this.app, keyData['paynow']).confirmAndCaptureOrder(order.orderData.paynow_id)
+                ).result;
+              }
+              if (order.orderData.user_info.shipment_refer === 'paynow') {
+                const pay_now = new PayNowLogistics(this.app);
+                order.orderData.user_info.shipment_detail = await pay_now.getOrderInfo(order.cart_token);
+                console.log(`PayNowLogisticCode=>`,order.orderData.user_info.shipment_detail.PayNowLogisticCode)
+                const status = (() => {
+                  switch (order.orderData.user_info.shipment_detail.PayNowLogisticCode) {
+                    case '0000':
+                    case '7101':
+                    case '7201':
+                      return 'wait';
+                    case '0101':
+                    case '4000':
+                    case '0102':
+                    case '9411':
+                      return 'shipping';
+                    case '0103':
+                    case '4019':
+                    case '4033':
+                    case '4031':
+                    case '4032':
+                    case '4036':
+                    case '4040':
+                    case '5001':
+                    case '8100':
+                    case '8110':
+                    case '8120':
+                      return 'returns';
+                    case '5000':
+                      return 'arrived';
+                    case '8000':
+                    case '8010':
+                    case '8020':
+                      return 'finish';
+                  }
+                })();
+                //貨態更新
+                if (status && (order.orderData.progress !== status)) {
+                  order.orderData.progress = status;
+                  await this.putOrder({
+                    status: undefined,
+                    orderData: order.orderData,
+                    id: order.id,
+                  });
+                }
+              }
+            } catch (e) {}
+          })
+          //補上發票號碼資訊
+          .concat(obMap.map(async (order: any) => {
+            const invoice=(await new Invoice(this.app).getInvoice({
+              page:0,
+              limit:1,
+              search:order.orderData.invoice_number,
+              searchType:order.orderData.order_number
+            })).data[0];
+            order.invoice_number = (invoice) && invoice.invoice_no
+          }))
+          //補上用戶資訊
+          .concat(obMap.map(async (order: any) => {
+            order.user_data = (await new User(this.app).getUserData(order.email,'email_or_phone'));
+          }))
       );
 
       return response_data;

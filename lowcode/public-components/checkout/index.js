@@ -1039,29 +1039,31 @@ export class CheckoutIndex {
                     </div>
                   `;
                         }
-                        return html ` <div class="container ${gClass('container')}" style="margin-top:0px !important;">
+                        return html ` <div class="w-100" style="margin-top:0 !important;">
                   ${gvc.bindView((() => {
                             return {
                                 bind: ids.cart,
                                 view: () => {
+                                    const padding = (document.body.clientWidth - 1200) / 2;
                                     return html `
-                            <section>
-                              <div
-                                class="d-flex flex-column flex-md-row justify-content-between w-100"
-                                style="${document.body.clientWidth > 800
+                            <div
+                              class="d-flex flex-column flex-md-row justify-content-between w-100"
+                              style="${document.body.clientWidth > 800
                                         ? `height:calc(100vh - 150px);overflow-y:auto;`
-                                        : `gap:20px;`}"
-                              >
-                                <div
-                                  style="${document.body.clientWidth > 800
+                                        : `gap:20px;`}
+padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? padding : 10}px;
+"
+                            >
+                              <div
+                                style="${document.body.clientWidth > 800
                                         ? `width:calc(66% - 10px);`
                                         : `width:calc(100%);`}"
-                                >
-                                  <div style="padding-top:20px;" class="${gClass('banner-text')} fs-4 mb-3 pt-3">
-                                    ${Language.text(ApiCart.checkoutCart === ApiCart.buyItNow ? 'buy_it_now' : 'your_shopping_cart')}
-                                  </div>
-                                  <div style="" class="rounded-3 bg-white w-100 ">
-                                    ${gvc.bindView({
+                              >
+                                <div style="padding-top:20px;" class="${gClass('banner-text')} fs-4 mb-3 pt-3">
+                                  ${Language.text(ApiCart.checkoutCart === ApiCart.buyItNow ? 'buy_it_now' : 'your_shopping_cart')}
+                                </div>
+                                <div style="" class="rounded-3 bg-white w-100 ">
+                                  ${gvc.bindView({
                                         bind: glitter.getUUID(),
                                         view: () => {
                                             try {
@@ -1105,67 +1107,64 @@ export class CheckoutIndex {
                                                         gvc.notifyDataChange(ids.shipping);
                                                     }
                                                     return html `
-                                                <div class="d-flex flex-column p-lg-3 px-2 py-3 gap-2">
-                                                  <div class="d-flex w-100 position-relative" style="gap:20px;">
-                                                    <div class=" justify-content-start  ">
-                                                      <div
-                                                        style="width: 88px;height: 88px;border-radius: 10px;background: 50%/cover url('${item.preview_image}')"
-                                                      ></div>
-                                                    </div>
+                                              <div class="d-flex flex-column p-lg-3 px-2 py-3 gap-2">
+                                                <div class="d-flex w-100 position-relative" style="gap:20px;">
+                                                  <div class=" justify-content-start  ">
                                                     <div
-                                                      class="d-flex  flex-column  position-relative"
-                                                      style="gap: 2px; position: relative; width:calc(100% - 115px);"
-                                                    >
-                                                      <span
-                                                        class="fw-bold pe-4"
-                                                        style="gap:5px;font-size:${document.body.clientWidth > 800
+                                                      style="width: 88px;height: 88px;border-radius: 10px;background: 50%/cover url('${item.preview_image}')"
+                                                    ></div>
+                                                  </div>
+                                                  <div
+                                                    class="d-flex  flex-column  position-relative"
+                                                    style="gap: 2px; position: relative; width:calc(100% - 115px);"
+                                                  >
+                                                    <span
+                                                      class="fw-bold pe-4"
+                                                      style="gap:5px;font-size:${document.body.clientWidth > 800
                                                         ? `16`
                                                         : `14`}px;max-width:calc(100% - 10px); display: -webkit-box;
   -webkit-line-clamp: 2; 
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis; "
-                                                        >${title}</span
-                                                      >
-                                                      <div class="${gClass(['66text'])} fs-sm">
-                                                        ${spec ? spec.join(' / ') : ''}
-                                                      </div>
-                                                      <div>${getBadgeClass()}</div>
-                                                      <div
-                                                        class="d-flex flex-column align-items-start "
-                                                        style="gap:2px;"
-                                                      >
-                                                        <div class="fw-bold fs-6 ${gClass('price-text')}">
-                                                          ${(() => {
+                                                      >${title}</span
+                                                    >
+                                                    <div class="${gClass(['66text'])} fs-sm">
+                                                      ${spec ? spec.join(' / ') : ''}
+                                                    </div>
+                                                    <div>${getBadgeClass()}</div>
+                                                    <div class="d-flex flex-column align-items-start " style="gap:2px;">
+                                                      <div class="fw-bold fs-6 ${gClass('price-text')}">
+                                                        ${(() => {
                                                         if (item.is_gift) {
                                                             return Currency.convertCurrencyText(0);
                                                         }
                                                         return Currency.convertCurrencyText(parseFloat(item.sale_price));
                                                     })()}
-                                                        </div>
-                                                        ${(() => {
+                                                      </div>
+                                                      ${(() => {
                                                         if (item.is_gift || item.sale_price >= item.origin_price) {
                                                             return '';
                                                         }
                                                         return html ` <div
-                                                            style="text-decoration: line-through; font-size: 12px;"
-                                                          >
-                                                            ${Currency.convertCurrencyText(parseFloat(item.origin_price))}
-                                                          </div>`;
-                                                    })()}
-                                                      </div>
-                                                      <div class="w-100 d-flex">
-                                                        <div class="flex-fill"></div>
-                                                        <div
-                                                          class="d-flex align-items-center border rounded-2"
-                                                          style="overflow: hidden;"
+                                                          style="text-decoration: line-through; font-size: 12px;"
                                                         >
-                                                          <div
-                                                            class="${item.is_gift
+                                                          ${Currency.convertCurrencyText(parseFloat(item.origin_price))}
+                                                        </div>`;
+                                                    })()}
+                                                    </div>
+                                                    <div class="w-100 d-flex">
+                                                      <div class="flex-fill"></div>
+                                                      <div
+                                                        class="d-flex align-items-center border rounded-2"
+                                                        style="overflow: hidden;"
+                                                      >
+                                                        <div
+                                                          class="${item.is_gift
                                                         ? `d-none`
                                                         : `d-flex`} align-items-center justify-content-center"
-                                                            style="width:38px;height: 38px;cursor: pointer;"
-                                                            onclick="${gvc.event(() => {
+                                                          style="width:38px;height: 38px;cursor: pointer;"
+                                                          onclick="${gvc.event(() => {
                                                         apiCart.setCart(cartItem => {
                                                             const find = cartItem.line_items.find(dd => {
                                                                 return (dd.id === item.id &&
@@ -1177,12 +1176,12 @@ export class CheckoutIndex {
                                                             }
                                                         });
                                                     })}"
-                                                          >
-                                                            <i class="fa-solid fa-minus" style="color:black;"></i>
-                                                          </div>
-                                                          <select
-                                                            class="form-select custom-select mx-0 p-0 "
-                                                            style="
+                                                        >
+                                                          <i class="fa-solid fa-minus" style="color:black;"></i>
+                                                        </div>
+                                                        <select
+                                                          class="form-select custom-select mx-0 p-0 "
+                                                          style="
                                                             
                                                             ${item.is_gift
                                                         ? `border:none;`
@@ -1190,7 +1189,7 @@ export class CheckoutIndex {
                                                             border-radius: 0px; color: #575757; width: 50px;height:38px;background-image:none;${parseInt(vm.quantity, 10) < 10
                                                         ? `text-indent: 43%;`
                                                         : `text-indent: 40%;`}"
-                                                            onchange="${gvc.event(e => {
+                                                          onchange="${gvc.event(e => {
                                                         apiCart.setCart(cartItem => {
                                                             cartItem.line_items.find(dd => {
                                                                 return (dd.id === item.id &&
@@ -1199,9 +1198,9 @@ export class CheckoutIndex {
                                                             refreshCartData();
                                                         });
                                                     })}"
-                                                            ${item.is_gift ? `disabled` : ``}
-                                                          >
-                                                            ${[
+                                                          ${item.is_gift ? `disabled` : ``}
+                                                        >
+                                                          ${[
                                                         ...new Array((() => {
                                                             if (item.show_understocking === 'false') {
                                                                 return 50;
@@ -1211,20 +1210,20 @@ export class CheckoutIndex {
                                                     ]
                                                         .map((_, index) => {
                                                         return html ` <option
-                                                                  value="${index + 1}"
-                                                                  ${index + 1 === item.count ? `selected` : ``}
-                                                                >
-                                                                  ${index + 1}
-                                                                </option>`;
+                                                                value="${index + 1}"
+                                                                ${index + 1 === item.count ? `selected` : ``}
+                                                              >
+                                                                ${index + 1}
+                                                              </option>`;
                                                     })
                                                         .join('')}
-                                                          </select>
-                                                          <div
-                                                            class=" align-items-center justify-content-center ${item.is_gift
+                                                        </select>
+                                                        <div
+                                                          class=" align-items-center justify-content-center ${item.is_gift
                                                         ? `d-none`
                                                         : `d-flex`}"
-                                                            style="width:38px;height: 38px;cursor: pointer;"
-                                                            onclick="${gvc.event(() => {
+                                                          style="width:38px;height: 38px;cursor: pointer;"
+                                                          onclick="${gvc.event(() => {
                                                         apiCart.setCart(cartItem => {
                                                             const find = cartItem.line_items.find(dd => {
                                                                 return (dd.id === item.id &&
@@ -1237,19 +1236,19 @@ export class CheckoutIndex {
                                                             }
                                                         });
                                                     })}"
-                                                          >
-                                                            <i class="fa-solid fa-plus" style="color:black;"></i>
-                                                          </div>
+                                                        >
+                                                          <i class="fa-solid fa-plus" style="color:black;"></i>
                                                         </div>
                                                       </div>
-                                                      <div
-                                                        class="d-block "
-                                                        style="position: absolute; right: 5px; top:0px;"
-                                                      >
-                                                        <i
-                                                          class="fa-solid fa-xmark-large"
-                                                          style="cursor: pointer;color:gray;"
-                                                          onclick="${gvc.event(() => {
+                                                    </div>
+                                                    <div
+                                                      class="d-block "
+                                                      style="position: absolute; right: 5px; top:0px;"
+                                                    >
+                                                      <i
+                                                        class="fa-solid fa-xmark-large"
+                                                        style="cursor: pointer;color:gray;"
+                                                        onclick="${gvc.event(() => {
                                                         apiCart.setCart(cartItem => {
                                                             cartItem.line_items = cartItem.line_items.filter(dd => {
                                                                 return !(dd.id === item.id &&
@@ -1258,12 +1257,12 @@ export class CheckoutIndex {
                                                             refreshCartData();
                                                         });
                                                     })}"
-                                                        ></i>
-                                                      </div>
+                                                      ></i>
                                                     </div>
                                                   </div>
-                                                  <div>
-                                                    ${vm.cartData.voucherList
+                                                </div>
+                                                <div>
+                                                  ${vm.cartData.voucherList
                                                         .filter((dd) => {
                                                         return (dd.bind.find((d2) => {
                                                             return d2.id === item.id;
@@ -1275,7 +1274,7 @@ export class CheckoutIndex {
                                                         return `<div class=" w-100 " style="${document.body.clientWidth < 800 ? `font-size:12px;` : `font-size:14px;`}"><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
                                                     })
                                                         .join('<div class="my-1"></div>')}
-                                                    ${(() => {
+                                                  ${(() => {
                                                         let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
                                                         let count = 0;
                                                         for (const b of vm.cartData.lineItems) {
@@ -1290,7 +1289,7 @@ export class CheckoutIndex {
                                                             return ``;
                                                         }
                                                     })()}
-                                                    ${(() => {
+                                                  ${(() => {
                                                         let max_qty = (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
                                                         let count = 0;
                                                         for (const b of vm.cartData.lineItems) {
@@ -1305,9 +1304,9 @@ export class CheckoutIndex {
                                                             return ``;
                                                         }
                                                     })()}
-                                                  </div>
                                                 </div>
-                                              `;
+                                              </div>
+                                            `;
                                                 })
                                                     .join(`<div class="border-bottom w-100"></div>`);
                                             }
@@ -1317,9 +1316,9 @@ export class CheckoutIndex {
                                             }
                                         },
                                     })}
-                                  </div>
-                                  <!--加購品-->
-                                  ${(() => {
+                                </div>
+                                <!--加購品-->
+                                ${(() => {
                                         let add_on = [];
                                         vm.cartData.voucherList.filter((dd) => {
                                             if (dd.reBackType === 'add_on_items') {
@@ -1342,83 +1341,82 @@ export class CheckoutIndex {
                                                             return ``;
                                                         }
                                                         return html `
-                                              <div class="rounded-3 mt-3 p-3 bg-white">
-                                                <span class="${gClass('banner-text')}"
-                                                  >${Language.text('additional_purchase_items')}</span
-                                                >
-                                                <div
-                                                  class="d-flex align-items-center w-100"
-                                                  style="overflow-x:auto;gap:10px;"
-                                                >
-                                                  ${add_products.response.data
+                                            <div class="rounded-3 mt-3 p-3 bg-white">
+                                              <span class="${gClass('banner-text')}"
+                                                >${Language.text('additional_purchase_items')}</span
+                                              >
+                                              <div
+                                                class="d-flex align-items-center w-100"
+                                                style="overflow-x:auto;gap:10px;"
+                                              >
+                                                ${add_products.response.data
                                                             .map((dd) => {
                                                             return html ` <div
-                                                        class="d-flex py-3 align-items-center"
-                                                        style="gap:10px;"
-                                                      >
-                                                        <div
-                                                          class="img-fluid img-106px"
-                                                          style="background-image: url('${dd.content
-                                                                .preview_image[0]}');"
-                                                        ></div>
-                                                        <div class="d-flex flex-column" style="gap:5px;">
-                                                          <div class="${gClass('banner-text')} banner-font-15">
-                                                            ${dd.content.title}
-                                                          </div>
-                                                          <div class="ntd-font-14">
-                                                            ${Currency.convertCurrencyText(dd.content.min_price)}
-                                                          </div>
-                                                          <button
-                                                            class="${gClass('button-bgr')} mb-0 mt-2"
-                                                            onclick="${gvc.event(() => {
+                                                      class="d-flex py-3 align-items-center"
+                                                      style="gap:10px;"
+                                                    >
+                                                      <div
+                                                        class="img-fluid img-106px"
+                                                        style="background-image: url('${dd.content.preview_image[0]}');"
+                                                      ></div>
+                                                      <div class="d-flex flex-column" style="gap:5px;">
+                                                        <div class="${gClass('banner-text')} banner-font-15">
+                                                          ${dd.content.title}
+                                                        </div>
+                                                        <div class="ntd-font-14">
+                                                          ${Currency.convertCurrencyText(dd.content.min_price)}
+                                                        </div>
+                                                        <button
+                                                          class="${gClass('button-bgr')} mb-0 mt-2"
+                                                          onclick="${gvc.event(() => {
                                                                 var _a;
                                                                 const titleFontColor = (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
                                                                 gvc.glitter.innerDialog((gvc) => {
                                                                     var _a, _b;
                                                                     return html ` <div
-                                                                    class=" bg-white shadow  ${document.body
-                                                                        .clientWidth > 768
+                                                                  class=" bg-white shadow  ${document.body.clientWidth >
+                                                                        768
                                                                         ? `rounded-3`
                                                                         : ` position-absolute bottom-0`}"
-                                                                    style=" ${document.body.clientWidth > 768
+                                                                  style=" ${document.body.clientWidth > 768
                                                                         ? `min-width: 400px; width: 1000px;max-height:calc(100% - 150px);overflow-y: auto;`
                                                                         : 'width:calc(100vw);height:100%;'}"
-                                                                  >
-                                                                    <div
-                                                                      class="bg-white shadow  ${document.body
+                                                                >
+                                                                  <div
+                                                                    class="bg-white shadow  ${document.body
                                                                         .clientWidth > 768
                                                                         ? `rounded-3`
                                                                         : `h-100`}"
-                                                                      style="
+                                                                    style="
                 width: 100%;  position: relative;${document.body.clientWidth > 768 ? `` : `overflow-y: auto;`}"
+                                                                  >
+                                                                    <div
+                                                                      class="w-100 d-flex align-items-center p-3 border-bottom"
+                                                                      style="position: sticky; top: 0; background: #fff;z-index:12;"
                                                                     >
                                                                       <div
-                                                                        class="w-100 d-flex align-items-center p-3 border-bottom"
-                                                                        style="position: sticky; top: 0; background: #fff;z-index:12;"
+                                                                        class="fw-bold fs-5"
+                                                                        style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;"
                                                                       >
-                                                                        <div
-                                                                          class="fw-bold fs-5"
-                                                                          style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;"
-                                                                        >
-                                                                          ${dd.content.title}
-                                                                        </div>
-                                                                        <div class="flex-fill"></div>
-                                                                        <i
-                                                                          class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                                                          style="cursor: pointer"
-                                                                          onclick="${gvc.event(() => {
+                                                                        ${dd.content.title}
+                                                                      </div>
+                                                                      <div class="flex-fill"></div>
+                                                                      <i
+                                                                        class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                                                        style="cursor: pointer"
+                                                                        onclick="${gvc.event(() => {
                                                                         gvc.closeDialog();
                                                                     })}"
-                                                                        ></i>
-                                                                      </div>
-                                                                      <div
-                                                                        class="c_dialog_main"
-                                                                        style="gap: 24px;  max-height: calc(100% - 100px); ${document
+                                                                      ></i>
+                                                                    </div>
+                                                                    <div
+                                                                      class="c_dialog_main"
+                                                                      style="gap: 24px;  max-height: calc(100% - 100px); ${document
                                                                         .body.clientWidth < 800
                                                                         ? `padding: 12px 20px;`
                                                                         : `padding: 30px;`}"
-                                                                      >
-                                                                        ${PdClass.selectSpec({
+                                                                    >
+                                                                      ${PdClass.selectSpec({
                                                                         gvc,
                                                                         titleFontColor: (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333',
                                                                         prod: dd.content,
@@ -1464,31 +1462,31 @@ export class CheckoutIndex {
                                                                             }
                                                                         },
                                                                     })}
-                                                                        <div
-                                                                          class="d-sm-none"
-                                                                          style="height:100px;"
-                                                                        ></div>
-                                                                      </div>
+                                                                      <div
+                                                                        class="d-sm-none"
+                                                                        style="height:100px;"
+                                                                      ></div>
                                                                     </div>
-                                                                  </div>`;
+                                                                  </div>
+                                                                </div>`;
                                                                 }, Tool.randomString(7), {
                                                                     animation: document.body.clientWidth < 768
                                                                         ? Animation.popup
                                                                         : Animation.fade,
                                                                 });
                                                             })}"
+                                                        >
+                                                          <span class="${gClass('button-text')}"
+                                                            >${Language.text('add_to_cart')}</span
                                                           >
-                                                            <span class="${gClass('button-text')}"
-                                                              >${Language.text('add_to_cart')}</span
-                                                            >
-                                                          </button>
-                                                        </div>
-                                                      </div>`;
+                                                        </button>
+                                                      </div>
+                                                    </div>`;
                                                         })
                                                             .join('')}
-                                                </div>
                                               </div>
-                                            `;
+                                            </div>
+                                          `;
                                                     }),
                                                     divCreate: {
                                                         class: `w-100`,
@@ -1500,8 +1498,8 @@ export class CheckoutIndex {
                                             return '';
                                         }
                                     })()}
-                                  <!--贈品-->
-                                  ${(() => {
+                                <!--贈品-->
+                                ${(() => {
                                         let already_add = vm.cartData.lineItems.filter((dd) => {
                                             return dd.is_gift;
                                         });
@@ -1519,37 +1517,34 @@ export class CheckoutIndex {
                                                 return !dd === isSelected;
                                             });
                                             return html `
-                                          <span class="${gClass('banner-text')}">${dd.title}</span>
-                                          <div
-                                            class="d-flex align-items-center w-100"
-                                            style="overflow-x:auto;gap:10px;"
-                                          >
-                                            ${dd.add_on_products
+                                        <span class="${gClass('banner-text')}">${dd.title}</span>
+                                        <div class="d-flex align-items-center w-100" style="overflow-x:auto;gap:10px;">
+                                          ${dd.add_on_products
                                                 .map((pd) => {
                                                 try {
                                                     return html ` <div
-                                                    class="d-flex py-3 align-items-center"
-                                                    style="gap:10px;"
-                                                  >
-                                                    <div
-                                                      class="img-fluid img-106px"
-                                                      style="background-image: url('${pd.preview_image[0]}');"
-                                                    ></div>
-                                                    <div class="d-flex flex-column" style="gap:5px;">
-                                                      <div class="${gClass('banner-text')} banner-font-15">
-                                                        ${pd.title}
-                                                      </div>
-                                                      <div class="text-decoration-line-through text-danger ntd-font-14">
-                                                        ${Currency.convertCurrencyText(pd.min_price)}
-                                                      </div>
-                                                      <button
-                                                        class="${gClass('button-bgr')} mb-0 mt-2"
-                                                        style="${isSelected
+                                                  class="d-flex py-3 align-items-center"
+                                                  style="gap:10px;"
+                                                >
+                                                  <div
+                                                    class="img-fluid img-106px"
+                                                    style="background-image: url('${pd.preview_image[0]}');"
+                                                  ></div>
+                                                  <div class="d-flex flex-column" style="gap:5px;">
+                                                    <div class="${gClass('banner-text')} banner-font-15">
+                                                      ${pd.title}
+                                                    </div>
+                                                    <div class="text-decoration-line-through text-danger ntd-font-14">
+                                                      ${Currency.convertCurrencyText(pd.min_price)}
+                                                    </div>
+                                                    <button
+                                                      class="${gClass('button-bgr')} mb-0 mt-2"
+                                                      style="${isSelected
                                                         ? isSelected.id === pd.id
                                                             ? `background: gray !important;`
                                                             : ``
                                                         : ``}"
-                                                        onclick="${gvc.event(() => {
+                                                      onclick="${gvc.event(() => {
                                                         var _a;
                                                         if (isSelected && isSelected.id === pd.id) {
                                                             return;
@@ -1558,49 +1553,48 @@ export class CheckoutIndex {
                                                         gvc.glitter.innerDialog((gvc) => {
                                                             var _a, _b;
                                                             return html ` <div
-                                                                class=" bg-white shadow  ${document.body.clientWidth >
-                                                                768
+                                                              class=" bg-white shadow  ${document.body.clientWidth > 768
                                                                 ? `rounded-3`
                                                                 : ` position-absolute bottom-0`}"
-                                                                style=" ${document.body.clientWidth > 768
+                                                              style=" ${document.body.clientWidth > 768
                                                                 ? `min-width: 400px; width: 1000px;max-height:calc(100% - 150px);overflow-y: auto;`
                                                                 : 'width:calc(100vw);height:100%;'}"
-                                                              >
-                                                                <div
-                                                                  class="bg-white shadow  ${document.body.clientWidth >
+                                                            >
+                                                              <div
+                                                                class="bg-white shadow  ${document.body.clientWidth >
                                                                 768
                                                                 ? `rounded-3`
                                                                 : `h-100`}"
-                                                                  style="
+                                                                style="
                 width: 100%;  position: relative;${document.body.clientWidth > 768 ? `` : `overflow-y: auto;`}"
+                                                              >
+                                                                <div
+                                                                  class="w-100 d-flex align-items-center p-3 border-bottom"
+                                                                  style="position: sticky; top: 0; background: #fff;z-index:12;"
                                                                 >
                                                                   <div
-                                                                    class="w-100 d-flex align-items-center p-3 border-bottom"
-                                                                    style="position: sticky; top: 0; background: #fff;z-index:12;"
+                                                                    class="fw-bold fs-5"
+                                                                    style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;"
                                                                   >
-                                                                    <div
-                                                                      class="fw-bold fs-5"
-                                                                      style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;"
-                                                                    >
-                                                                      ${pd.title}
-                                                                    </div>
-                                                                    <div class="flex-fill"></div>
-                                                                    <i
-                                                                      class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                                                      style="cursor: pointer"
-                                                                      onclick="${gvc.event(() => {
+                                                                    ${pd.title}
+                                                                  </div>
+                                                                  <div class="flex-fill"></div>
+                                                                  <i
+                                                                    class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                                                    style="cursor: pointer"
+                                                                    onclick="${gvc.event(() => {
                                                                 gvc.closeDialog();
                                                             })}"
-                                                                    ></i>
-                                                                  </div>
-                                                                  <div
-                                                                    class="c_dialog_main"
-                                                                    style="gap: 24px;  max-height: calc(100% - 100px); ${document
+                                                                  ></i>
+                                                                </div>
+                                                                <div
+                                                                  class="c_dialog_main"
+                                                                  style="gap: 24px;  max-height: calc(100% - 100px); ${document
                                                                 .body.clientWidth < 800
                                                                 ? `padding: 12px 20px;`
                                                                 : `padding: 30px;`}"
-                                                                  >
-                                                                    ${PdClass.selectSpec({
+                                                                >
+                                                                  ${PdClass.selectSpec({
                                                                 gvc,
                                                                 titleFontColor: (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333',
                                                                 prod: pd,
@@ -1645,42 +1639,42 @@ export class CheckoutIndex {
                                                                     }
                                                                 },
                                                             })}
-                                                                    <div class="d-sm-none" style="height:100px;"></div>
-                                                                  </div>
+                                                                  <div class="d-sm-none" style="height:100px;"></div>
                                                                 </div>
-                                                              </div>`;
+                                                              </div>
+                                                            </div>`;
                                                         }, Tool.randomString(7), {
                                                             animation: document.body.clientWidth < 768
                                                                 ? Animation.popup
                                                                 : Animation.fade,
                                                         });
                                                     })}"
-                                                      >
-                                                        <span class="${gClass('button-text')}"
-                                                          >${isSelected
+                                                    >
+                                                      <span class="${gClass('button-text')}"
+                                                        >${isSelected
                                                         ? isSelected.id === pd.id
                                                             ? Language.text('selected')
                                                             : Language.text('change_gift')
                                                         : Language.text('select_gift')}</span
-                                                        >
-                                                      </button>
-                                                    </div>
-                                                  </div>`;
+                                                      >
+                                                    </button>
+                                                  </div>
+                                                </div>`;
                                                 }
                                                 catch (e) {
                                                     console.error(`error 2 =>`, e);
                                                 }
                                             })
                                                 .join('')}
-                                          </div>
-                                        `;
+                                        </div>
+                                      `;
                                         })
                                             .join('');
                                         return giftHtml && `<div class="rounded-3 bg-white p-3 mt-3">${giftHtml}</div>`;
                                     })()}
-                                  <!--配送資訊-->
-                                  <div class="rounded-3 bg-white w-100 p-1 mt-3">
-                                    ${` <section>
+                                <!--配送資訊-->
+                                <div class="rounded-3 bg-white w-100 p-1 mt-3">
+                                  ${` <section>
                  <div class="${gClass('banner-text')} px-2 pt-3">${Language.text('payment_and_shipping_methods')}</div>
                     ${vm.cartData.shipment_info
                                         ? html ` <div class="pt-2 mx-2 mx-sm-3">${vm.cartData.shipment_info}</div>`
@@ -1769,6 +1763,22 @@ export class CheckoutIndex {
                                         },
                                     })}
                       </div>
+                      <div class="col-12">${gvc.bindView(() => {
+                                        return {
+                                            bind: gvc.glitter.getUUID(),
+                                            view: () => __awaiter(this, void 0, void 0, function* () {
+                                                const log_config = (yield ApiUser.getPublicConfig('shipment_config_' + vm.cartData.user_info.shipment, 'manager')).response.value;
+                                                if (log_config.content) {
+                                                    return `
+<label class="${gClass('label')}">${Language.text('shipping_instructions')}</label>
+<div class="border rounded-3 p-2">
+${log_config.content}
+</div>`;
+                                                }
+                                                return ``;
+                                            }),
+                                        };
+                                    })}</div>
                       <!-- 配送地址 -->
                       ${['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(vm.cartData.user_info.shipment)
                                         ? gvc.bindView(() => {
@@ -1984,16 +1994,16 @@ export class CheckoutIndex {
                                     })()}
                     </div>
                   </section>`}
-                                  </div>
-                                  <!--顧客資訊-->
-                                  <div class="rounded-3 bg-white w-100 p-1 mt-3">
-                                    <div class="${gClass('banner-text')} px-3 pt-3 w-100 d-flex align-items-center">
-                                      ${Language.text('customer_info')}
-                                      <div class="flex-fill"></div>
-                                      <div
-                                        class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
-                                        style="cursor: pointer; color: #3366bb;"
-                                        onclick="${gvc.event(() => {
+                                </div>
+                                <!--顧客資訊-->
+                                <div class="rounded-3 bg-white w-100 p-1 mt-3">
+                                  <div class="${gClass('banner-text')} px-3 pt-3 w-100 d-flex align-items-center">
+                                    ${Language.text('customer_info')}
+                                    <div class="flex-fill"></div>
+                                    <div
+                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
+                                      style="cursor: pointer; color: #3366bb;"
+                                      onclick="${gvc.event(() => {
                                         ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
                                             console.log(`res.response.userData=>`, res.response.userData);
                                             ['name', 'phone', 'email'].map(dd => {
@@ -2004,11 +2014,11 @@ export class CheckoutIndex {
                                             gvc.notifyDataChange('customer-info');
                                         });
                                     })}"
-                                      >
-                                        ${Language.text('quick_input')}
-                                      </div>
+                                    >
+                                      ${Language.text('quick_input')}
                                     </div>
-                                    ${gvc.bindView(() => {
+                                  </div>
+                                  ${gvc.bindView(() => {
                                         const id = 'customer-info';
                                         const vm_info = {
                                             loading: true,
@@ -2022,7 +2032,7 @@ export class CheckoutIndex {
                                                     vm_info.list = widget.share.custom_form_checkout;
                                                     resolve([
                                                         html ` <div class="row m-0 mt-3 mb-2">
-                                                  ${[
+                                                ${[
                                                             {
                                                                 name: Language.text('name'),
                                                                 key: 'name',
@@ -2043,20 +2053,20 @@ export class CheckoutIndex {
                                                         })
                                                             .map(dd => {
                                                             return html ` <div class="col-12 col-md-4 mb-2">
-                                                        <label class="${gClass('label')}">${dd.name}</label>
-                                                        <input
-                                                          class="${gClass('input')}"
-                                                          type="${dd.key}"
-                                                          value="${vm.cartData.customer_info[dd.key] || ''}"
-                                                          onchange="${gvc.event((e, event) => {
+                                                      <label class="${gClass('label')}">${dd.name}</label>
+                                                      <input
+                                                        class="${gClass('input')}"
+                                                        type="${dd.key}"
+                                                        value="${vm.cartData.customer_info[dd.key] || ''}"
+                                                        onchange="${gvc.event((e, event) => {
                                                                 vm.cartData.customer_info[dd.key] = e.value;
                                                                 this.storeLocalData(vm.cartData);
                                                             })}"
-                                                        />
-                                                      </div>`;
+                                                      />
+                                                    </div>`;
                                                         })
                                                             .join('')}
-                                                </div>`,
+                                              </div>`,
                                                         gvc.bindView(() => {
                                                             const id = gvc.glitter.getUUID();
                                                             return {
@@ -2127,16 +2137,16 @@ export class CheckoutIndex {
                                             },
                                         };
                                     })}
-                                  </div>
-                                  <!--收件人資料-->
-                                  <div class="rounded-3 bg-white w-100 p-1 mt-3">
-                                    <div class="${gClass('banner-text')} px-3 pt-3 d-flex align-items-center">
-                                      ${Language.text('recipient_info')}
-                                      <div class="flex-fill"></div>
-                                      <div
-                                        class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
-                                        style="cursor: pointer; color: #3366bb;"
-                                        onclick="${gvc.event(() => {
+                                </div>
+                                <!--收件人資料-->
+                                <div class="rounded-3 bg-white w-100 p-1 mt-3">
+                                  <div class="${gClass('banner-text')} px-3 pt-3 d-flex align-items-center">
+                                    ${Language.text('recipient_info')}
+                                    <div class="flex-fill"></div>
+                                    <div
+                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
+                                      style="cursor: pointer; color: #3366bb;"
+                                      onclick="${gvc.event(() => {
                                         ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
                                             console.log(`res.response.userData=>`, res.response.userData);
                                             ['name', 'phone', 'email'].map(dd => {
@@ -2174,11 +2184,11 @@ export class CheckoutIndex {
                                             gvc.notifyDataChange('invoice_place');
                                         });
                                     })}"
-                                      >
-                                        ${Language.text('quick_input')}
-                                      </div>
+                                    >
+                                      ${Language.text('quick_input')}
                                     </div>
-                                    ${gvc.bindView(() => {
+                                  </div>
+                                  ${gvc.bindView(() => {
                                         const id = 'invoice_place';
                                         const vm_info = {
                                             loading: true,
@@ -2562,8 +2572,7 @@ export class CheckoutIndex {
                                                     vm.cartData.user_info.invoice_method = method;
                                                     vm.cartData.user_info.invoice_type =
                                                         vm.cartData.user_info.invoice_type || 'me';
-                                                    vm.cartData.user_info.send_type =
-                                                        vm.cartData.user_info.send_type || 'email';
+                                                    vm.cartData.user_info.send_type = vm.cartData.user_info.send_type || 'email';
                                                     const form_array = JSON.parse(JSON.stringify(vm_info.list));
                                                     form_array.map((dd) => {
                                                         if (dd.key === 'send_type' &&
@@ -2614,9 +2623,9 @@ export class CheckoutIndex {
                                                     });
                                                     return [
                                                         html ` <div
-                                                class="d-flex ms-2 my-3"
-                                                style="gap:10px;cursor:pointer;"
-                                                onclick="${gvc.event(() => {
+                                              class="d-flex ms-2 my-3"
+                                              style="gap:10px;cursor:pointer;"
+                                              onclick="${gvc.event(() => {
                                                             vm.cartData.user_info_same = !vm.cartData.user_info_same;
                                                             if (vm.cartData.user_info_same) {
                                                                 vm.cartData.user_info.name = vm.cartData.customer_info.name;
@@ -2625,14 +2634,14 @@ export class CheckoutIndex {
                                                             }
                                                             gvc.notifyDataChange(id);
                                                         })}"
-                                              >
-                                                <input
-                                                  class="form-check-input form-checkbox  ${checkbox}"
-                                                  type="checkbox"
-                                                  ${vm.cartData.user_info_same ? `checked` : ''}
-                                                />
-                                                ${Language.text('same_as_buyer_info')}
-                                              </div>`,
+                                            >
+                                              <input
+                                                class="form-check-input form-checkbox  ${checkbox}"
+                                                type="checkbox"
+                                                ${vm.cartData.user_info_same ? `checked` : ''}
+                                              />
+                                              ${Language.text('same_as_buyer_info')}
+                                            </div>`,
                                                         FormWidget.editorView({
                                                             gvc: gvc,
                                                             array: form_array.map((dd, index) => {
@@ -2660,7 +2669,7 @@ export class CheckoutIndex {
                                             },
                                         };
                                     })}
-                                    ${(() => {
+                                  ${(() => {
                                         const verify = [];
                                         const shipment = vm.cartData.shipment_selector.find((item) => item.value === vm.cartData.user_info.shipment);
                                         if (shipment.isExcludedByTotal) {
@@ -2670,33 +2679,33 @@ export class CheckoutIndex {
                                             verify.push('提示：若訂單總重超過20公斤，無法提供中華郵政/黑貓宅配服務，請調整購買項目');
                                         }
                                         return html `
-                                        <div style="height:100px;"></div>
+                                      <div style="height:100px;"></div>
+                                      <div
+                                        class="w-100 d-flex align-items-center justify-content-center position-fixed bottom-0 start-0 p-2 shadow bg-white"
+                                        style="height:76px;"
+                                      >
                                         <div
-                                          class="w-100 d-flex align-items-center justify-content-center position-fixed bottom-0 start-0 p-2 shadow bg-white"
-                                          style="height:76px;"
+                                          class="d-flex align-items-center justify-content-end"
+                                          style="width:1180px;max-width: 100%;gap:24px;"
                                         >
-                                          <div
-                                            class="d-flex align-items-center justify-content-end"
-                                            style="width:1180px;max-width: 100%;gap:24px;"
-                                          >
-                                            <div class="d-flex align-items-end fs-base" style="gap:5px;">
-                                              <span style="white-space:nowrap;" class="fw-bold fs-sm">
-                                                ${Language.text('total_amount')}</span
-                                              >
-                                              <div class="${gClass(['price-row', 'text-1', 'bold'])}">
-                                                <div class="fs-5 fw-bold ${gClass('price-text')}">
-                                                  ${Currency.convertCurrencyText(vm.cartData.total)}
-                                                </div>
+                                          <div class="d-flex align-items-end fs-base" style="gap:5px;">
+                                            <span style="white-space:nowrap;" class="fw-bold fs-sm">
+                                              ${Language.text('total_amount')}</span
+                                            >
+                                            <div class="${gClass(['price-row', 'text-1', 'bold'])}">
+                                              <div class="fs-5 fw-bold ${gClass('price-text')}">
+                                                ${Currency.convertCurrencyText(vm.cartData.total)}
                                               </div>
                                             </div>
-                                            <div class="flex-fill d-block d-sm-none"></div>
-                                            <div class="">
-                                              <button
-                                                class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
-                                                style="${document.body.clientWidth < 800
+                                          </div>
+                                          <div class="flex-fill d-block d-sm-none"></div>
+                                          <div class="">
+                                            <button
+                                              class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
+                                              style="${document.body.clientWidth < 800
                                             ? `min-width:100px;`
                                             : `min-width:380px;`}"
-                                                onclick="${gvc.event(() => {
+                                              onclick="${gvc.event(() => {
                                             var _a;
                                             if (window.login_config.login_in_to_order &&
                                                 !GlobalUser.token) {
@@ -2797,35 +2806,33 @@ export class CheckoutIndex {
                                                             bind: `paynow`,
                                                             view: () => {
                                                                 return html ` <div
-                                                                class="w-100 h-100 d-flex align-items-center justify-content-center"
-                                                              >
-                                                                ${document.body.clientWidth < 800
+                                                              class="w-100 h-100 d-flex align-items-center justify-content-center"
+                                                            >
+                                                              ${document.body.clientWidth < 800
                                                                     ? `
                                                                             <div class="pt-5  bg-white position-relative vw-100" style="height: ${window.innerHeight}px;overflow-y: auto;">
                                                                             `
                                                                     : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
-                                                                <div
-                                                                  style="position: absolute; right: 15px;top:15px;z-index:1;"
-                                                                  onclick="${gvc.event(() => {
+                                                              <div
+                                                                style="position: absolute; right: 15px;top:15px;z-index:1;"
+                                                                onclick="${gvc.event(() => {
                                                                     gvc.closeDialog();
                                                                 })}"
-                                                                >
-                                                                  <i
-                                                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
-                                                                  ></i>
-                                                                </div>
-                                                                <div id="paynow-container" class="" style="">
-                                                                  <div style="width:200px;height:200px;">
-                                                                    loading...
-                                                                  </div>
-                                                                </div>
-                                                                <div class="px-3 px-sm-0 w-100">
-                                                                  <button
-                                                                    class="${gClass(verify.length > 0
+                                                              >
+                                                                <i
+                                                                  class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                                                ></i>
+                                                              </div>
+                                                              <div id="paynow-container" class="" style="">
+                                                                <div style="width:200px;height:200px;">loading...</div>
+                                                              </div>
+                                                              <div class="px-3 px-sm-0 w-100">
+                                                                <button
+                                                                  class="${gClass(verify.length > 0
                                                                     ? 'button-bgr-disable'
                                                                     : 'button-bgr')} "
-                                                                    id="checkoutButton"
-                                                                    onclick="${gvc.event(() => {
+                                                                  id="checkoutButton"
+                                                                  onclick="${gvc.event(() => {
                                                                     const PayNow = window.PayNow;
                                                                     const dialog = new ShareDialog(gvc.glitter);
                                                                     dialog.dataLoading({ visible: true });
@@ -2839,13 +2846,11 @@ export class CheckoutIndex {
                                                                         }
                                                                     });
                                                                 })}"
-                                                                  >
-                                                                    <span class="${gClass('button-text')}"
-                                                                      >確認結帳</span
-                                                                    >
-                                                                  </button>
-                                                                </div>
-                                                              </div>`;
+                                                                >
+                                                                  <span class="${gClass('button-text')}">確認結帳</span>
+                                                                </button>
+                                                              </div>
+                                                            </div>`;
                                                             },
                                                             divCreate: {
                                                                 class: ` h-100 d-flex align-items-center justify-content-center`,
@@ -2902,39 +2907,38 @@ export class CheckoutIndex {
                                                     else {
                                                         const id = gvc.glitter.getUUID();
                                                         $('body').append(html ` <div id="${id}" style="display: none;">
-                                                            ${res.response.form}
-                                                          </div>`);
+                                                          ${res.response.form}
+                                                        </div>`);
                                                         document.querySelector(`#${id} #submit`).click();
                                                     }
                                                 }
                                             });
                                         })}"
-                                              >
-                                                <span class="${gClass('button-text')}"
-                                                  >${window.login_config.login_in_to_order && !GlobalUser.token
+                                            >
+                                              <span class="${gClass('button-text')}"
+                                                >${window.login_config.login_in_to_order && !GlobalUser.token
                                             ? Language.text('login_in_to_checkout')
                                             : Language.text('next')}</span
-                                                >
-                                              </button>
-                                            </div>
+                                              >
+                                            </button>
                                           </div>
                                         </div>
-                                      `;
+                                      </div>
+                                    `;
                                     })()}
-                                  </div>
-                                  <div class="d-none d-sm-block" style="height:120px;"></div>
                                 </div>
-                                <div
-                                  style="${document.body.clientWidth > 800
+                                <div class="d-none d-sm-block" style="height:120px;"></div>
+                              </div>
+                              <div
+                                style="${document.body.clientWidth > 800
                                         ? `width:calc(34% - 10px);position: sticky; top: 65px;`
                                         : `width:calc(100% );`}"
-                                >
-                                  <!--明細-->
-                                  <div style="" class="rounded-3 bg-white w-100 p-3">${detail_info}</div>
-                                  <div class="d-sm-none" style="height:120px;"></div>
-                                </div>
+                              >
+                                <!--明細-->
+                                <div style="" class="rounded-3 bg-white w-100 p-3">${detail_info}</div>
+                                <div class="d-sm-none" style="height:120px;"></div>
                               </div>
-                            </section>
+                            </div>
                           `;
                                 },
                             };

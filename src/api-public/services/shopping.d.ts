@@ -380,7 +380,8 @@ export declare class Shopping {
     }>;
     checkVoucher(cart: Cart): Promise<Cart>;
     putOrder(data: {
-        id: string;
+        id?: string;
+        cart_token?: string;
         orderData: any;
         status: any;
     }): Promise<{

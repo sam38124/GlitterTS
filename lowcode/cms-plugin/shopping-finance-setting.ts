@@ -12,6 +12,7 @@ import { Language } from '../glitter-base/global/language.js';
 import { ShoppingShipmentSetting } from './shopping-shipment-setting.js';
 import { GlobalExpress } from './shipment/global-express.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
+import { ApiUser } from '../glitter-base/route/user.js';
 
 const html = String.raw;
 
@@ -1944,9 +1945,107 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                   `;
                                 } else {
                                   return html` <div
-                                    class="position-absolute fw-500"
-                                    style="cursor:pointer;right:15px;top:15px;"
+                                    class="position-absolute fw-500 d-flex"
+                                    style="cursor:pointer;right:15px;top:15px;gap:5px;"
                                   >
+                                    ${BgWidget.customButton({
+                                      button: {
+                                        color: 'gray',
+                                        size: 'sm',
+                                      },
+                                      text: {
+                                        name: `物流設定`,
+                                      },
+                                      event: gvc.event(async () => {
+                                        const log_config = (
+                                          await ApiUser.getPublicConfig(
+                                            'shipment_config_' + dd.value,
+                                            'manager',
+                                            saasConfig.config.appName
+                                          )
+                                        ).response.value;
+                                        BgWidget.settingDialog({
+                                          gvc: gvc,
+                                          title: '物流設定',
+                                          innerHTML: gvc => {
+                                            const view: string[] = [];
+                                            if (
+                                              ['UNIMARTC2C', 'UNIMARTFREEZE', 'FAMIC2C', 'FAMIC2CFREEZE'].includes(
+                                                dd.value
+                                              )
+                                            ) {
+                                              view.push(`<div class="d-flex flex-column w-100">
+${[
+  `<div
+                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                >
+                                  <div class="tx_normal">大宗配送</div>
+                                  <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="tx_normal">
+                                      ${log_config.bulk ? `開啟` : `關閉`}
+                                    </div>
+                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
+                                      <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        onchange="${gvc.event((e, event) => {
+                                          log_config.bulk = !log_config.bulk;
+                                          gvc.recreateView();
+                                        })}"
+                                        ${log_config.bulk ? `checked` : ``}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                               `,
+].join('')}
+</div>`);
+                                            }
+                                            view.push(
+                                              html` <div class="d-flex flex-column" style="gap:5px;">
+                                                ${[
+                                                  `  <div class="tx_normal">物流配送說明</div>`,
+                                                  BgWidget.richTextEditor({
+                                                    gvc: gvc,
+                                                    content: log_config.content ?? '',
+                                                    callback: data => {
+                                                      log_config.content=data;
+                                                    },
+                                                    title: '物流配送說明',
+                                                  }),
+                                                ].join('')}
+                                              </div>`
+                                            );
+                                            return `<div class="w-100 d-flex flex-column" style="gap:5px;">${view.join(`<div class="w-100 border-bottom my-2"></div>`)}</div>`;
+                                          },
+                                          footer_html: gvc => {
+                                            let array = [
+                                              BgWidget.cancel(
+                                                gvc.event(() => {
+                                                  gvc.closeDialog();
+                                                })
+                                              ),
+                                              BgWidget.save(
+                                                gvc.event(() => {
+                                                  const dialog = new ShareDialog(gvc.glitter);
+                                                  dialog.dataLoading({ visible: true });
+                                                  ApiUser.setPublicConfig({
+                                                    user_id: 'manager',
+                                                    key: 'shipment_config_' + dd.value,
+                                                    value: log_config,
+                                                  }).then(res => {
+                                                    dialog.dataLoading({ visible: false });
+                                                    dialog.successMessage({ text: '設定成功' });
+                                                    gvc.closeDialog();
+                                                  });
+                                                })
+                                              ),
+                                            ];
+                                            return array.join('');
+                                          },
+                                        });
+                                      }),
+                                    })}
                                     ${BgWidget.customButton({
                                       button: {
                                         color: 'gray',
@@ -1997,7 +2096,7 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                 }
                               })()}
                               <div
-                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
+                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex;padding-top:22px;"
                               >
                                 <div style="min-width: 46px;max-width: 46px;">
                                   ${dd.type === 'font_awesome' ? dd.src : html` <img src="${dd.src}" />`}
