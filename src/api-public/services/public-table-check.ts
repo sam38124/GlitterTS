@@ -640,6 +640,27 @@ export class ApiPublic {
   KEY \`index2\` (\`product_id\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
         },
+  //       {
+  //         scheme: appName,
+  //         table: 't_products',
+  //         sql: `(
+  // \`id\` INT NOT NULL AUTO_INCREMENT,
+  // \`content\` JSON NULL,
+  // \`start_time\` DATETIME NULL,
+  // \`end_time\` DATETIME NULL,
+  // \`active\` VARCHAR(45) NOT NULL DEFAULT 'active',
+  // \`sold_out\` INT NOT NULL DEFAULT 0,
+  // \`sort\` INT NOT NULL DEFAULT 0,
+  // \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  // \`updated_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  // PRIMARY KEY (\`id\`),
+  // INDEX \`index2\` (\`active\` ASC) VISIBLE,
+  // INDEX \`index3\` (\`start_time\` ASC) VISIBLE,
+  // INDEX \`index4\` (\`end_time\` ASC) VISIBLE,
+  // INDEX \`index5\` (\`sold_out\` ASC) VISIBLE,
+  // INDEX \`index6\` (\`updated_time\` ASC) VISIBLE,
+  // INDEX \`index7\` (\`sort\` ASC) VISIBLE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  //       },
       ];
       for (const b of chunkArray(sqlArray, groupSize)) {
         let check = b.length;

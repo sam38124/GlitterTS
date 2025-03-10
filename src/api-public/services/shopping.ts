@@ -443,18 +443,18 @@ export class Shopping {
           .map(status => {
             switch (status) {
               case 'inRange':
-                return `
-                                OR (
+                return `OR (
                                     JSON_EXTRACT(content, '$.status') IN ('active', 1)
                                     AND (
-                                        content->>'$.active_schedule' IS NULL OR (
+                                        content->>'$.active_schedule' IS NULL OR 
+                                        (
                                             (
-                                                CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
-                                                CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${currentDate}
+                                                ((CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL) and (CONCAT(content->>'$.active_schedule.startDate') IS NULL)) or
+                                                ((CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${currentDate}) or (CONCAT(content->>'$.active_schedule.startDate') <= ${db.escape(moment().format('YYYY-MM-DD'))}))
                                             )
                                             AND (
-                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL OR
-                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${currentDate}
+                                             ((CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL) and (CONCAT(content->>'$.active_schedule.endDate') IS NULL)) or
+                                                (CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${currentDate}) or (CONCAT(content->>'$.active_schedule.endDate') >= ${db.escape(moment().format('YYYY-MM-DD'))})
                                             )
                                         )
                                     )
@@ -476,7 +476,7 @@ export class Shopping {
             }
           })
           .join('');
-
+console.log(`scheduleConditions=>`, scheduleConditions);
         // 組合 SQL 條件
         querySql.push(`(${statusCondition} ${scheduleConditions})`);
       }

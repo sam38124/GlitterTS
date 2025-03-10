@@ -48,7 +48,8 @@ ADD INDEX \`index5\` (\`store\` ASC) VISIBLE;`
                         await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
                             id: b.id,
                             orderData: b.orderData,
-                            app_name: app_name
+                            app_name: app_name,
+                            no_shipment_number: true
                         });
                     }
                     resolve(true);

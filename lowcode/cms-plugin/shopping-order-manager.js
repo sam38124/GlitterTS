@@ -627,7 +627,7 @@ export class ShoppingOrderManager {
                                             },
                                         },
                                         {
-                                            name: '批量出貨取號',
+                                            name: '批量自動取號',
                                             option: true,
                                             event: () => {
                                                 const checkArray = vm.dataList.filter((dd) => dd.checked);
@@ -659,7 +659,7 @@ export class ShoppingOrderManager {
                                             },
                                         },
                                         {
-                                            name: '批量手動出貨',
+                                            name: '批量手動取號',
                                             option: true,
                                             event: () => __awaiter(this, void 0, void 0, function* () {
                                                 const checkArray = vm.dataList.filter((dd) => dd.checked);

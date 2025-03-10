@@ -10,6 +10,7 @@ import { AutoSendEmail } from './auto-send-email.js';
 import { saasConfig } from '../../config';
 import { InitialFakeData } from './initial-fake-data.js';
 import { LineMessage } from './line-message';
+import { ApiPublic } from './public-table-check.js';
 
 type ScheduleItem = {
     second: number;
@@ -23,10 +24,7 @@ export class Schedule {
 
     async perload(app: string) {
         if (!(await this.isDatabasePass(app))) return false;
-        if (!(await this.isDatabaseExists(app))) return false;
-        if (!(await this.isTableExists('t_user_public_config', app))) return false;
-        if (!(await this.isTableExists('t_voucher_history', app))) return false;
-        if (!(await this.isTableExists('t_triggers', app))) return false;
+        await ApiPublic.createScheme(app);
         return true;
     }
 
@@ -65,13 +63,13 @@ export class Schedule {
     async autoCancelOrder(sec: number) {
         let clock=new Date()
         console.log(`autoCancelOrder`)
-        try {
-            for (const app of Schedule.app) {
+        for (const app of Schedule.app) {
+            try {
                 if (await this.perload(app)) {
                     const config = await new User(app).getConfigV2({ key: 'login_config', user_id: 'manager' });
                     if (config?.auto_cancel_order_timer && config.auto_cancel_order_timer > 0) {
                         const orders = await db.query(
-                            `SELECT * FROM \`${app}\`.t_checkout
+                          `SELECT * FROM \`${app}\`.t_checkout
                                 WHERE 
                                     status = 0 
                                     AND created_time < NOW() - INTERVAL ${config.auto_cancel_order_timer} HOUR
@@ -80,24 +78,24 @@ export class Schedule {
                                     AND (orderData->>'$.progress' = 'wait' OR orderData->>'$.progress' IS NULL)
                                     AND (orderData->>'$.customer_info.payment_select' <> 'cash_on_delivery')
                                 ORDER BY id DESC;`,
-                            []
+                          []
                         );
                         await Promise.all(
-                            orders.map(async (order: any) => {
-                                order.orderData.orderStatus = '-1';
-                                order.orderData.archived = 'true';
-                                return new Shopping(app).putOrder({
-                                    id: order.id,
-                                    orderData: order.orderData,
-                                    status: '0',
-                                });
-                            })
+                          orders.map(async (order: any) => {
+                              order.orderData.orderStatus = '-1';
+                              order.orderData.archived = 'true';
+                              return new Shopping(app).putOrder({
+                                  id: order.id,
+                                  orderData: order.orderData,
+                                  status: '0',
+                              });
+                          })
                         );
                     }
                 }
+            } catch (e) {
+                console.error(`autoCancelOrder-Error`,e)
             }
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
         }
         setTimeout(() => this.autoCancelOrder(sec), sec * 1000);
         console.log(`autoCancelOrder-Stop`,(new Date().getTime() - clock.getTime())/1000)
@@ -108,11 +106,16 @@ export class Schedule {
         console.log(`renewMemberLevel`)
         try {
             for (const app of Schedule.app) {
-                if (await this.perload(app)) {
-                    const users = await db.query(`select * from \`${app}\`.t_user  `, []);
-                    for (const user of users) {
-                        await new User(app).checkMember(user, true);
+                try {
+                    if (await this.perload(app)) {
+                        const users = await db.query(`select * from \`${app}\`.t_user  `, []);
+                        for (const user of users) {
+                            await new User(app).checkMember(user, true);
+                        }
                     }
+                    console.log(`renewMemberLevel-finish->`,app)
+                }catch (e) {
+                    console.log(`renewMemberLevel-error-continue`)
                 }
             }
         } catch (e) {
@@ -295,7 +298,7 @@ export class Schedule {
                     }
                 }
             } catch (e) {
-                throw exception.BadRequestError('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
+                console.error('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
             }
         }
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
@@ -331,7 +334,7 @@ export class Schedule {
                     }
                 }
             } catch (e) {
-                throw exception.BadRequestError('BAD_REQUEST', 'autoSendLine Error: ' + e, null);
+                console.error('BAD_REQUEST', 'autoSendLine Error: ' + e, null);
             }
         }
 

@@ -16,18 +16,12 @@ const auto_send_email_js_1 = require("./auto-send-email.js");
 const config_1 = require("../../config");
 const initial_fake_data_js_1 = require("./initial-fake-data.js");
 const line_message_1 = require("./line-message");
+const public_table_check_js_1 = require("./public-table-check.js");
 class Schedule {
     async perload(app) {
         if (!(await this.isDatabasePass(app)))
             return false;
-        if (!(await this.isDatabaseExists(app)))
-            return false;
-        if (!(await this.isTableExists('t_user_public_config', app)))
-            return false;
-        if (!(await this.isTableExists('t_voucher_history', app)))
-            return false;
-        if (!(await this.isTableExists('t_triggers', app)))
-            return false;
+        await public_table_check_js_1.ApiPublic.createScheme(app);
         return true;
     }
     async isDatabaseExists(app) {
@@ -60,8 +54,8 @@ class Schedule {
     async autoCancelOrder(sec) {
         let clock = new Date();
         console.log(`autoCancelOrder`);
-        try {
-            for (const app of Schedule.app) {
+        for (const app of Schedule.app) {
+            try {
                 if (await this.perload(app)) {
                     const config = await new user_1.User(app).getConfigV2({ key: 'login_config', user_id: 'manager' });
                     if ((config === null || config === void 0 ? void 0 : config.auto_cancel_order_timer) && config.auto_cancel_order_timer > 0) {
@@ -86,9 +80,9 @@ class Schedule {
                     }
                 }
             }
-        }
-        catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
+            catch (e) {
+                console.error(`autoCancelOrder-Error`, e);
+            }
         }
         setTimeout(() => this.autoCancelOrder(sec), sec * 1000);
         console.log(`autoCancelOrder-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
@@ -98,11 +92,17 @@ class Schedule {
         console.log(`renewMemberLevel`);
         try {
             for (const app of Schedule.app) {
-                if (await this.perload(app)) {
-                    const users = await database_1.default.query(`select * from \`${app}\`.t_user  `, []);
-                    for (const user of users) {
-                        await new user_1.User(app).checkMember(user, true);
+                try {
+                    if (await this.perload(app)) {
+                        const users = await database_1.default.query(`select * from \`${app}\`.t_user  `, []);
+                        for (const user of users) {
+                            await new user_1.User(app).checkMember(user, true);
+                        }
                     }
+                    console.log(`renewMemberLevel-finish->`, app);
+                }
+                catch (e) {
+                    console.log(`renewMemberLevel-error-continue`);
                 }
             }
         }
@@ -259,7 +259,7 @@ class Schedule {
                 }
             }
             catch (e) {
-                throw exception_1.default.BadRequestError('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
+                console.error('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
             }
         }
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
@@ -287,7 +287,7 @@ class Schedule {
                 }
             }
             catch (e) {
-                throw exception_1.default.BadRequestError('BAD_REQUEST', 'autoSendLine Error: ' + e, null);
+                console.error('BAD_REQUEST', 'autoSendLine Error: ' + e, null);
             }
         }
         setTimeout(() => this.autoSendLine(sec), sec * 1000);

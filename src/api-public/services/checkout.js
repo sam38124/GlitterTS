@@ -33,11 +33,13 @@ class CheckoutService {
             update_object.shipment_date = null;
         }
         update_object.total = json.total;
-        if (json.user_info.shipment_number) {
-            update_object.shipment_number = json.user_info.shipment_number;
-        }
-        else {
-            update_object.shipment_number = null;
+        if (!obj.no_shipment_number) {
+            if (json.user_info.shipment_number) {
+                update_object.shipment_number = json.user_info.shipment_number;
+            }
+            else {
+                update_object.shipment_number = null;
+            }
         }
         await database_js_1.default.query(`update \`${obj.app_name}\`.t_checkout
        set ?

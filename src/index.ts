@@ -134,7 +134,12 @@ app.set('trust proxy', true);
 export async function createAPP(dd: any) {
     const html = String.raw;
     Live_source.liveAPP.push(dd.appName);
-    Schedule.app.push(dd.appName);
+    // const brand_type=await App.checkBrandAndMemberType(dd.appName)
+    //SHOPNEX 才可以跑排程，並且需有DOMAIN
+    // if(brand_type.brand==='shopnex' && brand_type.domain){
+    //     Schedule.app.push(dd.appName);
+    // }
+
     const file_path = path.resolve(__dirname, '../lowcode');
     return await GlitterUtil.set_frontend_v2(
         app,

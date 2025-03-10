@@ -141,7 +141,6 @@ exports.app.set('trust proxy', true);
 async function createAPP(dd) {
     const html = String.raw;
     live_source_1.Live_source.liveAPP.push(dd.appName);
-    schedule_js_1.Schedule.app.push(dd.appName);
     const file_path = path_1.default.resolve(__dirname, '../lowcode');
     return await glitter_util_js_1.GlitterUtil.set_frontend_v2(exports.app, ['/' + encodeURI(dd.appName) + '/*', '/' + encodeURI(dd.appName)].map((rout) => {
         return {

@@ -1,5 +1,6 @@
 import db from '../../modules/database';
 import { CheckoutService } from './checkout.js';
+import { ProductMigrate } from './product-migrate.js';
 
 export class UpdatedTableChecked {
     public static async startCheck(app_name: string) {
@@ -48,7 +49,8 @@ ADD INDEX \`index5\` (\`store\` ASC) VISIBLE;`
                         await CheckoutService.updateAndMigrateToTableColumn({
                             id:b.id,
                             orderData:b.orderData,
-                            app_name:app_name
+                            app_name:app_name,
+                            no_shipment_number:true
                         })
                     }
                     resolve(true);
@@ -74,7 +76,6 @@ ADD INDEX \`index11\` (\`shipment_number\` ASC) VISIBLE;`
             event: ()=>{
                 return new Promise(async (resolve, reject) => {
                     for (const b of (await db.query(`select * from \`${app_name}\`.t_checkout`,[]))){
-
                         await CheckoutService.updateAndMigrateToTableColumn({
                             id:b.id,
                             orderData:b.orderData,
@@ -84,7 +85,27 @@ ADD INDEX \`index11\` (\`shipment_number\` ASC) VISIBLE;`
                     resolve(true);
                 })
             }
-        })
+        });
+        //商品資料更新
+        // await UpdatedTableChecked.update({
+        //     app_name: app_name,
+        //     table_name: 't_products',
+        //     last_version: [''],
+        //     new_version: 'V1.0',
+        //     event: ()=>{
+        //         return new Promise(async (resolve, reject) => {
+        //             await ProductMigrate.migrate(app_name,(await db.query(`select * from \`${app_name}\`.t_manager_post where content->>'$.type'='product'`,[])).map((dd:any)=>{
+        //                 return {
+        //                     id:dd.id,
+        //                     content:dd.content,
+        //                     updated_time:dd.updated_time,
+        //                     created_time:dd.created_time
+        //                 }
+        //             }))
+        //             resolve(true);
+        //         })
+        //     }
+        // });
     }
 
     public static async update(obj: {

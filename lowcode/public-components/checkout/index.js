@@ -3304,10 +3304,18 @@ ${log_config.content}
         localStorage.setItem('give_away', JSON.stringify(cartData.give_away));
     }
     static initial(cartData) {
-        cartData.customer_info = JSON.parse(localStorage.getItem('cart_customer_info') || '{}');
-        cartData.custom_form_data = JSON.parse(localStorage.getItem('custom_form_data') || '{}');
-        cartData.user_info = JSON.parse(localStorage.getItem('custom_user_info') || '{}');
-        cartData.give_away = JSON.parse(localStorage.getItem('give_away') || '[]');
+        try {
+            cartData.customer_info = JSON.parse(localStorage.getItem('cart_customer_info') || '{}');
+            cartData.custom_form_data = JSON.parse(localStorage.getItem('custom_form_data') || '{}');
+            cartData.user_info = JSON.parse(localStorage.getItem('custom_user_info') || '{}');
+            cartData.give_away = JSON.parse(localStorage.getItem('give_away') || '[]');
+        }
+        catch (e) {
+            cartData.customer_info = {};
+            cartData.custom_form_data = {};
+            cartData.user_info = {};
+            cartData.give_away = {};
+        }
         this.getPaymentMethod(cartData);
         this.getShipmentMethod(cartData);
     }

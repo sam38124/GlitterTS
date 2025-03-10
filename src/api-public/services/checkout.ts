@@ -1,7 +1,7 @@
 import db from '../../modules/database.js';
 
 export class CheckoutService {
-  public static async updateAndMigrateToTableColumn(obj: { id?: string; orderData: any; app_name: string }) {
+  public static async updateAndMigrateToTableColumn(obj: { id?: string; orderData: any; app_name: string,no_shipment_number?:boolean }) {
     const update_object: any = {};
     const json = obj.orderData;
     //預設是未出貨
@@ -32,11 +32,14 @@ export class CheckoutService {
     }
     update_object.total=json.total;
     //出貨單號碼
-    if(json.user_info.shipment_number){
-      update_object.shipment_number=json.user_info.shipment_number;
-    }else{
-      update_object.shipment_number=null;
+    if(!obj.no_shipment_number){
+      if(json.user_info.shipment_number){
+        update_object.shipment_number=json.user_info.shipment_number;
+      }else{
+        update_object.shipment_number=null;
+      }
     }
+
     await db.query(
       `update \`${obj.app_name}\`.t_checkout
        set ?
