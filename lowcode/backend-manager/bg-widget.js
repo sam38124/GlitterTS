@@ -1706,6 +1706,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                             dd.checked ? checkedMap.set(dd.dataPin, dd) : checkedMap.delete(dd.dataPin);
                                         });
                                         vm.checkedArray = [...checkedMap.values()];
+                                        obj.filterCallback && obj.filterCallback(vm.checkedArray);
                                         if (vm.checkedArray.length > 0) {
                                             if (document.body.clientWidth < 768) {
                                                 return BgWidget.selNavbar({

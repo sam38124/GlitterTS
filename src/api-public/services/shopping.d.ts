@@ -413,6 +413,7 @@ export declare class Shopping {
         limit: number;
         is_pos?: string;
         id?: string;
+        id_list?: string;
         search?: string;
         email?: string;
         phone?: string;

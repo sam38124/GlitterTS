@@ -30,7 +30,7 @@ export class UserExcel {
                     dialog.errorMessage({ text: '無會員資料可以匯出' });
                     return;
                 }
-                const jsonArray = users.map((user) => {
+                const jsonArray = users.map(user => {
                     var _a;
                     return {
                         ID: user.id,
@@ -58,14 +58,9 @@ export class UserExcel {
                         'FB UID': user.userData['fb-id'],
                         最後購買日期: dateFormat(new Date(user.latest_order_date), 'yyyy-MM-dd hh:mm:ss'),
                         最後消費金額: user.latest_order_total,
-                        最後出貨日期: (() => {
-                            if (user.firstShipment) {
-                                return dateFormat(new Date(user.firstShipment.orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm');
-                            }
-                            else {
-                                return `無`;
-                            }
-                        })(),
+                        最後出貨日期: user.firstShipment
+                            ? dateFormat(new Date(user.firstShipment.orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm')
+                            : '無',
                         累積消費金額: user.checkout_total,
                         累積消費次數: user.checkout_count,
                         會員標籤: ((_a = user.userData.tags) !== null && _a !== void 0 ? _a : []).join(','),
@@ -79,7 +74,7 @@ export class UserExcel {
             }
             dialog.checkYesOrNot({
                 text: '系統將會依當前篩選條件匯出會員資料<br/>確定要匯出嗎？',
-                callback: (bool) => {
+                callback: bool => {
                     if (bool) {
                         dialog.dataLoading({ visible: true });
                         ApiUser.getUserListOrders({
@@ -91,7 +86,7 @@ export class UserExcel {
                             filter: vm.filter,
                             filter_type: 'excel',
                             group: vm.group,
-                        }).then((d) => {
+                        }).then(d => {
                             dialog.dataLoading({ visible: false });
                             if (d.response && d.response.total > 0) {
                                 exportUsersToExcel(d.response.data);
@@ -121,12 +116,12 @@ export class UserExcel {
                 if ((_a = target.files) === null || _a === void 0 ? void 0 : _a.length) {
                     try {
                         const jsonData = yield UserExcel.parseExcelToJson(gvc, target.files[0]);
-                        const setUserEmails = [...new Set(jsonData.map((user) => user['電子信箱']))];
+                        const setUserEmails = [...new Set(jsonData.map(user => user['電子信箱']))];
                         if (jsonData.length > setUserEmails.length) {
                             dialog.errorMessage({ text: '會員電子信箱不可重複' });
                             return;
                         }
-                        const setUserPhones = [...new Set(jsonData.map((user) => user['電話']))];
+                        const setUserPhones = [...new Set(jsonData.map(user => user['電話']))];
                         if (jsonData.length > setUserPhones.length) {
                             dialog.errorMessage({ text: '會員電話不可重複' });
                             return;
@@ -164,7 +159,7 @@ export class UserExcel {
                             };
                         }
                         dialog.dataLoading({ visible: true });
-                        ApiUser.quickRegister({ userArray: jsonData }).then((r) => {
+                        ApiUser.quickRegister({ userArray: jsonData }).then(r => {
                             var _a;
                             dialog.dataLoading({ visible: false });
                             if (r.result) {
@@ -196,7 +191,7 @@ export class UserExcel {
             const XLSX = yield this.loadXLSX(gvc);
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.onload = (event) => {
+                reader.onload = event => {
                     var _a;
                     try {
                         const data = new Uint8Array((_a = event.target) === null || _a === void 0 ? void 0 : _a.result);
@@ -210,7 +205,7 @@ export class UserExcel {
                         reject(error);
                     }
                 };
-                reader.onerror = (error) => reject(error);
+                reader.onerror = error => reject(error);
                 reader.readAsArrayBuffer(file);
             });
         });

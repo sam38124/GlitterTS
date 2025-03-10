@@ -157,7 +157,7 @@ router.post('/checkout', async (req, resp) => {
             language: req.headers['language'],
             client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip),
             fbc: req.cookies._fbc,
-            fbp: req.cookies._fbp
+            fbp: req.cookies._fbp,
         });
         return response_1.default.succ(resp, result);
     }
@@ -265,6 +265,7 @@ router.get('/order', async (req, resp) => {
                 search: req.query.search,
                 phone: req.query.phone,
                 id: req.query.id,
+                id_list: req.query.id_list,
                 email: req.query.email,
                 status: req.query.status,
                 searchType: req.query.searchType,
@@ -320,7 +321,7 @@ router.get('/order/payment-method', async (req, resp) => {
             appName: req.get('g-app'),
             key: 'glitter_finance',
         }))[0].value;
-        ['MERCHANT_ID', 'HASH_KEY', 'HASH_IV'].map((dd) => {
+        ['MERCHANT_ID', 'HASH_KEY', 'HASH_IV'].map(dd => {
             delete keyData[dd];
         });
         return response_1.default.succ(resp, keyData);
@@ -355,7 +356,7 @@ router.get('/payment/method', async (req, resp) => {
                     value: 'c_bar_code',
                     title: '超商條碼',
                 },
-            ].filter((dd) => {
+            ].filter(dd => {
                 return keyData[dd.value] && keyData.TYPE !== 'off_line';
             }),
         });
@@ -528,7 +529,7 @@ router.get('/voucher', async (req, resp) => {
                 case 'group':
                     if (!groupList.result)
                         return false;
-                    return groupList.data.some((group) => targetList.includes(group.type) && group.users.some((user) => user.userID === userID));
+                    return groupList.data.some(group => targetList.includes(group.type) && group.users.some(user => user.userID === userID));
                 default:
                     return true;
             }
@@ -574,7 +575,7 @@ async function redirect_link(req, resp) {
             console.log(`req.query=>`, req.query);
             const data = (await linePay.confirmAndCaptureOrder(req.query.transactionId, order_data['orderData'].total)).data;
             console.log(`line-response==>`, data);
-            if ((data.returnCode == '0000') && (data.info.orderId === req.query.orderID)) {
+            if (data.returnCode == '0000' && data.info.orderId === req.query.orderID) {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }
         }
@@ -616,28 +617,28 @@ async function redirect_link(req, resp) {
         }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-                <html lang="en">
-                    <head>
-                        <meta charset="UTF-8" />
-                        <title>Title</title>
-                    </head>
-                    <body>
-                        <script>
-                            try {
-                                window.webkit.messageHandlers.addJsInterFace.postMessage(
-                                    JSON.stringify({
-                                        functionName: 'check_out_finish',
-                                        callBackId: 0,
-                                        data: {
-                                            redirect: '${return_url.href}',
-                                        },
-                                    })
-                                );
-                            } catch (e) {}
-                            location.href = '${return_url.href}';
-                        </script>
-                    </body>
-                </html> `);
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <title>Title</title>
+          </head>
+          <body>
+            <script>
+              try {
+                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                  JSON.stringify({
+                    functionName: 'check_out_finish',
+                    callBackId: 0,
+                    data: {
+                      redirect: '${return_url.href}',
+                    },
+                  })
+                );
+              } catch (e) {}
+              location.href = '${return_url.href}';
+            </script>
+          </body>
+        </html> `);
     }
     catch (err) {
         console.error(err);
@@ -684,7 +685,9 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
             if (type === 'ecPay') {
                 delete req.body.CheckMacValue;
                 decodeData = {
-                    Status: ((await new financial_service_js_1.EcPay(appName).checkPaymentStatus(req.body.MerchantTradeNo)).TradeStatus === '1') ? 'SUCCESS' : 'ERROR',
+                    Status: (await new financial_service_js_1.EcPay(appName).checkPaymentStatus(req.body.MerchantTradeNo)).TradeStatus === '1'
+                        ? 'SUCCESS'
+                        : 'ERROR',
                     Result: {
                         MerchantOrderNo: req.body.MerchantTradeNo,
                         CheckMacValue: req.body.CheckMacValue,
@@ -1091,7 +1094,9 @@ router.post('/pos/checkout', async (req, resp) => {
 });
 router.post('/pos/linePay', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, { result: await new shopping_1.Shopping(req.get('g-app'), req.body.token).linePay(req.body) });
+        return response_1.default.succ(resp, {
+            result: await new shopping_1.Shopping(req.get('g-app'), req.body.token).linePay(req.body),
+        });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -1166,7 +1171,7 @@ router.post('/apple-webhook', async (req, resp) => {
             }
         }
         for (const b of receipt.receipt.in_app.filter((dd) => {
-            return ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].includes(`${dd.product_id}`) && dd.in_app_ownership_type === 'PURCHASED';
+            return (['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].includes(`${dd.product_id}`) && dd.in_app_ownership_type === 'PURCHASED');
         })) {
             if (!(await database_js_1.default.query(`select count(1)
                                   from shopnex.t_checkout
@@ -1190,7 +1195,13 @@ router.post('/apple-webhook', async (req, resp) => {
                      set dead_line=?,
                          plan=?
                      where appName = ?`, [start, `${b.product_id}`.replace('_apple', '').replace(/_/g, '-'), req.body.app_name]);
-                const index = ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].findIndex((d1) => {
+                const index = [
+                    'light_year_apple',
+                    'basic_year_apple',
+                    'omo_year_apple',
+                    'app_year_apple',
+                    'flagship_year_apple',
+                ].findIndex(d1 => {
                     return `${b.product_id}` === d1;
                 });
                 const money = [13200, 26400, 52800, 52800, 66000][index];
@@ -1371,17 +1382,17 @@ router.post('/logistics/redirect', async (req, resp) => {
         return_url.searchParams.set('CVSAddress', req.body.storeaddress);
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8"/>
-                <title>Title</title>
-            </head>
-            <body>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <title>Title</title>
+          </head>
+          <body>
             <script>
-                location.href = '${return_url.toString()}';
+              location.href = '${return_url.toString()}';
             </script>
-            </body>
-            </html> `);
+          </body>
+        </html> `);
     }
     catch (err) {
         return response_1.default.fail(resp, err);

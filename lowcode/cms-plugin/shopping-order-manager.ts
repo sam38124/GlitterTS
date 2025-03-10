@@ -17,11 +17,10 @@ import { ApiPageConfig } from '../api/pageConfig.js';
 import { Language } from '../glitter-base/global/language.js';
 import { OrderSetting } from './module/order-setting.js';
 import { CountryTw } from '../modules/country-language/country-tw.js';
+import { OrderExcel } from './module/order-excel.js';
 import { PaymentPage } from './pos-pages/payment-page.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
-import { PayConfig } from './pos-pages/pay-config.js';
 import { PaymentConfig } from '../glitter-base/global/payment-config.js';
-import { Shipment_list } from './shipment_list.js';
 
 interface VoucherData {
   id: number;
@@ -76,6 +75,8 @@ interface ViewModel {
   filter?: any;
   tempOrder?: string;
   filter_type: 'normal' | 'block' | 'pos';
+  apiJSON: any;
+  checkedData: any[];
 }
 
 interface EcCashFlow {
@@ -97,145 +98,147 @@ interface PayNowCashFlow {
   };
 }
 
-interface OrderData {
+interface Order {
   id: number;
   cart_token: string;
   status: number;
   email: string;
-  orderData: {
-    cash_flow?: EcCashFlow | PayNowCashFlow;
-    distribution_info?: {
-      code: string;
-      condition: number;
-      link: string;
-      recommend_medium: any;
-      recommend_status: string;
-      recommend_user: any;
-      redirect: string;
-      relative: string;
-      relative_data: any;
-      share_type: string;
-      share_value: number;
+  orderData: OrderData;
+  created_time: string;
+}
+
+interface OrderData {
+  cash_flow?: EcCashFlow | PayNowCashFlow;
+  distribution_info?: {
+    code: string;
+    condition: number;
+    link: string;
+    recommend_medium: any;
+    recommend_status: string;
+    recommend_user: any;
+    redirect: string;
+    relative: string;
+    relative_data: any;
+    share_type: string;
+    share_value: number;
+    startDate: string;
+    startTime: string;
+    status: boolean;
+    title: string;
+    voucher: number;
+    voucher_status: string;
+  };
+  archived: 'true' | 'false';
+  customer_info: any;
+  editRecord: any;
+  method: string;
+  shipment_selector: {
+    name: string;
+    value: string;
+    form: any;
+  }[];
+  orderStatus: string;
+  use_wallet: number;
+  email: string;
+  total: number;
+  discount: number;
+  expectDate: string;
+  shipment_fee: number;
+  use_rebate: number;
+  lineItems: {
+    id: number;
+    spec: string[];
+    count: string;
+    sale_price: number;
+    title: string;
+    sku: string;
+  }[];
+  user_info: {
+    name: string;
+    email: string;
+    phone: string;
+    shipment_date: string;
+    shipment_refer: string;
+    address: string;
+    shipment_number?: string;
+    custom_form_delivery?: any;
+    shipment:
+      | 'normal'
+      | 'FAMIC2C'
+      | 'UNIMARTC2C'
+      | 'HILIFEC2C'
+      | 'OKMARTC2C'
+      | 'now'
+      | 'shop'
+      | 'global_express'
+      | 'UNIMARTFREEZE'
+      | 'black_cat_freezing';
+    CVSStoreName: string;
+    CVSStoreID: string;
+    CVSTelephone: string;
+    MerchantTradeNo: string;
+    CVSAddress: string;
+    note?: string;
+    code_note?: string;
+    shipment_detail?: any;
+  };
+  custom_receipt_form?: any;
+  custom_form_format?: any;
+  custom_form_data?: any;
+  proof_purchase: any;
+  progress: string;
+  // progress: 'finish' | 'wait' | 'shipping' | "returns";
+  order_note: string;
+  voucherList: [
+    {
+      title: string;
+      method: 'percent' | 'fixed';
+      trigger: 'auto' | 'code';
+      value: string;
+      for: 'collection' | 'product';
+      rule: 'min_price' | 'min_count';
+      forKey: string[];
+      ruleValue: number;
       startDate: string;
       startTime: string;
-      status: boolean;
-      title: string;
-      voucher: number;
-      voucher_status: string;
-    };
-    archived: 'true' | 'false';
-    customer_info: any;
-    editRecord: any;
-    method: string;
-    shipment_selector: {
-      name: string;
-      value: string;
-      form: any;
-    }[];
-    orderStatus: string;
-    use_wallet: number;
-    email: string;
-    total: number;
-    discount: number;
-    expectDate: string;
-    shipment_fee: number;
-    use_rebate: number;
-    lineItems: {
+      endDate?: string;
+      endTime?: string;
+      status: 0 | 1 | -1;
+      type: 'voucher';
+      code?: string;
+      overlay: boolean;
+      bind?: {
+        id: string;
+        spec: string[];
+        count: number;
+        sale_price: number;
+        collection: string[];
+        discount_price: number;
+      }[];
+      start_ISO_Date: string;
+      end_ISO_Date: string;
+    },
+  ];
+  orderSource?: string;
+  deliveryData: Record<string, string>;
+  pos_info: {
+    payment: 'cash' | 'credit' | 'line_pay';
+    who: {
       id: number;
-      spec: string[];
-      count: string;
-      sale_price: number;
-      title: string;
-      sku: string;
-    }[];
-    user_info: {
-      name: string;
-      email: string;
-      phone: string;
-      shipment_date: string;
-      shipment_refer: string;
-      address: string;
-      shipment_number?: string;
-      custom_form_delivery?: any;
-      shipment:
-        | 'normal'
-        | 'FAMIC2C'
-        | 'UNIMARTC2C'
-        | 'HILIFEC2C'
-        | 'OKMARTC2C'
-        | 'now'
-        | 'shop'
-        | 'global_express'
-        | 'UNIMARTFREEZE'
-        | 'black_cat_freezing';
-      CVSStoreName: string;
-      CVSStoreID: string;
-      CVSTelephone: string;
-      MerchantTradeNo: string;
-      CVSAddress: string;
-      note?: string;
-      code_note?: string;
-      shipment_detail?: any;
-    };
-    custom_receipt_form?: any;
-    custom_form_format?: any;
-    custom_form_data?: any;
-    proof_purchase: any;
-    progress: string;
-    // progress: 'finish' | 'wait' | 'shipping' | "returns";
-    order_note: string;
-    voucherList: [
-      {
+      user: string;
+      config: {
+        pin: string;
+        auth: any;
+        name: string;
+        phone: string;
         title: string;
-        method: 'percent' | 'fixed';
-        trigger: 'auto' | 'code';
-        value: string;
-        for: 'collection' | 'product';
-        rule: 'min_price' | 'min_count';
-        forKey: string[];
-        ruleValue: number;
-        startDate: string;
-        startTime: string;
-        endDate?: string;
-        endTime?: string;
-        status: 0 | 1 | -1;
-        type: 'voucher';
-        code?: string;
-        overlay: boolean;
-        bind?: {
-          id: string;
-          spec: string[];
-          count: number;
-          sale_price: number;
-          collection: string[];
-          discount_price: number;
-        }[];
-        start_ISO_Date: string;
-        end_ISO_Date: string;
-      },
-    ];
-    orderSource?: string;
-    deliveryData: Record<string, string>;
-    pos_info: {
-      payment: 'cash' | 'credit' | 'line_pay';
-      who: {
-        id: number;
-        user: string;
-        config: {
-          pin: string;
-          auth: any;
-          name: string;
-          phone: string;
-          title: string;
-          come_from: string;
-          member_id: string;
-          verifyEmail: string;
-        };
-        status: 1;
+        come_from: string;
+        member_id: string;
+        verifyEmail: string;
       };
+      status: 1;
     };
   };
-  created_time: string;
 }
 
 const html = String.raw;
@@ -272,9 +275,10 @@ export class ShoppingOrderManager {
       filterId: glitter.getUUID(),
       filter_type: query.isPOS ? 'pos' : 'normal',
       return_order: false,
+      apiJSON: {},
+      checkedData: [],
     };
     const ListComp = new BgListComponent(gvc, vm, FilterOptions.orderFilterFrame);
-    let tempOrder = '';
     vm.filter = ListComp.getFilterObject();
 
     gvc.addMtScript(
@@ -282,66 +286,6 @@ export class ShoppingOrderManager {
       () => {},
       () => {}
     );
-
-    function importDataTo(event: Event) {
-      const input = event.target as HTMLInputElement;
-      const XLSX = (window as any).XLSX;
-      if (!input.files || input.files.length === 0) {
-        return;
-      }
-
-      const file = input.files[0];
-      const reader = new FileReader();
-
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        if (!e.target) {
-          return;
-        }
-        const data = new Uint8Array(e.target.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-
-        // 將工作表轉換為 JSON
-        XLSX.utils.sheet_to_json(worksheet);
-      };
-
-      reader.readAsArrayBuffer(file);
-    }
-
-    function exportDataTo(firstRow: string[], data: any) {
-      if ((window as any).XLSX) {
-        // 將資料轉換成工作表
-        let XLSX = (window as any).XLSX;
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        XLSX.utils.sheet_add_aoa(worksheet, [firstRow], { origin: 'A1' });
-
-        // 建立一個新的工作簿
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-
-        // 將工作簿轉換成二進制數據
-        const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
-
-        // 將二進制數據轉換成 Blob 物件
-        function s2ab(s: any) {
-          const buf = new ArrayBuffer(s.length);
-          const view = new Uint8Array(buf);
-          for (let i = 0; i < s.length; i++) {
-            view[i] = s.charCodeAt(i) & 0xff;
-          }
-          return buf;
-        }
-
-        const fileName = `訂單列表_${glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
-        const blobData = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
-        const url = URL.createObjectURL(blobData);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        a.click();
-      }
-    }
 
     if ((window.parent as any).glitter.getUrlParameter('orderID')) {
       vm.type = 'replace';
@@ -401,194 +345,12 @@ export class ShoppingOrderManager {
                   class="d-none"
                   type="file"
                   id="upload-excel"
-                  onchange="${gvc.event((e, event) => {
-                    importDataTo(event);
-                  })}"
+                  onchange="${gvc.event((_, event) => OrderExcel.import(gvc, event))}"
                 />
                 ${BgWidget.grayButton(
                   '匯出',
                   gvc.event(() => {
-                    let dialog = new ShareDialog(glitter);
-                    dialog.warningMessage({
-                      text: `系統將以目前列表搜尋的訂單結果匯出<br />最多匯出1000筆資料，是否匯出？`,
-                      callback: bool => {
-                        if (bool) {
-                          dialog.dataLoading({ visible: true });
-                          ApiShop.getOrder({
-                            page: 0,
-                            limit: 1000,
-                            search: vm.query || undefined,
-                            searchType: vm.queryType || 'cart_token',
-                            orderString: vm.orderString,
-                            filter: vm.filter,
-                            archived: `${query.isArchived}`,
-                            is_pos: vm.filter_type === 'pos',
-                            is_shipment: query.isShipment,
-                          }).then(async res => {
-                            const shipment_methods = await ShipmentConfig.allShipmentMethod();
-                            const payment_methods = await PaymentConfig.getSupportPayment(true);
-                            dialog.dataLoading({ visible: false });
-                            if (!res.result) {
-                              dialog.errorMessage({ text: '訂單資料讀取錯誤' });
-                            }
-                            const exportData: any = [];
-                            const firstRow = [
-                              // value by order
-                              '訂單編號',
-                              '訂單來源',
-                              '訂單建立時間',
-                              '會員信箱',
-                              '訂單處理狀態',
-                              '付款狀態',
-                              '出貨狀態',
-                              '訂單小計',
-                              '訂單運費',
-                              '訂單使用優惠券',
-                              '訂單折扣',
-                              '訂單使用購物金',
-                              '訂單總計',
-                              '分銷連結代碼',
-                              '分銷連結名稱',
-                              // value by lineitem
-                              '商品名稱',
-                              '商品規格',
-                              '商品SKU',
-                              '商品購買數量',
-                              '商品價格',
-                              '商品折扣',
-                              // value by user
-                              '顧客姓名',
-                              '顧客手機',
-                              '顧客信箱',
-                              '收件人姓名',
-                              '收件人手機',
-                              '收件人信箱',
-                              '備註',
-                            ];
-                            res.response.data.map((order: any) => {
-                              const orderData = order.orderData;
-                              orderData.lineItems.map((item: any) => {
-                                exportData.push({
-                                  訂單編號: order.cart_token,
-                                  訂單來源: orderData.orderSource === 'POS' ? 'POS' : '手動',
-                                  訂單建立時間: glitter.ut.dateFormat(
-                                    new Date(order.created_time),
-                                    'yyyy-MM-dd hh:mm:ss'
-                                  ),
-                                  會員信箱: order.email ?? 'no-email',
-                                  訂單處理狀態: (() => {
-                                    switch (orderData.orderStatus ?? '0') {
-                                      case '-1':
-                                        return '已取消';
-                                      case '1':
-                                        return '已完成';
-                                      case '0':
-                                      default:
-                                        return '處理中';
-                                    }
-                                  })(),
-                                  付款狀態: (() => {
-                                    switch (order.status ?? 0) {
-                                      case 1:
-                                        return '已付款';
-                                      case -1:
-                                        return '付款失敗';
-                                      case -2:
-                                        return '已退款';
-                                      case 0:
-                                      default:
-                                        return '未付款';
-                                    }
-                                  })(),
-                                  出貨狀態: (() => {
-                                    switch (orderData.progress ?? 'wait') {
-                                      case 'pre_order':
-                                        return '待預購';
-                                      case 'shipping':
-                                        return '已出貨';
-                                      case 'finish':
-                                        return '已取貨';
-                                      case 'arrived':
-                                        return '已送達';
-                                      case 'returns':
-                                        return '已退貨';
-                                      case 'wait':
-                                      default:
-                                        if (orderData.user_info.shipment_number) {
-                                          return '備貨中';
-                                        } else {
-                                          return '未出貨';
-                                        }
-                                    }
-                                  })(),
-                                  訂單小計:
-                                    orderData.total +
-                                    orderData.discount -
-                                    orderData.shipment_fee +
-                                    orderData.use_rebate,
-                                  訂單運費: orderData.shipment_fee,
-                                  訂單使用優惠券: orderData.voucherList.map((voucher: any) => voucher.title).join(', '),
-                                  訂單折扣: orderData.discount,
-                                  訂單使用購物金: orderData.use_rebate,
-                                  訂單總計: orderData.total,
-                                  分銷連結代碼: orderData.distribution_info?.code ?? '',
-                                  分銷連結名稱: orderData.distribution_info?.title ?? '',
-                                  // value by lineitem
-                                  商品名稱: item.title,
-                                  商品規格: item.spec.length > 0 ? item.spec.join(' / ') : '單一規格',
-                                  商品SKU: item.sku ?? '',
-                                  商品購買數量: item.count,
-                                  商品價格: item.sale_price,
-                                  商品折扣: item.discount_price,
-                                  // value by user
-                                  顧客姓名: orderData.customer_info.name,
-                                  顧客手機: orderData.customer_info.phone,
-                                  顧客信箱: orderData.customer_info.email,
-                                  收件人姓名: orderData.user_info.name,
-                                  收件人手機: orderData.user_info.phone,
-                                  收件人信箱: orderData.user_info.email,
-                                  付款方式: (() => {
-                                    if (
-                                      payment_methods.find(dd => {
-                                        return dd.key === orderData.customer_info.payment_select;
-                                      })
-                                    ) {
-                                      return shipment_methods.find(dd => {
-                                        return dd.key === orderData.customer_info.payment_select;
-                                      })?.name;
-                                    } else {
-                                      return `未知`;
-                                    }
-                                  })(),
-                                  配送方式: (() => {
-                                    if (
-                                      shipment_methods.find(dd => {
-                                        return dd.key === orderData.user_info.shipment;
-                                      })
-                                    ) {
-                                      return shipment_methods.find(dd => {
-                                        return dd.key === orderData.user_info.shipment;
-                                      })?.name;
-                                    } else {
-                                      return `未知`;
-                                    }
-                                  })(),
-                                  出貨單號碼: orderData.user_info.shipment_number,
-                                  出貨單日期: gvc.glitter.ut.dateFormat(
-                                    new Date(orderData.user_info.shipment_date),
-                                    'yyyy-MM-dd hh:mm'
-                                  ),
-                                  發票號碼: order.invoice_number ?? '',
-                                  會員等級: order.user_data && order.user_data.member_level.tag_name,
-                                  備註: orderData.user_info.note ?? '',
-                                });
-                              });
-                            });
-                            exportDataTo(firstRow, exportData);
-                          });
-                        }
-                      },
-                    });
+                    OrderExcel.exportDialog(gvc, vm.apiJSON, vm.checkedData);
                   })
                 )}
                 ${query.isArchived || query.isShipment
@@ -692,9 +454,10 @@ export class ShoppingOrderManager {
                   gvc: gvc,
                   defPage: ShoppingOrderManager.vm.page,
                   getData: vmi => {
-                    const limit = 20;
                     ShoppingOrderManager.vm.page = vmi.page;
-                    ApiShop.getOrder({
+
+                    const limit = 20;
+                    vm.apiJSON = {
                       page: vmi.page - 1,
                       limit: limit,
                       search: vm.query || undefined,
@@ -704,7 +467,9 @@ export class ShoppingOrderManager {
                       archived: `${query.isArchived}`,
                       is_pos: vm.filter_type === 'pos',
                       is_shipment: query.isShipment,
-                    }).then(data => {
+                    };
+
+                    ApiShop.getOrder(vm.apiJSON).then(data => {
                       function getDatalist() {
                         return data.response.data.map((dd: any) => {
                           dd.orderData.total = dd.orderData.total || 0;
@@ -875,7 +640,7 @@ export class ShoppingOrderManager {
                       vmi.callback();
                     });
                   },
-                  rowClick: (data, index) => {
+                  rowClick: (_, index) => {
                     vm.data = vm.dataList[index];
                     vm.type = 'replace';
                   },
@@ -931,7 +696,6 @@ export class ShoppingOrderManager {
                             name: '批量手動取號',
                             option: true,
                             event: async () => {
-                          
                               const checkArray = vm.dataList.filter((dd: any) => dd.checked);
                               if (checkArray.find((dd: any) => dd.orderData.user_info.shipment_number)) {
                                 dialog.errorMessage({ text: `已取號訂單無法再次取號 !!` });
@@ -941,25 +705,27 @@ export class ShoppingOrderManager {
                                 dialog.errorMessage({ text: `未出貨的訂單才可以進行取號 !!` });
                                 return;
                               }
-                              
+
                               dialog.checkYesOrNot({
-                                text:'系統將自動生成配號並產生出貨單',
-                                callback: (response)=>{
-                                  if (response){
+                                text: '系統將自動生成配號並產生出貨單',
+                                callback: response => {
+                                  if (response) {
                                     let shipment_date = gvc.glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd');
                                     let shipment_time = gvc.glitter.ut.dateFormat(new Date(), 'hh:mm');
 
-                                    async function next(){
+                                    async function next() {
                                       dialog.dataLoading({
                                         visible: true,
                                       });
-                                      let index_number=0
+                                      let index_number = 0;
                                       await Promise.all(
                                         checkArray.map((orderData: any) => {
                                           return new Promise(async (resolve, reject) => {
-                                            orderData.orderData.user_info.shipment_number =  `${new Date().getTime()}${index_number++}`;
-                                            orderData.orderData.user_info.shipment_date =  new Date(`${shipment_date} ${shipment_time}:00`).toISOString();
-                                            
+                                            orderData.orderData.user_info.shipment_number = `${new Date().getTime()}${index_number++}`;
+                                            orderData.orderData.user_info.shipment_date = new Date(
+                                              `${shipment_date} ${shipment_time}:00`
+                                            ).toISOString();
+
                                             ApiShop.putOrder({
                                               id: `${orderData.id}`,
                                               order_data: orderData.orderData,
@@ -1021,9 +787,8 @@ export class ShoppingOrderManager {
                                       width: 350,
                                     });
                                   }
-                                }
-                              })
-                           
+                                },
+                              });
                             },
                           },
                         ]
@@ -1154,11 +919,12 @@ export class ShoppingOrderManager {
                         // order_list
                         // shipment_list
                         dialog.checkYesOrNot({
-                          text: `<div class="d-flex flex-column" style="gap:5px;">
-是否確認${query.isArchived ? '解除封存' : '封存'}所選項目?
-                                                        ${BgWidget.grayNote(`**請注意**  將連同${action_with}一併${query.isArchived ? '解除封存' : '封存'}`)}
-</div>
-                                                        `,
+                          text: html`<div class="d-flex flex-column" style="gap:5px;">
+                            是否確認${query.isArchived ? '解除封存' : '封存'}所選項目?
+                            ${BgWidget.grayNote(
+                              `**請注意**  將連同${action_with}一併${query.isArchived ? '解除封存' : '封存'}`
+                            )}
+                          </div> `,
                           callback: (response: boolean) => {
                             if (response) {
                               dialog.dataLoading({ visible: true });
@@ -1190,6 +956,9 @@ export class ShoppingOrderManager {
                       },
                     },
                   ],
+                  filterCallback: (dataArray: any) => {
+                    vm.checkedData = dataArray;
+                  },
                 }),
               ].join('')
             )}
@@ -1241,7 +1010,7 @@ export class ShoppingOrderManager {
         view: async () => {
           try {
             const glitter = gvc.glitter;
-            let orderData: OrderData = {} as OrderData;
+            let orderData = {} as Order;
             const cart_token = (() => {
               if (typeof passOrderData === 'string') {
                 return passOrderData;
@@ -1809,7 +1578,7 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                                                return ``;
                                                                              }
                                                                            } catch (e) {
-                                                                             console.log(e);
+                                                                             console.error(e);
                                                                              return `${e}`;
                                                                            }
                                                                          })()}
@@ -2279,7 +2048,7 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                       ]
                                         .concat(ApiShop.getOrderStatusArray())
                                         .find(dd => {
-                                          return dd.value == orderData.orderData.orderStatus ?? '0';
+                                          return dd.value == (orderData.orderData.orderStatus ?? '0');
                                         })?.title
                                     : EditorElem.select({
                                         title: ``,
@@ -3435,7 +3204,7 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
               onDestroy: () => {},
             });
           } catch (e) {
-            console.log(e);
+            console.error(e);
             return `error`;
           }
         },

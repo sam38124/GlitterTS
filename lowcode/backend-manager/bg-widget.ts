@@ -1876,6 +1876,7 @@ ${obj.default ?? ''}</textarea
     defPage?: number; // 預設顯示第幾頁
     itemSelect?: () => void;
     tabClick?: (vm: TableV3) => void;
+    filterCallback?: (data: any) => void; // 批量點擊回傳資料陣列
   }) {
     const gvc = obj.gvc;
     const glitter = gvc.glitter;
@@ -2053,6 +2054,8 @@ ${obj.default ?? ''}</textarea
                           dd.checked ? checkedMap.set(dd.dataPin, dd) : checkedMap.delete(dd.dataPin);
                         });
                         vm.checkedArray = [...checkedMap.values()];
+
+                        obj.filterCallback && obj.filterCallback(vm.checkedArray);
 
                         if (vm.checkedArray.length > 0) {
                           // 顯示行為列(手機版)

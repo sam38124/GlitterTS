@@ -1509,28 +1509,34 @@ console.log(`scheduleConditions=>`, scheduleConditions);
       }
 
       const checkOutType = data.checkOutType ?? 'manual';
-      console.log(`checkOutType==>`,checkOutType)
+      console.log(`checkOutType==>`, checkOutType);
       const getUserDataAsync = async (
         type: string,
         token: IToken | undefined,
         data: {
           email?: string;
-          user_info: { email: string ,phone:string};
+          user_info: { email: string; phone: string };
         }
       ) => {
         // 檢查預覽模式下的條件
-        if (type === 'preview' && !(token?.userID || (data.user_info && data.user_info.email) || (data.user_info && data.user_info.phone))) {
+        if (
+          type === 'preview' &&
+          !(token?.userID || (data.user_info && data.user_info.email) || (data.user_info && data.user_info.phone))
+        ) {
           return {};
         }
 
         // 根據 token 獲取用戶數據
-        if (token?.userID && (type !== 'POS' && checkOutType !== 'POS')) {
+        if (token?.userID && type !== 'POS' && checkOutType !== 'POS') {
           return await userClass.getUserData(`${token.userID}`, 'userID');
         }
 
         // 否則根據 email 或電話獲取數據
-        return ((data.user_info.email && (await userClass.getUserData(data.user_info.email, 'email_or_phone')) ) ||
-          (data.user_info.phone && (await userClass.getUserData( data.user_info.phone, 'email_or_phone')))) || {};
+        return (
+          (data.user_info.email && (await userClass.getUserData(data.user_info.email, 'email_or_phone'))) ||
+          (data.user_info.phone && (await userClass.getUserData(data.user_info.phone, 'email_or_phone'))) ||
+          {}
+        );
       };
 
       const userData = await getUserDataAsync(type, this.token, data);
@@ -1540,11 +1546,11 @@ console.log(`scheduleConditions=>`, scheduleConditions);
       if (userData && userData.userData && userData.userData.email) {
         data.email = userData.userData.email || userData.userData.phone;
       }
-      if(!data.email || (data.email==='no-email')){
-        if(data.user_info.email && (data.user_info.email !== 'no-email')){
+      if (!data.email || data.email === 'no-email') {
+        if (data.user_info.email && data.user_info.email !== 'no-email') {
           data.email = data.user_info.email;
-        }else if(data.user_info.phone){
-          data.email=data.user_info.phone
+        } else if (data.user_info.phone) {
+          data.email = data.user_info.phone;
         }
       }
       if (!data.email && type !== 'preview') {
@@ -1555,7 +1561,7 @@ console.log(`scheduleConditions=>`, scheduleConditions);
       const appStatus = await rebateClass.mainStatus();
       if (appStatus && userData && data.use_rebate && data.use_rebate > 0) {
         const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
-        console.log(`userRebate==>`,userRebate)
+        console.log(`userRebate==>`, userRebate);
         const sum = userRebate ? userRebate.point : 0;
         if (sum < data.use_rebate) {
           data.use_rebate = 0;
@@ -2282,11 +2288,11 @@ console.log(`scheduleConditions=>`, scheduleConditions);
           }
         }
         // 手動訂單新增
-       await  OrderEvent.insertOrder({
-          cartData:carData,
-          status:data.pay_status as any,
-          app:this.app,
-        })
+        await OrderEvent.insertOrder({
+          cartData: carData,
+          status: data.pay_status as any,
+          app: this.app,
+        });
         console.log(`checkout-time-13=>`, new Date().getTime() - check_time);
         return {
           data: carData,
@@ -2322,11 +2328,11 @@ console.log(`scheduleConditions=>`, scheduleConditions);
           (carData as any).orderStatus = '1';
           (carData as any).progress = 'finish';
         }
-        await  OrderEvent.insertOrder({
-          cartData:carData,
-          status:data.pay_status as any,
-          app:this.app,
-        })
+        await OrderEvent.insertOrder({
+          cartData: carData,
+          status: data.pay_status as any,
+          app: this.app,
+        });
         if (data.invoice_select !== 'nouse') {
           (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(
             carData,
@@ -2748,13 +2754,13 @@ console.log(`scheduleConditions=>`, scheduleConditions);
 
         feedsOrder.forEach(order => mergeOrders(order.orderData));
 
-        base.orderID= `${Date.now()}`
+        base.orderID = `${Date.now()}`;
         // 新增合併後的訂單
         await OrderEvent.insertOrder({
-          cartData:base,
-          status:targetOrder.status,
+          cartData: base,
+          status: targetOrder.status,
           app: this.app,
-        })
+        });
 
         // 批次封存原始訂單
         await Promise.all(
@@ -3158,30 +3164,30 @@ console.log(`scheduleConditions=>`, scheduleConditions);
     return cart;
   }
 
-  async putOrder(data: { id?: string;cart_token?:string, orderData: any; status: any }) {
+  async putOrder(data: { id?: string; cart_token?: string; orderData: any; status: any }) {
     try {
       const update: any = {};
       const storeConfig = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
       let origin = undefined;
-      if(data.id){
-        origin=(
+      if (data.id) {
+        origin = (
           await db.query(
             `SELECT *
            FROM \`${this.app}\`.t_checkout
            WHERE id = ?;`,
             [data.id]
           )
-        )[0]
+        )[0];
       }
-      if(data.cart_token){
-        origin=(
+      if (data.cart_token) {
+        origin = (
           await db.query(
             `SELECT *
            FROM \`${this.app}\`.t_checkout
            WHERE cart_token = ?;`,
             [data.cart_token]
           )
-        )[0]
+        )[0];
       }
 
       if (!origin) {
@@ -3236,7 +3242,7 @@ console.log(`scheduleConditions=>`, scheduleConditions);
         //當訂單多了出貨單號碼，新增出貨日期，反之清空出貨日期。
         if (update.orderData.user_info.shipment_number && !update.orderData.user_info.shipment_date) {
           update.orderData.user_info.shipment_date = new Date().toISOString();
-        } else if(!update.orderData.user_info.shipment_number){
+        } else if (!update.orderData.user_info.shipment_number) {
           delete update.orderData.user_info.shipment_date;
         }
 
@@ -3311,10 +3317,10 @@ console.log(`scheduleConditions=>`, scheduleConditions);
 
       //加入到索引欄位
       await CheckoutService.updateAndMigrateToTableColumn({
-        id:origin.id,
-        orderData:update.orderData,
-        app_name:this.app
-      })
+        id: origin.id,
+        orderData: update.orderData,
+        app_name: this.app,
+      });
       return {
         result: 'success',
         orderData: data.orderData,
@@ -3426,10 +3432,10 @@ console.log(`scheduleConditions=>`, scheduleConditions);
       }
 
       await this.putOrder({
-        cart_token:order_id,
-        orderData:orderData,
-        status:undefined
-      })
+        cart_token: order_id,
+        orderData: orderData,
+        status: undefined,
+      });
 
       return { data: true };
     } catch (e) {
@@ -3480,10 +3486,10 @@ console.log(`scheduleConditions=>`, scheduleConditions);
         console.log('付款成功line訊息寄送成功');
       }
       await this.putOrder({
-        orderData:orderData,
-        cart_token:order_id,
-        status:undefined
-      })
+        orderData: orderData,
+        cart_token: order_id,
+        status: undefined,
+      });
       return {
         result: true,
       };
@@ -3498,6 +3504,7 @@ console.log(`scheduleConditions=>`, scheduleConditions);
     limit: number;
     is_pos?: string;
     id?: string;
+    id_list?: string;
     search?: string;
     email?: string;
     phone?: string;
@@ -3574,10 +3581,10 @@ console.log(`scheduleConditions=>`, scheduleConditions);
 
       if (query.progress) {
         //備貨中
-        if(query.progress === 'in_stock'){
-          query.progress='wait'
+        if (query.progress === 'in_stock') {
+          query.progress = 'wait';
           querySql.push(`shipment_number is NOT null`);
-        }else if(query.progress === 'wait'){
+        } else if (query.progress === 'wait') {
           querySql.push(`shipment_number is null`);
         }
         let newArray = query.progress.split(',');
@@ -3658,6 +3665,7 @@ console.log(`scheduleConditions=>`, scheduleConditions);
         querySql.push(`(${orderMath.join(' or ')})`);
       }
       query.id && querySql.push(`(content->>'$.id'=${query.id})`);
+      query.id_list && querySql.push(`(id in (${query.id_list}))`);
 
       if (query.filter_type === 'true' || query.archived) {
         if (query.archived === 'true') {
@@ -3761,7 +3769,7 @@ console.log(`scheduleConditions=>`, scheduleConditions);
               if (order.orderData.user_info.shipment_refer === 'paynow') {
                 const pay_now = new PayNowLogistics(this.app);
                 order.orderData.user_info.shipment_detail = await pay_now.getOrderInfo(order.cart_token);
-                console.log(`PayNowLogisticCode=>`,order.orderData.user_info.shipment_detail.PayNowLogisticCode)
+                console.log(`PayNowLogisticCode=>`, order.orderData.user_info.shipment_detail.PayNowLogisticCode);
                 const status = (() => {
                   switch (order.orderData.user_info.shipment_detail.PayNowLogisticCode) {
                     case '0000':
@@ -3794,7 +3802,7 @@ console.log(`scheduleConditions=>`, scheduleConditions);
                   }
                 })();
                 //貨態更新
-                if (status && (order.orderData.progress !== status)) {
+                if (status && order.orderData.progress !== status) {
                   order.orderData.progress = status;
                   await this.putOrder({
                     status: undefined,
@@ -3806,19 +3814,25 @@ console.log(`scheduleConditions=>`, scheduleConditions);
             } catch (e) {}
           })
           //補上發票號碼資訊
-          .concat(obMap.map(async (order: any) => {
-            const invoice=(await new Invoice(this.app).getInvoice({
-              page:0,
-              limit:1,
-              search:order.orderData.invoice_number,
-              searchType:order.orderData.order_number
-            })).data[0];
-            order.invoice_number = (invoice) && invoice.invoice_no
-          }))
+          .concat(
+            obMap.map(async (order: any) => {
+              const invoice = (
+                await new Invoice(this.app).getInvoice({
+                  page: 0,
+                  limit: 1,
+                  search: order.orderData.invoice_number,
+                  searchType: order.orderData.order_number,
+                })
+              ).data[0];
+              order.invoice_number = invoice && invoice.invoice_no;
+            })
+          )
           //補上用戶資訊
-          .concat(obMap.map(async (order: any) => {
-            order.user_data = (await new User(this.app).getUserData(order.email,'email_or_phone'));
-          }))
+          .concat(
+            obMap.map(async (order: any) => {
+              order.user_data = await new User(this.app).getUserData(order.email, 'email_or_phone');
+            })
+          )
       );
 
       return response_data;

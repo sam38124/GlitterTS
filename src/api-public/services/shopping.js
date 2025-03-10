@@ -1032,14 +1032,16 @@ class Shopping {
             const checkOutType = (_c = data.checkOutType) !== null && _c !== void 0 ? _c : 'manual';
             console.log(`checkOutType==>`, checkOutType);
             const getUserDataAsync = async (type, token, data) => {
-                if (type === 'preview' && !((token === null || token === void 0 ? void 0 : token.userID) || (data.user_info && data.user_info.email) || (data.user_info && data.user_info.phone))) {
+                if (type === 'preview' &&
+                    !((token === null || token === void 0 ? void 0 : token.userID) || (data.user_info && data.user_info.email) || (data.user_info && data.user_info.phone))) {
                     return {};
                 }
-                if ((token === null || token === void 0 ? void 0 : token.userID) && (type !== 'POS' && checkOutType !== 'POS')) {
+                if ((token === null || token === void 0 ? void 0 : token.userID) && type !== 'POS' && checkOutType !== 'POS') {
                     return await userClass.getUserData(`${token.userID}`, 'userID');
                 }
                 return ((data.user_info.email && (await userClass.getUserData(data.user_info.email, 'email_or_phone'))) ||
-                    (data.user_info.phone && (await userClass.getUserData(data.user_info.phone, 'email_or_phone')))) || {};
+                    (data.user_info.phone && (await userClass.getUserData(data.user_info.phone, 'email_or_phone'))) ||
+                    {});
             };
             const userData = await getUserDataAsync(type, this.token, data);
             console.log(`checkout-time-02=>`, new Date().getTime() - check_time);
@@ -1047,8 +1049,8 @@ class Shopping {
             if (userData && userData.userData && userData.userData.email) {
                 data.email = userData.userData.email || userData.userData.phone;
             }
-            if (!data.email || (data.email === 'no-email')) {
-                if (data.user_info.email && (data.user_info.email !== 'no-email')) {
+            if (!data.email || data.email === 'no-email') {
+                if (data.user_info.email && data.user_info.email !== 'no-email') {
                     data.email = data.user_info.email;
                 }
                 else if (data.user_info.phone) {
@@ -2458,7 +2460,7 @@ class Shopping {
             await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
                 id: origin.id,
                 orderData: update.orderData,
-                app_name: this.app
+                app_name: this.app,
             });
             return {
                 result: 'success',
@@ -2547,7 +2549,7 @@ class Shopping {
             await this.putOrder({
                 cart_token: order_id,
                 orderData: orderData,
-                status: undefined
+                status: undefined,
             });
             return { data: true };
         }
@@ -2589,7 +2591,7 @@ class Shopping {
             await this.putOrder({
                 orderData: orderData,
                 cart_token: order_id,
-                status: undefined
+                status: undefined,
             });
             return {
                 result: true,
@@ -2722,6 +2724,7 @@ class Shopping {
                 querySql.push(`(${orderMath.join(' or ')})`);
             }
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
+            query.id_list && querySql.push(`(id in (${query.id_list}))`);
             if (query.filter_type === 'true' || query.archived) {
                 if (query.archived === 'true') {
                     querySql.push(`(orderData->>'$.archived'="${query.archived}") 
@@ -2835,7 +2838,7 @@ class Shopping {
                                     return 'finish';
                             }
                         })();
-                        if (status && (order.orderData.progress !== status)) {
+                        if (status && order.orderData.progress !== status) {
                             order.orderData.progress = status;
                             await this.putOrder({
                                 status: undefined,
@@ -2852,12 +2855,12 @@ class Shopping {
                     page: 0,
                     limit: 1,
                     search: order.orderData.invoice_number,
-                    searchType: order.orderData.order_number
+                    searchType: order.orderData.order_number,
                 })).data[0];
-                order.invoice_number = (invoice) && invoice.invoice_no;
+                order.invoice_number = invoice && invoice.invoice_no;
             }))
                 .concat(obMap.map(async (order) => {
-                order.user_data = (await new user_js_1.User(this.app).getUserData(order.email, 'email_or_phone'));
+                order.user_data = await new user_js_1.User(this.app).getUserData(order.email, 'email_or_phone');
             })));
             return response_data;
         }
