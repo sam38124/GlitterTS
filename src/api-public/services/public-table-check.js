@@ -552,8 +552,8 @@ class ApiPublic {
   \`content\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
-  KEY \`index2\` (\`cart_id\`),
-  UNIQUE KEY \`unique_cart_id\` (\`cart_id\`)
+  UNIQUE KEY \`unique_cart_id\` (\`cart_id\`),
+  INDEX \`idx_created_time\` (\`created_time\`)
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
  `,
                 },

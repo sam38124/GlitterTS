@@ -98,11 +98,87 @@ export class LiveCapture {
                         BgWidget.tableV3({
                             gvc: gvc,
                             getData: (vmi) => {
+                                var _a;
                                 const limit = 20;
-                                vmi.loading = false;
-                                vmi.callback();
-                                ApiLiveInteraction.getScheduled({}).then((res) => {
-                                    console.log(res);
+                                vmi.loading = true;
+                                ApiLiveInteraction.getScheduled({
+                                    type: 'group_buy',
+                                    page: vmi.page - 1,
+                                    limit: limit,
+                                    search: vm.query || '',
+                                    searchType: (_a = vm.queryType) !== null && _a !== void 0 ? _a : 'name',
+                                    orderString: vm.orderString,
+                                    filter: vm.filter,
+                                }).then((data) => {
+                                    function getDatalist() {
+                                        return data.response.data.map((dd) => {
+                                            var _a, _b, _c, _d, _e;
+                                            return [
+                                                {
+                                                    key: '團購名稱',
+                                                    value: dd.name,
+                                                },
+                                                {
+                                                    key: '團購時間',
+                                                    value: glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd'),
+                                                },
+                                                {
+                                                    key: '平台',
+                                                    value: (() => {
+                                                        if (dd.content.platform == "LINE") {
+                                                            return html `
+                                                                                <i class="fa-brands fa-line"
+                                                                                   style="color: #3ACE00"></i>
+                                                                            `;
+                                                        }
+                                                        return html `
+                                                                            <i class="fa-brands fa-facebook"></i>
+                                                                        `;
+                                                    })(),
+                                                },
+                                                {
+                                                    key: '團購群組/粉絲專頁',
+                                                    value: dd.content.lineGroup.groupName,
+                                                },
+                                                {
+                                                    key: '跟團人數',
+                                                    value: (_c = (_b = (_a = dd.content) === null || _a === void 0 ? void 0 : _a.pending_order) === null || _b === void 0 ? void 0 : _b.length) !== null && _c !== void 0 ? _c : 0,
+                                                },
+                                                {
+                                                    key: '總銷售額',
+                                                    value: (_e = (_d = dd.content) === null || _d === void 0 ? void 0 : _d.pending_order_total) !== null && _e !== void 0 ? _e : 0,
+                                                },
+                                                {
+                                                    key: '狀態',
+                                                    value: (() => {
+                                                        var _a;
+                                                        switch ((_a = dd.status) !== null && _a !== void 0 ? _a : '0') {
+                                                            case 1:
+                                                                return BgWidget.infoInsignia('開團中');
+                                                            case 2:
+                                                                return html `
+                                                                                <div class="insignia" style="background: #FEE4C3;">結帳中</div>
+                                                                                `;
+                                                            case 3:
+                                                                return html `
+                                                                                <div class="insignia" style="background: #DDD;">已結束</div>
+                                                                                `;
+                                                        }
+                                                    })(),
+                                                },
+                                            ].map((dd) => {
+                                                dd.value = html `
+                                                                    <div style="line-height:40px;">${dd.value}</div>`;
+                                                return dd;
+                                            });
+                                        });
+                                    }
+                                    vm.dataList = data.response.data;
+                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                    vmi.originalData = vm.dataList;
+                                    vmi.tableData = getDatalist();
+                                    vmi.loading = false;
+                                    vmi.callback();
                                 });
                             },
                             rowClick: (data, index) => {
@@ -117,6 +193,9 @@ export class LiveCapture {
                 }
                 else if (vm.type === 'add') {
                     return this.create(gvc, vm, group_buy);
+                }
+                else if (vm.type === 'replace') {
+                    return this.replace(gvc, vm, group_buy);
                 }
                 return ``;
             },
@@ -424,13 +503,13 @@ export class LiveCapture {
                                                                    onchange="${gvc.event((e) => {
                             viewModel.formData.start_date = e.value;
                             gvc.notifyDataChange('summary');
-                        })}">
+                        })}" disabled>
                                                             <input style="display: flex;padding: 9px 18px;align-items: center;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
                                                                    value="${viewModel.formData.start_time}" type="time"
                                                                    onchange="${gvc.event((e) => {
                             viewModel.formData.start_time = e.value;
                             gvc.notifyDataChange('summary');
-                        })}">
+                        })}" disabled>
                                                         </div>
                                                     </div>
                                                     <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;align-self: stretch;">
@@ -536,8 +615,7 @@ export class LiveCapture {
                                                         </svg>
                                                         <div class="flex-grow-1"
                                                              style="font-size: 14px;font-style: normal;font-weight: 700;">
-                                                                已選取${viewModel.formData.item_list.filter(item => item.selected).length}
-                                                            項
+                                                                已選取${viewModel.formData.item_list.filter(item => item.selected).length}項
                                                         </div>
                                                         <div class="d-flex" style="font-size: 14px;gap:12px;">
                                                             <div style="padding: 4px 14px;border-radius: 7px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);cursor: pointer;"
@@ -554,6 +632,7 @@ export class LiveCapture {
                                                             <div style="padding: 4px 14px;border-radius: 7px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);cursor: pointer;"
                                                                  onclick="${gvc.event(() => {
                                 viewModel.formData.item_list = viewModel.formData.item_list.filter(item => !item.selected);
+                                gvc.notifyDataChange('itemBlock');
                             })}">刪除
                                                             </div>
                                                         </div>
@@ -588,10 +667,12 @@ export class LiveCapture {
                                     let type = 'product';
                                     function setItemList(item_list) {
                                         viewModel.formData.item_list.push(...item_list);
+                                        viewModel.formData.item_list = item_list;
                                         gvc.notifyDataChange('item_list');
                                     }
-                                    function selectProductType() {
+                                    function selectProductType(itemList) {
                                         let confirm = true;
+                                        let searchLoading = false;
                                         window.parent.glitter.innerDialog((gvc) => {
                                             newOrder.query = '';
                                             newOrder.search = '';
@@ -609,10 +690,21 @@ export class LiveCapture {
                                                     }],
                                                 view: () => {
                                                     var _a;
+                                                    function replaceProducts(oriData, replaceData) {
+                                                        replaceData.forEach((data) => {
+                                                            let findProduct = oriData.find((item) => item.id == data.id);
+                                                            findProduct.selected = (findProduct.content.variants.length == data.content.variants.length);
+                                                            data.content.variants.forEach((variant) => {
+                                                                let index = findProduct.content.variants.findIndex((item) => item.spec.join('') == variant.spec.join(''));
+                                                                if (index !== -1) {
+                                                                    findProduct.content.variants[index] = variant;
+                                                                }
+                                                            });
+                                                        });
+                                                    }
                                                     let width = window.innerWidth > 1100 ? "80vw" : "70vw";
                                                     let gap = window.innerWidth > 1100 ? "32" : "24";
                                                     let step1Check = false;
-                                                    let searchLoading = false;
                                                     switch (viewModel.step) {
                                                         case 3: {
                                                             let autoGenerate = false;
@@ -1013,6 +1105,7 @@ export class LiveCapture {
                                                                     return gvc.bindView({
                                                                         bind: 'productArray',
                                                                         view: () => {
+                                                                            console.log("newOrder.productTemp -- ", newOrder.productTemp);
                                                                             if (newOrder.productTemp.length == 0) {
                                                                                 return html `
                                                                                                                                             <div class="w-100 h-100 d-flex align-items-center justify-content-center"
@@ -1072,23 +1165,27 @@ export class LiveCapture {
 
                                                                                                                                             ${newOrder.productTemp
                                                                                 .map((product, productIndex) => {
+                                                                                var _a;
                                                                                 const variants = product.content.variants;
-                                                                                product.content.live_model = {};
+                                                                                product.content.live_model = (_a = product.content.live_model) !== null && _a !== void 0 ? _a : {};
                                                                                 variants.map((variant) => {
-                                                                                    variant.live_model = {};
-                                                                                    variant.live_model.stock = variant.stock;
-                                                                                    variant.live_model.available_Qty = variant.stock;
-                                                                                    variant.live_model.original_price = variant.sale_price;
-                                                                                    variant.live_model.live_price = variant.sale_price;
-                                                                                    variant.live_model.limit = 1;
+                                                                                    var _a;
+                                                                                    if (!variant.live_model) {
+                                                                                        variant.live_model = (_a = variant.live_model) !== null && _a !== void 0 ? _a : {};
+                                                                                        variant.live_model.stock = variant.stock;
+                                                                                        variant.live_model.available_Qty = parseInt(variant.stock);
+                                                                                        variant.live_model.original_price = variant.sale_price;
+                                                                                        variant.live_model.live_price = variant.sale_price;
+                                                                                        variant.live_model.limit = 1;
+                                                                                    }
                                                                                 });
                                                                                 return gvc.bindView({
                                                                                     bind: `product${productIndex}`,
                                                                                     view: () => {
                                                                                         function drawRow(variant) {
                                                                                             var _a, _b;
-                                                                                            let showModel = variant ? variant.live_model : (variants.length > 1) ? product.content.live_model : variants[0].live_model;
-                                                                                            if (!variant && variants.length > 1) {
+                                                                                            let showModel = variant ? variant.live_model : (product.content.specs.length > 0) ? product.content.live_model : variants[0].live_model;
+                                                                                            if (!variant && product.content.specs.length > 0) {
                                                                                                 showModel.stock = 0;
                                                                                                 showModel.available_Qty = 0;
                                                                                                 showModel.min_price = variants[0].sale_price;
@@ -1100,7 +1197,7 @@ export class LiveCapture {
                                                                                                 variants.map((variant) => {
                                                                                                     var _a, _b, _c;
                                                                                                     showModel.stock += variant.stock;
-                                                                                                    showModel.available_Qty += (_a = variant.live_model.available_Qty) !== null && _a !== void 0 ? _a : variant.stock;
+                                                                                                    showModel.available_Qty += (_a = parseInt(variant.live_model.available_Qty)) !== null && _a !== void 0 ? _a : parseInt(variant.stock);
                                                                                                     showModel.min_price = Math.min(showModel.min_price, variant.sale_price);
                                                                                                     showModel.max_price = Math.max(showModel.max_price, variant.live_model.sale_price);
                                                                                                     showModel.min_live_price = Math.min(showModel.min_live_price, (_b = variant.live_model.min_live_price) !== null && _b !== void 0 ? _b : variant.sale_price);
@@ -1122,7 +1219,7 @@ export class LiveCapture {
                                                                                                                                                                             </div>
                                                                                                                                                                             ${(() => {
                                                                                                 if (!variant) {
-                                                                                                    if (variants.length > 1) {
+                                                                                                    if (product.content.specs.length > 0) {
                                                                                                         if (product.expand) {
                                                                                                             return html `
                                                                                                                                                                                                 <div class="h-100 flex-shrink-0 d-flex align-items-center"
@@ -1189,7 +1286,7 @@ export class LiveCapture {
                                                                                                 if (variant) {
                                                                                                     return `-`;
                                                                                                 }
-                                                                                                else if (variants.length > 1) {
+                                                                                                else if (product.content.specs.length > 0) {
                                                                                                     return html `${variants.length}個規格`;
                                                                                                 }
                                                                                                 else {
@@ -1204,7 +1301,7 @@ export class LiveCapture {
                                                                                                 if (variant) {
                                                                                                     return showModel.stock;
                                                                                                 }
-                                                                                                else if (variants.length > 1) {
+                                                                                                else if (product.content.specs.length > 0) {
                                                                                                     let count = 0;
                                                                                                     variants.forEach((variant) => {
                                                                                                         count += variant.stock;
@@ -1220,7 +1317,7 @@ export class LiveCapture {
                                                                                                                                                                         <div class="text-center flex-shrink-0 h-100 d-flex align-items-center justify-content-center text-center"
                                                                                                                                                                              style="width: ${titleRow[3].width};font-size: 16px;font-style: normal;font-weight: 400;">
                                                                                                                                                                             ${(() => {
-                                                                                                if (!variant && variants.length > 1) {
+                                                                                                if (!variant && product.content.specs.length > 0) {
                                                                                                     return html `
                                                                                                                                                                                         <input class="w-100"
                                                                                                                                                                                                style="height: 40px;padding: 0 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;${showModel.live_price ? '' : 'color: #8D8D8D;'}"
@@ -1231,7 +1328,7 @@ export class LiveCapture {
                                                                                                 }
                                                                                                 else {
                                                                                                     return html `
-                                                                                                                                                                                        <input class="w-100"
+                                                                                                                                                                                        <input class="w-100 testBTN"
                                                                                                                                                                                                style="height: 40px;padding: 0 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;${showModel.live_price ? '' : 'color: #8D8D8D;'}"
                                                                                                                                                                                                value="${showModel.available_Qty}"
                                                                                                                                                                                                ${showModel.live_price ? `max = "${showModel === null || showModel === void 0 ? void 0 : showModel.stock}"` : ''}
@@ -1239,7 +1336,7 @@ export class LiveCapture {
                                                                                                                                                                                                ${showModel.live_price ? '' : 'disabled'}
                                                                                                                                                                                                onchange="${gvc.event((e) => {
                                                                                                         showModel.available_Qty = e.value;
-                                                                                                    })}}">
+                                                                                                    })}">
                                                                                                                                                                                     `;
                                                                                                 }
                                                                                             })()}
@@ -1248,10 +1345,10 @@ export class LiveCapture {
                                                                                                                                                                         <div class="text-center flex-shrink-0 h-100 d-flex align-items-center justify-content-center text-center"
                                                                                                                                                                              style="width: ${titleRow[4].width};font-size: 16px;font-style: normal;font-weight: 400;">
                                                                                                                                                                             ${(() => {
-                                                                                                if (variant || variants.length == 1) {
+                                                                                                if (variant || product.content.specs.length == 0) {
                                                                                                     return `$` + showModel.original_price.toLocaleString();
                                                                                                 }
-                                                                                                else if (variants.length > 1) {
+                                                                                                else if (product.content.specs.length > 0) {
                                                                                                     if (showModel.min_price == showModel.max_price) {
                                                                                                         return `$` + showModel.min_price;
                                                                                                     }
@@ -1296,7 +1393,7 @@ export class LiveCapture {
                                                                                                                                                                     </div>
 
                                                                                                                                                                     ${(() => {
-                                                                                            if (variants.length > 1 && product.expand) {
+                                                                                            if (product.content.specs.length > 0 && product.expand) {
                                                                                                 return variants.map((variant) => {
                                                                                                     return html `
                                                                                                                                                                                     <div class="d-flex w-100"
@@ -1499,6 +1596,7 @@ export class LiveCapture {
                                                                                     productType: type,
                                                                                 }).then((data) => {
                                                                                     searchLoading = true;
+                                                                                    replaceProducts(data.response.data, itemList);
                                                                                     newOrder.productArray = data.response.data;
                                                                                     gvc.notifyDataChange('productArray');
                                                                                 });
@@ -1592,7 +1690,6 @@ export class LiveCapture {
                                                                                                                                                     `;
                                                                             }).join('')}
                                                                                                                                             </div>
-
                                                                                                                                             ${newOrder.productArray
                                                                                 .map((product, productIndex) => {
                                                                                 return gvc.bindView({
@@ -1608,7 +1705,7 @@ export class LiveCapture {
                                                                                                                                                                         ${variant ? html `
                                                                                                                                                                             <div style="margin-left:38px;"></div>` : ``}
                                                                                                                                                                         <div class="flex-shrink-0 d-flex align-items-center justify-content-center"
-                                                                                                                                                                             style="width:15px; height:60px;">
+                                                                                                                                                                             style="width:18px; height:60px;">
                                                                                                                                                                             ${(() => {
                                                                                                 if (select) {
                                                                                                     return html `
@@ -1619,16 +1716,19 @@ export class LiveCapture {
                                                                                                                                                                                                 viewBox="0 0 15 15"
                                                                                                                                                                                                 fill="none"
                                                                                                                                                                                                 onclick="${gvc.event(() => {
+                                                                                                        product.selected = false;
                                                                                                         if (variant) {
                                                                                                             variant.selected = false;
-                                                                                                        }
-                                                                                                        else {
-                                                                                                            product.selected = false;
                                                                                                         }
                                                                                                         if (!variant && product.content.variants.length > 1) {
                                                                                                             variants.forEach((dd) => {
                                                                                                                 dd.selected = false;
                                                                                                             });
+                                                                                                        }
+                                                                                                        console.log("variants -- ", variants);
+                                                                                                        if (variants.every((dd) => dd.selected !== true)) {
+                                                                                                            product.halfSelected = false;
+                                                                                                            product.selected = false;
                                                                                                         }
                                                                                                         gvc.notifyDataChange(`product${productIndex}`);
                                                                                                     })}"
@@ -1647,14 +1747,39 @@ export class LiveCapture {
                                                                                                                                                                                         </svg>`;
                                                                                                 }
                                                                                                 else {
+                                                                                                    if (!variant && product.halfSelected) {
+                                                                                                        return html `
+                                                                                                                                                                                            <div
+                                                                                                                                                                                                    style="display: flex;align-items: center;justify-content: center;height: 60px;width: 18px;cursor: pointer;"
+                                                                                                                                                                                                    onclick="${gvc.event(() => {
+                                                                                                            variants.forEach((dd) => {
+                                                                                                                dd.selected = true;
+                                                                                                            });
+                                                                                                            product.selected = true;
+                                                                                                            gvc.notifyDataChange(`product${productIndex}`);
+                                                                                                        })}"
+                                                                                                                                                                                            >
+                                                                                                                                                                                                <div style="width: 18px;height: 18px;padding:4px;border-radius: 3px;border: 1px solid #DDD;cursor: pointer;">
+                                                                                                                                                                                                    <div class="w-100 h-100" style="background-color: #393939;"></div>
+                                                                                                                                                                                                </div>
+                                                                                                                                                                                            </div>
+                                                                                                                                                                                        `;
+                                                                                                    }
                                                                                                     return html `
                                                                                                                                                                                         <div
                                                                                                                                                                                                 style="display: flex;align-items: center;justify-content: center;height: 60px;width: 15px;cursor: pointer;"
                                                                                                                                                                                                 onclick="${gvc.event(() => {
                                                                                                         if (variant) {
                                                                                                             variant.selected = true;
+                                                                                                            if (variants.every((dd) => dd.selected === true)) {
+                                                                                                                product.selected = true;
+                                                                                                            }
+                                                                                                            else {
+                                                                                                                product.halfSelected = true;
+                                                                                                            }
                                                                                                         }
                                                                                                         else {
+                                                                                                            product.halfSelected = true;
                                                                                                             product.selected = true;
                                                                                                         }
                                                                                                         if (!variant && product.content.variants.length > 1) {
@@ -1665,7 +1790,7 @@ export class LiveCapture {
                                                                                                         gvc.notifyDataChange(`product${productIndex}`);
                                                                                                     })}"
                                                                                                                                                                                         >
-                                                                                                                                                                                            <div style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;cursor: pointer;"></div>
+                                                                                                                                                                                            <div style="width: 15px;height: 15px;border-radius: 3px;border: 1px solid #DDD;cursor: pointer;"></div>
                                                                                                                                                                                         </div>
                                                                                                                                                                                     `;
                                                                                                 }
@@ -1780,9 +1905,9 @@ export class LiveCapture {
                                                                                                     return variant.sale_price;
                                                                                                 }
                                                                                                 else if (variants.length > 1) {
-                                                                                                    let price = 0;
+                                                                                                    let price = variants[0].sale_price;
                                                                                                     variants.map((variant) => {
-                                                                                                        price += parseInt(variant.sale_price);
+                                                                                                        price = Math.min(variant.sale_price, price);
                                                                                                     });
                                                                                                     return price;
                                                                                                 }
@@ -1915,13 +2040,13 @@ export class LiveCapture {
                                                                             <div class="productType w-100"
                                                                                  onclick="${gvc.event(() => {
                                         type = 'product';
-                                        selectProductType();
+                                        selectProductType(viewModel.formData.item_list);
                                     })}">官網商品
                                                                             </div>
                                                                             <div class="productType w-100"
                                                                                  onclick="${gvc.event(() => {
                                         type = 'hidden';
-                                        selectProductType();
+                                        selectProductType(viewModel.formData.item_list);
                                     })}">隱形商品
                                                                             </div>
                                                                         </div>
@@ -2027,7 +2152,7 @@ export class LiveCapture {
                                                                              style="font-size: 16px;font-style: normal;font-weight: 400;width:250px;">
                                                                             <div>${item.content.title}</div>
                                                                             ${(() => {
-                                        if (item.content.variants.length == 1) {
+                                        if (item.content.specs.length > 0) {
                                             return drawKeyword(item.content.variants[0]);
                                         }
                                         else {
@@ -2036,7 +2161,7 @@ export class LiveCapture {
                                     })()}
                                                                         </div>
                                                                         ${(() => {
-                                        if (item.content.variants.length == 1) {
+                                        if (item.content.specs.length == 0) {
                                             return drawRow(item.content.variants[0]);
                                         }
                                         else {
@@ -2048,7 +2173,7 @@ export class LiveCapture {
                                                                 </div>
                                                                 <!--                                                            variant -->
                                                                 ${(() => {
-                                        if (item.content.variants.length > 1) {
+                                        if (item.content.specs.length > 0) {
                                             return item.content.variants.map((variant) => {
                                                 return html `
                                                                                 <div class="w-100 "
@@ -2224,9 +2349,12 @@ export class LiveCapture {
                                                                     <span style="color: #8D8D8D;">尚未選擇團購群組</span>`}
                                                             </div>
                                                             <div>團購時間 :
-                                                                ${viewModel.formData.start_date}-${viewModel.formData.start_time}~${viewModel.formData.end_date}-${viewModel.formData.end_time}
+                                                                ${viewModel.formData.start_date}
+                                                                    -${viewModel.formData.start_time}
+                                                                    ~${viewModel.formData.end_date}
+                                                                    -${viewModel.formData.end_time}
                                                             </div>
-                                                            
+
                                                         </div>
                                                     ` :
                         html `
@@ -2270,18 +2398,749 @@ export class LiveCapture {
         })}
             <div class="update-bar-container">
                 ${BgWidget.cancel(gvc.event(() => {
+            vm.type = "list";
         }))}
                 ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
-            dialog.dataLoading({
-                visible: true
-            });
-            ApiLiveInteraction.createScheduled(viewModel.formData).then((response) => {
+            function getIncompleteFields() {
+                for (const [key, value] of Object.entries(viewModel.formData)) {
+                    switch (key) {
+                        case "name": {
+                            if (!value) {
+                                dialog.infoMessage({
+                                    text: "名稱未輸入"
+                                });
+                                return false;
+                            }
+                            break;
+                        }
+                        case "item_list": {
+                            if (value.length == 0) {
+                                dialog.infoMessage({
+                                    text: "商品不可為空"
+                                });
+                                return false;
+                            }
+                            break;
+                        }
+                        default: {
+                        }
+                    }
+                }
+                return true;
+            }
+            if (getIncompleteFields()) {
                 dialog.dataLoading({
-                    visible: false
+                    visible: true
                 });
-            });
-        })), "下一步")}
+                console.log("viewModel.formData -- ", viewModel.formData);
+                ApiLiveInteraction.createScheduled(viewModel.formData).then((response) => {
+                    dialog.dataLoading({
+                        visible: false
+                    });
+                    vm.type = "list";
+                });
+            }
+        })), "舉行團購")}
             </div>,
+        `);
+    }
+    static replace(gvc, vm, group_buy) {
+        var _a, _b, _c, _d;
+        vm.data.content;
+        ApiLiveInteraction.getRealCart(vm.data.content.pending_order).then(r => {
+            viewModel.realOrder = r.response;
+            viewModel.realOrder.forEach((order) => {
+                viewModel.realTotal += order.orderData.total;
+            });
+            gvc.notifyDataChange('mainView');
+        });
+        const dialog = new ShareDialog(gvc.glitter);
+        let viewModel = {
+            tempCartLoading: true,
+            lineGroupLoading: true,
+            lineGroup: [],
+            cartList: [],
+            formData: {
+                schedule_id: vm.data.id,
+                type: vm.data.type,
+                purpose: vm.data.content.purpose,
+                name: vm.data.name,
+                streamer: vm.data.content.streamer,
+                platform: vm.data.content.platform,
+                item_list: vm.data.content.item_list,
+                stock: vm.data.content.stock,
+                discount_set: vm.data.content.discount_set,
+                lineGroup: vm.data.content.lineGroup,
+                start_date: vm.data.content.start_date,
+                start_time: vm.data.content.start_time,
+                end_date: vm.data.content.end_date,
+                end_time: vm.data.content.end_time,
+                status: vm.data.status,
+                pending_order: (_b = (_a = vm.data.content) === null || _a === void 0 ? void 0 : _a.pending_order) !== null && _b !== void 0 ? _b : [],
+                pending_order_total: (_d = (_c = vm.data.content) === null || _c === void 0 ? void 0 : _c.pending_order_total) !== null && _d !== void 0 ? _d : 0,
+            },
+            summaryType: "normal",
+            pageLabel: "overview",
+            realOrder: [],
+            realTotal: 0
+        };
+        function drawPurposeSelect() {
+            return BgWidget.mainCard(html `
+                <div class="" style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
+                    ${gvc.bindView({
+                bind: `purposeSelect`,
+                view: () => {
+                    const dataArray = [
+                        {
+                            text: "商家自用",
+                            hint: "自行進行團購",
+                            value: "self"
+                        },
+                        {
+                            text: "合作推廣",
+                            hint: "與網紅、KOL及創作者等合作推廣並提升銷售",
+                            value: "collaboration"
+                        }
+                    ];
+                    const icon = "";
+                    return dataArray.map((data) => {
+                        return html `
+                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;">
+                                        <div style="display: flex;align-items: center;gap: 6px;">
+                                            <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"></div>
+                                            <div>${data.text}</div>
+                                        </div>
+                                        <div style="color: #8D8D8D;display: flex;padding-left: 22px;align-items: flex-start;gap: 14px;align-self: stretch;">
+                                            ${data.hint}
+                                        </div>
+                                    </div>
+
+                                `;
+                    }).join('');
+                }, divCreate: {
+                    style: `display: flex;flex-direction: column;align-items: flex-start;gap: 12px;`
+                }
+            })}
+                </div>
+            `) + `<div style="margin-top:24px"></div>`;
+        }
+        function drawInsignia(status) {
+            switch (status) {
+                case 1:
+                    return BgWidget.infoInsignia('開團中');
+                case 2:
+                default:
+                    return BgWidget.notifyInsignia('已結束');
+            }
+        }
+        return BgWidget.container(html `
+            <div class="title-container ">
+                ${BgWidget.goBack(gvc.event(() => {
+            vm.type = 'list';
+        }))}
+                ${BgWidget.title(viewModel.formData.name)}
+                <div style="margin-left: 10px;">${drawInsignia(viewModel.formData.status)}</div>
+                <div class="flex-fill"></div>
+            </div>
+            ${gvc.bindView({
+            bind: `pageControl`,
+            view: () => {
+                const dataSet = [
+                    {
+                        label: (group_buy) ? "團購概覽" : "直播概覽",
+                        value: "overview"
+                    },
+                    {
+                        label: (group_buy) ? "團購成效" : "直播成效",
+                        value: "performance"
+                    },
+                ];
+                return html `
+                        <div style="display: flex;align-items: center;gap: 22px;">
+                            ${dataSet.map((data) => {
+                    if (viewModel.pageLabel == data.value) {
+                        return html `
+                                        <div style="display: flex;flex-direction: column;align-items: center;cursor: pointer;"
+                                             onclick="${gvc.event((e) => {
+                            viewModel.pageLabel = data.value;
+                            viewModel.tempCartLoading = true;
+                            gvc.notifyDataChange([`pageControl`]);
+                        })}">
+                                            <div style="color: #393939;text-align: center;font-size: 18px; font-weight: 700; line-height: 100%;margin-bottom: 8px;">
+                                                ${data.label}
+                                            </div>
+                                            <div style="width: 100%;height: 2px;background-color: #393939"></div>
+                                        </div>
+                                    `;
+                    }
+                    return html `
+                                    <div style="display: flex;flex-direction: column;align-items: center;cursor: pointer;"
+                                         onclick="${gvc.event((e) => {
+                        viewModel.pageLabel = data.value;
+                        gvc.notifyDataChange([`pageControl`]);
+                    })}">
+                                        <div style="color: #8D8D8D;text-align: center;font-size: 18px; font-weight: 700; line-height: 100%;margin-bottom: 8px;">
+                                            ${data.label}
+                                        </div>
+                                    </div>
+                                `;
+                }).join('')}
+                        </div>
+                    `;
+            }, divCreate: {
+                style: "margin:18px 0;"
+            }
+        })}
+            ${gvc.bindView({
+            bind: "mainView",
+            dataList: [{
+                    obj: viewModel,
+                    key: "pageLabel"
+                }],
+            view: () => {
+                function drawTopCView() {
+                    return html `
+                            ${BgWidget.mainCard(html `
+                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
+                                    <div class="w-100" style="display: flex;align-items: center;gap: 26px;">
+                                        ${(() => {
+                        const dateSet = [{
+                                title: "團購名稱",
+                                value: viewModel.formData.name
+                            }, {
+                                title: "團購平台",
+                                value: (viewModel.formData.platform == "LINE") ? `<i class="fa-brands fa-line" style="color: #3ACE00"></i>` : ``
+                            }, {
+                                title: "團購群組",
+                                value: viewModel.formData.lineGroup.groupName
+                            }, {
+                                title: "團購時間",
+                                value: html `
+                                                    <div style="">${viewModel.formData.start_date}
+                                                        ${viewModel.formData.start_time}<br>${viewModel.formData.end_date}
+                                                        ${viewModel.formData.end_time}
+                                                    </div>`
+                            },];
+                        return dateSet.map((data) => {
+                            return html `
+                                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;flex: 1 0 0;align-self: stretch;">
+                                                        <div style="font-size: 16px;font-weight: 700;">
+                                                            ${data.title}
+                                                        </div>
+                                                        <div style="display: flex;justify-content: center;align-items:center;flex: 1 0 0;">
+                                                            ${data.value}
+                                                        </div>
+                                                    </div>`;
+                        }).join('');
+                    })()}
+                                    </div>
+                                    <div class="w-100" style="display: flex;align-items: center;">
+                                        ${(() => {
+                        const dateSet = [{
+                                title: "保留庫存",
+                                value: (viewModel.formData.stock.reserve) ? `期限至${viewModel.formData.stock.expiry_date}` : "不保留庫存"
+                            }, {
+                                title: "優惠折扣",
+                                value: (viewModel.formData.discount_set) ? `套用折扣` : `不套用折扣`
+                            }];
+                        return dateSet.map((data) => {
+                            return html `
+                                                    <div style="width:25%;display: flex;flex-direction: column;align-items: flex-start;align-self: stretch;gap:8px;">
+                                                        <div style="font-size: 16px;font-weight: 700;">
+                                                            ${data.title}
+                                                        </div>
+                                                        <div style="display: flex;justify-content: center;">
+                                                            ${data.value}
+                                                        </div>
+                                                    </div>`;
+                        }).join('');
+                    })()}
+                                    </div>
+                                </div>
+                            `)}
+                            <div style="display: flex;align-items: center;gap: 20px;">
+                                ${(() => {
+                        console.log(viewModel);
+                        const dataSet = [
+                            {
+                                title: "跟團人數",
+                                value: viewModel.formData.pending_order.length
+                            },
+                            {
+                                title: "跟團總金額",
+                                value: viewModel.formData.pending_order_total
+                            },
+                            {
+                                title: "實際下單數量",
+                                value: viewModel.realOrder.length
+                            },
+                            {
+                                title: "實際下單總金額",
+                                value: viewModel.realTotal
+                            },
+                        ];
+                        return dataSet.map((data) => {
+                            return BgWidget.mainCard(html `
+                                            <div style="display: flex;flex-direction: column;align-items: start;gap: 2.636px;flex: 1 0 0;">
+                                                <div style="font-size: 14px;font-style: normal;font-weight: 400;">
+                                                    ${data.title}
+                                                </div>
+                                                <div style="font-size: 24px;font-style: normal;font-weight: 500;">
+                                                    ${data.value}
+                                                </div>
+                                            </div>
+                                        `);
+                        }).join('');
+                    })()}
+                            </div>
+                        `;
+                }
+                switch (viewModel.pageLabel) {
+                    case "product": {
+                        break;
+                    }
+                    case "performance": {
+                        gvc.addStyle(html `
+                                .copy-text {
+                                flex-grow: 1;
+                                overflow: hidden;
+                                white-space: nowrap;
+                                text-overflow: ellipsis;
+                                }
+
+                                /* 複製圖示 */
+                                .copy-icon {
+                                width: 20px;
+                                height: 20px;
+                                margin-left: 10px;
+                                transition: transform 0.2s;
+                                }
+                                /* 複製圖示 */
+                                .copy-icon {
+                                width: 20px;
+                                height: 20px;
+                                transition: transform 0.2s;
+                                }
+
+                                /* 點擊時的圖示動畫 */
+                                .copy-container:active .copy-icon {
+                                transform: scale(0.9);
+                                }
+                            `);
+                        return BgWidget.container(html `
+                                <div class="d-flex flex-column" style="gap:24px;">
+                                    ${drawTopCView()}
+                                    ${BgWidget.mainCard(html `
+                                        <div style="display: flex;flex-direction: column;gap: 18px;">
+                                            <div class="d-flex d-none"
+                                                 style="font-size: 16px;font-style: normal;font-weight: 700;gap:10px;">
+                                                <select class="c_select h-100"
+                                                        style="display: flex;align-items: center;gap: 6px;">
+                                                    <option value="name">跟團者名稱</option>
+                                                </select>
+                                                <div class="flex-grow-1 position-relative">
+                                                    <i class="fa-regular fa-magnifying-glass"
+                                                       style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);"></i>
+                                                    <input class="form-control flex-grow-1 h-100"
+                                                           style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;"
+                                                           placeholder="搜尋跟團者" value="">
+                                                </div>
+                                                <div class="c_funnel">
+                                                    <i class="fa-regular fa-filter" aria-hidden="true"></i>
+                                                </div>
+                                                <div class="c_updown">
+                                                    <i class="fa-regular fa-arrow-up-arrow-down" aria-hidden="true"></i>
+                                                </div>
+                                            </div>
+                                            ${gvc.bindView({
+                            bind: "orderList",
+                            view: () => {
+                                const dataSet = [{
+                                        text: "跟團者",
+                                        width: "width:10%;"
+                                    }, {
+                                        text: "跟團商品數",
+                                        width: "",
+                                        align: "justify-content: center;"
+                                    }, {
+                                        text: "商品總價",
+                                        width: ""
+                                    }, {
+                                        text: "訂單編號",
+                                        width: "",
+                                        color: "color: #4D86DB;",
+                                    }, {
+                                        text: "付款狀態",
+                                        width: "",
+                                        align: "justify-content: center;"
+                                    }, {
+                                        text: "訂單狀態",
+                                        width: "",
+                                        align: "justify-content: center;"
+                                    }, {
+                                        text: "購物車紀錄",
+                                        width: "",
+                                        align: "justify-content: center;"
+                                    }];
+                                if (viewModel.tempCartLoading) {
+                                    ApiLiveInteraction.getCartList(viewModel.formData.schedule_id).then(r => {
+                                        viewModel.cartList = r.response.data;
+                                        viewModel.tempCartLoading = false;
+                                        gvc.notifyDataChange(['orderList']);
+                                    });
+                                }
+                                return html `
+                                                        <div class="d-flex align-items-center"
+                                                             style="margin-bottom:5px;">
+                                                            <div class="fa-light fa-square "
+                                                                 style="color: #393939; font-size: 22px;margin-right: 18px;"></div>
+                                                            <div class=""
+                                                                 style="font-size: 16px;font-weight: 700;${dataSet[0].width}">
+                                                                ${dataSet[0].text}
+                                                            </div>
+                                                            <div class="d-flex flex-grow-1" style="gap:68px;">
+                                                                ${dataSet.map((data, index) => {
+                                    var _a;
+                                    if (index != 0) {
+                                        return html `
+                                                                            <div class="d-flex align-items-center"
+                                                                                 style="${(_a = data.align) !== null && _a !== void 0 ? _a : ''}width:10%;font-size: 16px;font-style: normal;font-weight: 700;">
+                                                                                ${data.text}
+                                                                            </div>
+                                                                        `;
+                                    }
+                                    return ``;
+                                }).join('')}
+                                                            </div>
+                                                        </div>
+                                                        ${(viewModel.tempCartLoading) ? html `
+                                                            <div class="d-flex align-items-center">
+                                                                資料讀取中
+                                                            </div>
+                                                        ` : (viewModel.cartList.length == 0) ? html `
+                                                            <div class="d-flex align-items-center">
+                                                                查無相關資料
+                                                            </div>
+                                                        ` : viewModel.cartList.map((cart) => {
+                                    console.log("cart -- ", cart);
+                                    return html `
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="fa-light fa-square "
+                                                                         style="color: #393939; font-size: 22px;margin-right: 18px;"></div>
+                                                                    <div class="d-flex align-items-center"
+                                                                         style="font-size: 16px;font-weight: 700;${dataSet[0].width}">
+                                                                        <img style="width: 40px;height: 40px;border-radius: 100px;margin-right:12px;"
+                                                                             src="${cart.content.from.user_photo}"
+                                                                             alt="photo">
+                                                                        ${cart.content.from.user_name}
+                                                                    </div>
+                                                                    <div class="d-flex flex-grow-1" style="gap:68px;">
+                                                                        ${dataSet.map((data, index) => {
+                                        function drawOrderRaw(index) {
+                                            var _a, _b, _c, _d;
+                                            const link = (cart.content.cart_data) ? cart.content.cart_data.order_id :
+                                                html `
+                                                                                            <div style="cursor:pointer"
+                                                                                                 onclick="${gvc.event(() => {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    navigator.clipboard.writeText(cart.content.checkUrl);
+                                                    dialog.successMessage({ text: '已複製此客戶的結帳資訊' });
+                                                })}"><i
+                                                                                                    style="color:#393939;"
+                                                                                                    class="fa-solid fa-copy copy-icon"></i>連結
+                                                                                            </div>`;
+                                            const showData = [cart.content.from.user_name,
+                                                cart.content.cart.length, `$${cart.content.total}`, link, "未付款", "處理中"];
+                                            switch (index) {
+                                                case 3: {
+                                                    return html `
+                                                                                            <div class="d-flex align-items-center "
+                                                                                                 style="${(_a = data.color) !== null && _a !== void 0 ? _a : ''}${(_b = data.align) !== null && _b !== void 0 ? _b : ''}width:10%;font-size: 16px;font-style: normal;font-weight: 700;">
+                                                                                                ${showData[index]}
+                                                                                            </div>
+                                                                                        `;
+                                                }
+                                                case 4:
+                                                case 5: {
+                                                    if (cart.content.cart_data) {
+                                                        if (index == 4) {
+                                                            return html `
+                                                                                                    <div class="d-flex align-items-center justify-content-center"
+                                                                                                         style="width:10%;font-size: 16px;font-style: normal;font-weight: 700;">
+                                                                                                        ${(() => {
+                                                                switch (cart.checkoutInfo.status) {
+                                                                    case 0:
+                                                                        if (cart.checkoutInfo.orderData.proof_purchase) {
+                                                                            return BgWidget.warningInsignia('待核款');
+                                                                        }
+                                                                        if (cart.checkoutInfo.orderData.customer_info.payment_select == 'cash_on_delivery') {
+                                                                            return BgWidget.warningInsignia('貨到付款');
+                                                                        }
+                                                                        return BgWidget.notifyInsignia('未付款');
+                                                                    case 3:
+                                                                        return BgWidget.warningInsignia('部分付款');
+                                                                    case 1:
+                                                                        return BgWidget.infoInsignia('已付款');
+                                                                    case -1:
+                                                                        return BgWidget.notifyInsignia('付款失敗');
+                                                                    case -2:
+                                                                        return BgWidget.notifyInsignia('已退款');
+                                                                }
+                                                            })()}
+                                                                                                    </div>
+                                                                                                `;
+                                                        }
+                                                        else {
+                                                            return html `
+                                                                                                    <div class="d-flex align-items-center justify-content-center"
+                                                                                                         style="width:10%;font-size: 16px;font-style: normal;font-weight: 700;">
+                                                                                                        ${(() => {
+                                                                var _a;
+                                                                switch ((_a = cart.checkoutInfo.orderData.orderStatus) !== null && _a !== void 0 ? _a : '0') {
+                                                                    case '-1':
+                                                                        return BgWidget.notifyInsignia('已取消');
+                                                                    case '0':
+                                                                        return BgWidget.warningInsignia('處理中');
+                                                                    case '1':
+                                                                        return BgWidget.infoInsignia('已完成');
+                                                                }
+                                                            })()}
+                                                                                                    </div>
+                                                                                                `;
+                                                        }
+                                                        return;
+                                                    }
+                                                    else {
+                                                        return html `
+                                                                                                <div class="d-flex align-items-center justify-content-center"
+                                                                                                     style="${(_c = data.align) !== null && _c !== void 0 ? _c : ''}width:10%;font-size: 16px;font-style: normal;font-weight: 700;">
+                                                                                                    -
+                                                                                                </div>
+                                                                                            `;
+                                                    }
+                                                }
+                                                case 6: {
+                                                    return html `
+                                                                                            <div class="align-items-center justify-content-center"
+                                                                                                 style="width:10%;display: flex;padding: 6px 18px;border-radius: 10px;background: #F7F7F7;font-size: 16px;font-weight: 400;">
+                                                                                                查閱
+                                                                                            </div>
+                                                                                        `;
+                                                }
+                                                case 1:
+                                                case 2:
+                                                default: {
+                                                    return html `
+                                                                                            <div class="d-flex align-items-center "
+                                                                                                 style="${(_d = data.align) !== null && _d !== void 0 ? _d : ''}width:10%;font-size: 16px;font-style: normal;font-weight: 700;">
+                                                                                                ${showData[index]}
+                                                                                            </div>
+                                                                                        `;
+                                                }
+                                            }
+                                        }
+                                        if (index != 0) {
+                                            return drawOrderRaw(index);
+                                        }
+                                        return ``;
+                                    }).join('')}
+
+                                                                    </div>
+                                                                </div>`;
+                                }).join('')}
+
+
+                                                    `;
+                            }, divCreate: { class: `d-flex flex-column`, style: `gap:18px` }
+                        })}
+                                        </div>
+
+
+                                    `)}
+                                </div>
+                            `);
+                        break;
+                    }
+                    case "overview":
+                    default: {
+                        if (group_buy) {
+                            return BgWidget.container(html `
+                                    <div class="d-flex flex-column" style="gap:24px;">
+                                        ${drawTopCView()}
+                                        ${BgWidget.mainCard(html `
+                                            <div style="display: flex;flex-direction: column;gap: 18px;">
+                                                <div style="font-size: 16px;font-style: normal;font-weight: 700;">
+                                                    團購商品
+                                                </div>
+                                                ${gvc.bindView({
+                                bind: "itemList",
+                                view: () => {
+                                    const dataSet = [
+                                        {
+                                            text: "商品名稱",
+                                            width: "width:35%;padding-right:8px;",
+                                        },
+                                        {
+                                            text: "價格",
+                                            width: "width:25%;",
+                                        },
+                                        {
+                                            text: "可售數量",
+                                            width: "width:20%;",
+                                        },
+                                        {
+                                            text: "售出數量",
+                                            width: "width:20%;",
+                                        },
+                                    ];
+                                    return html `
+                                                            <div class="d-flex w-100 flex-column" style="gap:18px;">
+                                                                <div class="d-flex"
+                                                                     style="padding-bottom:12px;border-bottom: 1px solid #DDD;">
+                                                                    ${dataSet.map((data) => {
+                                        return html `
+                                                                            <div style="${data.width} font-size: 16px;font-style: normal;font-weight: 400;">
+                                                                                ${data.text}
+                                                                            </div>
+                                                                        `;
+                                    }).join('')}
+                                                                </div>
+
+                                                                ${viewModel.formData.item_list.map((item) => {
+                                        if (item.content.specs.length > 0) {
+                                            return html `
+                                                                            <div class="d-flex flex-column">
+                                                                                <div class="d-flex align-items-center w-100 "
+                                                                                     style="">
+                                                                                    <div class="d-flex flex-column w-100"
+                                                                                         style="gap: 8px;">
+                                                                                        ${item.content.variants.map((variant) => {
+                                                var _a, _b;
+                                                return html `
+                                                                                                <div class="d-flex align-items-center w-100">
+                                                                                                    <div class="d-flex"
+                                                                                                         style="${dataSet[0].width};font-size: 16px;font-weight: 400;gap:12px;">
+                                                                                                        <img style="width: 40px;height: 40px;border-radius: 10px;"
+                                                                                                             src="${item.content.preview_image[0]}"
+                                                                                                             alt="preview">
+                                                                                                        <div class="d-flex align-items-center"
+                                                                                                             style="font-size: 16px;font-style: normal;font-weight: 400;">
+                                                                                                            ${item.content.title}
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div style="${dataSet[1].width};font-size: 14px;font-weight: 400;">
+                                                                                                        $
+                                                                                                        ${variant.live_model.live_price}
+                                                                                                    </div>
+                                                                                                    <div style="${dataSet[2].width};font-size: 14px;font-weight: 400;">
+                                                                                                        ${variant.live_model.available_Qty}
+                                                                                                    </div>
+                                                                                                    <div style="${dataSet[3].width};font-size: 14px;font-weight: 400;">
+                                                                                                        ${(_b = (_a = variant.live_model) === null || _a === void 0 ? void 0 : _a.sold) !== null && _b !== void 0 ? _b : 0}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            `;
+                                            }).join('')}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        `;
+                                        }
+                                        else {
+                                            return html `
+                                                                            <div class="d-flex flex-column">
+                                                                                <div class=" d-flex align-items-center"
+                                                                                     style="${dataSet[0].width};gap:12px;">
+                                                                                    <img style="width: 40px;height: 40px;border-radius: 10px;"
+                                                                                         src="${item.content.preview_image[0]}"
+                                                                                         alt="preview">
+                                                                                    <div class="d-flex align-items-center"
+                                                                                         style="font-size: 16px;font-style: normal;font-weight: 400;">
+                                                                                        ${item.content.title}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="d-flex align-items-center w-100 "
+                                                                                     style="">
+                                                                                    <div class="d-flex flex-column w-100"
+                                                                                         style="gap: 8px;">
+                                                                                        ${item.content.variants.map((variant) => {
+                                                var _a, _b;
+                                                return html `
+                                                                                                <div class="d-flex align-items-center w-100">
+                                                                                                    <div style="${dataSet[0].width};padding-left: 52px;font-size: 16px;font-weight: 400;">
+                                                                                                        ${variant.spec.join('')}
+                                                                                                    </div>
+                                                                                                    <div style="${dataSet[1].width};font-size: 14px;font-weight: 400;">
+                                                                                                        $
+                                                                                                        ${variant.live_model.live_price}
+                                                                                                    </div>
+                                                                                                    <div style="${dataSet[2].width};font-size: 14px;font-weight: 400;">
+                                                                                                        ${variant.live_model.available_Qty}
+                                                                                                    </div>
+                                                                                                    <div style="${dataSet[3].width};font-size: 14px;font-weight: 400;">
+                                                                                                        ${(_b = (_a = variant.live_model) === null || _a === void 0 ? void 0 : _a.sold) !== null && _b !== void 0 ? _b : 0}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            `;
+                                            }).join('')}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                        `;
+                                        }
+                                    }).join('')}
+                                                            </div>
+
+                                                        `;
+                                }, divCreate: {}
+                            })}
+                                            </div>
+
+
+                                        `)}
+                                    </div>
+                                `);
+                        }
+                        return BgWidget.container1x2({
+                            html: html `
+                                            <div style="display: flex;flex-direction: column;gap: 24px;">
+                                                ${BgWidget.mainCard(html `
+                                                    <div style="display: flex;align-items: center;gap: 26px;">
+                                                        ${(() => {
+                                const dateSet = [
+                                    {}
+                                ];
+                                return html ``;
+                            })()}
+                                                    </div>
+                                                    <div style="display: flex;align-items: flex-start;gap: 36px;"></div>
+                                                `)}
+                                            </div>
+                                        `, ratio: 70
+                        }, { html: html ``, ratio: 30 });
+                    }
+                }
+                return ``;
+            }, divCreate: {}
+        })}
+            <div style="margin-top:240px;"></div>
+            <div class="update-bar-container" style="">
+                ${BgWidget.cancel(gvc.event(() => {
+            vm.type = "list";
+        }), "返回")}
+                ${(viewModel.formData.status == 1) ? BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+            yield ApiLiveInteraction.closeSchedule(vm.data.id);
+            vm.data.status = 2;
+            vm.type = "replace";
+        })), "結束團購") : ``}
+                ${(viewModel.formData.status == 2) ? BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+            yield ApiLiveInteraction.finishSchedule(vm.data.id);
+            vm.data.status = 3;
+            vm.type = "replace";
+        })), "確認收單") : ``}
+                
+            </div>
         `);
     }
     static inputVerificationCode(gvc) {

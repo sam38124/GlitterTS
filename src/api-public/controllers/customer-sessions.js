@@ -16,6 +16,24 @@ router.post('/', async (req, resp) => {
         return response_js_1.default.fail(resp, err);
     }
 });
+router.post('/close', async (req, resp) => {
+    try {
+        const insertID = await new customer_sessions_js_1.CustomerSessions(req.get('g-app'), req.body.token).closeScheduled(req.body.scheduleID);
+        return resp.status(http_status_codes_1.default.OK).send({ insertID: 123 });
+    }
+    catch (err) {
+        return response_js_1.default.fail(resp, err);
+    }
+});
+router.post('/finish', async (req, resp) => {
+    try {
+        const insertID = await new customer_sessions_js_1.CustomerSessions(req.get('g-app'), req.body.token).finishScheduled(req.body.scheduleID);
+        return resp.status(http_status_codes_1.default.OK).send({ insertID: 123 });
+    }
+    catch (err) {
+        return response_js_1.default.fail(resp, err);
+    }
+});
 router.get('/', async (req, resp) => {
     try {
         const data = await new customer_sessions_js_1.CustomerSessions(req.get('g-app'), req.body.token).getScheduled();
@@ -29,6 +47,24 @@ router.get('/online_cart', async (req, resp) => {
     try {
         const responseData = await new customer_sessions_js_1.CustomerSessions(req.get('g-app'), req.body.token).getOnlineCart(req.query.cartID);
         return resp.status(http_status_codes_1.default.OK).send(responseData);
+    }
+    catch (err) {
+        return response_js_1.default.fail(resp, err);
+    }
+});
+router.get('/online_cart_list', async (req, resp) => {
+    try {
+        const responseData = await new customer_sessions_js_1.CustomerSessions(req.get('g-app'), req.body.token).getCartList(req.query.scheduleID);
+        return resp.status(http_status_codes_1.default.OK).send(responseData);
+    }
+    catch (err) {
+        return response_js_1.default.fail(resp, err);
+    }
+});
+router.post('/realOrder', async (req, resp) => {
+    try {
+        const data = await new customer_sessions_js_1.CustomerSessions(req.get('g-app'), req.body.token).getRealOrder(req.body.cartArray);
+        return resp.status(http_status_codes_1.default.OK).send(data);
     }
     catch (err) {
         return response_js_1.default.fail(resp, err);

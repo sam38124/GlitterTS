@@ -916,6 +916,8 @@ export class ApiShop {
         custom_form_data?: any;
         distribution_code?: string;
         give_away?: any;
+        temp_cart_id?: string;
+        checkOutType?:string;
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout`,

@@ -425,7 +425,6 @@ export class LineMessage {
                     switch (event.type){
                         case "message":
                             let data = await this.getUserProfile("U152cb05f49499386f506867cb6adff96")
-                            console.log("data -- " , data)
                             break;
 
                         case "postback":
@@ -1194,7 +1193,6 @@ export class LineMessage {
             return null;
         }
     }
-
 
 }
 

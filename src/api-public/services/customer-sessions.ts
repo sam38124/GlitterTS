@@ -3,7 +3,10 @@ import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
 import {ShopnexLineMessage} from "./model/shopnex-line-message";
 import axios from "axios";
-import {Shopping} from "./shopping";
+import {loadFont} from "jimp";
+import {Shopping} from "./shopping.js";
+import {Stock} from "./stock.js";
+import {Shopee} from "./shopee.js";
 
 const mime = require('mime');
 
@@ -22,7 +25,11 @@ interface scheduled {
     lineGroup: {
         groupId: string,
         groupName: string,
-    }
+    },
+    start_date: string,
+    start_time: string,
+    end_date: string,
+    end_time: string
 }
 
 interface RawProduct {
@@ -43,7 +50,7 @@ interface Product {
     price: number;
     imageUrl: string;
     selectedSpec?: string;
-    options: { label: string; value: string }[];
+    options: { label: string; value: string, price: number }[];
 }
 
 export class CustomerSessions {
@@ -58,15 +65,17 @@ export class CustomerSessions {
     async createScheduled(data: scheduled): Promise<{ result: boolean; message: string }> {
         try {
             const appName = this.app
+
             function generateProductCarousel(products: {
                 id: string
                 name: string;
                 price: number;
                 imageUrl: string;
                 selectedSpec?: string;
-                options: { label: string; value: string }[];
+                options: { label: string; value: string, price: number }[];
             }[], appName: string, scheduledID: string) {
                 const maxOptions = Math.max(...products.map(p => p.options.length));
+
                 return {
                     type: "flex",
                     altText: "團購商品列表",
@@ -99,7 +108,7 @@ export class CustomerSessions {
                                     },
                                     {
                                         type: "text",
-                                        text: `NT$ ${product.price.toLocaleString()}`,
+                                        text: `$ ${product.price.toLocaleString()}起`,
                                         size: "md",
                                         "align": "end"
                                     },
@@ -111,18 +120,17 @@ export class CustomerSessions {
                                 spacing: "lg",
                                 flex: 1,
                                 justifyContent: "flex-start",
-
                                 contents: [
                                     ...product.options.flatMap((option, idx) => [
                                         {
                                             type: "text",
-                                            text: option.label,
+                                            text: (option.label.length > 0)?option.label:"單一規格",
                                             size: "sm",
                                             color: "#0D6EFD",
                                             align: "center",
                                             action: {
                                                 type: "postback",
-                                                data: `action=selectSpec&productID=${product.id}&spec=${option.value}&g-app=${appName}&scheduledID=${scheduledID}`
+                                                data: `action=selectSpec&productID=${product.id}&spec=${(option.value.length > 0)?option.value:"單一規格"}&g-app=${appName}&scheduledID=${scheduledID}&price=${option.price}`,
                                             }
                                         },
                                         ...(idx < product.options.length - 1 ? [{type: "separator", margin: "sm"}] : []) // ✅ 只在 `text` 之間加 `separator`
@@ -140,7 +148,6 @@ export class CustomerSessions {
                     const content = item.content;
                     const name = content.title || "未知商品";
                     const variants = content.variants || [];
-
                     // 取得最低價格
                     const price = variants.length > 0 ? Math.min(...variants.map(v => v.sale_price)) : 0;
 
@@ -149,10 +156,10 @@ export class CustomerSessions {
 
                     // 轉換規格選項
                     const options = variants.map(v => ({
-                        label: v.spec.join(','), // 規格名稱
-                        value: v.spec.join(',') // 規格值
+                        label: v.spec.length > 0 ? v.spec.join(',') : "", // 避免空陣列
+                        value: v.spec.length > 0 ? v.spec.join(',') : "", // 避免空陣列
+                        price: v.sale_price,
                     }));
-
                     return {
                         id,
                         name,
@@ -166,6 +173,72 @@ export class CustomerSessions {
 
 
             const {type, name, ...content} = data;
+
+
+            for (const item of content.item_list) {
+                const pdDqlData = (
+                    await new Shopping(this.app , this.token).getProduct({
+                        page: 0,
+                        limit: 50,
+                        id: item.id,
+                        status: 'inRange',
+                    })
+                ).data;
+                const pd = pdDqlData.content;
+
+                Promise.all(item.content.variants.map(async (variant: any,i:number) => {
+                    const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, variant.live_model.available_Qty);
+                    const updateVariant = pd.variants.find((dd: any) => dd.spec.join('-') === variant.spec.join('-'));
+                    //預先從庫存倉庫取出後的倉庫列表
+                    updateVariant.stockList = returnData.stockList;
+                    //將每個scheduled視做一個庫存 做轉化
+                    variant.stockList = {}
+                    Object.entries(returnData.deductionLog).forEach(([key, value]) => {
+                        variant.stockList[key] = {
+                            count : value
+                        }
+                    })
+                    if (updateVariant.deduction_log){
+                        delete updateVariant.deduction_log;
+                    }
+                    let newContent = item.content
+                    //對t_variants進行資料庫更新
+                    // await new Shopping(this.app, this.token).updateVariantsWithSpec(updateVariant, item.id, variant.spec);
+                })).then(async () => {
+                    try {
+                        await db.query(
+                            `UPDATE \`${this.app}\`.\`t_manager_post\`
+                             SET content = ?
+                             WHERE id = ?
+                            `,
+                            [JSON.stringify(pd), item.id]
+                        );
+                    } catch (error: any) {
+                        console.error('發送訊息錯誤:', error.response?.data || error.message);
+                    }
+                    //如果他有shopee_id 這邊還要處理同步至蝦皮的庫存 todo 還要新增一個是否同步至蝦皮的選項
+                    if (pd.shopee_id) {
+                        await new Shopee(this.app, this.token).asyncStockToShopee({
+                            product: pdDqlData,
+                            callback: () => {
+                            },
+                        });
+                    }
+                })
+
+
+
+
+                // const variant = pd.variants.find((dd: any) => dd.spec.join('-') === b.spec.join('-'));
+
+            }
+            const message = [
+                {
+                    "type": "text",
+                    "text": `📢 團購開始囉！ 🎉\n團購名稱： ${name}\n團購日期： ${content.start_date} ${content.start_time} ~ ${content.end_date} ${content.end_time}\n\n📍 下方查看完整商品清單`
+                }
+            ]
+            await this.sendMessageToGroup(data.lineGroup.groupId,message)
 
             const transProducts: Product[] = convertToProductFormat(content.item_list);
             const queryData = await db.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
@@ -196,19 +269,153 @@ export class CustomerSessions {
         }
     }
 
-    async getScheduled(){
+    async getScheduled() {
         const appName = this.app;
-        async function getSel(){
+
+        function isPastEndTime(end_date: string, end_time: string): boolean {
+            const now = new Date();
+            const taipeiNow = new Date(
+                new Intl.DateTimeFormat("en-US", {
+                    timeZone: "Asia/Taipei",
+                    year: "numeric", month: "2-digit", day: "2-digit",
+                    hour: "2-digit", minute: "2-digit", second: "2-digit",
+                    hour12: false // 24 小時制
+                }).format(now)
+            );
+
+            // 🔹 轉換 `end_date` 和 `end_time` 為台灣時間
+            const endDateTime = new Date(`${end_date}T${end_time}:00+08:00`); // 明確指定 UTC+8
+            // 🔹 比較時間
+            return taipeiNow > endDateTime;
+        }
+
+        async function getSel() {
             try {
-                return await db.query(`
-                SELECT * FROM \`${appName}\`.\`t_live_purchase_interactions\`
-                `,[])
-            }catch (err:any){
+                let data = await db.query(`
+                    SELECT *
+                    FROM \`${appName}\`.\`t_live_purchase_interactions\`
+                    order by id desc
+                `, [])
+                // ✅ 2. 篩選出已過期的團購
+                const expiredItems = data.filter((item: any) =>
+                    isPastEndTime(item.content.end_date, item.content.end_time)
+                );
+
+                if (expiredItems.length === 0) {
+                    console.log("✅ 沒有需要更新的團購");
+                    return;
+                } else {
+
+                    await Promise.all(
+                        expiredItems.map((item: any) => {
+                            item.status = 2;
+                            db.query(`
+                                UPDATE \`${appName}\`.\`t_live_purchase_interactions\`
+                                SET \`status\` = 2
+                                WHERE \`id\` = ?;
+                            `, [item.id])
+                            }
+                        )
+                    );
+                }
+                return data
+            } catch (err: any) {
                 console.error('取得資料錯誤:', err.response?.data || err.message);
             }
         }
-        return await getSel();
 
+        async function getTotal() {
+            try {
+                return (await db.query(`
+                            SELECT count(*)
+                            FROM \`${appName}\`.\`t_live_purchase_interactions\`
+                    `,
+                    []))[0]["count(*)"]
+            } catch (err: any) {
+                console.error('取得總數錯誤:', err.response?.data || err.message);
+            }
+        }
+
+        // 同步執行兩個查詢
+        async function getDataAndTotal() {
+            try {
+                const [data, total] = await Promise.all([getSel(), getTotal()]);
+                return {data, total};
+            } catch (err: any) {
+                console.error('獲取資料失敗:', err.response?.data || err.message);
+                return {data: [], total: 0};
+            }
+        }
+
+        return await getDataAndTotal();
+
+    }
+
+    async getOneScheduled(scheduleID: string) {
+        const appName = this.app;
+
+        async function getSel() {
+            try {
+                return await db.query(`
+                    SELECT *
+                    FROM \`${appName}\`.\`t_live_purchase_interactions\`
+                    WHERE id = ?
+                `, [scheduleID])
+            } catch (err: any) {
+                console.error('取得資料錯誤:', err.response?.data || err.message);
+            }
+        }
+
+        const data = await getSel();
+        if (data.length > 0) {
+            return data[0];
+        } else {
+            return false
+        }
+    }
+
+    async changeScheduledStatus(scheduleID: string , status: string) {
+        try {
+            await db.query(`
+                UPDATE \`${this.app}\`.\`t_live_purchase_interactions\`
+                SET \`status\` = ?
+                WHERE (\`id\` = ?);
+            `, [status , scheduleID])
+        } catch (err: any) {
+            console.error('更新失敗:', err.response?.data || err.message);
+        }
+    }
+
+    async closeScheduled(scheduleID: string) {
+        await this.changeScheduledStatus(scheduleID, "2")
+        const data = await this.getOneScheduled(scheduleID);
+        const groupID = data.content.lineGroup.groupId;
+        const message = [
+            {
+                type: "text",
+                text: `📢【${data.name}團購已結束】📢\n\n感謝大家的熱情參與！🎉 此次團購已正式結束 🛒\n\n📍 請已下單的朋友們儘快完成結帳，這將確保您的訂單保留，不會被取消哦！。\n📍 \n📍 完成結帳後，您將收到訂單確認通知，接著我們會安排出貨事宜。 📦\n📍 若有任何問題，請聯繫管理員\n\n💡 期待下次與大家一起搶好康！🎁`
+            }
+        ]
+        await this.sendMessageToGroup(groupID , message)
+
+
+    }
+
+    async finishScheduled(scheduleID: string) {
+        await this.changeScheduledStatus(scheduleID, "3")
+    }
+
+    async sendMessageToGroup(groupID: string , message:any[]) {
+        try {
+            const res = await axios.post("https://api.line.me/v2/bot/message/push", {
+                to: groupID,
+                messages: message
+            }, {
+                headers: {Authorization: `Bearer ${ShopnexLineMessage.token}`}
+            });
+        } catch (error: any) {
+            console.error('發送訊息錯誤:', error.response?.data || error.message);
+        }
     }
 
     async getOnlineCart(cartID: string) {
@@ -227,14 +434,13 @@ export class CustomerSessions {
         const cartData = await getTempCart(this.app, cartID);
 
         if (cartData.length > 0) {
-
             let oridata: {
                 id: number,
                 cart_id: string,
                 content: {
                     cart: [],
                     from: {
-                        id: string,
+                        scheduled_id: string,
                         source: string,
                         user_id: string,
                         purchase: string
@@ -248,36 +454,10 @@ export class CustomerSessions {
                             SELECT *
                             FROM ${this.app}.t_live_purchase_interactions
                             WHERE id = ?
-                        `, [oridata.content.from.id])
-                        const preview = await new Shopping(this.app, this.token).toCheckout({
-                            code_array: [],
-                            return_url: "",
-                            user_info: undefined,
-                            line_items:oridata.content.cart.map((item:any)=>{
-                                return{
-                                    id:item.id,
-                                    spec:item.spec.split(","),
-                                    count:item.count,
-                                    sale_price:item.price,
-                                    sku:"",
-                                    shipment_obj:{
-                                        type:'volume',
-                                        value:1,
-                                    },
-                                    weight: 0,
-                                    stock: 1,
-                                    show_understocking: 'true' ,
-                                    designated_logistics: {
-                                        type: 'all' ,
-                                        list: [],
-                                    },
-                                }
-                            })
-                        },"preview");
+                        `, [oridata.content.from.scheduled_id])
                         return {
-                            interaction : interaction[0],
-                            cartData : oridata,
-                            preview_order : preview.data,
+                            interaction: interaction[0],
+                            cartData: oridata,
                         }
                     } catch (err: any) {
                         console.error('get t_live_purchase_interactions error:', err.response?.data || err.message);
@@ -293,6 +473,91 @@ export class CustomerSessions {
             return cartData[0]
         }
         return ""
+    }
+
+    async getCartList(scheduleID: string) {
+        const appName = this.app;
+        const token = this.token;
+
+        async function getSel() {
+            try {
+                const data = await db.query(`
+                    SELECT *
+                    FROM \`${appName}\`.\`t_temporary_cart\`
+                    WHERE JSON_EXTRACT(content, '$.from.scheduled_id') = ?
+                `, [scheduleID]);
+                if (data.length === 0) return [];
+                const orderIds: string[] = data
+                    .map((item: any) => {
+                        try {
+                            const parsedContent = item.content;
+                            return parsedContent?.cart_data?.order_id as string | undefined;
+                        } catch (error) {
+                            console.error("JSON 解析失敗:", error);
+                            return undefined;
+                        }
+                    })
+                    .filter((id: any): id is string => Boolean(id));
+                if (orderIds.length == 0) {
+                    return data;
+                }
+                const checkoutData: any[] = await db.query(`
+                    SELECT *
+                    FROM \`${appName}\`.\`t_checkout\`
+                    WHERE cart_token IN (${orderIds.join(",")})
+                `, []);
+                const checkoutMap = new Map<string, any>(checkoutData.map(item => [item.cart_token, item]));
+                return data.map((cartItem: any) => {
+                    try {
+                        const parsedContent = cartItem.content;
+                        const orderId = parsedContent?.cart_data?.order_id as string | undefined;
+                        return {
+                            ...cartItem,
+                            checkoutInfo: orderId ? checkoutMap.get(orderId) || null : null
+                        };
+                    } catch (error) {
+                        console.error("JSON 解析失敗:", error);
+                        return {...cartItem, checkoutInfo: null};
+                    }
+                })
+            } catch (err: any) {
+                console.error('取得資料錯誤:', err.response?.data || err.message);
+            }
+        }
+
+        async function getTotal() {
+            try {
+                return (await db.query(`
+                            SELECT count(*)
+                            FROM \`${appName}\`.\`t_temporary_cart\`
+                            WHERE JSON_EXTRACT(content, '$.from.scheduled_id') = ?
+                    `,
+                    [scheduleID]))[0]["count(*)"]
+            } catch (err: any) {
+                console.error('取得總數錯誤:', err.response?.data || err.message);
+            }
+        }
+
+        // 同步執行兩個查詢
+        async function getDataAndTotal() {
+            try {
+                const [data, total] = await Promise.all([getSel(), getTotal()]);
+                return {data, total};
+            } catch (err: any) {
+                console.error('獲取資料失敗:', err);
+                return {data: [], total: 0};
+            }
+        }
+
+        return await getDataAndTotal();
+    }
+
+    async getRealOrder(cart_array: string[]) {
+        return await db.query(`SELECT *
+                               FROM \`${this.app}\`.\`t_checkout\`
+                               WHERE JSON_EXTRACT(orderData, '$.temp_cart_id') IN (${cart_array.map((cart) => {
+                                   return JSON.stringify(cart)
+                               }).join(',')});`, [])
     }
 
     async listenChatRoom() {

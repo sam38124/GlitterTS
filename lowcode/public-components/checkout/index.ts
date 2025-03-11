@@ -17,6 +17,7 @@ import { FakeOrder } from './fake-order.js';
 import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { Currency } from '../../glitter-base/global/currency.js';
 import {ShipmentConfig} from "../../glitter-base/global/shipment-config.js";
+import {ApiLiveInteraction} from "../../glitter-base/route/live-purchase-interactions.js";
 
 const html = String.raw;
 
@@ -32,8 +33,9 @@ export class CheckoutIndex {
     static main(gvc: GVC, widget: any, subData: any) {
 
         const glitter = gvc.glitter;
+        let onlineData:any = {}
         //取得要顯示的購物車
-        const apiCart = (() => {
+        let apiCart = (() => {
             if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
                 return new ApiCart(ApiCart.globalCart);
             } else {
@@ -404,7 +406,6 @@ export class CheckoutIndex {
             const beta = false;
 
             if (!beta) {
-
                 new Promise(async (resolve, reject) => {
                     new Promise((resolve, reject) => {
                         setTimeout(() => {
@@ -440,9 +441,13 @@ export class CheckoutIndex {
                                 country: localStorage.getItem('country-select'),
                             };
                             const cart = res as CartItem;
+                            console.log("cart -- " , cart)
                             ApiShop.getCheckout(cart).then((res) => {
                                 if (res.result) {
-                                    console.log("vm.cartData -- " , JSON.parse(JSON.stringify(res.response.data)))
+                                    //如果是團購結帳 這邊要過濾掉贈品
+                                    if (gvc.glitter.getUrlParameter('source') == 'group_buy'){
+                                        res.response.data.voucherList=[];
+                                    }
                                     resolve(res.response.data);
                                 } else {
                                     resolve([]);
@@ -478,7 +483,6 @@ export class CheckoutIndex {
                                 },
                             }).then((res) => {
                                 if (res.result) {
-
                                     resolve(res.response.data);
                                 } else {
                                     resolve([]);
@@ -487,7 +491,22 @@ export class CheckoutIndex {
                         }
                     });
                 }).then((data) => {
+                    if (onlineData.interaction){
+                        let newTotal = 0;
 
+                        (data as any).lineItems.forEach((lineItem:any) => {
+                            console.log("lineItem -- " , lineItem)
+                            console.log("onlineData.interaction.content.item_list -- " , onlineData.interaction.content.item_list)
+                            let product = onlineData.interaction.content.item_list.find((item:any) => {return item.id == lineItem.id});
+                            console.log("product -- " , product)
+                            let variant = product.content.variants.find((item:any) => {return item.spec.join(',') == lineItem.spec.join(',')});
+                            console.log("variant -- " , variant)
+                            console.log("product.content.variants -- " , product.content.variants)
+                            lineItem.sale_price =  parseInt(variant.live_model.live_price);
+                            newTotal += lineItem.sale_price * lineItem.count;
+                        });
+                        (data as any).total = newTotal + (data as any).shipment_fee;
+                    }
                     vm.cartData = data;
 
                     ApiWallet.getRebateConfig({ type: 'me' }).then(async (res) => {
@@ -594,10 +613,30 @@ export class CheckoutIndex {
             return dd;
         }
 
-        refreshCartData();
-        glitter.share.reloadCartData = () => {
+        if (gvc.glitter.getUrlParameter('source') == 'group_buy' && gvc.glitter.getUrlParameter('cart_id')){
+            //todo source cart_id 要拿掉 不然成立訂單後會出錯
+            const cart_id = glitter.getUrlParameter('cart_id');
+            const online_cart = new ApiCart(cart_id);
+            online_cart.clearCart();
+            ApiLiveInteraction.getOnlineCart(cart_id).then(r => {
+                r.response.cartData.content.cart.forEach((item:any)=>{
+
+                    online_cart.addToCart(item.id , item.spec.split(',') , item.count);
+                })
+                onlineData = r.response;
+                apiCart = online_cart;
+
+                refreshCartData();
+                glitter.share.reloadCartData = () => {
+                    refreshCartData();
+                };
+            })
+        }else {
             refreshCartData();
-        };
+            glitter.share.reloadCartData = () => {
+                refreshCartData();
+            };
+        }
 
         return gvc.bindView(
             (() => {
@@ -1444,7 +1483,6 @@ export class CheckoutIndex {
                 </div>
             </div>`;
                                                                                     }, Tool.randomString(7));
-                                                                                    return 
                                                                                     return gvc.glitter.innerDialog((gvc: GVC) => {
                                                                                         return html` <div
                                                                                             class="bg-white shadow rounded-3"
@@ -2568,6 +2606,9 @@ export class CheckoutIndex {
                                                     <button
                                                         class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
                                                         onclick="${gvc.event(() => {
+                                                            if (gvc.glitter.getUrlParameter('source') == 'group_buy' && gvc.glitter.getUrlParameter('cart_id')){
+                                                                
+                                                            }
                                                             if((window as any).login_config.login_in_to_order && !GlobalUser.token){
                                                                 GlobalUser.loginRedirect=location.href
                                                                 gvc.glitter.href='/login'
@@ -2637,10 +2678,11 @@ export class CheckoutIndex {
                                                                 custom_receipt_form: vm.cartData.receipt_form,
                                                                 distribution_code: localStorage.getItem('distributionCode') ?? '',
                                                                 give_away: apiCart.cart.give_away,
+                                                                temp_cart_id:glitter.getUrlParameter('cart_id')??"",
+                                                                checkOutType:glitter.getUrlParameter('source')??"",
                                                             }).then((res) => {
                                                                 dialog.dataLoading({ visible: false });
-                                                                
-                                                                return 
+                                                       
                                                                 if (vm.cartData.customer_info.payment_select == 'paynow'){
                                                                     if (!res.response?.data?.result?.secret){
                                                                         return "paynow API失敗"
@@ -2727,13 +2769,13 @@ export class CheckoutIndex {
                                                                     location.href = res.response.return_url;
                                                                 } else {
                                                                     if (res.response.returnCode == '0000' && vm.cartData.customer_info.payment_select == 'line_pay') {
-                                                                        console.log('res.response.form.info.paymentUrl.web -- ', res.response.info.paymentUrl.web);
                                                                         location.href = res.response.info.paymentUrl.web;
                                                                         // todo 手機跳轉用這個
                                                                         //     location.href = res.response.form.info.paymentUrl.app;
                                                                     } else if (res.response.approveLink) {
                                                                         location.href = res.response.approveLink;
                                                                     } else {
+                                                                        console.log("res.response.form -- " , res.response.form)
                                                                         const id = gvc.glitter.getUUID();
                                                                         $('body').append(html` <div id="${id}" style="display: none;">${res.response.form}</div>`);
                                                                         (document.querySelector(`#${id} #submit`) as any).click();

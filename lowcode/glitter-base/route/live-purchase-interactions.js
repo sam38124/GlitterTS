@@ -50,6 +50,65 @@ export class ApiLiveInteraction extends BaseApi {
             });
         });
     }
+    static getCartList(scheduleID) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/customer_sessions/online_cart_list?scheduleID=${scheduleID}`,
+                type: 'get',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'g-app': getConfig().config.appName,
+                    Authorization: getConfig().config.token,
+                },
+            });
+        });
+    }
+    static closeSchedule(scheduleID) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/customer_sessions/close`,
+                type: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'g-app': getConfig().config.appName,
+                    Authorization: getConfig().config.token,
+                },
+                data: JSON.stringify({
+                    scheduleID: scheduleID,
+                }),
+            });
+        });
+    }
+    static finishSchedule(scheduleID) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/customer_sessions/finish`,
+                type: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'g-app': getConfig().config.appName,
+                    Authorization: getConfig().config.token,
+                },
+                data: JSON.stringify({
+                    scheduleID: scheduleID,
+                }),
+            });
+        });
+    }
+    static getRealCart(cartArray) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/customer_sessions/realOrder`,
+                type: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'g-app': getConfig().config.appName,
+                    Authorization: getConfig().config.token,
+                },
+                data: JSON.stringify({ cartArray: cartArray }),
+            });
+        });
+    }
     static send(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/line_message`,

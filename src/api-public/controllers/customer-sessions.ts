@@ -18,6 +18,24 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
     }
 });
 
+router.post('/close', async (req: express.Request, resp: express.Response) => {
+    try {
+        const insertID = await new CustomerSessions(req.get('g-app') as string, req.body.token).closeScheduled(req.body.scheduleID)
+        return resp.status(httpStatus.OK).send({insertID:123})
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/finish', async (req: express.Request, resp: express.Response) => {
+    try {
+        const insertID = await new CustomerSessions(req.get('g-app') as string, req.body.token).finishScheduled(req.body.scheduleID)
+        return resp.status(httpStatus.OK).send({insertID:123})
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
         const data = await new CustomerSessions(req.get('g-app') as string, req.body.token).getScheduled();
@@ -32,6 +50,25 @@ router.get('/online_cart', async (req: express.Request, resp: express.Response) 
     try {
         const responseData = await new CustomerSessions(req.get('g-app') as string, req.body.token).getOnlineCart(req.query.cartID as string)
         return resp.status(httpStatus.OK).send(responseData)
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.get('/online_cart_list', async (req: express.Request, resp: express.Response) => {
+    try {
+        const responseData = await new CustomerSessions(req.get('g-app') as string, req.body.token).getCartList(req.query.scheduleID as string)
+        return resp.status(httpStatus.OK).send(responseData)
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/realOrder', async (req: express.Request, resp: express.Response) => {
+    try {
+        const data = await new CustomerSessions(req.get('g-app') as string, req.body.token).getRealOrder(req.body.cartArray);
+        // const insertID = await new CustomerSessions(req.get('g-app') as string, req.body.token).createScheduled(req.body.data)
+        return resp.status(httpStatus.OK).send(data)
     } catch (err) {
         return response.fail(resp, err);
     }

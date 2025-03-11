@@ -839,7 +839,6 @@ class JKO {
         const secret = this.keyData.SECRET_KEY;
         const digest = this.generateDigest(`platform_order_ids=${transactionId}`, secret);
         console.log("digest -- ", digest);
-        return;
         let config = {
             method: 'get',
             url: `${this.BASE_URL}/platform/inquiry?platform_order_ids=${transactionId}`,
@@ -860,21 +859,28 @@ class JKO {
     }
     async createOrder(orderData) {
         var _a;
-        await this.refundOrder("1740299355493", 10000);
-        return;
-        const payload = JSON.stringify({
-            "store_id": this.keyData.STORE_ID,
-            "platform_order_id": orderData.orderID,
+        function transProduct(lineItems) {
+            return lineItems.map((item) => {
+                return {
+                    'name': item.title + ' ' + item.spec.join(','),
+                    'img': item.preview_image,
+                    'unit_count': item.count,
+                    'unit_price': item.sale_price,
+                    'unit_final_price': item.sale_price
+                };
+            });
+        }
+        const payload = {
             "currency": "TWD",
             "total_price": orderData.total,
             "final_price": orderData.total,
             "result_url": this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
-        });
+        };
         const apiKey = "689c57cd9d5b5ec80f5d5451d18fe24cfe855d21b25c7ff30bcd07829a902f7a";
         const secretKey = "8ec78345a13e3d376452d9c89c66b543ef1516c0ef1a05f0adf654c37ac8edac";
-        console.log("payload -- ", payload);
+        const secret = this.keyData.SECRET_KEY;
         const digest = crypto_1.default.createHmac('sha256', secretKey)
-            .update(payload, 'utf8')
+            .update(JSON.stringify(payload), 'utf8')
             .digest('hex');
         const headers = {
             'api-key': apiKey,
@@ -884,7 +890,6 @@ class JKO {
         console.log("API Key:", apiKey);
         console.log("Digest:", digest);
         console.log("Headers:", headers);
-        return;
         const url = `${this.BASE_URL}platform/entry`;
         const config = {
             method: 'post',

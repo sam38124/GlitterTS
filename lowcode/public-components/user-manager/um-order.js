@@ -954,7 +954,6 @@ export class UMOrder {
                             };
                             vm.interaction = r.response.interaction;
                             vm.cartData = r.response.cartData;
-                            console.log("getCheckout -- ", r.response.preview_order);
                             let newTotal = 0;
                             r.response.preview_order.lineItems.forEach((lineItem) => {
                                 let product = vm.interaction.content.item_list.find((item) => { return item.id == lineItem.id; });

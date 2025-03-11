@@ -127,25 +127,37 @@ class ShopnexLineMessage {
         }
     }
     static async handlePostbackEvent(event, app) {
-        var _a, _b;
+        var _a, _b, _c, _d, _e;
         const userId = event.source.userId;
         const data = event.postback.data;
+        const userData = await this.getUserProfile(userId);
         console.log(`🔹 Postback 事件來自: ${userId}, data: ${data}`);
         console.log("saasConfig.SAAS_NAME -- ", config_js_1.saasConfig.SAAS_NAME);
         const queryParams = new URLSearchParams(data);
         const action = queryParams.get("action");
         switch (action) {
             case "verify":
-                const userData = (await database_js_1.default.query(`SELECT *
-                         FROM shopnex.t_user
-                         WHERE userData ->>'$.lineID' = ?;`, [userId]));
-                console.log("userData -- ", userData);
-                localStorage.setItem('', '');
                 break;
             case "order_status":
                 await this.sendPrivateMessage(userId, "📦 您的訂單正在處理中！");
                 break;
             case "selectSpec": {
+                function isNowWithinRange(start_date, start_time, end_date, end_time) {
+                    const startDateTime = new Date(`${start_date}T${start_time}:00`);
+                    const endDateTime = new Date(`${end_date}T${end_time}:00`);
+                    const now = new Date();
+                    const gmt8Now = new Date(new Intl.DateTimeFormat("en-US", {
+                        timeZone: "Asia/Taipei",
+                        hourCycle: "h23",
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                    }).format(now));
+                    return gmt8Now >= startDateTime && gmt8Now <= endDateTime;
+                }
                 async function checkTempCart(scheduledID, userId) {
                     if (scheduledID == "" || userId == "") {
                         return ``;
@@ -208,21 +220,48 @@ class ShopnexLineMessage {
                         cartId = generateRandomNumberCode();
                         unique = !(await checkCartIdExists(cartId, appName));
                     }
+                    content.checkUrl = `https://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartId}`;
                     await insertCart(cartId, content, appName);
                     return cartId;
+                }
+                async function getScheduled(scheduledID) {
+                    var _a;
+                    try {
+                        return (await database_js_1.default.query(`SELECT *
+                                                FROM ${appName}.t_live_purchase_interactions
+                                                WHERE \`id\` = ${scheduledID}`, []))[0] || 0;
+                    }
+                    catch (err) {
+                        console.error("Error get data:", ((_a = err.response) === null || _a === void 0 ? void 0 : _a.data) || err.message);
+                    }
+                }
+                async function updateScheduled(content) {
+                    var _a;
+                    try {
+                        await database_js_1.default.query(`
+                            UPDATE ${appName}.t_live_purchase_interactions
+                            SET ?
+                            WHERE \`id\` = ?
+                        `, [{ content: JSON.stringify(content) }, scheduledID]);
+                    }
+                    catch (err) {
+                        console.log("UPDATE t_temporary_cart error : ", ((_a = err.response) === null || _a === void 0 ? void 0 : _a.data) || err.message);
+                    }
                 }
                 const scheduledID = queryParams.get('scheduledID');
                 const appName = (_a = queryParams.get('g-app')) !== null && _a !== void 0 ? _a : "";
                 const productID = queryParams.get('productID');
-                const spec = queryParams.get('spec');
-                const data = (await database_js_1.default.query(`SELECT *
-                                              FROM ${appName}.t_live_purchase_interactions
-                                              WHERE \`id\` = ${scheduledID}`, []))[0] || 0;
+                const spec = queryParams.get('spec') === "單一規格" ? "" : queryParams.get('spec');
+                const price = queryParams.get('price');
+                const data = await getScheduled(scheduledID);
+                if (data.status != 1 || !isNowWithinRange(data.content.start_date, data.content.start_time, data.content.end_date, data.content.end_time)) {
+                    return;
+                }
                 const item_list = data.content.item_list;
                 const item = item_list.find((item) => {
                     return item.id == productID;
                 });
-                const variant = item.content.variants.find((item) => {
+                let variant = item.content.variants.find((item) => {
                     return item.spec.join(',') == spec;
                 });
                 const cart = {
@@ -230,31 +269,53 @@ class ShopnexLineMessage {
                     spec: spec,
                     count: 1
                 };
+                const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                 let cartData = await checkTempCart(scheduledID !== null && scheduledID !== void 0 ? scheduledID : "", userId);
                 let cartID = "";
-                if (!cartData || cartData.length == 0) {
+                variant.live_model.sold = (_b = variant.live_model.sold) !== null && _b !== void 0 ? _b : 0;
+                if (variant.live_model.sold == variant.live_model.available_Qty) {
+                    await this.sendPrivateMessage(userId, `⚠️ 很抱歉，您選擇的商品已售完！😭\n\n請查看其他商品，或關注下一波補貨通知！🔔`);
+                }
+                else if (!cartData || cartData.length == 0) {
                     let content = {
                         from: {
                             purchase: "group_buy",
-                            id: scheduledID,
+                            scheduled_id: scheduledID,
                             source: "LINE",
                             user_id: userId,
+                            user_photo: userData.pictureUrl,
+                            user_name: userData.displayName
                         },
-                        cart: [cart]
+                        cart: [cart],
+                        total: price,
                     };
                     cartID = await insertUniqueCart(content, appName);
+                    data.content.pending_order = (_c = data.content.pending_order) !== null && _c !== void 0 ? _c : [];
+                    data.content.pending_order.push(cartID);
+                    data.content.pending_order_total = (_d = data.content.pending_order_total) !== null && _d !== void 0 ? _d : 0;
+                    data.content.pending_order_total += parseInt(price, 10);
+                    variant.live_model.sold = 1;
+                    await updateScheduled(data.content);
                 }
                 else {
-                    let changeData = cartData[0].content.cart.find((item) => { return item.id == productID && item.spec == spec; });
+                    let changeData = cartData[0].content.cart.find((item) => {
+                        return item.id == productID && item.spec == spec;
+                    });
                     if (changeData) {
-                        if (changeData.count < variant.live_model.available_Qty) {
+                        if (changeData.count <= variant.live_model.limit && variant.live_model.available_Qty > variant.live_model.sold) {
                             changeData.count++;
+                            variant.live_model.sold++;
+                        }
+                        else {
+                            await this.sendPrivateMessage(userId, `⚠️ 很抱歉，您已經達到可購買的數量上限。`);
                         }
                     }
                     else {
                         cartData[0].content.cart.push(cart);
                     }
                     cartID = cartData[0].cart_id;
+                    cartData[0].content.total = parseInt(cartData[0].content.total, 10) + parseInt(price, 10);
+                    variant.live_model.sold++;
                     try {
                         await database_js_1.default.query(`
                             UPDATE ${appName}.t_temporary_cart
@@ -263,17 +324,10 @@ class ShopnexLineMessage {
                         `, [{ content: JSON.stringify(cartData[0].content) }, cartData[0].cart_id]);
                     }
                     catch (err) {
-                        console.log("UPDATE t_temporary_cart error : ", ((_b = err.response) === null || _b === void 0 ? void 0 : _b.data) || err.message);
+                        console.log("UPDATE t_temporary_cart error : ", ((_e = err.response) === null || _e === void 0 ? void 0 : _e.data) || err.message);
                     }
                 }
-                const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
-                console.log("cartID -- ", cartID);
-                console.log("appName -- ", appName);
-                console.log(brandAndMemberType.domain);
-                const returnURL = `https://${brandAndMemberType.domain}/order_detail?source=group_buy&cart_id=${cartID}`;
-                await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，
-${returnURL}
-請點擊上方連結查看您的購物車內容！`);
+                await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartID}\n\n請點擊上方連結查看您的購物車內容！`);
                 break;
             }
             default:
@@ -460,6 +514,20 @@ ${returnURL}
         }
         catch (err) {
             console.error("❌ 查詢 line 群組 失敗:", ((_a = err.response) === null || _a === void 0 ? void 0 : _a.data) || err.message);
+            return null;
+        }
+    }
+    static async getUserProfile(userId) {
+        const url = `https://api.line.me/v2/bot/profile/${userId}`;
+        const headers = {
+            "Authorization": `Bearer ${ShopnexLineMessage.token}`
+        };
+        try {
+            const response = await axios_1.default.get(url, { headers });
+            return response.data;
+        }
+        catch (error) {
+            console.error("無法獲取使用者資訊:", error);
             return null;
         }
     }

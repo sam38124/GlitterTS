@@ -9,6 +9,26 @@ export class ApiCart {
         localStorage.setItem('checkoutCart', cartID);
         window.glitter.href = '/checkout';
     }
+    get onlineCart() {
+        const cart = (() => {
+            try {
+                const cart = localStorage.getItem(this.cartID + `${window.appName}`) ||
+                    JSON.stringify({
+                        line_items: [],
+                        give_away: [],
+                    });
+                return JSON.parse(cart);
+            }
+            catch (e) {
+                return {
+                    line_items: [],
+                    give_away: [],
+                };
+            }
+        })();
+        cart.distribution_code = localStorage.getItem('distributionCode');
+        return cart;
+    }
     get cart() {
         const cart = (() => {
             try {

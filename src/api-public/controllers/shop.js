@@ -19,6 +19,7 @@ const shopping_1 = require("../services/shopping");
 const data_analyze_1 = require("../services/data-analyze");
 const rebate_1 = require("../services/rebate");
 const pos_js_1 = require("../services/pos.js");
+const shopnex_line_message_1 = require("../services/model/shopnex-line-message");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
@@ -157,7 +158,8 @@ router.post('/checkout', async (req, resp) => {
             language: req.headers['language'],
             client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip),
             fbc: req.cookies._fbc,
-            fbp: req.cookies._fbp
+            fbp: req.cookies._fbp,
+            temp_cart_id: req.body.temp_cart_id
         });
         return response_1.default.succ(resp, result);
     }
@@ -599,15 +601,11 @@ async function redirect_link(req, resp) {
             }
         }
         if (req.query.jkopay && req.query.jkopay === 'true') {
+            console.log("req -- ", req);
             let kd = {
                 ReturnURL: '',
                 NotifyURL: '',
             };
-            const jko = new financial_service_js_1.JKO(req.query.appName, kd);
-            const data = jko.confirmAndCaptureOrder(req.query.orderID);
-            if (data.tranactions[0].status == 'success') {
-                await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
-            }
         }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
@@ -1353,6 +1351,22 @@ router.post('/pos/work-status', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/verification-code', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.generateVerificationCode(req.get('g-app')));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/verification-code', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.generateVerificationCode(req.get('g-app')));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.post('/logistics/redirect', async (req, resp) => {
     try {
         const re_ = req.query['return'];
@@ -1375,6 +1389,22 @@ router.post('/logistics/redirect', async (req, resp) => {
             </script>
             </body>
             </html> `);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/verification-code', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.verifyVerificationCode(req.body));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/line_group', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.getLineGroup(req.get('g-app')));
     }
     catch (err) {
         return response_1.default.fail(resp, err);

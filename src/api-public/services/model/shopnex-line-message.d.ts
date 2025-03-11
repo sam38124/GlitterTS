@@ -19,4 +19,5 @@ export declare class ShopnexLineMessage {
         result?: undefined;
     }>;
     static getLineGroup(app: string): Promise<any>;
+    static getUserProfile(userId: string): Promise<any>;
 }

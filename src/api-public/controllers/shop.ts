@@ -160,7 +160,8 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
             language: req.headers['language'] as any,
             client_ip_address:(req.query.ip || req.headers['x-real-ip'] || req.ip) as string,
             fbc:req.cookies._fbc,
-            fbp:req.cookies._fbp
+            fbp:req.cookies._fbp,
+            temp_cart_id:req.body.temp_cart_id
         });
 
         //
@@ -1545,7 +1546,13 @@ router.post('/pos/work-status', async (req: express.Request, resp: express.Respo
         return response.fail(resp, err);
     }
 });
-
+router.get('/verification-code', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, await ShopnexLineMessage.generateVerificationCode(req.get('g-app') as string));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 router.post('/verification-code', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(resp, await ShopnexLineMessage.generateVerificationCode(req.get('g-app') as string));

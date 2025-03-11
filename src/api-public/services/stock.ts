@@ -386,13 +386,14 @@ export class Stock {
         // 按照 `count` 從大到小排序倉庫
         const sortedStock = Object.entries(stockList).sort(([, a], [, b]) => b.count - a.count);
 
-        for (const [key, stock] of sortedStock) {
+        for (let [key, stock] of sortedStock) {
             if (remainingCount === 0) break; // 如果需求已經滿足，停止迴圈
 
             const deduction = Math.min((stock as any).count, remainingCount); // 扣除的數量為倉庫數量或剩餘需求中的較小值
             remainingCount -= deduction; // 更新剩餘需求
             totalDeduction += deduction; // 累加扣除值
-            (stock as any).count -= deduction; // 更新倉庫數量
+            (stock as any).count -= deduction;// 更新倉庫數量
+
             deductionLog[key] = deduction; // 記錄本次扣除
         }
 

@@ -289,7 +289,7 @@ class Stock {
         let totalDeduction = 0;
         const deductionLog = {};
         const sortedStock = Object.entries(stockList).sort(([, a], [, b]) => b.count - a.count);
-        for (const [key, stock] of sortedStock) {
+        for (let [key, stock] of sortedStock) {
             if (remainingCount === 0)
                 break;
             const deduction = Math.min(stock.count, remainingCount);

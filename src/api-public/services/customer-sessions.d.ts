@@ -15,6 +15,10 @@ interface scheduled {
         groupId: string;
         groupName: string;
     };
+    start_date: string;
+    start_time: string;
+    end_date: string;
+    end_time: string;
 }
 export declare class CustomerSessions {
     app: string;
@@ -24,8 +28,21 @@ export declare class CustomerSessions {
         result: boolean;
         message: string;
     }>;
-    getScheduled(): Promise<any>;
+    getScheduled(): Promise<{
+        data: any;
+        total: any;
+    }>;
+    getOneScheduled(scheduleID: string): Promise<any>;
+    changeScheduledStatus(scheduleID: string, status: string): Promise<void>;
+    closeScheduled(scheduleID: string): Promise<void>;
+    finishScheduled(scheduleID: string): Promise<void>;
+    sendMessageToGroup(groupID: string, message: any[]): Promise<void>;
     getOnlineCart(cartID: string): Promise<any>;
+    getCartList(scheduleID: string): Promise<{
+        data: any;
+        total: any;
+    }>;
+    getRealOrder(cart_array: string[]): Promise<any>;
     listenChatRoom(): Promise<void>;
 }
 export {};

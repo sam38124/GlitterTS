@@ -138,7 +138,8 @@ export type Cart = {
     custom_form_data?: any;
     distribution_id?: number;
     distribution_info?: any;
-    orderSource: '' | 'manual' | 'normal' | 'POS' | 'combine';
+    orderSource: '' | 'manual' | 'normal' | 'POS' | 'combine' | 'group_buy';
+    temp_cart_id?: string;
     code_array: string[];
     deliveryData?: DeliveryData;
     give_away: CartItem[];
@@ -305,7 +306,7 @@ export declare class Shopping {
         code?: string;
         use_rebate?: number;
         use_wallet?: number;
-        checkOutType?: 'manual' | 'auto' | 'POS';
+        checkOutType?: 'manual' | 'auto' | 'POS' | 'group_buy';
         pos_store?: string;
         voucher?: any;
         discount?: number;
@@ -331,6 +332,7 @@ export declare class Shopping {
         client_ip_address?: string;
         fbc?: string;
         fbp?: string;
+        temp_cart_id?: string;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<any>;
     getReturnOrder(query: {
         page: number;
@@ -424,6 +426,7 @@ export declare class Shopping {
     resetVoucherHistory(): Promise<void>;
     postVariantsAndPriceValue(content: any): Promise<void>;
     updateVariantsWithSpec(data: any, product_id: string, spec: string[]): Promise<void>;
+    updateVariantsForScheduled(data: any, scheduled_id: string): Promise<void>;
     calcVariantsStock(calc: number, stock_id: string, product_id: string, spec: string[]): Promise<void>;
     calcSoldOutStock(calc: number, product_id: string, spec: string[]): Promise<void>;
     soldMailNotice(json: {

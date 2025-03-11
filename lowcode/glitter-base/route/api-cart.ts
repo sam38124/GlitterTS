@@ -42,6 +42,27 @@ export class ApiCart {
         this.cartID = cartID;
     }
 
+    get onlineCart(): CartItem {
+        const cart = (() => {
+            try {
+                const cart =
+                    localStorage.getItem(this.cartID + `${(window as any).appName}`) ||
+                    JSON.stringify({
+                        line_items: [],
+                        give_away: [],
+                    });
+                return JSON.parse(cart);
+            } catch (e) {
+                return {
+                    line_items: [],
+                    give_away: [],
+                };
+            }
+        })();
+        cart.distribution_code = localStorage.getItem('distributionCode');
+        return cart;
+    }
+
     get cart(): CartItem {
         const cart = (() => {
             try {

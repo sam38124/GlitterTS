@@ -719,6 +719,7 @@ export class ShoppingOrderManager {
         let storeLoading = true;
         let productData = [];
         let productLoading = true;
+        console.log("order source -- ", orderData.orderData.orderSource);
         ApiShop.getInvoice({
             page: 0,
             limit: 1000,
@@ -1669,6 +1670,7 @@ export class ShoppingOrderManager {
                                 const source = {
                                     pos: 'POS',
                                     combine: '合併訂單',
+                                    group_buy: '團購訂單'
                                 };
                                 return (_a = source[orderData.orderData.orderSource]) !== null && _a !== void 0 ? _a : '線上';
                             })()}

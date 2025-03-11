@@ -248,7 +248,7 @@ export declare class JKO {
         use_wallet: number;
         user_email: string;
         method: string;
-    }): Promise<"" | undefined>;
+    }): Promise<string>;
     refundOrder(platform_order_id: string, refund_amount: number): Promise<void>;
     private generateDigest;
 }

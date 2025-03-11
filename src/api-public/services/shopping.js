@@ -1258,6 +1258,22 @@ class Shopping {
                                         b.deduction_log = variant.deduction_log;
                                     }
                                 }
+                                else if (data.checkOutType == "group_buy") {
+                                    const scheduledData = (await database_js_1.default.query(`
+                                                    SELECT *
+                                                    FROM \`${this.app}\`.\`t_live_purchase_interactions\`
+                                                    WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"');
+                                                `, []))[0];
+                                    let productData = scheduledData.content.item_list.find((pb) => {
+                                        return pb.id == b.id;
+                                    });
+                                    let variantData = productData.content.variants.find((dd) => {
+                                        return dd.spec.join('-') === b.spec.join('-');
+                                    });
+                                    const returnData = new stock_1.Stock(this.app, this.token).allocateStock(variantData.stockList, b.count);
+                                    variantData.stockList = returnData.stockList;
+                                    b.deduction_log = returnData.deductionLog;
+                                }
                                 else {
                                     const returnData = new stock_1.Stock(this.app, this.token).allocateStock(variant.stockList, b.count);
                                     variant.deduction_log = returnData.deductionLog;
@@ -1266,6 +1282,8 @@ class Shopping {
                                 saveStockArray.push(() => {
                                     return new Promise(async (resolve, reject) => {
                                         try {
+                                            if (data.checkOutType == "group_buy") {
+                                            }
                                             if (pd.shopee_id) {
                                                 await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
                                                     product: pdDqlData,
@@ -1529,6 +1547,9 @@ class Shopping {
             });
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
+            await Promise.all(saveStockArray.map((dd) => {
+                return dd();
+            }));
             console.log(`checkout-time-12=>`, new Date().getTime() - check_time);
             if (type === 'manual') {
                 carData.orderSource = 'manual';
@@ -1635,6 +1656,45 @@ class Shopping {
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
             else {
+                if (data.checkOutType === 'group_buy') {
+                    const appName = this.app;
+                    async function getTempCart() {
+                        var _a;
+                        try {
+                            return (await database_js_1.default.query(`
+                                SELECT *
+                                FROM \`${appName}\`.t_temporary_cart
+                                WHERE cart_id = ?
+                            `, [data.temp_cart_id]))[0];
+                        }
+                        catch (err) {
+                            console.log("GET t_temporary_cart error : ", ((_a = err.response) === null || _a === void 0 ? void 0 : _a.data) || err.message);
+                        }
+                    }
+                    async function updateCart(content) {
+                        var _a;
+                        try {
+                            await database_js_1.default.query(`
+                                UPDATE ${appName}.t_temporary_cart
+                                SET ?
+                                WHERE cart_id = ?
+                            `, [{ content: JSON.stringify(content) }, data.temp_cart_id]);
+                        }
+                        catch (err) {
+                            console.log("UPDATE t_temporary_cart error : ", ((_a = err.response) === null || _a === void 0 ? void 0 : _a.data) || err.message);
+                        }
+                    }
+                    const temp_cart_data = await getTempCart();
+                    temp_cart_data.content.cart_data = {
+                        order_id: carData.orderID,
+                        payment_status: 1,
+                        order_status: 1
+                    };
+                    await updateCart(temp_cart_data.content);
+                    carData.orderSource = "group_buy";
+                    carData.temp_cart_id = data.temp_cart_id;
+                    console.log("UPDATE t_temporary_cart OK ");
+                }
                 if (userData && userData.userID) {
                     await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
                         order_id: carData.orderID,
@@ -2013,7 +2073,9 @@ class Shopping {
                     case 'collection':
                         return dp.collection.some((d2) => caseList.includes(d2));
                     case 'product':
-                        return caseList.map((dd) => { return `${dd}`; }).includes(`${dp.id}`);
+                        return caseList.map((dd) => {
+                            return `${dd}`;
+                        }).includes(`${dp.id}`);
                     case 'all':
                         return true;
                 }
@@ -2475,6 +2537,10 @@ class Shopping {
             let orderString = 'order by id desc';
             if (query.search && query.searchType) {
                 switch (query.searchType) {
+                    case 'mul_cart_token': {
+                        querySql.push(`(cart_token IN ${query.search})`);
+                        break;
+                    }
                     case 'cart_token':
                         querySql.push(`(cart_token like '%${query.search}%')`);
                         break;
@@ -2890,6 +2956,21 @@ class Shopping {
                     content: JSON.stringify(data),
                 },
                 product_id,
+            ]);
+        }
+        catch (e) {
+            console.error('error -- ', e);
+        }
+    }
+    async updateVariantsForScheduled(data, scheduled_id) {
+        try {
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_live_purchase_interactions\`
+                 SET ?
+                 WHERE id = ${scheduled_id}
+                `, [
+                {
+                    content: JSON.stringify(data),
+                },
             ]);
         }
         catch (e) {
@@ -3412,7 +3493,7 @@ class Shopping {
             console.log(`productArray==>`, productArray);
             if (productArray.length) {
                 const data = await database_js_1.default.query(`replace
-                INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
+                    INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
                     productArray.map((product) => {
                         var _a;
                         if (!product.id) {

@@ -24,11 +24,13 @@ import { FakeOrder } from './fake-order.js';
 import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { Currency } from '../../glitter-base/global/currency.js';
 import { ShipmentConfig } from "../../glitter-base/global/shipment-config.js";
+import { ApiLiveInteraction } from "../../glitter-base/route/live-purchase-interactions.js";
 const html = String.raw;
 export class CheckoutIndex {
     static main(gvc, widget, subData) {
         const glitter = gvc.glitter;
-        const apiCart = (() => {
+        let onlineData = {};
+        let apiCart = (() => {
             if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
                 return new ApiCart(ApiCart.globalCart);
             }
@@ -397,9 +399,12 @@ export class CheckoutIndex {
                                 country: localStorage.getItem('country-select'),
                             };
                             const cart = res;
+                            console.log("cart -- ", cart);
                             ApiShop.getCheckout(cart).then((res) => {
                                 if (res.result) {
-                                    console.log("vm.cartData -- ", JSON.parse(JSON.stringify(res.response.data)));
+                                    if (gvc.glitter.getUrlParameter('source') == 'group_buy') {
+                                        res.response.data.voucherList = [];
+                                    }
                                     resolve(res.response.data);
                                 }
                                 else {
@@ -446,6 +451,21 @@ export class CheckoutIndex {
                         }
                     }));
                 })).then((data) => {
+                    if (onlineData.interaction) {
+                        let newTotal = 0;
+                        data.lineItems.forEach((lineItem) => {
+                            console.log("lineItem -- ", lineItem);
+                            console.log("onlineData.interaction.content.item_list -- ", onlineData.interaction.content.item_list);
+                            let product = onlineData.interaction.content.item_list.find((item) => { return item.id == lineItem.id; });
+                            console.log("product -- ", product);
+                            let variant = product.content.variants.find((item) => { return item.spec.join(',') == lineItem.spec.join(','); });
+                            console.log("variant -- ", variant);
+                            console.log("product.content.variants -- ", product.content.variants);
+                            lineItem.sale_price = parseInt(variant.live_model.live_price);
+                            newTotal += lineItem.sale_price * lineItem.count;
+                        });
+                        data.total = newTotal + data.shipment_fee;
+                    }
                     vm.cartData = data;
                     ApiWallet.getRebateConfig({ type: 'me' }).then((res) => __awaiter(this, void 0, void 0, function* () {
                         if (res.result && res.response.data) {
@@ -538,10 +558,28 @@ export class CheckoutIndex {
             };
             return dd;
         }
-        refreshCartData();
-        glitter.share.reloadCartData = () => {
+        if (gvc.glitter.getUrlParameter('source') == 'group_buy' && gvc.glitter.getUrlParameter('cart_id')) {
+            const cart_id = glitter.getUrlParameter('cart_id');
+            const online_cart = new ApiCart(cart_id);
+            online_cart.clearCart();
+            ApiLiveInteraction.getOnlineCart(cart_id).then(r => {
+                r.response.cartData.content.cart.forEach((item) => {
+                    online_cart.addToCart(item.id, item.spec.split(','), item.count);
+                });
+                onlineData = r.response;
+                apiCart = online_cart;
+                refreshCartData();
+                glitter.share.reloadCartData = () => {
+                    refreshCartData();
+                };
+            });
+        }
+        else {
             refreshCartData();
-        };
+            glitter.share.reloadCartData = () => {
+                refreshCartData();
+            };
+        }
         return gvc.bindView((() => {
             return {
                 bind: ids.page,
@@ -1343,7 +1381,6 @@ export class CheckoutIndex {
                 </div>
             </div>`;
                                                     }, Tool.randomString(7));
-                                                    return;
                                                     return gvc.glitter.innerDialog((gvc) => {
                                                         var _a, _b;
                                                         return html ` <div
@@ -2425,7 +2462,9 @@ export class CheckoutIndex {
                                                     <button
                                                         class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
                                                         onclick="${gvc.event(() => {
-                                    var _a;
+                                    var _a, _b, _c;
+                                    if (gvc.glitter.getUrlParameter('source') == 'group_buy' && gvc.glitter.getUrlParameter('cart_id')) {
+                                    }
                                     if (window.login_config.login_in_to_order && !GlobalUser.token) {
                                         GlobalUser.loginRedirect = location.href;
                                         gvc.glitter.href = '/login';
@@ -2492,10 +2531,11 @@ export class CheckoutIndex {
                                         custom_receipt_form: vm.cartData.receipt_form,
                                         distribution_code: (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '',
                                         give_away: apiCart.cart.give_away,
+                                        temp_cart_id: (_b = glitter.getUrlParameter('cart_id')) !== null && _b !== void 0 ? _b : "",
+                                        checkOutType: (_c = glitter.getUrlParameter('source')) !== null && _c !== void 0 ? _c : "",
                                     }).then((res) => {
                                         var _a, _b, _c;
                                         dialog.dataLoading({ visible: false });
-                                        return;
                                         if (vm.cartData.customer_info.payment_select == 'paynow') {
                                             if (!((_c = (_b = (_a = res.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.result) === null || _c === void 0 ? void 0 : _c.secret)) {
                                                 return "paynow API失敗";
@@ -2573,13 +2613,13 @@ export class CheckoutIndex {
                                         }
                                         else {
                                             if (res.response.returnCode == '0000' && vm.cartData.customer_info.payment_select == 'line_pay') {
-                                                console.log('res.response.form.info.paymentUrl.web -- ', res.response.info.paymentUrl.web);
                                                 location.href = res.response.info.paymentUrl.web;
                                             }
                                             else if (res.response.approveLink) {
                                                 location.href = res.response.approveLink;
                                             }
                                             else {
+                                                console.log("res.response.form -- ", res.response.form);
                                                 const id = gvc.glitter.getUUID();
                                                 $('body').append(html ` <div id="${id}" style="display: none;">${res.response.form}</div>`);
                                                 document.querySelector(`#${id} #submit`).click();
