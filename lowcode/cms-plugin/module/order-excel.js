@@ -38,7 +38,11 @@ export class OrderExcel {
           ${checked ? 'checked' : ''}
           onclick="${gvc.event(toggle)}"
         />
-        <label class="form-check-label cursor_pointer" for="${name}" style="font-size: 16px; color: #393939;">
+        <label
+          class="form-check-label cursor_pointer"
+          for="${name}"
+          style="padding-top: 2px; font-size: 16px; color: #393939;"
+        >
           ${name}
         </label>
       </div>
@@ -120,9 +124,11 @@ export class OrderExcel {
                 ], [vm.select], (res) => {
                     vm.select = res[0];
                 }, { single: true })}
-          <div class="tx_700 mb-2">匯出欄位</div>
-          ${this.optionsView(gvc2, dataArray => {
-                    vm.column = dataArray;
+          <div class="tx_700 mb-2">
+            匯出欄位 ${BgWidget.grayNote('＊若勾選商品系列的欄位，將會以訂單商品作為資料列匯出 Excel', 'margin: 4px;')}
+          </div>
+          ${this.optionsView(gvc2, cols => {
+                    vm.column = cols;
                 })}
         </div>`;
             },
@@ -132,7 +138,6 @@ export class OrderExcel {
                         gvc2.glitter.closeDiaLog();
                     })),
                     BgWidget.save(gvc2.event(() => {
-                        var _a;
                         const dialog = new ShareDialog(gvc.glitter);
                         if (vm.select === 'checked' && dataArray.length === 0) {
                             dialog.infoMessage({ text: '請勾選至少一個以上的訂單' });
@@ -143,7 +148,7 @@ export class OrderExcel {
                             checked: Object.assign(Object.assign({}, apiJSON), { id_list: dataArray.map(data => data.id).join(',') }),
                             all: {},
                         };
-                        this.export(gvc, (_a = dataMap[vm.select]) !== null && _a !== void 0 ? _a : dataMap.all, vm.column);
+                        this.export(gvc, dataMap[vm.select], vm.column);
                     }), '匯出'),
                 ].join('');
             },

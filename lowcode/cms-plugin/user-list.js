@@ -100,6 +100,8 @@ export class UserList {
             group: obj && obj.group ? obj.group : undefined,
             plan: GlobalUser.getPlan().id,
             headerConfig: [],
+            apiJSON: {},
+            checkedData: [],
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -133,7 +135,7 @@ export class UserList {
                     },
                     {
                         key: '最後出貨時間',
-                        value: `<span class="d-flex w-100 d-flex align-items-center justify-content-center">${dd.firstShipment ? glitter.ut.dateFormat(new Date(dd.firstShipment.orderData.user_info.shipment_date), 'yyyy-MM-dd') : "-"}</span>`,
+                        value: `<span class="d-flex w-100 d-flex align-items-center justify-content-center">${dd.firstShipment ? glitter.ut.dateFormat(new Date(dd.firstShipment.orderData.user_info.shipment_date), 'yyyy-MM-dd') : '-'}</span>`,
                     },
                     {
                         key: '社群綁定',
@@ -224,7 +226,7 @@ export class UserList {
               <div class="flex-fill"></div>
               <div class="d-flex align-items-center" style="gap: 10px;">
                 ${BgWidget.grayButton('匯入', gvc.event(() => UserExcel.import(gvc, () => gvc.notifyDataChange(vm.id))))}
-                ${BgWidget.grayButton('匯出', gvc.event(() => UserExcel.export(gvc, vm)))}
+                ${BgWidget.grayButton('匯出', gvc.event(() => UserExcel.exportDialog(gvc, vm.apiJSON, vm.checkedData)))}
                 ${BgWidget.darkButton('新增', (_a = obj === null || obj === void 0 ? void 0 : obj.createUserEvent) !== null && _a !== void 0 ? _a : gvc.event(() => {
                         vm.type = 'create';
                     }))}
@@ -398,7 +400,7 @@ export class UserList {
                                                 vmi = vd;
                                                 UserList.vm.page = vmi.page;
                                                 const limit = 20;
-                                                ApiUser.getUserListOrders({
+                                                vm.apiJSON = {
                                                     page: vmi.page - 1,
                                                     limit: limit,
                                                     search: vm.query || undefined,
@@ -406,8 +408,9 @@ export class UserList {
                                                     orderString: vm.orderString || '',
                                                     filter: vm.filter,
                                                     filter_type: vm.filter_type,
-                                                    group: vm.group
-                                                }).then(data => {
+                                                    group: vm.group,
+                                                };
+                                                ApiUser.getUserListOrders(vm.apiJSON).then(data => {
                                                     vm.dataList = data.response.data;
                                                     vmi.pageSize = Math.ceil(data.response.total / limit);
                                                     vmi.originalData = vm.dataList;
@@ -683,6 +686,9 @@ export class UserList {
                                                 return true;
                                             }),
                                             defPage: UserList.vm.page,
+                                            filterCallback: (dataArray) => {
+                                                vm.checkedData = dataArray;
+                                            },
                                         });
                                     },
                                     onCreate: () => {
@@ -736,6 +742,8 @@ export class UserList {
             group: obj && obj.group ? obj.group : undefined,
             plan: 0,
             headerConfig: [],
+            apiJSON: {},
+            checkedData: [],
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -851,7 +859,7 @@ export class UserList {
                                     getData: vd => {
                                         vmi = vd;
                                         const limit = 20;
-                                        ApiUser.getUserListOrders({
+                                        vm.apiJSON = {
                                             page: vmi.page - 1,
                                             limit: limit,
                                             search: vm.query || undefined,
@@ -860,7 +868,8 @@ export class UserList {
                                             filter: vm.filter,
                                             filter_type: vm.filter_type,
                                             group: vm.group,
-                                        }).then(data => {
+                                        };
+                                        ApiUser.getUserListOrders(vm.apiJSON).then(data => {
                                             vm.dataList = data.response.data;
                                             vmi.pageSize = Math.ceil(data.response.total / limit);
                                             vmi.originalData = vm.dataList;
@@ -901,6 +910,9 @@ export class UserList {
                                             },
                                         },
                                     ],
+                                    filterCallback: (dataArray) => {
+                                        vm.checkedData = dataArray;
+                                    },
                                 });
                             },
                         }),
@@ -1609,17 +1621,16 @@ export class UserList {
                                         })()),
                                         BgWidget.mainCard((() => {
                                             const id = gvc.glitter.getUUID();
-                                            return [gvc.bindView({
+                                            return [
+                                                gvc.bindView({
                                                     bind: id,
                                                     view: () => {
                                                         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                                             function renderInfoBlock(title, content) {
                                                                 return html `
-                                                    <div class="tx_700">${title}</div>
-                                                    <div style="font-size: 16px; font-weight: 400; color: #393939;">
-                                                      ${content}
-                                                    </div>
-                                                  `;
+                                        <div class="tx_700">${title}</div>
+                                        <div style="font-size: 16px; font-weight: 400; color: #393939;">${content}</div>
+                                      `;
                                                             }
                                                             const firstShipment = (yield ApiShop.getOrder({
                                                                 page: 0,
@@ -1628,9 +1639,8 @@ export class UserList {
                                                                 email: vm.data.userData.email,
                                                                 phone: vm.data.userData.phone,
                                                                 valid: true,
-                                                                is_shipment: true
+                                                                is_shipment: true,
                                                             })).response.data[0];
-                                                            console.log(firstShipment);
                                                             ApiShop.getOrder({
                                                                 page: 0,
                                                                 limit: 99999,
@@ -1647,14 +1657,14 @@ export class UserList {
                                                                 const formatNum = (n) => parseInt(`${n}`, 10).toLocaleString();
                                                                 const formatDate = (dateStr) => gvc.glitter.ut.dateFormat(new Date(dateStr), 'yyyy-MM-dd hh:mm');
                                                                 resolve(html `
-                                                      <div>
-                                                        ${[
+                                          <div>
+                                            ${[
                                                                     renderInfoBlock('累積消費金額', totalPrice
                                                                         ? html `<div
-                                                                  style="font-size: 32px; font-weight: 400; color: #393939;"
-                                                                >
-                                                                  ${formatNum(totalPrice)}
-                                                                </div>`
+                                                      style="font-size: 32px; font-weight: 400; color: #393939;"
+                                                    >
+                                                      ${formatNum(totalPrice)}
+                                                    </div>`
                                                                         : '尚無消費紀錄'),
                                                                     renderInfoBlock('累計消費次數', `<div
                                                                   style="font-size: 32px; font-weight: 400; color: #393939;"
@@ -1663,25 +1673,24 @@ export class UserList {
                                                                 </div>`),
                                                                     renderInfoBlock('最後消費金額', firstData
                                                                         ? html `<div
-                                                                  style="font-size: 32px; font-weight: 400; color: #393939;"
-                                                                >
-                                                                  ${formatNum(firstData.orderData.total)}
-                                                                </div>`
+                                                      style="font-size: 32px; font-weight: 400; color: #393939;"
+                                                    >
+                                                      ${formatNum(firstData.orderData.total)}
+                                                    </div>`
                                                                         : '尚無消費紀錄'),
-                                                                    renderInfoBlock('最後購買日期', firstData
-                                                                        ? formatDate(firstData.created_time)
-                                                                        : '尚無消費紀錄'),
+                                                                    renderInfoBlock('最後購買日期', firstData ? formatDate(firstData.created_time) : '尚無消費紀錄'),
                                                                     renderInfoBlock('最後出貨日期', firstShipment
                                                                         ? formatDate(firstShipment.orderData.user_info.shipment_date)
-                                                                        : '尚無最後出貨紀錄')
+                                                                        : '尚無最後出貨紀錄'),
                                                                 ].join(html `<div class="my-3 w-100 border-top"></div>`)}
-                                                      </div>
-                                                    `);
+                                          </div>
+                                        `);
                                                             })
                                                                 .catch(reject);
                                                         }));
                                                     },
-                                                })].join('');
+                                                }),
+                                            ].join('');
                                         })()),
                                         gvc.bindView(() => {
                                             const id = gvc.glitter.getUUID();
@@ -1742,12 +1751,10 @@ export class UserList {
                                                         return BgWidget.mainCard(html ` <div
                                       style="display: flex; justify-content: space-between; align-items: center;"
                                     >
-                                      <div
-                                        style="display: flex; align-items: center; gap: 18px"
-                                      >
+                                      <div style="display: flex; align-items: center; gap: 18px">
                                         <span class="tx_700">現有購物金</span>
                                         <span style="font-size: 24px; font-weight: 400; color: #393939;"
-                                        >${gvc.bindView(() => {
+                                          >${gvc.bindView(() => {
                                                             const id = gvc.glitter.getUUID();
                                                             return {
                                                                 bind: id,
@@ -2179,6 +2186,7 @@ export class UserList {
             data: {},
             dataList: undefined,
             query: '',
+            checkedData: [],
         };
         let vmi = undefined;
         function getDatalist() {
@@ -2301,6 +2309,9 @@ export class UserList {
                                         },
                                     },
                                 ],
+                                filterCallback: (dataArray) => {
+                                    vm.checkedData = dataArray;
+                                },
                             }),
                         ].join(''))}
             `);

@@ -11,8 +11,6 @@ import { BaseApi } from '../../glitterBundle/api/base.js';
 import { GlobalUser } from '../global/global-user.js';
 import { ApiShop } from './shopping.js';
 export class ApiUser {
-    constructor() {
-    }
     static register(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/register`,
@@ -390,7 +388,7 @@ export class ApiUser {
                             email: item.account || '-1',
                             phone: item.account || '-1',
                             valid: true,
-                            is_shipment: true
+                            is_shipment: true,
                         })).response.data[0];
                         if (item.tag_name) {
                             item.tag_name = '一般會員';
@@ -592,7 +590,8 @@ export class ApiUser {
                 return;
             }
             function callback(res) {
-                if (key.indexOf('shipment_config_') === 0 && (window.parent.glitter.getUrlParameter('function') !== 'backend-manger')) {
+                if (key.indexOf('shipment_config_') === 0 &&
+                    window.parent.glitter.getUrlParameter('function') !== 'backend-manger') {
                     config[key + user_id] = res;
                 }
                 switch (key) {
@@ -616,7 +615,7 @@ export class ApiUser {
                 }
                 resolve(res);
             }
-            const find_ = this.getting_config.find((dd) => {
+            const find_ = this.getting_config.find(dd => {
                 return dd.key === key;
             });
             if (find_) {
@@ -632,10 +631,10 @@ export class ApiUser {
                         'g-app': appName,
                         Authorization: getConfig().config.token,
                     },
-                }).then((res) => {
-                    this.getting_config = this.getting_config.filter((d1) => {
+                }).then(res => {
+                    this.getting_config = this.getting_config.filter(d1 => {
                         if (d1.key === key) {
-                            d1.array.map((dd) => {
+                            d1.array.map(dd => {
                                 return dd(res);
                             });
                             return false;

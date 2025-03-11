@@ -1519,8 +1519,8 @@ export class User {
       return {
         // 所有註冊會員的詳細資料
         data: userData.map((user: any) => {
-          user.order_count=user.order_count || 0;
-          user.total_amount=user.total_amount || 0;
+          user.order_count = user.order_count || 0;
+          user.total_amount = user.total_amount || 0;
           return user;
         }),
         // 所有註冊會員的數量

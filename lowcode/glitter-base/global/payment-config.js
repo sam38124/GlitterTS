@@ -17,7 +17,6 @@ export class PaymentConfig {
             if (data.response.result[0]) {
                 keyData = Object.assign(Object.assign({}, keyData), data.response.result[0].value);
             }
-            console.log(`keyDatakeyData=>`, keyData);
             const offlinePayArray = [
                 {
                     key: 'atm',

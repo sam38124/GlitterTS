@@ -8,6 +8,8 @@ import { Tool } from '../../modules/tool.js';
 
 const html = String.raw;
 
+type Range = 'search' | 'checked' | 'all';
+
 export class OrderExcel {
   static async loadXLSX(gvc: GVC) {
     const XLSX = await new Promise<any>((resolve, reject) => {
@@ -71,7 +73,11 @@ export class OrderExcel {
           ${checked ? 'checked' : ''}
           onclick="${gvc.event(toggle)}"
         />
-        <label class="form-check-label cursor_pointer" for="${name}" style="font-size: 16px; color: #393939;">
+        <label
+          class="form-check-label cursor_pointer"
+          for="${name}"
+          style="padding-top: 2px; font-size: 16px; color: #393939;"
+        >
           ${name}
         </label>
       </div>
@@ -126,7 +132,7 @@ export class OrderExcel {
 
   static exportDialog(gvc: GVC, apiJSON: any, dataArray: any[]) {
     const vm = {
-      select: 'all',
+      select: 'all' as Range,
       column: [] as string[],
     };
 
@@ -163,9 +169,11 @@ export class OrderExcel {
             },
             { single: true }
           )}
-          <div class="tx_700 mb-2">匯出欄位</div>
-          ${this.optionsView(gvc2, dataArray => {
-            vm.column = dataArray;
+          <div class="tx_700 mb-2">
+            匯出欄位 ${BgWidget.grayNote('＊若勾選商品系列的欄位，將會以訂單商品作為資料列匯出 Excel', 'margin: 4px;')}
+          </div>
+          ${this.optionsView(gvc2, cols => {
+            vm.column = cols;
           })}
         </div>`;
       },
@@ -184,7 +192,7 @@ export class OrderExcel {
                 return;
               }
 
-              const dataMap: Record<string, any> = {
+              const dataMap: Record<Range, any> = {
                 search: apiJSON,
                 checked: {
                   ...apiJSON,
@@ -193,7 +201,7 @@ export class OrderExcel {
                 all: {},
               };
 
-              this.export(gvc, dataMap[vm.select] ?? dataMap.all, vm.column);
+              this.export(gvc, dataMap[vm.select], vm.column);
             }),
             '匯出'
           ),
@@ -334,7 +342,11 @@ export class OrderExcel {
     async function fetchOrders(limit: number) {
       dialog.dataLoading({ visible: true });
       try {
-        const response = await ApiShop.getOrder({ ...apiJSON, page: 0, limit: limit });
+        const response = await ApiShop.getOrder({
+          ...apiJSON,
+          page: 0,
+          limit: limit,
+        });
         dialog.dataLoading({ visible: false });
 
         if (response?.response?.total > 0) {
