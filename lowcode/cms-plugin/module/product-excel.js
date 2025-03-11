@@ -803,7 +803,7 @@ export class ProductExcel {
                         const getFormData = (() => {
                             const baseFormData = {
                                 page: 0,
-                                limit: 100,
+                                limit: 250,
                                 productType: pageType,
                                 product_category: vm.support,
                             };
