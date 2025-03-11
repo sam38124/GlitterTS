@@ -8,21 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
-import { ApiUser } from '../../glitter-base/route/user.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
+import { ApiUser } from '../../glitter-base/route/user.js';
 import { Tool } from '../../modules/tool.js';
+import { Excel } from './excel.js';
 const html = String.raw;
 export class UserExcel {
-    static loadXLSX(gvc) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const XLSX = yield new Promise((resolve, reject) => {
-                gvc.addMtScript([{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }], () => {
-                    resolve(window.XLSX);
-                }, reject);
-            });
-            return XLSX;
-        });
-    }
     static optionsView(gvc, callback) {
         let columnList = new Set();
         const randomString = BgWidget.getCheckedClass(gvc);
@@ -85,54 +76,7 @@ export class UserExcel {
             .join('')}
       </div>
     `;
-        return checkboxContainer(this.userColumns);
-    }
-    static exportDialog(gvc, apiJSON, dataArray) {
-        const vm = {
-            select: 'all',
-            column: [],
-        };
-        BgWidget.settingDialog({
-            gvc,
-            title: '匯出顧客',
-            width: 700,
-            innerHTML: gvc2 => {
-                return html `<div class="d-flex flex-column align-items-start gap-2">
-          <div class="tx_700 mb-2">匯出範圍</div>
-          ${BgWidget.multiCheckboxContainer(gvc2, [
-                    { key: 'all', name: `全部顧客` },
-                    { key: 'search', name: '目前搜尋與篩選的結果' },
-                    { key: 'checked', name: `勾選的 ${dataArray.length} 位顧客` },
-                ], [vm.select], (res) => {
-                    vm.select = res[0];
-                }, { single: true })}
-          <div class="tx_700 mb-2">匯出欄位</div>
-          ${this.optionsView(gvc2, cols => {
-                    vm.column = cols;
-                })}
-        </div>`;
-            },
-            footer_html: gvc2 => {
-                return [
-                    BgWidget.cancel(gvc2.event(() => {
-                        gvc2.glitter.closeDiaLog();
-                    })),
-                    BgWidget.save(gvc2.event(() => {
-                        const dialog = new ShareDialog(gvc.glitter);
-                        if (vm.select === 'checked' && dataArray.length === 0) {
-                            dialog.infoMessage({ text: '請勾選至少一位以上的顧客' });
-                            return;
-                        }
-                        const dataMap = {
-                            search: apiJSON,
-                            checked: Object.assign(Object.assign({}, apiJSON), { id: dataArray.map(data => data.userID).join(',') }),
-                            all: {},
-                        };
-                        this.export(gvc, dataMap[vm.select], vm.column);
-                    }), '匯出'),
-                ].join('');
-            },
-        });
+        return checkboxContainer(this.headerColumn);
     }
     static export(gvc, apiJSON, column) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -141,7 +85,6 @@ export class UserExcel {
                 dialog.infoMessage({ text: '請至少勾選一個匯出欄位' });
                 return;
             }
-            const XLSX = yield this.loadXLSX(gvc);
             const formatDate = (date) => date ? gvc.glitter.ut.dateFormat(new Date(date), 'yyyy-MM-dd hh:mm') : '';
             const formatJSON = (obj) => Object.fromEntries(Object.entries(obj).filter(([key]) => column.includes(key)));
             const getUserJSON = (user) => formatJSON({
@@ -192,11 +135,7 @@ export class UserExcel {
                 const printArray = dataArray.flatMap(user => {
                     return [Object.assign(Object.assign(Object.assign({}, getUserJSON(user)), getRecordJSON(user)), getOrderJSON(user))];
                 });
-                const worksheet = XLSX.utils.json_to_sheet(printArray);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, '顧客列表');
-                const fileName = `顧客列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
-                XLSX.writeFile(workbook, fileName);
+                Excel.downloadExcel(gvc, printArray, `顧客列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`, '顧客列表');
             }
             function fetchUsers(limit) {
                 var _a;
@@ -225,118 +164,286 @@ export class UserExcel {
             });
         });
     }
-    static import(gvc, callback) {
-        const dialog = new ShareDialog(gvc.glitter);
-        const id = 'import-user-excel';
-        const fileInput = document.createElement('input');
-        fileInput.id = id;
-        fileInput.type = 'file';
-        fileInput.accept = '.xlsx, .xls';
-        fileInput.style.display = 'none';
-        document.body.appendChild(fileInput);
-        fileInput.addEventListener('change', function (event) {
-            var _a, _b;
-            return __awaiter(this, void 0, void 0, function* () {
-                const target = event.target;
-                if ((_a = target.files) === null || _a === void 0 ? void 0 : _a.length) {
-                    try {
-                        const jsonData = yield UserExcel.parseExcelToJson(gvc, target.files[0]);
-                        const setUserEmails = [...new Set(jsonData.map(user => user['電子信箱']))];
-                        if (jsonData.length > setUserEmails.length) {
-                            dialog.errorMessage({ text: '會員電子信箱不可重複' });
+    static exportDialog(gvc, apiJSON, dataArray) {
+        const vm = {
+            select: 'all',
+            column: [],
+        };
+        BgWidget.settingDialog({
+            gvc,
+            title: '匯出顧客',
+            width: 700,
+            innerHTML: gvc2 => {
+                return html `<div class="d-flex flex-column align-items-start gap-2">
+          <div class="tx_700 mb-2">匯出範圍</div>
+          ${BgWidget.multiCheckboxContainer(gvc2, [
+                    { key: 'all', name: `全部顧客` },
+                    { key: 'search', name: '目前搜尋與篩選的結果' },
+                    { key: 'checked', name: `勾選的 ${dataArray.length} 位顧客` },
+                ], [vm.select], res => {
+                    vm.select = res[0];
+                }, { single: true })}
+          <div class="tx_700 mb-2">匯出欄位</div>
+          ${this.optionsView(gvc2, cols => {
+                    vm.column = cols;
+                })}
+        </div>`;
+            },
+            footer_html: gvc2 => {
+                return [
+                    BgWidget.cancel(gvc2.event(() => {
+                        gvc2.glitter.closeDiaLog();
+                    })),
+                    BgWidget.save(gvc2.event(() => {
+                        const dialog = new ShareDialog(gvc.glitter);
+                        if (vm.select === 'checked' && dataArray.length === 0) {
+                            dialog.infoMessage({ text: '請勾選至少一位以上的顧客' });
                             return;
                         }
-                        const setUserPhones = [...new Set(jsonData.map(user => user['電話']))];
-                        if (jsonData.length > setUserPhones.length) {
-                            dialog.errorMessage({ text: '會員電話不可重複' });
-                            return;
-                        }
-                        for (let i = 0; i < jsonData.length; i++) {
-                            const user = jsonData[i];
-                            if (!user['電子信箱']) {
-                                dialog.errorMessage({ text: '會員電子信箱不可為空' });
-                                return;
-                            }
-                            const userData = {
-                                name: user['顧客名稱'],
-                                email: user['電子信箱'],
-                                phone: user['電話'],
-                                birth: user['生日'],
-                                address: user['地址'],
-                                gender: user['性別'],
-                                carrier_number: user['手機載具'],
-                                gui_number: user['統一編號'],
-                                company: user['公司'],
-                                consignee_name: user['收貨人'],
-                                consignee_address: user['收貨人地址'],
-                                consignee_email: user['收貨人電子郵件'],
-                                consignee_phone: user['收貨人手機'],
-                                managerNote: user['顧客備註'],
-                                status: user['黑名單'] === '否' ? 1 : 0,
-                                lineID: user['LINE UID'],
-                                'fb-id': user['FB UID'],
-                                tags: ((_b = user['會員標籤']) !== null && _b !== void 0 ? _b : []).split(','),
-                            };
-                            jsonData[i] = {
-                                account: userData.email,
-                                pwd: gvc.glitter.getUUID(),
-                                userData: userData,
-                            };
-                        }
-                        dialog.dataLoading({ visible: true });
-                        ApiUser.quickRegister({ userArray: jsonData }).then(r => {
-                            var _a;
-                            dialog.dataLoading({ visible: false });
-                            if (r.result) {
-                                dialog.successMessage({ text: '匯入成功' });
-                                callback();
-                                return;
-                            }
-                            const errorData = (_a = r.response.data) === null || _a === void 0 ? void 0 : _a.data;
-                            if (errorData === null || errorData === void 0 ? void 0 : errorData.emailExists) {
-                                dialog.errorMessage({ text: `匯入失敗，會員信箱已存在<br/>(${errorData.email})` });
-                                return;
-                            }
-                            if (errorData === null || errorData === void 0 ? void 0 : errorData.phoneExists) {
-                                dialog.errorMessage({ text: `匯入失敗，會員電話已存在<br/>(${errorData.phone})` });
-                                return;
-                            }
-                        });
-                    }
-                    catch (error) {
-                        console.error('解析失敗:', error);
-                    }
-                }
-            });
+                        const dataMap = {
+                            search: apiJSON,
+                            checked: Object.assign(Object.assign({}, apiJSON), { id: dataArray.map(data => data.userID).join(',') }),
+                            all: {},
+                        };
+                        this.export(gvc, dataMap[vm.select], vm.column);
+                    }), '匯出'),
+                ].join('');
+            },
         });
-        fileInput.click();
     }
-    static parseExcelToJson(gvc, file) {
+    static import(gvc, target, callback) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            const XLSX = yield this.loadXLSX(gvc);
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = event => {
-                    var _a;
-                    try {
-                        const data = new Uint8Array((_a = event.target) === null || _a === void 0 ? void 0 : _a.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const sheetName = workbook.SheetNames[0];
-                        const sheet = workbook.Sheets[sheetName];
-                        const jsonData = XLSX.utils.sheet_to_json(sheet);
-                        resolve(jsonData);
+            const dialog = new ShareDialog(gvc.glitter);
+            function parseExcelToJson(file) {
+                return __awaiter(this, void 0, void 0, function* () {
+                    const XLSX = yield Excel.loadXLSX(gvc);
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = event => {
+                            var _a;
+                            try {
+                                const data = new Uint8Array((_a = event.target) === null || _a === void 0 ? void 0 : _a.result);
+                                const workbook = XLSX.read(data, { type: 'array' });
+                                const sheetName = workbook.SheetNames[0];
+                                const sheet = workbook.Sheets[sheetName];
+                                const jsonData = XLSX.utils.sheet_to_json(sheet);
+                                resolve(jsonData);
+                            }
+                            catch (error) {
+                                reject(error);
+                            }
+                        };
+                        reader.onerror = error => reject(error);
+                        reader.readAsArrayBuffer(file);
+                    });
+                });
+            }
+            if ((_a = target.files) === null || _a === void 0 ? void 0 : _a.length) {
+                try {
+                    dialog.dataLoading({ visible: true, text: '上傳檔案中' });
+                    const jsonData = yield parseExcelToJson(target.files[0]);
+                    dialog.dataLoading({ visible: false });
+                    const setUserEmails = [...new Set(jsonData.map(user => user['電子信箱']))];
+                    if (jsonData.length > setUserEmails.length) {
+                        dialog.errorMessage({ text: '會員電子信箱不可重複' });
+                        return;
                     }
-                    catch (error) {
-                        reject(error);
+                    const setUserPhones = [...new Set(jsonData.map(user => user['電話']))];
+                    if (jsonData.length > setUserPhones.length) {
+                        dialog.errorMessage({ text: '會員電話不可重複' });
+                        return;
                     }
-                };
-                reader.onerror = error => reject(error);
-                reader.readAsArrayBuffer(file);
-            });
+                    for (let i = 0; i < jsonData.length; i++) {
+                        const user = jsonData[i];
+                        if (!user['電子信箱']) {
+                            dialog.errorMessage({ text: '會員電子信箱不可為空' });
+                            return;
+                        }
+                        const userData = {
+                            name: user['顧客名稱'],
+                            email: user['電子信箱'],
+                            phone: user['電話'],
+                            birth: user['生日'],
+                            address: user['地址'],
+                            gender: user['性別'],
+                            carrier_number: user['手機載具'],
+                            gui_number: user['統一編號'],
+                            company: user['公司'],
+                            consignee_name: user['收貨人'],
+                            consignee_address: user['收貨人地址'],
+                            consignee_email: user['收貨人電子郵件'],
+                            consignee_phone: user['收貨人手機'],
+                            managerNote: user['顧客備註'],
+                            status: user['黑名單'] === '否' ? 1 : 0,
+                            lineID: user['LINE UID'],
+                            'fb-id': user['FB UID'],
+                            tags: ((_b = user['會員標籤']) !== null && _b !== void 0 ? _b : '').split(','),
+                        };
+                        jsonData[i] = {
+                            account: userData.email,
+                            pwd: gvc.glitter.getUUID(),
+                            userData: userData,
+                        };
+                    }
+                    dialog.dataLoading({ visible: true, text: '資料確認中' });
+                    ApiUser.quickRegister({ userArray: jsonData }).then(r => {
+                        var _a;
+                        dialog.dataLoading({ visible: false });
+                        if (r.result) {
+                            dialog.successMessage({ text: '匯入成功' });
+                            callback();
+                            return;
+                        }
+                        const errorData = (_a = r.response.data) === null || _a === void 0 ? void 0 : _a.data;
+                        if (errorData === null || errorData === void 0 ? void 0 : errorData.emailExists) {
+                            dialog.errorMessage({ text: `匯入失敗，會員信箱已存在<br/>(${errorData.email})` });
+                            return;
+                        }
+                        if (errorData === null || errorData === void 0 ? void 0 : errorData.phoneExists) {
+                            dialog.errorMessage({ text: `匯入失敗，會員電話已存在<br/>(${errorData.phone})` });
+                            return;
+                        }
+                    });
+                }
+                catch (error) {
+                    console.error('解析失敗:', error);
+                }
+            }
         });
+    }
+    static importDialog(gvc, callback) {
+        const dialog = new ShareDialog(gvc.glitter);
+        const vm = {
+            id: 'importDialog',
+            fileInput: {},
+            type: '',
+        };
+        gvc.glitter.innerDialog((gvc) => {
+            return gvc.bindView({
+                bind: vm.id,
+                view: () => {
+                    const viewData = {
+                        title: '匯入顧客',
+                        category: {
+                            title: '匯入顧客類型',
+                            options: [],
+                        },
+                        example: {
+                            event: () => {
+                                Excel.downloadExcel(gvc, UserExcel.importExampleData, `範例_顧客列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`, '範例顧客列表');
+                            },
+                        },
+                        import: {
+                            event: () => this.import(gvc, vm.fileInput, () => {
+                                gvc.glitter.closeDiaLog();
+                                callback();
+                            }),
+                        },
+                    };
+                    return html `
+            <div
+              class="d-flex align-items-center w-100 tx_700"
+              style="padding: 12px 0 12px 20px; align-items: center; border-radius: 10px 10px 0px 0px; background: #F2F2F2;"
+            >
+              ${viewData.title}
+            </div>
+            ${viewData.category.options.length > 0
+                        ? html `<div class="d-flex flex-column align-items-start gap-2" style="padding: 20px 20px 0px;">
+                  <div class="tx_700">${viewData.category.title}</div>
+                  ${BgWidget.multiCheckboxContainer(gvc, viewData.category.options, [vm.type], res => {
+                            vm.type = res[0];
+                        }, { single: true })}
+                </div>`
+                        : ''}
+            <div class="d-flex flex-column w-100 align-items-start gap-3" style="padding: 20px">
+              <div class="d-flex align-items-center gap-2">
+                <div class="tx_700">透過XLSX檔案匯入商品</div>
+                ${BgWidget.blueNote('下載範例', gvc.event(viewData.example.event))}
+              </div>
+              <input
+                class="d-none"
+                type="file"
+                id="upload-excel"
+                onchange="${gvc.event((_, event) => {
+                        vm.fileInput = event.target;
+                        gvc.notifyDataChange(vm.id);
+                    })}"
+              />
+              <div
+                class="d-flex flex-column w-100 justify-content-center align-items-center gap-3"
+                style="border: 1px solid #DDD; border-radius: 10px; min-height: 180px;"
+              >
+                ${(() => {
+                        if (vm.fileInput.files && vm.fileInput.files.length > 0) {
+                            return html `
+                      ${BgWidget.customButton({
+                                button: { color: 'snow', size: 'md' },
+                                text: { name: '更換檔案' },
+                                event: gvc.event(() => {
+                                    document.querySelector('#upload-excel').click();
+                                }),
+                            })}
+                      ${BgWidget.grayNote(vm.fileInput.files[0].name)}
+                    `;
+                        }
+                        else {
+                            return BgWidget.customButton({
+                                button: { color: 'snow', size: 'md' },
+                                text: { name: '新增檔案' },
+                                event: gvc.event(() => {
+                                    document.querySelector('#upload-excel').click();
+                                }),
+                            });
+                        }
+                    })()}
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-3" style="padding-right: 20px; padding-bottom: 20px;">
+              ${BgWidget.cancel(gvc.event(() => {
+                        gvc.glitter.closeDiaLog();
+                    }))}
+              ${BgWidget.save(gvc.event(() => {
+                        if (vm.fileInput.files && vm.fileInput.files.length > 0) {
+                            viewData.import.event();
+                        }
+                        else {
+                            dialog.infoMessage({ text: '尚未上傳檔案' });
+                        }
+                    }), '匯入')}
+            </div>
+          `;
+                },
+                divCreate: {
+                    style: 'border-radius: 10px; background: #FFF; width: 570px; min-height: 360px; max-width: 90%;',
+                },
+            });
+        }, vm.id);
     }
 }
-UserExcel.userColumns = {
+UserExcel.importExampleData = [
+    {
+        顧客名稱: 'XXX',
+        電子信箱: 'shopnex@cc.cc',
+        電話: '0978123123',
+        生日: '1995-01-15',
+        地址: '台中市北區崇德路100號',
+        性別: '男生',
+        手機載具: '',
+        統一編號: '',
+        公司: '',
+        收貨人: 'XXX',
+        收貨人地址: '台中市北區崇德路100號',
+        收貨人電子郵件: 'shopnex@cc.cc',
+        收貨人手機: '0978123123',
+        顧客備註: '',
+        黑名單: '否',
+        會員標籤: '台中,青年',
+        'LINE UID': '12341234',
+        'FB UID': '12341234',
+    },
+];
+UserExcel.headerColumn = {
     基本資料: [
         'ID',
         '會員編號',

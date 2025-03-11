@@ -261,7 +261,7 @@ export class UserList {
               <div class="d-flex align-items-center" style="gap: 10px;">
                 ${BgWidget.grayButton(
                   '匯入',
-                  gvc.event(() => UserExcel.import(gvc, () => gvc.notifyDataChange(vm.id)))
+                  gvc.event(() => UserExcel.importDialog(gvc, () => gvc.notifyDataChange(vm.id)))
                 )}
                 ${BgWidget.grayButton(
                   '匯出',

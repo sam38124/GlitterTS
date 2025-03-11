@@ -225,7 +225,7 @@ export class UserList {
                     })()}
               <div class="flex-fill"></div>
               <div class="d-flex align-items-center" style="gap: 10px;">
-                ${BgWidget.grayButton('匯入', gvc.event(() => UserExcel.import(gvc, () => gvc.notifyDataChange(vm.id))))}
+                ${BgWidget.grayButton('匯入', gvc.event(() => UserExcel.importDialog(gvc, () => gvc.notifyDataChange(vm.id))))}
                 ${BgWidget.grayButton('匯出', gvc.event(() => UserExcel.exportDialog(gvc, vm.apiJSON, vm.checkedData)))}
                 ${BgWidget.darkButton('新增', (_a = obj === null || obj === void 0 ? void 0 : obj.createUserEvent) !== null && _a !== void 0 ? _a : gvc.event(() => {
                         vm.type = 'create';

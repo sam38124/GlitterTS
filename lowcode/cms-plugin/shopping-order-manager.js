@@ -110,13 +110,7 @@ export class ShoppingOrderManager {
                         }
                     })())}
               <div class="flex-fill"></div>
-              <div class="d-flex" style=" gap: 14px;">
-                <input
-                  class="d-none"
-                  type="file"
-                  id="upload-excel"
-                  onchange="${gvc.event((_, event) => OrderExcel.import(gvc, event))}"
-                />
+              <div class="d-flex" style="gap: 14px;">
                 ${BgWidget.grayButton('匯出', gvc.event(() => {
                         OrderExcel.exportDialog(gvc, vm.apiJSON, vm.checkedData);
                     }))}

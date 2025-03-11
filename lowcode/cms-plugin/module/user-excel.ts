@@ -1,8 +1,9 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
-import { ApiUser } from '../../glitter-base/route/user.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
+import { ApiUser } from '../../glitter-base/route/user.js';
 import { Tool } from '../../modules/tool.js';
+import { Excel } from './excel.js';
 
 const html = String.raw;
 
@@ -53,20 +54,32 @@ interface User {
 }
 
 export class UserExcel {
-  static async loadXLSX(gvc: GVC) {
-    const XLSX = await new Promise<any>((resolve, reject) => {
-      gvc.addMtScript(
-        [{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }],
-        () => {
-          resolve((window as any).XLSX);
-        },
-        reject
-      );
-    });
-    return XLSX;
-  }
+  // 範例檔資料
+  static importExampleData = [
+    {
+      顧客名稱: 'XXX',
+      電子信箱: 'shopnex@cc.cc',
+      電話: '0978123123',
+      生日: '1995-01-15',
+      地址: '台中市北區崇德路100號',
+      性別: '男生',
+      手機載具: '',
+      統一編號: '',
+      公司: '',
+      收貨人: 'XXX',
+      收貨人地址: '台中市北區崇德路100號',
+      收貨人電子郵件: 'shopnex@cc.cc',
+      收貨人手機: '0978123123',
+      顧客備註: '',
+      黑名單: '否',
+      會員標籤: '台中,青年',
+      'LINE UID': '12341234',
+      'FB UID': '12341234',
+    },
+  ];
 
-  static userColumns = {
+  // 匯出可選欄位
+  static headerColumn = {
     基本資料: [
       'ID',
       '會員編號',
@@ -89,6 +102,7 @@ export class UserExcel {
     訂單相關: ['最後購買日期', '最後消費金額', '最後出貨日期', '累積消費金額', '累積消費次數'],
   };
 
+  // 選項元素
   static optionsView(gvc: GVC, callback: (dataArray: string[]) => void) {
     let columnList = new Set<string>();
     const randomString = BgWidget.getCheckedClass(gvc);
@@ -157,9 +171,121 @@ export class UserExcel {
       </div>
     `;
 
-    return checkboxContainer(this.userColumns);
+    return checkboxContainer(this.headerColumn);
   }
 
+  // 匯出方法
+  static async export(gvc: GVC, apiJSON: any, column: string[]) {
+    const dialog = new ShareDialog(gvc.glitter);
+
+    if (column.length === 0) {
+      dialog.infoMessage({ text: '請至少勾選一個匯出欄位' });
+      return;
+    }
+
+    // 格式化資料時間
+    const formatDate = (date?: string | number) =>
+      date ? gvc.glitter.ut.dateFormat(new Date(date), 'yyyy-MM-dd hh:mm') : '';
+
+    // 處理 JSON, 判斷欄位是否顯示
+    const formatJSON = (obj: Record<string, any>) =>
+      Object.fromEntries(Object.entries(obj).filter(([key]) => column.includes(key)));
+
+    // 顧客欄位物件
+    const getUserJSON = (user: User) =>
+      formatJSON({
+        ID: user.id,
+        會員編號: user.userID,
+        顧客名稱: user.userData.name,
+        電子信箱: user.userData.email,
+        電話: user.userData.phone,
+        生日: user.userData.birth,
+        地址: user.userData.address,
+        性別: user.userData.gender,
+        手機載具: user.userData.carrier_number,
+        統一編號: user.userData.gui_number,
+        公司: user.company || user.userData.company,
+        收貨人: user.userData.consignee_name,
+        收貨人地址: user.userData.consignee_address,
+        收貨人電子郵件: user.userData.consignee_email,
+        收貨人手機: user.userData.consignee_phone,
+        顧客備註: user.userData.managerNote,
+      });
+
+    // 紀錄欄位物件
+    const getRecordJSON = (user: User) => {
+      return formatJSON({
+        黑名單: user.status === 1 ? '否' : '是',
+        會員等級: user.tag_name,
+        會員有效期: formatDate(user.member_deadline),
+        會員標籤: (user.userData.tags ?? []).join(','),
+        註冊時間: formatDate(user.created_time),
+        現有購物金: user.rebate,
+        'LINE UID': user.userData.lineID,
+        'FB UID': user.userData['fb-id'],
+      });
+    };
+
+    // 訂單欄位物件
+    const getOrderJSON = (user: User) => {
+      return formatJSON({
+        最後購買日期: formatDate(user.latest_order_date),
+        最後消費金額: user.latest_order_total,
+        最後出貨日期: user.firstShipment ? formatDate(user.firstShipment.orderData.user_info.shipment_date) : '無',
+        累積消費金額: user.checkout_total,
+        累積消費次數: user.checkout_count,
+      });
+    };
+
+    function exportUsersToExcel(dataArray: User[]) {
+      if (dataArray.length === 0) {
+        dialog.errorMessage({ text: '無會員資料可以匯出' });
+        return;
+      }
+
+      const printArray = dataArray.flatMap(user => {
+        return [{ ...getUserJSON(user), ...getRecordJSON(user), ...getOrderJSON(user) }];
+      });
+
+      Excel.downloadExcel(
+        gvc,
+        printArray,
+        `顧客列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`,
+        '顧客列表'
+      );
+    }
+
+    // 透過 API, 取得顧客資料
+    async function fetchUsers(limit: number) {
+      dialog.dataLoading({ visible: true });
+      try {
+        const response = await ApiUser.getUserListOrders({
+          ...apiJSON,
+          page: 0,
+          limit: limit,
+          filter_type: 'excel',
+        });
+        dialog.dataLoading({ visible: false });
+
+        if (response?.response?.total > 0) {
+          exportUsersToExcel(response.response.data);
+        } else {
+          dialog.errorMessage({ text: '匯出檔案發生錯誤' });
+        }
+      } catch (error) {
+        dialog.dataLoading({ visible: false });
+        dialog.errorMessage({ text: '無法取得顧客資料' });
+      }
+    }
+
+    const limit = 250;
+    dialog.checkYesOrNot({
+      text: `系統將會依條件匯出資料，最多匯出${limit}筆<br/>確定要匯出嗎？`,
+      callback: bool => bool && fetchUsers(limit),
+    });
+  }
+
+  // 匯出檔案彈出視窗
   static exportDialog(gvc: GVC, apiJSON: any, dataArray: any[]) {
     const vm = {
       select: 'all' as Range,
@@ -181,8 +307,8 @@ export class UserExcel {
               { key: 'checked', name: `勾選的 ${dataArray.length} 位顧客` },
             ],
             [vm.select],
-            (res: any) => {
-              vm.select = res[0];
+            res => {
+              vm.select = res[0] as Range;
             },
             { single: true }
           )}
@@ -225,243 +351,243 @@ export class UserExcel {
     });
   }
 
-  static async export(gvc: GVC, apiJSON: any, column: string[]) {
+  // 匯入方法
+  static async import(gvc: GVC, target: HTMLInputElement, callback: () => void) {
     const dialog = new ShareDialog(gvc.glitter);
 
-    if (column.length === 0) {
-      dialog.infoMessage({ text: '請至少勾選一個匯出欄位' });
-      return;
+    async function parseExcelToJson(file: File): Promise<any[]> {
+      const XLSX = await Excel.loadXLSX(gvc);
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = event => {
+          try {
+            const data = new Uint8Array(event.target?.result as ArrayBuffer);
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            // 取得第一個工作表名稱
+            const sheetName = workbook.SheetNames[0];
+
+            // 取得工作表內容並轉換為 JSON
+            const sheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+            resolve(jsonData);
+          } catch (error) {
+            reject(error);
+          }
+        };
+
+        reader.onerror = error => reject(error);
+
+        reader.readAsArrayBuffer(file);
+      });
     }
 
-    const XLSX = await this.loadXLSX(gvc);
-
-    // 格式化資料時間
-    const formatDate = (date?: string | number) =>
-      date ? gvc.glitter.ut.dateFormat(new Date(date), 'yyyy-MM-dd hh:mm') : '';
-
-    // 處理 JSON, 判斷欄位是否顯示
-    const formatJSON = (obj: Record<string, any>) =>
-      Object.fromEntries(Object.entries(obj).filter(([key]) => column.includes(key)));
-
-    // 顧客欄位物件
-    const getUserJSON = (user: any) =>
-      formatJSON({
-        ID: user.id,
-        會員編號: user.userID,
-        顧客名稱: user.userData.name,
-        電子信箱: user.userData.email,
-        電話: user.userData.phone,
-        生日: user.userData.birth,
-        地址: user.userData.address,
-        性別: user.userData.gender,
-        手機載具: user.userData.carrier_number,
-        統一編號: user.userData.gui_number,
-        公司: user.company || user.userData.company,
-        收貨人: user.userData.consignee_name,
-        收貨人地址: user.userData.consignee_address,
-        收貨人電子郵件: user.userData.consignee_email,
-        收貨人手機: user.userData.consignee_phone,
-        顧客備註: user.userData.managerNote,
-      });
-
-    // 紀錄欄位物件
-    const getRecordJSON = (user: any) => {
-      return formatJSON({
-        黑名單: user.status === 1 ? '否' : '是',
-        會員等級: user.tag_name,
-        會員有效期: formatDate(user.member_deadline),
-        會員標籤: (user.userData.tags ?? []).join(','),
-        註冊時間: formatDate(user.created_time),
-        現有購物金: user.rebate,
-        'LINE UID': user.userData.lineID,
-        'FB UID': user.userData['fb-id'],
-      });
-    };
-
-    // 訂單欄位物件
-    const getOrderJSON = (user: any) => {
-      return formatJSON({
-        最後購買日期: formatDate(user.latest_order_date),
-        最後消費金額: user.latest_order_total,
-        最後出貨日期: user.firstShipment ? formatDate(user.firstShipment.orderData.user_info.shipment_date) : '無',
-        累積消費金額: user.checkout_total,
-        累積消費次數: user.checkout_count,
-      });
-    };
-
-    function exportUsersToExcel(dataArray: User[]) {
-      if (dataArray.length === 0) {
-        dialog.errorMessage({ text: '無會員資料可以匯出' });
-        return;
-      }
-
-      const printArray = dataArray.flatMap(user => {
-        return [{ ...getUserJSON(user), ...getRecordJSON(user), ...getOrderJSON(user) }];
-      });
-
-      // 將 JSON 轉換為工作表
-      const worksheet = XLSX.utils.json_to_sheet(printArray);
-
-      // 建立工作簿
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, '顧客列表');
-
-      // 生成 Excel 檔案並下載
-      const fileName = `顧客列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
-      XLSX.writeFile(workbook, fileName);
-    }
-
-    // 透過 API, 取得顧客資料
-    async function fetchUsers(limit: number) {
-      dialog.dataLoading({ visible: true });
+    if (target.files?.length) {
       try {
-        const response = await ApiUser.getUserListOrders({
-          ...apiJSON,
-          page: 0,
-          limit: limit,
-          filter_type: 'excel',
-        });
+        dialog.dataLoading({ visible: true, text: '上傳檔案中' });
+        const jsonData = await parseExcelToJson(target.files[0]);
         dialog.dataLoading({ visible: false });
 
-        if (response?.response?.total > 0) {
-          exportUsersToExcel(response.response.data);
-        } else {
-          dialog.errorMessage({ text: '匯出檔案發生錯誤' });
+        const setUserEmails = [...new Set(jsonData.map(user => user['電子信箱']))];
+        if (jsonData.length > setUserEmails.length) {
+          dialog.errorMessage({ text: '會員電子信箱不可重複' });
+          return;
         }
+
+        const setUserPhones = [...new Set(jsonData.map(user => user['電話']))];
+        if (jsonData.length > setUserPhones.length) {
+          dialog.errorMessage({ text: '會員電話不可重複' });
+          return;
+        }
+
+        for (let i = 0; i < jsonData.length; i++) {
+          const user = jsonData[i];
+
+          if (!user['電子信箱']) {
+            dialog.errorMessage({ text: '會員電子信箱不可為空' });
+            return;
+          }
+
+          const userData = {
+            name: user['顧客名稱'],
+            email: user['電子信箱'],
+            phone: user['電話'],
+            birth: user['生日'],
+            address: user['地址'],
+            gender: user['性別'],
+            carrier_number: user['手機載具'],
+            gui_number: user['統一編號'],
+            company: user['公司'],
+            consignee_name: user['收貨人'],
+            consignee_address: user['收貨人地址'],
+            consignee_email: user['收貨人電子郵件'],
+            consignee_phone: user['收貨人手機'],
+            managerNote: user['顧客備註'],
+            status: user['黑名單'] === '否' ? 1 : 0,
+            lineID: user['LINE UID'],
+            'fb-id': user['FB UID'],
+            tags: (user['會員標籤'] ?? '').split(','),
+          };
+
+          jsonData[i] = {
+            account: userData.email,
+            pwd: gvc.glitter.getUUID(),
+            userData: userData,
+          };
+        }
+
+        dialog.dataLoading({ visible: true, text: '資料確認中' });
+        ApiUser.quickRegister({ userArray: jsonData }).then(r => {
+          dialog.dataLoading({ visible: false });
+
+          if (r.result) {
+            dialog.successMessage({ text: '匯入成功' });
+            callback();
+            return;
+          }
+
+          const errorData = r.response.data?.data;
+          if (errorData?.emailExists) {
+            dialog.errorMessage({ text: `匯入失敗，會員信箱已存在<br/>(${errorData.email})` });
+            return;
+          }
+          if (errorData?.phoneExists) {
+            dialog.errorMessage({ text: `匯入失敗，會員電話已存在<br/>(${errorData.phone})` });
+            return;
+          }
+        });
       } catch (error) {
-        dialog.dataLoading({ visible: false });
-        dialog.errorMessage({ text: '無法取得顧客資料' });
+        console.error('解析失敗:', error);
       }
     }
-
-    const limit = 250;
-    dialog.checkYesOrNot({
-      text: `系統將會依條件匯出資料，最多匯出${limit}筆<br/>確定要匯出嗎？`,
-      callback: bool => bool && fetchUsers(limit),
-    });
   }
 
-  static import(gvc: GVC, callback: () => void) {
+  // 匯入檔案彈出視窗
+  static importDialog(gvc: GVC, callback: () => void) {
     const dialog = new ShareDialog(gvc.glitter);
-    const id = 'import-user-excel';
-    const fileInput = document.createElement('input'); // 動態建立 input
-    fileInput.id = id;
-    fileInput.type = 'file';
-    fileInput.accept = '.xlsx, .xls';
-    fileInput.style.display = 'none'; // 確保它不會顯示
-    document.body.appendChild(fileInput);
+    const vm = {
+      id: 'importDialog',
+      fileInput: {} as HTMLInputElement,
+      type: '',
+    };
 
-    // 監聽變更事件
-    fileInput.addEventListener('change', async function (event: Event) {
-      const target = event.target as HTMLInputElement;
-      if (target.files?.length) {
-        try {
-          const jsonData = await UserExcel.parseExcelToJson(gvc, target.files[0]);
+    gvc.glitter.innerDialog((gvc: GVC) => {
+      return gvc.bindView({
+        bind: vm.id,
+        view: () => {
+          const viewData = {
+            title: '匯入顧客',
+            category: {
+              title: '匯入顧客類型',
+              options: [],
+            },
+            example: {
+              event: () => {
+                Excel.downloadExcel(
+                  gvc,
+                  UserExcel.importExampleData,
+                  `範例_顧客列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`,
+                  '範例顧客列表'
+                );
+              },
+            },
+            import: {
+              event: () =>
+                this.import(gvc, vm.fileInput, () => {
+                  gvc.glitter.closeDiaLog();
+                  callback();
+                }),
+            },
+          };
 
-          const setUserEmails = [...new Set(jsonData.map(user => user['電子信箱']))];
-          if (jsonData.length > setUserEmails.length) {
-            dialog.errorMessage({ text: '會員電子信箱不可重複' });
-            return;
-          }
-
-          const setUserPhones = [...new Set(jsonData.map(user => user['電話']))];
-          if (jsonData.length > setUserPhones.length) {
-            dialog.errorMessage({ text: '會員電話不可重複' });
-            return;
-          }
-
-          for (let i = 0; i < jsonData.length; i++) {
-            const user = jsonData[i];
-
-            if (!user['電子信箱']) {
-              dialog.errorMessage({ text: '會員電子信箱不可為空' });
-              return;
-            }
-
-            const userData = {
-              name: user['顧客名稱'],
-              email: user['電子信箱'],
-              phone: user['電話'],
-              birth: user['生日'],
-              address: user['地址'],
-              gender: user['性別'],
-              carrier_number: user['手機載具'],
-              gui_number: user['統一編號'],
-              company: user['公司'],
-              consignee_name: user['收貨人'],
-              consignee_address: user['收貨人地址'],
-              consignee_email: user['收貨人電子郵件'],
-              consignee_phone: user['收貨人手機'],
-              managerNote: user['顧客備註'],
-              status: user['黑名單'] === '否' ? 1 : 0,
-              lineID: user['LINE UID'],
-              'fb-id': user['FB UID'],
-              tags: (user['會員標籤'] ?? []).split(','),
-            };
-
-            jsonData[i] = {
-              account: userData.email,
-              pwd: gvc.glitter.getUUID(),
-              userData: userData,
-            };
-          }
-
-          dialog.dataLoading({ visible: true });
-          ApiUser.quickRegister({ userArray: jsonData }).then(r => {
-            dialog.dataLoading({ visible: false });
-
-            if (r.result) {
-              dialog.successMessage({ text: '匯入成功' });
-              callback();
-              return;
-            }
-
-            const errorData = r.response.data?.data;
-            if (errorData?.emailExists) {
-              dialog.errorMessage({ text: `匯入失敗，會員信箱已存在<br/>(${errorData.email})` });
-              return;
-            }
-            if (errorData?.phoneExists) {
-              dialog.errorMessage({ text: `匯入失敗，會員電話已存在<br/>(${errorData.phone})` });
-              return;
-            }
-          });
-        } catch (error) {
-          console.error('解析失敗:', error);
-        }
-      }
-    });
-
-    // 觸發點擊事件
-    fileInput.click();
-  }
-
-  static async parseExcelToJson(gvc: GVC, file: File): Promise<any[]> {
-    const XLSX = await this.loadXLSX(gvc);
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-
-      reader.onload = event => {
-        try {
-          const data = new Uint8Array(event.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: 'array' });
-
-          // 取得第一個工作表名稱
-          const sheetName = workbook.SheetNames[0];
-
-          // 取得工作表內容並轉換為 JSON
-          const sheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-          resolve(jsonData);
-        } catch (error) {
-          reject(error);
-        }
-      };
-
-      reader.onerror = error => reject(error);
-
-      reader.readAsArrayBuffer(file);
-    });
+          return html`
+            <div
+              class="d-flex align-items-center w-100 tx_700"
+              style="padding: 12px 0 12px 20px; align-items: center; border-radius: 10px 10px 0px 0px; background: #F2F2F2;"
+            >
+              ${viewData.title}
+            </div>
+            ${viewData.category.options.length > 0
+              ? html`<div class="d-flex flex-column align-items-start gap-2" style="padding: 20px 20px 0px;">
+                  <div class="tx_700">${viewData.category.title}</div>
+                  ${BgWidget.multiCheckboxContainer(
+                    gvc,
+                    viewData.category.options,
+                    [vm.type],
+                    res => {
+                      vm.type = res[0];
+                    },
+                    { single: true }
+                  )}
+                </div>`
+              : ''}
+            <div class="d-flex flex-column w-100 align-items-start gap-3" style="padding: 20px">
+              <div class="d-flex align-items-center gap-2">
+                <div class="tx_700">透過XLSX檔案匯入商品</div>
+                ${BgWidget.blueNote('下載範例', gvc.event(viewData.example.event))}
+              </div>
+              <input
+                class="d-none"
+                type="file"
+                id="upload-excel"
+                onchange="${gvc.event((_, event) => {
+                  vm.fileInput = event.target;
+                  gvc.notifyDataChange(vm.id);
+                })}"
+              />
+              <div
+                class="d-flex flex-column w-100 justify-content-center align-items-center gap-3"
+                style="border: 1px solid #DDD; border-radius: 10px; min-height: 180px;"
+              >
+                ${(() => {
+                  if (vm.fileInput.files && vm.fileInput.files.length > 0) {
+                    return html`
+                      ${BgWidget.customButton({
+                        button: { color: 'snow', size: 'md' },
+                        text: { name: '更換檔案' },
+                        event: gvc.event(() => {
+                          (document.querySelector('#upload-excel') as HTMLInputElement)!.click();
+                        }),
+                      })}
+                      ${BgWidget.grayNote(vm.fileInput.files[0].name)}
+                    `;
+                  } else {
+                    return BgWidget.customButton({
+                      button: { color: 'snow', size: 'md' },
+                      text: { name: '新增檔案' },
+                      event: gvc.event(() => {
+                        (document.querySelector('#upload-excel') as HTMLInputElement)!.click();
+                      }),
+                    });
+                  }
+                })()}
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-3" style="padding-right: 20px; padding-bottom: 20px;">
+              ${BgWidget.cancel(
+                gvc.event(() => {
+                  gvc.glitter.closeDiaLog();
+                })
+              )}
+              ${BgWidget.save(
+                gvc.event(() => {
+                  if (vm.fileInput.files && vm.fileInput.files.length > 0) {
+                    viewData.import.event();
+                  } else {
+                    dialog.infoMessage({ text: '尚未上傳檔案' });
+                  }
+                }),
+                '匯入'
+              )}
+            </div>
+          `;
+        },
+        divCreate: {
+          style: 'border-radius: 10px; background: #FFF; width: 570px; min-height: 360px; max-width: 90%;',
+        },
+      });
+    }, vm.id);
   }
 }

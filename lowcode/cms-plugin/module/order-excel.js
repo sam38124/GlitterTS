@@ -13,18 +13,9 @@ import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { PaymentConfig } from '../../glitter-base/global/payment-config.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { Tool } from '../../modules/tool.js';
+import { Excel } from './excel.js';
 const html = String.raw;
 export class OrderExcel {
-    static loadXLSX(gvc) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const XLSX = yield new Promise((resolve, reject) => {
-                gvc.addMtScript([{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }], () => {
-                    resolve(window.XLSX);
-                }, reject);
-            });
-            return XLSX;
-        });
-    }
     static optionsView(gvc, callback) {
         let columnList = new Set();
         const randomString = BgWidget.getCheckedClass(gvc);
@@ -87,72 +78,7 @@ export class OrderExcel {
             .join('')}
       </div>
     `;
-        return checkboxContainer(this.orderColumns);
-    }
-    static exportDialog(gvc, apiJSON, dataArray) {
-        const vm = {
-            select: 'all',
-            column: [],
-        };
-        const pageType = (() => {
-            const isArchived = apiJSON.archived === 'true';
-            const isShipment = apiJSON.is_shipment;
-            const isPOS = apiJSON.is_pos;
-            if (isShipment && isArchived)
-                return '已封存出貨單';
-            if (isShipment)
-                return '出貨單';
-            if (isArchived && isPOS)
-                return '已封存POS訂單';
-            if (isArchived)
-                return '已封存訂單';
-            if (isPOS)
-                return 'POS訂單';
-            return '訂單';
-        })();
-        BgWidget.settingDialog({
-            gvc,
-            title: '匯出訂單',
-            width: 700,
-            innerHTML: gvc2 => {
-                return html `<div class="d-flex flex-column align-items-start gap-2">
-          <div class="tx_700 mb-2">匯出範圍</div>
-          ${BgWidget.multiCheckboxContainer(gvc2, [
-                    { key: 'all', name: `全部${pageType}` },
-                    { key: 'search', name: '目前搜尋與篩選的結果' },
-                    { key: 'checked', name: `勾選的 ${dataArray.length} 個訂單` },
-                ], [vm.select], (res) => {
-                    vm.select = res[0];
-                }, { single: true })}
-          <div class="tx_700 mb-2">
-            匯出欄位 ${BgWidget.grayNote('＊若勾選商品系列的欄位，將會以訂單商品作為資料列匯出 Excel', 'margin: 4px;')}
-          </div>
-          ${this.optionsView(gvc2, cols => {
-                    vm.column = cols;
-                })}
-        </div>`;
-            },
-            footer_html: gvc2 => {
-                return [
-                    BgWidget.cancel(gvc2.event(() => {
-                        gvc2.glitter.closeDiaLog();
-                    })),
-                    BgWidget.save(gvc2.event(() => {
-                        const dialog = new ShareDialog(gvc.glitter);
-                        if (vm.select === 'checked' && dataArray.length === 0) {
-                            dialog.infoMessage({ text: '請勾選至少一個以上的訂單' });
-                            return;
-                        }
-                        const dataMap = {
-                            search: apiJSON,
-                            checked: Object.assign(Object.assign({}, apiJSON), { id_list: dataArray.map(data => data.id).join(',') }),
-                            all: {},
-                        };
-                        this.export(gvc, dataMap[vm.select], vm.column);
-                    }), '匯出'),
-                ].join('');
-            },
-        });
+        return checkboxContainer(this.headerColumn);
     }
     static export(gvc, apiJSON, column) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -161,12 +87,12 @@ export class OrderExcel {
                 dialog.infoMessage({ text: '請至少勾選一個匯出欄位' });
                 return;
             }
-            const XLSX = yield this.loadXLSX(gvc);
+            const XLSX = yield Excel.loadXLSX(gvc);
             const [shipment_methods, payment_methods] = yield Promise.all([
                 ShipmentConfig.allShipmentMethod(),
                 PaymentConfig.getSupportPayment(true),
             ]);
-            const showLineItems = this.orderColumns['商品'].some(a => column.includes(a));
+            const showLineItems = this.headerColumn['商品'].some(a => column.includes(a));
             const formatDate = (date) => date ? gvc.glitter.ut.dateFormat(new Date(date), 'yyyy-MM-dd hh:mm') : '';
             const getStatusLabel = (status, mapping, defaultLabel = '未知') => { var _a, _b; return (_b = mapping[(_a = status === null || status === void 0 ? void 0 : status.toString()) !== null && _a !== void 0 ? _a : '']) !== null && _b !== void 0 ? _b : defaultLabel; };
             const findMethodName = (key, methods) => { var _a, _b; return (_b = (_a = methods.find(m => m.key === key)) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '未知'; };
@@ -271,28 +197,73 @@ export class OrderExcel {
             });
         });
     }
-    static import(gvc, event) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const input = event.target;
-            if (!input.files || input.files.length === 0)
-                return;
-            const file = input.files[0];
-            const reader = new FileReader();
-            const XLSX = yield this.loadXLSX(gvc);
-            reader.onload = (e) => {
-                if (!e.target)
-                    return;
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                XLSX.utils.sheet_to_json(worksheet);
-            };
-            reader.readAsArrayBuffer(file);
+    static exportDialog(gvc, apiJSON, dataArray) {
+        const vm = {
+            select: 'all',
+            column: [],
+        };
+        const pageType = (() => {
+            const isArchived = apiJSON.archived === 'true';
+            const isShipment = apiJSON.is_shipment;
+            const isPOS = apiJSON.is_pos;
+            if (isShipment && isArchived)
+                return '已封存出貨單';
+            if (isShipment)
+                return '出貨單';
+            if (isArchived && isPOS)
+                return '已封存POS訂單';
+            if (isArchived)
+                return '已封存訂單';
+            if (isPOS)
+                return 'POS訂單';
+            return '訂單';
+        })();
+        BgWidget.settingDialog({
+            gvc,
+            title: '匯出訂單',
+            width: 700,
+            innerHTML: gvc2 => {
+                return html `<div class="d-flex flex-column align-items-start gap-2">
+          <div class="tx_700 mb-2">匯出範圍</div>
+          ${BgWidget.multiCheckboxContainer(gvc2, [
+                    { key: 'all', name: `全部${pageType}` },
+                    { key: 'search', name: '目前搜尋與篩選的結果' },
+                    { key: 'checked', name: `勾選的 ${dataArray.length} 個訂單` },
+                ], [vm.select], (res) => {
+                    vm.select = res[0];
+                }, { single: true })}
+          <div class="tx_700 mb-2">
+            匯出欄位 ${BgWidget.grayNote('＊若勾選商品系列的欄位，將會以訂單商品作為資料列匯出 Excel', 'margin: 4px;')}
+          </div>
+          ${this.optionsView(gvc2, cols => {
+                    vm.column = cols;
+                })}
+        </div>`;
+            },
+            footer_html: gvc2 => {
+                return [
+                    BgWidget.cancel(gvc2.event(() => {
+                        gvc2.glitter.closeDiaLog();
+                    })),
+                    BgWidget.save(gvc2.event(() => {
+                        const dialog = new ShareDialog(gvc.glitter);
+                        if (vm.select === 'checked' && dataArray.length === 0) {
+                            dialog.infoMessage({ text: '請勾選至少一個以上的訂單' });
+                            return;
+                        }
+                        const dataMap = {
+                            search: apiJSON,
+                            checked: Object.assign(Object.assign({}, apiJSON), { id_list: dataArray.map(data => data.id).join(',') }),
+                            all: {},
+                        };
+                        this.export(gvc, dataMap[vm.select], vm.column);
+                    }), '匯出'),
+                ].join('');
+            },
         });
     }
 }
-OrderExcel.orderColumns = {
+OrderExcel.headerColumn = {
     訂單: [
         '訂單編號',
         '訂單來源',

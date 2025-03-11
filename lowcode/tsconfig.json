@@ -20,7 +20,6 @@
     "emitDecoratorMetadata": true
   },
   "include": ["./"],
-  "exclude": ["node_modules", "frontEnd","assets","css","assets/vendor"],
+  "exclude": ["node_modules", "frontEnd", "assets", "css", "assets/vendor"],
   "ts-node": { "files": true }
 }
-
