@@ -259,7 +259,7 @@ export class AutoReply {
                             }).then(() => {
                                 setTimeout(() => {
                                     widget.event('loading', { visible: false });
-                                    widget.event('success', { title: '儲存成功!' });
+                                    widget.event('success', { title: '儲存成功' });
                                 }, 1000);
                             });
                         }

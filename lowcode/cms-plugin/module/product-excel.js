@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { CheckInput } from '../../modules/checkInput.js';
-import { ShoppingProductSetting } from "../shopping-product-setting.js";
+import { ShoppingProductSetting } from '../shopping-product-setting.js';
 export class ProductExcel {
     constructor(gvc, headers, lineName) {
         this.gvc = gvc;
@@ -24,7 +24,7 @@ export class ProductExcel {
         return CheckInput.isEmpty(value) || !CheckInput.isNumberString(`${value}`) ? 0 : value;
     }
     loadScript() {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             if (window.ExcelJS) {
                 this.initExcel();
                 resolve(true);
@@ -42,8 +42,7 @@ export class ProductExcel {
                         this.initExcel();
                         resolve(true);
                     }
-                }, () => {
-                });
+                }, () => { });
             }
         });
     }
@@ -131,7 +130,7 @@ export class ProductExcel {
         return byteLength;
     }
     adjustColumnWidths(sheetData) {
-        const maxLengths = this.headers.map((header) => this.getByteLength(header));
+        const maxLengths = this.headers.map(header => this.getByteLength(header));
         sheetData.forEach((row) => {
             Object.values(row).forEach((value, index) => {
                 const valueLength = this.getByteLength(value);
@@ -151,7 +150,7 @@ export class ProductExcel {
             yield this.loadScript();
             const reader = new FileReader();
             const allProductDomain = yield new Promise((resolve, reject) => {
-                ApiShop.getProductDomain({}).then((data) => {
+                ApiShop.getProductDomain({}).then(data => {
                     if (data.result && data.response.data) {
                         const list = data.response.data.map((item) => {
                             if (item.seo) {
@@ -185,7 +184,7 @@ export class ProductExcel {
                             data.push(rowData);
                         }
                     });
-                    if (data[0][0] === "商品ID") {
+                    if (data[0][0] === '商品ID') {
                         data.map((dd, index) => {
                             id_list.push(dd[0]);
                             data[index] = dd.filter((d1, index) => {
@@ -228,8 +227,8 @@ export class ProductExcel {
                         dialog.dataLoading({ visible: false });
                         if (obj && obj.warningMessageView) {
                             dialog.warningMessage({
-                                text, callback: () => {
-                                }
+                                text,
+                                callback: () => { },
                             });
                         }
                         else {
@@ -331,185 +330,58 @@ export class ProductExcel {
                                     productData.seo.content = this.checkString(row[7]);
                                     productData.product_category = 'kitchen';
                                     productData.specs = [];
-                                    if (data[index + 1] && (!data[index + 1][1])) {
-                                        let ind_ = index + 1;
-                                        while (data[ind_] && (!data[ind_][1])) {
-                                            const row_data = data[ind_];
-                                            const spec_title = this.checkString(row_data[8]);
-                                            const spec_value = this.checkString(row_data[9]);
-                                            if (!productData.specs.find((dd) => {
-                                                return dd.title === spec_title;
-                                            })) {
-                                                productData.specs.push({
-                                                    language_title: {},
-                                                    title: spec_title,
-                                                    option: []
-                                                });
-                                            }
-                                            productData.specs.find((dd) => {
-                                                return dd.title === spec_title;
-                                            }).option.push({
-                                                "title": spec_value,
-                                                "price": parseInt(this.checkNumber(row_data[10]), 10),
-                                                "stock": this.checkNumber(row_data[18]),
-                                                "language_title": {}
-                                            });
-                                            ind_++;
-                                        }
-                                        const shipmentTypeMap = {
-                                            依重量計算: 'weight',
-                                            依材積計算: 'volume',
-                                        };
-                                        productData.shipment_type = shipmentTypeMap[row[11]] || 'none';
-                                        productData.v_length = this.checkNumber(row[12]);
-                                        productData.v_width = this.checkNumber(row[13]);
-                                        productData.v_height = this.checkNumber(row[14]);
-                                        productData.weight = this.checkNumber(row[15]);
-                                        function updateVariants() {
-                                            productData.specs = productData.specs.filter((dd) => {
-                                                return dd.option && dd.option.length;
-                                            });
-                                            const specs = {};
-                                            function getCombinations(specs) {
-                                                const keys = Object.keys(specs);
-                                                const result = [];
-                                                function combine(index, current) {
-                                                    if (index === keys.length) {
-                                                        result.push(Object.assign({}, current));
-                                                        return;
-                                                    }
-                                                    const key = keys[index];
-                                                    for (const value of specs[key]) {
-                                                        current[key] = value;
-                                                        combine(index + 1, current);
-                                                    }
-                                                }
-                                                combine(0, {});
-                                                return result;
-                                            }
-                                            productData.specs.map((dd) => {
-                                                specs[dd.title] = dd.option.map((d1) => {
-                                                    return d1.title;
-                                                });
-                                            });
-                                            const combinations = getCombinations(specs);
-                                            combinations.map((d1) => {
-                                                const spec = productData.specs.map((dd) => {
-                                                    return d1[dd.title];
-                                                });
-                                                if (!productData.variants.find((d2) => {
-                                                    return d2.spec.join('') === spec.join('');
-                                                })) {
-                                                    productData.variants.push({
-                                                        show_understocking: 'true',
-                                                        type: 'variants',
-                                                        sale_price: 0,
-                                                        compare_price: 0,
-                                                        cost: 0,
-                                                        spec: JSON.parse(JSON.stringify(spec)),
-                                                        profit: 0,
-                                                        v_length: 0,
-                                                        v_width: 0,
-                                                        v_height: 0,
-                                                        weight: 0,
-                                                        shipment_type: shipmentTypeMap[row[11]] || 'none',
-                                                        sku: '',
-                                                        barcode: '',
-                                                        stock: 0,
-                                                        stockList: {},
-                                                        preview_image: '',
-                                                    });
-                                                }
-                                            });
-                                            productData.variants = productData.variants.filter((variant) => {
-                                                let pass = true;
-                                                let index = 0;
-                                                for (const b of variant.spec) {
-                                                    if (!productData.specs[index] ||
-                                                        !productData.specs[index].option.find((dd) => {
-                                                            return dd.title === b;
-                                                        })) {
-                                                        pass = false;
-                                                        break;
-                                                    }
-                                                    index++;
-                                                }
-                                                return pass && variant.spec.length === productData.specs.length;
-                                            });
-                                            if (productData.variants.length === 0) {
-                                                productData.variants.push({
-                                                    show_understocking: 'true',
-                                                    type: 'variants',
-                                                    sale_price: 0,
-                                                    compare_price: 0,
-                                                    cost: 0,
-                                                    spec: [],
-                                                    profit: 0,
-                                                    v_length: 0,
-                                                    v_width: 0,
-                                                    v_height: 0,
-                                                    weight: 0,
-                                                    shipment_type: shipmentTypeMap[row[11]] || 'none',
-                                                    sku: '',
-                                                    barcode: '',
-                                                    stock: 0,
-                                                    stockList: {},
-                                                    preview_image: '',
-                                                });
-                                            }
-                                            if (productData.product_category === 'kitchen') {
-                                                if (productData.variants.length > 1) {
-                                                    productData.variants.map((dd) => {
-                                                        var _a, _b, _c, _d;
-                                                        dd.compare_price = 0;
-                                                        dd.sale_price = dd.spec.map((d1, index) => {
-                                                            var _a;
-                                                            return parseInt((_a = productData.specs[index].option.find((d2) => {
-                                                                return d2.title === d1;
-                                                            }).price) !== null && _a !== void 0 ? _a : "0", 10);
-                                                        }).reduce((acc, cur) => acc + cur, 0);
-                                                        dd.weight = parseFloat((_a = productData.weight) !== null && _a !== void 0 ? _a : '0');
-                                                        dd.v_height = parseFloat((_b = productData.v_height) !== null && _b !== void 0 ? _b : '0');
-                                                        dd.v_width = parseFloat((_c = productData.v_width) !== null && _c !== void 0 ? _c : '0');
-                                                        dd.v_length = parseFloat((_d = productData.v_length) !== null && _d !== void 0 ? _d : '0');
-                                                        dd.shipment_type = productData.shipment_type;
-                                                    });
-                                                }
-                                                else {
-                                                    productData.variants.map((dd) => {
-                                                        var _a, _b, _c, _d;
-                                                        dd.weight = parseFloat((_a = productData.weight) !== null && _a !== void 0 ? _a : '0');
-                                                        dd.v_height = parseFloat((_b = productData.v_height) !== null && _b !== void 0 ? _b : '0');
-                                                        dd.v_width = parseFloat((_c = productData.v_width) !== null && _c !== void 0 ? _c : '0');
-                                                        dd.v_length = parseFloat((_d = productData.v_length) !== null && _d !== void 0 ? _d : '0');
-                                                        dd.shipment_type = productData.shipment_type;
-                                                    });
-                                                }
-                                            }
-                                            productData.variants.map((dd) => {
-                                                dd.checked = undefined;
-                                                return dd;
+                                    let first = true;
+                                    let ind_ = index;
+                                    while (first || (data[ind_] && !data[ind_][1])) {
+                                        const row_data = data[ind_];
+                                        const spec_title = this.checkString(row_data[8]);
+                                        const spec_value = this.checkString(row_data[9]);
+                                        if (!productData.specs.find((dd) => {
+                                            return dd.title === spec_title;
+                                        })) {
+                                            productData.specs.push({
+                                                language_title: {},
+                                                title: spec_title,
+                                                option: [],
                                             });
                                         }
-                                        updateVariants();
+                                        productData.specs
+                                            .find((dd) => {
+                                            return dd.title === spec_title;
+                                        })
+                                            .option.push({
+                                            title: spec_value,
+                                            price: parseInt(this.checkNumber(row_data[10]), 10),
+                                            stock: (row[17] == '追蹤') ? this.checkNumber(row_data[18]) : '',
+                                            language_title: {},
+                                        });
+                                        if (first) {
+                                            const shipmentTypeMap = {
+                                                依重量計算: 'weight',
+                                                依材積計算: 'volume',
+                                            };
+                                            productData.shipment_type = shipmentTypeMap[row[11]] || 'none';
+                                            productData.v_length = this.checkNumber(row[12]);
+                                            productData.v_width = this.checkNumber(row[13]);
+                                            productData.v_height = this.checkNumber(row[14]);
+                                            productData.weight = this.checkNumber(row[15]);
+                                            productData.stock = row[17] == '追蹤' ? this.checkNumber(row_data[18]) : 'false';
+                                        }
+                                        first = false;
+                                        ind_++;
                                     }
-                                    else {
-                                        variantData.preview_image = row[4];
-                                        variantData.sale_price = this.checkNumber(row[10]);
-                                        const shipmentTypeMap = {
-                                            依重量計算: 'weight',
-                                            依材積計算: 'volume',
-                                        };
-                                        variantData.shipment_type = shipmentTypeMap[row[11]] || 'none';
-                                        variantData.v_length = this.checkNumber(row[12]);
-                                        variantData.v_width = this.checkNumber(row[13]);
-                                        variantData.v_height = this.checkNumber(row[14]);
-                                        variantData.weight = this.checkNumber(row[15]);
-                                        variantData.show_understocking = row[18] == '追蹤' ? 'true' : 'false';
-                                        variantData.stock = this.checkNumber(row[18]);
-                                        productData.variants.push(JSON.parse(JSON.stringify(variantData)));
-                                        productData.specs = [];
+                                    function updateVariants() {
+                                        productData.specs = productData.specs.filter((dd) => {
+                                            return dd.option && dd.option.length;
+                                        });
+                                        const specs = {};
+                                        productData.specs.map((dd) => {
+                                            specs[dd.title] = dd.option.map((d1) => {
+                                                return d1.title;
+                                            });
+                                        });
                                     }
+                                    updateVariants();
                                 }
                             }
                             else {
@@ -590,7 +462,7 @@ export class ProductExcel {
                                     productData.seo.title = this.checkString(row[6]);
                                     productData.seo.content = this.checkString(row[7]);
                                     let indices = [8, 10, 12];
-                                    indices.forEach((index) => {
+                                    indices.forEach(index => {
                                         if (row[index]) {
                                             productData.specs.push({
                                                 title: row[index],
@@ -640,7 +512,7 @@ export class ProductExcel {
                     });
                     const domainList = postMD
                         .filter((item, index) => {
-                        return (!(id_list)[index]);
+                        return !id_list[index];
                     })
                         .map((item) => {
                         return item.seo.domain;
@@ -668,6 +540,7 @@ export class ProductExcel {
                     dialog.dataLoading({ visible: false });
                     if (!error) {
                         dialog.dataLoading({ visible: true, text: '上傳資料中' });
+                        console.log(`passData=>`, passData);
                         yield ApiShop.postMultiProduct({
                             data: passData,
                             token: window.parent.config.token,
@@ -766,7 +639,7 @@ export class ProductExcel {
             '商品重量',
             '重量單位',
             '庫存政策',
-            '庫存數量'
+            '庫存數量',
         ];
     }
     static exampleHeaderKitchen() {
@@ -836,9 +709,99 @@ export class ProductExcel {
                 '10',
                 'CODE1230',
             ],
-            ['', '', '', '', '', '', '', '', '', '黑色', '', '大型', '', '', 'A00100231', '24000', '35000', '40000', '0', '依重量計算', '', '', '', '110', 'KG', '追蹤', '100', '10', 'CODE1231'],
-            ['', '', '', '', '', '', '', '', '', '棕色', '', '小型', '', '', 'A00100232', '15000', '25000', '30000', '0', '依重量計算', '', '', '', '120', 'KG', '追蹤', '100', '10', 'CODE1232'],
-            ['', '', '', '', '', '', '', '', '', '棕色', '', '大型', '', '', 'A00100233', '24000', '35000', '40000', '0', '依重量計算', '', '', '', '130', 'KG', '追蹤', '100', '10', 'CODE1233'],
+            [
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '黑色',
+                '',
+                '大型',
+                '',
+                '',
+                'A00100231',
+                '24000',
+                '35000',
+                '40000',
+                '0',
+                '依重量計算',
+                '',
+                '',
+                '',
+                '110',
+                'KG',
+                '追蹤',
+                '100',
+                '10',
+                'CODE1231',
+            ],
+            [
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '棕色',
+                '',
+                '小型',
+                '',
+                '',
+                'A00100232',
+                '15000',
+                '25000',
+                '30000',
+                '0',
+                '依重量計算',
+                '',
+                '',
+                '',
+                '120',
+                'KG',
+                '追蹤',
+                '100',
+                '10',
+                'CODE1232',
+            ],
+            [
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '棕色',
+                '',
+                '大型',
+                '',
+                '',
+                'A00100233',
+                '24000',
+                '35000',
+                '40000',
+                '0',
+                '依重量計算',
+                '',
+                '',
+                '',
+                '130',
+                'KG',
+                '追蹤',
+                '100',
+                '10',
+                'CODE1233',
+            ],
             [
                 '商品測試B',
                 '草稿',
@@ -968,7 +931,7 @@ export class ProductExcel {
         };
         const dialog = new ShareDialog(gvc.glitter);
         dialog.dataLoading({ visible: true });
-        ApiShop.getProduct(getFormData).then((response) => {
+        ApiShop.getProduct(getFormData).then(response => {
             const expo = new ProductExcel(gvc, ProductExcel.exampleHeader(), Object.keys(rowInitData));
             let exportData = [];
             response.response.data.forEach((productData) => {
@@ -992,7 +955,8 @@ export class ProductExcel {
                             : '',
                         category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
                         productType: index === 0 ? expo.checkString(ShoppingProductSetting.getProductTypeString(productData.content)) : '',
-                        img: expo.checkString((productData.content.variants[index] && productData.content.variants[index].preview_image) || productData.content.preview_image[0]),
+                        img: expo.checkString((productData.content.variants[index] && productData.content.variants[index].preview_image) ||
+                            productData.content.preview_image[0]),
                         SEO_domain: index === 0 ? expo.checkString((_b = (_a = productData.content) === null || _a === void 0 ? void 0 : _a.seo) === null || _b === void 0 ? void 0 : _b.domain) : '',
                         SEO_title: index === 0 ? expo.checkString((_d = (_c = productData.content) === null || _c === void 0 ? void 0 : _c.seo) === null || _d === void 0 ? void 0 : _d.title) : '',
                         SEO_desc: index === 0 ? expo.checkString((_f = (_e = productData.content) === null || _e === void 0 ? void 0 : _e.seo) === null || _f === void 0 ? void 0 : _f.content) : '',
@@ -1062,7 +1026,7 @@ export class ProductExcel {
         };
         const dialog = new ShareDialog(gvc.glitter);
         dialog.dataLoading({ visible: true });
-        ApiShop.getProduct(getFormData).then((response) => {
+        ApiShop.getProduct(getFormData).then(response => {
             const expo = new ProductExcel(gvc, ProductExcel.exampleKitchen(), Object.keys(rowInitData));
             let exportData = [];
             response.response.data.forEach((productData) => {
@@ -1111,7 +1075,7 @@ export class ProductExcel {
                             weight: expo.checkNumber(productData.weight || 0),
                             weightUnit: expo.checkString(productData.weightUnit || 'KG'),
                             stockPolicy: `${(_h = (_g = productData.content.variants[index]) === null || _g === void 0 ? void 0 : _g.stock) !== null && _h !== void 0 ? _h : ''}` ? '追蹤' : '不追蹤',
-                            stock: expo.checkNumber((_j = productData.content.variants[index]) === null || _j === void 0 ? void 0 : _j.stock)
+                            stock: expo.checkNumber((_j = productData.content.variants[index]) === null || _j === void 0 ? void 0 : _j.stock),
                         });
                     };
                     productData.content.specs.map((dd, index) => {
@@ -1142,7 +1106,8 @@ export class ProductExcel {
                                 : '',
                             category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
                             productType: index === 0 ? expo.checkString(ShoppingProductSetting.getProductTypeString(productData.content)) : '',
-                            img: expo.checkString((productData.content.variants[index] && productData.content.variants[index].preview_image) || productData.content.preview_image[0]),
+                            img: expo.checkString((productData.content.variants[index] && productData.content.variants[index].preview_image) ||
+                                productData.content.preview_image[0]),
                             SEO_domain: index === 0 ? expo.checkString((_b = (_a = productData.content) === null || _a === void 0 ? void 0 : _a.seo) === null || _b === void 0 ? void 0 : _b.domain) : '',
                             SEO_title: index === 0 ? expo.checkString((_d = (_c = productData.content) === null || _c === void 0 ? void 0 : _c.seo) === null || _d === void 0 ? void 0 : _d.title) : '',
                             SEO_desc: index === 0 ? expo.checkString((_f = (_e = productData.content) === null || _e === void 0 ? void 0 : _e.seo) === null || _f === void 0 ? void 0 : _f.content) : '',
@@ -1156,7 +1121,7 @@ export class ProductExcel {
                             weight: expo.checkNumber(((_q = productData.content.variants[index]) === null || _q === void 0 ? void 0 : _q.weight) || 0),
                             weightUnit: expo.checkString(((_r = productData.content.variants[index]) === null || _r === void 0 ? void 0 : _r.weightUnit) || 'KG'),
                             stockPolicy: ((_s = productData.content.variants[index]) === null || _s === void 0 ? void 0 : _s.show_understocking) === 'true' ? '追蹤' : '不追蹤',
-                            stock: expo.checkNumber((_t = productData.content.variants[index]) === null || _t === void 0 ? void 0 : _t.stock)
+                            stock: expo.checkNumber((_t = productData.content.variants[index]) === null || _t === void 0 ? void 0 : _t.stock),
                         });
                     };
                     const rowData = baseRowData(0);

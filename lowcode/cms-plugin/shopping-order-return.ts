@@ -201,8 +201,11 @@ export class ShoppingReturnOrderManager {
                                                     option: true,
                                                     event: () => {
                                                         const dialog = new ShareDialog(gvc.glitter);
+                                                        const action_text=vm.filter_type === 'normal' ? `封存` : `解除封存`
+                                                        // alert((window as any).glitter.getUrlParameter('page'))
                                                         dialog.checkYesOrNot({
-                                                            text: `是否確認${vm.filter_type === 'normal' ? `封存` : `解除封存`}所選項目?`,
+                                                            text: `是否確認${action_text}所選項目?
+                                                            `,
                                                             callback: async (response) => {
                                                                 if (response) {
                                                                     dialog.dataLoading({ visible: true });
@@ -556,7 +559,7 @@ export class ShoppingReturnOrderManager {
                                                     }).then((response) => {
                                                         dialog.dataLoading({ text: '上傳中', visible: false });
                                                         if (response.result) {
-                                                            dialog.successMessage({ text: '更新成功!' });
+                                                            dialog.successMessage({ text: '更新成功' });
                                                             vm.type = 'list';
                                                         } else {
                                                             dialog.errorMessage({ text: '更新異常!' });
@@ -1112,7 +1115,7 @@ export class ShoppingReturnOrderManager {
                                                 dialog.dataLoading({ text: '上傳中', visible: false });
 
                                                 if (response.result) {
-                                                    dialog.successMessage({ text: '更新成功!' });
+                                                    dialog.successMessage({ text: '更新成功' });
                                                     vm.type = 'list';
                                                 } else {
                                                     dialog.errorMessage({ text: '更新異常!' });

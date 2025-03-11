@@ -408,8 +408,12 @@ export class ApiShop {
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': json.app_name || (window.glitter.getUrlParameter('type') === 'find_idea' ? window.appName : encodeURIComponent(getConfig().config.appName)),
-                Authorization: (window.parent.glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) || GlobalUser.token,
+                'g-app': json.app_name ||
+                    (window.glitter.getUrlParameter('type') === 'find_idea'
+                        ? window.appName
+                        : encodeURIComponent(getConfig().config.appName)),
+                Authorization: (window.parent.glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) ||
+                    GlobalUser.token,
             },
         });
     }
@@ -426,8 +430,12 @@ export class ApiShop {
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': json.app_name || (window.glitter.getUrlParameter('type') === 'find_idea' ? window.appName : encodeURIComponent(getConfig().config.appName)),
-                Authorization: (window.parent.glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) || GlobalUser.token,
+                'g-app': json.app_name ||
+                    (window.glitter.getUrlParameter('type') === 'find_idea'
+                        ? window.appName
+                        : encodeURIComponent(getConfig().config.appName)),
+                Authorization: (window.parent.glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) ||
+                    GlobalUser.token,
             },
         });
     }
@@ -436,8 +444,17 @@ export class ApiShop {
             return [];
         let list = [];
         if (obj) {
-            if (obj.created_time && obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
+            if (obj.created_time &&
+                obj.created_time.length > 1 &&
+                (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 &&
+                (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
+            }
+            if (obj.shipment_time &&
+                obj.shipment_time.length > 1 &&
+                (obj === null || obj === void 0 ? void 0 : obj.shipment_time[0].length) > 0 &&
+                (obj === null || obj === void 0 ? void 0 : obj.shipment_time[1].length) > 0) {
+                list.push(`shipment_time=${obj.shipment_time[0]},${obj.shipment_time[1]}`);
             }
             if (obj.shipment && obj.shipment.length > 0) {
                 list.push(`shipment=${obj.shipment.join(',')}`);
@@ -451,6 +468,9 @@ export class ApiShop {
             if (obj.orderStatus && obj.orderStatus.length > 0) {
                 list.push(`orderStatus=${obj.orderStatus.join(',')}`);
             }
+            if (obj.payment_select && obj.payment_select.length > 0) {
+                list.push(`payment_select=${obj.payment_select.join(',')}`);
+            }
         }
         return list;
     }
@@ -459,7 +479,10 @@ export class ApiShop {
             return [];
         let list = [];
         if (obj) {
-            if (obj.created_time && obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
+            if (obj.created_time &&
+                obj.created_time.length > 1 &&
+                (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 &&
+                (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
             }
             if (obj.progress.length > 0) {
@@ -514,14 +537,17 @@ export class ApiShop {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.id_list && par.push(`id_list=${json.id_list}`);
                     json.email && par.push(`email=${json.email}`);
                     json.phone && par.push(`phone=${json.phone}`);
                     json.status && par.push(`status=${json.status}`);
+                    json.valid && par.push(`valid=${json.valid}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`orderString=${json.orderString}`);
                     json.archived && par.push(`archived=${json.archived}`);
                     json.distribution_code && par.push(`distribution_code=${json.distribution_code}`);
                     json.returnSearch && par.push(`returnSearch=${(_a = json.returnSearch) !== null && _a !== void 0 ? _a : 'false'}`);
+                    json.is_shipment && par.push(`is_shipment=${json.is_shipment}`);
                     if (json.is_pos === true || json.is_pos === false) {
                         par.push(`is_pos=${json.is_pos}`);
                     }
@@ -569,6 +595,30 @@ export class ApiShop {
                 'g-app': getConfig().config.appName,
                 Authorization: GlobalUser.token,
             },
+        });
+    }
+    static putVoucher(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/voucher`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: json.token || (json.type === 'manager' ? getConfig().config.token : GlobalUser.token),
+            },
+            data: JSON.stringify(json),
+        });
+    }
+    static postVoucher(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/voucher`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: json.token || (json.type === 'manager' ? getConfig().config.token : GlobalUser.token),
+            },
+            data: JSON.stringify(json),
         });
     }
     static getVoucher(json) {
@@ -638,6 +688,18 @@ export class ApiShop {
             data: JSON.stringify(json),
         });
     }
+    static ecPayBrushOrders(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/ec-pay/payments/brush-back`,
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
     static deleteVoucher(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/voucher?id=${json.id}`,
@@ -692,7 +754,7 @@ export class ApiShop {
                     'Content-Type': 'application/json',
                     'g-app': getConfig().config.appName,
                 },
-            }).then((res) => {
+            }).then(res => {
                 config[`collection-manager`] = res;
                 resolve(res);
             });

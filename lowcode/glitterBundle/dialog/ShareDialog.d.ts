@@ -1,27 +1,31 @@
 import { Glitter } from '../Glitter.js';
-export declare class ShareDialog {
-    dataLoading: (obj: {
-        text?: string;
-        visible: boolean;
-    }) => void;
-    infoMessage: (obj: {
-        text?: string;
-    }) => void;
-    errorMessage: (obj: {
-        text?: string;
-    }) => void;
-    successMessage: (obj: {
-        text?: string;
-    }) => void;
-    warningMessage: (obj: {
-        callback: (response: boolean) => void;
-        text: string;
-    }) => void;
-    checkYesOrNot: (obj: {
-        callback: (response: boolean) => void;
-        text: string;
-        icon?: string;
-    }) => void;
-    policy: () => void;
-    constructor(glitter: Glitter);
+interface DataLoadingOptions {
+    text?: string;
+    visible: boolean;
+    BG?: string;
 }
+interface MessageOptions {
+    text?: string;
+}
+interface ErrorMessageOptions extends MessageOptions {
+    tag?: string;
+    callback?: () => void;
+}
+interface ConfirmDialogOptions {
+    text: string;
+    callback: (response: boolean) => void;
+    icon?: string;
+}
+export declare class ShareDialog {
+    private glitter;
+    dataLoading: (obj: DataLoadingOptions) => void;
+    infoMessage: (obj: MessageOptions) => void;
+    errorMessage: (obj: ErrorMessageOptions) => void;
+    successMessage: (obj: MessageOptions) => void;
+    warningMessage: (obj: ConfirmDialogOptions) => void;
+    checkYesOrNot: (obj: ConfirmDialogOptions) => void;
+    customCheck: (obj: ConfirmDialogOptions) => void;
+    constructor(glitter: Glitter);
+    private openConfirmDialog;
+}
+export {};

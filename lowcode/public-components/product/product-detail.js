@@ -159,7 +159,7 @@ export class ProductDetail {
                         book_mark.push(getCollectionLink(dd));
                     });
                 }
-                return html ` <div class="container mx-auto" style="max-width:1100px;word-break: break-all;white-space: normal;">
+                return html ` <div class="mx-auto pb-5" style="max-width:1100px;word-break: break-all;white-space: normal;">
                     <div class="breadcrumb mb-0 d-flex align-items-center py-3" style="cursor:pointer; gap:10px;">
                         ${book_mark
                     .map((dd) => {

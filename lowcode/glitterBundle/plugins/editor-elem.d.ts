@@ -29,6 +29,8 @@ export declare class EditorElem {
         placeHolder: string;
         callback: (text: string) => void;
         readonly?: boolean;
+        min_height?: number;
+        max_height?: number;
     }): string;
     static styleEditor(obj: {
         gvc: GVC;
@@ -84,9 +86,17 @@ export declare class EditorElem {
     static richText(obj: {
         gvc: GVC;
         def: string;
+        hiddenBorder?: boolean;
+        setHeight?: string;
+        insertImageEvent?: (editor: any) => void;
+        quick_insert?: {
+            title: string;
+            value: string;
+        }[];
         callback: (text: string) => void;
         style?: string;
         readonly?: boolean;
+        rich_height?: string;
     }): string;
     static richTextBtn(obj: {
         gvc: GVC;
@@ -109,6 +119,7 @@ export declare class EditorElem {
         type?: string;
         file?: File;
         multiple?: boolean;
+        return_array?: boolean;
     }): void;
     static uploadVideo(obj: {
         title: string;
@@ -187,7 +198,15 @@ export declare class EditorElem {
         unit?: string;
         readonly?: boolean;
     }): string;
+    static floatInterval(obj: {
+        gvc: GVC;
+        num: number | string;
+        min?: number;
+        max?: number;
+        precision?: number;
+    }): number;
     static numberInterval(obj: {
+        gvc: GVC;
         num: number | string;
         min?: number;
         max?: number;
@@ -205,6 +224,12 @@ export declare class EditorElem {
         style?: string;
         class?: string;
         readonly?: boolean;
+    }): string;
+    static colorBtn(obj: {
+        gvc: GVC;
+        def: string;
+        style?: string;
+        callback: (text: string) => void;
     }): string;
     static select(obj: {
         title: string;
@@ -237,6 +262,7 @@ export declare class EditorElem {
         def: boolean;
         callback: (result: boolean) => void;
         style?: string;
+        stopChangeView?: boolean;
     }): string;
     static radio(obj: {
         title: string;

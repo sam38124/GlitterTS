@@ -20,312 +20,403 @@ import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { imageLibrary } from '../../modules/image-library.js';
 export class Setting_editor {
     static left(gvc, viewModel, createID, gBundle) {
-        const html = String.raw;
-        const glitter = gvc.glitter;
-        if (!glitter.getUrlParameter('tab')) {
-            glitter.setUrlParameter('tab', 'home_page');
-        }
-        glitter.share.checkData = () => {
-            return true;
-        };
-        return gvc.bindView(() => {
-            const id = glitter.getUUID();
-            let initial = false;
-            let loading = true;
-            let permissionTitle = '';
-            let permissionData = {};
-            let items = [];
-            let menuItems = this.menuItems();
-            if (window.memberType === 'noLimit') {
-                menuItems = menuItems.concat(this.noLimitMenuItems());
+        return __awaiter(this, void 0, void 0, function* () {
+            const html = String.raw;
+            const glitter = gvc.glitter;
+            if (!glitter.getUrlParameter('tab')) {
+                glitter.setUrlParameter('tab', 'home_page');
             }
-            menuItems.map((dd, index) => {
-                if (dd.page === glitter.getUrlParameter('tab')) {
-                    Storage.select_item = index;
+            glitter.share.checkData = () => {
+                return true;
+            };
+            const userPlan = GlobalUser.getPlan().id;
+            return gvc.bindView(() => {
+                const id = glitter.getUUID();
+                let initial = false;
+                let loading = true;
+                let permissionTitle = '';
+                let permissionData = {};
+                let items = [];
+                let menuItems = this.menuItems();
+                menuItems = menuItems.filter(item => {
+                    if ([
+                        'third-party-line',
+                        'third-party-facebook',
+                        'third-party-google',
+                        'manual_send',
+                        'send_mail',
+                        'send_mail_history',
+                        'Sns_manual_send',
+                        'send_sns',
+                        'send_sns_history',
+                        'line_manual_send',
+                        'send_line',
+                        'send_line_history',
+                        'blog_global_setting',
+                        'blog_tag_setting',
+                        'blog_manager',
+                        'rebate_setting',
+                        'rebate_activity',
+                        'hidden-shop',
+                        'single-shop',
+                        'line_auto_send',
+                    ].includes(item.page)) {
+                        return userPlan > 0;
+                    }
+                    if ([
+                        'permission_setting',
+                        'member_level',
+                        'member_group',
+                        'distribution_list',
+                        'distribution_users',
+                        'fb_live',
+                        'ig_live',
+                        'line_plus',
+                        'market-shopee',
+                    ].includes(item.page)) {
+                        return userPlan > 1;
+                    }
+                    if (['app-design', 'app-upload', 'cloud_subscrible', 'notify_message_list'].includes(item.page)) {
+                        return userPlan > 2;
+                    }
+                    return true;
+                });
+                if (window.memberType === 'noLimit') {
+                    menuItems = menuItems.concat(this.noLimitMenuItems());
                 }
-            });
-            ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
-                if (res.response.result && res.response.result[0]) {
-                    items = res.response.result[0].value;
-                }
-                items = items.filter((dd) => dd);
-                items.map((d1) => {
-                    if (!menuItems.find((dd) => {
-                        return `${dd.appName}-${dd.page}` === `${d1.appName}-${d1.page}`;
-                    })) {
-                        menuItems.push(d1);
+                menuItems.map((dd, index) => {
+                    if (dd.page === glitter.getUrlParameter('tab')) {
+                        Storage.select_item = index;
                     }
                 });
-                items = menuItems;
-                if (parseInt(Storage.select_item, 10) >= items.length) {
-                    Storage.select_item = '0';
-                }
-                new Promise((resolve, reject) => {
-                    ApiUser.getPermission({
-                        page: 0,
-                        limit: 1000,
-                    }).then((data) => {
-                        if (data.result) {
-                            const find_dd = data.response.data.find((dd) => {
-                                return `${dd.user}` === `${GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID}` && dd.id !== -1;
-                            });
-                            permissionTitle = find_dd ? `employee` : data.response.store_permission_title;
-                            permissionData = find_dd !== null && find_dd !== void 0 ? find_dd : { config: { auth: [] } };
-                            resolve();
-                        }
-                        else {
-                            reject();
+                ApiPageConfig.getPrivateConfigV2('backend_list').then(res => {
+                    if (res.response.result && res.response.result[0]) {
+                        items = res.response.result[0].value;
+                    }
+                    items = items.filter((dd) => dd);
+                    items.map((d1) => {
+                        if (!menuItems.find((dd) => {
+                            return `${dd.appName}-${dd.page}` === `${d1.appName}-${d1.page}`;
+                        })) {
+                            menuItems.push(d1);
                         }
                     });
-                }).then(() => {
-                    loading = false;
-                    removeInvoice();
-                    gvc.notifyDataChange(id);
-                });
-            });
-            function removeInvoice() {
-                ApiPageConfig.getPrivateConfigV2('invoice_setting').then((res) => {
-                    if (res.response.result[0].value.fincial == 'off_line') {
-                        items = items.filter((dd) => {
-                            return dd.page != 'invoice_list' && dd.page != 'allowance_list';
-                        });
-                        gvc.notifyDataChange(id);
+                    items = menuItems;
+                    if (parseInt(Storage.select_item, 10) >= items.length) {
+                        Storage.select_item = '0';
                     }
+                    new Promise((resolve, reject) => {
+                        ApiUser.getPermission({
+                            page: 0,
+                            limit: 1000,
+                        }).then(data => {
+                            if (data.result) {
+                                const find_dd = data.response.data.find((dd) => {
+                                    return `${dd.user}` === `${GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID}` && dd.id !== -1;
+                                });
+                                permissionTitle = find_dd ? `employee` : data.response.store_permission_title;
+                                permissionData = find_dd !== null && find_dd !== void 0 ? find_dd : { config: { auth: [] } };
+                                resolve();
+                            }
+                            else {
+                                reject();
+                            }
+                        });
+                    }).then(() => {
+                        loading = false;
+                        removeInvoice();
+                        gvc.notifyDataChange(id);
+                    });
                 });
-            }
-            return {
-                bind: id,
-                view: () => {
-                    Storage.select_bg_btn = 'custom';
-                    return html `
+                function removeInvoice() {
+                    ApiPageConfig.getPrivateConfigV2('invoice_setting').then(res => {
+                        if (res.response.result[0].value.fincial == 'off_line') {
+                            items = items.filter((dd) => {
+                                return dd.page != 'invoice_list' && dd.page != 'allowance_list';
+                            });
+                            gvc.notifyDataChange(id);
+                        }
+                    });
+                }
+                return {
+                    bind: id,
+                    view: () => {
+                        Storage.select_bg_btn = 'custom';
+                        return html `
                         <div
                             class="d-flex p-3 bg-white border-bottom align-items-end d-lg-none"
-                            style="${parseInt(glitter.share.top_inset, 10) ? `padding-top:${glitter.share.top_inset}px !important;` : ``}"
+                            style="${parseInt(glitter.share.top_inset, 10)
+                            ? `padding-top:${glitter.share.top_inset}px !important;`
+                            : ``}"
                         >
-                            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg" />
-                            <span class="ms-1" style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
+                            <img style="height: 24px;" src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg" />
+                            <span class="ms-1"
+                                  style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
                         </div>
-                        <div class="w-100 bg-white" style="overflow-y:auto; ${document.body.offsetWidth > 768 ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;` : ''}">
+                        <div
+                            class="w-100 bg-white"
+                            style="overflow-y:auto; ${document.body.offsetWidth > 768
+                            ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;`
+                            : ''}"
+                        >
                             ${(() => {
-                        if (loading) {
-                            return BgWidget.spinner({ text: { visible: false } });
-                        }
-                        function renderHTML(items) {
-                            const authConfig = permissionData.config.auth;
-                            let list = [];
-                            function click_item(index) {
-                                return __awaiter(this, void 0, void 0, function* () {
-                                    if (glitter.share.checkData && !glitter.share.checkData()) {
-                                        const dialog = new ShareDialog(glitter);
-                                        const result = yield new Promise((resolve, reject) => {
-                                            dialog.checkYesOrNot({
-                                                text: '尚未儲存內容，是否確認跳轉?',
-                                                callback: (response) => {
-                                                    resolve(response);
-                                                },
+                            if (loading) {
+                                return BgWidget.spinner({ text: { visible: false } });
+                            }
+                            function renderHTML(items) {
+                                const authConfig = permissionData.config.auth;
+                                let list = [];
+                                function click_item(index) {
+                                    return __awaiter(this, void 0, void 0, function* () {
+                                        if (glitter.share.checkData && !glitter.share.checkData()) {
+                                            const dialog = new ShareDialog(glitter);
+                                            const result = yield new Promise((resolve, reject) => {
+                                                dialog.checkYesOrNot({
+                                                    text: '尚未儲存內容，是否確認跳轉?',
+                                                    callback: response => {
+                                                        resolve(response);
+                                                    },
+                                                });
                                             });
-                                        });
-                                        if (!result) {
-                                            return false;
+                                            if (!result) {
+                                                return false;
+                                            }
                                         }
-                                    }
-                                    glitter.share.checkData = () => {
-                                        return true;
-                                    };
-                                    const itemPage = items[parseInt(index)].page;
-                                    const page = permissionTitle === 'employee' && !getCRUD(itemPage).read ? 'noPermission' : itemPage;
-                                    if (['page_layout', 'dev_mode'].indexOf(page) !== -1) {
-                                        const url = new URL(location.href);
-                                        if (page === 'page_layout') {
-                                            url.searchParams.set('function', 'user-editor');
+                                        glitter.share.checkData = () => {
+                                            return true;
+                                        };
+                                        const itemPage = items[parseInt(index)].page;
+                                        const page = permissionTitle === 'employee' && !getCRUD(itemPage).read ? 'noPermission' : itemPage;
+                                        if (['page_layout', 'dev_mode'].indexOf(page) !== -1) {
+                                            const url = new URL(location.href);
+                                            if (page === 'page_layout') {
+                                                url.searchParams.set('function', 'user-editor');
+                                            }
+                                            else {
+                                                Storage.view_type = 'col3';
+                                                url.searchParams.set('function', 'page-editor');
+                                            }
+                                            location.href = url.href;
                                         }
                                         else {
-                                            Storage.view_type = 'col3';
-                                            url.searchParams.set('function', 'page-editor');
+                                            Storage.select_item = index;
+                                            window.editerData = undefined;
+                                            glitter.setUrlParameter('tab', page);
+                                            const url = new URL('./' + page, glitter.root_path);
+                                            url.searchParams.set('appName', items[parseInt(index)].appName);
+                                            url.searchParams.set('cms', 'true');
+                                            url.searchParams.set('page', page);
+                                            gvc.notifyDataChange('top-notice');
+                                            $('#editerCenter').html(html `
+                                                    <iframe src="${url.href}"
+                                                            style="border: none;height: calc(100%);"></iframe>`);
                                         }
-                                        location.href = url.href;
+                                        return true;
+                                    });
+                                }
+                                items
+                                    .filter((dd) => {
+                                    if (window.memberType === 'noLimit') {
+                                        return true;
                                     }
                                     else {
-                                        Storage.select_item = index;
-                                        window.editerData = undefined;
-                                        glitter.setUrlParameter('tab', page);
-                                        const url = new URL('./' + page, glitter.root_path);
-                                        url.searchParams.set('appName', items[parseInt(index)].appName);
-                                        url.searchParams.set('cms', 'true');
-                                        url.searchParams.set('page', page);
-                                        gvc.notifyDataChange('top-notice');
-                                        $('#editerCenter').html(html ` <iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
+                                        return ['code_info', 'web_hook_checkout', 'template_upload'].indexOf(dd.page) === -1;
                                     }
-                                    return true;
-                                });
-                            }
-                            items
-                                .filter((dd) => {
-                                if (window.memberType === 'noLimit') {
-                                    return true;
-                                }
-                                else {
-                                    return ['code_info', 'web_hook_checkout', 'template_upload'].indexOf(dd.page) === -1;
-                                }
-                            })
-                                .map((dd, index) => {
-                                let container = list;
-                                const group = dd.group.split('/');
-                                if (dd.group) {
-                                    group.map((d3) => {
-                                        if (!container.find((dd) => dd.title === d3)) {
-                                            container.push({
-                                                type: 'container',
-                                                title: d3,
-                                                child: [],
-                                                toggle: false,
-                                                icon: dd.groupIcon,
+                                })
+                                    .map((dd, index) => {
+                                    let container = list;
+                                    const group = dd.group.split('/');
+                                    if (dd.group) {
+                                        group.map((d3) => {
+                                            if (!container.find((dd) => dd.title === d3)) {
+                                                container.push({
+                                                    type: 'container',
+                                                    title: d3,
+                                                    child: [],
+                                                    toggle: false,
+                                                    icon: dd.groupIcon,
+                                                });
+                                            }
+                                            if (Storage.select_item === `${index}`) {
+                                                container.find((dd) => {
+                                                    return dd.title === d3 && dd.type === 'container';
+                                                }).toggle = true;
+                                            }
+                                            container = container.find((dd) => {
+                                                return dd.title === d3 && dd.type === 'container';
+                                            }).child;
+                                        });
+                                        if (dd.groupIcon) {
+                                            items
+                                                .filter((d2) => {
+                                                return d2.group === dd.group;
+                                            })
+                                                .map((d1) => {
+                                                d1.groupIcon = dd.groupIcon;
                                             });
                                         }
-                                        if (Storage.select_item === `${index}`) {
-                                            container.find((dd) => {
-                                                return dd.title === d3 && dd.type === 'container';
-                                            }).toggle = true;
+                                    }
+                                    if (glitter.getUrlParameter('tab') === dd.page && !initial) {
+                                        initial = true;
+                                        if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
+                                            Storage.select_item = `5`;
+                                            click_item(Storage.select_item);
                                         }
-                                        container = container.find((dd) => {
-                                            return dd.title === d3 && dd.type === 'container';
-                                        }).child;
+                                        else {
+                                            click_item(index);
+                                        }
+                                    }
+                                    container.push({
+                                        title: dd.title,
+                                        index: index,
+                                        info: dd,
+                                        toggle: glitter.getUrlParameter('tab') === dd.page,
                                     });
-                                    if (dd.groupIcon) {
-                                        items
-                                            .filter((d2) => {
-                                            return d2.group === dd.group;
-                                        })
-                                            .map((d1) => {
-                                            d1.groupIcon = dd.groupIcon;
-                                        });
-                                    }
-                                }
-                                if (glitter.getUrlParameter('tab') === dd.page && !initial) {
-                                    initial = true;
-                                    if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
-                                        Storage.select_item = `5`;
-                                        click_item(Storage.select_item);
-                                    }
-                                    else {
-                                        click_item(index);
-                                    }
-                                }
-                                container.push({
-                                    title: dd.title,
-                                    index: index,
-                                    info: dd,
-                                    toggle: glitter.getUrlParameter('tab') === dd.page,
                                 });
-                            });
-                            function refreshContainer() {
-                                gvc.notifyDataChange(id);
-                            }
-                            list.map((dd, index) => {
-                                if (dd.type === 'container' && dd.child.length == 1) {
-                                    dd.child[0].icon = dd.icon;
-                                    list[index] = dd.child[0];
+                                function refreshContainer() {
+                                    gvc.notifyDataChange(id);
                                 }
-                            });
-                            function getCRUD(page) {
-                                const data = authConfig.find((item) => item.key === page);
-                                return data ? data.value : { read: false };
-                            }
-                            function renderItem(list) {
-                                return gvc.bindView(() => {
-                                    const id = gvc.glitter.getUUID();
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            return list
-                                                .map((dd, index) => {
-                                                var _a, _b;
-                                                if (permissionTitle === 'employee') {
-                                                    if (dd.child) {
-                                                        if (!dd.child.some((item) => getCRUD(item.info.page).read)) {
-                                                            return '';
+                                list.map((dd, index) => {
+                                    if (dd.type === 'container' && dd.child.length == 1) {
+                                        dd.child[0].icon = dd.icon;
+                                        list[index] = dd.child[0];
+                                    }
+                                });
+                                function getCRUD(page) {
+                                    const data = authConfig.find((item) => item.key === page);
+                                    return data ? data.value : { read: false };
+                                }
+                                function renderItem(list) {
+                                    return gvc.bindView(() => {
+                                        const id = gvc.glitter.getUUID();
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return list
+                                                    .map((dd, index) => {
+                                                    var _a, _b;
+                                                    if (permissionTitle === 'employee') {
+                                                        if (dd.child) {
+                                                            if (!dd.child.some((item) => getCRUD(item.info.page).read)) {
+                                                                return '';
+                                                            }
+                                                        }
+                                                        else {
+                                                            if (!getCRUD(dd.info.page).read) {
+                                                                return '';
+                                                            }
                                                         }
                                                     }
-                                                    else {
-                                                        if (!getCRUD(dd.info.page).read) {
-                                                            return '';
-                                                        }
-                                                    }
-                                                }
-                                                return html `
-                                                                ${dd.title === '品牌官網' ? html `<div class="my-4 border-top"></div>` : ``}
+                                                    return html `
+                                                                ${dd.title === '品牌官網' ? html `
+                                                                    <div class="my-4 border-top"></div>` : ``}
                                                                 <li>
                                                                     <div
                                                                         class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 ${(_b = (_a = dd === null || dd === void 0 ? void 0 : dd.info) === null || _a === void 0 ? void 0 : _a.guideClass) !== null && _b !== void 0 ? _b : ''} ${dd.type === 'container' ? `mainRow${index}` : ''}"
-                                                                        style="gap:7px; color:#393939; ${dd.toggle ? `border-radius: 5px; background: #F2F2F2;` : ``}"
+                                                                        style="gap:7px; color:#393939; ${dd.toggle
+                                                        ? `border-radius: 5px; background: #F2F2F2;`
+                                                        : ``}"
                                                                         onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
-                                                    try {
-                                                        if (items[parseInt(dd.index)].page === 'image_manager') {
-                                                            imageLibrary.selectImageLibrary(gvc, (urlArray) => { }, html ` <div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
-                                                                                            圖片庫
-                                                                                        </div>`, { mul: true }, true);
-                                                            return;
-                                                        }
-                                                    }
-                                                    catch (e) { }
-                                                    gvc.glitter.setUrlParameter('page-id');
-                                                    if (dd.type === 'container') {
-                                                        list.forEach((item, index2) => {
-                                                            if (index !== index2) {
-                                                                item.toggle = false;
+                                                        try {
+                                                            if (items[parseInt(dd.index)].page === 'image_manager') {
+                                                                imageLibrary.selectImageLibrary(gvc, urlArray => {
+                                                                }, html `
+                                                                                            <div
+                                                                                                class="d-flex flex-column"
+                                                                                                style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                                                                            >
+                                                                                                圖片庫
+                                                                                            </div>`, { mul: true }, true);
+                                                                return;
                                                             }
-                                                        });
-                                                        dd.toggle = !dd.toggle;
-                                                        gvc.notifyDataChange(id);
-                                                    }
-                                                    else {
-                                                        if (items[parseInt(dd.index)].page === 'app-design') {
-                                                            localStorage.setItem('lastSelect', '');
-                                                            localStorage.setItem('ViewType', 'mobile');
-                                                            glitter.share.switch_to_web_builder('index-mobile', 'mobile');
-                                                            return;
                                                         }
-                                                        if ((yield click_item(dd.index)) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
-                                                            dd.toggle = true;
-                                                            refreshContainer();
+                                                        catch (e) {
                                                         }
-                                                        glitter.closeDrawer();
-                                                    }
-                                                }))}"
+                                                        gvc.glitter.setUrlParameter('page-id');
+                                                        if (dd.type === 'container') {
+                                                            list.forEach((item, index2) => {
+                                                                if (index !== index2) {
+                                                                    item.toggle = false;
+                                                                }
+                                                            });
+                                                            dd.toggle = !dd.toggle;
+                                                            gvc.notifyDataChange(id);
+                                                        }
+                                                        else {
+                                                            if (items[parseInt(dd.index)].page === 'app-design') {
+                                                                localStorage.setItem('lastSelect', '');
+                                                                localStorage.setItem('ViewType', 'mobile');
+                                                                glitter.share.switch_to_web_builder('index-mobile', 'mobile');
+                                                                return;
+                                                            }
+                                                            const url = new URL(location.href);
+                                                            url.searchParams.forEach((_, key) => {
+                                                                if (!['type', 'appName', 'function', 'tab'].includes(key)) {
+                                                                    glitter.setUrlParameter(key);
+                                                                }
+                                                            });
+                                                            if ((yield click_item(dd.index)) &&
+                                                                ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
+                                                                dd.toggle = true;
+                                                                refreshContainer();
+                                                            }
+                                                            glitter.closeDrawer();
+                                                        }
+                                                    }))}"
                                                                     >
-                                                                        ${dd.icon ? html `<img src="${dd.icon}" style="width:18px;height:18px;" />` : ``}
+                                                                        ${dd.icon ? html `<img src="${dd.icon}"
+                                                                                              style="width:18px;height:18px;" />` : ``}
                                                                         <span>${dd.title}</span>
                                                                         <div class="flex-fill"></div>
                                                                         ${dd.type === 'container'
-                                                    ? !dd.toggle
-                                                        ? html ` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
-                                                        : html ` <i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                    : html ` ${dd.info && dd.info.icon ? html `<img src="${dd.info.icon}" style="width:18px;height:18px;" />` : ``} `}
+                                                        ? !dd.toggle
+                                                            ? html `
+                                                                                    <i class="fa-regular fa-angle-right hoverBtn me-1"
+                                                                                       aria-hidden="true"></i>
+                                                                                `
+                                                            : html ` <i
+                                                                                    class="fa-regular fa-angle-down hoverBtn me-1"
+                                                                                    aria-hidden="true"
+                                                                                ></i>`
+                                                        : html `
+                                                                                ${dd.info && dd.info.icon
+                                                            ? html `<img src="${dd.info.icon}"
+                                                                                                style="width:18px;height:18px;" />`
+                                                            : ``}
+                                                                            `}
                                                                     </div>
-                                                                    ${dd.type === 'container' ? html ` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItem(dd.child)}</div>` : ``}
+                                                                    ${dd.type === 'container'
+                                                        ? html `
+                                                                            <div
+                                                                                class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">
+                                                                                ${renderItem(dd.child)}
+                                                                            </div>`
+                                                        : ``}
                                                                 </li>
                                                             `;
-                                            })
-                                                .join('<div class="my-1"></div>');
-                                        },
-                                        divCreate: {
-                                            elem: 'ul',
-                                            class: `m-0 `,
-                                            option: [
-                                                {
-                                                    key: 'id',
-                                                    value: id,
-                                                },
-                                            ],
-                                        },
-                                        onCreate: () => { },
-                                    };
-                                });
+                                                })
+                                                    .join('<div class="my-1"></div>');
+                                            },
+                                            divCreate: {
+                                                elem: 'ul',
+                                                class: `m-0 `,
+                                                option: [
+                                                    {
+                                                        key: 'id',
+                                                        value: id,
+                                                    },
+                                                ],
+                                            },
+                                            onCreate: () => {
+                                            },
+                                        };
+                                    });
+                                }
+                                return html `
+                                        <div class="p-2">${renderItem(list)}</div>`;
                             }
-                            return html ` <div class="p-2">${renderItem(list)}</div>`;
-                        }
-                        return renderHTML(items);
-                    })()}
+                            return renderHTML(items);
+                        })()}
                         </div>
                         <div
                             class="bg-white w-100 align-items-center d-flex editor_item_title start-0 z-index-9 ps-2 border-bottom border-top position-absolute bottom-0 border-end d-none"
@@ -335,18 +426,19 @@ export class Setting_editor {
                                 class="hoverBtn d-flex align-items-center justify-content-center   border  me-2"
                                 style="height:30px;width:30px;border-radius:5px;cursor:pointer;color:#151515;"
                                 onclick="${gvc.event(() => {
-                        Setting_editor.addPlugin(gvc, () => {
-                            gvc.notifyDataChange(id);
-                        });
-                    })}"
+                            Setting_editor.addPlugin(gvc, () => {
+                                gvc.notifyDataChange(id);
+                            });
+                        })}"
                             >
                                 <i class="fa-solid fa-puzzle-piece-simple" aria-hidden="true"></i>
                             </div>
                         </div>
                     `;
-                },
-                divCreate: { style: `` },
-            };
+                    },
+                    divCreate: { style: `` },
+                };
+            });
         });
     }
     static addPlugin(gvc, callback) {
@@ -370,7 +462,8 @@ export class Setting_editor {
                     view: () => {
                         return html `
                             <div class="position-relative bgf6 d-flex align-items-center p-2 border-bottom shadow">
-                                <span class="fs-6 fw-bold " style="color:black;">${updateModel ? `插件設定` : '新增插件'}</span>
+                                <span class="fs-6 fw-bold "
+                                      style="color:black;">${updateModel ? `插件設定` : '新增插件'}</span>
                                 <div class="flex-fill"></div>
                                 <button
                                     class="btn btn-primary-c ${updateModel ? `d-none` : ``}"
@@ -390,16 +483,19 @@ export class Setting_editor {
                                 title: '標題',
                                 default: postMd.title,
                                 placeHolder: '請輸入插件標題',
-                                callback: (text) => {
+                                callback: text => {
                                     postMd.title = text;
                                 },
                             }),
                             EditorElem.searchInput({
                                 gvc: gvc,
                                 title: html `群組分類
-                                            <div class="alert alert-info p-2 mt-2 fs-base fw-500 mb-0" style="word-break: break-all;white-space:normal">
-                                                加入 / 進行分類:<br />例如:頁面/登入/註冊設定
-                                            </div>`,
+                                        <div
+                                            class="alert alert-info p-2 mt-2 fs-base fw-500 mb-0"
+                                            style="word-break: break-all;white-space:normal"
+                                        >
+                                            加入 / 進行分類:<br />例如:頁面/登入/註冊設定
+                                        </div>`,
                                 def: postMd.group,
                                 array: (() => {
                                     let array = [];
@@ -413,7 +509,7 @@ export class Setting_editor {
                                     return array;
                                 })(),
                                 placeHolder: '請輸入群組分類',
-                                callback: (text) => {
+                                callback: text => {
                                     postMd.group = text;
                                     if (items.find((dd) => {
                                         return dd.group === text && dd.groupIcon;
@@ -429,7 +525,7 @@ export class Setting_editor {
                                 title: '群組ICON',
                                 gvc: gvc,
                                 def: postMd.groupIcon || '',
-                                callback: (icon) => {
+                                callback: icon => {
                                     postMd.groupIcon = icon;
                                 },
                             }),
@@ -470,16 +566,21 @@ export class Setting_editor {
             view: (() => {
                 const viewComponent = {
                     add_plus: (title, event) => {
-                        return html ` <div class="w-100 fw-500 d-flex align-items-center justify-content-center fs-6 hoverBtn h_item border rounded" style="gap:5px;color:#3366BB;" onclick="${event}">
-                            <i class="fa-solid fa-plus"></i>
-                            <span>${title}</span>
-                        </div>`;
+                        return html `
+                            <div
+                                class="w-100 fw-500 d-flex align-items-center justify-content-center fs-6 hoverBtn h_item border rounded"
+                                style="gap:5px;color:#3366BB;"
+                                onclick="${event}"
+                            >
+                                <i class="fa-solid fa-plus"></i>
+                                <span>${title}</span>
+                            </div>`;
                     },
                 };
                 return gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     let select = '';
-                    ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
+                    ApiPageConfig.getPrivateConfigV2('backend_list').then(res => {
                         res.response.result[0] && (items = res.response.result[0].value);
                         items = items.filter((dd) => dd);
                         gvc.notifyDataChange(id);
@@ -547,18 +648,26 @@ export class Setting_editor {
                                                             >
                                                                 ${dd.type === 'container'
                                                     ? !dd.toggle
-                                                        ? html ` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
-                                                        : html `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                    : html ` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
+                                                        ? html ` <i
+                                                                            class="fa-regular fa-angle-right hoverBtn me-1"
+                                                                            aria-hidden="true"></i> `
+                                                        : html `<i
+                                                                            class="fa-regular fa-angle-down hoverBtn me-1"
+                                                                            aria-hidden="true"></i>`
+                                                    : html `
+                                                                        ${dd.info && dd.info.icon
+                                                        ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">`
+                                                        : ``}
+                                                                    `}
                                                                 ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
                                                                 <span>${dd.title}</span>
                                                                 <div class="flex-fill"></div>
                                                                 ${dd.type === 'container'
                                                     ? ``
                                                     : html `
-                                                                          <i
-                                                                              class="fa-solid fa-pencil text-black hoverBtn me-2 child"
-                                                                              onclick="${gvc.event(() => {
+                                                                        <i
+                                                                            class="fa-solid fa-pencil text-black hoverBtn me-2 child"
+                                                                            onclick="${gvc.event(() => {
                                                         select = dd.info;
                                                         NormalPageEditor.toggle({
                                                             visible: true,
@@ -566,13 +675,13 @@ export class Setting_editor {
                                                             title: dd.title,
                                                         });
                                                     })}"
-                                                                          ></i>
-                                                                          <i
-                                                                              class="fa-sharp fa-solid fa-trash-can text-black hoverBtn me-2 child"
-                                                                              onclick="${gvc.event(() => {
+                                                                        ></i>
+                                                                        <i
+                                                                            class="fa-sharp fa-solid fa-trash-can text-black hoverBtn me-2 child"
+                                                                            onclick="${gvc.event(() => {
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.checkYesOrNot({
-                                                            callback: (response) => {
+                                                            callback: response => {
                                                                 if (response) {
                                                                     items = items.filter((d2, index) => {
                                                                         return index !== dd.index;
@@ -589,11 +698,16 @@ export class Setting_editor {
                                                             text: '是否確認刪除插件?',
                                                         });
                                                     })}"
-                                                                          ></i>
-                                                                      `}
+                                                                        ></i>
+                                                                    `}
                                                                 <i class="fa-solid fa-grip-dots-vertical"></i>
                                                             </div>
-                                                            ${dd.type === 'container' ? html ` <div class="ps-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>` : ``}
+                                                            ${dd.type === 'container'
+                                                    ? html `
+                                                                    <div class="ps-2 ${dd.toggle ? `` : `d-none`}">
+                                                                        ${renderItems(dd.child)}
+                                                                    </div>`
+                                                    : ``}
                                                         </li>
                                                     `;
                                             })
@@ -618,7 +732,8 @@ export class Setting_editor {
                                             Sortable.create(document.getElementById(id), {
                                                 group: gvc.glitter.getUUID(),
                                                 animation: 100,
-                                                onChange: function (evt) { },
+                                                onChange: function (evt) {
+                                                },
                                                 onEnd: (evt) => {
                                                     let changeItemStart = 0;
                                                     let changeItemEnd = 0;
@@ -663,7 +778,7 @@ export class Setting_editor {
                                 ApiPageConfig.setPrivateConfigV2({
                                     key: 'backend_list',
                                     value: JSON.stringify(items),
-                                }).then((res) => {
+                                }).then(res => {
                                     dialog.dataLoading({ visible: false });
                                     if (res.result) {
                                         dialog.successMessage({ text: '儲存成功' });
@@ -718,7 +833,7 @@ Setting_editor.menuItems = () => {
             icon: '',
             page: 'shop_informationV2',
             group: '商店設定',
-            title: '商店訊息',
+            title: '全站設定',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
             moduleName: '商店設計',
@@ -923,6 +1038,24 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
+            page: 'shipment_list',
+            group: '訂單管理',
+            title: '出貨單列表',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
+            moduleName: '訂單列表',
+        },
+        {
+            icon: '',
+            page: 'shipment_list_archive',
+            group: '訂單管理',
+            title: '已封存出貨單',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
+            moduleName: '訂單列表',
+        },
+        {
+            icon: '',
             page: 'out-delivery',
             group: '訂單管理',
             title: '退貨單',
@@ -1038,7 +1171,7 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'operational_order',
-            group: '報表分析',
+            group: '數據分析',
             title: '營運分析',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
@@ -1047,7 +1180,7 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'Product_analysis',
-            group: '報表分析',
+            group: '數據分析',
             title: '商品分析',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
@@ -1091,7 +1224,7 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'live_list',
+            page: 'fb_live',
             group: '社群電商',
             title: 'FB直播',
             appName: 'cms_system',
@@ -1100,7 +1233,16 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'group_buy',
+            page: 'ig_live',
+            group: '社群電商',
+            title: 'IG直播',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/webhook-sharp-regular.svg',
+            moduleName: '社群電商',
+        },
+        {
+            icon: '',
+            page: 'line_plus',
             group: '社群電商',
             title: 'LINE團購',
             appName: 'cms_system',
@@ -1111,7 +1253,7 @@ Setting_editor.menuItems = () => {
             icon: '',
             page: 'auto_send',
             group: '信件群發',
-            title: '自動發送',
+            title: '信件自動發送',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
             moduleName: '已訂閱郵件',
@@ -1156,7 +1298,7 @@ Setting_editor.menuItems = () => {
             icon: '',
             page: 'Sns_auto_send',
             group: '簡訊群發',
-            title: '自動發送',
+            title: '簡訊自動發送',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-lines-regular.svg',
             moduleName: 'SNS自動發送',
@@ -1192,7 +1334,7 @@ Setting_editor.menuItems = () => {
             icon: '',
             page: 'line_auto_send',
             group: 'LINE群發',
-            title: '自動發送',
+            title: 'LINE 自動發送',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/line-brands-solid (2).svg',
             moduleName: 'line自動發送',

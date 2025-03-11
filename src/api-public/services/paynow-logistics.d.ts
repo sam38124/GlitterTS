@@ -12,6 +12,8 @@ export declare class PayNowLogistics {
         sender_email: any;
     }>;
     choseLogistics(type: string, return_url: string): Promise<string>;
+    deleteLogOrder(orderNO: string, logisticNumber: string, totalAmount: string): Promise<any>;
+    getOrderInfo(orderNO: string): Promise<any>;
     printLogisticsOrder(carData: any): Promise<any>;
     encrypt(content: string): Promise<string | undefined>;
     sha1Encrypt(data: string): Promise<string>;

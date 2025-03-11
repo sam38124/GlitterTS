@@ -89,7 +89,9 @@ export class PermissionSetting {
                     },
                     {
                         key: '信箱帳號',
-                        value: dd.email || dd.config.verifyEmail ? `<span class="fs-7">${dd.email || dd.config.verifyEmail}</span>` : BgWidget.warningInsignia('信箱尚未註冊'),
+                        value: dd.email || dd.config.verifyEmail
+                            ? `<span class="fs-7">${dd.email || dd.config.verifyEmail}</span>`
+                            : BgWidget.warningInsignia('信箱尚未註冊'),
                     },
                     {
                         key: '電話',
@@ -107,8 +109,11 @@ export class PermissionSetting {
                             return [
                                 {
                                     key: '最後登入',
-                                    value: dd.online_time ? html `<span
-                                            class="fs-7">${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span>` : '...',
+                                    value: dd.online_time
+                                        ? html `<span class="fs-7"
+                        >${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span
+                      >`
+                                        : '無登入紀錄',
                                 },
                             ];
                         }
@@ -126,7 +131,7 @@ export class PermissionSetting {
                                     return BgWidget.switchTextButton(gvc, dd.status, {
                                         left: dd.status ? '啟用' : '關閉',
                                     }, () => {
-                                        ApiUser.togglePermissionStatus(dd.email || dd.config.verifyEmail).then((data) => {
+                                        ApiUser.togglePermissionStatus(dd.email || dd.config.verifyEmail).then(data => {
                                             if (data.result) {
                                                 dd.status = data.response.status;
                                                 dialog.successMessage({ text: `${dd.status ? '啟用' : '關閉'}成功` });
@@ -179,16 +184,15 @@ export class PermissionSetting {
             dataList: [{ obj: vm, key: 'type' }],
             view: () => {
                 if (vm.type === 'list') {
-                    return BgWidget.container(html `
-                            <div class="title-container">
-                                ${BgWidget.title('員工設定')}
-                                <div class="flex-fill"></div>
-                                ${BgWidget.darkButton('新增', gvc.event(() => {
+                    return BgWidget.container(html ` <div class="title-container">
+                ${BgWidget.title('員工設定')}
+                <div class="flex-fill"></div>
+                ${BgWidget.darkButton('新增', gvc.event(() => {
                         vm.data = getInitialData().data;
                         vm.type = 'add';
                     }))}
-                            </div>
-                            ${BgWidget.container(BgWidget.mainCard([
+              </div>
+              ${BgWidget.container(BgWidget.mainCard([
                         (() => {
                             const id = gvc.glitter.getUUID();
                             return gvc.bindView({
@@ -206,7 +210,7 @@ export class PermissionSetting {
                                             default: vm.queryType || 'name',
                                             options: FilterOptions.permissionSelect,
                                         }),
-                                        BgWidget.searchFilter(gvc.event((e) => {
+                                        BgWidget.searchFilter(gvc.event(e => {
                                             vm.query = `${e.value}`.trim();
                                             gvc.notifyDataChange(vm.tableId);
                                             gvc.notifyDataChange(id);
@@ -228,25 +232,23 @@ export class PermissionSetting {
                                     ];
                                     const filterTags = ListComp.getFilterTags(FilterOptions.permissionFunnel);
                                     if (document.body.clientWidth < 768) {
-                                        return html `
-                                                                    <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                        <div>${filterList[0]}</div>
-                                                                        <div style="display: flex;">
-                                                                            ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
-                                                                            ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div style="display: flex; margin-top: 8px;">
-                                                                        ${filterList[1]}
-                                                                    </div>
-                                                                    <div>${filterTags}</div>`;
+                                        return html ` <div
+                                style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between"
+                              >
+                                <div>${filterList[0]}</div>
+                                <div style="display: flex;">
+                                  ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
+                                  ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
+                                </div>
+                              </div>
+                              <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                              <div>${filterTags}</div>`;
                                     }
                                     else {
-                                        return html `
-                                                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                                                        ${filterList.join('')}
-                                                                    </div>
-                                                                    <div>${filterTags}</div>`;
+                                        return html ` <div style="display: flex; align-items: center; gap: 10px;">
+                                ${filterList.join('')}
+                              </div>
+                              <div>${filterTags}</div>`;
                                     }
                                 },
                             });
@@ -256,7 +258,7 @@ export class PermissionSetting {
                             view: () => {
                                 return BgWidget.tableV3({
                                     gvc: gvc,
-                                    getData: (vd) => {
+                                    getData: vd => {
                                         vmi = vd;
                                         const limit = 10;
                                         ApiUser.getPermission({
@@ -266,7 +268,7 @@ export class PermissionSetting {
                                             query: vm.query,
                                             orderBy: vm.orderString,
                                             filter: vm.filter,
-                                        }).then((data) => {
+                                        }).then(data => {
                                             vm.dataList = data.response.data;
                                             vmi.pageSize = Math.ceil(data.response.total / limit);
                                             vmi.originalData = vm.dataList;
@@ -286,7 +288,7 @@ export class PermissionSetting {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.warningMessage({
                                                     text: '您即將批量刪除所選員工的所有資料<br />此操作無法復原。確定要刪除嗎？',
-                                                    callback: (response) => {
+                                                    callback: response => {
                                                         if (response) {
                                                             let n = 0;
                                                             const emails = vm.dataList
@@ -299,7 +301,7 @@ export class PermissionSetting {
                                                             dialog.dataLoading({ visible: true });
                                                             new Promise((resolve, reject) => {
                                                                 for (const email of emails) {
-                                                                    ApiUser.deletePermission(email).then((res) => {
+                                                                    ApiUser.deletePermission(email).then(res => {
                                                                         if (res.result && res.response.result) {
                                                                             if (++n === emails.length) {
                                                                                 resolve();
@@ -377,38 +379,39 @@ export class PermissionSetting {
                 view: () => {
                     var _a;
                     return BgWidget.container([
-                        html `
-                                <div class="title-container">
-                                    ${BgWidget.goBack(gvc.event(() => {
+                        html ` <div class="title-container">
+                ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                         }))}
-                                    ${BgWidget.title(obj.type === 'add' ? '新增員工' : '編輯員工')}
-                                </div>`,
+                ${BgWidget.title(obj.type === 'add' ? '新增員工' : '編輯員工')}
+              </div>`,
                         [
                             obj.type === 'replace'
                                 ? BgWidget.mainCard(html `
-                                            <div class="tx_700">登錄存取權</div>
-                                            ${BgWidget.mbContainer(18)}
-                                            <div class="${(vm.data.id === -1) ? `d-none` : `d-flex`} align-items-center gap-2 mb-2">
-                                                <div class="tx_normal">存取權開啟</div>
-                                                ${BgWidget.switchButton(gvc, vm.data.status === 1, () => {
+                      <div class="tx_700">登錄存取權</div>
+                      ${BgWidget.mbContainer(18)}
+                      <div class="${vm.data.id === -1 ? `d-none` : `d-flex`} align-items-center gap-2 mb-2">
+                        <div class="tx_normal">存取權開啟</div>
+                        ${BgWidget.switchButton(gvc, vm.data.status === 1, () => {
                                     vm.data.status = (vm.data.status - 1) * -1;
                                 })}
-                                            </div>
-                                            ${BgWidget.grayNote(vm.data.id === -1 ? '此帳號為商店擁有者，擁有最高權限，如需轉讓權限請聯絡 SHOPNEX 客服。' : '一鍵開啟或關閉此員工的登入存取權，停用後員工將無法登入店家管理後台。')}
-                                    `)
+                      </div>
+                      ${BgWidget.grayNote(vm.data.id === -1
+                                    ? '此帳號為商店擁有者，擁有最高權限，如需轉讓權限請聯絡 SHOPNEX 客服。'
+                                    : '一鍵開啟或關閉此員工的登入存取權，停用後員工將無法登入店家管理後台。')}
+                    `)
                                 : '',
                             BgWidget.mainCard(html `
-                                        <div class="tx_700">員工資料</div>
-                                        ${BgWidget.mbContainer(18)}
-                                        <div class="row">
-                                            ${[
+                  <div class="tx_700">員工資料</div>
+                  ${BgWidget.mbContainer(18)}
+                  <div class="row">
+                    ${[
                                 BgWidget.editeInput({
                                     gvc: gvc,
                                     title: '員工名稱',
                                     placeHolder: `請輸入員工名稱`,
                                     default: vm.data.config.name,
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.data.config.name = text;
                                     },
                                 }),
@@ -417,7 +420,7 @@ export class PermissionSetting {
                                     title: '職稱',
                                     placeHolder: `請輸入職稱`,
                                     default: vm.data.config.title,
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.data.config.title = text;
                                     },
                                 }),
@@ -426,7 +429,7 @@ export class PermissionSetting {
                                     title: '信箱帳號',
                                     placeHolder: '此信箱將會作為寄送邀請信之信箱',
                                     default: (_a = vm.data.email) !== null && _a !== void 0 ? _a : vm.data.config.verifyEmail,
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.data.email = text;
                                     },
                                     readonly: obj.type === 'replace',
@@ -436,7 +439,7 @@ export class PermissionSetting {
                                     title: '電話',
                                     placeHolder: `請輸入電話`,
                                     default: vm.data.config.phone,
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.data.config.phone = text;
                                     },
                                 }),
@@ -445,7 +448,7 @@ export class PermissionSetting {
                                     title: '員工編號',
                                     placeHolder: '此員工編號會用作POS登入帳號',
                                     default: vm.data.config.member_id || '',
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.data.config.member_id = text;
                                     },
                                 }),
@@ -455,12 +458,12 @@ export class PermissionSetting {
                                     type: 'number',
                                     placeHolder: `此PIN碼會用作POS登入密碼`,
                                     default: vm.data.config.pin || '',
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.data.config.pin = text;
                                         gvc.notifyDataChange(viewID);
                                     },
                                     pattern: '0-9',
-                                    oninput: (text) => {
+                                    oninput: text => {
                                         if (text.length >= 6) {
                                             vm.data.config.pin = text.substring(0, 6);
                                             gvc.notifyDataChange(viewID);
@@ -468,19 +471,18 @@ export class PermissionSetting {
                                     },
                                 }),
                             ]
-                                .filter((str) => {
+                                .filter(str => {
                                 return str.length > 0;
                             })
-                                .map((str) => {
-                                return html `
-                                                            <div class="col-12 col-md-6">${str}</div>`;
+                                .map(str => {
+                                return html ` <div class="col-12 col-md-6">${str}</div>`;
                             })
                                 .join('')}
-                                            ${gvc.bindView(() => {
+                    ${gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
                                 vm.data.config.support_shop = vm.data.config.support_shop || [];
                                 let manager = undefined;
-                                ApiUser.getPublicConfig('store_manager', 'manager').then((res) => {
+                                ApiUser.getPublicConfig('store_manager', 'manager').then(res => {
                                     manager = res;
                                     gvc.notifyDataChange(id);
                                 });
@@ -500,47 +502,48 @@ export class PermissionSetting {
                                             gvc: gvc,
                                             def: vm.data.config.support_shop,
                                             type: 'multiple',
-                                            array: manager.response.value.list.filter((dd) => {
+                                            array: manager.response.value.list
+                                                .filter((dd) => {
                                                 return dd.is_shop;
-                                            }).map((dd) => {
+                                            })
+                                                .map((dd) => {
                                                 return {
                                                     title: dd.name,
                                                     value: dd.id,
                                                 };
                                             }),
-                                            callback: (text) => {
+                                            callback: text => {
                                                 vm.data.config.support_shop = text;
                                                 gvc.notifyDataChange(id);
                                             },
                                         });
                                     },
                                     divCreate: {
-                                        class: `col-12`
-                                    }
+                                        class: `col-12`,
+                                    },
                                 };
                             })}
-                                        </div>
-                                    `),
-                            (vm.data.id !== -1) ?
-                                BgWidget.mainCard(html `
-                                        <div class="tx_700">權限指派</div>
-                                        ${BgWidget.mbContainer(18)} ${this.permissionOptions(gvc, vm.data.config.auth)}`) : ``,
+                  </div>
+                `),
+                            vm.data.id !== -1
+                                ? BgWidget.mainCard(html ` <div class="tx_700">權限指派</div>
+                        ${BgWidget.mbContainer(18)} ${this.permissionOptions(gvc, vm.data.config.auth)}`)
+                                : ``,
                         ]
-                            .filter((dd) => {
+                            .filter(dd => {
                             return dd;
                         })
                             .join(BgWidget.mbContainer(24)),
                         BgWidget.mbContainer(240),
-                        html `
-                                <div class="update-bar-container">
-                                    ${obj.type === 'replace'
+                        html ` <div class="update-bar-container">
+                ${obj.type === 'replace'
                             ? BgWidget.redButton('移除此員工', gvc.event(() => {
                                 dialog.warningMessage({
                                     text: '此動作無法復原，確定要刪除此員工嗎？',
-                                    callback: (bool) => {
+                                    callback: bool => {
                                         if (bool) {
                                             dialog.dataLoading({ visible: true });
-                                            ApiUser.deletePermission(vm.data.email || vm.data.config.verifyEmail || vm.data.user).then((res) => {
+                                            ApiUser.deletePermission(vm.data.email || vm.data.config.verifyEmail || vm.data.user).then(res => {
                                                 dialog.dataLoading({ visible: false });
                                                 if (res.result && res.response.result) {
                                                     dialog.successMessage({ text: '刪除成功' });
@@ -555,10 +558,10 @@ export class PermissionSetting {
                                 });
                             }))
                             : ''}
-                                    ${BgWidget.cancel(gvc.event(() => {
+                ${BgWidget.cancel(gvc.event(() => {
                             vm.type = 'list';
                         }))}
-                                    ${BgWidget.save(gvc.event(() => {
+                ${BgWidget.save(gvc.event(() => {
                             if (CheckInput.isEmpty(vm.data.config.name)) {
                                 dialog.infoMessage({ text: '員工名稱不可為空' });
                                 return;
@@ -590,10 +593,10 @@ export class PermissionSetting {
                                     member_id: vm.data.config.member_id,
                                     pin: vm.data.config.pin,
                                     is_manager: vm.data.id === -1,
-                                    support_shop: vm.data.config.support_shop
+                                    support_shop: vm.data.config.support_shop,
                                 },
                                 status: obj.type === 'add' ? 1 : vm.data.status,
-                            }).then((res) => {
+                            }).then(res => {
                                 dialog.dataLoading({ visible: false });
                                 if (res.result) {
                                     if (res.response.result) {
@@ -609,9 +612,8 @@ export class PermissionSetting {
                                 }
                             });
                         }))}
-                                </div>`,
-                    ].join(html `
-                            <div style="margin-top: 24px;"></div>`));
+              </div>`,
+                    ].join(html ` <div style="margin-top: 24px;"></div>`));
                 },
             };
         });
@@ -628,38 +630,39 @@ export class PermissionSetting {
                 bind: viewID,
                 view: () => {
                     return BgWidget.container([
-                        html `
-                                <div class="title-container">
-                                    ${BgWidget.goBack(gvc.event(() => {
+                        html ` <div class="title-container">
+                ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                         }))}
-                                    ${BgWidget.title(obj.type === 'add' ? '新增員工' : '編輯員工')}
-                                </div>`,
+                ${BgWidget.title(obj.type === 'add' ? '新增員工' : '編輯員工')}
+              </div>`,
                         [
                             obj.type === 'replace'
                                 ? BgWidget.mainCard(html `
-                                            <div class="tx_700">登錄存取權</div>
-                                            ${BgWidget.mbContainer(18)}
-                                            <div class="d-flex align-items-center gap-2 mb-2 ${vm.data.id === -1 ? `d-none` : ``}">
-                                                <div class="tx_normal">存取權開啟</div>
-                                                ${BgWidget.switchButton(gvc, vm.data.status === 1, () => {
+                      <div class="tx_700">登錄存取權</div>
+                      ${BgWidget.mbContainer(18)}
+                      <div class="d-flex align-items-center gap-2 mb-2 ${vm.data.id === -1 ? `d-none` : ``}">
+                        <div class="tx_normal">存取權開啟</div>
+                        ${BgWidget.switchButton(gvc, vm.data.status === 1, () => {
                                     vm.data.status = (vm.data.status - 1) * -1;
                                 })}
-                                            </div>
-                                            ${BgWidget.grayNote(vm.data.id === -1 ? `當前為商店擁有者，如需更換商店擁有者請聯絡SHOPNEX客服` : '一鍵開啟或關閉此員工的登入存取權，停用後員工將無法登入店家管理後台。')}
-                                    `)
+                      </div>
+                      ${BgWidget.grayNote(vm.data.id === -1
+                                    ? `當前為商店擁有者，如需更換商店擁有者請聯絡SHOPNEX客服`
+                                    : '一鍵開啟或關閉此員工的登入存取權，停用後員工將無法登入店家管理後台。')}
+                    `)
                                 : '',
                             BgWidget.mainCard(html `
-                                        <div class="tx_700">員工資料</div>
-                                        ${BgWidget.mbContainer(18)}
-                                        <div class="row">
-                                            ${[
+                  <div class="tx_700">員工資料</div>
+                  ${BgWidget.mbContainer(18)}
+                  <div class="row">
+                    ${[
                                 BgWidget.editeInput({
                                     gvc: gvc,
                                     title: '員工名稱',
                                     placeHolder: `請輸入員工名稱`,
                                     default: vm.data.config.name,
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.data.config.name = text;
                                     },
                                 }),
@@ -668,7 +671,7 @@ export class PermissionSetting {
                                     title: '職稱',
                                     placeHolder: `請輸入職稱`,
                                     default: vm.data.config.title,
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.data.config.title = text;
                                     },
                                 }),
@@ -677,7 +680,7 @@ export class PermissionSetting {
                                     title: '電話',
                                     placeHolder: `請輸入電話`,
                                     default: vm.data.config.phone,
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.data.config.phone = text;
                                     },
                                 }),
@@ -686,7 +689,7 @@ export class PermissionSetting {
                                     title: '電子信箱',
                                     placeHolder: `請輸入電子信箱`,
                                     default: vm.data.email || vm.data.config.verifyEmail || '',
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.data.email = text;
                                     },
                                     readonly: obj.type === 'replace',
@@ -696,7 +699,7 @@ export class PermissionSetting {
                                     title: '員工編號',
                                     placeHolder: '請輸入員工編號',
                                     default: vm.data.config.member_id,
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.data.config.member_id = text;
                                     },
                                 }),
@@ -706,11 +709,11 @@ export class PermissionSetting {
                                     type: 'number',
                                     placeHolder: `此PIN碼會用作員工登入密碼`,
                                     default: vm.data.config.pin,
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.data.config.pin = text;
                                     },
                                     pattern: '0-9',
-                                    oninput: (text) => {
+                                    oninput: text => {
                                         if (text.length >= 6) {
                                             text.substring(0, 6);
                                             vm.data.config.pin = text;
@@ -719,32 +722,30 @@ export class PermissionSetting {
                                     },
                                 }),
                             ]
-                                .filter((str) => {
+                                .filter(str => {
                                 return str.length > 0;
                             })
-                                .map((str) => {
-                                return html `
-                                                            <div class="col-12 col-md-6">${str}</div>`;
+                                .map(str => {
+                                return html ` <div class="col-12 col-md-6">${str}</div>`;
                             })
                                 .join('')}
-                                        </div>
-                                    `),
+                  </div>
+                `),
                         ]
-                            .filter((dd) => {
+                            .filter(dd => {
                             return dd;
                         })
                             .join(BgWidget.mbContainer(24)),
                         BgWidget.mbContainer(240),
-                        html `
-                                <div class="update-bar-container">
-                                    ${obj.type === 'replace'
+                        html ` <div class="update-bar-container">
+                ${obj.type === 'replace'
                             ? BgWidget.redButton('移除此員工', gvc.event(() => {
                                 dialog.warningMessage({
                                     text: '此動作無法復原，確定要刪除此員工嗎？',
-                                    callback: (bool) => {
+                                    callback: bool => {
                                         if (bool) {
                                             dialog.dataLoading({ visible: true });
-                                            ApiUser.deletePermission(vm.data.email || vm.data.config.verifyEmail).then((res) => {
+                                            ApiUser.deletePermission(vm.data.email || vm.data.config.verifyEmail).then(res => {
                                                 dialog.dataLoading({ visible: false });
                                                 if (res.result && res.response.result) {
                                                     dialog.successMessage({ text: '刪除成功' });
@@ -759,10 +760,10 @@ export class PermissionSetting {
                                 });
                             }))
                             : ''}
-                                    ${BgWidget.cancel(gvc.event(() => {
+                ${BgWidget.cancel(gvc.event(() => {
                             vm.type = 'list';
                         }))}
-                                    ${BgWidget.save(gvc.event(() => {
+                ${BgWidget.save(gvc.event(() => {
                             if (CheckInput.isEmpty(vm.data.config.name)) {
                                 dialog.infoMessage({ text: '員工名稱不可為空' });
                                 return;
@@ -801,7 +802,7 @@ export class PermissionSetting {
                                 email: obj.type === 'add' ? vm.data.email : original.email,
                                 config: vm.data.config,
                                 status: vm.data.status,
-                            }).then((res) => {
+                            }).then(res => {
                                 dialog.dataLoading({ visible: false });
                                 if (res.result) {
                                     if (res.response.result) {
@@ -817,19 +818,16 @@ export class PermissionSetting {
                                 }
                             });
                         }))}
-                                </div>`,
-                    ].join(html `
-                            <div style="margin-top: 24px;"></div>`));
+              </div>`,
+                    ].join(html ` <div style="margin-top: 24px;"></div>`));
                 },
             };
         });
     }
     static permissionOptions(gvc, authData) {
         const tempMenu = [];
-        Setting_editor.menuItems().map((menu) => {
-            const index = tempMenu.findIndex((item) => {
-                return item.key === menu.group;
-            });
+        Setting_editor.menuItems().map(menu => {
+            const index = tempMenu.findIndex(item => item.key === menu.group);
             if (index === -1) {
                 tempMenu.push({
                     key: menu.group,
@@ -849,8 +847,7 @@ export class PermissionSetting {
                 });
             }
         });
-        return html `
-            <div class="row">${this.checkboxContainer(gvc, tempMenu, authData)}</div>`;
+        return html ` <div class="row">${this.checkboxContainer(gvc, tempMenu, authData)}</div>`;
     }
     static checkboxContainer(gvc, items, authData, callback) {
         const id = gvc.glitter.getUUID();
@@ -859,7 +856,7 @@ export class PermissionSetting {
         const viewId = Tool.randomString(5);
         function renderCheck(key, status) {
             if (key) {
-                const i = authData.findIndex((auth) => auth.key === key);
+                const i = authData.findIndex(auth => auth.key === key);
                 if (i === -1) {
                     authData.push({
                         key: key,
@@ -879,24 +876,24 @@ export class PermissionSetting {
             bind: viewId,
             view: () => {
                 let checkboxHTML = '';
-                items.map((item) => {
-                    const i = authData.findIndex((auth) => auth.key === item.key);
+                items.map(item => {
+                    const i = authData.findIndex(auth => auth.key === item.key);
                     let checked = i === -1 ? false : Boolean(authData[i].value.read);
                     if (item.children && item.children.length > 0) {
-                        const allStatus = item.children.every((child) => {
-                            const k = authData.findIndex((auth) => auth.key === child.key);
+                        const allStatus = item.children.every(child => {
+                            const k = authData.findIndex(auth => auth.key === child.key);
                             return k > -1 ? authData[k].value.read : false;
                         });
                         checked = allStatus;
                     }
                     checkboxHTML += html `
-                        <div class="col-12 ${item.children ? 'col-md-4 mb-3' : 'col-md-12'}">
-                            <div
-                                    class="form-check"
-                                    onclick="${gvc.event(() => {
+            <div class="col-12 ${item.children ? 'col-md-4 mb-3' : 'col-md-12'}">
+              <div
+                class="form-check"
+                onclick="${gvc.event(() => {
                         renderCheck(item.key, !checked);
                         if (item.children && item.children.length > 0) {
-                            item.children.map((child) => {
+                            item.children.map(child => {
                                 renderCheck(child.key, !checked);
                             });
                         }
@@ -907,29 +904,35 @@ export class PermissionSetting {
                             gvc.notifyDataChange(viewId);
                         }
                     })}"
-                            >
-                                <input class="form-check-input ${randomString} cursor_pointer"
-                                       style="margin-top: 0.35rem;" type="checkbox" id="${id}_${item.key}"
-                                       ${checked ? 'checked' : ''}/>
-                                <label class="form-check-label cursor_pointer" for="${id}_${item.key}"
-                                       style="font-size: 16px; color: #393939;">${item.name}</label>
-                            </div>
-                            ${item.children
-                        ? html `
-                                        <div class="d-flex position-relative my-2">
-                                            ${BgWidget.leftLineBar()}
-                                            <div class="ms-4 w-100 flex-fill">
-                                                ${this.checkboxContainer(gvc, item.children, authData, () => {
+              >
+                <input
+                  class="form-check-input ${randomString} cursor_pointer"
+                  style="margin-top: 0.35rem;"
+                  type="checkbox"
+                  id="${id}_${item.key}"
+                  ${checked ? 'checked' : ''}
+                />
+                <label
+                  class="form-check-label cursor_pointer"
+                  for="${id}_${item.key}"
+                  style="font-size: 16px; color: #393939;"
+                  >${item.name}</label
+                >
+              </div>
+              ${item.children
+                        ? html ` <div class="d-flex position-relative my-2">
+                    ${BgWidget.leftLineBar()}
+                    <div class="ms-4 w-100 flex-fill">
+                      ${this.checkboxContainer(gvc, item.children, authData, () => {
                             gvc.notifyDataChange(viewId);
                         })}
-                                            </div>
-                                        </div>`
+                    </div>
+                  </div>`
                         : ``}
-                        </div>
-                    `;
+            </div>
+          `;
                 });
-                return html `
-                    <div class="row" style="">${checkboxHTML}</div> `;
+                return html ` <div class="row" style="">${checkboxHTML}</div> `;
             },
         });
     }

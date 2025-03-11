@@ -3,7 +3,6 @@ import {BgWidget} from "../backend-manager/bg-widget.js";
 
 export class CmsRouter{
     public static main(gvc:GVC){
-        // alert(gvc.glitter.getUrlParameter('page'))
        return gvc.bindView(()=>{
            const id=gvc.glitter.getUUID()
            return {
@@ -13,6 +12,8 @@ export class CmsRouter{
                    class:`${id}`,
                },
                onCreate:()=>{
+
+
                    new Promise((resolve, reject)=>{
                        switch (gvc.glitter.getUrlParameter('page')){
                            case 'blog_tag_setting':
@@ -29,10 +30,25 @@ export class CmsRouter{
                                    resolve(cl.main(gvc))
                                });
                                break
-                           case 'shopnex-line-oauth':
-                               console.log("glitter.getUrlParameter('page') -- " , gvc.glitter.getUrlParameter('groupId'))
+                           case 'fb_live':
+                           case 'ig_live':
+                               resolve(`<div class="d-flex w-100 align-items-center justify-content-center">
+<div class="insignia insignia-warning">功能優化中，預計於3月14號重新開放!</div>
+</div>`)
+                               break
+                           case 'line_plus':
+
                                gvc.glitter.getModule(new URL('./cms-plugin/live_capture.js', gvc.glitter.root_path).href, (cl) => {
-                                   resolve(cl.inputVerificationCode(gvc))
+                                   resolve(cl.main(gvc,true))
+                               });
+                               break
+                           case 'shipment_list':
+                           case 'shipment_list_archive':
+                               gvc.glitter.getModule(new URL('./cms-plugin/shopping-order-manager.js', gvc.glitter.root_path).href, (cl) => {
+                                   resolve(cl.main(gvc,{
+                                       isShipment:true,
+                                       isArchived:gvc.glitter.getUrlParameter('page')==='shipment_list_archive'
+                                   }))
                                });
                                break
                            default:

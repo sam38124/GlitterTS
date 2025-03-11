@@ -12,14 +12,17 @@ export class ProductService{
 
 
 
-            for (const checkItem of variantsCheckList) {
-                if ((postMD['variants'][0] as any)[checkItem] == undefined || (postMD['variants'][0] as any)[checkItem] == 0) {
-                    dialog.infoMessage({
-                        text: '售價未填',
-                    });
-                    return false;
+            if(postMD.product_category!=='kitchen'){
+                for (const checkItem of variantsCheckList) {
+                    if ((postMD['variants'][0] as any)[checkItem] == undefined || (postMD['variants'][0] as any)[checkItem] == 0) {
+                        dialog.infoMessage({
+                            text: '售價未填',
+                        });
+                        return false;
+                    }
                 }
             }
+
 
             for (const index in postMD['variants']) {
                 const variant: any = postMD['variants'][index];

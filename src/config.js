@@ -133,7 +133,8 @@ exports.config = {
         sms_points: '/sms/points',
         stock: '/stock',
         shopee: '/shopee',
-        customer_sessions: '/customer_sessions'
+        customer_sessions: '/customer_sessions',
+        voucher: '/voucher'
     },
     route: {
         shopee: '/shopee',

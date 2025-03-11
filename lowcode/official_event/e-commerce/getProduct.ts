@@ -172,6 +172,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         }
                                 }
                                 productType && (searchJson.productType=productType);
+                                searchJson = {...searchJson, status: 'inRange'}
                                 ApiShop.getProduct(searchJson).then((data) => {
                                     if (data.result && data.response.data) {
                                         if(!Array.isArray(data.response.data)){
@@ -188,7 +189,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 })
 
                             } else {
-                                ApiShop.getProduct({page: 0, limit: 50, id: object.id}).then((data) => {
+                                ApiShop.getProduct({page: 0, limit: 50, id: object.id, status: 'inRange'}).then((data) => {
                                     if (data.result && data.response.result) {
                                         resolve(data.response.data.content)
                                     } else {

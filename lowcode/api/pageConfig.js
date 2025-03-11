@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { config } from "../config.js";
 import { BaseApi } from "../glitterBundle/api/base.js";
 import { GlobalUser } from "../glitter-base/global/global-user.js";
+import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
 export class ApiPageConfig {
     constructor() {
     }
@@ -328,9 +329,32 @@ export class ApiPageConfig {
             if (!Array.isArray(files)) {
                 files = [files];
             }
+            const dialog = new ShareDialog(window.glitter);
             let result = true;
             let links = [];
             for (const file of files) {
+                const fileSizeKB = file.size / 1024;
+                if ((file.name.toLowerCase()).endsWith('png') || (file.name.toLowerCase()).endsWith('jpg') || (file.name.toLowerCase()).endsWith('jpeg')) {
+                    if (fileSizeKB > 500) {
+                        const result = yield new Promise((resolve, reject) => {
+                            dialog.checkYesOrNot({
+                                text: '圖片上傳大小不得超過 500 KB，避免網頁加載速度緩慢，是否透過系統自動壓縮畫質?',
+                                callback: (response) => {
+                                    if (response) {
+                                        resolve(true);
+                                    }
+                                    else {
+                                        resolve(false);
+                                    }
+                                }
+                            });
+                        });
+                        if (!result) {
+                            dialog.dataLoading({ visible: false });
+                            return;
+                        }
+                    }
+                }
                 const file_id = window.glitter.getUUID();
                 function getFileName(size) {
                     let file_name = (file.name ||
@@ -350,7 +374,7 @@ export class ApiPageConfig {
                     }
                     return file_name;
                 }
-                if (file.name.endsWith('png') || file.name.endsWith('jpg') || file.name.endsWith('jpeg')) {
+                if ((file.name.toLowerCase()).endsWith('png') || (file.name.toLowerCase()).endsWith('jpg') || (file.name.toLowerCase()).endsWith('jpeg')) {
                     function loopSize(size) {
                         return __awaiter(this, void 0, void 0, function* () {
                             return new Promise((resolve, reject) => {
@@ -359,6 +383,7 @@ export class ApiPageConfig {
                                     const img = new Image();
                                     img.src = URL.createObjectURL(file);
                                     img.onload = function () {
+                                        let quality = 0.9;
                                         const og_width = img.width;
                                         const og_height = img.height;
                                         const canvas = document.createElement('canvas');
@@ -382,42 +407,51 @@ export class ApiPageConfig {
                                         canvas.height = height;
                                         const ctx = canvas.getContext('2d');
                                         ctx.drawImage(img, 0, 0, width, height);
-                                        canvas.toBlob(function (blob) {
-                                            return __awaiter(this, void 0, void 0, function* () {
-                                                const s3res = (yield ApiPageConfig.uploadFile(getFileName(size))).response;
-                                                const res = yield BaseApi.create({
-                                                    url: s3res.url,
-                                                    type: 'put',
-                                                    data: blob,
-                                                    headers: {
-                                                        'Content-Type': s3res.type,
-                                                    }
-                                                });
-                                                if (size === 1440) {
-                                                    links.push(s3res.fullUrl);
+                                        function tryCompression() {
+                                            canvas.toBlob((blob) => __awaiter(this, void 0, void 0, function* () {
+                                                console.log(`嘗試壓縮品質: ${quality}, 檔案大小: ${(blob.size / 1024).toFixed(2)} KB`);
+                                                if (blob.size > 500 * 1024 && quality > 0.1) {
+                                                    quality -= 0.1;
+                                                    tryCompression();
                                                 }
-                                                resolve(res.result);
-                                            });
-                                        }, file.type);
+                                                else {
+                                                    const s3res = (yield ApiPageConfig.uploadFile(getFileName(size))).response;
+                                                    const res = yield BaseApi.create({
+                                                        url: s3res.url,
+                                                        type: 'put',
+                                                        data: blob,
+                                                        headers: {
+                                                            'Content-Type': s3res.type,
+                                                        }
+                                                    });
+                                                    resolve(s3res.fullUrl);
+                                                }
+                                            }), 'image/jpeg', quality);
+                                        }
+                                        tryCompression();
                                     };
                                 };
                                 reader.readAsDataURL(file);
                             });
                         });
                     }
-                    let chunk_size = [150, 600, 1200, 1440];
-                    let chunk_count = 0;
-                    yield new Promise((resolve, reject) => {
-                        for (const size of chunk_size) {
-                            loopSize(size).then((res) => {
-                                chunk_count++;
-                                result = res && result;
-                                if (chunk_count === chunk_size.length) {
-                                    resolve(true);
-                                }
-                            });
-                        }
-                    });
+                    let chunk_size = [150, 600, 1200, 1440, 1920];
+                    if (fileSizeKB > 500) {
+                        links.push(yield loopSize(chunk_size[1200]));
+                    }
+                    else {
+                        const s3res = (yield ApiPageConfig.uploadFile(getFileName('original'))).response;
+                        const res = yield BaseApi.create({
+                            url: s3res.url,
+                            type: 'put',
+                            data: file,
+                            headers: {
+                                'Content-Type': s3res.type,
+                            }
+                        });
+                        links.push(s3res.fullUrl);
+                    }
+                    result = true;
                     if (!result) {
                         return {
                             result: false

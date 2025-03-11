@@ -68,6 +68,7 @@ export declare const config: {
         stock: string;
         shopee: string;
         customer_sessions: string;
+        voucher: string;
     };
     route: {
         shopee: string;

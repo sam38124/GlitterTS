@@ -79,6 +79,7 @@ export declare class HtmlGenerate {
         document?: any;
         is_page?: boolean;
         editorSection?: string;
+        id?: string;
     }, createOption?: any) => string;
     exportJson: (setting: HtmlJson[]) => any;
     editor: (gvc: GVC, option?: {
@@ -180,6 +181,12 @@ export declare class HtmlGenerate {
     }): string;
     static deleteWidget(container_items: any, item: any, callback: () => void): void;
     static preloadEvent(data: any): void;
+    static renderComponent(cf: {
+        appName: string;
+        tag: string;
+        gvc: GVC;
+        subData: any;
+    }): string;
 }
 declare function isEditMode(): boolean;
 declare function isIdeaMode(): boolean;

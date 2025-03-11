@@ -8,6 +8,7 @@ const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const database_1 = __importDefault(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const user_js_1 = require("./user.js");
+const app_js_1 = require("../../services/app.js");
 class Rebate {
     constructor(app, token) {
         this.app = app;
@@ -28,7 +29,12 @@ class Rebate {
             return false;
         }
         const [year, month, day, hour, minute, second] = formattedDateTimeString.split(/[- :]/).map(Number);
-        return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day && date.getHours() === hour && date.getMinutes() === minute && date.getSeconds() === second;
+        return (date.getFullYear() === year &&
+            date.getMonth() === month - 1 &&
+            date.getDate() === day &&
+            date.getHours() === hour &&
+            date.getMinutes() === minute &&
+            date.getSeconds() === second);
     }
     async getConfig() {
         try {
@@ -46,15 +52,17 @@ class Rebate {
         }
     }
     async mainStatus() {
+        var _a, _b;
         try {
-            const getRS = await new user_js_1.User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
-            return Boolean(getRS[0] && getRS[0].value.main);
+            const config = await app_js_1.App.checkBrandAndMemberType(this.app);
+            if (config.plan === 'light-year')
+                return false;
+            const rs = await new user_js_1.User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            return Boolean((_b = (_a = rs[0]) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.main);
         }
         catch (error) {
-            console.error(error);
-            if (error instanceof Error) {
-                throw exception_1.default.BadRequestError('Insert Rebate Error: ', error.message, null);
-            }
+            console.error('mainStatus error: ' + error);
+            return false;
         }
     }
     async getOneRebate(obj) {
@@ -142,7 +150,13 @@ class Rebate {
         const low = (_c = query.low) !== null && _c !== void 0 ? _c : 0;
         const high = (_d = query.high) !== null && _d !== void 0 ? _d : 10000000000;
         let rebateSearchSQL = '';
-        const getUsersSQL = `
+        const getUsersSQL = (query.email_or_phone) ? `
+        SELECT userID, JSON_EXTRACT(userData, '$.name') as name
+        FROM \`${this.app}\`.t_user
+        WHERE
+            (JSON_EXTRACT(userData, '$.phone') = ${database_1.default.escape(query.email_or_phone)}
+            OR JSON_EXTRACT(userData, '$.email') = ${database_1.default.escape(query.email_or_phone)});
+    ` : `
             SELECT userID, JSON_EXTRACT(userData, '$.name') as name 
             FROM \`${this.app}\`.t_user 
             WHERE 
@@ -150,7 +164,7 @@ class Rebate {
                 OR JSON_EXTRACT(userData, '$.email') LIKE '%${(_f = query.search) !== null && _f !== void 0 ? _f : ''}%');
         `;
         try {
-            if (query.search) {
+            if (query.search || query.email_or_phone) {
                 const users = (await database_1.default.query(getUsersSQL, [])).map((user) => user.userID);
                 rebateSearchSQL = `AND r.user_id in (${users.join(',')})`;
             }
@@ -289,7 +303,9 @@ class Rebate {
     async insertRebate(user_id, amount, note, proof) {
         user_id = parseInt(`${user_id}`, 10);
         const nowTime = (proof === null || proof === void 0 ? void 0 : proof.setCreatedAt) ? proof.setCreatedAt : Rebate.nowTime();
-        const deadTime = (proof === null || proof === void 0 ? void 0 : proof.deadTime) && Rebate.isValidDateTimeString(proof === null || proof === void 0 ? void 0 : proof.deadTime) ? (0, moment_timezone_1.default)(proof === null || proof === void 0 ? void 0 : proof.deadTime).format('YYYY-MM-DD HH:mm:ss') : '2999-12-31 00:00:00';
+        const deadTime = (proof === null || proof === void 0 ? void 0 : proof.deadTime) && Rebate.isValidDateTimeString(proof === null || proof === void 0 ? void 0 : proof.deadTime)
+            ? (0, moment_timezone_1.default)(proof === null || proof === void 0 ? void 0 : proof.deadTime).format('YYYY-MM-DD HH:mm:ss')
+            : '2999-12-31 00:00:00';
         const insertSQL = `
             insert into \`${this.app}\`.t_rebate_point
             (user_id, origin, remain, note, content, created_at, updated_at, deadline)
@@ -322,7 +338,16 @@ class Rebate {
             }
             if (amount < 0) {
                 await this.updateOldestRebate(user_id, amount);
-                await database_1.default.execute(insertSQL, [user_id, amount, 0, note, proof && proof.type ? { type: proof.type } : {}, nowTime, nowTime, null]);
+                await database_1.default.execute(insertSQL, [
+                    user_id,
+                    amount,
+                    0,
+                    note,
+                    proof && proof.type ? { type: proof.type } : {},
+                    nowTime,
+                    nowTime,
+                    null,
+                ]);
             }
             return {
                 result: true,

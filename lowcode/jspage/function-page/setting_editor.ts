@@ -29,7 +29,7 @@ export class Setting_editor {
                 icon: '',
                 page: 'shop_informationV2',
                 group: '商店設定',
-                title: '商店訊息',
+                title: '全站設定',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                 moduleName: '商店設計',
@@ -234,6 +234,24 @@ export class Setting_editor {
             },
             {
                 icon: '',
+                page: 'shipment_list',
+                group: '訂單管理',
+                title: '出貨單列表',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
+                moduleName: '訂單列表',
+            },
+            {
+                icon: '',
+                page: 'shipment_list_archive',
+                group: '訂單管理',
+                title: '已封存出貨單',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
+                moduleName: '訂單列表',
+            },
+            {
+                icon: '',
                 page: 'out-delivery',
                 group: '訂單管理',
                 title: '退貨單',
@@ -349,7 +367,7 @@ export class Setting_editor {
             {
                 icon: '',
                 page: 'operational_order',
-                group: '報表分析',
+                group: '數據分析',
                 title: '營運分析',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
@@ -358,21 +376,12 @@ export class Setting_editor {
             {
                 icon: '',
                 page: 'Product_analysis',
-                group: '報表分析',
+                group: '數據分析',
                 title: '商品分析',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
                 moduleName: 'dashboard_ec',
             },
-            // {
-            //     icon: '',
-            //     page: 'hidden-shop',
-            //     group: '報表分析',
-            //     title: '訂單分析',
-            //     appName: 'cms_system',
-            //     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
-            //     moduleName: 'dashboard_ec',
-            // },
             {
                 icon: '',
                 page: 'hidden-shop',
@@ -411,7 +420,7 @@ export class Setting_editor {
             },
             {
                 icon: '',
-                page: 'live_list',
+                page: 'fb_live',
                 group: '社群電商',
                 title: 'FB直播',
                 appName: 'cms_system',
@@ -420,7 +429,16 @@ export class Setting_editor {
             },
             {
                 icon: '',
-                page: 'group_buy',
+                page: 'ig_live',
+                group: '社群電商',
+                title: 'IG直播',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/webhook-sharp-regular.svg',
+                moduleName: '社群電商',
+            },
+            {
+                icon: '',
+                page: 'line_plus',
                 group: '社群電商',
                 title: 'LINE團購',
                 appName: 'cms_system',
@@ -431,7 +449,7 @@ export class Setting_editor {
                 icon: '',
                 page: 'auto_send',
                 group: '信件群發',
-                title: '自動發送',
+                title: '信件自動發送',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
                 moduleName: '已訂閱郵件',
@@ -463,16 +481,6 @@ export class Setting_editor {
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
                 moduleName: '群發設定',
             },
-
-            // {
-            //     icon: '',
-            //     page: 'customer_message',
-            //     group: '顧客管理',
-            //     title: '客服系統',
-            //     appName: 'cms_system',
-            //     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
-            //     moduleName: '表單管理',
-            // },
             {
                 icon: '',
                 page: 'form_receive',
@@ -486,7 +494,7 @@ export class Setting_editor {
                 icon: '',
                 page: 'Sns_auto_send',
                 group: '簡訊群發',
-                title: '自動發送',
+                title: '簡訊自動發送',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-lines-regular.svg',
                 moduleName: 'SNS自動發送',
@@ -522,7 +530,7 @@ export class Setting_editor {
                 icon: '',
                 page: 'line_auto_send',
                 group: 'LINE群發',
-                title: '自動發送',
+                title: 'LINE 自動發送',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/line-brands-solid (2).svg',
                 moduleName: 'line自動發送',
@@ -832,7 +840,7 @@ export class Setting_editor {
         ];
     };
 
-    static left(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
+    static async left(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
         const html = String.raw;
         const glitter = gvc.glitter;
         if (!glitter.getUrlParameter('tab')) {
@@ -841,6 +849,8 @@ export class Setting_editor {
         glitter.share.checkData = () => {
             return true;
         };
+        const userPlan = GlobalUser.getPlan().id;
+
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             let initial = false;
@@ -849,6 +859,56 @@ export class Setting_editor {
             let permissionData: any = {};
             let items: any = [];
             let menuItems = this.menuItems();
+
+            menuItems = menuItems.filter(item => {
+                if (
+                    [
+                        'third-party-line',
+                        'third-party-facebook',
+                        'third-party-google',
+                        'manual_send',
+                        'send_mail',
+                        'send_mail_history',
+                        'Sns_manual_send',
+                        'send_sns',
+                        'send_sns_history',
+                        'line_manual_send',
+                        'send_line',
+                        'send_line_history',
+                        'blog_global_setting',
+                        'blog_tag_setting',
+                        'blog_manager',
+                        'rebate_setting',
+                        'rebate_activity',
+                        'hidden-shop',
+                        'single-shop',
+                        'line_auto_send',
+                    ].includes(item.page)
+                ) {
+                    return userPlan > 0;
+                }
+                if (
+                    [
+                        'permission_setting',
+                        'member_level',
+                        'member_group',
+                        'distribution_list',
+                        'distribution_users',
+                        'fb_live',
+                        'ig_live',
+                        'line_plus',
+                        'market-shopee',
+                    ].includes(item.page)
+                ) {
+                    return userPlan > 1;
+                }
+                if (['app-design', 'app-upload', 'cloud_subscrible', 'notify_message_list'].includes(item.page)) {
+                    return userPlan > 2;
+                }
+
+                return true;
+            });
+
             if ((window as any).memberType === 'noLimit') {
                 menuItems = menuItems.concat(this.noLimitMenuItems());
             }
@@ -858,7 +918,7 @@ export class Setting_editor {
                 }
             });
 
-            ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
+            ApiPageConfig.getPrivateConfigV2('backend_list').then(res => {
                 if (res.response.result && res.response.result[0]) {
                     items = res.response.result[0].value;
                 }
@@ -880,7 +940,7 @@ export class Setting_editor {
                     ApiUser.getPermission({
                         page: 0,
                         limit: 1000,
-                    }).then((data) => {
+                    }).then(data => {
                         if (data.result) {
                             const find_dd = data.response.data.find((dd: any) => {
                                 return `${dd.user}` === `${GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID}` && dd.id !== -1;
@@ -899,9 +959,10 @@ export class Setting_editor {
                     gvc.notifyDataChange(id);
                 });
             });
+
             //當發票設定只有選擇線下結帳時，要把發票的功能拿掉．
             function removeInvoice() {
-                ApiPageConfig.getPrivateConfigV2('invoice_setting').then((res) => {
+                ApiPageConfig.getPrivateConfigV2('invoice_setting').then(res => {
                     if (res.response.result[0].value.fincial == 'off_line') {
                         items = items.filter((dd: any) => {
                             return dd.page != 'invoice_list' && dd.page != 'allowance_list';
@@ -919,12 +980,20 @@ export class Setting_editor {
                     return html`
                         <div
                             class="d-flex p-3 bg-white border-bottom align-items-end d-lg-none"
-                            style="${parseInt(glitter.share.top_inset, 10) ? `padding-top:${glitter.share.top_inset}px !important;` : ``}"
+                            style="${parseInt(glitter.share.top_inset, 10)
+                                ? `padding-top:${glitter.share.top_inset}px !important;`
+                                : ``}"
                         >
-                            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg" />
-                            <span class="ms-1" style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
+                            <img style="height: 24px;" src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg" />
+                            <span class="ms-1"
+                                  style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
                         </div>
-                        <div class="w-100 bg-white" style="overflow-y:auto; ${document.body.offsetWidth > 768 ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;` : ''}">
+                        <div
+                            class="w-100 bg-white"
+                            style="overflow-y:auto; ${document.body.offsetWidth > 768
+                                ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;`
+                                : ''}"
+                        >
                             ${(() => {
                                 if (loading) {
                                     return BgWidget.spinner({ text: { visible: false } });
@@ -933,13 +1002,14 @@ export class Setting_editor {
                                 function renderHTML(items: any) {
                                     const authConfig = permissionData.config.auth;
                                     let list: any = [];
+
                                     async function click_item(index: any) {
                                         if (glitter.share.checkData && !glitter.share.checkData()) {
                                             const dialog = new ShareDialog(glitter);
                                             const result = await new Promise((resolve, reject) => {
                                                 dialog.checkYesOrNot({
                                                     text: '尚未儲存內容，是否確認跳轉?',
-                                                    callback: (response) => {
+                                                    callback: response => {
                                                         resolve(response);
                                                     },
                                                 });
@@ -971,7 +1041,11 @@ export class Setting_editor {
                                             url.searchParams.set('cms', 'true');
                                             url.searchParams.set('page', page);
                                             gvc.notifyDataChange('top-notice');
-                                            $('#editerCenter').html(html` <iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
+                                            $('#editerCenter').html(
+                                                html`
+                                                    <iframe src="${url.href}"
+                                                            style="border: none;height: calc(100%);"></iframe>`,
+                                            );
                                         }
                                         return true;
                                     }
@@ -1074,27 +1148,36 @@ export class Setting_editor {
                                                             }
 
                                                             return html`
-                                                                ${dd.title === '品牌官網' ? html`<div class="my-4 border-top"></div>` : ``}
+                                                                ${dd.title === '品牌官網' ? html`
+                                                                    <div class="my-4 border-top"></div>` : ``}
                                                                 <li>
                                                                     <div
-                                                                        class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 ${dd?.info?.guideClass ??
-                                                                        ''} ${dd.type === 'container' ? `mainRow${index}` : ''}"
-                                                                        style="gap:7px; color:#393939; ${dd.toggle ? `border-radius: 5px; background: #F2F2F2;` : ``}"
+                                                                        class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 ${dd
+                                                                            ?.info?.guideClass ?? ''} ${dd.type === 'container' ? `mainRow${index}` : ''}"
+                                                                        style="gap:7px; color:#393939; ${dd.toggle
+                                                                            ? `border-radius: 5px; background: #F2F2F2;`
+                                                                            : ``}"
                                                                         onclick="${gvc.event(async () => {
                                                                             try {
                                                                                 if (items[parseInt(dd.index)].page === 'image_manager') {
                                                                                     imageLibrary.selectImageLibrary(
                                                                                         gvc,
-                                                                                        (urlArray) => {},
-                                                                                        html` <div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
-                                                                                            圖片庫
-                                                                                        </div>`,
+                                                                                        urlArray => {
+                                                                                        },
+                                                                                        html`
+                                                                                            <div
+                                                                                                class="d-flex flex-column"
+                                                                                                style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                                                                            >
+                                                                                                圖片庫
+                                                                                            </div>`,
                                                                                         { mul: true },
-                                                                                        true
+                                                                                        true,
                                                                                     );
                                                                                     return;
                                                                                 }
-                                                                            } catch (e) {}
+                                                                            } catch (e) {
+                                                                            }
                                                                             gvc.glitter.setUrlParameter('page-id');
                                                                             if (dd.type === 'container') {
                                                                                 list.forEach((item: any, index2: number) => {
@@ -1111,7 +1194,18 @@ export class Setting_editor {
                                                                                     glitter.share.switch_to_web_builder('index-mobile', 'mobile');
                                                                                     return;
                                                                                 }
-                                                                                if ((await click_item(dd.index)) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
+
+                                                                                const url = new URL(location.href);
+                                                                                url.searchParams.forEach((_, key) => {
+                                                                                    if (!['type', 'appName', 'function', 'tab'].includes(key)) {
+                                                                                        glitter.setUrlParameter(key);
+                                                                                    }
+                                                                                });
+
+                                                                                if (
+                                                                                    (await click_item(dd.index)) &&
+                                                                                    ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1
+                                                                                ) {
                                                                                     dd.toggle = true;
                                                                                     refreshContainer();
                                                                                 }
@@ -1119,16 +1213,34 @@ export class Setting_editor {
                                                                             }
                                                                         })}"
                                                                     >
-                                                                        ${dd.icon ? html`<img src="${dd.icon}" style="width:18px;height:18px;" />` : ``}
+                                                                        ${dd.icon ? html`<img src="${dd.icon}"
+                                                                                              style="width:18px;height:18px;" />` : ``}
                                                                         <span>${dd.title}</span>
                                                                         <div class="flex-fill"></div>
                                                                         ${dd.type === 'container'
                                                                             ? !dd.toggle
-                                                                                ? html` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
-                                                                                : html` <i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                                            : html` ${dd.info && dd.info.icon ? html`<img src="${dd.info.icon}" style="width:18px;height:18px;" />` : ``} `}
+                                                                                ? html`
+                                                                                    <i class="fa-regular fa-angle-right hoverBtn me-1"
+                                                                                       aria-hidden="true"></i>
+                                                                                `
+                                                                                : html` <i
+                                                                                    class="fa-regular fa-angle-down hoverBtn me-1"
+                                                                                    aria-hidden="true"
+                                                                                ></i>`
+                                                                            : html`
+                                                                                ${dd.info && dd.info.icon
+                                                                                    ? html`<img src="${dd.info.icon}"
+                                                                                                style="width:18px;height:18px;" />`
+                                                                                    : ``}
+                                                                            `}
                                                                     </div>
-                                                                    ${dd.type === 'container' ? html` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItem(dd.child)}</div>` : ``}
+                                                                    ${dd.type === 'container'
+                                                                        ? html`
+                                                                            <div
+                                                                                class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">
+                                                                                ${renderItem(dd.child)}
+                                                                            </div>`
+                                                                        : ``}
                                                                 </li>
                                                             `;
                                                         })
@@ -1144,12 +1256,14 @@ export class Setting_editor {
                                                         },
                                                     ],
                                                 },
-                                                onCreate: () => {},
+                                                onCreate: () => {
+                                                },
                                             };
                                         });
                                     }
 
-                                    return html` <div class="p-2">${renderItem(list)}</div>`;
+                                    return html`
+                                        <div class="p-2">${renderItem(list)}</div>`;
                                 }
 
                                 return renderHTML(items);
@@ -1201,7 +1315,8 @@ export class Setting_editor {
                     view: () => {
                         return html`
                             <div class="position-relative bgf6 d-flex align-items-center p-2 border-bottom shadow">
-                                <span class="fs-6 fw-bold " style="color:black;">${updateModel ? `插件設定` : '新增插件'}</span>
+                                <span class="fs-6 fw-bold "
+                                      style="color:black;">${updateModel ? `插件設定` : '新增插件'}</span>
                                 <div class="flex-fill"></div>
                                 <button
                                     class="btn btn-primary-c ${updateModel ? `d-none` : ``}"
@@ -1221,16 +1336,19 @@ export class Setting_editor {
                                         title: '標題',
                                         default: postMd.title,
                                         placeHolder: '請輸入插件標題',
-                                        callback: (text) => {
+                                        callback: text => {
                                             postMd.title = text;
                                         },
                                     }),
                                     EditorElem.searchInput({
                                         gvc: gvc,
                                         title: html`群組分類
-                                            <div class="alert alert-info p-2 mt-2 fs-base fw-500 mb-0" style="word-break: break-all;white-space:normal">
-                                                加入 / 進行分類:<br />例如:頁面/登入/註冊設定
-                                            </div>`,
+                                        <div
+                                            class="alert alert-info p-2 mt-2 fs-base fw-500 mb-0"
+                                            style="word-break: break-all;white-space:normal"
+                                        >
+                                            加入 / 進行分類:<br />例如:頁面/登入/註冊設定
+                                        </div>`,
                                         def: postMd.group,
                                         array: (() => {
                                             let array: any = [];
@@ -1246,7 +1364,7 @@ export class Setting_editor {
                                             return array;
                                         })(),
                                         placeHolder: '請輸入群組分類',
-                                        callback: (text) => {
+                                        callback: text => {
                                             postMd.group = text;
                                             if (
                                                 items.find((dd: any) => {
@@ -1264,7 +1382,7 @@ export class Setting_editor {
                                         title: '群組ICON',
                                         gvc: gvc,
                                         def: postMd.groupIcon || '',
-                                        callback: (icon) => {
+                                        callback: icon => {
                                             postMd.groupIcon = icon;
                                         },
                                     }),
@@ -1289,8 +1407,8 @@ export class Setting_editor {
                                                                             NormalPageEditor.back();
                                                                         },
                                                                         false,
-                                                                        true
-                                                                    )
+                                                                        true,
+                                                                    ),
                                                                 );
                                                             });
                                                         },
@@ -1298,7 +1416,7 @@ export class Setting_editor {
                                                 }),
                                                 title: '選擇插件',
                                             });
-                                        })
+                                        }),
                                     ),
                                 ].join('')}
                             </div>
@@ -1318,16 +1436,21 @@ export class Setting_editor {
             view: (() => {
                 const viewComponent = {
                     add_plus: (title: string, event: string) => {
-                        return html` <div class="w-100 fw-500 d-flex align-items-center justify-content-center fs-6 hoverBtn h_item border rounded" style="gap:5px;color:#3366BB;" onclick="${event}">
-                            <i class="fa-solid fa-plus"></i>
-                            <span>${title}</span>
-                        </div>`;
+                        return html`
+                            <div
+                                class="w-100 fw-500 d-flex align-items-center justify-content-center fs-6 hoverBtn h_item border rounded"
+                                style="gap:5px;color:#3366BB;"
+                                onclick="${event}"
+                            >
+                                <i class="fa-solid fa-plus"></i>
+                                <span>${title}</span>
+                            </div>`;
                     },
                 };
                 return gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     let select = '';
-                    ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
+                    ApiPageConfig.getPrivateConfigV2('backend_list').then(res => {
                         res.response.result[0] && (items = res.response.result[0].value);
                         items = items.filter((dd: any) => dd);
                         gvc.notifyDataChange(id);
@@ -1397,52 +1520,65 @@ export class Setting_editor {
                                                             >
                                                                 ${dd.type === 'container'
                                                                     ? !dd.toggle
-                                                                        ? html` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
-                                                                        : html`<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                                    : html` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
+                                                                        ? html` <i
+                                                                            class="fa-regular fa-angle-right hoverBtn me-1"
+                                                                            aria-hidden="true"></i> `
+                                                                        : html`<i
+                                                                            class="fa-regular fa-angle-down hoverBtn me-1"
+                                                                            aria-hidden="true"></i>`
+                                                                    : html`
+                                                                        ${dd.info && dd.info.icon
+                                                                            ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">`
+                                                                            : ``}
+                                                                    `}
                                                                 ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
                                                                 <span>${dd.title}</span>
                                                                 <div class="flex-fill"></div>
                                                                 ${dd.type === 'container'
                                                                     ? ``
                                                                     : html`
-                                                                          <i
-                                                                              class="fa-solid fa-pencil text-black hoverBtn me-2 child"
-                                                                              onclick="${gvc.event(() => {
-                                                                                  select = dd.info;
-                                                                                  NormalPageEditor.toggle({
-                                                                                      visible: true,
-                                                                                      view: addPlugin(select),
-                                                                                      title: dd.title,
-                                                                                  });
-                                                                              })}"
-                                                                          ></i>
-                                                                          <i
-                                                                              class="fa-sharp fa-solid fa-trash-can text-black hoverBtn me-2 child"
-                                                                              onclick="${gvc.event(() => {
-                                                                                  const dialog = new ShareDialog(gvc.glitter);
-                                                                                  dialog.checkYesOrNot({
-                                                                                      callback: (response) => {
-                                                                                          if (response) {
-                                                                                              items = items.filter((d2: any, index: any) => {
-                                                                                                  return index !== dd.index;
-                                                                                              });
-                                                                                              list.splice(index, 1);
-                                                                                              if (list.length === 0) {
-                                                                                                  refreshContainer();
-                                                                                              } else {
-                                                                                                  gvc.notifyDataChange(id);
-                                                                                              }
-                                                                                          }
-                                                                                      },
-                                                                                      text: '是否確認刪除插件?',
-                                                                                  });
-                                                                              })}"
-                                                                          ></i>
-                                                                      `}
+                                                                        <i
+                                                                            class="fa-solid fa-pencil text-black hoverBtn me-2 child"
+                                                                            onclick="${gvc.event(() => {
+                                                                                select = dd.info;
+                                                                                NormalPageEditor.toggle({
+                                                                                    visible: true,
+                                                                                    view: addPlugin(select),
+                                                                                    title: dd.title,
+                                                                                });
+                                                                            })}"
+                                                                        ></i>
+                                                                        <i
+                                                                            class="fa-sharp fa-solid fa-trash-can text-black hoverBtn me-2 child"
+                                                                            onclick="${gvc.event(() => {
+                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                dialog.checkYesOrNot({
+                                                                                    callback: response => {
+                                                                                        if (response) {
+                                                                                            items = items.filter((d2: any, index: any) => {
+                                                                                                return index !== dd.index;
+                                                                                            });
+                                                                                            list.splice(index, 1);
+                                                                                            if (list.length === 0) {
+                                                                                                refreshContainer();
+                                                                                            } else {
+                                                                                                gvc.notifyDataChange(id);
+                                                                                            }
+                                                                                        }
+                                                                                    },
+                                                                                    text: '是否確認刪除插件?',
+                                                                                });
+                                                                            })}"
+                                                                        ></i>
+                                                                    `}
                                                                 <i class="fa-solid fa-grip-dots-vertical"></i>
                                                             </div>
-                                                            ${dd.type === 'container' ? html` <div class="ps-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>` : ``}
+                                                            ${dd.type === 'container'
+                                                                ? html`
+                                                                    <div class="ps-2 ${dd.toggle ? `` : `d-none`}">
+                                                                        ${renderItems(dd.child)}
+                                                                    </div>`
+                                                                : ``}
                                                         </li>
                                                     `;
                                                 })
@@ -1469,7 +1605,8 @@ export class Setting_editor {
                                             Sortable.create(document.getElementById(id), {
                                                 group: gvc.glitter.getUUID(),
                                                 animation: 100,
-                                                onChange: function (evt: any) {},
+                                                onChange: function(evt: any) {
+                                                },
                                                 onEnd: (evt: any) => {
                                                     let changeItemStart = 0;
                                                     let changeItemEnd = 0;
@@ -1496,7 +1633,7 @@ export class Setting_editor {
                                                     swapArr(items, changeItemStart, changeItemEnd);
                                                     swapArr(list, startIndex, evt.newIndex);
                                                 },
-                                                onStart: function (evt: any) {
+                                                onStart: function(evt: any) {
                                                     startIndex = evt.oldIndex;
                                                 },
                                             });
@@ -1517,7 +1654,7 @@ export class Setting_editor {
                                             ApiPageConfig.setPrivateConfigV2({
                                                 key: 'backend_list',
                                                 value: JSON.stringify(items),
-                                            }).then((res) => {
+                                            }).then(res => {
                                                 dialog.dataLoading({ visible: false });
                                                 if (res.result) {
                                                     dialog.successMessage({ text: '儲存成功' });
@@ -1542,7 +1679,7 @@ export class Setting_editor {
                                                     view: addPlugin(),
                                                     title: '新增插件',
                                                 });
-                                            })
+                                            }),
                                         ),
                                     ].join(``)}
                                 </div>

@@ -2,10 +2,14 @@ import { Color } from '../public/color.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { LanguageView } from '../public/language-view.js';
+import { HideFooter } from './hide-footer.js';
 const html = String.raw;
 export class Footer02 {
     static main(gvc, widget, subData) {
         var _a;
+        if (HideFooter.check()) {
+            return ``;
+        }
         const formData = widget.formData;
         const colors = Color.getTheme(gvc, formData);
         const footer = {
@@ -82,12 +86,13 @@ export class Footer02 {
                 color: ${colors.content};
             }
         `);
-        return html `<footer class="f-bgr border-top">
-            <div class="border-gray-700 pt-4 pt-md-0">
-                <div class="container px-0">
-                    <div class="row py-sm-5 f-container">
-                        <div class="col ${document.body.clientWidth > 768 ? '' : 'row'} f-content-container">
-                            ${(() => {
+        return html `
+            <footer class="f-bgr border-top">
+                <div class="border-gray-700 pt-4 pt-md-0">
+                    <div class="container px-0">
+                        <div class="row py-sm-5 f-container">
+                            <div class="col ${document.body.clientWidth > 768 ? '' : 'row'} f-content-container">
+                                ${(() => {
             try {
                 return gvc.bindView((() => {
                     const id = gvc.glitter.getUUID();
@@ -101,37 +106,43 @@ export class Footer02 {
                             else {
                                 return footer.list
                                     .map((data) => {
-                                    return html ` <div class="${document.body.clientWidth > 768 ? '' : 'col-12'} mt-2">
-                                                                    <h6
-                                                                        class="heading-xxs mb-3 f-title"
-                                                                        onclick="${gvc.event(() => {
+                                    return html `
+                                                                        <div
+                                                                            class="${document.body.clientWidth > 768 ? '' : 'col-12'} mt-2">
+                                                                            <h6
+                                                                                class="heading-xxs mb-3 f-title"
+                                                                                onclick="${gvc.event(() => {
                                         if (data.link) {
                                             gvc.glitter.href = data.link;
                                         }
                                     })}"
-                                                                    >
-                                                                        ${data.title}
-                                                                    </h6>
-                                                                    <ul class="list-unstyled mb-7 f-ul">
-                                                                        ${data.items
+                                                                            >
+                                                                                ${data.title}
+                                                                            </h6>
+                                                                            <ul class="list-unstyled mb-7 f-ul">
+                                                                                ${data.items
                                         .map((chi) => {
-                                        return html `<li
-                                                                                    class="f-li"
-                                                                                    style="${chi.link ? 'cursor: pointer;' : ''}"
-                                                                                    onclick="${gvc.event(() => {
+                                        return html `
+                                                                                            <li
+                                                                                                class="f-li"
+                                                                                                style="${chi.link ? 'cursor: pointer;' : ''}"
+                                                                                                onclick="${gvc.event(() => {
                                             if (chi.link) {
                                                 gvc.glitter.href = chi.link;
                                             }
                                         })}"
-                                                                                >
-                                                                                    <a class="f-aclass" title="${chi.title}"  onclick="${gvc.event((e, event) => {
+                                                                                            >
+                                                                                                <a class="f-aclass"
+                                                                                                   title="${chi.title}"
+                                                                                                   onclick="${gvc.event((e, event) => {
                                             event.preventDefault();
-                                        })}" href="${chi.link}">${chi.title}</a>
-                                                                                </li>`;
+                                        })}"
+                                                                                                   href="${chi.link}">${chi.title}</a>
+                                                                                            </li>`;
                                     })
                                         .join('')}
-                                                                    </ul>
-                                                                </div>`;
+                                                                            </ul>
+                                                                        </div>`;
                                 })
                                     .join('');
                             }
@@ -157,28 +168,36 @@ export class Footer02 {
                 return '';
             }
         })()}
-                        </div>
-                        ${((window.store_info.language_setting.support.length > 1 || window.store_info.multi_currency) && document.body.clientWidth < 800)
-            ? html `<div class="col-12 d-flex justify-content-center mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>`
+                            </div>
+                            ${((window.store_info.language_setting.support.length > 1 || window.store_info.multi_currency) && document.body.clientWidth < 800)
+            ? html `
+                                    <div class="col-12 d-flex justify-content-center mb-3">
+                                        ${LanguageView.selectLanguage(gvc, colors)}
+                                    </div>`
             : ``}
-                        <div class="col-12 col-md-3 col-lg-6 f-title-container d-flex flex-column ms-auto">
-                            ${(window.store_info.language_setting.support.length > 1 || window.store_info.multi_currency) && document.body.clientWidth >= 800
-            ? html `<div class="d-flex justify-content-end mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>`
+                            <div class="col-12 col-md-3 col-lg-6 f-title-container d-flex flex-column ms-auto">
+                                ${(window.store_info.language_setting.support.length > 1 || window.store_info.multi_currency) && document.body.clientWidth >= 800
+            ? html `
+                                        <div class="d-flex justify-content-end mb-3">
+                                            ${LanguageView.selectLanguage(gvc, colors)}
+                                        </div>`
             : ``}
-                            <div class="d-flex gap-2 p-0 pb-3 justify-content-${document.body.clientWidth > 768 ? 'end' : 'center'}">
-                                ${(() => {
+                                <div
+                                    class="d-flex gap-2 p-0 pb-3 justify-content-${document.body.clientWidth > 768 ? 'end' : 'center'}">
+                                    ${(() => {
             try {
                 return formData.kkk.link
                     .map((item) => {
-                    return html ` <div class="f-icon-div">
-                                                    <div
-                                                        onclick="${gvc.event(() => {
+                    return html `
+                                                        <div class="f-icon-div">
+                                                            <div
+                                                                onclick="${gvc.event(() => {
                         gvc.glitter.href = item.link;
                     })}"
-                                                    >
-                                                        <img
-                                                            class="f-icon-image"
-                                                            src="${(() => {
+                                                            >
+                                                                <img
+                                                                    class="f-icon-image"
+                                                                    src="${(() => {
                         switch (item.type) {
                             case 'fb':
                                 return 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722847285395-img_facebook.svg';
@@ -194,9 +213,9 @@ export class Footer02 {
                                 return '';
                         }
                     })()}"
-                                                        />
-                                                    </div>
-                                                </div>`;
+                                                                />
+                                                            </div>
+                                                        </div>`;
                 })
                     .join('');
             }
@@ -204,22 +223,24 @@ export class Footer02 {
                 return '';
             }
         })()}
+                                </div>
+                                <div class="d-none d-sm-block f-intro text-end">
+                                    ${formData.intro ? formData.intro.replace(/\n/g, '<br/>') : ''}
+                                </div>
                             </div>
-                            <div class="d-none d-sm-block f-intro text-end">${formData.intro ? formData.intro.replace(/\n/g, '<br/>') : ''}</div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="py-6">
-                <div class="container">
-                    <div class="row">
-                        <div class="col text-center">
-                            <p class="my-2 f-copyright">${(_a = formData.note) !== null && _a !== void 0 ? _a : ''}</p>
+                <div class="py-6">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col text-center">
+                                <p class="my-2 f-copyright">${(_a = formData.note) !== null && _a !== void 0 ? _a : ''}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </footer>`;
+            </footer>`;
     }
 }
 window.glitter.setModule(import.meta.url, Footer02);

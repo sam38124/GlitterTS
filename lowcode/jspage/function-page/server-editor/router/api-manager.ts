@@ -57,7 +57,7 @@ import { ShareDialog } from '../../../../glitterBundle/dialog/ShareDialog.js';
                                             location.href = resp.response.result;
                                         } else {
                                             dialog.errorMessage({
-                                                text: '下載範例失敗!',
+                                                text: '下載範例失敗',
                                             });
                                         }
                                     })}"
@@ -228,7 +228,7 @@ import { ShareDialog } from '../../../../glitterBundle/dialog/ShareDialog.js';
                                                                 location.href = resp.response.result;
                                                             } else {
                                                                 dialog.errorMessage({
-                                                                    text: '下載範例失敗!',
+                                                                    text: '下載範例失敗',
                                                                 });
                                                             }
                                                         })}"
@@ -438,7 +438,7 @@ data-bs-title="下載專案壓縮檔"
                                         location.href = resp.response.result;
                                     } else {
                                         dialog.errorMessage({
-                                            text: '下載範例失敗!',
+                                            text: '下載範例失敗',
                                         });
                                     }
                                 })}"

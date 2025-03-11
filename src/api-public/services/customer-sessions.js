@@ -66,7 +66,7 @@ class CustomerSessions {
                                     },
                                     {
                                         type: "text",
-                                        text: `$ ${product.price.toLocaleString()}起`,
+                                        text: `$ ${product.price.toLocaleString()} 起`,
                                         size: "md",
                                         "align": "end"
                                     },
@@ -105,12 +105,12 @@ class CustomerSessions {
                     const content = item.content;
                     const name = content.title || "未知商品";
                     const variants = content.variants || [];
-                    const price = variants.length > 0 ? Math.min(...variants.map(v => v.sale_price)) : 0;
+                    const price = variants.length > 0 ? Math.min(...variants.map(v => v.live_model.live_price)) : 0;
                     const imageUrl = variants.length > 0 ? variants[0].preview_image : "";
                     const options = variants.map(v => ({
                         label: v.spec.length > 0 ? v.spec.join(',') : "",
                         value: v.spec.length > 0 ? v.spec.join(',') : "",
-                        price: v.sale_price,
+                        price: v.live_model.live_price,
                     }));
                     return {
                         id,
@@ -123,6 +123,22 @@ class CustomerSessions {
                 });
             }
             const { type, name } = data, content = __rest(data, ["type", "name"]);
+            const message = [
+                {
+                    "type": "text",
+                    "text": `📢 團購開始囉！ 🎉\n團購名稱： ${name}\n團購日期： ${content.start_date} ${content.start_time} ~ ${content.end_date} ${content.end_time}\n\n📍 下方查看完整商品清單`
+                }
+            ];
+            const transProducts = convertToProductFormat(content.item_list);
+            await this.sendMessageToGroup(data.lineGroup.groupId, message);
+            const queryData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
+                                              SET ?;`, [{
+                    type: data.type,
+                    name: data.name,
+                    status: "1",
+                    content: JSON.stringify(content)
+                }]);
+            const flexMessage = generateProductCarousel(transProducts, this.app, queryData.insertId);
             for (const item of content.item_list) {
                 const pdDqlData = (await new shopping_js_1.Shopping(this.app, this.token).getProduct({
                     page: 0,
@@ -145,6 +161,7 @@ class CustomerSessions {
                         delete updateVariant.deduction_log;
                     }
                     let newContent = item.content;
+                    await new shopping_js_1.Shopping(this.app, this.token).updateVariantsWithSpec(updateVariant, item.id, variant.spec);
                 })).then(async () => {
                     var _a;
                     try {
@@ -165,22 +182,6 @@ class CustomerSessions {
                     }
                 });
             }
-            const message = [
-                {
-                    "type": "text",
-                    "text": `📢 團購開始囉！ 🎉\n團購名稱： ${name}\n團購日期： ${content.start_date} ${content.start_time} ~ ${content.end_date} ${content.end_time}\n\n📍 下方查看完整商品清單`
-                }
-            ];
-            await this.sendMessageToGroup(data.lineGroup.groupId, message);
-            const transProducts = convertToProductFormat(content.item_list);
-            const queryData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
-                                              SET ?;`, [{
-                    type: data.type,
-                    name: data.name,
-                    status: "1",
-                    content: JSON.stringify(content)
-                }]);
-            const flexMessage = generateProductCarousel(transProducts, this.app, queryData.insertId);
             try {
                 const res = await axios_1.default.post("https://api.line.me/v2/bot/message/push", {
                     to: data.lineGroup.groupId,
@@ -222,21 +223,6 @@ class CustomerSessions {
                     FROM \`${appName}\`.\`t_live_purchase_interactions\`
                     order by id desc
                 `, []);
-                const expiredItems = data.filter((item) => isPastEndTime(item.content.end_date, item.content.end_time));
-                if (expiredItems.length === 0) {
-                    console.log("✅ 沒有需要更新的團購");
-                    return;
-                }
-                else {
-                    await Promise.all(expiredItems.map((item) => {
-                        item.status = 2;
-                        database_js_1.default.query(`
-                                UPDATE \`${appName}\`.\`t_live_purchase_interactions\`
-                                SET \`status\` = 2
-                                WHERE \`id\` = ?;
-                            `, [item.id]);
-                    }));
-                }
                 return data;
             }
             catch (err) {

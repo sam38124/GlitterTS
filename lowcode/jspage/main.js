@@ -632,15 +632,15 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                             })()}"
                                                     style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - ${(document.body.clientWidth < 800 || document.body.clientWidth > 1200) ? 56 : (parseInt(glitter.share.top_inset, 10) + 56)}px);"
                                             >
-                                                <div class="h-120" style="">
+                                                <div class="h-120">
                                                     ${gvc.bindView(() => {
                                 return {
                                     bind: 'MainEditorLeft',
-                                    view: () => {
-                                        const view = (() => {
+                                    view: () => __awaiter(void 0, void 0, void 0, function* () {
+                                        const view = yield (() => __awaiter(void 0, void 0, void 0, function* () {
                                             switch (Storage.select_function) {
                                                 case 'backend-manger':
-                                                    return Setting_editor.left(gvc, viewModel, editorContainerID, gBundle);
+                                                    return yield Setting_editor.left(gvc, viewModel, editorContainerID, gBundle);
                                                 case 'server-manager':
                                                     return ServerEditor.left(gvc);
                                                 case 'page-editor':
@@ -654,7 +654,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                 default:
                                                     return Page_editor.left(gvc, viewModel, editorContainerID, gBundle);
                                             }
-                                        })();
+                                        }))();
                                         if (document.body.offsetWidth < 992) {
                                             glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => { });
                                             glitter.share.toggle_left_bar = () => {
@@ -667,7 +667,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                         else {
                                             return view;
                                         }
-                                    },
+                                    }),
                                     divCreate: {
                                         class: 'h-120',
                                     },

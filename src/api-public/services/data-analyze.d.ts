@@ -10,7 +10,7 @@ export declare class DataAnalyze {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "success" | "error";
+        queryStatus: "error" | "success";
         queryData: any;
     } | {
         type: string;
@@ -18,6 +18,7 @@ export declare class DataAnalyze {
         executionTime: string;
     }>;
     getDataAnalyze(tags: string[], query: any): Promise<Record<string, any>>;
+    getOrderCountingSQL(): Promise<string>;
     getRecentActiveUser(): Promise<{
         recent: any;
         months: any;
@@ -54,7 +55,7 @@ export declare class DataAnalyze {
         countArrayStore: any[];
         countArrayWeb: any[];
     }>;
-    getOrdersPerMonthCostom(query: string): Promise<{
+    getOrdersPerMonthCustom(query: string): Promise<{
         countArray: any[];
         countArrayPos: any[];
         countArrayStore: any[];
@@ -145,6 +146,6 @@ export declare class DataAnalyze {
         total_count: any;
         un_shipment: any;
         un_pay: any;
-        total_amount: number;
+        total_amount: any;
     }>;
 }

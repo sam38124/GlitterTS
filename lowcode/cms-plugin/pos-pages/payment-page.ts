@@ -18,6 +18,7 @@ import { PosFunction } from './pos-function.js';
 import { TempOrder } from './temp-order.js';
 import { PaymentFunction } from './payment-function.js';
 import { UmClass } from '../../public-components/user-manager/um-class.js';
+import { FormCheck } from '../module/form-check.js';
 
 const html = String.raw;
 
@@ -337,6 +338,7 @@ export class PaymentPage {
                                                                                                 onclick="${gvc.event(() => {
                                                                                                     obj.ogOrderData.user_info.id = data.key;
                                                                                                     obj.ogOrderData.user_info.email = data.user_data.email;
+                                                                                                    obj.ogOrderData.user_info.phone = data.user_data.phone;
                                                                                                     refreshOrderView();
                                                                                                     gvc.glitter.closeDiaLog('select_users');
                                                                                                 })}"
@@ -439,7 +441,7 @@ export class PaymentPage {
                                                                             </div>
                                                                         </div>`,
                                                                     ];
-                                                                    if (obj.ogOrderData.user_info.email) {
+                                                                    if (obj.ogOrderData.user_info.email || obj.ogOrderData.user_info.phone) {
                                                                         inView.push(
                                                                             gvc.bindView(() => {
                                                                                 const vm: {
@@ -453,10 +455,10 @@ export class PaymentPage {
                                                                                     user_data: {},
                                                                                     rebate: 0,
                                                                                 };
-                                                                                ApiUser.getUsersDataWithEmail(obj.ogOrderData.user_info.email).then((res) => {
+                                                                                ApiUser.getUsersDataWithEmailOrPhone(obj.ogOrderData.user_info.email || obj.ogOrderData.user_info.phone).then((res) => {
                                                                                     vm.user_data = res.response;
                                                                                     vm.loading = false;
-                                                                                    ApiUser.getUserRebate({ email: obj.ogOrderData.user_info.email }).then((res) => {
+                                                                                    ApiUser.getUserRebate({ id: vm.user_data.userID }).then((res) => {
                                                                                         vm.rebate = res.response.data.point;
                                                                                         gvc.notifyDataChange(vm.id);
                                                                                     });
@@ -483,6 +485,7 @@ export class PaymentPage {
                                                                                                                 obj.ogOrderData.use_rebate = 0;
                                                                                                                 obj.ogOrderData.user_info.id = 0;
                                                                                                                 obj.ogOrderData.user_info.email = '';
+                                                                                                                obj.ogOrderData.user_info.phone = '';
                                                                                                                 refreshOrderView();
                                                                                                             })}"
                                                                                                         >
@@ -515,7 +518,7 @@ export class PaymentPage {
                                                                                                         },
                                                                                                         {
                                                                                                             title: '會員信箱',
-                                                                                                            value: vm.user_data.account,
+                                                                                                            value: vm.user_data.userData.email || '未填寫',
                                                                                                         },
                                                                                                         {
                                                                                                             title: '會員地址',
@@ -677,15 +680,18 @@ export class PaymentPage {
                                                                 bind: id,
                                                                 view: () => {
                                                                     return new Promise(async (resolve) => {
-                                                                        let data = ((await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0] ?? {})
-                                                                            .value;
-                                                                        if (!Array.isArray(data)) {
-                                                                            data = [];
-                                                                        }
-
+                                                                        const formList=FormCheck.initialRegisterForm((await ApiUser.getPublicConfig('custom_form_register', 'manager')).response.value.list ?? []);
+                                                                     
+                                                                        let need_check:any={}
                                                                         function loopForm(data: any, refer_obj: any) {
                                                                             let h = '';
                                                                             data.map((item: any) => {
+                                                                                if(item.hidden){
+                                                                                    return ``
+                                                                                }
+                                                                                if(item.require){
+                                                                                    need_check[item.key]=true
+                                                                                }
                                                                                 switch (item.page) {
                                                                                     case 'input':
                                                                                         h += html` <div>
@@ -698,7 +704,6 @@ export class PaymentPage {
                                                                                                     placeHolder: `請輸入${item.title}`,
                                                                                                     callback: (text) => {
                                                                                                         refer_obj[item.key] = text;
-                                                                                                        gvc.notifyDataChange(id);
                                                                                                     },
                                                                                                     readonly: false,
                                                                                                 })}
@@ -715,7 +720,6 @@ export class PaymentPage {
                                                                                                 placeHolder: `請輸入${item.title}`,
                                                                                                 callback: (text) => {
                                                                                                     refer_obj[item.key] = text;
-                                                                                                    gvc.notifyDataChange(id);
                                                                                                 },
                                                                                                 readonly: false,
                                                                                             })}
@@ -737,60 +741,68 @@ export class PaymentPage {
 
                                                                         // 預設用戶表單
                                                                         const form_array_view: any = [
-                                                                            html` <div style="display:flex; gap: 12px; flex-direction: column;">${loopForm(data, userData)}</div>`,
+                                                                            html` <div style="display:flex; gap: 12px; flex-direction: column;">${loopForm(formList, userData)}</div>`,
                                                                         ];
 
                                                                         resolve(
                                                                             form_array_view.join(`<div class="my-4 border"></div>`) +
                                                                                 html`<div class="d-flex align-content-end justify-content-end pt-3">
                                                                                     ${BgWidget.save(
-                                                                                        gvc.event(() => {
+                                                                                        gvc.event(async () => {
                                                                                             const dialog = new ShareDialog(gvc.glitter);
-
                                                                                             if (CheckInput.isEmpty(userData.name)) {
                                                                                                 dialog.infoMessage({ text: '請輸入顧客姓名' });
                                                                                                 return;
                                                                                             }
 
-                                                                                            if (!CheckInput.isEmail(userData.email)) {
+                                                                                            if (!CheckInput.isEmail(userData.email) && (need_check.email)) {
                                                                                                 dialog.infoMessage({ text: '請輸入正確的電子信箱格式' });
                                                                                                 return;
                                                                                             }
 
-                                                                                            if (!CheckInput.isEmpty(userData.phone) && !CheckInput.isTaiwanPhone(userData.phone)) {
+                                                                                            if (!CheckInput.isEmpty(userData.phone) && !CheckInput.isTaiwanPhone(userData.phone)  && (need_check.phone)) {
                                                                                                 dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
                                                                                                 return;
                                                                                             }
 
-                                                                                            if (!CheckInput.isBirthString(userData.birth)) {
+                                                                                            if (!CheckInput.isBirthString(userData.birth)  && (need_check.birth)) {
                                                                                                 dialog.infoMessage({
                                                                                                     text: html` <div class="text-center">生日日期無效，請確認年月日是否正確<br />(ex: 19950107)</div> `,
                                                                                                 });
                                                                                                 return;
                                                                                             }
+                                                                                            const [email_count,phone_count]=await Promise.all(
+                                                                                              [
+                                                                                                  ApiUser.getEmailCount(userData.email),
+                                                                                                  ApiUser.getPhoneCount(userData.phone)
+                                                                                              ]
+                                                                                            )
+                                                                                            if(email_count.response.result && need_check.email){
+                                                                                                dialog.dataLoading({ visible: false });
+                                                                                                dialog.errorMessage({ text: '此信箱已被註冊' });
+                                                                                                return
+                                                                                            }
+                                                                                            if(phone_count.response.result && need_check.phone){
+                                                                                                dialog.dataLoading({ visible: false });
+                                                                                                dialog.errorMessage({ text: '此電話已被註冊' });
+                                                                                                return
+                                                                                            }
                                                                                             dialog.dataLoading({ visible: true });
-                                                                                            ApiUser.getEmailCount(userData.email).then((r) => {
-                                                                                                if (r.response.result) {
-                                                                                                    dialog.dataLoading({ visible: false });
-                                                                                                    dialog.errorMessage({ text: '此信箱已被註冊' });
+                                                                                            ApiUser.quickRegister({
+                                                                                                account: userData.email || userData.phone,
+                                                                                                pwd: gvc.glitter.getUUID(),
+                                                                                                userData: userData,
+                                                                                            }).then((r) => {
+                                                                                                dialog.dataLoading({ visible: false });
+                                                                                                if (!r.result) {
+                                                                                                    dialog.errorMessage({ text: '沒有權限!' });
                                                                                                 } else {
-                                                                                                    dialog.dataLoading({ visible: true });
-                                                                                                    ApiUser.quickRegister({
-                                                                                                        account: userData.email,
-                                                                                                        pwd: gvc.glitter.getUUID(),
-                                                                                                        userData: userData,
-                                                                                                    }).then((r) => {
-                                                                                                        dialog.dataLoading({ visible: false });
-                                                                                                        if (!r.result) {
-                                                                                                            dialog.errorMessage({ text: '此電話號碼已註冊' });
-                                                                                                        } else {
-                                                                                                            dialog.infoMessage({ text: '成功新增會員' });
-                                                                                                            obj.ogOrderData.user_info.email = userData.email;
-                                                                                                            refreshOrderView();
-                                                                                                        }
-                                                                                                    });
+                                                                                                    dialog.infoMessage({ text: '成功新增會員' });
+                                                                                                    obj.ogOrderData.user_info.email = userData.email;
+                                                                                                    obj.ogOrderData.user_info.phone = userData.phone;
+                                                                                                    refreshOrderView();
                                                                                                 }
-                                                                                            });
+                                                                                            })
                                                                                         })
                                                                                     )}
                                                                                 </div>`
@@ -973,7 +985,7 @@ export class PaymentPage {
                                                 }
                                             })(),
                                             ...(() => {
-                                                return (orderDetail as any).voucherList.map((dd: any) => {
+                                                return (orderDetail as any).voucherList.map((dd: any,index:number) => {
                                                     return {
                                                         hint: dd.title,
                                                         value: html`<div class="d-flex align-items-center" style="gap:5px;">
@@ -981,7 +993,7 @@ export class PaymentPage {
                                                                 ? `+${dd.discount_total.toLocaleString()} ${gvc.glitter.share.rebateConfig.title}`
                                                                 : `-${dd.discount_total.toLocaleString()}`}
                                                             <i
-                                                                class="fa-solid fa-xmark ${dd.code ? `` : `d-none`} fs-5"
+                                                                class="fa-solid fa-xmark ${(dd.code||(dd.id===0)) ? `` : `d-none`} fs-5"
                                                                 style="color:#949494;"
                                                                 onclick="${gvc.event(() => {
                                                                     const dialog = new ShareDialog(gvc.glitter);
@@ -989,10 +1001,18 @@ export class PaymentPage {
                                                                         text: '是否確認刪除優惠券?',
                                                                         callback: (response) => {
                                                                             if (response) {
-                                                                                obj.ogOrderData.code_array = obj.ogOrderData.code_array!!.filter((d1) => {
-                                                                                    return d1 !== dd.code;
-                                                                                });
-                                                                                gvc.notifyDataChange(id);
+                                                                                if(dd.id===0){
+                                                                                    obj.ogOrderData.voucherList=obj.ogOrderData.voucherList.filter((dd:any)=>{
+                                                                                        return dd.id!==0
+                                                                                    });
+                                                                                    gvc.notifyDataChange(id);
+                                                                                }else{
+                                                                                    obj.ogOrderData.code_array = obj.ogOrderData.code_array!!.filter((d1) => {
+                                                                                        return d1 !== dd.code;
+                                                                                    });
+                                                                                    gvc.notifyDataChange(id);
+                                                                                }
+                                                                             
                                                                             }
                                                                         },
                                                                     });

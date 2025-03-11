@@ -21,7 +21,7 @@ export class TermsRelated {
                 view: async () => {
                     //分類頁面
                     if ((`${glitter.getUrlParameter('page')}`.startsWith(`collections`)) ||
-                        (`${glitter.getUrlParameter('page')}`.startsWith(`all-product`))
+                      (`${glitter.getUrlParameter('page')}`.startsWith(`all-product`))
                     ) {
                         return await new Promise((resolve, reject) => {
                             glitter.getModule(new URL('./public-components/product/product-list.js', gvc.glitter.root_path).href, (res) => {
@@ -29,9 +29,9 @@ export class TermsRelated {
                             });
                         })
                     } else if (
-                        [ 'blogs','pages','shop','hidden'].find((dd)=>{
+                      [ 'blogs','pages','shop','hidden'].find((dd)=>{
                           return  (`${glitter.getUrlParameter('page')}`.startsWith(dd))
-                        }) && (`${glitter.getUrlParameter('page')}`.split('/')[1])) {
+                      }) && (`${glitter.getUrlParameter('page')}`.split('/')[1])) {
                         return await new Promise((resolve, reject) => {
                             glitter.getModule(new URL('./public-components/blogs/blogs-01.js', gvc.glitter.root_path).href, (res) => {
                                 resolve(res.getMain(obj.gvc));
@@ -49,7 +49,7 @@ export class TermsRelated {
                                 (document.querySelector(`.${id}`) as any).outerHTML=res.main(gvc)
                             });
                         })
-                    } else if(['blog_tag_setting','blog_global_setting'].includes(glitter.getUrlParameter('page'))){
+                    } else if(['blog_tag_setting','blog_global_setting','fb_live','ig_live','line_plus','shipment_list','shipment_list_archive'].includes(glitter.getUrlParameter('page'))){
                         return await new Promise((resolve, reject) => {
                             glitter.getModule(new URL('./cms-plugin/cms-router.js', gvc.glitter.root_path).href, (res) => {
                                 (document.querySelector(`.${id}`) as any).outerHTML=res.main(gvc);
@@ -59,6 +59,12 @@ export class TermsRelated {
                         return await new Promise((resolve, reject) => {
                             glitter.getModule(new URL('./public-components/checkout/index.js', gvc.glitter.root_path).href, (res) => {
                                 (document.querySelector(`.${id}`) as any).outerHTML=res.main(gvc,obj.widget,obj.subData);
+                            });
+                        })
+                    }else if(['shopnex-line-oauth'].includes(page)){
+                        return await new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./cms-plugin/live_capture.js', gvc.glitter.root_path).href, (res) => {
+                                (document.querySelector(`.${id}`) as any).outerHTML=res.inputVerificationCode(gvc);
                             });
                         })
                     }else{

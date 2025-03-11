@@ -62,7 +62,6 @@ class Seo {
             }
         }).join('');
         const config = await Seo.getAppConfig(appName);
-        console.log(`appName==>`, appName);
         if (config && ((await database_js_1.default.execute(`SELECT count(1)
                                           FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config
                                           where \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_js_1.default.escape(appName)}

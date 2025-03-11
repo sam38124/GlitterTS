@@ -23,4 +23,3 @@
   "exclude": ["node_modules", "frontEnd","assets","css","assets/vendor"],
   "ts-node": { "files": true }
 }
-

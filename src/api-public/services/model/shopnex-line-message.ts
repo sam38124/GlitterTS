@@ -139,7 +139,7 @@ export class ShopnexLineMessage {
                                             "action": {
                                                 "type": "uri",
                                                 "label": "🌍 開啟網頁",
-                                                "uri": `http://127.0.0.1:4000/shopnex/shopnex-line-oauth?groupId=${groupId}`
+                                                "uri": `${process.env.saas_domain}/shopnex-line-oauth?groupId=${groupId}`
                                             }
                                         },
                                         {
@@ -223,7 +223,7 @@ export class ShopnexLineMessage {
                         SELECT *
                         FROM ${appName}.t_temporary_cart
                         WHERE JSON_EXTRACT(content, '$.from.purchase') = 'group_buy'
-                          AND JSON_EXTRACT(content, '$.from.id') = ?
+                          AND JSON_EXTRACT(content, '$.from.scheduled_id') = ?
                           AND JSON_EXTRACT(content, '$.from.source') = 'LINE'
                           AND JSON_EXTRACT(content, '$.from.user_id') = ?;
                     `, [scheduledID, userId])
@@ -349,6 +349,8 @@ export class ShopnexLineMessage {
 
                 //確認現在的團購單 這個用戶是否已經有購物車了
                 let cartData = await checkTempCart(scheduledID ?? "", userId);
+                console.log("cartData -- ", cartData);
+                return
                 let cartID = ""
                 variant.live_model.sold = variant.live_model.sold ?? 0;
                 //todo 若是這項商品已經完售 要做怎樣通知
@@ -378,6 +380,8 @@ export class ShopnexLineMessage {
                     data.content.pending_order_total += parseInt(price as string, 10);
                     variant.live_model.sold = 1;
                     await updateScheduled(data.content);
+                    await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartID}\n\n請點擊上方連結查看您的購物車內容！`)
+
                 } else {
                     let changeData = cartData[0].content.cart.find((item: any) => {
                         return item.id == productID && item.spec == spec
@@ -396,6 +400,7 @@ export class ShopnexLineMessage {
                     cartID = cartData[0].cart_id;
                     cartData[0].content.total = parseInt(cartData[0].content.total , 10) + parseInt(price as string, 10);
                     variant.live_model.sold++;
+                    await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartID}\n\n請點擊上方連結查看您的購物車內容！`)
                     try {
                         await db.query(`
                             UPDATE ${appName}.t_temporary_cart
@@ -408,7 +413,6 @@ export class ShopnexLineMessage {
                 }
 
 
-                await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartID}\n\n請點擊上方連結查看您的購物車內容！`)
 
                 break
             }

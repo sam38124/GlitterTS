@@ -74,6 +74,20 @@ export declare class ApiShop {
         result: boolean;
         response: any;
     }>;
+    static getCollectionProducts(cf: {
+        tagString?: string;
+        token?: string;
+    }): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static getCollectionProductVariants(cf: {
+        tagString?: string;
+        token?: string;
+    }): Promise<{
+        result: boolean;
+        response: any;
+    }>;
     static deleteCollections(cf: {
         data: any;
         token?: string;
@@ -109,6 +123,10 @@ export declare class ApiShop {
         result: boolean;
         response: any;
     }>;
+    static getShippingMethod(): Promise<{
+        result: boolean;
+        response: any;
+    }>;
     static getProduct(json: {
         limit: number;
         page: number;
@@ -123,6 +141,7 @@ export declare class ApiShop {
         minPrice?: string;
         status?: string;
         channel?: string;
+        whereStore?: string;
         schedule?: boolean;
         orderBy?: string;
         id_list?: string;
@@ -131,6 +150,9 @@ export declare class ApiShop {
         filter_visible?: string;
         app_name?: string;
         show_hidden?: boolean;
+        view_source?: string;
+        distribution_code?: string;
+        product_category?: string;
     }): Promise<{
         result: boolean;
         response: any;
@@ -165,6 +187,8 @@ export declare class ApiShop {
         archived?: string;
         distribution_code?: string;
         returnSearch?: 'true';
+        valid?: boolean;
+        is_shipment?: boolean;
     }): Promise<{
         result: boolean;
         response: any;
@@ -190,11 +214,29 @@ export declare class ApiShop {
         result: boolean;
         response: any;
     }>;
+    static putVoucher(json: {
+        'postData': any;
+        token?: string;
+        type?: 'normal' | 'manager';
+    }): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static postVoucher(json: {
+        'postData': any;
+        token?: string;
+        type: 'normal' | 'manager';
+    }): Promise<{
+        result: boolean;
+        response: any;
+    }>;
     static getVoucher(json: {
         limit: number;
         page: number;
         search?: string;
         id?: string;
+        date_confirm?: boolean;
+        user_email?: string;
         data_from?: 'user' | 'manager';
         voucher_type?: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
     }): Promise<{
@@ -225,9 +267,21 @@ export declare class ApiShop {
         result: boolean;
         response: any;
     }>;
+    static ecPayBrushOrders(json: {
+        'tradNo': string;
+        'orderID': string;
+        'total': string;
+    }): Promise<{
+        result: boolean;
+        response: any;
+    }>;
     static deleteVoucher(json: {
         id: string;
     }): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static combineOrder(json: any): Promise<{
         result: boolean;
         response: any;
     }>;
@@ -307,6 +361,15 @@ export declare class ApiShop {
         result: boolean;
         response: any;
     }>;
+    static postComment(json: {
+        product_id: number;
+        rate: number;
+        title: string;
+        comment: string;
+    }): Promise<{
+        result: boolean;
+        response: any;
+    }>;
     static getCheckout(json: {
         line_items: {
             id: number;
@@ -315,6 +378,7 @@ export declare class ApiShop {
         }[];
         code?: string;
         checkOutType?: 'manual' | 'auto' | 'POS';
+        pos_store?: string;
         use_rebate?: number;
         distribution_code?: string;
         user_info?: any;

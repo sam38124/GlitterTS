@@ -253,17 +253,6 @@ export class ApiUser {
             },
         });
     }
-    static getFilterString(obj) {
-        if (!obj)
-            return [];
-        let list = [];
-        if (obj) {
-            if (obj.account && obj.account.length > 0) {
-                list.push(`account=${obj.account}`);
-            }
-        }
-        return list;
-    }
     static getSubScribe(json) {
         return BaseApi.create({
             url: getBaseUrl() +
@@ -271,7 +260,7 @@ export class ApiUser {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
-                    json.filter && par.push(ApiUser.getFilterString(json.filter).join('&'));
+                    json.filter && par.push(ApiUser.formatFilterString(json.filter).join('&'));
                     return par.join('&');
                 })()}`,
             type: 'GET',
@@ -329,26 +318,23 @@ export class ApiUser {
             },
         });
     }
-    static userListFilterString(obj) {
+    static formatFilterString(obj) {
         if (!obj)
             return [];
-        let list = [];
-        if (obj.created_time && obj.created_time.length > 1 && obj.created_time[0].length > 0 && obj.created_time[1].length > 0) {
-            list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
-        }
-        if (obj.birth && obj.birth.length > 0) {
-            list.push(`birth=${obj.birth.join(',')}`);
-        }
-        if (obj.level && obj.level.length > 0) {
-            list.push(`level=${obj.level.join(',')}`);
-        }
-        if (obj.rebate && obj.rebate.key && obj.rebate.value) {
-            list.push(`rebate=${obj.rebate.key},${obj.rebate.value}`);
-        }
-        if (obj.total_amount && obj.total_amount.key && obj.total_amount.value) {
-            list.push(`total_amount=${obj.total_amount.key},${obj.total_amount.value}`);
-        }
-        return list;
+        return Object.entries(obj).flatMap(([key, value]) => {
+            if (!value)
+                return [];
+            if (Array.isArray(value) && value.length > 0 && value.every(Boolean)) {
+                return `${key}=${value.join(',')}`;
+            }
+            if (typeof value === 'object' && value !== null) {
+                const valObj = value;
+                if ('key' in valObj && 'value' in valObj && valObj.key && valObj.value) {
+                    return `${key}=${valObj.key},${valObj.value}`;
+                }
+            }
+            return [];
+        });
     }
     static userListGroupString(obj) {
         if (!obj)
@@ -363,101 +349,72 @@ export class ApiUser {
         return list;
     }
     static getUserListOrders(json) {
-        const filterString = this.userListFilterString(json.filter);
-        const groupString = this.userListGroupString(json.group);
-        const userData = BaseApi.create({
-            url: getBaseUrl() +
-                `/api-public/v1/user?${(() => {
-                    let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
-                    json.search && par.push(`search=${json.search}`);
-                    json.id && par.push(`id=${json.id}`);
-                    json.searchType && par.push(`searchType=${json.searchType}`);
-                    json.orderString && par.push(`order_string=${json.orderString}`);
-                    json.filter_type && par.push(`filter_type=${json.filter_type}`);
-                    filterString.length > 0 && par.push(filterString.join('&'));
-                    groupString.length > 0 && par.push(groupString.join('&'));
-                    return par.join('&');
-                })()}`,
-            type: 'GET',
-            headers: {
-                'g-app': getConfig().config.appName,
-                'Content-Type': 'application/json',
-                Authorization: getConfig().config.token,
-            },
-        }).then((data) => __awaiter(this, void 0, void 0, function* () {
-            if (!data.result) {
+        var _a, _b, _c, _d, _e;
+        return __awaiter(this, void 0, void 0, function* () {
+            const filterString = this.formatFilterString(json.filter);
+            const groupString = this.userListGroupString(json.group);
+            const baseQuery = new URLSearchParams({
+                type: 'list',
+                limit: json.limit.toString(),
+                page: json.page.toString(),
+                search: (_a = json.search) !== null && _a !== void 0 ? _a : '',
+                id: (_b = json.id) !== null && _b !== void 0 ? _b : '',
+                searchType: (_c = json.searchType) !== null && _c !== void 0 ? _c : '',
+                order_string: (_d = json.orderString) !== null && _d !== void 0 ? _d : '',
+                filter_type: (_e = json.filter_type) !== null && _e !== void 0 ? _e : '',
+            }).toString();
+            const extraQuery = [...filterString, ...groupString].join('&');
+            const finalQuery = extraQuery ? `${baseQuery}&${extraQuery}` : baseQuery;
+            try {
+                const data = yield BaseApi.create({
+                    url: `${getBaseUrl()}/api-public/v1/user?${finalQuery}`,
+                    type: 'GET',
+                    headers: {
+                        'g-app': getConfig().config.appName,
+                        'Content-Type': 'application/json',
+                        Authorization: getConfig().config.token,
+                    },
+                });
+                if (!data.result) {
+                    return {
+                        response: { data: [], total: 0 },
+                    };
+                }
+                const array = data.response.data;
+                if (array.length > 0) {
+                    yield Promise.allSettled(array.map((item) => __awaiter(this, void 0, void 0, function* () {
+                        const firstShipment = (yield ApiShop.getOrder({
+                            page: 0,
+                            limit: 1,
+                            data_from: 'manager',
+                            email: item.account || '-1',
+                            phone: item.account || '-1',
+                            valid: true,
+                            is_shipment: true
+                        })).response.data[0];
+                        if (item.tag_name) {
+                            item.tag_name = '一般會員';
+                        }
+                        if (firstShipment) {
+                            item.firstShipment = firstShipment;
+                        }
+                    })));
+                }
                 return {
                     response: {
-                        data: [],
-                        total: 0,
+                        data: array,
+                        total: data.response.total,
+                        extra: data.response.extra,
                     },
                 };
             }
-            const array = data.response.data;
-            if (array.length > 0) {
-                yield new Promise((resolve, reject) => {
-                    let pass = 0;
-                    function checkPass() {
-                        pass++;
-                        if (pass === array.length) {
-                            resolve(true);
-                        }
-                    }
-                    for (let index = 0; index < array.length; index++) {
-                        function execute() {
-                            Promise.all([
-                                new Promise((resolve) => {
-                                    ApiUser.getUserLevel(getConfig().config.token, array[index].userID).then((dd) => {
-                                        if (dd.result) {
-                                            array[index].tag_name = dd.response[0] ? dd.response[0].data.tag_name : '一般會員';
-                                            resolve();
-                                        }
-                                        else {
-                                            execute();
-                                        }
-                                    });
-                                }),
-                                new Promise((resolve) => {
-                                    ApiShop.getOrder({
-                                        page: 0,
-                                        limit: 99999,
-                                        data_from: 'manager',
-                                        email: array[index].account,
-                                        status: 1,
-                                    }).then((data) => {
-                                        if (data.result) {
-                                            array[index].checkout_total = (() => {
-                                                let t = 0;
-                                                for (const d of data.response.data) {
-                                                    t += d.orderData.total;
-                                                }
-                                                return t;
-                                            })();
-                                            array[index].checkout_count = data.response.total;
-                                            resolve();
-                                        }
-                                        else {
-                                            execute();
-                                        }
-                                    });
-                                }),
-                            ]).then(() => {
-                                checkPass();
-                            });
-                        }
-                        execute();
-                    }
-                });
+            catch (error) {
+                console.error('Error fetching user list orders:', error);
+                return {
+                    response: { data: [], total: 0 },
+                };
             }
-            return {
-                response: {
-                    data: array,
-                    total: data.response.total,
-                    extra: data.response.extra,
-                },
-            };
-        }));
-        return userData;
+        });
     }
     static deleteUser(json) {
         return BaseApi.create({
@@ -589,7 +546,7 @@ export class ApiUser {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': json.app_name || getConfig().config.appName,
-                Authorization: json.token
+                Authorization: json.token,
             },
             data: JSON.stringify(json),
         });
@@ -635,6 +592,9 @@ export class ApiUser {
                 return;
             }
             function callback(res) {
+                if (key.indexOf('shipment_config_') === 0 && (window.parent.glitter.getUrlParameter('function') !== 'backend-manger')) {
+                    config[key + user_id] = res;
+                }
                 switch (key) {
                     case 'collection':
                     case 'footer-setting':
@@ -716,17 +676,6 @@ export class ApiUser {
             },
         });
     }
-    static permissionFilterString(obj) {
-        if (!obj)
-            return [];
-        let list = [];
-        if (obj) {
-            if (obj.status.length > 0) {
-                list.push(`status=${obj.status.join(',')}`);
-            }
-        }
-        return list;
-    }
     static getPermission(json) {
         return BaseApi.create({
             url: getBaseUrl() +
@@ -737,7 +686,7 @@ export class ApiUser {
                     json.orderBy && par.push(`orderBy=${json.orderBy}`);
                     json.self && par.push(`self=${json.self}`);
                     if (json.filter) {
-                        par = par.concat(this.permissionFilterString(json.filter));
+                        par = par.concat(this.formatFilterString(json.filter));
                     }
                     return par.join('&');
                 })()}`,

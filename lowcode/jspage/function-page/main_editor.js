@@ -13,11 +13,11 @@ import { PageEditor } from '../../editor/page-editor.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { Storage } from '../../glitterBundle/helper/storage.js';
 import { AddComponent } from '../../editor/add-component.js';
-import { EditorConfig } from "../../editor-config.js";
-import { ToolSetting } from "./tool-setting.js";
-import { BgWidget } from "../../backend-manager/bg-widget.js";
-import { CustomStyle } from "../../glitterBundle/html-component/custom-style.js";
-import { Language } from "../../glitter-base/global/language.js";
+import { EditorConfig } from '../../editor-config.js';
+import { ToolSetting } from './tool-setting.js';
+import { BgWidget } from '../../backend-manager/bg-widget.js';
+import { CustomStyle } from '../../glitterBundle/html-component/custom-style.js';
+import { Language } from '../../glitter-base/global/language.js';
 var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
@@ -30,7 +30,6 @@ export class Main_editor {
     static left(gvc, viewModel, createID, gBundle) {
         const swal = new Swal(gvc);
         const glitter = gvc.glitter;
-        const color_pick = gvc.glitter.getUUID();
         return gvc.bindView(() => {
             const vid = glitter.getUUID();
             return {
@@ -60,10 +59,13 @@ export class Main_editor {
                     }
                     if (viewModel.selectItem &&
                         viewModel.selectItem.type &&
-                        ((Storage.view_type !== ViewType.col3 && Storage.view_type !== ViewType.mobile) || Storage.select_function === 'user-editor') &&
+                        ((Storage.view_type !== ViewType.col3 && Storage.view_type !== ViewType.mobile) ||
+                            Storage.select_function === 'user-editor') &&
                         viewModel.selectItem.type !== 'code' &&
                         (viewModel.selectItem.type !== 'widget' ||
-                            (viewModel.selectItem.data.elem !== 'style' && viewModel.selectItem.data.elem !== 'link' && viewModel.selectItem.data.elem !== 'script'))) {
+                            (viewModel.selectItem.data.elem !== 'style' &&
+                                viewModel.selectItem.data.elem !== 'link' &&
+                                viewModel.selectItem.data.elem !== 'script'))) {
                         return Main_editor.pageAndComponent({
                             gvc: gvc,
                             data: viewModel,
@@ -72,38 +74,50 @@ export class Main_editor {
                     else if (Storage.select_function === 'user-editor') {
                         return [
                             html `
-                                <div
-                                        class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2 d-flex align-items-center"
-                                        style="cursor: pointer;color:#393939;"
-                                >
-                                    <span>${viewModel.data.name}</span>
-                                    <div class="flex-fill"></div>
-                                    <div id="" class="rounded-3 border p-1" style="" data-bs-toggle="tooltip"
-                                         data-bs-placement="top"
-                                         data-bs-custom-class="custom-tooltip"
-                                         data-bs-title="全站預設背景色">
-                                        ${EditorElem.colorBtn({
+                <div
+                  class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2 d-flex align-items-center"
+                  style="cursor: pointer;color:#393939;"
+                >
+                  <span>${viewModel.data.name}</span>
+                  <div class="flex-fill"></div>
+                  <div
+                    id=""
+                    class="rounded-3 border p-1"
+                    style=""
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip"
+                    data-bs-title="全站預設背景色"
+                  >
+                    ${EditorElem.colorBtn({
                                 gvc: gvc,
-                                def: glitter.share.editorViewModel.appConfig._background || (glitter.share.editorViewModel.appConfig.color_theme[0] && glitter.share.editorViewModel.appConfig.color_theme[0].background) || '#FFFFFF',
+                                def: glitter.share.editorViewModel.appConfig._background ||
+                                    (glitter.share.editorViewModel.appConfig.color_theme[0] &&
+                                        glitter.share.editorViewModel.appConfig.color_theme[0].background) ||
+                                    '#FFFFFF',
                                 style: `width:24px;height:24px;`,
-                                callback: (text) => {
+                                callback: text => {
                                     glitter.share.editorViewModel.appConfig._background = text;
                                     document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('body').style.background = text;
-                                }
+                                },
                             })}
-                                    </div>
-                                </div>
-                            `,
+                  </div>
+                </div>
+              `,
                             `    ${(() => {
                                 return [
                                     (() => {
                                         let pageConfig = viewModel.data.config.filter((dd, index) => {
-                                            return dd.type !== 'code' && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'));
+                                            return (dd.type !== 'code' &&
+                                                (dd.type !== 'widget' ||
+                                                    (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script')));
                                         });
                                         function setPageConfig() {
                                             const containerConfig = glitter.share.editorViewModel.data.config.container_config;
                                             viewModel.data.config = pageConfig.concat(viewModel.data.config.filter((dd, index) => {
-                                                return !(dd.type !== 'code' && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script')));
+                                                return !(dd.type !== 'code' &&
+                                                    (dd.type !== 'widget' ||
+                                                        (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script')));
                                             }));
                                             try {
                                                 viewModel.dataList.find((dd) => {
@@ -111,8 +125,7 @@ export class Main_editor {
                                                 }).config = viewModel.data.config;
                                                 pageConfig = viewModel.data.config;
                                             }
-                                            catch (e) {
-                                            }
+                                            catch (e) { }
                                             viewModel.data.config.container_config = containerConfig;
                                             gvc.notifyDataChange(vid);
                                         }
@@ -153,8 +166,7 @@ export class Main_editor {
                                         loop(pageConfig, list);
                                         function renderItems(list, og_array, root) {
                                             const toggle_view = {
-                                                close_last_toggle: () => {
-                                                }
+                                                close_last_toggle: () => { },
                                             };
                                             return gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
@@ -181,34 +193,38 @@ export class Main_editor {
                                                             }
                                                             og_array[index].visible = (_a = og_array[index].visible) !== null && _a !== void 0 ? _a : true;
                                                             return html `
-                                                                        <li>
-                                                                            <div
-                                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1 it-${dd.info.id} ${dd.toggle && dd.type === 'container' ? `active_F2F2F2` : ``}"
-                                                                                    style="gap:5px;color:#393939;${dd.toggle && dd.type === 'container' ? `border-radius: 5px;` : ``}"
-                                                                                    onclick="${gvc.event(() => {
+                                    <li>
+                                      <div
+                                        class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1 it-${dd
+                                                                .info.id} ${dd.toggle && dd.type === 'container' ? `active_F2F2F2` : ``}"
+                                        style="gap:5px;color:#393939;${dd.toggle && dd.type === 'container'
+                                                                ? `border-radius: 5px;`
+                                                                : ``}"
+                                        onclick="${gvc.event(() => {
                                                                 if (lastClick.stop() > 0.1) {
                                                                     dd.info && (dd.info.toggle = !dd.info.toggle);
                                                                     gvc.notifyDataChange(id);
                                                                     dd.info.editorEvent();
                                                                 }
                                                             })}"
-                                                                                    onmouseover="${gvc.event(() => {
+                                        onmouseover="${gvc.event(() => {
                                                                 if (glitter.share.left_block_hover) {
                                                                     return;
                                                                 }
                                                                 dd.info && dd.info.editor_bridge && dd.info.editor_bridge.scrollWithHover();
                                                             })}"
-                                                                                    onmouseout="${gvc.event(() => {
+                                        onmouseout="${gvc.event(() => {
                                                                 if (glitter.share.left_block_hover) {
                                                                     return;
                                                                 }
                                                                 dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover();
                                                             })}"
-                                                                            >
-                                                                                ${dd.type === 'container'
-                                                                ? `
-                                                                          <div class="hoverBtn p-1 "
-                                                                             onclick="${gvc.event((e, event) => {
+                                      >
+                                        ${dd.type === 'container'
+                                                                ? html `
+                                              <div
+                                                class="hoverBtn p-1 "
+                                                onclick="${gvc.event((e, event) => {
                                                                     lastClick.zeroing();
                                                                     if (!dd.toggle) {
                                                                         toggle_view.close_last_toggle();
@@ -220,33 +236,44 @@ export class Main_editor {
                                                                     });
                                                                     event.preventDefault();
                                                                     event.stopPropagation();
-                                                                })}">
-                                                                               ${!dd.toggle
-                                                                    ? `
-                                            <i class="fa-regular fa-angle-right hoverBtn " aria-hidden="true"></i>
+                                                                })}"
+                                              >
+                                                ${!dd.toggle
+                                                                    ? html `
+                                                      <i
+                                                        class="fa-regular fa-angle-right hoverBtn "
+                                                        aria-hidden="true"
+                                                      ></i>
+                                                    `
+                                                                    : html `<i
+                                                      class="fa-regular fa-angle-down hoverBtn "
+                                                      aria-hidden="true"
+                                                    ></i>`}
+                                              </div>
                                             `
-                                                                    : `<i class="fa-regular fa-angle-down hoverBtn " aria-hidden="true"></i>`}
-                                                                        </div>
-                                                                        `
                                                                 : ``}
-                                                                                ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
-                                                                                <span>${dd.title}</span>
-                                                                                <div class="flex-fill"></div>
-                                                                                ${(dd.info.deletable !== 'false') ? ` <div
-                                                                                        class="hoverBtn p-1 child"
-                                                                                        onclick="${gvc.event((e, event) => {
-                                                                lastClick.zeroing();
-                                                                event.stopPropagation();
-                                                                glitter.htmlGenerate.deleteWidget(og_array, og_array[index], () => {
-                                                                    setPageConfig();
-                                                                });
-                                                            })}"
-                                                                                >
-                                                                                    <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "></i>
-                                                                                </div>` : ``}
-                                                                                <div
-                                                                                        class="hoverBtn p-1 ${og_array[index].visible ? `child` : ``}"
-                                                                                        onclick="${gvc.event((e, event) => {
+                                        ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
+                                        <span>${dd.title}</span>
+                                        <div class="flex-fill"></div>
+                                        ${dd.info.deletable !== 'false'
+                                                                ? html ` <div
+                                              class="hoverBtn p-1 child"
+                                              onclick="${gvc.event((e, event) => {
+                                                                    lastClick.zeroing();
+                                                                    event.stopPropagation();
+                                                                    glitter.htmlGenerate.deleteWidget(og_array, og_array[index], () => {
+                                                                        setPageConfig();
+                                                                    });
+                                                                })}"
+                                            >
+                                              <i
+                                                class="fa-regular fa-trash d-flex align-items-center justify-content-center "
+                                              ></i>
+                                            </div>`
+                                                                : ``}
+                                        <div
+                                          class="hoverBtn p-1 ${og_array[index].visible ? `child` : ``}"
+                                          onclick="${gvc.event((e, event) => {
                                                                 lastClick.zeroing();
                                                                 event.stopPropagation();
                                                                 og_array[index].visible = !og_array[index].visible;
@@ -264,49 +291,52 @@ export class Main_editor {
                                                                         .addClass('hide-elem');
                                                                 }
                                                             })}"
-                                                                                >
-                                                                                    <i
-                                                                                            class="${og_array[index].visible
+                                        >
+                                          <i
+                                            class="${og_array[index].visible
                                                                 ? `fa-regular fa-eye`
                                                                 : `fa-solid fa-eye-slash`} d-flex align-items-center justify-content-center "
-                                                                                            style="width:15px;height:15px;"
-                                                                                            aria-hidden="true"
-                                                                                    ></i>
-                                                                                </div>
-                                                                                <div class="hoverBtn p-1 dragItem child"
-                                                                                     onmousedown="${gvc.event(() => {
-                                                                if ((Storage.view_type !== 'mobile')) {
+                                            style="width:15px;height:15px;"
+                                            aria-hidden="true"
+                                          ></i>
+                                        </div>
+                                        <div
+                                          class="hoverBtn p-1 dragItem child"
+                                          onmousedown="${gvc.event(() => {
+                                                                if (Storage.view_type !== 'mobile') {
                                                                     const frame = document.querySelector('.iframe_view');
                                                                     frame.original_height = frame.style.height;
                                                                     frame.style.height = `${document.body.clientHeight * 2}px`;
                                                                     $('#editerCenter').addClass('scale_iframe');
                                                                 }
-                                                            })}" onmouseup="${gvc.event(() => {
-                                                                if ((Storage.view_type !== 'mobile')) {
+                                                            })}"
+                                          onmouseup="${gvc.event(() => {
+                                                                if (Storage.view_type !== 'mobile') {
                                                                     const frame = document.querySelector('.iframe_view');
                                                                     frame.style.height = frame.original_height;
                                                                     $('#editerCenter').removeClass('scale_iframe');
                                                                 }
-                                                            })}">
-                                                                                    <i
-                                                                                            class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
-                                                                                            style="width:15px;height:15px;"
-                                                                                            aria-hidden="true"
-                                                                                    ></i>
-                                                                                </div>
-                                                                            </div>
-                                                                            ${dd.type === 'container'
+                                                            })}"
+                                        >
+                                          <i
+                                            class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                            style="width:15px;height:15px;"
+                                            aria-hidden="true"
+                                          ></i>
+                                        </div>
+                                      </div>
+                                      ${dd.type === 'container'
                                                                 ? `<div class="ps-4  pb-2 ${dd.toggle ? `` : `d-none`} ${toggle_id}" style="margin-left:3px;height:0px;overflow: hidden;">${renderItems(dd.child, dd.array, false)}</div>`
                                                                 : ``}
-                                                                        </li>
-                                                                    `;
+                                    </li>
+                                  `;
                                                         })
                                                             .join('') +
                                                             html `
-                                                                <div
-                                                                        class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1 addNewComponent"
-                                                                        style="color:#36B;gap:10px;"
-                                                                        onclick="${gvc.event(() => {
+                                <div
+                                  class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1 addNewComponent"
+                                  style="color:#36B;gap:10px;"
+                                  onclick="${gvc.event(() => {
                                                                 function setSelectContainer() {
                                                                     if (root) {
                                                                         glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config;
@@ -321,43 +351,43 @@ export class Main_editor {
                                                                 };
                                                                 AddComponent.addEvent = (gvc, tdata) => {
                                                                     glitter.share.addComponent({
-                                                                        "id": gvc.glitter.getUUID(),
-                                                                        "js": "./official_view_component/official.js",
-                                                                        "css": {
-                                                                            "class": {},
-                                                                            "style": {}
+                                                                        id: gvc.glitter.getUUID(),
+                                                                        js: './official_view_component/official.js',
+                                                                        css: {
+                                                                            class: {},
+                                                                            style: {},
                                                                         },
-                                                                        "data": {
-                                                                            'refer_app': tdata.copyApp,
-                                                                            "tag": tdata.copy,
-                                                                            "list": [],
-                                                                            "carryData": {},
+                                                                        data: {
+                                                                            refer_app: tdata.copyApp,
+                                                                            tag: tdata.copy,
+                                                                            list: [],
+                                                                            carryData: {},
                                                                             _style_refer_global: {
-                                                                                index: `0`
-                                                                            }
+                                                                                index: `0`,
+                                                                            },
                                                                         },
-                                                                        "type": "component",
-                                                                        "class": "",
-                                                                        "index": 0,
-                                                                        "label": tdata.title,
-                                                                        "style": "",
-                                                                        "bundle": {},
-                                                                        "global": [],
-                                                                        "toggle": false,
-                                                                        "stylist": [],
-                                                                        "dataType": "static",
-                                                                        "style_from": "code",
-                                                                        "classDataType": "static",
-                                                                        "preloadEvenet": {},
-                                                                        "share": {}
+                                                                        type: 'component',
+                                                                        class: '',
+                                                                        index: 0,
+                                                                        label: tdata.title,
+                                                                        style: '',
+                                                                        bundle: {},
+                                                                        global: [],
+                                                                        toggle: false,
+                                                                        stylist: [],
+                                                                        dataType: 'static',
+                                                                        style_from: 'code',
+                                                                        classDataType: 'static',
+                                                                        preloadEvenet: {},
+                                                                        share: {},
                                                                     });
                                                                 };
                                                                 AddComponent.toggle(true);
                                                             })}"
-                                                                >
-                                                                    <i class="fa-solid fa-plus"></i>新增區段
-                                                                </div>
-                                                            `);
+                                >
+                                  <i class="fa-solid fa-plus"></i>新增區段
+                                </div>
+                              `);
                                                     },
                                                     divCreate: {
                                                         elem: 'ul',
@@ -374,16 +404,16 @@ export class Main_editor {
                                                             {
                                                                 src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
                                                             },
-                                                        ], () => {
-                                                        }, () => {
-                                                        });
+                                                        ], () => { }, () => { });
                                                         const interval = setInterval(() => {
                                                             if (window.Sortable) {
                                                                 try {
-                                                                    gvc.addStyle(`ul {
-  list-style: none;
-  padding: 0;
-}`);
+                                                                    gvc.addStyle(`
+                                    ul {
+                                      list-style: none;
+                                      padding: 0;
+                                    }
+                                  `);
                                                                     function swapArr(arr, index1, index2) {
                                                                         const data = arr[index1];
                                                                         arr.splice(index1, 1);
@@ -429,7 +459,7 @@ export class Main_editor {
                                                                             const dd = og_array[newIndex];
                                                                             dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover();
                                                                             glitter.share.left_block_hover = false;
-                                                                            if ((Storage.view_type !== 'mobile')) {
+                                                                            if (Storage.view_type !== 'mobile') {
                                                                                 const frame = document.querySelector('.iframe_view');
                                                                                 frame.style.height = frame.original_height;
                                                                                 $('#editerCenter').removeClass('scale_iframe');
@@ -442,12 +472,11 @@ export class Main_editor {
                                                                         onStart: function (evt) {
                                                                             startIndex = evt.oldIndex;
                                                                             glitter.share.left_block_hover = true;
-                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter').addClass('scale_iframe');
+                                                                            Storage.view_type !== 'mobile' && $('#editerCenter').addClass('scale_iframe');
                                                                         },
                                                                     });
                                                                 }
-                                                                catch (e) {
-                                                                }
+                                                                catch (e) { }
                                                                 clearInterval(interval);
                                                             }
                                                         }, 100);
@@ -455,10 +484,7 @@ export class Main_editor {
                                                 };
                                             });
                                         }
-                                        return html `
-                                            <div class="p-2 root-left-container">
-                                                ${renderItems(list, pageConfig, true)}
-                                            </div>`;
+                                        return html ` <div class="p-2 root-left-container">${renderItems(list, pageConfig, true)}</div>`;
                                     })(),
                                 ].join('');
                             })()}`,
@@ -466,31 +492,37 @@ export class Main_editor {
                     }
                     else {
                         return html `
-                            <li class="w-100 align-items-center  d-flex editor_item_title  start-0 bg-white z-index-9"
-                                style="z-index: 999;" onclick="${gvc.event(() => {
-                        })}">
-                                <span style="font-size:14px;">${viewModel.data.name}-區段</span>
-                                <div
-                                        class="hoverBtn d-flex align-items-center justify-content-center   border ms-auto me-2"
-                                        style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                        onclick="${gvc.event(() => {
+              <li
+                class="w-100 align-items-center  d-flex editor_item_title  start-0 bg-white z-index-9"
+                style="z-index: 999;"
+                onclick="${gvc.event(() => { })}"
+              >
+                <span style="font-size:14px;">${viewModel.data.name}-區段</span>
+                <div
+                  class="hoverBtn d-flex align-items-center justify-content-center   border ms-auto me-2"
+                  style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                  onclick="${gvc.event(() => {
                             glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config;
                             AddComponent.toggle(true);
                         })}"
-                                >
-                                    <i class="fa-regular fa-circle-plus"></i>
-                                </div>
-                            </li>
+                >
+                  <i class="fa-regular fa-circle-plus"></i>
+                </div>
+              </li>
 
-                            ${(() => {
+              ${(() => {
                             return gvc.map([
                                 (() => {
                                     let pageConfig = viewModel.data.config.filter((dd, index) => {
-                                        return dd.type !== 'code' && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'));
+                                        return (dd.type !== 'code' &&
+                                            (dd.type !== 'widget' ||
+                                                (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script')));
                                     });
                                     function setPageConfig() {
                                         viewModel.data.config = pageConfig.concat(viewModel.data.config.filter((dd, index) => {
-                                            return !(dd.type !== 'code' && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script')));
+                                            return !(dd.type !== 'code' &&
+                                                (dd.type !== 'widget' ||
+                                                    (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script')));
                                         }));
                                         try {
                                             viewModel.dataList.find((dd) => {
@@ -498,12 +530,11 @@ export class Main_editor {
                                             }).config = viewModel.data.config;
                                             pageConfig = viewModel.data.config;
                                         }
-                                        catch (e) {
-                                        }
+                                        catch (e) { }
                                         gvc.notifyDataChange(vid);
                                     }
                                     return new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem(pageConfig, false, pageConfig, {
-                                        selectEv: (dd) => {
+                                        selectEv: dd => {
                                             return dd.id === Storage.lastSelect;
                                         },
                                         refreshEvent: () => {
@@ -513,12 +544,12 @@ export class Main_editor {
                                 })(),
                             ]);
                         })()}
-                        `;
+            `;
                     }
                 },
                 divCreate: {
                     class: `swiper-slide h-100 position-relative design-guide-1`,
-                    style: `${(glitter.share.top_inset && document.body.clientWidth < 800) ? `padding-top:${glitter.share.top_inset}px !important;padding-bottom:${glitter.share.bottom_inset}px !important;` : ``}`
+                    style: `${glitter.share.top_inset && document.body.clientWidth < 800 ? `padding-top:${glitter.share.top_inset}px !important;padding-bottom:${glitter.share.bottom_inset}px !important;` : ``}`,
                 },
                 onCreate: () => {
                     $('.tooltip').remove();
@@ -544,30 +575,37 @@ export class Main_editor {
                 bind: id,
                 view: () => {
                     return html `
-                        <div class="guide-user-editor-11" style="">
-                            ${(() => {
+            <div class="guide-user-editor-11" style="">
+              ${(() => {
                         if (vm.type === 'list') {
-                            return [(() => {
+                            return [
+                                (() => {
                                     if (document.body.clientWidth < 800) {
-                                        return `<div class="w-100 d-flex align-items-center p-3 border-bottom">
-                            <h5 class="offcanvas-title  " style="max-width: calc(100% - 50px);overflow: hidden;text-overflow: ellipsis;">全站樣式設定</h5>
-                            <div class="flex-fill"></div>
-                            <div
-                                class="fs-5 text-black"
-                                style="cursor: pointer;"
-                                onclick="${gvc.event(() => {
+                                        return html `<div class="w-100 d-flex align-items-center p-3 border-bottom">
+                          <h5
+                            class="offcanvas-title  "
+                            style="max-width: calc(100% - 50px);overflow: hidden;text-overflow: ellipsis;"
+                          >
+                            全站樣式設定
+                          </h5>
+                          <div class="flex-fill"></div>
+                          <div
+                            class="fs-5 text-black"
+                            style="cursor: pointer;"
+                            onclick="${gvc.event(() => {
                                             gvc.glitter.closeDrawer();
                                         })}"
-                            >
-                                <i class="fa-sharp fa-regular fa-circle-xmark" style=""></i>
-                            </div>
+                          >
+                            <i class="fa-sharp fa-regular fa-circle-xmark" style=""></i>
+                          </div>
                         </div>`;
                                     }
                                     else {
                                         return ``;
                                     }
-                                })(), Main_editor.color_list(vm, gvc, id, globalValue),
-                                Main_editor.fonts_list(vm, gvc, id, globalValue)
+                                })(),
+                                Main_editor.color_list(vm, gvc, id, globalValue),
+                                Main_editor.fonts_list(vm, gvc, id, globalValue),
                             ].join('');
                         }
                         else if (vm.type === 'color_detail') {
@@ -579,7 +617,7 @@ export class Main_editor {
                                 },
                                 name: `配色${vm.index + 1}`,
                                 data: vm.data,
-                                index: vm.index
+                                index: vm.index,
                             });
                         }
                         else if (vm.type === 'container_detail') {
@@ -591,15 +629,15 @@ export class Main_editor {
                                 },
                                 name: `容器${vm.index + 1}`,
                                 data: vm.data,
-                                index: vm.index
+                                index: vm.index,
                             });
                         }
                         else {
                             return ``;
                         }
                     })()}
-                        </div>
-                    `;
+            </div>
+          `;
                 },
                 divCreate: {
                     class: ``,
@@ -611,55 +649,73 @@ export class Main_editor {
         return gvc.bindView(() => {
             const vm_c = {
                 toggle: false,
-                id: gvc.glitter.getUUID()
+                id: gvc.glitter.getUUID(),
             };
             return {
                 bind: vm_c.id,
                 view: () => {
-                    const array = [`<div class="hoverF2 d-flex align-items-center p-3"
-                 onclick="${gvc.event(() => {
+                    const array = [
+                        html `<div
+              class="hoverF2 d-flex align-items-center p-3"
+              onclick="${gvc.event(() => {
                             vm_c.toggle = !vm_c.toggle;
                             gvc.notifyDataChange(vm_c.id);
-                        })}">
-<span class="fw-500 "
-      style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">配色樣式</span>
-                <div class="flex-fill"></div>
-                ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
-            </div>`];
+                        })}"
+            >
+              <span
+                class="fw-500 "
+                style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;"
+                >配色樣式</span
+              >
+              <div class="flex-fill"></div>
+              ${vm_c.toggle
+                            ? html ` <i class="fa-solid fa-chevron-down"></i>`
+                            : html ` <i class="fa-solid fa-chevron-right"></i>`}
+            </div>`,
+                    ];
                     if (vm_c.toggle) {
-                        array.push(`<div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
-                                             style="margin:18px;">
-                                            ${globalValue.color_theme.map((dd, index) => {
-                            return `<div class="col-6 mb-3 ${(index == 0) ? `globalGuide-4` : ``}" style="cursor: pointer;" onclick="${gvc.event(() => {
+                        array.push(html `<div class="row ${globalValue.color_theme.length === 0 ? `d-none` : ``}" style="margin:18px;">
+                ${globalValue.color_theme
+                            .map((dd, index) => {
+                            return html `<div
+                      class="col-6 mb-3 ${index == 0 ? `globalGuide-4` : ``}"
+                      style="cursor: pointer;"
+                      onclick="${gvc.event(() => {
                                 vm.type = 'color_detail';
                                 vm.data = globalValue.color_theme[index];
                                 vm.index = index;
                                 gvc.notifyDataChange(id);
-                            })}">
-                                                ${Main_editor.colorCard(globalValue.color_theme[index])}
-                                                <div class="w-100 t_39_16 mt-2" style="text-align: center;">配色${index + 1}</div>
-                                            </div>`;
-                        }).join('')}
-                                        </div>`);
-                        array.push(`<div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
-                                            <div class="bt_border_editor"
-                                                 onclick="${gvc.event(() => {
+                            })}"
+                    >
+                      ${Main_editor.colorCard(globalValue.color_theme[index])}
+                      <div class="w-100 t_39_16 mt-2" style="text-align: center;">配色${index + 1}</div>
+                    </div>`;
+                        })
+                            .join('')}
+              </div>`);
+                        array.push(html `<div
+                style="padding: 0px 24px 24px;${globalValue.color_theme.length === 0 ? `margin-top:24px;` : ``}"
+              >
+                <div
+                  class="bt_border_editor"
+                  onclick="${gvc.event(() => {
                             vm.data = { id: gvc.glitter.getUUID() };
                             globalValue.color_theme.push(vm.data);
-                            vm.name = ('配色' + globalValue.color_theme.length);
+                            vm.name = '配色' + globalValue.color_theme.length;
                             vm.type = 'color_detail';
                             vm.index = globalValue.color_theme.length - 1;
                             gvc.notifyDataChange(id);
-                        })}">
-                                                新增配色
-                                            </div>
-                                        </div>`);
+                        })}"
+                >
+                  新增配色
+                </div>
+              </div>`);
                     }
                     return array.join('');
                 },
                 divCreate: {
-                    class: `  border-bottom    w-100 globalGuideColorSetting`
-                }
+                    class: `border-bottom w-100 globalGuideColorSetting`,
+                },
             };
         });
     }
@@ -669,44 +725,47 @@ export class Main_editor {
                 bind: gvc.glitter.getUUID(),
                 view: () => {
                     return new Promise((resolve, reject) => {
-                        gvc.glitter.getModule(`${gvc.glitter.root_path}/setting/fonts-config.js`, (FontsConfig) => {
+                        gvc.glitter.getModule(`${gvc.glitter.root_path}/setting/fonts-config.js`, FontsConfig => {
                             resolve(FontsConfig.fontsSettingView(gvc, globalValue));
                         });
                     });
                 },
                 divCreate: {
-                    class: `w-100`
-                }
+                    class: `w-100`,
+                },
             };
         });
     }
     static color_detail_custom(vm) {
         const gvc = vm.gvc;
-        return `<div style="">${EditorConfig.color_setting_config.filter((dd) => {
-            return (!vm.filter) || vm.filter(dd.key);
-        }).map((dd) => {
+        return `<div style="">${EditorConfig.color_setting_config
+            .filter(dd => {
+            return !vm.filter || vm.filter(dd.key);
+        })
+            .map(dd => {
             vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF';
             return EditorElem.colorSelect({
                 title: dd.title,
-                callback: (text) => {
+                callback: text => {
                     vm.data[dd.key] = text;
                     gvc.glitter.share.globalValue[`theme_color.${vm.index}.${dd.key}`] = text;
-                    const lastScrollY = document.querySelector('#editerCenter iframe').contentWindow.scrollY;
-                    document.querySelector('#editerCenter  iframe').contentWindow.glitter.share.globalValue = gvc.glitter.share.globalValue;
-                    const element = document.querySelector('#editerCenter iframe').contentWindow.glitter.elementCallback;
-                    Object.keys(element).map((dd) => {
+                    document.querySelector('#editerCenter  iframe').contentWindow.glitter.share.globalValue =
+                        gvc.glitter.share.globalValue;
+                    const element = document.querySelector('#editerCenter iframe').contentWindow.glitter
+                        .elementCallback;
+                    Object.keys(element).map(dd => {
                         try {
                             element[dd].updateAttribute();
                         }
-                        catch (e) {
-                        }
+                        catch (e) { }
                     });
                     vm.back();
                 },
                 gvc: gvc,
-                def: vm.data[dd.key]
+                def: vm.data[dd.key],
             });
-        }).join('<div style="height: 15px;"></div>')}</div>`;
+        })
+            .join('<div style="height: 15px;"></div>')}</div>`;
     }
     static color_detail(vm) {
         var _a;
@@ -719,39 +778,52 @@ export class Main_editor {
                 bind: vId,
                 view: () => {
                     return [
-                        `<div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2" style="cursor: pointer;color:#393939;" onclick="${vm.gvc.event(() => {
+                        html `<div
+                class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2"
+                style="cursor: pointer;color:#393939;"
+                onclick="${vm.gvc.event(() => {
                             vm.back();
-                        })}">
-                            <i class="fa-solid fa-angle-left"></i>
-                            <span>${vm.name} 編輯</span>
-                        </div>
-                        <div class="border-bottom w-100" style="padding: 24px;width: 100%; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-  <div style="width: 93px;">
-  ${Main_editor.colorCard(vm.data)}
-</div>
-  <div style="flex: 1 1 0; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
-    <div style="align-self: stretch; color: #393939; font-size: 16px;  font-weight: 400; word-wrap: break-word">${vm.name}</div>
-  </div>
-</div>
-                                    `,
-                        `<div class="globalGuide-5" style="padding: 18px 24px 24px;">${EditorConfig.color_setting_config.filter((dd) => {
-                            return (!vm.filter) || vm.filter(dd.key);
-                        }).map((dd) => {
+                        })}"
+              >
+                <i class="fa-solid fa-angle-left"></i>
+                <span>${vm.name} 編輯</span>
+              </div>
+              <div
+                class="border-bottom w-100"
+                style="padding: 24px;width: 100%; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex"
+              >
+                <div style="width: 93px;">${Main_editor.colorCard(vm.data)}</div>
+                <div
+                  style="flex: 1 1 0; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                >
+                  <div
+                    style="align-self: stretch; color: #393939; font-size: 16px;  font-weight: 400; word-wrap: break-word"
+                  >
+                    ${vm.name}
+                  </div>
+                </div>
+              </div> `,
+                        html `<div class="globalGuide-5" style="padding: 18px 24px 24px;">
+              ${EditorConfig.color_setting_config
+                            .filter(dd => {
+                            return !vm.filter || vm.filter(dd.key);
+                        })
+                            .map(dd => {
                             vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF';
                             return EditorElem.colorSelect({
                                 title: dd.title,
-                                callback: (text) => {
+                                callback: text => {
                                     vm.data[dd.key] = text;
                                     gvc.glitter.share.globalValue[`theme_color.${vm.index}.${dd.key}`] = text;
-                                    const lastScrollY = document.querySelector('#editerCenter iframe').contentWindow.scrollY;
-                                    document.querySelector('#editerCenter  iframe').contentWindow.glitter.share.globalValue = gvc.glitter.share.globalValue;
-                                    const element = document.querySelector('#editerCenter iframe').contentWindow.glitter.elementCallback;
-                                    Object.keys(element).map((dd) => {
+                                    document.querySelector('#editerCenter  iframe').contentWindow.glitter.share.globalValue =
+                                        gvc.glitter.share.globalValue;
+                                    const element = document.querySelector('#editerCenter iframe').contentWindow.glitter
+                                        .elementCallback;
+                                    Object.keys(element).map(dd => {
                                         try {
                                             element[dd].updateAttribute();
                                         }
-                                        catch (e) {
-                                        }
+                                        catch (e) { }
                                     });
                                     for (const b of document.querySelector('#editerCenter  iframe').contentWindow.document.querySelectorAll('._builder_color_refresh')) {
                                         b.recreateView();
@@ -759,50 +831,63 @@ export class Main_editor {
                                     gvc.notifyDataChange(vId);
                                 },
                                 gvc: gvc,
-                                def: vm.data[dd.key]
+                                def: vm.data[dd.key],
                             });
-                        }).join('<div style="height: 15px;"></div>')}</div>`,
-                        `<div style="padding: 0px 24px 24px;"> <div class="bt_border_editor"
-                                                 onclick="${gvc.event(() => {
+                        })
+                            .join('<div style="height: 15px;"></div>')}
+            </div>`,
+                        html `<div style="padding: 0px 24px 24px;">
+              <div
+                class="bt_border_editor"
+                onclick="${gvc.event(() => {
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.checkYesOrNot({
                                 text: '是否確認刪除配色?',
-                                callback: (response) => {
+                                callback: response => {
                                     if (response) {
-                                        globalValue.color_theme = globalValue.color_theme.filter((dd) => {
-                                            return dd !== vm.data;
-                                        });
+                                        globalValue.color_theme = globalValue.color_theme.filter((dd) => dd !== vm.data);
                                         vm.back();
                                     }
-                                }
+                                },
                             });
-                        })}" >
-                                                刪除配色
-                                            </div></div>`
+                        })}"
+              >
+                刪除配色
+              </div>
+            </div>`,
                     ].join('');
-                }
+                },
             };
         });
     }
     static colorCard(cf) {
         cf = (cf || {});
-        return `<div style="width:100%;padding: 11px 18px;background: ${cf.background || 'white'}; border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: center; align-items: center; display: flex">
-    <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex">
-      <div style="font-size: 16px;  font-weight: 400; word-wrap: break-word">
-      <span style="color:${cf.title || '#554233'};">A</span>
-      <span style="color:${cf.content || '#554233'};">a</span>
+        return html `<div
+      style="width:100%;padding: 11px 18px;background: ${cf.background ||
+            'white'}; border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: center; align-items: center; display: flex"
+    >
+      <div
+        style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex"
+      >
+        <div style="font-size: 16px;  font-weight: 400; word-wrap: break-word">
+          <span style="color:${cf.title || '#554233'};">A</span>
+          <span style="color:${cf.content || '#554233'};">a</span>
+        </div>
+        <div style=" justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
+          <div
+            style="width: 26px; height: 13px; position: relative; background: ${cf['solid-button-bg'] ||
+            '#554233'}; border-radius: 7px;"
+          ></div>
+          <div
+            style="width: 26px;height: 13px; position: relative;  border-radius: 7px; border: 1px solid ${cf['border-button-bg'] || '#554233'};"
+          ></div>
+        </div>
       </div>
-      <div style=" justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
-        <div style="width: 26px; height: 13px; position: relative; background: ${cf['solid-button-bg'] || '#554233'}; border-radius: 7px;"></div>
-        <div style="width: 26px;height: 13px; position: relative;  border-radius: 7px; border: 1px solid ${cf['border-button-bg'] || '#554233'};"></div>
-      </div>
-    </div>
-  </div>`;
+    </div>`;
     }
     static right(gvc, viewModel, createID, gBundle) {
         const glitter = gvc.glitter;
         return gvc.bindView(() => {
-            let haveAdd = true;
             return {
                 bind: `htmlGenerate`,
                 view: () => {
@@ -811,10 +896,16 @@ export class Main_editor {
                         hoverList.push(viewModel.selectItem.id);
                     }
                     if (!viewModel.selectItem) {
-                        return `<div class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y">
-<iframe src="https://embed.lottiefiles.com/animation/84663" class="w-100" style="width: 400px;height: 400px"></iframe>
-<h3>請於左側選擇元件編輯</h3>
-</div>`;
+                        return html `<div
+              class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y"
+            >
+              <iframe
+                src="https://embed.lottiefiles.com/animation/84663"
+                class="w-100"
+                style="width: 400px;height: 400px"
+              ></iframe>
+              <h3>請於左側選擇元件編輯</h3>
+            </div>`;
                     }
                     const htmlGenerate = new glitter.htmlGenerate(viewModel.data.config, hoverList, undefined, true);
                     window.editerData = htmlGenerate;
@@ -873,28 +964,50 @@ export class Main_editor {
         const container_cf = glitter.share.findWidgetIndex(viewModel.selectItem.id).container_cf;
         return [
             html `
-                <div
-                        class="right_scroll"
-                        style="overflow-x:hidden;overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh ${document.body.clientWidth < 800 ? `- ${0 + parseInt(glitter.share.top_inset, 10)}` : `- 56`}px)` : `height:calc(100vh - 150px);`}"
-                        onscroll="${gvc.event(() => {
+        <div
+          class="right_scroll"
+          style="overflow-x:hidden;overflow-y:auto;${Storage.select_function === 'user-editor'
+                ? `height:calc(100vh ${document.body.clientWidth < 800 ? `- ${0 + parseInt(glitter.share.top_inset, 10)}` : `- 56`}px)`
+                : `height:calc(100vh - 150px);`}"
+          onscroll="${gvc.event(() => {
                 if (document.querySelector('.right_scroll').scrollTop > 0) {
                     glitter.share.lastRightScrollTop = document.querySelector('.right_scroll').scrollTop;
                 }
             })}"
-                >
-                    ${gvc.bindView(() => {
+        >
+          ${gvc.bindView(() => {
                 return {
                     bind: `htmlGenerate`,
                     view: () => {
                         gvc.notifyDataChange('editFooter');
                         checkSelect(viewModel.data.config);
-                        if ((viewModel.selectItem === undefined || viewModel.selectItem.js === undefined) && Storage.select_function !== 'user-editor') {
-                            return `<div class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y">
-<img class="border" src="https://liondesign-prd.s3.amazonaws.com/file/252530754/1692927479829-Screenshot 2023-08-25 at 9.36.15 AM.png"  >
-<lottie-player src="https://lottie.host/23df5e29-6a51-428a-b112-ff6901c4650e/yxNS0Bw8mk.json" class="position-relative" background="transparent" speed="1" style="margin-top:-70px;" loop  autoplay direction="1" mode="normal"></lottie-player>
-<div style="font-size:16px;margin-top:-10px;width:calc(100% - 20px);word-break:break-all !important;display:inline-block;white-space:normal;" class="p-2 text-center alert alert-secondary" >
-請直接點擊頁面元件，或於左側頁面區段來選擇元件進行編輯。</div>
-</div>`;
+                        if ((viewModel.selectItem === undefined || viewModel.selectItem.js === undefined) &&
+                            Storage.select_function !== 'user-editor') {
+                            return html `<div
+                    class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y"
+                  >
+                    <img
+                      class="border"
+                      src="https://liondesign-prd.s3.amazonaws.com/file/252530754/1692927479829-Screenshot 2023-08-25 at 9.36.15 AM.png"
+                    />
+                    <lottie-player
+                      src="https://lottie.host/23df5e29-6a51-428a-b112-ff6901c4650e/yxNS0Bw8mk.json"
+                      class="position-relative"
+                      background="transparent"
+                      speed="1"
+                      style="margin-top:-70px;"
+                      loop
+                      autoplay
+                      direction="1"
+                      mode="normal"
+                    ></lottie-player>
+                    <div
+                      style="font-size:16px;margin-top:-10px;width:calc(100% - 20px);word-break:break-all !important;display:inline-block;white-space:normal;"
+                      class="p-2 text-center alert alert-secondary"
+                    >
+                      請直接點擊頁面元件，或於左側頁面區段來選擇元件進行編輯。
+                    </div>
+                  </div>`;
                         }
                         let hoverList = [];
                         if (viewModel.selectItem !== undefined) {
@@ -908,7 +1021,7 @@ export class Main_editor {
                             dd.refreshAllParameter = undefined;
                             dd.refreshComponentParameter = undefined;
                         });
-                        return (htmlGenerate.editor(gvc, {
+                        return htmlGenerate.editor(gvc, {
                             return_: false,
                             refreshAll: () => {
                                 if (viewModel.selectItem) {
@@ -923,36 +1036,47 @@ export class Main_editor {
                                     return undefined;
                                 }
                             })(),
-                            deleteEvent: () => {
-                            },
-                        }));
+                            deleteEvent: () => { },
+                        });
                     },
                     divCreate: {
                         class: `p-2`,
                     },
-                    onCreate: () => {
-                    },
+                    onCreate: () => { },
                 };
             })}
-                    <div style="height: 60px;"></div>
-                    <div class="${(document.body.clientWidth < 800) ? `position-fixed` : `position-absolute`} w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white "
-                         style="height: 60px;${(document.body.clientWidth < 800) ? `padding-bottom:${parseInt(glitter.share.bottom_inset, 10)}px !important;` : ``}">
-                        ${(() => {
+          <div style="height: 60px;"></div>
+          <div
+            class="${document.body.clientWidth < 800
+                ? `position-fixed`
+                : `position-absolute`} w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white "
+            style="height: 60px;${document.body.clientWidth < 800
+                ? `padding-bottom:${parseInt(glitter.share.bottom_inset, 10)}px !important;`
+                : ``}"
+          >
+            ${(() => {
                 const view = [];
-                if ((viewModel.selectItem.deletable !== 'false')) {
+                if (viewModel.selectItem.deletable !== 'false') {
                     setTimeout(() => {
                         $('.tooltip').remove();
                         $('[data-bs-toggle="tooltip"]').tooltip();
                     }, 100);
-                    view.push(`<button class="btn btn-snow" type="button" style="width:30px;" data-bs-toggle="tooltip" data-bs-placement="top"
-                                                data-bs-custom-class="custom-tooltip"
-                                                data-bs-title="返回列表" onclick="${gvc.event(() => {
+                    view.push(html `<button
+                    class="btn btn-snow"
+                    type="button"
+                    style="width:30px;"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip"
+                    data-bs-title="返回列表"
+                    onclick="${gvc.event(() => {
                         Storage.lastSelect = '';
                         gvc.glitter.share.editorViewModel.selectItem = undefined;
                         gvc.glitter.share.selectEditorItem();
-                    })}">
-                <span class="tx_700"><i class="fa-solid fa-list" aria-hidden="true"></i></span>
-            </button>`);
+                    })}"
+                  >
+                    <span class="tx_700"><i class="fa-solid fa-list" aria-hidden="true"></i></span>
+                  </button>`);
                     if (container_cf) {
                         view.push(BgWidget.cancel(gvc.event(() => {
                             glitter.htmlGenerate.selectWidget({
@@ -971,15 +1095,14 @@ export class Main_editor {
                     }), '複製'));
                     view.push(BgWidget.cancel(gvc.event(() => {
                         glitter.closeDrawer();
-                        glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem, () => {
-                        });
+                        glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem, () => { });
                     }), '刪除'));
                 }
                 return view.join('<div class="mx-1"></div>');
             })()}
-                    </div>
-                </div>
-            `,
+          </div>
+        </div>
+      `,
             gvc.bindView(() => {
                 return {
                     bind: 'editFooter',
@@ -987,15 +1110,17 @@ export class Main_editor {
                         if (viewModel.selectItem === undefined || viewModel.selectItem.js === undefined) {
                             return ``;
                         }
-                        return html `
-                            <div
-                                    class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3 ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
-                                    style="height:50px;background:#f6f6f6;font-size:14px;"
-                            >
-                                <div
-                                        class="hoverBtn fw-bold"
-                                        style="color:#8e1f0b;cursor:pointer;"
-                                        onclick="${gvc.event(() => {
+                        return html ` <div
+              class="w-100 position-absolute bottom-0 border-top d-flex align-items-center ps-3 ${Storage.select_function ===
+                            'user-editor'
+                            ? `d-none`
+                            : ``}"
+              style="height: 50px; background: #f6f6f6; font-size: 14px;"
+            >
+              <div
+                class="hoverBtn fw-bold"
+                style="color: #8e1f0b; cursor: pointer;"
+                onclick="${gvc.event(() => {
                             checkSelect(viewModel.data.config);
                             try {
                                 const dialog = new ShareDialog(gvc.glitter);
@@ -1006,7 +1131,10 @@ export class Main_editor {
                                         }
                                     }
                                     if (document.querySelector('#editerCenter iframe').contentWindow.document.querySelector(`.editor_it_${viewModel.selectItem.id}`)) {
-                                        document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${viewModel.selectItem.id}`).parent().remove();
+                                        document.querySelector('#editerCenter iframe').contentWindow.glitter
+                                            .$(`.editor_it_${viewModel.selectItem.id}`)
+                                            .parent()
+                                            .remove();
                                     }
                                     viewModel.selectItem = undefined;
                                     gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
@@ -1014,13 +1142,13 @@ export class Main_editor {
                                 deleteBlock();
                             }
                             catch (e) {
-                                alert(e);
+                                console.error(e);
                             }
                         })}"
-                                >
-                                    <i class="fa-solid fa-trash-can me-2"></i>移除區塊
-                                </div>
-                            </div>`;
+              >
+                <i class="fa-solid fa-trash-can me-2"></i>移除區塊
+              </div>
+            </div>`;
                     },
                 };
             }),
@@ -1036,259 +1164,322 @@ export class Main_editor {
     }
     static userEditor(gvc) {
         gvc.glitter.share.resetCenterFrame = (scale) => {
-            const container_width = (() => {
+            const getContainerWidth = () => {
                 if (Storage.view_type === ViewType.mobile) {
-                    return (document.body.clientWidth > 800) ? 414 : document.body.clientWidth;
+                    return document.body.clientWidth > 800 ? 414 : document.body.clientWidth;
                 }
-                else {
-                    return (document.body.clientWidth < 992) ? document.body.clientWidth : document.body.clientWidth - 365;
-                }
-            })() * (scale || 1);
-            const tool_box = (() => {
-                if (document.body.clientWidth < 992) {
-                    return 40;
-                }
-                else {
-                    return 0;
-                }
-            })();
-            const container_height = (() => {
-                if (gvc.glitter.share.top_inset) {
-                    return document.body.clientHeight - 56 - (parseInt(gvc.glitter.share.top_inset, 10) + 10);
-                }
-                else {
-                    return document.body.clientHeight - 56;
-                }
-            })() - tool_box;
-            const frame_width = (() => {
+                return document.body.clientWidth < 992 ? document.body.clientWidth : document.body.clientWidth - 365;
+            };
+            const getToolBox = () => (document.body.clientWidth < 992 ? 40 : 0);
+            const getContainerHeight = (tool_box) => {
+                const topInset = gvc.glitter.share.top_inset ? parseInt(gvc.glitter.share.top_inset, 10) + 10 : 0;
+                return document.body.clientHeight - 56 - topInset - tool_box;
+            };
+            const getFrameWidth = (container_width) => {
                 if (Storage.view_type === ViewType.mobile) {
-                    return (container_width < 800) ? container_width : 414;
+                    return container_width < 800 ? container_width : 414;
                 }
-                else {
-                    return (container_width > 1300) ? container_width : 1300;
-                }
-            })();
+                return container_width > 1300 ? container_width : 1300;
+            };
+            const container_width = getContainerWidth() * (scale || 1);
+            const tool_box = getToolBox();
+            const container_height = getContainerHeight(tool_box);
+            const frame_width = getFrameWidth(container_width);
             const frame_height = container_height * (frame_width / container_width);
             const frame = document.querySelector('.iframe_view');
             frame.style.width = `${frame_width}px`;
             frame.style.height = `${frame_height}px`;
             frame.style.transform = `scale(${(container_width / frame_width).toFixed(2)})`;
-            if (document.body.clientWidth > 800 && Storage.view_type === ViewType.mobile) {
-                frame.style.left = `25%`;
-            }
-            else {
-                frame.style.left = `0`;
-            }
-            if (gvc.glitter.share.top_inset) {
-                frame.style.top = `${parseInt(gvc.glitter.share.top_inset, 10) + tool_box + 10}px`;
-            }
-            else {
-                frame.style.top = `${tool_box}px`;
-            }
+            frame.style.left = document.body.clientWidth > 800 && Storage.view_type === ViewType.mobile ? '25%' : '0';
+            frame.style.top = `${tool_box + (gvc.glitter.share.top_inset ? parseInt(gvc.glitter.share.top_inset, 10) + 10 : 0)}px`;
         };
         return gvc.bindView(() => {
             return {
                 bind: 'iframe_center',
                 view: () => {
                     if (EditorConfig.backend_page() === 'backend-manger') {
-                        return html `
-                            <div class="position-relative"
-                                 style="width:100%;height: 100%;padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;"
-                                 id="editerCenter">
-                            </div>`;
+                        return html ` <div
+              class="position-relative"
+              style="width:100%;height: 100%;padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;"
+              id="editerCenter"
+            ></div>`;
                     }
                     else {
-                        setTimeout(() => {
-                            gvc.glitter.share.resetCenterFrame();
-                        }, 50);
-                        return html `
-                            <div class="position-relative w-100 h-100"
-                                 style="${(parseInt(gvc.glitter.share.top_inset, 10)) ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10) + 10}px;` : ``}"
-                                 id="editerCenter">
-                                ${(document.body.clientWidth < 992) ? gvc.bindView(() => {
-                            let last_selected = '';
-                            return {
-                                bind: `item-editor-select`,
-                                view: () => {
-                                    if (gvc.glitter.share.editorViewModel.selectItem) {
-                                        function addWidgetEvent(direction, component) {
-                                            const cf = gvc.glitter.share.editorViewModel.selectItem;
-                                            let glitter = window.glitter;
-                                            while (!glitter.share.editorViewModel) {
-                                                glitter = window.parent.glitter;
+                        setTimeout(() => gvc.glitter.share.resetCenterFrame(), 50);
+                        return html ` <div
+              class="position-relative w-100 h-100"
+              style="${parseInt(gvc.glitter.share.top_inset, 10)
+                            ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10) + 10}px;`
+                            : ``}"
+              id="editerCenter"
+            >
+              ${document.body.clientWidth < 992
+                            ? gvc.bindView(() => {
+                                let last_selected = '';
+                                return {
+                                    bind: `item-editor-select`,
+                                    view: () => {
+                                        if (gvc.glitter.share.editorViewModel.selectItem) {
+                                            function addWidgetEvent(direction, component) {
+                                                const cf = gvc.glitter.share.editorViewModel.selectItem;
+                                                let glitter = window.glitter;
+                                                while (!glitter.share.editorViewModel) {
+                                                    glitter = window.parent.glitter;
+                                                }
+                                                if (component) {
+                                                    component = JSON.parse(JSON.stringify(component));
+                                                    component.id = gvc.glitter.getUUID();
+                                                    glitter.share.addWithIndex({
+                                                        data: component,
+                                                        index: cf.id,
+                                                        direction: direction,
+                                                    });
+                                                }
+                                                else {
+                                                    glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
+                                                        AddComponent.toggle(true);
+                                                        AddComponent.addWidget = (gvc, tdata) => {
+                                                            glitter.share.addWithIndex({
+                                                                data: tdata,
+                                                                index: cf.id,
+                                                                direction: direction,
+                                                            });
+                                                        };
+                                                        AddComponent.addEvent = (gvc, tdata) => {
+                                                            glitter.share.addWithIndex({
+                                                                data: {
+                                                                    id: gvc.glitter.getUUID(),
+                                                                    js: './official_view_component/official.js',
+                                                                    css: {
+                                                                        class: {},
+                                                                        style: {},
+                                                                    },
+                                                                    data: {
+                                                                        refer_app: tdata.copyApp,
+                                                                        tag: tdata.copy,
+                                                                        list: [],
+                                                                        carryData: {},
+                                                                        _style_refer_global: {
+                                                                            index: `0`,
+                                                                        },
+                                                                    },
+                                                                    type: 'component',
+                                                                    class: 'w-100',
+                                                                    index: 0,
+                                                                    label: tdata.title,
+                                                                    style: '',
+                                                                    bundle: {},
+                                                                    global: [],
+                                                                    toggle: false,
+                                                                    stylist: [],
+                                                                    dataType: 'static',
+                                                                    style_from: 'code',
+                                                                    classDataType: 'static',
+                                                                    preloadEvenet: {},
+                                                                    share: {},
+                                                                },
+                                                                index: cf.id,
+                                                                direction: direction,
+                                                            });
+                                                        };
+                                                    });
+                                                }
                                             }
-                                            if (component) {
-                                                component = JSON.parse(JSON.stringify(component));
-                                                component.id = gvc.glitter.getUUID();
-                                                glitter.share.addWithIndex({
-                                                    data: component,
-                                                    index: cf.id,
-                                                    direction: direction,
+                                            function readAndPasteClipboardContent(index) {
+                                                return __awaiter(this, void 0, void 0, function* () {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    try {
+                                                        const json = JSON.parse(yield navigator.clipboard.readText());
+                                                        if (!json.id) {
+                                                            dialog.errorMessage({ text: '請選擇要複製的元件，並按下複製元件後再執行貼上。' });
+                                                        }
+                                                        else {
+                                                            addWidgetEvent(index, json);
+                                                        }
+                                                    }
+                                                    catch (error) {
+                                                        dialog.errorMessage({ text: '請選擇要複製的元件，並按下複製元件。' });
+                                                    }
                                                 });
+                                            }
+                                            if (gvc.glitter.share.editorViewModel.selectItem.id === last_selected) {
+                                                setTimeout(() => {
+                                                    gvc.glitter.openDrawer();
+                                                }, 50);
                                             }
                                             else {
-                                                glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
-                                                    AddComponent.toggle(true);
-                                                    AddComponent.addWidget = (gvc, tdata) => {
-                                                        glitter.share.addWithIndex({
-                                                            data: tdata,
-                                                            index: cf.id,
-                                                            direction: direction,
-                                                        });
-                                                    };
-                                                    AddComponent.addEvent = (gvc, tdata) => {
-                                                        glitter.share.addWithIndex({
-                                                            data: {
-                                                                id: gvc.glitter.getUUID(),
-                                                                js: './official_view_component/official.js',
-                                                                css: {
-                                                                    class: {},
-                                                                    style: {},
-                                                                },
-                                                                data: {
-                                                                    refer_app: tdata.copyApp,
-                                                                    tag: tdata.copy,
-                                                                    list: [],
-                                                                    carryData: {},
-                                                                    _style_refer_global: {
-                                                                        index: `0`,
-                                                                    },
-                                                                },
-                                                                type: 'component',
-                                                                class: 'w-100',
-                                                                index: 0,
-                                                                label: tdata.title,
-                                                                style: '',
-                                                                bundle: {},
-                                                                global: [],
-                                                                toggle: false,
-                                                                stylist: [],
-                                                                dataType: 'static',
-                                                                style_from: 'code',
-                                                                classDataType: 'static',
-                                                                preloadEvenet: {},
-                                                                share: {},
-                                                            },
-                                                            index: cf.id,
-                                                            direction: direction,
-                                                        });
-                                                    };
-                                                });
+                                                setTimeout(() => {
+                                                    last_selected = gvc.glitter.share.editorViewModel.selectItem.id;
+                                                }, 50);
                                             }
-                                        }
-                                        function readAndPasteClipboardContent(index) {
-                                            return __awaiter(this, void 0, void 0, function* () {
+                                            return html ` <div
+                            class="border-bottom  d-flex align-items-center px-2 shadow"
+                            style="height:40px;gap:7px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;"
+                          >
+                            <div class="fw-500 fs-6" style="text-overflow: ellipsis;overflow: hidden !important;">
+                              ${gvc.glitter.share.editorViewModel.selectItem.label}
+                            </div>
+                            <div class="flex-fill"></div>
+                            <div
+                              class="rounded-1 border bg-white p-1 px-2 fw-500"
+                              style="font-size: 14px;color:black;"
+                              onclick="${gvc.event(() => gvc.glitter.share.toggle_left_bar())}"
+                            >
+                              編輯
+                            </div>
+                            <div
+                              class="rounded-1 border bg-white p-1 px-2 fw-500 ${gvc.glitter.share.editorViewModel
+                                                .selectItem.deletable === 'false'
+                                                ? `d-none`
+                                                : ``}"
+                              style="font-size: 14px;color:black;"
+                              onclick="${gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
-                                                try {
-                                                    const json = JSON.parse(yield navigator.clipboard.readText());
-                                                    if (!json.id) {
-                                                        dialog.errorMessage({ text: '請選擇要複製的元件，並按下複製元件後再執行貼上。' });
-                                                    }
-                                                    else {
-                                                        addWidgetEvent(index, json);
-                                                    }
-                                                }
-                                                catch (error) {
-                                                    dialog.errorMessage({ text: '請選擇要複製的元件，並按下複製元件。' });
-                                                }
-                                            });
-                                        }
-                                        if (gvc.glitter.share.editorViewModel.selectItem.id === last_selected) {
-                                            setTimeout(() => {
-                                                gvc.glitter.openDrawer();
-                                            }, 50);
+                                                navigator.clipboard.writeText(JSON.stringify(gvc.glitter.share.editorViewModel.selectItem));
+                                                dialog.successMessage({ text: '複製成功，滑動至要插入的區塊，並點擊貼上。' });
+                                            })}"
+                            >
+                              複製
+                            </div>
+                            <div class="btn-group dropdown">
+                              <div
+                                class="rounded-1 border bg-white p-1 px-2 fw-500"
+                                style="font-size: 14px;color:black;"
+                                data-bs-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                              >
+                                貼上
+                              </div>
+                              <div class="dropdown-menu my-1">
+                                <a
+                                  class="dropdown-item"
+                                  onclick="${gvc.event(() => {
+                                                gvc.glitter.htmlGenerate.block_timer = new Date().getTime();
+                                                readAndPasteClipboardContent(-1);
+                                            })}"
+                                  >向上貼上元件</a
+                                >
+                                <a
+                                  class="dropdown-item"
+                                  onclick="${gvc.event(() => {
+                                                gvc.glitter.htmlGenerate.block_timer = new Date().getTime();
+                                                readAndPasteClipboardContent(1);
+                                            })}"
+                                  >向下貼上元件</a
+                                >
+                              </div>
+                            </div>
+                            <div class="btn-group dropdown">
+                              <div
+                                class="rounded-1 border bg-white p-1 px-2 fw-500"
+                                style="font-size: 14px;color:black;"
+                                data-bs-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                              >
+                                新增
+                              </div>
+                              <div class="dropdown-menu my-1">
+                                <a
+                                  class="dropdown-item"
+                                  onclick="${gvc.event(() => {
+                                                addWidgetEvent(-1);
+                                            })}"
+                                  >向上添加元件</a
+                                >
+                                <a
+                                  class="dropdown-item"
+                                  onclick="${gvc.event(() => {
+                                                addWidgetEvent(1);
+                                            })}"
+                                  >向下添加元件</a
+                                >
+                              </div>
+                            </div>
+                          </div>`;
                                         }
                                         else {
-                                            setTimeout(() => {
-                                                last_selected = gvc.glitter.share.editorViewModel.selectItem.id;
-                                            }, 50);
+                                            return html `<div
+                            class="border-bottom  d-flex align-items-center px-2 shadow"
+                            style="height:40px;gap:10px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;"
+                          >
+                            <div class="flex-fill"></div>
+                            <div class="fw-500 fs-6" style="text-overflow: ellipsis;overflow: hidden !important;">
+                              點擊區段來編輯內容
+                            </div>
+                            <div class="flex-fill"></div>
+                          </div>`;
                                         }
-                                        return html `
-                                                    <div class="border-bottom  d-flex align-items-center px-2 shadow"
-                                                         style="height:40px;gap:7px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;">
-                                                        <div class="fw-500 fs-6"
-                                                             style="text-overflow: ellipsis;overflow: hidden !important;">
-                                                            ${gvc.glitter.share.editorViewModel.selectItem.label}
-                                                        </div>
-                                                        <div class="flex-fill"></div>
-                                                        <div class="rounded-1 border bg-white p-1 px-2 fw-500"
-                                                             style="font-size: 14px;color:black;"
-                                                             onclick="${gvc.event(() => {
-                                            gvc.glitter.share.toggle_left_bar();
-                                        })}">編輯
-                                                        </div>
-                                                        <div class="rounded-1 border bg-white p-1 px-2 fw-500 ${(gvc.glitter.share.editorViewModel.selectItem.deletable === 'false') ? `d-none` : ``}"
-                                                             style="font-size: 14px;color:black;"
-                                                             onclick="${gvc.event(() => {
-                                            const dialog = new ShareDialog(gvc.glitter);
-                                            navigator.clipboard.writeText(JSON.stringify(gvc.glitter.share.editorViewModel.selectItem));
-                                            dialog.successMessage({ text: '複製成功，滑動至要插入的區塊，並點擊貼上。' });
-                                        })}">複製
-                                                        </div>
-                                                        <div class="btn-group dropdown">
-                                                            <div class="rounded-1 border bg-white p-1 px-2 fw-500"
-                                                                 style="font-size: 14px;color:black;"
-                                                                 data-bs-toggle="dropdown" aria-haspopup="true"
-                                                                 aria-expanded="false">貼上
-                                                            </div>
-                                                            <div class="dropdown-menu my-1">
-                                                                <a class="dropdown-item" onclick="${gvc.event(() => {
-                                            gvc.glitter.htmlGenerate.block_timer = new Date().getTime();
-                                            readAndPasteClipboardContent(-1);
-                                        })}">向上貼上元件</a>
-                                                                <a class="dropdown-item" onclick="${gvc.event(() => {
-                                            gvc.glitter.htmlGenerate.block_timer = new Date().getTime();
-                                            readAndPasteClipboardContent(1);
-                                        })}">向下貼上元件</a>
-                                                            </div>
-                                                        </div>
-                                                        <div class="btn-group dropdown">
-                                                            <div class="rounded-1 border bg-white p-1 px-2 fw-500"
-                                                                 style="font-size: 14px;color:black;"
-                                                                 data-bs-toggle="dropdown" aria-haspopup="true"
-                                                                 aria-expanded="false">新增
-                                                            </div>
-                                                            <div class="dropdown-menu my-1">
-                                                                <a class="dropdown-item" onclick="${gvc.event(() => {
-                                            addWidgetEvent(-1);
-                                        })}">向上添加元件</a>
-                                                                <a class="dropdown-item" onclick="${gvc.event(() => {
-                                            addWidgetEvent(1);
-                                        })}">向下添加元件</a>
-                                                            </div>
-                                                        </div>
-                                                    </div>`;
-                                    }
-                                    else {
-                                        return `<div class="border-bottom  d-flex align-items-center px-2 shadow" style="height:40px;gap:10px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;">
-                                    <div class="flex-fill"></div>
-                                     <div class="fw-500 fs-6" style="text-overflow: ellipsis;overflow: hidden !important;">點擊區段來編輯內容</div>
-                                     <div class="flex-fill"></div>
-                                 </div>`;
-                                    }
-                                },
-                                divCreate: {}
-                            };
-                        }) : ``}
-                                <iframe class="bg-white iframe_view"
-                                        style="transform-origin: top left; /* 從左上角縮放 */
-  position: absolute;
-  top: 0;
-  left: 0;"
-                                        sandbox="allow-same-origin allow-scripts"
-                                        src="${gvc.glitter.root_path}${Language.getLanguageLinkPrefix()}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
-                            </div>`;
+                                    },
+                                    divCreate: {},
+                                };
+                            })
+                            : ``}
+              <iframe
+                class="bg-white iframe_view"
+                style="transform-origin: top left; position: absolute; top: 0; left: 0;"
+                sandbox="allow-same-origin allow-scripts"
+                src="${(() => {
+                            const basePath = `${gvc.glitter.root_path}${Language.getLanguageLinkPrefix()}`;
+                            const page = gvc.glitter.getUrlParameter('page');
+                            const appName = gvc.glitter.getUrlParameter('appName');
+                            const device = gvc.glitter.getUrlParameter('device');
+                            const url = `${basePath}${page}?type=htmlEditor&appName=${appName}&device=${device}`;
+                            return url;
+                        })()}"
+              ></iframe>
+            </div>`;
                     }
                 },
                 divCreate: () => {
+                    const isEditorMode = ['page-editor', 'user-editor'].includes(Storage.select_function);
+                    const isBackendManager = Storage.select_function === 'backend-manger';
+                    const isMobile = document.body.clientWidth < 992;
                     return {
-                        class: (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column `,
-                        style: (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? ``
-                            : `width: calc(${(document.body.clientWidth < 992) ? `${document.body.clientWidth}px` : `100%`});height: ${Storage.select_function !== 'backend-manger' ? window.parent.innerHeight - 56 : window.innerHeight - (EditorConfig.getPaddingTop(gvc)) - 56}px;overflow:hidden;`
+                        class: [
+                            'd-flex',
+                            'align-items-center',
+                            'justify-content-center',
+                            'flex-column',
+                            'iframe-center',
+                            isEditorMode && 'mx-auto',
+                        ]
+                            .filter(Boolean)
+                            .join(' '),
+                        style: isEditorMode
+                            ? ''
+                            : `
+                  width: ${isMobile ? `${document.body.clientWidth}px` : '100%'};
+                  height: ${isBackendManager
+                                ? window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56
+                                : window.parent.innerHeight - 56}px;
+                  overflow: hidden;
+                `,
                     };
-                }
+                },
+                onCreate: () => {
+                    window.addEventListener('resize', () => {
+                        try {
+                            const editorConstructor = window.parent.document.querySelector('.editor-constructor');
+                            if (editorConstructor && editorConstructor.style.height !== '100%') {
+                                editorConstructor.style.height = '100%';
+                            }
+                            const isBackendManager = Storage.select_function === 'backend-manger';
+                            const newHeight = isBackendManager
+                                ? window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56
+                                : window.parent.innerHeight - 56;
+                            const newWidth = document.body.clientWidth < 992 ? `${document.body.clientWidth}px` : '100%';
+                            document.querySelectorAll('.iframe-center').forEach(el => {
+                                el.style.height = `${newHeight}px`;
+                                el.style.width = `calc(${newWidth})`;
+                            });
+                        }
+                        catch (error) {
+                            console.error('iframe_center resize error', error);
+                        }
+                    });
+                },
             };
         });
     }
@@ -1298,32 +1489,40 @@ export class Main_editor {
                 bind: 'iframe_center',
                 view: () => {
                     if (EditorConfig.backend_page() === 'backend-manger') {
-                        return html `
-                            <div class="position-relative"
-                                 style="width:100%;height: 100%;padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;"
-                                 id="editerCenter">
-                            </div>`;
+                        return html ` <div
+              class="position-relative"
+              style="width:100%;height: 100%;padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;"
+              id="editerCenter"
+            ></div>`;
                     }
                     else {
-                        return html `
-                            <div class="position-relative"
-                                 style="width:100%;height: calc(100%);${(parseInt(gvc.glitter.share.top_inset, 10)) ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;` : ``}"
-                                 id="editerCenter">
-                                <iframe class="w-100 h-100  bg-white iframe_view"
-                                        sandbox="allow-same-origin allow-scripts"
-                                        src="${gvc.glitter.root_path}${Language.getLanguageLinkPrefix()}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
-                            </div>`;
+                        return html ` <div
+              class="position-relative"
+              style="width:100%;height: calc(100%);${parseInt(gvc.glitter.share.top_inset, 10)
+                            ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;`
+                            : ``}"
+              id="editerCenter"
+            >
+              <iframe
+                class="w-100 h-100  bg-white iframe_view"
+                sandbox="allow-same-origin allow-scripts"
+                src="${gvc.glitter.root_path}${Language.getLanguageLinkPrefix()}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"
+              ></iframe>
+            </div>`;
                     }
                 },
                 divCreate: () => {
                     return {
-                        class: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
-                        style: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `width: calc(${(document.body.clientWidth < 992) ? `${document.body.clientWidth}px` : `414px`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;`
-                            : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
+                        class: Storage.view_type === ViewType.mobile &&
+                            (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
+                            ? `d-flex align-items-center justify-content-center flex-column mx-auto`
+                            : `d-flex align-items-center justify-content-center flex-column`,
+                        style: Storage.view_type === ViewType.mobile &&
+                            (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
+                            ? `width: calc(${document.body.clientWidth < 992 ? `${document.body.clientWidth}px` : `414px`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;`
+                            : `width: calc(${document.body.clientWidth < 800 ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`,
                     };
-                }
+                },
             };
         });
     }
@@ -1357,12 +1556,14 @@ export class Main_editor {
                                 }
                                 let array = [];
                                 if (!vm.selectItem) {
-                                    array.push(html `
-                                        <div class="d-flex bg-white w-100 border-bottom ${Storage.select_function === 'user-editor' ? `d-none` : ``}">
-                                            <div class="w-100" style="">
-                                                <div style=""
-                                                     class="d-flex align-items-center justify-content-around  w-100 p-2 ">
-                                                    ${(() => {
+                                    array.push(html ` <div
+                      class="d-flex bg-white w-100 border-bottom ${Storage.select_function === 'user-editor'
+                                        ? `d-none`
+                                        : ``}"
+                    >
+                      <div class="w-100" style="">
+                        <div style="" class="d-flex align-items-center justify-content-around  w-100 p-2 ">
+                          ${(() => {
                                         const items = [
                                             {
                                                 title: '頁面內容',
@@ -1379,12 +1580,12 @@ export class Main_editor {
                                                 value: 'user_editor',
                                                 icon: 'fa-regular fa-pen-to-square',
                                             },
-                                        ].filter((dd) => {
+                                        ].filter(dd => {
                                             if (dd.value === 'basic' && Storage.select_page_type === 'module') {
                                                 return false;
                                             }
                                             if (Storage.editor_mode === 'user') {
-                                                return ['layout', 'basic', 'codeBlock'].find((d2) => {
+                                                return ['layout', 'basic', 'codeBlock'].find(d2 => {
                                                     return dd.value === d2;
                                                 });
                                             }
@@ -1392,37 +1593,37 @@ export class Main_editor {
                                                 return true;
                                             }
                                         });
-                                        if (!items.find((dd) => {
+                                        if (!items.find(dd => {
                                             return dd.value === vm.select;
                                         })) {
                                             vm.select = items[0].value;
                                         }
                                         return items
-                                            .map((dd) => {
-                                            return html `
-                                                                        <div
-                                                                                class=" d-flex align-items-center justify-content-center ${dd.value === vm.select ? `border` : ``} rounded-3"
-                                                                                style="height:36px;width:36px;cursor:pointer;
-${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : `color:#151515;`}
-"
-                                                                                onclick="${gvc.event(() => {
+                                            .map(dd => {
+                                            return html ` <div
+                                  class=" d-flex align-items-center justify-content-center ${dd.value === vm.select
+                                                ? `border`
+                                                : ``} rounded-3"
+                                  style="height:36px;width:36px;cursor:pointer; ${dd.value === vm.select
+                                                ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;`
+                                                : `color:#151515;`}"
+                                  onclick="${gvc.event(() => {
                                                 vm.select = dd.value;
                                                 gvc.notifyDataChange(vm.pageID);
                                             })}"
-                                                                                data-bs-toggle="tooltip"
-                                                                                data-bs-placement="top"
-                                                                                data-bs-custom-class="custom-tooltip"
-                                                                                data-bs-title="${dd.title}"
-                                                                        >
-                                                                            <i class="${dd.icon}"
-                                                                               aria-hidden="true"></i>
-                                                                        </div>`;
+                                  data-bs-toggle="tooltip"
+                                  data-bs-placement="top"
+                                  data-bs-custom-class="custom-tooltip"
+                                  data-bs-title="${dd.title}"
+                                >
+                                  <i class="${dd.icon}" aria-hidden="true"></i>
+                                </div>`;
                                         })
                                             .join(``);
                                     })()}
-                                                </div>
-                                            </div>
-                                        </div>`);
+                        </div>
+                      </div>
+                    </div>`);
                                     (vm.select === 'codeBlock' || vm.select === 'user_editor') &&
                                         array.push(Main_editor.editorContent({
                                             gvc: gvc,
@@ -1459,7 +1660,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                 data: glitter.share.editorViewModel.data,
                                             },
                                             docID: '',
-                                            selectBack: (dd) => {
+                                            selectBack: dd => {
                                                 EditorElem.openEditorDialog(gvc, (gvc) => {
                                                     return PageEditor.styleRenderEditor({
                                                         gvc: gvc,
@@ -1495,7 +1696,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                 data: glitter.share.editorViewModel.data,
                                             },
                                             docID: '',
-                                            selectBack: (dd) => {
+                                            selectBack: dd => {
                                                 EditorElem.openEditorDialog(gvc, (gvc) => {
                                                     return PageEditor.scriptRenderEditor({
                                                         gvc: gvc,
@@ -1535,35 +1736,36 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                     bind: id,
                                                     view: () => {
                                                         return html `
-                                                            <div class="alert alert-danger flex-fill m-0 p-2 "
-                                                                 style="white-space: normal;word-break:break-all;">
-                                                                此頁面的配置檔包含所有設計模組和觸發事件的代碼配置項目。<br/>建議由熟悉程式開發的工程師進行編輯。
-                                                            </div>
-                                                            ${EditorElem.customCodeEditor({
+                                <div
+                                  class="alert alert-danger flex-fill m-0 p-2 "
+                                  style="white-space: normal;word-break:break-all;"
+                                >
+                                  此頁面的配置檔包含所有設計模組和觸發事件的代碼配置項目。<br />建議由熟悉程式開發的工程師進行編輯。
+                                </div>
+                                ${EditorElem.customCodeEditor({
                                                             gvc: gvc,
                                                             height: window.innerHeight - 350,
                                                             initial: value,
                                                             title: 'JSON配置參數',
-                                                            callback: (data) => {
+                                                            callback: data => {
                                                                 value = data;
                                                             },
                                                             language: 'json',
                                                         })}
-                                                            <div class="d-flex w-100 mb-2 mt-2 justify-content-end"
-                                                                 style="gap:10px;">
-                                                                <button
-                                                                        class="btn btn-outline-secondary-c "
-                                                                        style="flex:1;height:40px; width:calc(50% - 10px);"
-                                                                        onclick="${gvc.event(() => {
+                                <div class="d-flex w-100 mb-2 mt-2 justify-content-end" style="gap:10px;">
+                                  <button
+                                    class="btn btn-outline-secondary-c "
+                                    style="flex:1;height:40px; width:calc(50% - 10px);"
+                                    onclick="${gvc.event(() => {
                                                             navigator.clipboard.writeText(JSON.stringify(json, null, '\t'));
                                                         })}"
-                                                                >
-                                                                    <i class="fa-regular fa-copy me-2"></i>複製到剪貼簿
-                                                                </button>
-                                                                <button
-                                                                        class="btn btn-primary-c "
-                                                                        style="flex:1; height:40px; width:calc(50% - 10px);"
-                                                                        onclick="${gvc.event(() => {
+                                  >
+                                    <i class="fa-regular fa-copy me-2"></i>複製到剪貼簿
+                                  </button>
+                                  <button
+                                    class="btn btn-primary-c "
+                                    style="flex:1; height:40px; width:calc(50% - 10px);"
+                                    onclick="${gvc.event(() => {
                                                             const dialog = new ShareDialog(gvc.glitter);
                                                             try {
                                                                 glitter.share.editorViewModel.data.config = JSON.parse(value);
@@ -1575,11 +1777,11 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                 console.error(`${e}${e.stack}${e.line}`);
                                                             }
                                                         })}"
-                                                                >
-                                                                    <i class="fa-regular fa-floppy-disk me-2"></i>儲存
-                                                                </button>
-                                                            </div>
-                                                        `;
+                                  >
+                                    <i class="fa-regular fa-floppy-disk me-2"></i>儲存
+                                  </button>
+                                </div>
+                              `;
                                                     },
                                                     divCreate: {
                                                         class: `p-2`,
@@ -1602,14 +1804,9 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                 },
                 divCreate: option.divCreate || {
                     class: `w-100`,
-                    style: `height:calc(100vh - ${(document.body.clientWidth < 800) ? 0 : 56 + glitter.share.top_inset}px);overflow-y:auto;`,
+                    style: `height:calc(100vh - ${document.body.clientWidth < 800 ? 0 : 56 + glitter.share.top_inset}px);overflow-y:auto;`,
                 },
             };
         });
     }
-}
-function swapArr(arr, index1, index2) {
-    const data = arr[index1];
-    arr.splice(index1, 1);
-    arr.splice(index2, 0, data);
 }

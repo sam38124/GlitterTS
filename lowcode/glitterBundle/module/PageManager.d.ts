@@ -26,6 +26,7 @@ export declare class PageConfig {
     goBack: boolean;
     src: string;
     tag: string;
+    push_stack: boolean;
     createResource: () => void;
     deleteResource: (destroy: boolean) => void;
     type: GVCType;
@@ -35,6 +36,10 @@ export declare class PageConfig {
     dismiss: () => void;
     renderFinish: () => void;
     static rootPath: string;
+    carry_search: {
+        key: string;
+        value: string;
+    }[];
     getElement(): any;
     gvc?: GVC;
     constructor(par: {
@@ -43,6 +48,7 @@ export declare class PageConfig {
         goBack: boolean;
         src: string;
         tag: string;
+        push_stack: boolean;
         createResource: () => void;
         deleteResource: (destroy: boolean) => void;
         type: GVCType;
@@ -51,6 +57,10 @@ export declare class PageConfig {
         dismiss: () => void;
         renderFinish: () => void;
         search?: string;
+        carry_search?: {
+            key: string;
+            value: string;
+        }[];
     });
 }
 export declare class PageManager {
@@ -63,6 +73,10 @@ export declare class PageManager {
         animation?: AnimationConfig;
         backGroundColor?: string;
         dismiss?: () => void;
+        carry_search?: {
+            key: string;
+            value: string;
+        }[];
     }): void;
     static setLoadingView(link: string): void;
     static changePageListener(tag: string): void;
@@ -79,6 +93,10 @@ export declare class PageManager {
         animation?: AnimationConfig;
         backGroundColor?: string;
         dismiss?: () => void;
+        carry_search?: {
+            key: string;
+            value: string;
+        }[];
     }): void;
     static removePage(tag: string): void;
     static innerDialog: (html: (gvc: GVC) => string | Promise<string>, tag: string, option?: {

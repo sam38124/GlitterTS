@@ -12,6 +12,7 @@ export interface IRebateSearch {
     page: number;
     low?: number;
     high?: number;
+    email_or_phone?: string;
     type?: string;
 }
 export interface RebateProof {
@@ -30,7 +31,7 @@ export declare class Rebate {
     static isValidDateTimeString(dateTimeString: string): boolean;
     static nowTime: (timeZone?: string) => string;
     getConfig(): Promise<any>;
-    mainStatus(): Promise<boolean | undefined>;
+    mainStatus(): Promise<boolean>;
     getOneRebate(obj: {
         user_id?: number;
         email?: string;

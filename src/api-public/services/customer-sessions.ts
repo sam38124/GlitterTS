@@ -40,6 +40,10 @@ interface RawProduct {
             spec: string[];
             sale_price: number;
             preview_image: string;
+            live_model: {
+                live_price: number;
+                available_Qty: number;
+            };
         }[];
     };
 }
@@ -108,7 +112,7 @@ export class CustomerSessions {
                                     },
                                     {
                                         type: "text",
-                                        text: `$ ${product.price.toLocaleString()}起`,
+                                        text: `$ ${product.price.toLocaleString()} 起`,
                                         size: "md",
                                         "align": "end"
                                     },
@@ -149,16 +153,15 @@ export class CustomerSessions {
                     const name = content.title || "未知商品";
                     const variants = content.variants || [];
                     // 取得最低價格
-                    const price = variants.length > 0 ? Math.min(...variants.map(v => v.sale_price)) : 0;
+                    const price = variants.length > 0 ? Math.min(...variants.map(v => v.live_model.live_price)) : 0;
 
                     // 取得第一張商品圖片
                     const imageUrl = variants.length > 0 ? variants[0].preview_image : "";
-
                     // 轉換規格選項
                     const options = variants.map(v => ({
                         label: v.spec.length > 0 ? v.spec.join(',') : "", // 避免空陣列
                         value: v.spec.length > 0 ? v.spec.join(',') : "", // 避免空陣列
-                        price: v.sale_price,
+                        price: v.live_model.live_price,
                     }));
                     return {
                         id,
@@ -175,14 +178,33 @@ export class CustomerSessions {
             const {type, name, ...content} = data;
 
 
+            const message = [
+                {
+                    "type": "text",
+                    "text": `📢 團購開始囉！ 🎉\n團購名稱： ${name}\n團購日期： ${content.start_date} ${content.start_time} ~ ${content.end_date} ${content.end_time}\n\n📍 下方查看完整商品清單`
+                }
+            ]
+            const transProducts: Product[] = convertToProductFormat(content.item_list);
+            await this.sendMessageToGroup(data.lineGroup.groupId,message)
+
+
+            const queryData = await db.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
+                                              SET ?;`, [{
+                type: data.type,
+                name: data.name,
+                status: "1",
+                content: JSON.stringify(content)
+            }])
+            const flexMessage = generateProductCarousel(transProducts, this.app, queryData.insertId);
+
             for (const item of content.item_list) {
                 const pdDqlData = (
-                    await new Shopping(this.app , this.token).getProduct({
-                        page: 0,
-                        limit: 50,
-                        id: item.id,
-                        status: 'inRange',
-                    })
+                  await new Shopping(this.app , this.token).getProduct({
+                      page: 0,
+                      limit: 50,
+                      id: item.id,
+                      status: 'inRange',
+                  })
                 ).data;
                 const pd = pdDqlData.content;
 
@@ -203,15 +225,15 @@ export class CustomerSessions {
                     }
                     let newContent = item.content
                     //對t_variants進行資料庫更新
-                    // await new Shopping(this.app, this.token).updateVariantsWithSpec(updateVariant, item.id, variant.spec);
+                    await new Shopping(this.app, this.token).updateVariantsWithSpec(updateVariant, item.id, variant.spec);
                 })).then(async () => {
                     try {
                         await db.query(
-                            `UPDATE \`${this.app}\`.\`t_manager_post\`
+                          `UPDATE \`${this.app}\`.\`t_manager_post\`
                              SET content = ?
                              WHERE id = ?
                             `,
-                            [JSON.stringify(pd), item.id]
+                          [JSON.stringify(pd), item.id]
                         );
                     } catch (error: any) {
                         console.error('發送訊息錯誤:', error.response?.data || error.message);
@@ -225,30 +247,7 @@ export class CustomerSessions {
                         });
                     }
                 })
-
-
-
-
-                // const variant = pd.variants.find((dd: any) => dd.spec.join('-') === b.spec.join('-'));
-
             }
-            const message = [
-                {
-                    "type": "text",
-                    "text": `📢 團購開始囉！ 🎉\n團購名稱： ${name}\n團購日期： ${content.start_date} ${content.start_time} ~ ${content.end_date} ${content.end_time}\n\n📍 下方查看完整商品清單`
-                }
-            ]
-            await this.sendMessageToGroup(data.lineGroup.groupId,message)
-
-            const transProducts: Product[] = convertToProductFormat(content.item_list);
-            const queryData = await db.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
-                                              SET ?;`, [{
-                type: data.type,
-                name: data.name,
-                status: "1",
-                content: JSON.stringify(content)
-            }])
-            const flexMessage = generateProductCarousel(transProducts, this.app, queryData.insertId);
             try {
                 const res = await axios.post("https://api.line.me/v2/bot/message/push", {
                     to: data.lineGroup.groupId,
@@ -297,27 +296,26 @@ export class CustomerSessions {
                     order by id desc
                 `, [])
                 // ✅ 2. 篩選出已過期的團購
-                const expiredItems = data.filter((item: any) =>
-                    isPastEndTime(item.content.end_date, item.content.end_time)
-                );
-
-                if (expiredItems.length === 0) {
-                    console.log("✅ 沒有需要更新的團購");
-                    return;
-                } else {
-
-                    await Promise.all(
-                        expiredItems.map((item: any) => {
-                            item.status = 2;
-                            db.query(`
-                                UPDATE \`${appName}\`.\`t_live_purchase_interactions\`
-                                SET \`status\` = 2
-                                WHERE \`id\` = ?;
-                            `, [item.id])
-                            }
-                        )
-                    );
-                }
+                // const expiredItems = data.filter((item: any) =>
+                //     isPastEndTime(item.content.end_date, item.content.end_time)
+                // );
+                // if (expiredItems.length === 0) {
+                //     console.log("✅ 沒有需要更新的團購");
+                //     return [];
+                // } else {
+                //
+                //     await Promise.all(
+                //         expiredItems.map((item: any) => {
+                //             item.status = 2;
+                //             db.query(`
+                //                 UPDATE \`${appName}\`.\`t_live_purchase_interactions\`
+                //                 SET \`status\` = 2
+                //                 WHERE \`id\` = ?;
+                //             `, [item.id])
+                //             }
+                //         )
+                //     );
+                // }
                 return data
             } catch (err: any) {
                 console.error('取得資料錯誤:', err.response?.data || err.message);

@@ -195,7 +195,6 @@ export class ConnectionMode {
             ConnectionMode.socket.addEventListener('message', function (event) {
                 return __awaiter(this, void 0, void 0, function* () {
                     const data = JSON.parse(event.data);
-                    console.log(`get_post_device==>`, data);
                     switch (data.type) {
                         case 'device_list_updated':
                             ConnectionMode.device_list = data.device_list.map((dd) => {

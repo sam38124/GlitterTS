@@ -32,20 +32,20 @@ const exception_1 = __importDefault(require("../../modules/exception"));
 const tool_1 = __importStar(require("../../services/tool"));
 const UserUtil_1 = __importDefault(require("../../utils/UserUtil"));
 const config_js_1 = __importDefault(require("../../config.js"));
-const ses_js_1 = require("../../services/ses.js");
 const app_js_1 = __importDefault(require("../../app.js"));
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const process_1 = __importDefault(require("process"));
-const ut_database_js_1 = require("../utils/ut-database.js");
-const custom_code_js_1 = require("./custom-code.js");
 const axios_1 = __importDefault(require("axios"));
-const auto_send_email_js_1 = require("./auto-send-email.js");
 const qs_1 = __importDefault(require("qs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const moment_1 = __importDefault(require("moment"));
+const ses_js_1 = require("../../services/ses.js");
+const ut_database_js_1 = require("../utils/ut-database.js");
+const custom_code_js_1 = require("./custom-code.js");
+const auto_send_email_js_1 = require("./auto-send-email.js");
 const google_auth_library_1 = require("google-auth-library");
 const rebate_js_1 = require("./rebate.js");
-const moment_1 = __importDefault(require("moment"));
 const notify_js_1 = require("./notify.js");
 const config_1 = require("../../config");
 const sms_js_1 = require("./sms.js");
@@ -53,7 +53,20 @@ const form_check_js_1 = require("./form-check.js");
 const ut_permission_js_1 = require("../utils/ut-permission.js");
 const share_permission_js_1 = require("./share-permission.js");
 const terms_check_js_1 = require("./terms-check.js");
+const app_js_2 = require("../../services/app.js");
 class User {
+    constructor(app, token) {
+        this.normalMember = {
+            id: '',
+            duration: { type: 'noLimit', value: 0 },
+            tag_name: '一般會員',
+            condition: { type: 'total', value: 0 },
+            dead_line: { type: 'noLimit' },
+            create_date: '2024-01-01T00:00:00.000Z',
+        };
+        this.app = app;
+        this.token = token;
+    }
     static generateUserID() {
         let userID = '';
         const characters = '0123456789';
@@ -104,8 +117,7 @@ class User {
             await redis_js_1.default.setValue(`verify-phone-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
             const sns = new sms_js_1.SMS(this.app, this.token);
-            await sns.sendSNS({ data: data.content, phone: account }, () => {
-            });
+            await sns.sendSNS({ data: data.content, phone: account }, () => { });
             return {
                 result: true,
             };
@@ -150,7 +162,8 @@ class User {
                     msg: 'lead data with phone.',
                 });
             }
-            if (!pass_verify) {
+            const memberConfig = await app_js_2.App.checkBrandAndMemberType(this.app);
+            if (!pass_verify && memberConfig.plan !== 'light-year') {
                 if (login_config.email_verify &&
                     userData.verify_code !== (await redis_js_1.default.getValue(`verify-${userData.email}`)) &&
                     register_form.list.find((dd) => {
@@ -176,7 +189,13 @@ class User {
             userData.verify_code = undefined;
             userData.verify_code_phone = undefined;
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                 VALUES (?, ?, ?, ?, ?);`, [userID, account, await tool_1.default.hashPwd(pwd), userData !== null && userData !== void 0 ? userData : {}, 1]);
+                 VALUES (?, ?, ?, ?, ?);`, [
+                userID,
+                account,
+                await tool_1.default.hashPwd(pwd),
+                Object.assign(Object.assign({}, (userData !== null && userData !== void 0 ? userData : {})), { status: undefined }),
+                userData.status === 0 ? 0 : 1,
+            ]);
             await this.createUserHook(userID);
             const usData = await this.getUserData(userID, 'userID');
             usData.pwd = undefined;
@@ -252,7 +271,8 @@ class User {
                      from \`${this.app}\`.t_user
                      where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
                        and status = 1`, [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]))[0];
-            if ((process_1.default.env.universal_password && pwd === process_1.default.env.universal_password) || (await tool_1.default.compareHash(pwd, data.pwd))) {
+            if ((process_1.default.env.universal_password && pwd === process_1.default.env.universal_password) ||
+                (await tool_1.default.compareHash(pwd, data.pwd))) {
                 data.pwd = undefined;
                 data.token = await UserUtil_1.default.generateToken({
                     user_id: data['userID'],
@@ -354,10 +374,10 @@ class User {
                             redirect_uri: redirect,
                         }),
                     })
-                        .then((response) => {
+                        .then(response => {
                         resolve(response.data);
                     })
-                        .catch((error) => {
+                        .catch(error => {
                         console.error(error);
                         resolve(false);
                     });
@@ -381,10 +401,10 @@ class User {
                         client_id: lineData.id,
                     }),
                 })
-                    .then((response) => {
+                    .then(response => {
                     resolve(response.data);
                 })
-                    .catch((error) => {
+                    .catch(error => {
                     resolve(false);
                 });
             });
@@ -395,8 +415,10 @@ class User {
             async function getUsData() {
                 return (await database_1.default.execute(`select *
                      from \`${app}\`.t_user
-                     where (userData ->>'$.email' = ?) or (userData ->>'$.lineID' = ?)
-                     ORDER BY CASE WHEN (userData ->>'$.lineID' = ?)  THEN 1
+                     where (userData ->>'$.email' = ?)
+                        or (userData ->>'$.lineID' = ?)
+                     ORDER BY CASE
+                                  WHEN (userData ->>'$.lineID' = ?) THEN 1
                                   ELSE 3
                                   END
                     `, [line_profile.email, userData.sub, userData.sub]));
@@ -495,6 +517,11 @@ class User {
                      from \`${this.app}\`.t_user
                      where userData ->>'$.email' = ?
                        and status = 1`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0];
+            data.userData['google-id'] = payload === null || payload === void 0 ? void 0 : payload.sub;
+            await database_1.default.execute(`update \`${this.app}\`.t_user
+                 set userData=?
+                 where userID = ?
+                   and id > 0`, [JSON.stringify(data.userData), data.userID]);
             const usData = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
@@ -515,7 +542,7 @@ class User {
                 const per_c = new share_permission_js_1.SharePermission(this.app, this.token);
                 const permission = (await per_c.getPermission({
                     page: 0,
-                    limit: 1000
+                    limit: 1000,
                 })).data;
                 if (permission.find((dd) => {
                     return `${dd.user}` === `${user_id}` && `${dd.config.pin}` === pin;
@@ -565,8 +592,8 @@ class User {
             });
             const res = await axios_1.default
                 .post('https://appleid.apple.com/auth/token', `client_id=${config.id}&client_secret=${client_secret}&code=${token}&grant_type=authorization_code`)
-                .then((res) => res.data)
-                .catch((e) => {
+                .then(res => res.data)
+                .catch(e => {
                 console.error(e);
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify False', null);
             });
@@ -668,6 +695,7 @@ class User {
         }
     }
     async checkMember(userData, trigger) {
+        var _a;
         const member_update = await this.getConfigV2({
             key: 'member_update',
             user_id: userData.userID,
@@ -678,20 +706,18 @@ class User {
                 key: 'member_level_config',
                 user_id: 'manager',
             })).levels || [];
-            const order_list = (await database_1.default.query(`SELECT orderData ->> '$.total' as total, created_time
-                     FROM \`${this.app}\`.t_checkout
-                     where email in (${[userData.userData.email, userData.userData.phone]
-                .filter((dd) => {
-                return dd;
-            })
-                .map((dd) => {
-                return database_1.default.escape(dd);
-            })
+            const orderCountingSQL = await this.getCheckoutCountingModeSQL();
+            const order_list = (await database_1.default.query(`SELECT orderData ->> '$.total' AS total, created_time
+           FROM \`${this.app}\`.t_checkout
+           WHERE email IN (${[userData.userData.email, userData.userData.phone]
+                .filter(Boolean)
+                .map(database_1.default.escape)
                 .join(',')})
-                       and status = 1
-                     order by id desc`, [])).map((dd) => {
-                return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
-            });
+           AND ${orderCountingSQL}
+           ORDER BY id DESC`, [])).map((dd) => ({
+                total_amount: parseInt(dd.total, 10),
+                date: dd.created_time,
+            }));
             let pass_level = true;
             const member = member_list
                 .map((dd, index) => {
@@ -791,7 +817,7 @@ class User {
                 }
             })
                 .reverse();
-            member.map((dd) => {
+            member.map(dd => {
                 if (dd.trigger) {
                     dd.start_with = new Date();
                 }
@@ -804,15 +830,22 @@ class User {
                     return d1.id === original_member.id;
                 });
                 if (calc_member_now) {
-                    const dd = member_list.find((dd) => {
+                    const dd = member_list.find(dd => {
                         return dd.id === original_member.id;
                     });
+                    dd.renew_condition = (_a = dd.renew_condition) !== null && _a !== void 0 ? _a : {};
+                    console.log(`dd===>`, dd);
                     const renew_check_data = (() => {
+                        var _a;
                         let start_with = new Date(original_member.start_with);
                         const order_match = order_list.filter((d1) => {
                             return new Date(d1.date).getTime() > start_with.getTime();
                         });
                         const dead_line = new Date(original_member.dead_line);
+                        dd.renew_condition = (_a = dd.renew_condition) !== null && _a !== void 0 ? _a : {
+                            "type": "total",
+                            "value": 0
+                        };
                         if (dd.dead_line.type === 'noLimit') {
                             dead_line.setDate(dead_line.getDate() + 365 * 10);
                             return {
@@ -910,7 +943,7 @@ class User {
         const ONE_YEAR_MS = duration * 24 * 60 * 60 * 1000;
         const THIRTY_DAYS_MS = duration * 24 * 60 * 60 * 1000;
         const NOW = new Date().getTime();
-        const recentTransactions = transactions.filter((transaction) => {
+        const recentTransactions = transactions.filter(transaction => {
             const transactionDate = new Date(transaction.date);
             return NOW - transactionDate.getTime() <= ONE_YEAR_MS;
         });
@@ -936,47 +969,57 @@ class User {
         }
         return null;
     }
-    getUserAndOrderSQL(obj) {
+    async getUserAndOrderSQL(obj) {
+        const orderByClause = this.getOrderByClause(obj.orderBy);
+        const whereClause = obj.where.filter(str => str.length > 0).join(' AND ');
+        const limitClause = obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : '';
+        const orderCountingSQL = await this.getCheckoutCountingModeSQL();
         const sql = `
-            SELECT ${obj.select}
-            FROM (SELECT email,
-                         COUNT(*)                                                        AS order_count,
-                         SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
-                  FROM \`${this.app}\`.t_checkout
-                  WHERE status = 1
-                  GROUP BY email) as o
-                     RIGHT JOIN
-                 \`${this.app}\`.t_user u ON o.email = u.account
-            WHERE (${obj.where.filter((str) => str.length > 0).join(' AND ')})
-            ORDER BY ${(() => {
-            switch (obj.orderBy) {
-                case 'order_total_desc':
-                    return 'o.total_amount DESC';
-                case 'order_total_asc':
-                    return 'o.total_amount';
-                case 'order_count_desc':
-                    return 'o.order_count DESC';
-                case 'order_count_asc':
-                    return 'o.order_count';
-                case 'name':
-                    return 'JSON_EXTRACT(u.userData, "$.name")';
-                case 'created_time_desc':
-                    return 'u.created_time DESC';
-                case 'created_time_asc':
-                    return 'u.created_time';
-                case 'online_time_desc':
-                    return 'u.online_time DESC';
-                case 'online_time_asc':
-                    return 'u.online_time';
-                default:
-                    return 'u.id DESC';
-            }
-        })()} ${obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : ''};
-        `;
+        SELECT ${obj.select}
+        FROM (
+            SELECT 
+                email,
+                COUNT(*) AS order_count,
+                SUM(total) AS total_amount
+            FROM \`${this.app}\`.t_checkout
+            WHERE ${orderCountingSQL}
+            GROUP BY email
+        ) AS o
+        RIGHT JOIN \`${this.app}\`.t_user u ON o.email = u.account
+        LEFT JOIN (
+            SELECT 
+                email,
+                total AS last_order_total,
+                created_time AS last_order_time,
+                ROW_NUMBER() OVER(PARTITION BY email ORDER BY created_time DESC) AS rn
+            FROM \`${this.app}\`.t_checkout
+            WHERE ${orderCountingSQL}
+        ) AS lo ON o.email = lo.email AND lo.rn = 1
+        WHERE (${whereClause})
+        ORDER BY ${orderByClause} ${limitClause}
+    `;
         return sql;
     }
+    getOrderByClause(orderBy) {
+        const orderByMap = {
+            order_total_desc: 'o.total_amount DESC',
+            order_total_asc: 'o.total_amount',
+            order_count_desc: 'o.order_count DESC',
+            order_count_asc: 'o.order_count',
+            name: 'JSON_EXTRACT(u.userData, "$.name")',
+            created_time_desc: 'u.created_time DESC',
+            created_time_asc: 'u.created_time',
+            online_time_desc: 'u.online_time DESC',
+            online_time_asc: 'u.online_time',
+            last_order_total_desc: 'lo.last_order_total DESC',
+            last_order_total_asc: 'lo.last_order_total',
+            last_order_time_desc: 'lo.last_order_time DESC',
+            last_order_time_asc: 'lo.last_order_time',
+        };
+        return orderByMap[orderBy] || 'u.id DESC';
+    }
     async getUserList(query) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f, _g;
         try {
             const querySql = ['1=1'];
             const noRegisterUsers = [];
@@ -999,13 +1042,13 @@ class User {
                         }
                     });
                     const ids = query.id
-                        ? query.id.split(',').filter((id) => {
-                            return users.find((item) => {
+                        ? query.id.split(',').filter(id => {
+                            return users.find(item => {
                                 return item.userID === parseInt(`${id}`, 10);
                             });
                         })
-                        : users.map((item) => item.userID).filter((item) => item);
-                    query.id = ids.length > 0 ? ids.filter((id) => id).join(',') : '0,0';
+                        : users.map((item) => item.userID).filter(item => item);
+                    query.id = ids.length > 0 ? ids.filter(id => id).join(',') : '0,0';
                 }
                 else {
                     query.id = '0,0';
@@ -1023,12 +1066,12 @@ class User {
                 });
                 if (rebateData && rebateData.total > 0) {
                     const ids = query.id
-                        ? query.id.split(',').filter((id) => {
-                            return rebateData.data.find((item) => {
+                        ? query.id.split(',').filter(id => {
+                            return rebateData.data.find(item => {
                                 return item.user_id === parseInt(`${id}`, 10);
                             });
                         })
-                        : rebateData.data.map((item) => item.user_id);
+                        : rebateData.data.map(item => item.user_id);
                     query.id = ids.join(',');
                 }
                 else {
@@ -1040,15 +1083,15 @@ class User {
                 const levelGroup = await this.getUserGroups(['level']);
                 if (levelGroup.result) {
                     let levelIds = [];
-                    levelGroup.data.map((item) => {
+                    levelGroup.data.map(item => {
                         if (item.tag && levels.includes(item.tag)) {
-                            levelIds = levelIds.concat(item.users.map((user) => user.userID));
+                            levelIds = levelIds.concat(item.users.map(user => user.userID));
                         }
                     });
                     if (levelIds.length > 0) {
                         const ids = query.id
-                            ? query.id.split(',').filter((id) => {
-                                return levelIds.find((item) => {
+                            ? query.id.split(',').filter(id => {
+                                return levelIds.find(item => {
                                     return item === parseInt(`${id}`, 10);
                                 });
                             })
@@ -1072,53 +1115,106 @@ class User {
                     `);
                 }
             }
+            if (query.last_order_time) {
+                const last_time = query.last_order_time.split(',');
+                if (last_time.length > 1) {
+                    querySql.push(`
+                        (lo.last_order_time BETWEEN ${database_1.default.escape(`${last_time[0]} 00:00:00`)} 
+                        AND ${database_1.default.escape(`${last_time[1]} 23:59:59`)})
+                    `);
+                }
+            }
             if (query.birth && query.birth.length > 0) {
                 const birth = query.birth.split(',');
-                const birthMap = birth.map((month) => parseInt(`${month}`, 10));
-                if (birthMap.every((n) => typeof n === 'number' && !isNaN(n))) {
+                const birthMap = birth.map(month => parseInt(`${month}`, 10));
+                if (birthMap.every(n => typeof n === 'number' && !isNaN(n))) {
                     querySql.push(`(MONTH(JSON_EXTRACT(u.userData, '$.birth')) IN (${birthMap.join(',')}))`);
                 }
             }
+            if (query.tags && query.tags.length > 0) {
+                const tags = query.tags.split(',');
+                if (Array.isArray(tags) && tags.length > 0) {
+                    const tagConditions = tags
+                        .map(tag => `JSON_CONTAINS(u.userData->'$.tags', ${database_1.default.escape(`"${tag}"`)})`)
+                        .join(' OR ');
+                    querySql.push(`(${tagConditions})`);
+                }
+            }
             if (query.total_amount) {
-                const totalAmount = query.total_amount.split(',');
-                if (totalAmount.length > 1) {
-                    if (totalAmount[0] === 'lessThan') {
-                        querySql.push(`(o.total_amount < ${totalAmount[1]} OR o.total_amount is null)`);
+                const arr = query.total_amount.split(',');
+                if (arr.length > 1) {
+                    if (arr[0] === 'lessThan') {
+                        querySql.push(`(o.total_amount < ${arr[1]} OR o.total_amount is null)`);
                     }
-                    if (totalAmount[0] === 'moreThan') {
-                        querySql.push(`(o.total_amount > ${totalAmount[1]})`);
+                    if (arr[0] === 'moreThan') {
+                        querySql.push(`(o.total_amount > ${arr[1]})`);
+                    }
+                }
+            }
+            if (query.last_order_total) {
+                const arr = query.last_order_total.split(',');
+                if (arr.length > 1) {
+                    if (arr[0] === 'lessThan') {
+                        querySql.push(`(lo.last_order_total < ${arr[1]} OR lo.last_order_total is null)`);
+                    }
+                    if (arr[0] === 'moreThan') {
+                        querySql.push(`(lo.last_order_total > ${arr[1]})`);
+                    }
+                }
+            }
+            if (query.total_count) {
+                const arr = query.total_count.split(',');
+                if (arr.length > 1) {
+                    if (arr[0] === 'lessThan') {
+                        querySql.push(`(o.order_count < ${arr[1]} OR o.order_count is null)`);
+                    }
+                    if (arr[0] === 'moreThan') {
+                        querySql.push(`(o.order_count > ${arr[1]})`);
                     }
                 }
             }
             if (query.search) {
-                querySql.push([
-                    `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name'))) LIKE UPPER('%${query.search}%'))`,
-                    `(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.email')) LIKE '%${query.search}%')`,
-                    `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.phone')) LIKE UPPER('%${query.search}%')))`,
-                ]
-                    .filter((text) => {
-                    if (query.searchType === undefined)
-                        return true;
-                    if (text.includes(`$.${query.searchType}`))
-                        return true;
-                    return false;
-                })
-                    .join(` || `));
+                const searchValue = `%${query.search}%`;
+                const searchFields = [
+                    {
+                        key: 'name',
+                        condition: `UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name'))) LIKE UPPER('${searchValue}')`,
+                    },
+                    {
+                        key: 'phone',
+                        condition: `UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.phone'))) LIKE UPPER('${searchValue}')`,
+                    },
+                    {
+                        key: 'email',
+                        condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.email')) LIKE '${searchValue}'`,
+                    },
+                    {
+                        key: 'lineID',
+                        condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.lineID')) LIKE '${searchValue}'`,
+                    },
+                    {
+                        key: 'fb-id',
+                        condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$."fb-id"')) LIKE '${searchValue}'`,
+                    },
+                ];
+                const filteredConditions = searchFields
+                    .filter(({ key }) => !query.searchType || query.searchType === key)
+                    .map(({ condition }) => condition);
+                if (filteredConditions.length > 0) {
+                    querySql.push(`(${filteredConditions.join(' OR ')})`);
+                }
             }
-            if (query.filter_type === 'block') {
-                querySql.push(`status = 0`);
+            if (query.filter_type !== 'excel') {
+                querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
             }
-            else {
-                querySql.push(`status = 1`);
-            }
-            const dataSQL = this.getUserAndOrderSQL({
-                select: 'o.email, o.order_count, o.total_amount, u.*',
+            const dataSQL = await this.getUserAndOrderSQL({
+                select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
                 where: querySql,
                 orderBy: (_c = query.order_string) !== null && _c !== void 0 ? _c : '',
                 page: query.page,
                 limit: query.limit,
             });
-            const countSQL = this.getUserAndOrderSQL({
+            const countSQL = await this.getUserAndOrderSQL({
                 select: 'count(1)',
                 where: querySql,
                 orderBy: (_d = query.order_string) !== null && _d !== void 0 ? _d : '',
@@ -1128,23 +1224,49 @@ class User {
                 dd.tag_name = '一般會員';
                 return dd;
             });
-            for (const b of await database_1.default.query(`SELECT *
-                 FROM \`${this.app}\`.t_user_public_config
-                 where \`key\` = 'member_update'
-                   and user_id in (${userData
-                .map((dd) => {
-                return dd.userID;
-            })
-                .concat([-21211])
-                .join(',')}) `, [])) {
-                if (b.value.value[0]) {
-                    userData.find((dd) => {
-                        return `${dd.userID}` === `${b.user_id}`;
-                    }).tag_name = b.value.value[0].tag_name;
+            const userMap = new Map(userData.map((user) => [String(user.userID), user]));
+            const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
+            const levelMap = new Map(levels.map(lv => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
+            const queryResult = await database_1.default.query(`
+                    SELECT *
+                    FROM \`${this.app}\`.t_user_public_config
+                    WHERE \`key\` = 'member_update'
+                      AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
+                `, []);
+            for (const b of queryResult) {
+                const tagName = (_g = (_f = (_e = b === null || b === void 0 ? void 0 : b.value) === null || _e === void 0 ? void 0 : _e.value) === null || _f === void 0 ? void 0 : _f[0]) === null || _g === void 0 ? void 0 : _g.tag_name;
+                if (tagName) {
+                    const user = userMap.get(String(b.user_id));
+                    if (user) {
+                        user.tag_name = tagName;
+                    }
+                }
+            }
+            const processUserData = async (user) => {
+                var _a;
+                const _rebate = new rebate_js_1.Rebate(this.app);
+                const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
+                user.rebate = userRebate ? userRebate.point : 0;
+                user.member_deadline = (_a = levelMap.get(user.userID)) !== null && _a !== void 0 ? _a : '';
+            };
+            if (Array.isArray(userData) && userData.length > 0) {
+                const chunkSize = 20;
+                const chunkedUserData = [];
+                for (let i = 0; i < userData.length; i += chunkSize) {
+                    chunkedUserData.push(userData.slice(i, i + chunkSize));
+                }
+                for (const batch of chunkedUserData) {
+                    await Promise.all(batch.map(async (user) => {
+                        await processUserData(user);
+                    }));
                 }
             }
             return {
-                data: userData,
+                data: userData.map((user) => {
+                    user.order_count = user.order_count || 0;
+                    user.total_amount = user.total_amount || 0;
+                    return user;
+                }),
                 total: (await database_1.default.query(countSQL, []))[0]['count(1)'],
                 extra: {
                     noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
@@ -1174,7 +1296,7 @@ class User {
                           \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
                      WHERE c.status = 1;`, []);
                 buyingData.map((item1) => {
-                    const index = buyingList.findIndex((item2) => item2.userID === item1.userID);
+                    const index = buyingList.findIndex(item2 => item2.userID === item1.userID);
                     if (index === -1) {
                         buyingList.push({ userID: item1.userID, email: item1.email, count: 1 });
                     }
@@ -1183,11 +1305,11 @@ class User {
                     }
                 });
                 const usuallyBuyingStandard = 4.5;
-                const usuallyBuyingList = buyingList.filter((item) => item.count > usuallyBuyingStandard);
+                const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
                 const neverBuyingData = await database_1.default.query(`SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
                      FROM \`${this.app}\`.t_user
                      WHERE userID not in (${buyingList
-                    .map((item) => item.userID)
+                    .map(item => item.userID)
                     .concat([-1312])
                     .join(',')})`, []);
                 dataList = dataList.concat([
@@ -1218,7 +1340,7 @@ class User {
                     return { userId: item.userID };
                 }));
                 for (const levelItem of levelItems) {
-                    const n = dataList.findIndex((item) => item.tag === levelItem.data.id);
+                    const n = dataList.findIndex(item => item.tag === levelItem.data.id);
                     if (n > -1) {
                         dataList[n].users.push({
                             userID: levelItem.id,
@@ -1229,11 +1351,11 @@ class User {
                 }
             }
             if (type) {
-                dataList = dataList.filter((item) => type.includes(item.type));
+                dataList = dataList.filter(item => type.includes(item.type));
             }
             return {
                 result: dataList.length > 0,
-                data: dataList.map((data) => {
+                data: dataList.map(data => {
                     data.count = data.users.length;
                     return data;
                 }),
@@ -1252,8 +1374,8 @@ class User {
     }
     async getUserLevel(data) {
         const dataList = [];
-        const idList = data.filter((item) => item.userId !== undefined).map((item) => item.userId);
-        const emailList = data.filter((item) => item.email !== undefined).map((item) => `"${item.email}"`);
+        const idList = data.filter(item => item.userId !== undefined).map(item => item.userId);
+        const emailList = data.filter(item => item.email !== undefined).map(item => `"${item.email}"`);
         const idSQL = idList.length > 0 ? idList.join(',') : -1111;
         const emailSQL = emailList.length > 0 ? emailList.join(',') : -1111;
         const users = await database_1.default.query(`SELECT *
@@ -1405,7 +1527,9 @@ class User {
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
             const querySql = [];
             query.search &&
-                querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
+                querySql.push([
+                    `(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`,
+                ].join(` || `));
             const data = await new ut_database_js_1.UtDatabase(this.app, `t_fcm`).querySql(querySql, query);
             for (const b of data.data) {
                 let userData = (await database_1.default.query(`select userData
@@ -1458,8 +1582,8 @@ class User {
             if (par.userData.pwd) {
                 if ((await redis_js_1.default.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
                     await database_1.default.query(`update \`${this.app}\`.\`t_user\`
-                                    set pwd=?
-                                    where userID = ${database_1.default.escape(userID)}`, [await tool_1.default.hashPwd(par.userData.pwd)]);
+                         set pwd=?
+                         where userID = ${database_1.default.escape(userID)}`, [await tool_1.default.hashPwd(par.userData.pwd)]);
                 }
                 else {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
@@ -1564,11 +1688,11 @@ class User {
             config = [];
         }
         config = config.concat(register_form).concat(customer_form_user_setting);
-        Object.keys(userData).map((dd) => {
+        Object.keys(userData).map(dd => {
             if (!config.find((d2) => {
                 return d2.key === dd && (d2.auth !== 'manager' || manager);
             }) &&
-                !['level_status', 'level_default', 'contact_phone', 'contact_name'].includes(dd)) {
+                !['level_status', 'level_default', 'contact_phone', 'contact_name', 'tags'].includes(dd)) {
                 delete userData[dd];
             }
         });
@@ -1582,7 +1706,7 @@ class User {
         }
         await this.clearUselessData(cf.updateUserData, cf.manager);
         function mapUserData(userData, originUserData) {
-            Object.keys(userData).map((dd) => {
+            Object.keys(userData).map(dd => {
                 originUserData[dd] = userData[dd];
             });
         }
@@ -1676,16 +1800,31 @@ class User {
         }
     }
     async checkMailAndPhoneExists(email, phone) {
+        var _a, _b;
         try {
-            const emailExists = email &&
-                (await database_1.default.execute(`select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.email'=?`, [email]))[0]['count(1)'] > 0;
-            const phoneExists = phone &&
-                (await database_1.default.execute(`select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.phone'=?`, [phone]))[0]['count(1)'] > 0;
-            return emailExists || phoneExists;
+            let emailExists = false;
+            let phoneExists = false;
+            if (email) {
+                const emailResult = await database_1.default.execute(`SELECT COUNT(1) AS count
+                     FROM \`${this.app}\`.t_user
+                     WHERE userData ->>'$.email' = ?
+                    `, [email]);
+                emailExists = ((_a = emailResult[0]) === null || _a === void 0 ? void 0 : _a.count) > 0;
+            }
+            if (phone) {
+                const phoneResult = await database_1.default.execute(`SELECT COUNT(1) AS count
+                     FROM \`${this.app}\`.t_user
+                     WHERE userData ->>'$.phone' = ?
+                    `, [phone]);
+                phoneExists = ((_b = phoneResult[0]) === null || _b === void 0 ? void 0 : _b.count) > 0;
+            }
+            return {
+                exist: emailExists || phoneExists,
+                email,
+                phone,
+                emailExists,
+                phoneExists,
+            };
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
@@ -1745,108 +1884,80 @@ class User {
     }
     async getConfigV2(config) {
         try {
-            const data_ = await database_1.default.execute(`select *
-                 from \`${this.app}\`.t_user_public_config
-                 where ${(config.key.includes(',')) ? `\`key\` in (${config.key.split(',').map((dd) => {
-                return database_1.default.escape(dd);
-            }).join(',')})` : `\`key\` = ${database_1.default.escape(config.key)}`}
-                   and user_id = ${database_1.default.escape(config.user_id)}
-                `, []);
             const that = this;
+            const getData = await database_1.default.execute(`SELECT *
+         FROM \`${this.app}\`.t_user_public_config
+         WHERE ${config.key.includes(',')
+                ? `\`key\` IN (${config.key
+                    .split(',')
+                    .map(dd => database_1.default.escape(dd))
+                    .join(',')})`
+                : `\`key\` = ${database_1.default.escape(config.key)}`}
+         AND user_id = ${database_1.default.escape(config.user_id)}`, []);
             async function loop(data) {
                 if (!data && config.user_id === 'manager') {
-                    switch (config.key) {
-                        case 'global_express_country':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: {
-                                    country: []
-                                }
-                            });
-                            return await that.getConfigV2(config);
-                        case 'store_version':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: {
-                                    version: 'v1'
-                                }
-                            });
-                            return await that.getConfigV2(config);
-                        case 'store_manager':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: {
-                                    list: [
-                                        {
-                                            "id": "store_default",
-                                            "name": "庫存點1(預設)",
-                                            "note": "",
-                                            "address": "",
-                                            "manager_name": "",
-                                            "manager_phone": ""
-                                        }
-                                    ]
-                                }
-                            });
-                            return await that.getConfigV2(config);
-                        case 'member_level_config':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: {
-                                    levels: [],
+                    const defaultValues = {
+                        customer_form_user_setting: { list: form_check_js_1.FormCheck.initialUserForm([]) },
+                        global_express_country: { country: [] },
+                        store_version: { version: 'v1' },
+                        store_manager: {
+                            list: [
+                                {
+                                    id: 'store_default',
+                                    name: '庫存點1(預設)',
+                                    note: '',
+                                    address: '',
+                                    manager_name: '',
+                                    manager_phone: '',
                                 },
-                            });
-                            return await that.getConfigV2(config);
-                        case 'language-label':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: {
-                                    "label": []
-                                },
-                            });
-                            return await that.getConfigV2(config);
-                        case 'terms-related-refund-zh-TW':
-                        case 'terms-related-delivery-zh-TW':
-                        case 'terms-related-privacy-zh-TW':
-                        case 'terms-related-term-zh-TW':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: terms_check_js_1.TermsCheck.check(config.key),
-                            });
-                            return await that.getConfigV2(config);
+                            ],
+                        },
+                        member_level_config: { levels: [] },
+                        'language-label': { label: [] },
+                        'store-information': {
+                            language_setting: { def: 'zh-TW', support: ['zh-TW'] },
+                        },
+                        'list-header-view': {
+                            'user-list': [
+                                '顧客名稱',
+                                '電子信箱',
+                                '訂單',
+                                '會員等級',
+                                '累積消費',
+                                '上次登入時間',
+                                '社群綁定',
+                                '用戶狀態',
+                            ],
+                        },
+                    };
+                    if (config.key.startsWith('terms-related-')) {
+                        defaultValues[config.key] = terms_check_js_1.TermsCheck.check(config.key);
+                    }
+                    if (defaultValues.hasOwnProperty(config.key)) {
+                        await that.setConfig({
+                            key: config.key,
+                            user_id: config.user_id,
+                            value: defaultValues[config.key],
+                        });
+                        return await that.getConfigV2(config);
                     }
                 }
                 if (data && data.value) {
-                    data.value = that.checkLeakData(config.key, data.value) || data.value;
+                    data.value = (await that.checkLeakData(config.key, data.value)) || data.value;
                 }
                 else if (config.key === 'store-information') {
-                    return {
-                        language_setting: {
-                            def: 'zh-TW',
-                            support: ['zh-TW'],
-                        },
-                    };
+                    return { language_setting: { def: 'zh-TW', support: ['zh-TW'] } };
                 }
                 return (data && data.value) || {};
             }
             if (config.key.includes(',')) {
-                return (await Promise.all(config.key.split(',').map(async (dd) => {
-                    return {
-                        key: dd,
-                        value: await loop(data_.find((d1) => {
-                            return d1.key === dd;
-                        }))
-                    };
+                return Promise.all(config.key.split(',').map(async (dd) => ({
+                    key: dd,
+                    value: await loop(getData.find((d1) => d1.key === dd)),
                 })));
             }
             else {
-                return await loop(data_[0]);
+                return loop(getData[0]);
             }
         }
         catch (e) {
@@ -1854,32 +1965,43 @@ class User {
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
-    checkLeakData(key, value) {
-        var _a, _b;
-        if (key === 'store-information') {
-            value.language_setting = (_a = value.language_setting) !== null && _a !== void 0 ? _a : {
-                def: 'zh-TW',
-                support: ['zh-TW'],
-            };
-        }
-        else if (['menu-setting', 'footer-setting'].includes(key) && Array.isArray(value)) {
-            return {
-                'zh-TW': value,
-                'en-US': [],
-                'zh-CN': [],
-            };
-        }
-        else if (key === 'store_manager') {
-            value.list = (_b = value.list) !== null && _b !== void 0 ? _b : [
-                {
-                    "id": "store_default",
-                    "name": "庫存點1(預設)",
-                    "note": "",
-                    "address": "",
-                    "manager_name": "",
-                    "manager_phone": ""
+    async checkLeakData(key, value) {
+        var _a, _b, _c;
+        switch (key) {
+            case 'store-information': {
+                (_a = value.language_setting) !== null && _a !== void 0 ? _a : (value.language_setting = { def: 'zh-TW', support: ['zh-TW'] });
+                if (value.chat_toggle === undefined) {
+                    const config = await this.getConfigV2({ key: 'message_setting', user_id: 'manager' });
+                    value.chat_toggle = config.toggle;
                 }
-            ];
+                (_b = value.checkout_mode) !== null && _b !== void 0 ? _b : (value.checkout_mode = {
+                    payload: ['1', '3', '0'],
+                    progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
+                    orderStatus: ['1', '0'],
+                });
+                break;
+            }
+            case 'menu-setting':
+            case 'footer-setting':
+                if (Array.isArray(value)) {
+                    return { 'zh-TW': value, 'en-US': [], 'zh-CN': [] };
+                }
+                break;
+            case 'store_manager':
+                (_c = value.list) !== null && _c !== void 0 ? _c : (value.list = [
+                    {
+                        id: 'store_default',
+                        name: '庫存點1(預設)',
+                        note: '',
+                        address: '',
+                        manager_name: '',
+                        manager_phone: '',
+                    },
+                ]);
+                break;
+            case 'customer_form_user_setting':
+                value.list = form_check_js_1.FormCheck.initialUserForm(value.list);
+                break;
         }
     }
     async checkEmailExists(email) {
@@ -1942,8 +2064,7 @@ class User {
                 result: result[0]['count(1)'] === 1,
             };
         }
-        catch (e) {
-        }
+        catch (e) { }
     }
     async getNotice(cf) {
         var _a, _b, _c, _d;
@@ -1987,38 +2108,68 @@ class User {
                 method: 'get',
                 maxBodyLength: Infinity,
                 url: `https://ipinfo.io/${ip}?token=` + process_1.default.env.ip_info_auth,
-                headers: {}
+                headers: {},
             };
             const db_data = (await database_1.default.query(`select *
-                                             from ${config_1.saasConfig.SAAS_NAME}.t_ip_info
-                                             where ip = ?`, [ip]))[0];
+                     from ${config_1.saasConfig.SAAS_NAME}.t_ip_info
+                     where ip = ?`, [ip]))[0];
             let ip_data = db_data && db_data.data;
             if (!ip_data) {
                 ip_data = (await axios_1.default.request(config)).data;
                 await database_1.default.query(`insert into ${config_1.saasConfig.SAAS_NAME}.t_ip_info (ip, data)
-                                values (?, ?)`, [ip, JSON.stringify(ip_data)]);
+                     values (?, ?)`, [ip, JSON.stringify(ip_data)]);
             }
             return ip_data;
         }
         catch (e) {
             return {
-                country: 'TW'
+                country: 'TW',
             };
         }
     }
-    constructor(app, token) {
-        this.normalMember = {
-            id: '',
-            duration: { type: 'noLimit', value: 0 },
-            tag_name: '一般會員',
-            condition: { type: 'total', value: 0 },
-            dead_line: { type: 'noLimit' },
-            create_date: '2024-01-01T00:00:00.000Z',
+    async getCheckoutCountingModeSQL(table) {
+        const asTable = table ? `${table}.` : '';
+        const storeInfo = await this.getConfigV2({ key: 'store-information', user_id: 'manager' });
+        const sqlQuery = [];
+        const sqlObject = {
+            orderStatus: {
+                key: `order_status`,
+                options: new Set(['1', '0', '-1']),
+                addNull: new Set(['0']),
+            },
+            payload: {
+                key: `status`,
+                options: new Set(['1', '3', '0', '-1', '-2']),
+                addNull: new Set(),
+            },
+            progress: {
+                key: `progress`,
+                options: new Set(['finish', 'arrived', 'shipping', 'pre_order', 'wait', 'returns']),
+                addNull: new Set(['wait']),
+            },
         };
-        this.app = app;
-        this.token = token;
+        Object.entries(storeInfo.checkout_mode).forEach(([key, mode]) => {
+            const obj = sqlObject[key];
+            if (!Array.isArray(mode) || mode.length === 0 || !obj)
+                return;
+            const modeSet = new Set(mode);
+            const sqlTemp = [];
+            const validValues = [...obj.options].filter(val => modeSet.has(val));
+            if (validValues.length > 0) {
+                sqlTemp.push(`${asTable}${obj.key} IN (${validValues.map(val => `'${val}'`).join(',')})`);
+            }
+            if ([...obj.addNull].some(val => modeSet.has(val))) {
+                sqlTemp.push(`${asTable}${obj.key} IS NULL`);
+            }
+            if (sqlTemp.length > 0) {
+                sqlQuery.push(`(${sqlTemp.join(' OR ')})`);
+            }
+        });
+        if (sqlQuery.length === 0) {
+            return '1 = 0';
+        }
+        return sqlQuery.join(' AND ');
     }
 }
 exports.User = User;
-User.posEmail = '';
 //# sourceMappingURL=user.js.map

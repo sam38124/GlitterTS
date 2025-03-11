@@ -126,6 +126,7 @@ export class EcInvoice {
         return new Promise<boolean>((resolve, reject) => {
             axios.request(config)
                 .then(async (response:any) => {
+
                     const decipher = crypto.createDecipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
                     let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
                     try {
@@ -133,7 +134,8 @@ export class EcInvoice {
                     } catch (e) {
                         e instanceof Error && console.log(e.message);
                     }
-                    const resp = JSON.parse(decodeURIComponent(decrypted))
+                    const resp = JSON.parse(decodeURIComponent(decrypted));
+                    console.log(`invoice_data--->`, resp);
                     await db.query(`insert into \`${obj.app_name}\`.t_invoice_memory
                                     set ?`, [
                         {

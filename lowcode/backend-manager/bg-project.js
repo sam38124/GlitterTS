@@ -726,7 +726,7 @@ export class BgProject {
                             ApiUser.updateUserDataManager(vm.data, vm.data.userID).then((response) => {
                                 dialog.dataLoading({ text: '', visible: false });
                                 if (response.result) {
-                                    dialog.successMessage({ text: '更新成功!' });
+                                    dialog.successMessage({ text: '更新成功' });
                                     gvc.notifyDataChange(id);
                                 }
                                 else {

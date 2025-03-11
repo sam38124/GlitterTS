@@ -40,6 +40,12 @@ export class ShipmentConfig {
             paynow_id:'03'
         },
         {
+            title: '全家冷凍店到店',
+            value: 'FAMIC2CFREEZE',
+            src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734396302-e970be63c9acb23e41cf80c77b7ca35b.jpeg',
+            paynow_id:'23'
+        },
+        {
             title: '萊爾富店到店',
             value: 'HILIFEC2C',
             src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734423037-6e2664ad52332c40b4106868ada74646.png',
@@ -67,6 +73,34 @@ export class ShipmentConfig {
     //支援列印托運單的配送方式
     public static supportPrintList=['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C', 'normal', 'black_cat','black_cat_ice','UNIMARTFREEZE','black_cat_freezing']
     //超商列表
-    public static supermarketList=['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C','UNIMARTFREEZE']
+    public static supermarketList=['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C','UNIMARTFREEZE','FAMIC2CFREEZE']
+    //所有的配送方式
+    public static async allShipmentMethod(all:boolean=true){
+        const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
+        const response: { response: any; result: boolean } = await saasConfig.api.getPrivateConfig(
+          saasConfig.config.appName,
+          'logistics_setting'
+        );
+
+        let configData: any = response.response.result[0]?.value || {};
+        if (!configData.language_data) {
+            configData.language_data = {
+                'en-US': { info: '' },
+                'zh-CN': { info: '' },
+                'zh-TW': { info: configData.info || '' },
+            };
+        }
+
+        const shipmentOptions = ShipmentConfig.list
+          .map(dd => {
+              return { key: dd.value, name: dd.title };
+          })
+          .concat(
+            (configData.custom_delivery ?? []).map((dd: any) => {
+                return { key: dd.id, name: dd.name };
+            })
+          );
+        return shipmentOptions
+    }
 }
 (window as any).glitter.setModule(import.meta.url,ShipmentConfig )

@@ -149,10 +149,10 @@ height: 51px;
                                                              result(true);
                                                              gvc.recreateView();
                                                          } else {
-                                                             dialog.errorMessage({ text: '帳號或密碼錯誤!' });
+                                                             dialog.errorMessage({ text: '帳號或有誤' });
                                                          }
                                                      } else {
-                                                         dialog.errorMessage({ text: '帳號或密碼錯誤!' });
+                                                         dialog.errorMessage({ text: '帳號或有誤' });
                                                      }
                                                  });
                                              })}">登入

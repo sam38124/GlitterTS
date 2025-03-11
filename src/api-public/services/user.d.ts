@@ -7,13 +7,17 @@ interface UserQuery {
     searchType?: string;
     order_string?: string;
     created_time?: string;
+    last_order_time?: string;
     birth?: string;
     level?: string;
     rebate?: string;
+    last_order_total?: string;
     total_amount?: string;
+    total_count?: string;
     groupType?: string;
     groupTag?: string;
     filter_type?: string;
+    tags?: string;
 }
 interface GroupUserItem {
     userID: number;
@@ -44,9 +48,9 @@ type MemberLevel = {
     create_date: string;
 };
 export declare class User {
-    static posEmail: string;
     app: string;
     token?: IToken;
+    constructor(app: string, token?: IToken);
     static generateUserID(): string;
     findAuthUser(email?: string): Promise<any>;
     emailVerify(account: string): Promise<{
@@ -83,7 +87,8 @@ export declare class User {
         orderBy: string;
         page?: number;
         limit?: number;
-    }): string;
+    }): Promise<string>;
+    private getOrderByClause;
     getUserList(query: UserQuery): Promise<{
         data: any;
         total: any;
@@ -165,7 +170,13 @@ export declare class User {
     updateAccountBack(token: string): Promise<void>;
     verifyPASS(token: string): Promise<any>;
     checkUserExists(account: string): Promise<boolean>;
-    checkMailAndPhoneExists(email?: string, phone?: string): Promise<boolean | "" | undefined>;
+    checkMailAndPhoneExists(email?: string, phone?: string): Promise<{
+        exist: boolean;
+        email?: string;
+        phone?: string;
+        emailExists: boolean;
+        phoneExists: boolean;
+    }>;
     checkUserIdExists(id: number): Promise<any>;
     setConfig(config: {
         key: string;
@@ -180,11 +191,11 @@ export declare class User {
         key: string;
         user_id: string;
     }): Promise<any>;
-    checkLeakData(key: string, value: any): {
+    checkLeakData(key: string, value: any): Promise<{
         'zh-TW': any[];
         'en-US': never[];
         'zh-CN': never[];
-    } | undefined;
+    } | undefined>;
     checkEmailExists(email: string): Promise<any>;
     checkPhoneExists(phone: string): Promise<any>;
     getUnreadCount(): Promise<{
@@ -198,6 +209,6 @@ export declare class User {
     }): Promise<any>;
     forgetPassword(email: string): Promise<void>;
     static ipInfo(ip: string): Promise<any>;
-    constructor(app: string, token?: IToken);
+    getCheckoutCountingModeSQL(table?: string): Promise<string>;
 }
 export {};

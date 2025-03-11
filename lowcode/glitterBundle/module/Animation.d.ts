@@ -9,4 +9,5 @@ export declare class Animation {
     static fade: AnimationConfig;
     static rightToLeft: AnimationConfig;
     static topToBottom: AnimationConfig;
+    static popup: AnimationConfig;
 }

@@ -14,16 +14,31 @@ const shopping_js_1 = require("./shopping.js");
 const updated_table_checked_js_1 = require("./updated-table-checked.js");
 class ApiPublic {
     static async createScheme(appName) {
-        if (ApiPublic.checkApp.find((dd) => {
+        if (ApiPublic.checkedApp.find(dd => {
             return dd.app_name === appName;
         })) {
             return;
         }
-        ApiPublic.checkApp.push({
+        if (ApiPublic.checkedApp.find(dd => {
+            return dd.app_name === appName;
+        })) {
+            await new Promise(resolve => {
+                const interval = setInterval(() => {
+                    if (ApiPublic.checkedApp.find(dd => {
+                        return dd.app_name === appName;
+                    })) {
+                        resolve(true);
+                        clearInterval(interval);
+                    }
+                }, 500);
+            });
+            return;
+        }
+        ApiPublic.checkingApp.push({
             app_name: appName,
             refer_app: (await database_1.default.query(`select refer_app
-                     from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
-                     where appName = ?`, [appName]))[0]['refer_app'],
+           from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
+           where appName = ?`, [appName]))[0]['refer_app'],
         });
         try {
             await database_1.default.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
@@ -265,16 +280,30 @@ class ApiPublic {
                     table: 't_checkout',
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
-  \`cart_token\` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`cart_token\` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`status\` int NOT NULL DEFAULT '0',
-  \`email\` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`email\` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`orderData\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`total\` int NOT NULL DEFAULT '0',
+  \`order_status\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`payment_method\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`shipment_method\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`shipment_number\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`shipment_date\` datetime DEFAULT NULL,
+  \`progress\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`cart_token_UNIQUE\` (\`cart_token\`),
   KEY \`index3\` (\`email\`),
-  KEY \`index4\` (\`created_time\`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  KEY \`index4\` (\`created_time\`),
+  KEY \`index5\` (\`total\`),
+  KEY \`index6\` (\`order_status\`),
+  KEY \`index7\` (\`payment_method\`),
+  KEY \`index8\` (\`shipment_method\`),
+  KEY \`index9\` (\`shipment_date\`),
+  KEY \`index10\` (\`progress\`),
+    KEY \`index11\` (\`shipment_number\`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.5'`,
                 },
                 {
                     scheme: appName,
@@ -508,7 +537,7 @@ class ApiPublic {
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   KEY \`index2\` (\`name\`)
-)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'V1.1';
  `,
                 },
                 {
@@ -602,7 +631,7 @@ class ApiPublic {
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;
-                await new Promise((resolve) => {
+                await new Promise(resolve => {
                     for (const d of b) {
                         (0, saas_table_check_js_1.compare_sql_table)(d.scheme, d.table, d.sql).then(() => {
                             check--;
@@ -616,18 +645,24 @@ class ApiPublic {
             await ai_robot_js_1.AiRobot.syncAiRobot(appName);
             await ApiPublic.migrateVariants(appName);
             await updated_table_checked_js_1.UpdatedTableChecked.startCheck(appName);
+            ApiPublic.checkedApp.push({
+                app_name: appName,
+                refer_app: (await database_1.default.query(`select refer_app
+             from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
+             where appName = ?`, [appName]))[0]['refer_app'],
+            });
         }
         catch (e) {
             console.error(e);
-            ApiPublic.checkApp = ApiPublic.checkApp.filter((dd) => {
+            ApiPublic.checkedApp = ApiPublic.checkedApp.filter(dd => {
                 return dd.app_name === appName;
             });
         }
     }
     static async checkSQLAdmin(appName) {
         const sql_info = (await database_1.default.query(`select sql_pwd, sql_admin
-                 from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
-                 where appName = ${database_1.default.escape(appName)}`, []))[0];
+         from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
+         where appName = ${database_1.default.escape(appName)}`, []))[0];
         if (!sql_info.sql_admin || !sql_info.sql_pwd) {
             try {
                 sql_info.sql_admin = tool_js_1.default.randomString(6);
@@ -635,15 +670,14 @@ class ApiPublic {
                 const trans = await database_1.default.Transaction.build();
                 await trans.execute(`CREATE USER '${sql_info.sql_admin}'@'%' IDENTIFIED BY '${sql_info.sql_pwd}';`, []);
                 await trans.execute(`update \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
-                     set sql_admin=?,
-                         sql_pwd=?
-                     where appName = ${database_1.default.escape(appName)}`, [sql_info.sql_admin, sql_info.sql_pwd]);
+           set sql_admin=?,
+               sql_pwd=?
+           where appName = ${database_1.default.escape(appName)}`, [sql_info.sql_admin, sql_info.sql_pwd]);
                 await trans.execute(`GRANT ALL PRIVILEGES ON \`${appName}\`.* TO '${sql_info.sql_admin}'@'*';`, []);
                 await trans.commit();
                 await trans.release();
             }
-            catch (e) {
-            }
+            catch (e) { }
         }
     }
     static async migrateVariants(app) {
@@ -653,8 +687,8 @@ class ApiPublic {
         });
         if (store_version.version === 'v1') {
             for (const b of await database_1.default.query(`select *
-                 from \`${app}\`.t_manager_post
-                 where (content ->>'$.type'='product')`, [])) {
+         from \`${app}\`.t_manager_post
+         where (content ->>'$.type'='product')`, [])) {
                 const stock_list = await new user_js_1.User(app).getConfigV2({
                     key: 'store_manager',
                     user_id: 'manager',
@@ -683,7 +717,8 @@ class ApiPublic {
     }
 }
 exports.ApiPublic = ApiPublic;
-ApiPublic.checkApp = [];
+ApiPublic.checkedApp = [];
+ApiPublic.checkingApp = [];
 function chunkArray(array, groupSize) {
     const result = [];
     for (let i = 0; i < array.length; i += groupSize) {

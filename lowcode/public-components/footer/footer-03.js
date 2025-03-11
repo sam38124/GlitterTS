@@ -2,10 +2,14 @@ import { Color } from '../public/color.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { LanguageView } from '../public/language-view.js';
+import { HideFooter } from './hide-footer.js';
 const html = String.raw;
 export class Footer02 {
     static main(gvc, widget, subData) {
         var _a, _b;
+        if (HideFooter.check()) {
+            return ``;
+        }
         const formData = widget.formData;
         const colors = Color.getTheme(gvc, formData);
         const footer = {
@@ -81,33 +85,39 @@ export class Footer02 {
                 margin: 0 auto;
             }
         `);
-        return html `<footer class="f-bgr border-top">
-            <div class="border-gray-700 f-padding-top">
-                <div class="container my-5">
-                    <div class="d-flex flex-column align-items-center justify-content-center gap-2 mb-3">
-                        <div>
-                            <img src="${(_a = formData.logo) !== null && _a !== void 0 ? _a : ''}" style="min-height: 40px; max-height: 60px;" />
-                        </div>
-                        <div>
-                            <h4 class="f-content">${formData.intro ? formData.intro.replace(/\n/g, '<br/>') : ''}</h4>
-                        </div>
-                        ${(window.store_info.language_setting.support.length > 1 || window.store_info.multi_currency)
-            ? html `<div class="col-12 d-flex justify-content-center mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>`
+        return html `
+            <footer class="f-bgr border-top">
+                <div class="border-gray-700 f-padding-top">
+                    <div class="container my-5">
+                        <div class="d-flex flex-column align-items-center justify-content-center gap-2 mb-3">
+                            <div>
+                                <img src="${(_a = formData.logo) !== null && _a !== void 0 ? _a : ''}" style="min-height: 40px; max-height: 60px;" />
+                            </div>
+                            <div>
+                                <h4 class="f-content">
+                                    ${formData.intro ? formData.intro.replace(/\n/g, '<br/>') : ''}</h4>
+                            </div>
+                            ${(window.store_info.language_setting.support.length > 1 || window.store_info.multi_currency)
+            ? html `
+                                    <div class="col-12 d-flex justify-content-center mb-3">
+                                        ${LanguageView.selectLanguage(gvc, colors)}
+                                    </div>`
             : ``}
-                        <div class="d-flex justify-content-center gap-2 p-0 pb-3">
-                            ${(() => {
+                            <div class="d-flex justify-content-center gap-2 p-0 pb-3">
+                                ${(() => {
             try {
                 return formData.kkk.link
                     .map((item) => {
-                    return html ` <div class="f-icon-div">
-                                                <div
-                                                    onclick="${gvc.event(() => {
+                    return html `
+                                                    <div class="f-icon-div">
+                                                        <div
+                                                            onclick="${gvc.event(() => {
                         gvc.glitter.href = item.link;
                     })}"
-                                                >
-                                                    <img
-                                                        class="f-icon-image"
-                                                        src="${(() => {
+                                                        >
+                                                            <img
+                                                                class="f-icon-image"
+                                                                src="${(() => {
                         switch (item.type) {
                             case 'fb':
                                 return 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722847285395-img_facebook.svg';
@@ -123,9 +133,9 @@ export class Footer02 {
                                 return '';
                         }
                     })()}"
-                                                    />
-                                                </div>
-                                            </div>`;
+                                                            />
+                                                        </div>
+                                                    </div>`;
                 })
                     .join('');
             }
@@ -133,10 +143,10 @@ export class Footer02 {
                 return '';
             }
         })()}
+                            </div>
                         </div>
-                    </div>
-                    <div class="row f-row">
-                        ${(() => {
+                        <div class="row f-row">
+                            ${(() => {
             try {
                 return gvc.bindView((() => {
                     const id = gvc.glitter.getUUID();
@@ -150,37 +160,42 @@ export class Footer02 {
                             else {
                                 return footer.list
                                     .map((data) => {
-                                    return html ` <div class="f-ul-div col-12 col-md-3 col-lg-4 mt-2">
-                                                                <h6
-                                                                    class="heading-xxs mb-3 f-title"
-                                                                    onclick="${gvc.event(() => {
+                                    return html `
+                                                                    <div class="f-ul-div col-12 col-md-3 col-lg-4 mt-2">
+                                                                        <h6
+                                                                            class="heading-xxs mb-3 f-title"
+                                                                            onclick="${gvc.event(() => {
                                         if (data.link) {
                                             gvc.glitter.href = data.link;
                                         }
                                     })}"
-                                                                >
-                                                                    ${data.title}
-                                                                </h6>
-                                                                <ul class="list-unstyled mb-7 f-ul">
-                                                                    ${data.items
+                                                                        >
+                                                                            ${data.title}
+                                                                        </h6>
+                                                                        <ul class="list-unstyled mb-7 f-ul">
+                                                                            ${data.items
                                         .map((chi) => {
-                                        return html `<li
-                                                                                class="f-li"
-                                                                                style="${chi.link ? 'cursor: pointer;' : ''}"
-                                                                                onclick="${gvc.event(() => {
+                                        return html `
+                                                                                        <li
+                                                                                            class="f-li"
+                                                                                            style="${chi.link ? 'cursor: pointer;' : ''}"
+                                                                                            onclick="${gvc.event(() => {
                                             if (chi.link) {
                                                 gvc.glitter.href = chi.link;
                                             }
                                         })}"
-                                                                            >
-                                                                                <a class="f-aclass" title="${chi.title}" onclick="${gvc.event((e, event) => {
+                                                                                        >
+                                                                                            <a class="f-aclass"
+                                                                                               title="${chi.title}"
+                                                                                               onclick="${gvc.event((e, event) => {
                                             event.preventDefault();
-                                        })}" href="${chi.link}">${chi.title}</a>
-                                                                            </li>`;
+                                        })}"
+                                                                                               href="${chi.link}">${chi.title}</a>
+                                                                                        </li>`;
                                     })
                                         .join('')}
-                                                                </ul>
-                                                            </div>`;
+                                                                        </ul>
+                                                                    </div>`;
                                 })
                                     .join('');
                             }
@@ -206,19 +221,19 @@ export class Footer02 {
                 return '';
             }
         })()}
-                    </div>
-                </div>
-            </div>
-            <div class="py-6">
-                <div class="container">
-                    <div class="row">
-                        <div class="col text-center">
-                            <p class="my-2 f-copyright">${(_b = formData.note) !== null && _b !== void 0 ? _b : ''}</p>
                         </div>
                     </div>
                 </div>
-            </div>
-        </footer>`;
+                <div class="py-6">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col text-center">
+                                <p class="my-2 f-copyright">${(_b = formData.note) !== null && _b !== void 0 ? _b : ''}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>`;
     }
 }
 window.glitter.setModule(import.meta.url, Footer02);

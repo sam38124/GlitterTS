@@ -9,6 +9,7 @@ import {createCipheriv, randomBytes, createHash} from 'crypto';
 import Tool from "./ezpay/tool.js";
 import tool from "../../modules/tool.js";
 import {OrderEvent} from "./order-event.js";
+import {Private_config} from "../../services/private_config.js";
 
 interface KeyData {
     MERCHANT_ID: string;
@@ -18,6 +19,7 @@ interface KeyData {
     ReturnURL: string;
     ActionURL: string;
     TYPE: 'newWebPay' | 'ecPay' | 'PayPal' | 'LinePay';
+    CreditCheckCode?: string
 }
 
 const html = String.raw;
@@ -81,10 +83,10 @@ export default class FinancialService {
             return await new EcPay(this.appName, this.keyData).createOrderPage(orderData);
         }
 
-        return   await OrderEvent.insertOrder({
-            cartData:orderData,
-            status:0,
-            app:this.appName
+        return await OrderEvent.insertOrder({
+            cartData: orderData,
+            status: 0,
+            app: this.appName
         });
 
         // //todo 修改付款方式 to paypal
@@ -103,7 +105,7 @@ export default class FinancialService {
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).saveMoney(orderData);
         } else if (this.keyData.TYPE === 'ecPay') {
-            return await new EcPay(this.appName, this.keyData).saveMoney(orderData);
+            return await new EcPay(this.appName).saveMoney(orderData);
         }
         return '';
     }
@@ -205,9 +207,9 @@ export class EzPay {
             });
         }
         await OrderEvent.insertOrder({
-            cartData:orderData,
-            status:0,
-            app:this.appName
+            cartData: orderData,
+            status: 0,
+            app: this.appName
         })
 
         // 2. 產生 Query String
@@ -294,13 +296,31 @@ export class EzPay {
 
 // 綠界金流
 export class EcPay {
-    keyData: KeyData;
+    keyData!: KeyData;
 
     appName: string;
 
-    constructor(appName: string, keyData: KeyData) {
-        this.keyData = keyData;
+    static beta = 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5'
+
+    constructor(appName: string, keyData?: KeyData) {
+
         this.appName = appName;
+        this.keyData = keyData!
+    }
+
+    async key_initial() {
+        const keyData = (
+            await Private_config.getConfig({
+                appName: this.appName,
+                key: 'glitter_finance',
+            })
+        )[0].value;
+
+        let kd = keyData['ecPay'] ?? {
+            ReturnURL: '',
+            NotifyURL: '',
+        };
+        this.keyData = kd
     }
 
     static generateCheckMacValue(params: Record<string, any>, HashKey: string, HashIV: string): string {
@@ -405,16 +425,17 @@ export class EcPay {
             EncryptType: '1',
             PaymentType: 'aio',
             OrderResultURL: this.keyData.ReturnURL,
+            NeedExtraPaidInfo: 'Y'
         };
 
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         orderData.CheckMacValue = chkSum;
         await OrderEvent.insertOrder({
-            cartData:orderData,
-            status:0,
-            app:this.appName
+            cartData: orderData,
+            status: 0,
+            app: this.appName
         })
-
+        console.log(`params-is=>`, params)
         // 5. 回傳物件
         return html`
             <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
@@ -434,11 +455,145 @@ export class EcPay {
                 <input type="hidden" name="EncryptType" id="EncryptType" value="${params.EncryptType}"/>
                 <input type="hidden" name="PaymentType" id="PaymentType" value="${params.PaymentType}"/>
                 <input type="hidden" name="OrderResultURL" id="OrderResultURL" value="${params.OrderResultURL}"/>
+                <input type="hidden" name="NeedExtraPaidInfo" id="NeedExtraPaidInfo"
+                       value="${params.NeedExtraPaidInfo}"/>
                 <input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${chkSum}"/>
                 <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
                         hidden></button>
             </form>
         `;
+    }
+
+    async checkCreditInfo(CreditRefundId: string, CreditAmount: string) {
+        await this.key_initial()
+        const params: any = {
+            CreditRefundId: `${CreditRefundId}`,
+            CreditAmount: CreditAmount,
+            MerchantID: this.keyData.MERCHANT_ID,
+            CreditCheckCode: this.keyData.CreditCheckCode
+        };
+
+        const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
+        params.CheckMacValue = chkSum;
+
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: `https://payment.ecpay.com.tw/CreditDetail/QueryTrade/V2`,
+            headers: {},
+            'Content-Type': 'application/x-www-form-urlencoded',
+            data: new URLSearchParams(params).toString()
+        };
+
+        //發送通知
+        //PlatformID
+        return await new Promise<any>((resolve, reject) => {
+            axios.request(config)
+                .then((response: any) => {
+                    resolve(response.data.RtnValue)
+                })
+                .catch((error: any) => {
+                    console.log(error)
+                    resolve({})
+                });
+        })
+
+    }
+
+    async checkPaymentStatus(orderID: string) {
+        await this.key_initial()
+        const params: any = {
+            MerchantTradeNo: `${orderID}`,
+            TimeStamp: Math.floor(Date.now() / 1000),
+            MerchantID: this.keyData.MERCHANT_ID,
+        };
+
+        const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
+        params.CheckMacValue = chkSum;
+
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: (EcPay.beta === this.keyData.ActionURL) ? 'https://payment-stage.ecpay.com.tw/Cashier/QueryTradeInfo/V5' : 'https://payment.ecpay.com.tw/Cashier/QueryTradeInfo/V5',
+            headers: {},
+            'Content-Type': 'application/x-www-form-urlencoded',
+            data: new URLSearchParams(params).toString()
+        };
+        //發送通知
+        //PlatformID
+        return await new Promise<any>((resolve, reject) => {
+            axios.request(config)
+                .then(async (response: any) => {
+                    const params = new URLSearchParams(response.data);
+// 將 URLSearchParams 轉換成對象
+                    const paramsObject: any = {};
+                    params.forEach((value, key) => {
+                        // 將每組 key 和 value 加入對象中
+                        paramsObject[key] = value;
+                    });
+// 將對象轉換為 JSON
+                    if (paramsObject.gwsr && this.keyData.CreditCheckCode && (EcPay.beta !== this.keyData.ActionURL)) {
+                        paramsObject.credit_receipt = await this.checkCreditInfo(paramsObject.gwsr, paramsObject.TradeAmt)
+                        if (paramsObject.credit_receipt.status !== '已授權') {
+                            paramsObject.TradeStatus = '10200095'
+                        }
+                    }
+                    resolve(paramsObject)
+                })
+                .catch((error: any) => {
+                    console.log(error)
+                    resolve({
+                        TradeStatus: '10200095'
+                    })
+                });
+        })
+
+    }
+
+    async brushBack(orderID: string, tradNo: string, total: string) {
+        await this.key_initial()
+        const params: any = {
+            MerchantTradeNo: `${orderID}`,
+            TradeNo: tradNo,
+            Action: 'N',
+            TotalAmount: parseInt(total, 10),
+            MerchantID: this.keyData.MERCHANT_ID,
+        };
+
+        const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
+        params.CheckMacValue = chkSum;
+
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: `https://payment.ecpay.com.tw/CreditDetail/DoAction`,
+            headers: {},
+            'Content-Type': 'application/x-www-form-urlencoded',
+            data: new URLSearchParams(params).toString()
+        };
+        //發送通知
+        //PlatformID
+        return await new Promise<any>((resolve, reject) => {
+            axios.request(config)
+                .then((response: any) => {
+                    const params = new URLSearchParams(response.data);
+// 將 URLSearchParams 轉換成對象
+                    const paramsObject: any = {};
+                    params.forEach((value, key) => {
+                        // 將每組 key 和 value 加入對象中
+                        paramsObject[key] = value;
+                    });
+// 將對象轉換為 JSON
+                    resolve(paramsObject)
+                })
+                .catch((error: any) => {
+                    console.log(error)
+                    resolve({
+                        RtnCode: `-1`
+                    })
+                });
+        })
+
     }
 
     async saveMoney(orderData: {
@@ -451,6 +606,7 @@ export class EcPay {
         title: string,
         ratio: number
     }) {
+        await this.key_initial()
         // 1. 建立請求的參數
         const params = {
             MerchantTradeNo: new Date().getTime(),
@@ -675,9 +831,9 @@ export class PayPal {
 
             const response = await axios.request(config);
             await OrderEvent.insertOrder({
-                cartData:orderData,
-                status:0,
-                app:this.appName
+                cartData: orderData,
+                status: 0,
+                app: this.appName
             })
             await redis.setValue('paypal' + orderData.orderID, response.data.id)
             return response.data;
@@ -792,15 +948,15 @@ export class LinePay {
         // const PAYPAL_BASE_URL = "https://api-pay.line.me"; // 正式環境
     }
 
-    async confirmAndCaptureOrder(transactionId: string,total:number) {
+    async confirmAndCaptureOrder(transactionId: string, total: number) {
         const body: any = {
-            amount:parseInt(`${total}`,10),
-            currency:'TWD'
+            amount: parseInt(`${total}`, 10),
+            currency: 'TWD'
         };
         const uri = `/payments/${transactionId}/confirm`;
         const nonce = new Date().getTime().toString();
         const url = `${this.LinePay_BASE_URL}/v3${uri}`;
-        const head = [this.LinePay_SECRET,`/v3${uri}`,JSON.stringify(body),nonce].join('');
+        const head = [this.LinePay_SECRET, `/v3${uri}`, JSON.stringify(body), nonce].join('');
         const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
 
         const config: AxiosRequestConfig = {
@@ -812,7 +968,7 @@ export class LinePay {
                 "X-LINE-Authorization-Nonce": nonce,
                 "X-LINE-Authorization": signature
             },
-            data:body
+            data: body
         };
         console.log(`line-conform->
         URL:${url}
@@ -887,7 +1043,7 @@ export class LinePay {
         const uri = "/payments/request";
         const nonce = new Date().getTime().toString();
         const url = `${this.LinePay_BASE_URL}/v3${uri}`;
-        const head = [this.LinePay_SECRET,`/v3${uri}`,JSON.stringify(body),nonce].join('');
+        const head = [this.LinePay_SECRET, `/v3${uri}`, JSON.stringify(body), nonce].join('');
         //sha256加密
         const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
         const config: AxiosRequestConfig = {
@@ -909,11 +1065,11 @@ export class LinePay {
         try {
             const response = await axios.request(config);
             await OrderEvent.insertOrder({
-                cartData:orderData,
-                status:0,
-                app:this.appName
+                cartData: orderData,
+                status: 0,
+                app: this.appName
             })
-            console.log(`response.data===>`,response.data)
+            console.log(`response.data===>`, response.data)
             await redis.setValue('linepay' + orderData.orderID, response.data.info.transactionId);
 
             return response.data;
@@ -947,26 +1103,6 @@ export class PayNow {
     }
 
     async executePaymentIntent(transactionId: string, secret: string, paymentNo: string) {
-        console.log(`json=>`, {
-            "paymentNo": paymentNo,
-            "usePayNowSdk": true,
-            "key": this.PublicKey,
-            "secret": secret,
-            "paymentMethodType": "CreditCard",
-            "paymentMethodData": {},
-            "otpFlag": false,
-            "meta": {
-                "client": {
-                    "height": 0,
-                    "width": 0
-                },
-                "iframe": {
-                    "height": 0,
-                    "width": 0
-                }
-            },
-            "owlpay_session": "string"
-        })
         let config = {
             method: 'POST',
             maxBodyLength: Infinity,
@@ -1005,6 +1141,56 @@ export class PayNow {
         }
     }
 
+    //取得並綁定商戶金鑰匙
+     async bindKey() {
+        const keyData = (
+            await Private_config.getConfig({
+                appName: this.appName,
+                key: 'glitter_finance',
+            })
+        )[0].value;
+        let kd = keyData['paynow'] ?? {
+            ReturnURL: '',
+            NotifyURL: '',
+        };
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: 'https://api.paynow.com.tw/api/v1/partner/merchants/binding',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ` +process.env.paynow_partner
+            },
+            data: {
+                "merchant_no": kd.account,
+                "api_key": kd.pwd
+            }
+        };
+        return await new Promise<{
+            public_key:string,
+            private_key:string
+        }>((resolve, reject) => {
+            axios.request(config)
+                .then(async (response: any) => {
+                    if(response.data.result.length){
+                        keyData.public_key=response.data.result[0].public_key
+                        keyData.private_key=response.data.result[0].private_key
+                    }
+                    resolve({
+                        public_key:keyData.public_key,
+                        private_key:keyData.private_key
+                    })
+                })
+                .catch((error: any) => {
+                    resolve({
+                        public_key:'',
+                        private_key:''
+                    })
+                });
+        })
+    }
+
+    //
     //確認付款資訊
     async confirmAndCaptureOrder(transactionId?: string) {
         let config = {
@@ -1013,7 +1199,7 @@ export class PayNow {
             url: `${this.BASE_URL}/api/v1/payment-intents/${transactionId}`,
             headers: {
                 'Accept': 'application/json',
-                'Authorization': `Bearer ` + this.PrivateKey
+                'Authorization': `Bearer ` + (await this.bindKey()).private_key
             }
         };
         try {
@@ -1024,8 +1210,6 @@ export class PayNow {
             throw error;
         }
     }
-
-
 
 
     async createOrder(orderData: {
@@ -1051,16 +1235,19 @@ export class PayNow {
             "description": orderData.orderID,
             "resultUrl": this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
             "webhookUrl": this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
+            "allowedPaymentMethods":["CreditCard"],
             "expireDays": 3,
         });
+        console.log(`webhook=>`,this.keyData.NotifyURL + `&orderID=${orderData.orderID}`)
         const url = `${this.BASE_URL}/api/v1/payment-intents`;
+      const key_=(await this.bindKey())
         const config = {
             method: 'post',
             maxBodyLength: Infinity,
             url: url,
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ` + this.PrivateKey
+                'Authorization': `Bearer ` + key_.private_key
             },
             data: data
         };
@@ -1068,15 +1255,15 @@ export class PayNow {
         try {
             const response = await axios.request(config);
             (orderData as any).paynow_id = response.data.result.id;
-           await OrderEvent.insertOrder({
-                cartData:orderData,
-                status:0,
-                app:this.appName
+            await OrderEvent.insertOrder({
+                cartData: orderData,
+                status: 0,
+                app: this.appName
             })
             await redis.setValue('paynow' + orderData.orderID, response.data.result.id)
             return {
                 data: response.data,
-                publicKey: this.keyData.public_key,
+                publicKey: key_.public_key,
                 BETA: this.keyData.BETA
             }
         } catch (error: any) {

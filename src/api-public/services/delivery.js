@@ -99,15 +99,11 @@ class EcPay {
                 else {
                     checkout.orderData.deliveryNotifyList = [json];
                 }
-                await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_checkout
-                     SET ?
-                     WHERE id = ?
-                    `, [
-                    {
-                        orderData: JSON.stringify(checkout.orderData),
-                    },
-                    checkout.id,
-                ]);
+                await new shopping_js_1.Shopping(this.appName).putOrder({
+                    id: checkout.id,
+                    orderData: checkout.orderData,
+                    status: undefined
+                });
             }
             return '1|OK';
         }
@@ -200,15 +196,11 @@ class Delivery {
             : `https://logistics-stage.ecpay.com.tw/${storePath[deliveryData.LogisticsSubType]}`;
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
         const random_id = tool_js_1.default.randomString(6);
-        await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_checkout
-             SET ?
-             WHERE id = ?
-            `, [
-            {
-                orderData: JSON.stringify(carData),
-            },
-            id,
-        ]);
+        await new shopping_js_1.Shopping(this.appName).putOrder({
+            id: id,
+            orderData: carData,
+            status: undefined
+        });
         await redis_js_1.default.setValue('delivery_' + random_id, JSON.stringify({
             actionURL,
             params,
@@ -245,7 +237,6 @@ class Delivery {
                     resolve(data.data);
                 });
             }))).filter((dd) => {
-                console.log(`search_result=>`, dd[0]);
                 return dd[0];
             });
             if (!(cart.length)) {
@@ -257,16 +248,65 @@ class Delivery {
             }
             if (`${deliveryConfig.value.pay_now.toggle}` === 'true') {
                 const pay_now = new paynow_logistics_js_1.PayNowLogistics(this.appName);
+                let error_text = '';
                 await Promise.all(cart.map((dd) => {
                     return new Promise(async (resolve, reject) => {
                         try {
-                            await pay_now.printLogisticsOrder(dd[0].orderData);
+                            if (obj.shipment_date) {
+                                dd[0].orderData.user_info.shipment_date = obj.shipment_date;
+                            }
+                            const data = await pay_now.printLogisticsOrder(dd[0].orderData);
+                            if (data.ErrorMsg && data.ErrorMsg !== '訂單已成立') {
+                                error_text = data.ErrorMsg;
+                            }
                             resolve(true);
                         }
                         catch (e) {
                             resolve(true);
                         }
                     });
+                }));
+                await Promise.all(cart.map(async (dd) => {
+                    const carData = dd[0].orderData;
+                    const config = {
+                        method: 'get',
+                        maxBodyLength: Infinity,
+                        url: `${(await pay_now.config()).link}/${(() => {
+                            switch (carData.user_info.shipment) {
+                                case 'UNIMARTC2C':
+                                    return 'api/Order711';
+                                case 'FAMIC2C':
+                                    return 'api/OrderFamiC2C';
+                                case 'HILIFEC2C':
+                                    return 'api/OrderHiLife';
+                                case 'OKMARTC2C':
+                                    return 'api/OKC2C';
+                                case 'UNIMARTFREEZE':
+                                    return 'Member/OrderEvent/Print711FreezingC2CLabel';
+                            }
+                            return ``;
+                        })()}?orderNumberStr=${dd[0].cart_token}&user_account=${(await pay_now.config()).account}`,
+                        headers: { 'Content-Type': 'application/json' }
+                    };
+                    const link_response = await (0, axios_1.default)(config);
+                    try {
+                        const link = link_response.data;
+                        const her_ = new URL(link.replace('S,', ''));
+                        if (her_.searchParams.get('LogisticNumbers')) {
+                            carData.user_info.shipment_number = her_.searchParams.get('LogisticNumbers');
+                            carData.user_info.shipment_refer = 'paynow';
+                            if (obj.shipment_date) {
+                                carData.user_info.shipment_date = obj.shipment_date;
+                            }
+                            await new shopping_js_1.Shopping(this.appName).putOrder({
+                                cart_token: dd[0].cart_token,
+                                orderData: carData,
+                                status: undefined
+                            });
+                        }
+                    }
+                    catch (e) {
+                    }
                 }));
                 const carData = cart[0][0].orderData;
                 const config = {
@@ -291,6 +331,12 @@ class Delivery {
                 };
                 const link_response = await (0, axios_1.default)(config);
                 const link = link_response.data;
+                if (error_text) {
+                    return {
+                        result: false,
+                        message: error_text,
+                    };
+                }
                 return {
                     result: true,
                     link: link.replace('S,', ''),

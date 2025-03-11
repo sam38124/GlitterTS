@@ -6,12 +6,14 @@ export class ProductService {
         const dialog = new ShareDialog(gvc.glitter);
         function checkEmpty() {
             const variantsCheckList = ['sale_price'];
-            for (const checkItem of variantsCheckList) {
-                if (postMD['variants'][0][checkItem] == undefined || postMD['variants'][0][checkItem] == 0) {
-                    dialog.infoMessage({
-                        text: '售價未填',
-                    });
-                    return false;
+            if (postMD.product_category !== 'kitchen') {
+                for (const checkItem of variantsCheckList) {
+                    if (postMD['variants'][0][checkItem] == undefined || postMD['variants'][0][checkItem] == 0) {
+                        dialog.infoMessage({
+                            text: '售價未填',
+                        });
+                        return false;
+                    }
                 }
             }
             for (const index in postMD['variants']) {

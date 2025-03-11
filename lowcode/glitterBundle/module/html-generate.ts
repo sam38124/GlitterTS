@@ -103,6 +103,7 @@ export class HtmlGenerate {
             document?: any;
             is_page?: boolean;
             editorSection?: string;
+            id?:string;
         },
         createOption?: any
     ) => string;
@@ -805,6 +806,7 @@ ${obj.gvc.bindView({
                 is_page?: boolean;
                 editorSection?: string;
                 origin_widget?: any;
+                id?:string
             } = {
                 class: ``,
                 style: ``,
@@ -1082,6 +1084,14 @@ ${obj.gvc.bindView({
                         if (isEditMode()) {
                             elem_.class = `${elem_.class} editor_it_${container_id} `;
                             // elem_.elem=``
+                        }
+
+                        if(option.id){
+                            elem_.option=elem_.option ?? []
+                            elem_.option.push({
+                                key:'id',
+                                value:option.id
+                            })
                         }
 
                         return elem_;

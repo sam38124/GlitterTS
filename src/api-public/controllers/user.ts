@@ -1,16 +1,14 @@
 import express from 'express';
 import response from '../../modules/response';
 import db from '../../modules/database';
-import {User} from '../services/user';
 import exception from '../../modules/exception';
-import config, {saasConfig} from '../../config.js';
-import {UtPermission} from '../utils/ut-permission.js';
+import config from '../../config.js';
 import redis from '../../modules/redis.js';
-import {Shopping} from '../services/shopping';
 import Tool from '../../modules/tool';
-import {SharePermission} from '../services/share-permission';
-import {FilterProtectData} from '../services/filter-protect-data.js';
-import axios from "axios";
+import { User } from '../services/user';
+import { UtPermission } from '../utils/ut-permission.js';
+import { SharePermission } from '../services/share-permission';
+import { FilterProtectData } from '../services/filter-protect-data.js';
 
 const router: express.Router = express.Router();
 
@@ -18,26 +16,39 @@ export = router;
 
 router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
-        if (req.query.type === 'list' && (await UtPermission.isManager(req))) {
-            const user = new User(req.get('g-app') as string);
-            return response.succ(resp, await user.getUserList(req.query as any));
-        } else if (req.query.type === 'account' && (await UtPermission.isManager(req))) {
-            const user = new User(req.get('g-app') as string);
-            return response.succ(resp, await user.getUserData(req.query.email as any, 'account'));
-        } else if (req.query.type === 'email' && (await UtPermission.isManager(req))) {
-            const user = new User(req.get('g-app') as string);
-            return response.succ(resp, await user.getUserData(req.query.email as any, 'email_or_phone'));
-        } else if (req.query.type === 'email_or_phone') {
-            const user = new User(req.get('g-app') as string);
-            return response.succ(resp, await user.getUserData(req.query.search as any, 'email_or_phone'));
-        } else {
-            const user = new User(req.get('g-app') as string);
-            return response.succ(resp, await user.getUserData(req.body.token.userID));
-        }
+        const user = new User(req.get('g-app') as string);
+        const isManager = await UtPermission.isManager(req);
+        const { type, email, search } = req.query;
+
+        const actionMap: Record<string, () => Promise<any>> = {
+            list: async () => {
+                if (!isManager) throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+                return await user.getUserList(req.query as any);
+            },
+            account: async () => {
+                if (!isManager) throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+                return await user.getUserData(email as string, 'account');
+            },
+            email: async () => {
+                if (!isManager) throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+                return await user.getUserData(email as string, 'email_or_phone');
+            },
+            email_or_phone: async () => {
+                return await user.getUserData(search as string, 'email_or_phone');
+            },
+            default: async () => {
+                return await user.getUserData(req.body.token.userID);
+            },
+        };
+
+        // 透過 `actionMap` 執行對應的函式，預設為 `default`
+        const result = await (actionMap[type as string] || actionMap.default)();
+        return response.succ(resp, result);
     } catch (err) {
         return response.fail(resp, err);
     }
 });
+
 router.put('/', async (req: express.Request, resp: express.Response) => {
     try {
         const user = new User(req.get('g-app') as string);
@@ -82,18 +93,18 @@ router.get('/level', async (req: express.Request, resp: express.Response) => {
             const user = new User(req.get('g-app') as string);
             const emails = req.query.email
                 ? `${req.query.email}`.split(',').map((item) => {
-                    return {email: item};
-                })
+                      return { email: item };
+                  })
                 : [];
             const ids = req.query.id
                 ? `${req.query.id}`.split(',').map((item) => {
-                    return {userId: item};
-                })
+                      return { userId: item };
+                  })
                 : [];
             return response.succ(resp, await user.getUserLevel([...emails, ...ids]));
         } else {
             const user = new User(req.get('g-app') as string);
-            return response.succ(resp, await user.getUserLevel([{userId: req.body.token.userID}]));
+            return response.succ(resp, await user.getUserLevel([{ userId: req.body.token.userID }]));
         }
     } catch (err) {
         return response.fail(resp, err);
@@ -128,8 +139,9 @@ router.post('/phone-verify', async (req: express.Request, resp: express.Response
 router.post('/register', async (req: express.Request, resp: express.Response) => {
     try {
         const user = new User(req.get('g-app') as string);
-        if (await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone)) {
-            throw exception.BadRequestError('BAD_REQUEST', 'user is already exists', null);
+        const checkData = await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone);
+        if (checkData.exist) {
+            throw exception.BadRequestError('BAD_REQUEST', 'user is already exists', { data: checkData });
         } else {
             const res = await user.createUser(req.body.account, req.body.pwd, req.body.userData, req);
             res.type = res.verify;
@@ -142,39 +154,88 @@ router.post('/register', async (req: express.Request, resp: express.Response) =>
 });
 router.post('/manager/register', async (req: express.Request, resp: express.Response) => {
     try {
-        if (await UtPermission.isManager(req)) {
-            const user = new User(req.get('g-app') as string);
-            if (await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone)) {
-                throw exception.BadRequestError('BAD_REQUEST', 'user is already exists', null);
-            } else {
-                const res = await user.createUser(req.body.account, Tool.randomString(8), req.body.userData, {}, true);
-                res.type = res.verify;
-                res.needVerify = res.verify;
-                return response.succ(resp, res);
-            }
-        } else {
+        // 判斷是否為管理員
+        if (!(await UtPermission.isManager(req))) {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
+
+        const user = new User(req.get('g-app') as string);
+        const responseList: any[] = [];
+
+        // 註冊使用者
+        async function checkUser(postUser: { account: string; userData: { email: string; phone: string } }) {
+            const checkData = await user.checkMailAndPhoneExists(postUser.userData.email, postUser.userData.phone);
+            if (checkData.exist) {
+                return { pass: false, msg: 'User already exists', checkData };
+            }
+            return { pass: true, postUser };
+        }
+
+        // 對資料陣列做 chunk
+        const userArray = Array.isArray(req.body.userArray) ? req.body.userArray : [req.body];
+        const chunkSize = 20;
+        const chunkedUserData = Array.from({ length: Math.ceil(userArray.length / chunkSize) }, (_, i) => userArray.slice(i * chunkSize, (i + 1) * chunkSize));
+        let tempTags: string[] = [];
+
+        for (const batch of chunkedUserData) {
+            // 確認信箱電話是否存在
+            const checks = await Promise.all(batch.map(checkUser));
+            const errorResult = checks.find((item) => !item.pass);
+
+            // 已存在則中止建立，並回傳
+            if (errorResult) {
+                throw exception.BadRequestError('BAD_REQUEST', errorResult.msg ?? 'User already exists', { data: errorResult.checkData });
+            }
+
+            // 建立顧客資料陣列，開始批次新增
+            const createUserPromises = checks.map(async (check) => {
+                const passUser = check.postUser;
+                tempTags = tempTags.concat(passUser.userData.tags ?? []);
+                return user.createUser(passUser.account, Tool.randomString(8), passUser.userData, {}, true);
+            });
+
+            const createResults = await Promise.allSettled(createUserPromises);
+
+            createResults.forEach((result) => {
+                if (result.status === 'fulfilled') {
+                    responseList.push({ pass: true, type: result.value.verify, needVerify: result.value.verify });
+                } else {
+                    responseList.push({ pass: false, msg: 'Error processing request' });
+                }
+            });
+        }
+
+        // 處理會員標籤 Config
+        const userTags = await user.getConfigV2({ key: 'user_general_tags', user_id: 'manager' });
+        userTags.list = [...new Set([...tempTags, ...(userTags.list ?? [])])];
+        await user.setConfig({
+            key: 'user_general_tags',
+            user_id: 'manager',
+            value: userTags,
+        });
+
+        return response.succ(resp, responseList[0] || {});
     } catch (err) {
         return response.fail(resp, err);
     }
 });
+
 router.post('/login', async (req: express.Request, resp: express.Response) => {
     try {
-        const user = new User(req.get('g-app') as string,req.body.token);
-        if (req.body.login_type === 'fb') {
-            return response.succ(resp, await user.loginWithFb(req.body.fb_token));
-        } else if (req.body.login_type === 'line') {
-            return response.succ(resp, await user.loginWithLine(req.body.line_token, req.body.redirect));
-        } else if (req.body.login_type === 'google') {
-            return response.succ(resp, await user.loginWithGoogle(req.body.google_token, req.body.redirect));
-        } else if (req.body.login_type === 'apple') {
-            return response.succ(resp, await user.loginWithApple(req.body.token));
-        } else if (req.body.login_type === 'pin'){
-            return response.succ(resp, await user.loginWithPin(req.body.user_id,req.body.pin));
-        }else{
-            return response.succ(resp, await user.login(req.body.account, req.body.pwd));
-        }
+        const user = new User(req.get('g-app') as string, req.body.token);
+        const { login_type, fb_token, line_token, redirect, google_token, user_id, pin, account, pwd } = req.body;
+
+        const loginMethods: Record<string, () => Promise<any>> = {
+            fb: async () => user.loginWithFb(fb_token),
+            line: async () => user.loginWithLine(line_token, redirect),
+            google: async () => user.loginWithGoogle(google_token, redirect),
+            apple: async () => user.loginWithApple(req.body.token),
+            pin: async () => user.loginWithPin(user_id, pin),
+            default: async () => user.login(account, pwd),
+        };
+
+        const result = await (loginMethods[login_type] || loginMethods.default)();
+        return response.succ(resp, result);
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -436,7 +497,7 @@ router.put('/public/config', async (req: express.Request, resp: express.Response
                 value: req.body.value,
             });
         }
-        return response.succ(resp, {result: true});
+        return response.succ(resp, { result: true });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -475,18 +536,20 @@ router.get('/permission', async (req: express.Request, resp: express.Response) =
         if (!(await UtPermission.isManager(req))) {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
-        return response.succ(
-            resp,
-            await new SharePermission(req.get('g-app') as string, req.body.token).getPermission({
-                page: req.query.page ? parseInt(`${req.query.page}`, 10) : 0,
-                limit: req.query.limit ? parseInt(`${req.query.limit}`, 10) : 20,
-                email: req.query.email ? `${req.query.email}` : undefined,
-                orderBy: req.query.orderBy ? `${req.query.orderBy}` : undefined,
-                queryType: req.query.queryType ? `${req.query.queryType}` : undefined,
-                query: req.query.query ? `${req.query.query}` : undefined,
-                status: req.query.status ? `${req.query.status}` : undefined,
-            })
-        );
+
+        const { page = '0', limit = '20', email, orderBy, queryType, query, status } = req.query;
+
+        const permissionData = await new SharePermission(req.get('g-app') as string, req.body.token).getPermission({
+            page: parseInt(page as string, 10) || 0,
+            limit: parseInt(limit as string, 10) || 20,
+            email: email as string,
+            orderBy: orderBy as string,
+            queryType: queryType as string,
+            query: query as string,
+            status: status as string,
+        });
+
+        return response.succ(resp, permissionData);
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -546,10 +609,9 @@ router.get('/permission/redirect', async (req: express.Request, resp: express.Re
     }
 });
 
-
 router.get('/ip/info', async (req: express.Request, resp: express.Response) => {
     try {
-        const ip:any = req.query.ip || req.headers['x-real-ip'] || req.ip;
+        const ip: any = req.query.ip || req.headers['x-real-ip'] || req.ip;
         return resp.send(await User.ipInfo(ip));
     } catch (err) {
         return response.fail(resp, err);

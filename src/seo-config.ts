@@ -169,37 +169,74 @@ export class SeoConfig {
             limit:100,
             id_list:[-99].concat((pd_content.relative_product ?? [])).join(',')
         });
-        const variant=pd_content.variants[0]
-        let preview_image=[variant.preview_image].concat(pd_content.preview_image).filter((dd)=>{
-            return dd
-        });
+        if(pd_content.product_category==='kitchen'){
+            const spec=pd_content.specs.find((dd:any)=>{return dd.option.length})
 
-        return html`
+            let preview_image=(pd_content.preview_image).filter((dd:any)=>{
+                return dd
+            });
+
+            return html`
                 <script type="application/ld+json">
                     ${JSON.stringify(
-            {
-                "@context": "http://schema.org/",
-                "@type": "Product",
-                "name": pd_content.title,
-                "brand": "",
-                "description": pd_content.content.replace(/<\/?[^>]+(>|$)/g, ""),
-                "offers": {
-                    "@type": "Offer",
-                    "price": parseFloat(variant.sale_price.toFixed(1)),
-                    "priceCurrency": "TWD",
-                    "availability": "http://schema.org/InStock"
-                },
-                "image": preview_image,
-                "isRelatedTo": relative_product.data.map((dd:any)=>{
-                    return {
-                        "@type": "Product",
-                        "name": dd.content.title,
-                        "offers": {"@type": "Offer", "price": parseFloat(dd.content.min_price.toFixed(1)), "priceCurrency": "TWD"}
-                    }
-                })
-            }
-        )}
+              {
+                  "@context": "http://schema.org/",
+                  "@type": "Product",
+                  "name": pd_content.title,
+                  "brand": "",
+                  "description": pd_content.content.replace(/<\/?[^>]+(>|$)/g, ""),
+                  "offers": {
+                      "@type": "Offer",
+                      "price": parseFloat((parseInt((spec && spec.price) || pd_content.price || 0,10).toFixed(1))),
+                      "priceCurrency": "TWD",
+                      "availability": "http://schema.org/InStock"
+                  },
+                  "image": preview_image,
+                  "isRelatedTo": relative_product.data.map((dd:any)=>{
+                      return {
+                          "@type": "Product",
+                          "name": dd.content.title,
+                          "offers": {"@type": "Offer", "price": parseFloat(dd.content.min_price.toFixed(1)), "priceCurrency": "TWD"}
+                      }
+                  })
+              }
+            )}
                 </script>`
+        }else{
+            const variant=pd_content.variants[0]
+
+            let preview_image=[variant ? variant.preview_image:[]].concat(pd_content.preview_image).filter((dd)=>{
+                return dd
+            });
+
+            return html`
+                <script type="application/ld+json">
+                    ${JSON.stringify(
+              {
+                  "@context": "http://schema.org/",
+                  "@type": "Product",
+                  "name": pd_content.title,
+                  "brand": "",
+                  "description": pd_content.content.replace(/<\/?[^>]+(>|$)/g, ""),
+                  "offers": {
+                      "@type": "Offer",
+                      "price": parseFloat(variant.sale_price.toFixed(1)),
+                      "priceCurrency": "TWD",
+                      "availability": "http://schema.org/InStock"
+                  },
+                  "image": preview_image,
+                  "isRelatedTo": relative_product.data.map((dd:any)=>{
+                      return {
+                          "@type": "Product",
+                          "name": dd.content.title,
+                          "offers": {"@type": "Offer", "price": parseFloat(dd.content.min_price.toFixed(1)), "priceCurrency": "TWD"}
+                      }
+                  })
+              }
+            )}
+                </script>`
+        }
+
     }
     //網誌頁面SEO
     public static async articleSeo(cf: {

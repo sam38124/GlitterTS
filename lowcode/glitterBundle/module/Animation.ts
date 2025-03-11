@@ -141,6 +141,68 @@ export class Animation {
         }, 250)
     })
 
+    public static popup = new AnimationConfig((pageConfig, finish) => {
+        Glitter.glitter.addStyle(`.popup{
+    animation:PopToUp 0.3s ; /*IE*/
+    -moz-animation:PopToUp 0.3s; /*FireFox*/
+    -webkit-animation:PopToUp 0.3s ; /*Chrome, Safari*/
+}
+
+@keyframes PopToUp{
+    from {bottom:-100%;}
+    to {bottom:0%;}
+}
+
+@-moz-keyframes PopToUp{
+    from {bottom:-100%;}
+    to {bottom:0%;}
+}
+
+@-webkit-keyframes PopToUp{
+    from {bottom:-100%;}
+    to {bottom:0%;}
+}`)
+        Glitter.glitter.addStyle(`.popupDismiss{
+    animation:PopToUpD 0.3s ; /*IE*/
+    -moz-animation:PopToUpD 0.3s; /*FireFox*/
+    -webkit-animation:PopToUpD 0.3s ; /*Chrome, Safari*/
+}
+
+@keyframes PopToUpD{
+    from {bottom:0%;}
+    to {bottom:-100%;}
+}
+
+@-moz-keyframes PopToUpD{
+    from {bottom:0%;}
+    to {bottom:-100%;}
+}
+
+@-webkit-keyframes PopToUpD{
+    from {bottom:0%;}
+    to {bottom:-100%;}
+}`)
+        // console.log(`pageConfig.getElement()=>`,pageConfig.getElement())
+        pageConfig.getElement()[0].style.top='';
+        pageConfig.getElement()[0].style.bottom='0px';
+        pageConfig.getElement().addClass(`d-none`)
+        setTimeout(()=>{
+            pageConfig.getElement().removeClass(`d-none`)
+            pageConfig.getElement().addClass(`popup`)
+        },100)
+
+        setTimeout(() => {
+            pageConfig.getElement().removeClass('popup')
+            finish()
+        }, 400)
+    }, (pageConfig: PageConfig, finish: () => void) => {
+        pageConfig.getElement().addClass('position-fixed')
+        pageConfig.getElement().addClass(`popupDismiss`)
+        setTimeout(() => {
+            finish()
+        }, 250)
+    })
+
 
 
 }

@@ -15,7 +15,8 @@ export declare class EditorConfig {
     static paymentInfo(gvc: GVC): string;
     static getPaddingTop(gvc: GVC): any;
     static getPaymentStatus(): {
-        plan: string;
+        plan: any;
         dead_line: any;
     };
+    static backend_page(): 'backend-manger' | 'page-editor' | 'user-editor';
 }

@@ -1,37 +1,65 @@
 import db from '../../modules/database';
-import {saasConfig} from '../../config.js';
-import {compare_sql_table} from '../../services/saas-table-check.js';
+import { saasConfig } from '../../config.js';
+import { compare_sql_table } from '../../services/saas-table-check.js';
 import tool from '../../services/tool.js';
-import {AiRobot} from './ai-robot.js';
-import {User} from './user.js';
-import {Shopping} from './shopping.js';
-import {UpdatedTableChecked} from './updated-table-checked.js';
+import { AiRobot } from './ai-robot.js';
+import { User } from './user.js';
+import { Shopping } from './shopping.js';
+import { UpdatedTableChecked } from './updated-table-checked.js';
 
 export class ApiPublic {
-    public static checkApp: { app_name: string; refer_app: string }[] = [];
+    //已檢查通過的APP
+    public static checkedApp: { app_name: string; refer_app: string }[] = [];
+    //正在檢查更新的APP
+    public static checkingApp: { app_name: string; refer_app: string }[] = [];
 
     public static async createScheme(appName: string) {
+        //已通過則直接回傳執行
         if (
-            ApiPublic.checkApp.find((dd) => {
+            ApiPublic.checkedApp.find(dd => {
                 return dd.app_name === appName;
             })
         ) {
             return;
         }
-        ApiPublic.checkApp.push({
+        //已經正在檢查中的話，等檢查結束
+        if (
+            ApiPublic.checkedApp.find(dd => {
+                return dd.app_name === appName;
+            })
+        ) {
+            await new Promise(resolve => {
+                const interval = setInterval(() => {
+                    if(ApiPublic.checkedApp.find(dd => {
+                        return dd.app_name === appName;
+                    })){
+                        resolve(true);
+                        clearInterval(interval);
+                    }
+                }, 500);
+            });
+            return;
+        }
+        ApiPublic.checkingApp.push({
             app_name: appName,
             refer_app: (
                 await db.query(
                     `select refer_app
-                     from \`${saasConfig.SAAS_NAME}\`.app_config
-                     where appName = ?`,
+           from \`${saasConfig.SAAS_NAME}\`.app_config
+           where appName = ?`,
                     [appName]
                 )
             )[0]['refer_app'],
         });
         try {
-            await db.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
-            await db.execute(`CREATE SCHEMA if not exists \`${appName}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
+            await db.execute(
+                `CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`,
+                []
+            );
+            await db.execute(
+                `CREATE SCHEMA if not exists \`${appName}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`,
+                []
+            );
             const groupSize = 15;
             const sqlArray: { scheme?: string; table: string; sql: string }[] = [
                 {
@@ -258,6 +286,7 @@ export class ApiPublic {
   KEY \`index2\` (\`userID\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=287 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
+
                 {
                     scheme: appName,
                     table: 't_user',
@@ -286,16 +315,30 @@ export class ApiPublic {
                     table: 't_checkout',
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
-  \`cart_token\` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`cart_token\` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`status\` int NOT NULL DEFAULT '0',
-  \`email\` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`email\` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`orderData\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`total\` int NOT NULL DEFAULT '0',
+  \`order_status\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`payment_method\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`shipment_method\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`shipment_number\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`shipment_date\` datetime DEFAULT NULL,
+  \`progress\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`cart_token_UNIQUE\` (\`cart_token\`),
   KEY \`index3\` (\`email\`),
-  KEY \`index4\` (\`created_time\`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  KEY \`index4\` (\`created_time\`),
+  KEY \`index5\` (\`total\`),
+  KEY \`index6\` (\`order_status\`),
+  KEY \`index7\` (\`payment_method\`),
+  KEY \`index8\` (\`shipment_method\`),
+  KEY \`index9\` (\`shipment_date\`),
+  KEY \`index10\` (\`progress\`),
+    KEY \`index11\` (\`shipment_number\`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.5'`,
                 },
                 {
                     scheme: appName,
@@ -529,7 +572,7 @@ export class ApiPublic {
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   KEY \`index2\` (\`name\`)
-)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'V1.1';
  `,
                 },
                 {
@@ -578,26 +621,26 @@ export class ApiPublic {
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
  `,
                 },
-//                 {
-//                     scheme: appName,
-//                     table: `t_live_comments`,
-//                     sql: `(
-//   \`id\` int NOT NULL AUTO_INCREMENT,
-//   \`comment_id\` varchar(50) NOT NULL,
-//   \`interaction_id\` varchar(50) NOT NULL,
-//   \`stream_id\` varchar(50) NOT NULL,
-//   \`user_id\` varchar(50) NOT NULL,
-//   \`username\` VARCHAR(255) NOT NULL,
-//   \`profile_picture\` TEXT NOT NULL,
-//   \`is_moderator\` BOOLEAN DEFAULT FALSE,
-//   \`message\` TEXT NOT NULL,
-//   \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-//   PRIMARY KEY (\`id\`),
-//   KEY \`index2\` (\`comment_id\`),
-//   KEY \`index3\` (\`user_id\`)
-// )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-//  `,
-//                 },
+                //                 {
+                //                     scheme: appName,
+                //                     table: `t_live_comments`,
+                //                     sql: `(
+                //   \`id\` int NOT NULL AUTO_INCREMENT,
+                //   \`comment_id\` varchar(50) NOT NULL,
+                //   \`interaction_id\` varchar(50) NOT NULL,
+                //   \`stream_id\` varchar(50) NOT NULL,
+                //   \`user_id\` varchar(50) NOT NULL,
+                //   \`username\` VARCHAR(255) NOT NULL,
+                //   \`profile_picture\` TEXT NOT NULL,
+                //   \`is_moderator\` BOOLEAN DEFAULT FALSE,
+                //   \`message\` TEXT NOT NULL,
+                //   \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                //   PRIMARY KEY (\`id\`),
+                //   KEY \`index2\` (\`comment_id\`),
+                //   KEY \`index3\` (\`user_id\`)
+                // )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                //  `,
+                //                 },
                 {
                     scheme: appName,
                     table: `t_check_in_pos`,
@@ -640,10 +683,31 @@ export class ApiPublic {
   KEY \`index2\` (\`product_id\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
+                //       {
+                //         scheme: appName,
+                //         table: 't_products',
+                //         sql: `(
+                // \`id\` INT NOT NULL AUTO_INCREMENT,
+                // \`content\` JSON NULL,
+                // \`start_time\` DATETIME NULL,
+                // \`end_time\` DATETIME NULL,
+                // \`active\` VARCHAR(45) NOT NULL DEFAULT 'active',
+                // \`sold_out\` INT NOT NULL DEFAULT 0,
+                // \`sort\` INT NOT NULL DEFAULT 0,
+                // \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                // \`updated_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                // PRIMARY KEY (\`id\`),
+                // INDEX \`index2\` (\`active\` ASC) VISIBLE,
+                // INDEX \`index3\` (\`start_time\` ASC) VISIBLE,
+                // INDEX \`index4\` (\`end_time\` ASC) VISIBLE,
+                // INDEX \`index5\` (\`sold_out\` ASC) VISIBLE,
+                // INDEX \`index6\` (\`updated_time\` ASC) VISIBLE,
+                // INDEX \`index7\` (\`sort\` ASC) VISIBLE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                //       },
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;
-                await new Promise((resolve) => {
+                await new Promise(resolve => {
                     for (const d of b) {
                         compare_sql_table(d.scheme, d.table, d.sql).then(() => {
                             check--;
@@ -654,13 +718,27 @@ export class ApiPublic {
                     }
                 });
             }
+            //AI客服的設定
             await AiRobot.syncAiRobot(appName);
+            //舊版未分倉庫的資料格式，改成有分倉庫的資料格式
             await ApiPublic.migrateVariants(appName);
             //檢查資料庫更新
             await UpdatedTableChecked.startCheck(appName);
+            //更新檢查通過，推入可執行
+            ApiPublic.checkedApp.push({
+                app_name: appName,
+                refer_app: (
+                    await db.query(
+                        `select refer_app
+             from \`${saasConfig.SAAS_NAME}\`.app_config
+             where appName = ?`,
+                        [appName]
+                    )
+                )[0]['refer_app'],
+            });
         } catch (e) {
             console.error(e);
-            ApiPublic.checkApp = ApiPublic.checkApp.filter((dd) => {
+            ApiPublic.checkedApp = ApiPublic.checkedApp.filter(dd => {
                 return dd.app_name === appName;
             });
         }
@@ -670,8 +748,8 @@ export class ApiPublic {
         const sql_info = (
             await db.query(
                 `select sql_pwd, sql_admin
-                 from \`${saasConfig.SAAS_NAME}\`.app_config
-                 where appName = ${db.escape(appName)}`,
+         from \`${saasConfig.SAAS_NAME}\`.app_config
+         where appName = ${db.escape(appName)}`,
                 []
             )
         )[0];
@@ -683,16 +761,15 @@ export class ApiPublic {
                 await trans.execute(`CREATE USER '${sql_info.sql_admin}'@'%' IDENTIFIED BY '${sql_info.sql_pwd}';`, []);
                 await trans.execute(
                     `update \`${saasConfig.SAAS_NAME}\`.app_config
-                     set sql_admin=?,
-                         sql_pwd=?
-                     where appName = ${db.escape(appName)}`,
+           set sql_admin=?,
+               sql_pwd=?
+           where appName = ${db.escape(appName)}`,
                     [sql_info.sql_admin, sql_info.sql_pwd]
                 );
                 await trans.execute(`GRANT ALL PRIVILEGES ON \`${appName}\`.* TO '${sql_info.sql_admin}'@'*';`, []);
                 await trans.commit();
                 await trans.release();
-            } catch (e) {
-            }
+            } catch (e) {}
         }
     }
 
@@ -706,8 +783,8 @@ export class ApiPublic {
         if (store_version.version === 'v1') {
             for (const b of await db.query(
                 `select *
-                 from \`${app}\`.t_manager_post
-                 where (content ->>'$.type'='product')`,
+         from \`${app}\`.t_manager_post
+         where (content ->>'$.type'='product')`,
                 []
             )) {
                 //庫存點列出

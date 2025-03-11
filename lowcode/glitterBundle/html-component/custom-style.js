@@ -6,7 +6,18 @@ const html = String.raw;
 export class CustomStyle {
     static renderThemeEditor(gvc, widget, callback) {
         RenderValue.custom_style.initialWidget(widget);
-        return [
+        return `<div class="" style="margin-top:-20px;">
+${[
+            EditorElem.editeInput({
+                gvc: gvc,
+                title: `元件ID`,
+                default: widget.data._component_id,
+                placeHolder: '',
+                callback: (text) => {
+                    widget.data._component_id = text;
+                    (callback || widget.refreshComponent)();
+                },
+            }),
             EditorElem.editeInput({
                 gvc: gvc,
                 title: `元件寬度
@@ -319,7 +330,8 @@ export class CustomStyle {
                     ].join('');
                 },
             }),
-        ].join('');
+        ].join('')}
+</div>`;
     }
     static renderMarginEditor(gvc, widget, callback) {
         RenderValue.custom_style.initialWidget(widget);

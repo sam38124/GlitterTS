@@ -105,7 +105,7 @@ export class BgProduct {
                                     <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">
                                         <div class="d-flex" style="gap: 12px;">
                                             ${BgWidget.searchFilter(
-                                                gvc.event((e, event) => {
+                                                gvc.event((e) => {
                                                     vm.query = e.value;
                                                     vm.loading = true;
                                                     gvc.notifyDataChange(vm.id);
@@ -232,31 +232,34 @@ export class BgProduct {
                     onCreate: () => {
                         if (vm.loading) {
                             ApiShop.getProduct({
-                                page: 0,
-                                limit: 99999,
-                                search: vm.query,
-                                orderBy: (() => {
-                                    switch (vm.orderString) {
-                                        case 'max_price':
-                                        case 'min_price':
-                                            return vm.orderString;
-                                        default:
-                                            return '';
-                                    }
-                                })(),
-                                productType: obj.productType,
-                                filter_visible: obj.filter_visible,
-                            }).then((data) => {
-                                vm.options = data.response.data.map((product: { content: { id: number; title: string; preview_image: string[] } }) => {
-                                    return {
-                                        key: product.content.id,
-                                        value: product.content.title,
-                                        content: product.content,
-                                        image: product.content.preview_image[0] ?? BgWidget.noImageURL,
-                                    };
-                                });
-                                vm.loading = false;
-                                gvc.notifyDataChange(vm.id);
+                              page: 0,
+                              limit: 99999,
+                              search: vm.query,
+                              orderBy: (() => {
+                                switch (vm.orderString) {
+                                  case 'max_price':
+                                  case 'min_price':
+                                    return vm.orderString;
+                                  default:
+                                    return '';
+                                }
+                              })(),
+                              productType: obj.productType,
+                              filter_visible: obj.filter_visible,
+                              status: 'inRange'
+                            }).then(data => {
+                              vm.options = data.response.data.map(
+                                (product: { content: { id: number; title: string; preview_image: string[] } }) => {
+                                  return {
+                                    key: product.content.id,
+                                    value: product.content.title,
+                                    content: product.content,
+                                    image: product.content.preview_image[0] ?? BgWidget.noImageURL,
+                                  };
+                                }
+                              );
+                              vm.loading = false;
+                              gvc.notifyDataChange(vm.id);
                             });
                         }
                     },
@@ -278,6 +281,7 @@ export class BgProduct {
                 limit: 99999,
                 productType: productType,
                 id_list: idList,
+                status: 'inRange'
             }).then((data) => {
                 const options = data.response.data.map((product: { content: { id: number; title: string; preview_image: string[] } }) => ({
                     key: product.content.id,
@@ -449,10 +453,14 @@ export class BgProduct {
         return text.replace(/\//g, html`<i class="fa-solid fa-angle-right mx-1"></i>`);
     }
 
+    static getWidthHeigth(isDesktop: boolean): [string, string, string] {
+        return isDesktop ? ['800px', '600px', 'calc(600px - 120px) !important'] : ['95vw', '70vh', 'calc(70vh - 120px) !important'];
+    }
+
     static setMemberPriceSetting(obj: { gvc: GVC; postData: string[]; callback: (data: string[]) => void }) {
         const { gvc, postData, callback } = obj;
         const isDesktop = document.body.clientWidth > 768;
-        const [baseWidth, baseHeight, mainHeight] = isDesktop ? ['800px', '600px', 'calc(600px - 120px) !important'] : ['95vw', '70vh', 'calc(70vh - 120px) !important'];
+        const [baseWidth, baseHeight, mainHeight] = this.getWidthHeigth(isDesktop);
 
         const vm = {
             dataList: [] as { key: string; name: string }[],
@@ -532,7 +540,7 @@ export class BgProduct {
     static setStorePriceSetting(obj: { gvc: GVC; postData: string[]; callback: (data: string[]) => void }) {
         const { gvc, postData, callback } = obj;
         const isDesktop = document.body.clientWidth > 768;
-        const [baseWidth, baseHeight, mainHeight] = isDesktop ? ['800px', '600px', 'calc(600px - 120px) !important'] : ['95vw', '70vh', 'calc(70vh - 120px) !important'];
+        const [baseWidth, baseHeight, mainHeight] = this.getWidthHeigth(isDesktop);
 
         const vm = {
             dataList: [] as { key: string; name: string }[],
@@ -613,5 +621,82 @@ export class BgProduct {
                 divCreate: {},
             });
         }, 'setMemberPriceSetting');
+    }
+
+    static setUserTagPriceSetting(obj: { gvc: GVC; postData: string[]; callback: (data: string[]) => void }) {
+        const { gvc, postData, callback } = obj;
+        const isDesktop = document.body.clientWidth > 768;
+        const [baseWidth, baseHeight, mainHeight] = this.getWidthHeigth(isDesktop);
+
+        const vm = {
+            dataList: [] as { key: string; name: string }[],
+            postData: [...postData],
+            loading: true,
+        };
+
+        return gvc.glitter.innerDialog((gvc) => {
+            const id = gvc.glitter.getUUID();
+
+            ApiUser.getPublicConfig('user_general_tags', 'manager').then((r: any) => {
+                if (r.result && Array.isArray(r.response.value.list)) {
+                    vm.dataList = r.response.value.list.map((tag: string) => ({ key: tag, name: tag }));
+                }
+                vm.loading = false;
+                gvc.notifyDataChange(id);
+            });
+
+            return gvc.bindView({
+                bind: id,
+                view: () =>
+                    html` <div class="bg-white shadow ${isDesktop ? 'rounded-3' : ''}" style="overflow-y: auto; width: ${baseWidth}; height: ${baseHeight};">
+                        <div class="h-100">
+                            ${vm.loading
+                                ? html`<div class="h-100 d-flex">${BgWidget.spinner()}</div>`
+                                : html` <div class="bg-white shadow rounded-3" style="width: 100%; max-height: 100%; overflow-y: auto; position: relative;">
+                                      <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                          <div class="tx_700">顧客標籤價格設定</div>
+                                          <div class="flex-fill"></div>
+                                          <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer" onclick="${gvc.event(() => gvc.closeDialog())}"></i>
+                                      </div>
+                                      <div class="c_dialog h-100">
+                                          <div class="c_dialog_body h-100">
+                                              <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
+                                                  ${BgWidget.tripletCheckboxContainer(
+                                                      gvc,
+                                                      '顧客標籤',
+                                                      (() => {
+                                                          if (vm.postData.length === 0) return -1;
+                                                          return vm.postData.length === vm.dataList.length ? 1 : 0;
+                                                      })(),
+                                                      (r) => {
+                                                          vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
+                                                          gvc.notifyDataChange(id);
+                                                      }
+                                                  )}
+                                                  ${BgWidget.horizontalLine()}
+                                                  ${BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, (text) => {
+                                                      vm.postData = text;
+                                                      gvc.notifyDataChange(id);
+                                                  })}
+                                                  ${BgWidget.grayNote('※只有被選取的會員才能設置專屬價格，其餘依售價計算', 'margin-top: 12px;')}
+                                              </div>
+                                              <div class="c_dialog_bar" style="z-index: 2;">
+                                                  ${BgWidget.cancel(gvc.event(() => gvc.closeDialog()))}
+                                                  ${BgWidget.save(
+                                                      gvc.event(() => {
+                                                          callback(vm.postData);
+                                                          gvc.closeDialog();
+                                                      }),
+                                                      '確認'
+                                                  )}
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>`}
+                        </div>
+                    </div>`,
+                divCreate: {},
+            });
+        }, 'setUserTagPriceSetting');
     }
 }

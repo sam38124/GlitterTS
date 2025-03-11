@@ -149,6 +149,7 @@ export type Cart = {
     client_ip_address: string;
     fbc: string;
     fbp: string;
+    scheduled_id?: string;
 };
 export type Order = {
     id: number;
@@ -375,19 +376,29 @@ export declare class Shopping {
         targetID: string;
     }>): Promise<boolean>;
     formatUseRebate(total: number, useRebate: number): Promise<{
+        status: boolean;
         point: number;
         limit?: number;
         condition?: number;
     }>;
     checkVoucher(cart: Cart): Promise<Cart>;
     putOrder(data: {
-        id: string;
+        id?: string;
+        cart_token?: string;
         orderData: any;
         status: any;
     }): Promise<{
         result: string;
+        message: string;
+        orderData?: undefined;
+    } | {
+        result: string;
         orderData: any;
+        message?: undefined;
     }>;
+    private restoreStock;
+    private sendNotifications;
+    private adjustStock;
     cancelOrder(order_id: string): Promise<{
         data: boolean;
     }>;
@@ -405,6 +416,7 @@ export declare class Shopping {
         limit: number;
         is_pos?: string;
         id?: string;
+        id_list?: string;
         search?: string;
         email?: string;
         phone?: string;
@@ -414,13 +426,19 @@ export declare class Shopping {
         progress?: string;
         orderStatus?: string;
         created_time?: string;
+        shipment_time?: string;
         orderString?: string;
         archived?: string;
         returnSearch?: string;
         distribution_code?: string;
+        valid?: boolean;
+        is_shipment?: boolean;
+        payment_select?: string;
     }): Promise<any>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
+    shareVoucherRebate(cartData: any): Promise<void>;
     checkVoucherLimited(user_id: number, voucher_id: number): Promise<boolean>;
+    isUsedVoucher(user_id: number, voucher_id: number, order_id: string): Promise<boolean>;
     insertVoucherHistory(user_id: number, order_id: string, voucher_id: number): Promise<void>;
     releaseVoucherHistory(order_id: string, status: 1 | 0): Promise<void>;
     resetVoucherHistory(): Promise<void>;

@@ -41,25 +41,35 @@ export class DataAnalyze {
                             });
                         }
                         return html `
-                            <div class="row m-0">
-                                <div
-                                    class="col-12"
-                                    style="width: 100%; padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 24px; display: inline-flex;margin-top: 24px;"
-                                >
-                                    <div
-                                        class="d-flex flex-column flex-xl-row"
-                                        style="align-self: stretch; flex: 1 1 0; justify-content: flex-start; align-items: center; gap: 20px; display: inline-flex;"
-                                    >
-                                        <div style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; display: inline-flex;">
-                                            <div style="align-self: stretch; color: #393939; font-size: 20px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;">營運狀況總覽</div>
-                                            <div style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;">查看目前的業務情形</div>
-                                            ${BgWidget.aiChatButton({
+              <div class="row m-0">
+                <div
+                  class="col-12"
+                  style="width: 100%; padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 24px; display: inline-flex;margin-top: 12px;"
+                >
+                  <div
+                    class="d-flex flex-column flex-xl-row"
+                    style="align-self: stretch; flex: 1 1 0; justify-content: flex-start; align-items: center; gap: 20px; display: inline-flex;"
+                  >
+                    <div
+                      style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; display: inline-flex;"
+                    >
+                      <div
+                        style="align-self: stretch; color: #393939; font-size: 20px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;"
+                      >
+                        營運狀況總覽
+                      </div>
+                      <div
+                        style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;"
+                      >
+                        查看目前的業務情形
+                      </div>
+                      ${BgWidget.aiChatButton({
                             gvc,
                             select: 'order_analysis',
                         })}
-                                        </div>
-                                        <div class="row p-0" style="width: 896px; max-width: 100%; gap:15px 0px; ">
-                                            ${[
+                    </div>
+                    <div class="row p-0" style="width: 896px; max-width: 100%; gap:15px 0px; ">
+                      ${[
                             {
                                 title: '今日瀏覽人數',
                                 value: html `${vm.data.active_recent_2week.count_array
@@ -68,7 +78,7 @@ export class DataAnalyze {
                                 })
                                     .reverse()[0]
                                     .toLocaleString()}
-                                                    ${BgWidget.grayNote(`(本月: ${vm.data.active_recent_year.count_array
+                          ${BgWidget.grayNote(`(本月: ${vm.data.active_recent_year.count_array
                                     .map((dd) => {
                                     return dd;
                                 })
@@ -79,7 +89,7 @@ export class DataAnalyze {
                             {
                                 title: '今日會員註冊',
                                 value: html `${vm.data.recent_register_today['today'].toLocaleString()}
-                                                    ${BgWidget.grayNote(`(本月: ${vm.data.recent_register_today['count_register']
+                          ${BgWidget.grayNote(`(本月: ${vm.data.recent_register_today['count_register']
                                     .map((dd) => {
                                     return dd;
                                 })
@@ -115,74 +125,83 @@ export class DataAnalyze {
                                 icon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560798255-credit-card-light 1.svg',
                             },
                         ]
-                            .map((dd) => {
+                            .map(dd => {
                             return html ` <div
-                                                        class="w-100 px-3 py-3"
-                                                        style="align-self: stretch; background: white; box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.10); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px; display: inline-flex;"
-                                                    >
-                                                        <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 16px; display: inline-flex;">
-                                                            <div style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex;">
-                                                                <div style="align-self: stretch; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;">
-                                                                    ${dd.value}
-                                                                </div>
-                                                                <div style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 500; word-wrap: break-word;">
-                                                                    ${dd.title}
-                                                                </div>
-                                                            </div>
-                                                            <img style="width:30px;height: 30px;" src="${dd.icon}" />
-                                                        </div>
-                                                    </div>`;
+                            class="w-100 px-3 py-3"
+                            style="align-self: stretch; background: white; box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.10); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px; display: inline-flex;"
+                          >
+                            <div
+                              style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 16px; display: inline-flex;"
+                            >
+                              <div
+                                style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex;"
+                              >
+                                <div
+                                  style="align-self: stretch; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;"
+                                >
+                                  ${dd.value}
+                                </div>
+                                <div
+                                  style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 500; word-wrap: break-word;"
+                                >
+                                  ${dd.title}
+                                </div>
+                              </div>
+                              <img style="width:30px;height: 30px;" src="${dd.icon}" />
+                            </div>
+                          </div>`;
                         })
-                            .map((dd) => {
+                            .map(dd => {
                             return html ` <div class="col-sm-4 col-lg-4 col-12 px-0 px-sm-2">${dd}</div>`;
                         })
                             .join('')}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="my-3"></div>
-                            <div class="row">
-                                ${[
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row" style="margin-top: 12px;">
+                ${[
                             {
-                                class: 'col-12 col-lg-4 col-md-6 mb-3',
+                                class: 'col-12 col-lg-4 col-md-6',
                                 event: DataAnalyzeModule.salesAmount(gvc),
                             },
                             {
-                                class: 'col-12 col-lg-4 col-md-6 mb-3',
+                                class: 'col-12 col-lg-4 col-md-6',
                                 event: DataAnalyzeModule.orderAmount(gvc),
                             },
                             {
-                                class: 'col-12 col-lg-4 col-md-6 mb-3',
+                                class: 'col-12 col-lg-4 col-md-6',
                                 event: DataAnalyzeModule.orderAverage(gvc),
                             },
                             {
-                                class: 'col-12 col-lg-4 col-md-6 mb-3',
+                                class: 'col-12 col-lg-4 col-md-6',
                                 event: DataAnalyzeModule.viewPeople(gvc),
                             },
                             {
-                                class: 'col-12 col-lg-4 col-md-6 mb-3',
+                                class: 'col-12 col-lg-4 col-md-6',
                                 event: DataAnalyzeModule.registerPeople(gvc),
                             },
                             {
-                                class: 'col-12 col-lg-4 col-md-6 mb-3',
+                                class: 'col-12 col-lg-4 col-md-6',
                                 event: DataAnalyzeModule.transferRatio(gvc),
                             },
                             {
-                                class: 'col-12 col-lg-6 mb-3',
+                                class: 'col-12 col-lg-6',
                                 event: DataAnalyzeModule.hotProducts(gvc),
                             },
                             {
-                                class: 'col-12 col-lg-6 mb-3',
+                                class: 'col-12 col-lg-6',
                                 event: DataAnalyzeModule.hotCollection(gvc),
                             },
                         ]
-                            .map((dd) => {
-                            return html `<div class="${dd.class}">${dd.event}</div>`;
+                            .map(dd => {
+                            return html `<div class="${dd.class}" style="margin-bottom: 12px; padding: 0 6px;">
+                      ${dd.event}
+                    </div>`;
                         })
                             .join('')}
-                            </div>
-                        `;
+              </div>
+            `;
                     }
                     catch (e) {
                         console.error(e);
@@ -196,34 +215,5 @@ export class DataAnalyze {
             };
         });
     }
-}
-function getPastMonths(numMonths) {
-    const months = [];
-    const currentDate = new Date();
-    let year = currentDate.getFullYear() - 2000;
-    let month = currentDate.getMonth() + 2;
-    for (let i = 0; i < numMonths; i++) {
-        month--;
-        if (month === 0) {
-            year--;
-            month = 12;
-        }
-        const formattedMonth = `${year}.${month.toString().padStart(2, '0')}`;
-        months.unshift(formattedMonth);
-    }
-    return months;
-}
-function getPastDays(numDays) {
-    const days = [];
-    const currentDate = new Date();
-    for (let i = 0; i < numDays; i++) {
-        const pastDate = new Date(currentDate);
-        pastDate.setDate(currentDate.getDate() - i);
-        const month = pastDate.getMonth() + 1;
-        const day = pastDate.getDate();
-        const dateString = (month < 10 ? '0' : '') + month + '/' + (day < 10 ? '0' : '') + day;
-        days.unshift(dateString);
-    }
-    return days;
 }
 window.glitter.setModule(import.meta.url, DataAnalyze);

@@ -1,6 +1,5 @@
 import { GlobalUser } from '../global/global-user.js';
 import { BaseApi } from '../../glitterBundle/api/base.js';
-import {json} from "express";
 
 export class ApiShop {
     static getLineGroup() {
@@ -47,6 +46,7 @@ export class ApiShop {
             },
         });
     }
+
     static getFEGuideable() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=FEguideable`,
@@ -58,6 +58,7 @@ export class ApiShop {
             },
         });
     }
+
     static setGuideable(json: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
@@ -75,6 +76,7 @@ export class ApiShop {
             }),
         });
     }
+
     static setFEGuideable(json: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
@@ -92,6 +94,7 @@ export class ApiShop {
             }),
         });
     }
+
     static getGuide() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=guide`,
@@ -103,6 +106,7 @@ export class ApiShop {
             },
         });
     }
+
     static setGuide(json: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
@@ -118,6 +122,7 @@ export class ApiShop {
             }),
         });
     }
+
     static getEditorGuide() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=editorGuide`,
@@ -129,6 +134,7 @@ export class ApiShop {
             },
         });
     }
+
     static setEditorGuide(json: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
@@ -144,6 +150,7 @@ export class ApiShop {
             }),
         });
     }
+
     static getFEGuideLeave() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=FEGuideLeave`,
@@ -155,6 +162,7 @@ export class ApiShop {
             },
         });
     }
+
     static setFEGuideLeave() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
@@ -172,6 +180,7 @@ export class ApiShop {
             }),
         });
     }
+
     static postProduct(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product`,
@@ -184,6 +193,7 @@ export class ApiShop {
             data: JSON.stringify(cf.data),
         });
     }
+
     public static postMultiProduct(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product/multiple`,
@@ -196,6 +206,7 @@ export class ApiShop {
             data: JSON.stringify(cf.data),
         });
     }
+
     public static putProduct(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product`,
@@ -407,7 +418,7 @@ export class ApiShop {
         show_hidden?: boolean;
         view_source?: string;
         distribution_code?: string;
-        product_category?:string
+        product_category?: string;
     }) {
         return BaseApi.create({
             url:
@@ -448,8 +459,14 @@ export class ApiShop {
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': json.app_name || ((window as any).glitter.getUrlParameter('type') === 'find_idea' ? (window as any).appName : encodeURIComponent(getConfig().config.appName)),
-                Authorization: ((window.parent as any).glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) || GlobalUser.token,
+                'g-app':
+                    json.app_name ||
+                    ((window as any).glitter.getUrlParameter('type') === 'find_idea'
+                        ? (window as any).appName
+                        : encodeURIComponent(getConfig().config.appName)),
+                Authorization:
+                    ((window.parent as any).glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) ||
+                    GlobalUser.token,
             },
         });
     }
@@ -468,8 +485,14 @@ export class ApiShop {
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': json.app_name || ((window as any).glitter.getUrlParameter('type') === 'find_idea' ? (window as any).appName : encodeURIComponent(getConfig().config.appName)),
-                Authorization: ((window.parent as any).glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) || GlobalUser.token,
+                'g-app':
+                    json.app_name ||
+                    ((window as any).glitter.getUrlParameter('type') === 'find_idea'
+                        ? (window as any).appName
+                        : encodeURIComponent(getConfig().config.appName)),
+                Authorization:
+                    ((window.parent as any).glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) ||
+                    GlobalUser.token,
             },
         });
     }
@@ -478,8 +501,21 @@ export class ApiShop {
         if (!obj) return [];
         let list = [] as string[];
         if (obj) {
-            if (obj.created_time && obj.created_time.length > 1 && obj?.created_time[0].length > 0 && obj?.created_time[1].length > 0) {
+            if (
+                obj.created_time &&
+                obj.created_time.length > 1 &&
+                obj?.created_time[0].length > 0 &&
+                obj?.created_time[1].length > 0
+            ) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
+            }
+            if (
+                obj.shipment_time &&
+                obj.shipment_time.length > 1 &&
+                obj?.shipment_time[0].length > 0 &&
+                obj?.shipment_time[1].length > 0
+            ) {
+                list.push(`shipment_time=${obj.shipment_time[0]},${obj.shipment_time[1]}`);
             }
             if (obj.shipment && obj.shipment.length > 0) {
                 list.push(`shipment=${obj.shipment.join(',')}`);
@@ -493,16 +529,25 @@ export class ApiShop {
             if (obj.orderStatus && obj.orderStatus.length > 0) {
                 list.push(`orderStatus=${obj.orderStatus.join(',')}`);
             }
+            if (obj.payment_select && obj.payment_select.length > 0) {
+                list.push(`payment_select=${obj.payment_select.join(',')}`);
+            }
         }
 
         return list;
     }
+
     static returnOrderListFilterString(obj: any): string[] {
         if (!obj) return [];
         let list = [] as string[];
 
         if (obj) {
-            if (obj.created_time && obj.created_time.length > 1 && obj?.created_time[0].length > 0 && obj?.created_time[1].length > 0) {
+            if (
+                obj.created_time &&
+                obj.created_time.length > 1 &&
+                obj?.created_time[0].length > 0 &&
+                obj?.created_time[1].length > 0
+            ) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
             }
 
@@ -516,6 +561,7 @@ export class ApiShop {
 
         return list;
     }
+
     static invoiceListFilterString(obj: any): string[] {
         if (!obj) return [];
         let list = [] as string[];
@@ -535,6 +581,7 @@ export class ApiShop {
         }
         return list;
     }
+
     static allowanceListFilterString(obj: any): string[] {
         if (!obj) return [];
         let list = [] as string[];
@@ -549,6 +596,7 @@ export class ApiShop {
 
         return list;
     }
+
     static getOrder(json: {
         limit: number;
         page: number;
@@ -557,6 +605,7 @@ export class ApiShop {
         phone?: number;
         searchType?: string;
         id?: string;
+        id_list?: string;
         data_from?: 'user' | 'manager';
         status?: number;
         order?: string;
@@ -566,6 +615,8 @@ export class ApiShop {
         archived?: string;
         distribution_code?: string;
         returnSearch?: 'true';
+        valid?: boolean;
+        is_shipment?: boolean;
     }) {
         const filterString = this.orderListFilterString(json.filter);
         return BaseApi.create({
@@ -575,14 +626,17 @@ export class ApiShop {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.id_list && par.push(`id_list=${json.id_list}`);
                     json.email && par.push(`email=${json.email}`);
                     json.phone && par.push(`phone=${json.phone}`);
                     json.status && par.push(`status=${json.status}`);
+                    json.valid && par.push(`valid=${json.valid}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`orderString=${json.orderString}`);
                     json.archived && par.push(`archived=${json.archived}`);
                     json.distribution_code && par.push(`distribution_code=${json.distribution_code}`);
                     json.returnSearch && par.push(`returnSearch=${json.returnSearch ?? 'false'}`);
+                    json.is_shipment && par.push(`is_shipment=${json.is_shipment}`);
                     if (json.is_pos === true || json.is_pos === false) {
                         par.push(`is_pos=${json.is_pos}`);
                     }
@@ -646,6 +700,32 @@ export class ApiShop {
                 'g-app': getConfig().config.appName,
                 Authorization: GlobalUser.token,
             },
+        });
+    }
+
+    public static putVoucher(json: { postData: any; token?: string; type?: 'normal' | 'manager' }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/voucher`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: json.token || (json.type === 'manager' ? getConfig().config.token : GlobalUser.token),
+            },
+            data: JSON.stringify(json),
+        });
+    }
+
+    public static postVoucher(json: { postData: any; token?: string; type: 'normal' | 'manager' }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/voucher`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: json.token || (json.type === 'manager' ? getConfig().config.token : GlobalUser.token),
+            },
+            data: JSON.stringify(json),
         });
     }
 
@@ -731,6 +811,19 @@ export class ApiShop {
         });
     }
 
+    static ecPayBrushOrders(json: { tradNo: string; orderID: string; total: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/ec-pay/payments/brush-back`,
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
+
     static deleteVoucher(json: { id: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/voucher?id=${json.id}`,
@@ -787,13 +880,21 @@ export class ApiShop {
                     'Content-Type': 'application/json',
                     'g-app': getConfig().config.appName,
                 },
-            }).then((res) => {
+            }).then(res => {
                 config[`collection-manager`] = res;
                 resolve(res);
             });
         });
     }
-    static getInvoice(json: { limit: number; page: number; search?: string; searchType?: string; orderString?: string; filter?: any }) {
+
+    static getInvoice(json: {
+        limit: number;
+        page: number;
+        search?: string;
+        searchType?: string;
+        orderString?: string;
+        filter?: any;
+    }) {
         let filterString = this.invoiceListFilterString(json.filter);
         // const filterString = this.orderListFilterString(json.filter);
         // filterString.length > 0 && par.push(filterString.join('&'));
@@ -817,7 +918,15 @@ export class ApiShop {
             },
         });
     }
-    static getAllowance(json: { limit: number; page: number; search?: string; searchType?: string; orderString?: string; filter?: any }) {
+
+    static getAllowance(json: {
+        limit: number;
+        page: number;
+        search?: string;
+        searchType?: string;
+        orderString?: string;
+        filter?: any;
+    }) {
         let filterString = this.allowanceListFilterString(json.filter);
         // const filterString = this.orderListFilterString(json.filter);
         // filterString.length > 0 && par.push(filterString.join('&'));
@@ -841,6 +950,7 @@ export class ApiShop {
             },
         });
     }
+
     static getInvoiceType() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/invoice/invoice-type`,
@@ -916,8 +1026,6 @@ export class ApiShop {
         custom_form_data?: any;
         distribution_code?: string;
         give_away?: any;
-        temp_cart_id?: string;
-        checkOutType?:string;
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout`,
@@ -1006,6 +1114,7 @@ export class ApiShop {
             data: JSON.stringify(passData),
         });
     }
+
     static toPOSCheckout(passData: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/pos/checkout/`,
@@ -1018,6 +1127,7 @@ export class ApiShop {
             data: JSON.stringify(passData),
         });
     }
+
     static toPOSLinePay(passData: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/pos/linePay`,
@@ -1238,6 +1348,7 @@ export class ApiShop {
             data: JSON.stringify(cf.data),
         });
     }
+
     static recoverVariants(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product/variants/recoverStock`,
@@ -1263,6 +1374,7 @@ export class ApiShop {
             data: JSON.stringify(passData),
         });
     }
+
     static putReturnOrder(passData: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/returnOrder/`,
@@ -1275,6 +1387,7 @@ export class ApiShop {
             data: JSON.stringify(passData),
         });
     }
+
     static postInvoice(passData: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/customer_invoice`,
@@ -1287,6 +1400,7 @@ export class ApiShop {
             data: JSON.stringify(passData),
         });
     }
+
     static voidInvoice(invoiceNo: string, voidReason: string, createDate: string) {
         const passData = {
             invoiceNo: invoiceNo,
@@ -1304,6 +1418,7 @@ export class ApiShop {
             data: JSON.stringify(passData),
         });
     }
+
     static postAllowance(passData: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/allowance_invoice`,
@@ -1316,6 +1431,7 @@ export class ApiShop {
             data: JSON.stringify(passData),
         });
     }
+
     static voidAllowance(invoiceNo: string, allowanceNo: string, voidReason: string) {
         const passData = {
             invoiceNo: invoiceNo,

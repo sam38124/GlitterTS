@@ -253,6 +253,9 @@ export class LiveCapture {
         }
 
         const dialog = new ShareDialog(gvc.glitter);
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
         let viewModel: {
             lineGroupLoading: boolean,
             lineGroup: any,
@@ -299,10 +302,10 @@ export class LiveCapture {
                     groupId: "",
                     groupName: "",
                 },
-                start_date: new Date().toISOString().split("T")[0],
-                start_time: new Date().toTimeString().split(" ")[0].slice(0, 5),
-                end_date: new Date().toISOString().split("T")[0],
-                end_time: new Date().toTimeString().split(" ")[0].slice(0, 5)
+                start_date: now.toISOString().split("T")[0],
+                start_time: now.toTimeString().split(" ")[0].slice(0, 5),
+                end_date: tomorrow.toISOString().split("T")[0],
+                end_time: tomorrow.toTimeString().split(" ")[0].slice(0, 5)
             },
             summaryType: "normal"
         }
@@ -414,7 +417,12 @@ export class LiveCapture {
                                                 </div>
                                                 <div style="display: flex;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;">
                                                     <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;align-self: stretch;">
-                                                        <div style="color:#393939;font-size: 16px;font-weight: 400;">團購群組
+                                                        <div class="d-flex " style="color:#393939;font-size: 16px;font-weight: 400;gap:5px;align-items: end;">團購群組
+                                                            <div class="" style="color: #4D86DB;font-size: 14px;font-weight: 400; line-height: normal;cursor: pointer;" onclick="${gvc.event(()=>{
+                                                                vm.type = 'add';
+                                                            })}">
+                                                                刷新群組
+                                                            </div>
                                                         </div>
                                                         <div style="display: flex;align-items: flex-start;gap: 4px;align-self: stretch;">
                                                             <div class="w-100"
@@ -2543,7 +2551,7 @@ export class LiveCapture {
                                     dialog.dataLoading({
                                         visible: false
                                     })
-                                    vm.type = "list";
+                                    // vm.type = "list";
                                 });
                             }
                             
@@ -3364,7 +3372,8 @@ export class LiveCapture {
             background-color: #0056b3;
         }`)
         return html`
-            <div class="container">
+            
+            <div class="container" style="">
                 <div class="verification-container text-center">
                     <h2 class="mb-3">🔐 驗證您的帳號</h2>
                     <p class="text-muted">請輸入您的 <strong>Shopnex</strong> 驗證碼以完成綁定。</p>

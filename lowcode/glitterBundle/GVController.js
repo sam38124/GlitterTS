@@ -471,8 +471,8 @@ ${lifeCycle.onCreateView()}
             document.querySelector('html').scrollTop = 1;
         }
         else {
-            $('#glitterPage').append(`<div id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
-background: ${cf.pageConfig.backGroundColor};display: none;z-index:99999;overflow: hidden;position: fixed;width:100vw;height: 100vh;" class="page-box">
+            $('#glitterPage').append(`<div id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: ${window.innerHeight}px;left: 0;top: 0;
+background: ${cf.pageConfig.backGroundColor};display: none;z-index:99999;overflow: hidden;position: fixed;width:100vw;height:  ${window.innerHeight}px;" class="page-box glitter-dialog">
 ${lifeCycle.onCreateView()}
 </div>`);
         }

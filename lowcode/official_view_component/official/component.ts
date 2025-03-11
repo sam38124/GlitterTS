@@ -179,6 +179,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                 createOption.option = createOption.option ?? []
                                                 createOption.class = createOption.class || ``
                                                 createOption.childContainer = true
+
                                                 createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag} ${widget.id} ` : ``}`;
                                                 createOption.style = createOption.style ?? ''
                                                 createOption.style += RenderValue.custom_style.container_style(gvc, widget);
@@ -211,10 +212,11 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
 
                                             loop(viewConfig)
 
-                                            return new glitter.htmlGenerate(viewConfig, [], sub).render(gvc, {
+                           return new glitter.htmlGenerate(viewConfig, [], sub).render(gvc, {
                                                 class: ``,
                                                 style: ``,
                                                 containerID: id,
+                                                id:widget.data._component_id,
                                                 tag: page_request_config.tag,
                                                 jsFinish: () => {
                                                 },

@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { UmClass } from './um-class.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
@@ -241,19 +250,30 @@ export class UMInfo {
                                 login_config: {},
                             };
                             const update_userData = JSON.parse(JSON.stringify(vm.data.userData));
-                            ApiUser.getPublicConfig('custom_form_register', 'manager').then((res) => {
-                                ApiUser.getPublicConfig('login_config', 'manager').then((data) => {
-                                    var _a, _b, _c;
-                                    vm_info.login_config = (_a = data.response.value) !== null && _a !== void 0 ? _a : {};
-                                    vm_info.list = ((_b = res.response.value) !== null && _b !== void 0 ? _b : { list: [] }).list;
-                                    vm_info.list = (_c = vm_info.list) !== null && _c !== void 0 ? _c : [];
-                                    vm_info.form_array = FormCheck.initialRegisterForm(vm_info.list).filter((dd) => {
-                                        return !dd.hidden;
-                                    });
-                                    vm_info.loading = false;
-                                    gvc.notifyDataChange(id);
+                            function loadConfig() {
+                                var _a, _b, _c, _d, _e;
+                                return __awaiter(this, void 0, void 0, function* () {
+                                    try {
+                                        vm_info.loading = true;
+                                        const [res, data, userSeeting] = yield Promise.all([
+                                            ApiUser.getPublicConfig('custom_form_register', 'manager'),
+                                            ApiUser.getPublicConfig('login_config', 'manager'),
+                                            ApiUser.getPublicConfig('customer_form_user_setting', 'manager'),
+                                        ]);
+                                        const defaultList = { list: [] };
+                                        vm_info.login_config = (_a = data.response.value) !== null && _a !== void 0 ? _a : {};
+                                        vm_info.list = [...((_c = (_b = res.response.value) === null || _b === void 0 ? void 0 : _b.list) !== null && _c !== void 0 ? _c : defaultList.list), ...((_e = (_d = userSeeting.response.value) === null || _d === void 0 ? void 0 : _d.list) !== null && _e !== void 0 ? _e : defaultList.list)];
+                                        vm_info.form_array = FormCheck.initialRegisterForm(vm_info.list).filter((dd) => !dd.hidden);
+                                        vm_info.loading = false;
+                                        gvc.notifyDataChange(id);
+                                    }
+                                    catch (error) {
+                                        console.error('載入設定時發生錯誤:', error);
+                                        vm_info.loading = false;
+                                    }
                                 });
-                            });
+                            }
+                            loadConfig();
                             return {
                                 bind: id,
                                 view: () => {

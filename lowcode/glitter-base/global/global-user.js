@@ -48,23 +48,45 @@ export class GlobalUser {
         }
     }
     static parseJWT(token) {
-        const parts = token.split(".");
+        const parts = token.split('.');
         if (parts.length !== 3) {
-            throw new Error("Invalid JWT format");
+            throw new Error('Invalid JWT format');
         }
         const header = base64UrlDecode(parts[0]);
         const payload = base64UrlDecode(parts[1]);
         const signature = parts[2];
-        return {
-            header,
-            payload,
-            signature
-        };
+        return { header, payload, signature };
+    }
+    static getPlan() {
+        var _a;
+        const config = window.parent.glitter.share.editorViewModel.app_config_original;
+        const planMapping = this.planMapping();
+        return (_a = planMapping[config.plan]) !== null && _a !== void 0 ? _a : planMapping['omo-year'];
     }
 }
 GlobalUser.tagId = 'sjnsannsai23ij3as';
 GlobalUser.userInfo = undefined;
 GlobalUser.updateUserData = {};
+GlobalUser.planMapping = () => {
+    return {
+        'light-year': {
+            id: 0,
+            title: '「 輕便電商方案 」',
+        },
+        'basic-year': {
+            id: 1,
+            title: '「 標準電商方案 」',
+        },
+        'omo-year': {
+            id: 2,
+            title: '「 企業電商方案 」',
+        },
+        'app-year': {
+            id: 3,
+            title: '「 旗艦電商方案 」',
+        },
+    };
+};
 function base64UrlDecode(base64Url) {
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     return JSON.parse(atob(base64));

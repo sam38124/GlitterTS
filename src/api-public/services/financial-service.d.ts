@@ -9,6 +9,7 @@ interface KeyData {
     ReturnURL: string;
     ActionURL: string;
     TYPE: 'newWebPay' | 'ecPay' | 'PayPal' | 'LinePay';
+    CreditCheckCode?: string;
 }
 export default class FinancialService {
     keyData: KeyData;
@@ -77,7 +78,9 @@ export declare class EzPay {
 export declare class EcPay {
     keyData: KeyData;
     appName: string;
-    constructor(appName: string, keyData: KeyData);
+    static beta: string;
+    constructor(appName: string, keyData?: KeyData);
+    key_initial(): Promise<void>;
     static generateCheckMacValue(params: Record<string, any>, HashKey: string, HashIV: string): string;
     createOrderPage(orderData: {
         lineItems: {
@@ -96,6 +99,9 @@ export declare class EcPay {
         method: string;
         CheckMacValue?: string;
     }): Promise<string>;
+    checkCreditInfo(CreditRefundId: string, CreditAmount: string): Promise<any>;
+    checkPaymentStatus(orderID: string): Promise<any>;
+    brushBack(orderID: string, tradNo: string, total: string): Promise<any>;
     saveMoney(orderData: {
         total: number;
         userID: number;
@@ -196,6 +202,10 @@ export declare class PayNow {
     BASE_URL: string;
     constructor(appName: string, keyData: any);
     executePaymentIntent(transactionId: string, secret: string, paymentNo: string): Promise<any>;
+    bindKey(): Promise<{
+        public_key: string;
+        private_key: string;
+    }>;
     confirmAndCaptureOrder(transactionId?: string): Promise<any>;
     createOrder(orderData: {
         lineItems: {

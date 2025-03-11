@@ -66,26 +66,27 @@ export class StockList {
                 else {
                     dd.variant_content.stockList = (_a = dd.variant_content.stockList) !== null && _a !== void 0 ? _a : {};
                 }
-                if ((!dd.variant_content.preview_image) || (dd.variant_content.preview_image === BgWidget.noImageURL)) {
-                    dd.variant_content.preview_image = (dd.product_content.language_data
-                        &&
-                            dd.product_content.language_data[(window.parent.store_info.language_setting.def)].preview_image && dd.product_content.language_data[(window.parent.store_info.language_setting.def)].preview_image[0])
-                        || dd.product_content.preview_image[0];
+                if (!dd.variant_content.preview_image || dd.variant_content.preview_image === BgWidget.noImageURL) {
+                    dd.variant_content.preview_image =
+                        (dd.product_content.language_data &&
+                            dd.product_content.language_data[window.parent.store_info.language_setting.def].preview_image &&
+                            dd.product_content.language_data[window.parent.store_info.language_setting.def]
+                                .preview_image[0]) ||
+                            dd.product_content.preview_image[0];
                 }
                 return [
                     {
                         key: '商品名稱',
-                        value: html `
-                            <div class="d-flex align-items-center gap-3" style="min-width: 250px;">
-                                ${BgWidget.validImageBox({
+                        value: html ` <div class="d-flex align-items-center gap-3" style="min-width: 250px;">
+              ${BgWidget.validImageBox({
                             gvc,
                             image: dd.variant_content.preview_image,
                             width: 40,
                             class: 'rounded border ms-1',
                         })}
-                                <div class="d-flex flex-column">
-                                <span class="tx_normal"
-                                >${Tool.truncateString((() => {
+              <div class="d-flex flex-column">
+                <span class="tx_normal"
+                  >${Tool.truncateString((() => {
                             try {
                                 return dd.product_content.language_data['zh-TW'].title || dd.product_content.title;
                             }
@@ -94,29 +95,30 @@ export class StockList {
                                 return dd.product_content.title;
                             }
                         })())}</span
-                                >
-                                    ${BgWidget.grayNote(Tool.truncateString(dd.variant_content.spec.length > 0 ? dd.variant_content.spec.join(' / ') : '單一規格', 25), 'font-size: 16px;')}
-                                </div>
-                            </div>`,
+                >
+                ${BgWidget.grayNote(Tool.truncateString(dd.variant_content.spec.length > 0 ? dd.variant_content.spec.join(' / ') : '單一規格', 25), 'font-size: 16px;')}
+              </div>
+            </div>`,
                     },
                     {
                         key: '庫存單位（SKU）',
-                        value: html `<span
-                                class="fs-7">${dd.variant_content.sku && dd.variant_content.sku.length > 0 ? dd.variant_content.sku : '沒有庫存單位'}</span>`,
+                        value: html `<span class="fs-7"
+              >${dd.variant_content.sku && dd.variant_content.sku.length > 0
+                            ? dd.variant_content.sku
+                            : '沒有庫存單位'}</span
+            >`,
                     },
                     {
                         key: '已售出',
-                        value: html `
-                            <div class="fs-7" style="min-width: 100px;">
-                                ${dd.variant_content.sold_out || 0}
-                            </div>`,
+                        value: html ` <div class="fs-7" style="min-width: 100px;">${dd.variant_content.sold_out || 0}</div>`,
                     },
                     {
                         key: '成本',
-                        value: html `
-                            <div class="fs-7" style="min-width: 100px;">
-                                ${dd.variant_content.cost ? `$${parseInt(`${dd.variant_content.cost}`, 10).toLocaleString()}` : defaultNull}
-                            </div>`,
+                        value: html ` <div class="fs-7" style="min-width: 100px;">
+              ${dd.variant_content.cost
+                            ? `$${parseInt(`${dd.variant_content.cost}`, 10).toLocaleString()}`
+                            : defaultNull}
+            </div>`,
                     },
                     {
                         key: '安全庫存',
@@ -129,23 +131,23 @@ export class StockList {
                         const stockData = dd.variant_content.stockList[store.id];
                         return {
                             key: store.name,
+                            stopClick: true,
                             value: dd.variant_content.show_understocking === 'true'
                                 ? option.select_mode
                                     ? html `<span class="fs-7">${(_b = stockData.count) !== null && _b !== void 0 ? _b : 0}</span>`
-                                    : html `
-                                                    <div
-                                                            style="width: 95px"
-                                                            onclick="${gvc.event((e, event) => {
+                                    : html ` <div
+                        style="width: 95px"
+                        onclick="${gvc.event((e, event) => {
                                         event.stopPropagation();
                                     })}"
-                                                    >
-                                                        <input
-                                                                class="form-control"
-                                                                type="number"
-                                                                min="0"
-                                                                style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                                                                placeholder="請輸入數值"
-                                                                onchange="${gvc.event((e) => {
+                      >
+                        <input
+                          class="form-control"
+                          type="number"
+                          min="0"
+                          style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                          placeholder="請輸入數值"
+                          onchange="${gvc.event(e => {
                                         let n = parseInt(e.value, 10);
                                         if (n < 0) {
                                             e.value = 0;
@@ -165,19 +167,18 @@ export class StockList {
                                         });
                                         gvc.notifyDataChange(vm.updateId);
                                     })}"
-                                                                value="${(_c = stockData.count) !== null && _c !== void 0 ? _c : 0}"
-                                                                ${(dd.product_content.shopee_id && index) ? `readonly` : ``}
-                                                        />
-                                                    </div>`
+                          value="${(_c = stockData.count) !== null && _c !== void 0 ? _c : 0}"
+                          ${dd.product_content.shopee_id && index ? `readonly` : ``}
+                        />
+                      </div>`
                                 : html `<span class="fs-7">${defaultNull}</div>`,
                         };
                     }),
                     {
                         key: '商品種類',
-                        value: html `
-                            <div class="fs-7" style="min-width: 120px;">
-                                ${ShoppingProductSetting.getProductTypeString(dd.product_content)}
-                            </div>`,
+                        value: html ` <div class="fs-7" style="min-width: 120px;">
+              ${ShoppingProductSetting.getProductTypeString(dd.product_content)}
+            </div>`,
                     },
                     {
                         key: '商品狀態',
@@ -192,16 +193,14 @@ export class StockList {
             view: () => {
                 if (vm.type === 'list') {
                     return BgWidget.container(html `
-                        <div class="title-container">
-                            ${BgWidget.title(option.title)}
-                            <div class="flex-fill"></div>
-                            <div style="display: none; gap: 14px;">
-                                ${BgWidget.grayButton('匯入', gvc.event(() => {
-                    }))}${BgWidget.grayButton('匯出', gvc.event(() => {
-                    }))}
-                            </div>
-                        </div>
-                        ${BgWidget.container([
+            <div class="title-container">
+              ${BgWidget.title(option.title)}
+              <div class="flex-fill"></div>
+              <div style="display: none; gap: 14px;">
+                ${BgWidget.grayButton('匯入', gvc.event(() => { }))}${BgWidget.grayButton('匯出', gvc.event(() => { }))}
+              </div>
+            </div>
+            ${BgWidget.container([
                         BgWidget.mainCard([
                             (() => {
                                 const vmlist = {
@@ -216,12 +215,12 @@ export class StockList {
                                         if (vmlist.loading) {
                                             return '';
                                         }
-                                        if (FilterOptions.stockFunnel.findIndex((item) => item.key === 'collection') === -1) {
+                                        if (FilterOptions.stockFunnel.findIndex(item => item.key === 'collection') === -1) {
                                             FilterOptions.stockFunnel.splice(1, 0, {
                                                 key: 'collection',
                                                 type: 'multi_checkbox',
                                                 name: '商品分類',
-                                                data: vmlist.collections.map((item) => {
+                                                data: vmlist.collections.map(item => {
                                                     return {
                                                         key: `${item.key}`,
                                                         name: item.value,
@@ -240,7 +239,7 @@ export class StockList {
                                                 default: vm.queryType || 'name',
                                                 options: FilterOptions.stockSelect,
                                             }),
-                                            BgWidget.searchFilter(gvc.event((e) => {
+                                            BgWidget.searchFilter(gvc.event(e => {
                                                 vm.query = `${e.value}`.trim();
                                                 gvc.notifyDataChange(vm.tableId);
                                                 gvc.notifyDataChange(vmlist.id);
@@ -262,25 +261,23 @@ export class StockList {
                                         ];
                                         const filterTags = ListComp.getFilterTags(FilterOptions.stockFunnel).replace(/多少/g, '');
                                         if (document.body.clientWidth < 768) {
-                                            return html `
-                                                                    <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                        <div>${filterList[0]}</div>
-                                                                        <div style="display: flex;">
-                                                                            ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
-                                                                            ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div style="display: flex; margin-top: 8px;">
-                                                                        ${filterList[1]}
-                                                                    </div>
-                                                                    <div>${filterTags}</div>`;
+                                            return html ` <div
+                                style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between"
+                              >
+                                <div>${filterList[0]}</div>
+                                <div style="display: flex;">
+                                  ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
+                                  ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
+                                </div>
+                              </div>
+                              <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                              <div>${filterTags}</div>`;
                                         }
                                         else {
-                                            return html `
-                                                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                                                        ${filterList.join('')}
-                                                                    </div>
-                                                                    <div>${filterTags}</div>`;
+                                            return html ` <div style="display: flex; align-items: center; gap: 10px;">
+                                ${filterList.join('')}
+                              </div>
+                              <div>${filterTags}</div>`;
                                         }
                                     },
                                     onCreate: () => {
@@ -299,7 +296,7 @@ export class StockList {
                                     try {
                                         return BgWidget.tableV3({
                                             gvc: gvc,
-                                            getData: (vd) => {
+                                            getData: vd => {
                                                 vmi = vd;
                                                 const limit = 15;
                                                 Promise.all([
@@ -330,7 +327,7 @@ export class StockList {
                                                             stockCount: vm.filter.count,
                                                             accurate_search_collection: true,
                                                             productType: productType,
-                                                        }).then((data) => {
+                                                        }).then(data => {
                                                             resolve(data);
                                                         });
                                                     }),
@@ -379,8 +376,7 @@ export class StockList {
                                                 ? [
                                                     {
                                                         name: '選擇項目',
-                                                        event: () => {
-                                                        },
+                                                        event: () => { },
                                                     },
                                                 ]
                                                 : [],
@@ -406,12 +402,11 @@ export class StockList {
                                     });
                                 };
                                 if (!areArraysEqual(vm.stockArray, vm.stockOriginArray)) {
-                                    return html `
-                                                    <div class="update-bar-container">
-                                                        ${BgWidget.cancel(gvc.event(() => {
+                                    return html ` <div class="update-bar-container">
+                        ${BgWidget.cancel(gvc.event(() => {
                                         gvc.notifyDataChange(vm.tableId);
                                     }))}
-                                                        ${BgWidget.save(gvc.event(() => {
+                        ${BgWidget.save(gvc.event(() => {
                                         const dialog = new ShareDialog(gvc.glitter);
                                         dialog.dataLoading({
                                             text: '更新庫存中',
@@ -420,7 +415,7 @@ export class StockList {
                                         ApiShop.putVariants({
                                             data: vm.dataList,
                                             token: window.parent.config.token,
-                                        }).then((re) => {
+                                        }).then(re => {
                                             dialog.dataLoading({ visible: false });
                                             if (re.result) {
                                                 dialog.successMessage({ text: '更新成功' });
@@ -431,13 +426,13 @@ export class StockList {
                                             }
                                         });
                                     }))}
-                                                    </div>`;
+                      </div>`;
                                 }
                                 return '';
                             },
                         }),
                     ].join(''))}
-                    `);
+          `);
                 }
                 else if (vm.type === 'editSpec') {
                     try {
@@ -446,13 +441,13 @@ export class StockList {
                             gvc: gvc,
                             defData: vm.replaceData,
                             goBackEvent: {
-                                save: (postMD) => {
+                                save: postMD => {
                                     const dialog = new ShareDialog(gvc.glitter);
                                     dialog.dataLoading({ visible: true });
                                     ApiShop.putProduct({
                                         data: postMD,
                                         token: window.parent.config.token,
-                                    }).then((re) => {
+                                    }).then(re => {
                                         dialog.dataLoading({ visible: false });
                                         if (re.result) {
                                             dialog.successMessage({ text: `更改成功` });

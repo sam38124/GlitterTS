@@ -228,7 +228,7 @@ ${gvc.bindView(() => {
                             GlobalEvent.putGlobalEvent(vm.data).then((data) => {
                                 dialog.dataLoading({ visible: false });
                                 dialog.successMessage({
-                                    text: "儲存成功!"
+                                    text: "儲存成功"
                                 });
                             });
                         }
@@ -237,7 +237,7 @@ ${gvc.bindView(() => {
                             GlobalEvent.addGlobalEvent(vm.data).then((data) => {
                                 dialog.dataLoading({ visible: false });
                                 dialog.successMessage({
-                                    text: "儲存成功!"
+                                    text: "儲存成功"
                                 });
                                 obj.gvc.recreateView();
                             });
@@ -299,7 +299,7 @@ ${gvc.bindView(() => {
                                             GlobalEvent.deleteGlobalEvent(vm.data.tag).then((data) => {
                                                 dialog.dataLoading({ visible: false });
                                                 dialog.successMessage({
-                                                    text: "刪除成功!"
+                                                    text: "刪除成功"
                                                 });
                                                 BgGlobalEvent.selectTag = undefined;
                                                 BgGlobalEvent.refresh();

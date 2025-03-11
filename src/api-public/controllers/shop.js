@@ -267,6 +267,7 @@ router.get('/order', async (req, resp) => {
                 search: req.query.search,
                 phone: req.query.phone,
                 id: req.query.id,
+                id_list: req.query.id_list,
                 email: req.query.email,
                 status: req.query.status,
                 searchType: req.query.searchType,
@@ -279,6 +280,10 @@ router.get('/order', async (req, resp) => {
                 archived: req.query.archived,
                 distribution_code: req.query.distribution_code,
                 returnSearch: req.query.returnSearch,
+                valid: req.query.valid === 'true',
+                shipment_time: req.query.shipment_time,
+                is_shipment: req.query.is_shipment === 'true',
+                payment_select: req.query.payment_select,
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {
@@ -318,7 +323,7 @@ router.get('/order/payment-method', async (req, resp) => {
             appName: req.get('g-app'),
             key: 'glitter_finance',
         }))[0].value;
-        ['MERCHANT_ID', 'HASH_KEY', 'HASH_IV'].map((dd) => {
+        ['MERCHANT_ID', 'HASH_KEY', 'HASH_IV'].map(dd => {
             delete keyData[dd];
         });
         return response_1.default.succ(resp, keyData);
@@ -353,7 +358,7 @@ router.get('/payment/method', async (req, resp) => {
                     value: 'c_bar_code',
                     title: '超商條碼',
                 },
-            ].filter((dd) => {
+            ].filter(dd => {
                 return keyData[dd.value] && keyData.TYPE !== 'off_line';
             }),
         });
@@ -526,7 +531,7 @@ router.get('/voucher', async (req, resp) => {
                 case 'group':
                     if (!groupList.result)
                         return false;
-                    return groupList.data.some((group) => targetList.includes(group.type) && group.users.some((user) => user.userID === userID));
+                    return groupList.data.some(group => targetList.includes(group.type) && group.users.some(user => user.userID === userID));
                 default:
                     return true;
             }
@@ -560,9 +565,9 @@ async function redirect_link(req, resp) {
         if (req.query.LinePay && req.query.LinePay === 'true') {
             const check_id = await redis_js_1.default.getValue(`linepay` + req.query.orderID);
             const order_data = (await database_js_1.default.query(`SELECT *
-                     FROM \`${req.query.appName}\`.t_checkout
-                     WHERE cart_token = ?
-                    `, [req.query.orderID]))[0];
+           FROM \`${req.query.appName}\`.t_checkout
+           WHERE cart_token = ?
+          `, [req.query.orderID]))[0];
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: req.query.appName,
                 key: 'glitter_finance',
@@ -572,7 +577,7 @@ async function redirect_link(req, resp) {
             console.log(`req.query=>`, req.query);
             const data = (await linePay.confirmAndCaptureOrder(req.query.transactionId, order_data['orderData'].total)).data;
             console.log(`line-response==>`, data);
-            if (data.returnCode == '0000') {
+            if (data.returnCode == '0000' && data.info.orderId === req.query.orderID) {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }
         }
@@ -596,41 +601,46 @@ async function redirect_link(req, resp) {
             const check_id = await redis_js_1.default.getValue(`paynow` + req.query.orderID);
             const payNow = new financial_service_js_1.PayNow(req.query.appName, keyData);
             const data = await payNow.confirmAndCaptureOrder(check_id);
-            if (data.type == 'success') {
+            console.log(`paynow-response=>`, data);
+            if (data.type == 'success' && data.result.status === 'success') {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }
         }
         if (req.query.jkopay && req.query.jkopay === 'true') {
-            console.log("req -- ", req);
             let kd = {
                 ReturnURL: '',
                 NotifyURL: '',
             };
+            const jko = new financial_service_js_1.JKO(req.query.appName, kd);
+            const data = jko.confirmAndCaptureOrder(req.query.orderID);
+            if (data.tranactions[0].status == 'success') {
+                await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
+            }
         }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-                <html lang="en">
-                    <head>
-                        <meta charset="UTF-8" />
-                        <title>Title</title>
-                    </head>
-                    <body>
-                        <script>
-                            try {
-                                window.webkit.messageHandlers.addJsInterFace.postMessage(
-                                    JSON.stringify({
-                                        functionName: 'check_out_finish',
-                                        callBackId: 0,
-                                        data: {
-                                            redirect: '${return_url.href}',
-                                        },
-                                    })
-                                );
-                            } catch (e) {}
-                            location.href = '${return_url.href}';
-                        </script>
-                    </body>
-                </html> `);
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Title</title>
+      </head>
+      <body>
+      <script>
+        try {
+          window.webkit.messageHandlers.addJsInterFace.postMessage(
+            JSON.stringify({
+              functionName: 'check_out_finish',
+              callBackId: 0,
+              data: {
+                redirect: '${return_url.href}',
+              },
+            })
+          );
+        } catch (e) {}
+        location.href = '${return_url.href}';
+      </script>
+      </body>
+      </html> `);
     }
     catch (err) {
         console.error(err);
@@ -658,52 +668,56 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
     try {
         console.log(`notify-order-result`);
         let decodeData = undefined;
-        const appName = req.query['g-app'];
+        req.query.appName = req.query.appName || req.get('g-app') || req.query['g-app'];
+        const appName = req.query.appName;
         const type = req.query['type'];
         const keyData = (await private_config_js_1.Private_config.getConfig({
             appName: appName,
             key: 'glitter_finance',
         }))[0].value[type];
-        if (type === 'ecPay') {
-            const responseCheckMacValue = `${req.body.CheckMacValue}`;
-            delete req.body.CheckMacValue;
-            const chkSum = financial_service_js_1.EcPay.generateCheckMacValue(req.body, keyData.HASH_KEY, keyData.HASH_IV);
-            decodeData = {
-                Status: req.body.RtnCode === '1' && responseCheckMacValue === chkSum ? 'SUCCESS' : 'ERROR',
-                Result: {
-                    MerchantOrderNo: req.body.MerchantTradeNo,
-                    CheckMacValue: req.body.CheckMacValue,
-                },
-            };
-        }
-        if (type === 'newWebPay') {
-            decodeData = JSON.parse(new financial_service_js_1.EzPay(appName, {
-                HASH_IV: keyData.HASH_IV,
-                HASH_KEY: keyData.HASH_KEY,
-                ActionURL: keyData.ActionURL,
-                NotifyURL: '',
-                ReturnURL: '',
-                MERCHANT_ID: keyData.MERCHANT_ID,
-                TYPE: keyData.TYPE,
-            }).decode(req.body.TradeInfo));
-        }
         if (type === 'paynow') {
             const check_id = await redis_js_1.default.getValue(`paynow` + req.query.orderID);
             const payNow = new financial_service_js_1.PayNow(req.query.appName, keyData);
             const data = await payNow.confirmAndCaptureOrder(check_id);
-            console.log(`paynow-notify1`, req.body);
-            console.log(`paynow-notify2`, check_id);
-            console.log(`paynow-notify3`, data);
+            if (data.type == 'success' && data.result.status === 'success') {
+                await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
+            }
         }
-        if (decodeData['Status'] === 'SUCCESS') {
-            await new shopping_1.Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
-        }
-        else {
-            await new shopping_1.Shopping(appName).releaseCheckout(-1, decodeData['Result']['MerchantOrderNo']);
+        if (['ecPay', 'newWebPay'].includes(type)) {
+            if (type === 'ecPay') {
+                delete req.body.CheckMacValue;
+                decodeData = {
+                    Status: (await new financial_service_js_1.EcPay(appName).checkPaymentStatus(req.body.MerchantTradeNo)).TradeStatus === '1'
+                        ? 'SUCCESS'
+                        : 'ERROR',
+                    Result: {
+                        MerchantOrderNo: req.body.MerchantTradeNo,
+                        CheckMacValue: req.body.CheckMacValue,
+                    },
+                };
+            }
+            if (type === 'newWebPay') {
+                decodeData = JSON.parse(new financial_service_js_1.EzPay(appName, {
+                    HASH_IV: keyData.HASH_IV,
+                    HASH_KEY: keyData.HASH_KEY,
+                    ActionURL: keyData.ActionURL,
+                    NotifyURL: '',
+                    ReturnURL: '',
+                    MERCHANT_ID: keyData.MERCHANT_ID,
+                    TYPE: keyData.TYPE,
+                }).decode(req.body.TradeInfo));
+            }
+            if (decodeData['Status'] === 'SUCCESS') {
+                await new shopping_1.Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
+            }
+            else {
+                await new shopping_1.Shopping(appName).releaseCheckout(-1, decodeData['Result']['MerchantOrderNo']);
+            }
         }
         return response_1.default.succ(resp, {});
     }
     catch (err) {
+        console.error(err);
         return response_1.default.fail(resp, err);
     }
 });
@@ -727,11 +741,11 @@ router.get('/checkWishList', async (req, resp) => {
     try {
         return response_1.default.succ(resp, {
             result: (await database_js_1.default.query(`select count(1)
-                         FROM \`${req.get('g-app')}\`.t_post
-                         where (content ->>'$.type'='wishlist')
-                           and userID = ?
-                           and (content ->>'$.product_id'=${req.query.product_id})
-                        `, [req.body.token.userID]))[0]['count(1)'] == '1',
+             FROM \`${req.get('g-app')}\`.t_post
+             where (content ->>'$.type'='wishlist')
+               and userID = ?
+               and (content ->>'$.product_id'=${req.query.product_id})
+            `, [req.body.token.userID]))[0]['count(1)'] == '1',
         });
     }
     catch (err) {
@@ -742,11 +756,11 @@ router.post('/wishlist', async (req, resp) => {
     try {
         const post = new post_js_1.Post(req.get('g-app'), req.body.token);
         await database_js_1.default.query(`delete
-             FROM \`${req.get('g-app')}\`.t_post
-             where (content ->>'$.type'='wishlist')
-               and userID = ?
-               and (content ->>'$.product_id'=${req.body.product_id})
-            `, [req.body.token.userID]);
+       FROM \`${req.get('g-app')}\`.t_post
+       where (content ->>'$.type'='wishlist')
+         and userID = ?
+         and (content ->>'$.product_id'=${req.body.product_id})
+      `, [req.body.token.userID]);
         const postData = {
             product_id: req.body.product_id,
             userID: (req.body.token && req.body.token.userID) || 0,
@@ -767,11 +781,11 @@ router.post('/wishlist', async (req, resp) => {
 router.delete('/wishlist', async (req, resp) => {
     try {
         await database_js_1.default.query(`delete
-             FROM \`${req.get('g-app')}\`.t_post
-             where (content ->>'$.type'='wishlist')
-               and userID = ?
-               and (content ->>'$.product_id'=${req.body.product_id})
-            `, [req.body.token.userID]);
+       FROM \`${req.get('g-app')}\`.t_post
+       where (content ->>'$.type'='wishlist')
+         and userID = ?
+         and (content ->>'$.product_id'=${req.body.product_id})
+      `, [req.body.token.userID]);
         return response_1.default.succ(resp, { result: true });
     }
     catch (err) {
@@ -1082,7 +1096,9 @@ router.post('/pos/checkout', async (req, resp) => {
 });
 router.post('/pos/linePay', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, { result: await new shopping_1.Shopping(req.get('g-app'), req.body.token).linePay(req.body) });
+        return response_1.default.succ(resp, {
+            result: await new shopping_1.Shopping(req.get('g-app'), req.body.token).linePay(req.body),
+        });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -1116,11 +1132,11 @@ router.post('/apple-webhook', async (req, resp) => {
             return `${dd.product_id}`.includes('ai_points_') && dd.in_app_ownership_type === 'PURCHASED';
         })) {
             const count = (await database_js_1.default.query(`select count(1)
-                     from \`${req.get('g-app')}\`.t_ai_points
-                     where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
+           from \`${req.get('g-app')}\`.t_ai_points
+           where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
             if (!count) {
                 await database_js_1.default.query(`insert into \`${req.get('g-app')}\`.t_ai_points
-                     set ?`, [
+           set ?`, [
                     {
                         orderID: b.transaction_id,
                         userID: req.body.token.userID,
@@ -1138,11 +1154,11 @@ router.post('/apple-webhook', async (req, resp) => {
             return `${dd.product_id}`.includes('sms_') && dd.in_app_ownership_type === 'PURCHASED';
         })) {
             const count = (await database_js_1.default.query(`select count(1)
-                     from \`${req.get('g-app')}\`.t_sms_points
-                     where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
+           from \`${req.get('g-app')}\`.t_sms_points
+           where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
             if (!count) {
                 await database_js_1.default.query(`insert into \`${req.get('g-app')}\`.t_sms_points
-                     set ?`, [
+           set ?`, [
                     {
                         orderID: b.transaction_id,
                         userID: req.body.token.userID,
@@ -1157,17 +1173,17 @@ router.post('/apple-webhook', async (req, resp) => {
             }
         }
         for (const b of receipt.receipt.in_app.filter((dd) => {
-            return ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].includes(`${dd.product_id}`) && dd.in_app_ownership_type === 'PURCHASED';
+            return (['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].includes(`${dd.product_id}`) && dd.in_app_ownership_type === 'PURCHASED');
         })) {
             if (!(await database_js_1.default.query(`select count(1)
-                                  from shopnex.t_checkout
-                                  where cart_token = ?`, [b.transaction_id]))[0]['count(1)']) {
+             from shopnex.t_checkout
+             where cart_token = ?`, [b.transaction_id]))[0]['count(1)']) {
                 const app_info = (await database_js_1.default.query(`select dead_line, user
-                         from glitter.app_config
-                         where appName = ?`, [req.body.app_name]))[0];
+             from glitter.app_config
+             where appName = ?`, [req.body.app_name]))[0];
                 const user = (await database_js_1.default.query(`SELECT *
-                         FROM shopnex.t_user
-                         where userID = ?`, [app_info.user]))[0];
+             FROM shopnex.t_user
+             where userID = ?`, [app_info.user]))[0];
                 const start = (() => {
                     if (new Date(app_info.dead_line).getTime() > new Date().getTime()) {
                         return new Date(app_info.dead_line);
@@ -1178,15 +1194,21 @@ router.post('/apple-webhook', async (req, resp) => {
                 })();
                 start.setDate(start.getDate() + 365);
                 await database_js_1.default.query(`update glitter.app_config
-                     set dead_line=?,
-                         plan=?
-                     where appName = ?`, [start, `${b.product_id}`.replace('_apple', '').replace(/_/g, '-'), req.body.app_name]);
-                const index = ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].findIndex((d1) => {
+           set dead_line=?,
+               plan=?
+           where appName = ?`, [start, `${b.product_id}`.replace('_apple', '').replace(/_/g, '-'), req.body.app_name]);
+                const index = [
+                    'light_year_apple',
+                    'basic_year_apple',
+                    'omo_year_apple',
+                    'app_year_apple',
+                    'flagship_year_apple',
+                ].findIndex(d1 => {
                     return `${b.product_id}` === d1;
                 });
                 const money = [13200, 26400, 52800, 52800, 66000][index];
                 await database_js_1.default.query(`insert into shopnex.t_checkout
-                     set ? `, [
+           set ? `, [
                     {
                         cart_token: b.transaction_id,
                         status: 1,
@@ -1351,22 +1373,6 @@ router.post('/pos/work-status', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
-router.get('/verification-code', async (req, resp) => {
-    try {
-        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.generateVerificationCode(req.get('g-app')));
-    }
-    catch (err) {
-        return response_1.default.fail(resp, err);
-    }
-});
-router.post('/verification-code', async (req, resp) => {
-    try {
-        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.generateVerificationCode(req.get('g-app')));
-    }
-    catch (err) {
-        return response_1.default.fail(resp, err);
-    }
-});
 router.post('/logistics/redirect', async (req, resp) => {
     try {
         const re_ = req.query['return'];
@@ -1378,17 +1384,41 @@ router.post('/logistics/redirect', async (req, resp) => {
         return_url.searchParams.set('CVSAddress', req.body.storeaddress);
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8"/>
-                <title>Title</title>
-            </head>
-            <body>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <title>Title</title>
+          </head>
+          <body>
             <script>
-                location.href = '${return_url.toString()}';
+              location.href = '${return_url.toString()}';
             </script>
-            </body>
-            </html> `);
+          </body>
+        </html> `);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/ec-pay/payments/status', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new financial_service_js_1.EcPay(req.get('g-app')).checkPaymentStatus(req.query.orderID));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.delete('/ec-pay/payments/brush-back', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new financial_service_js_1.EcPay(req.get('g-app')).brushBack(req.body.orderID, req.body.tradNo, req.body.total));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/verification-code', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.generateVerificationCode(req.get('g-app')));
     }
     catch (err) {
         return response_1.default.fail(resp, err);

@@ -122,9 +122,9 @@ export class PageManager {
             {
                 src: PageManager.getRelativeUrl(url),
                 callback: (gvFunction) => {
-                    const original = new URL(glitter.root_path + Language.getLanguageLinkPrefix() + tag + window.location.search);
+                    const original = new URL(glitter.root_path + Language.getLanguageLinkPrefix() + tag + location.hash + window.location.search);
                     function switchFunction() {
-                        var _a, _b, _c;
+                        var _a, _b;
                         glitter.page = tag;
                         try {
                             window.history.replaceState({}, document.title, original.href);
@@ -145,8 +145,8 @@ export class PageManager {
                             },
                             backGroundColor: (_a = option.backGroundColor) !== null && _a !== void 0 ? _a : 'transparent',
                             type: GVCType.Page,
-                            animation: (_b = option.animation) !== null && _b !== void 0 ? _b : glitter.animation.none,
-                            dismiss: (_c = option.dismiss) !== null && _c !== void 0 ? _c : (() => {
+                            animation: option.animation || glitter.defaultSetting.pageAnimation || glitter.animation.none,
+                            dismiss: (_b = option.dismiss) !== null && _b !== void 0 ? _b : (() => {
                             }),
                             renderFinish: () => {
                                 glitter.pageConfig = glitter.pageConfig.filter((dd) => {

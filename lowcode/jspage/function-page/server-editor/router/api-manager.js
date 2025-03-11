@@ -55,7 +55,7 @@ window.glitter.setModule(import.meta.url, (gvc) => {
                             }
                             else {
                                 dialog.errorMessage({
-                                    text: '下載範例失敗!',
+                                    text: '下載範例失敗',
                                 });
                             }
                         }))}"
@@ -220,7 +220,7 @@ window.glitter.setModule(import.meta.url, (gvc) => {
                                             }
                                             else {
                                                 dialog.errorMessage({
-                                                    text: '下載範例失敗!',
+                                                    text: '下載範例失敗',
                                                 });
                                             }
                                         }))}"
@@ -428,7 +428,7 @@ data-bs-title="下載專案壓縮檔"
                         }
                         else {
                             dialog.errorMessage({
-                                text: '下載範例失敗!',
+                                text: '下載範例失敗',
                             });
                         }
                     }))}"

@@ -5,19 +5,19 @@ export class ShipmentConfig {
             title: '黑貓宅配',
             value: 'black_cat',
             src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/w644 (1).jpeg',
-            paynow_id:'06'
+            paynow_id:'36'
         },
         {
             title: '黑貓冷藏宅配',
             value: 'black_cat_ice',
             src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/w644 (1).jpeg',
-            paynow_id:'06'
+            paynow_id:'36'
         },
         {
             title: '黑貓冷凍宅配',
             value: 'black_cat_freezing',
             src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/w644 (1).jpeg',
-            paynow_id:'06'
+            paynow_id:'36'
         },
         {
             title: '中華郵政',
@@ -41,6 +41,12 @@ export class ShipmentConfig {
             value: 'FAMIC2C',
             src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734396302-e970be63c9acb23e41cf80c77b7ca35b.jpeg',
             paynow_id:'03'
+        },
+        {
+            title: '全家冷凍店到店',
+            value: 'FAMIC2CFREEZE',
+            src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734396302-e970be63c9acb23e41cf80c77b7ca35b.jpeg',
+            paynow_id:'23'
         },
         {
             title: '萊爾富店到店',

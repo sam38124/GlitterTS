@@ -12,7 +12,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     return `<div class="vw-100 vh-100 position-fixed top-0 left-0"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
 <div class="bg-white rounded" style="width: 150px;position: absolute;z-index: 999;transform: translate(-50%,-50%);left: 50%;top:50%;">
   <div class="w-100 d-flex align-items-center justify-content-center text-danger" style="height: 80px;"> <i class="fad fa-exclamation-circle" style="font-size: 50px;margin: auto;"></i></div>
-         <h3 id="info" style="font-size: 14px;margin-top: 0px;width: calc(100% - 10px);text-align: center;white-space: normal;word-break: break-all;" class="mx-auto fw-500">${(_a = gBundle.obj.text) !== null && _a !== void 0 ? _a : '錯誤!'}</h3>
+         <h3 id="info" style="font-size: 14px;margin-top: 0px;width: calc(100% - 10px);text-align: center;white-space: normal;word-break: break-all;" class="mx-auto fw-500">${(_a = gBundle.obj.text) !== null && _a !== void 0 ? _a : '發生錯誤'}</h3>
          <div class="w-100 border-top d-flex align-items-center justify-content-center fw-500" style="height: 40px;font-size: 14px;margin-top: 10px;" onclick="${gvc.event(() => {
                         var _a;
                         try {
@@ -30,7 +30,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     return `<div class="vw-100 vh-100 position-fixed top-0 left-0"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;" >
 <div class="bg-white rounded" style="width: 150px;position: absolute;z-index: 999;transform: translate(-50%,-50%);left: 50%;top:50%;">
   <div class="w-100 d-flex align-items-center justify-content-center text-success fw-500" style="height: 80px;"> <i class="fad fa-badge-check" style="font-size: 50px;margin: auto;"></i></div>
-         <h3 id="info" style="font-size: 14px;margin-top: 0px;width: calc(100% - 10px);text-align: center;white-space: normal;word-break: break-all;" class="mx-auto text-success fw-500">${(_b = gBundle.obj.text) !== null && _b !== void 0 ? _b : '成功!'}</h3>
+         <h3 id="info" style="font-size: 14px;margin-top: 0px;width: calc(100% - 10px);text-align: center;white-space: normal;word-break: break-all;" class="mx-auto text-success fw-500">${(_b = gBundle.obj.text) !== null && _b !== void 0 ? _b : '成功'}</h3>
          <div class="w-100 border-top d-flex align-items-center justify-content-center" style="height: 40px;font-size: 14px;margin-top: 10px;" onclick="${gvc.event(() => {
                         var _a;
                         try {

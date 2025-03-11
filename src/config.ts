@@ -7,6 +7,7 @@ export class ConfigSetting {
     public static get is_local(): boolean {
         return process.env.is_local === 'true';
     }
+
     public static runSchedule = true;
     public static config_path = '';
 
@@ -134,11 +135,12 @@ export const config = {
         ai_points: '/ai/points',
         sms_points: '/sms/points',
         stock: '/stock',
-        shopee:'/shopee',
-        customer_sessions:'/customer_sessions'
+        shopee: '/shopee',
+        customer_sessions: '/customer_sessions',
+        voucher: '/voucher'
     },
     route: {
-        shopee:'/shopee',
+        shopee: '/shopee',
         line_message: '/line_message',
         user: '/user',
         template: '/template',

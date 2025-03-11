@@ -397,12 +397,37 @@ export class ApiPageConfig {
     }
     public static async uploadFileAll(files:File | File[],type:'blob'|'file'='file'){
         if(!Array.isArray(files)){files=[files]}
+        const dialog=new ShareDialog((window as any).glitter)
         let result=true
         let links:string[]=[]
         for (const file of files){
+            const fileSizeKB = file.size / 1024; // 轉換為 KB
+            // 假設你想限制上傳檔案最大為 500 KB
+            if((file.name.toLowerCase()).endsWith('png')||(file.name.toLowerCase()).endsWith('jpg')||(file.name.toLowerCase()).endsWith('jpeg')){
+                if (fileSizeKB > 500) {
+                    const result=await new Promise((resolve,reject)=>{
+                        dialog.checkYesOrNot({
+                            text:'圖片上傳大小不得超過 500 KB，避免網頁加載速度緩慢，是否透過系統自動壓縮畫質?',
+                            callback:(response)=>{
+                                if(response){
+                                    resolve(true)
+                                }else{
+                                    resolve(false)
+                                }
+                            }
+                        })
+                    })
+                    if(!result){
+                        dialog.dataLoading({visible:false})
+                        return
+                    }
+
+                }
+            }
+
             const file_id=(window as any).glitter.getUUID()
             //取得檔案名稱
-            function getFileName(size?:number){
+            function getFileName(size?:any){
               let file_name  = (
                     file.name ||
                     `${file_id}.${(() => {
@@ -422,14 +447,15 @@ export class ApiPageConfig {
                 return file_name
             }
             //壓縮圖片後再上傳
-            if(file.name.endsWith('png')||file.name.endsWith('jpg')||file.name.endsWith('jpeg')){
-                async function loopSize(size:number):Promise<boolean>{
+            if((file.name.toLowerCase()).endsWith('png')||(file.name.toLowerCase()).endsWith('jpg')||(file.name.toLowerCase()).endsWith('jpeg')){
+                async function loopSize(size:number):Promise<string>{
                     return new Promise( (resolve,reject)=>{
                        const reader = new FileReader();
                        reader.onload = function(e) {
                            const img = new Image();
                            img.src = URL.createObjectURL(file);
                            img.onload =  function() {
+                               let quality=0.9
                                // 获取图像宽度和高度
                                const og_width = img.width;
                                const og_height = img.height;
@@ -455,40 +481,49 @@ export class ApiPageConfig {
                                canvas.height = height;
                                const ctx:any = canvas.getContext('2d');
                                ctx.drawImage(img, 0, 0, width, height);
-                               // 将调整后的图像转换为 Blob
-                               canvas.toBlob(async function(blob:any) {
-                                   const s3res= (await ApiPageConfig.uploadFile(getFileName(size))).response;
-                                   const res= await BaseApi.create({
-                                       url: s3res.url,
-                                       type: 'put',
-                                       data: blob,
-                                       headers: {
-                                           'Content-Type': s3res.type,
+                               function tryCompression() {
+                                   canvas.toBlob(async (blob:any) => {
+                                       console.log(`嘗試壓縮品質: ${quality}, 檔案大小: ${(blob.size / 1024).toFixed(2)} KB`);
+                                       if (blob.size > 500 * 1024 && quality > 0.1) {
+                                           quality -= 0.1; // 逐步降低品質
+                                           tryCompression();
+                                       } else {
+                                           const s3res= (await ApiPageConfig.uploadFile(getFileName(size))).response;
+                                           const res= await BaseApi.create({
+                                               url: s3res.url,
+                                               type: 'put',
+                                               data: blob,
+                                               headers: {
+                                                   'Content-Type': s3res.type,
+                                               }
+                                           })
+                                           resolve(s3res.fullUrl)
                                        }
-                                   })
-                                   if(size===1440){
-                                       links.push(s3res.fullUrl)
-                                   }
-                                   resolve(res.result)
-                               }, file.type);
+                                   }, 'image/jpeg', quality);
+                               }
+
+                               tryCompression();
                            };
                        };
                        reader.readAsDataURL(file);
                    })
                 }
-                let chunk_size=[150,600,1200,1440]
-                let chunk_count=0
-                await new Promise((resolve, reject)=>{
-                    for (const size of chunk_size){
-                        loopSize(size).then((res:boolean)=>{
-                            chunk_count++
-                            result=res && result
-                            if(chunk_count===chunk_size.length){
-                                resolve(true)
-                            }
-                        })
-                    }
-                })
+                let chunk_size=[150,600,1200,1440,1920]
+                if(fileSizeKB>500){
+                    links.push(await loopSize(chunk_size[1200]))
+                }else{
+                    const s3res= (await ApiPageConfig.uploadFile(getFileName('original'))).response;
+                    const res= await BaseApi.create({
+                        url: s3res.url,
+                        type: 'put',
+                        data: file,
+                        headers: {
+                            'Content-Type': s3res.type,
+                        }
+                    })
+                    links.push(s3res.fullUrl)
+                }
+                result=true
                 if(!result){
                     return  {
                         result:false

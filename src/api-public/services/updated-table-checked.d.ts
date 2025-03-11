@@ -3,8 +3,8 @@ export declare class UpdatedTableChecked {
     static update(obj: {
         app_name: string;
         table_name: string;
-        last_version: string;
+        last_version: string[];
         new_version: string;
-        event: string;
+        event: string | (() => Promise<any>);
     }): Promise<void>;
 }

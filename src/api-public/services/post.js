@@ -129,7 +129,8 @@ class Post {
                                 app: this.app,
                                 query: query,
                                 firebase: {
-                                    sendMessage: (message) => { },
+                                    sendMessage: (message) => {
+                                    },
                                 },
                             })
                                 .then((data) => {
@@ -287,7 +288,7 @@ class Post {
                                     .map((dd) => {
                                     return dd;
                                 })
-                                    .join("','")}')`;
+                                    .join('\',\'')}')`;
                             }
                         }
                         countSql = `select count(1)
@@ -313,7 +314,8 @@ class Post {
                                          from \`${this.app}\`.\`t_user\`
                                          where userID = ${dd.userID}`, []))[0]['userData'];
                         }
-                        catch (e) { }
+                        catch (e) {
+                        }
                     }
                     dd.userData = userData[dd.userID];
                 }

@@ -236,7 +236,7 @@ export class BgCustomerMessage {
                                                                         user_id: 'manager',
                                                                     }).then((data: any) => {
                                                                         dialog.dataLoading({visible: false});
-                                                                        dialog.successMessage({text: '設定成功!'});
+                                                                        dialog.successMessage({text: '設定成功'});
                                                                     });
                                                                 })}"
                                                         >
@@ -379,7 +379,7 @@ export class BgCustomerMessage {
                                                     user_id: 'manager',
                                                 });
                                                 dialog.dataLoading({visible: false});
-                                                dialog.successMessage({text: '設定成功!'});
+                                                dialog.successMessage({text: '設定成功'});
                                             }
 
                                             const view = [
@@ -395,17 +395,6 @@ export class BgCustomerMessage {
                                                     </div>
                                                     <div style="margin-top: 10px;" class="p-2">
                                                         ${[
-                                                            html`
-                                                                <div class="mb-3"
-                                                                     style="display:flex; align-items: center; gap: 4px; margin-bottom: 8px;">
-                                                                    <div class="fw-500"
-                                                                         style="color: #393939;font-size: 15px;">啟用客服功能
-                                                                    </div>
-                                                                    ${BgWidget.switchButton(gvc, keyData.toggle, (bool) => {
-                                                                        keyData.toggle = bool;
-                                                                        gvc.notifyDataChange(vO.id)
-                                                                    })}
-                                                                </div>`,
                                                             ...(() => {
                                                                 if (keyData.toggle) {
                                                                     return [
@@ -682,7 +671,7 @@ export class BgCustomerMessage {
                                                                                                                         user_id: 'manager',
                                                                                                                     });
                                                                                                                     dialog.dataLoading({visible: false});
-                                                                                                                    dialog.successMessage({text: '設定成功!'});
+                                                                                                                    dialog.successMessage({text: '設定成功'});
                                                                                                                     gvc.closeDialog()
                                                                                                                 }), '儲存')].join('')
                                                                                                             }

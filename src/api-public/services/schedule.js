@@ -16,18 +16,12 @@ const auto_send_email_js_1 = require("./auto-send-email.js");
 const config_1 = require("../../config");
 const initial_fake_data_js_1 = require("./initial-fake-data.js");
 const line_message_1 = require("./line-message");
+const public_table_check_js_1 = require("./public-table-check.js");
 class Schedule {
     async perload(app) {
         if (!(await this.isDatabasePass(app)))
             return false;
-        if (!(await this.isDatabaseExists(app)))
-            return false;
-        if (!(await this.isTableExists('t_user_public_config', app)))
-            return false;
-        if (!(await this.isTableExists('t_voucher_history', app)))
-            return false;
-        if (!(await this.isTableExists('t_triggers', app)))
-            return false;
+        await public_table_check_js_1.ApiPublic.createScheme(app);
         return true;
     }
     async isDatabaseExists(app) {
@@ -58,8 +52,10 @@ class Schedule {
         setTimeout(() => this.example(sec), sec * 1000);
     }
     async autoCancelOrder(sec) {
-        try {
-            for (const app of Schedule.app) {
+        let clock = new Date();
+        console.log(`autoCancelOrder`);
+        for (const app of Schedule.app) {
+            try {
                 if (await this.perload(app)) {
                     const config = await new user_1.User(app).getConfigV2({ key: 'login_config', user_id: 'manager' });
                     if ((config === null || config === void 0 ? void 0 : config.auto_cancel_order_timer) && config.auto_cancel_order_timer > 0) {
@@ -84,20 +80,29 @@ class Schedule {
                     }
                 }
             }
-        }
-        catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
+            catch (e) {
+                console.error(`autoCancelOrder-Error`, e);
+            }
         }
         setTimeout(() => this.autoCancelOrder(sec), sec * 1000);
+        console.log(`autoCancelOrder-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
     }
     async renewMemberLevel(sec) {
+        let clock = new Date();
+        console.log(`renewMemberLevel`);
         try {
             for (const app of Schedule.app) {
-                if (await this.perload(app)) {
-                    const users = await database_1.default.query(`select * from \`${app}\`.t_user  `, []);
-                    for (const user of users) {
-                        await new user_1.User(app).checkMember(user, true);
+                try {
+                    if (await this.perload(app)) {
+                        const users = await database_1.default.query(`select * from \`${app}\`.t_user  `, []);
+                        for (const user of users) {
+                            await new user_1.User(app).checkMember(user, true);
+                        }
                     }
+                    console.log(`renewMemberLevel-finish->`, app);
+                }
+                catch (e) {
+                    console.log(`renewMemberLevel-error-continue`);
                 }
             }
         }
@@ -105,8 +110,11 @@ class Schedule {
             console.error('BAD_REQUEST', 'renewMemberLevel Error: ' + e, null);
         }
         setTimeout(() => this.renewMemberLevel(sec), sec * 1000);
+        console.log(`renewMemberLevel-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
     }
     async birthRebate(sec) {
+        let clock = new Date();
+        console.log(`resetVoucherHistory`);
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
@@ -162,8 +170,11 @@ class Schedule {
             }
         }
         setTimeout(() => this.birthRebate(sec), sec * 1000);
+        console.log(`birthRebate-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
     }
     async birthBlessMail(sec) {
+        let clock = new Date();
+        console.log(`resetVoucherHistory`);
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
@@ -211,8 +222,11 @@ class Schedule {
             }
         }
         setTimeout(() => this.birthBlessMail(sec), sec * 1000);
+        console.log(`birthBlessMail-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
     }
     async resetVoucherHistory(sec) {
+        let clock = new Date();
+        console.log(`resetVoucherHistory`);
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
@@ -224,8 +238,11 @@ class Schedule {
             }
         }
         setTimeout(() => this.resetVoucherHistory(sec), sec * 1000);
+        console.log(`resetVoucherHistory-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
     }
     async autoSendMail(sec) {
+        let clock = new Date();
+        console.log(`autoSendLine`);
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
@@ -242,12 +259,15 @@ class Schedule {
                 }
             }
             catch (e) {
-                throw exception_1.default.BadRequestError('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
+                console.error('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
             }
         }
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
+        console.log(`autoSendMail-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
     }
     async autoSendLine(sec) {
+        let clock = new Date();
+        console.log(`autoSendLine`);
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
@@ -267,10 +287,11 @@ class Schedule {
                 }
             }
             catch (e) {
-                throw exception_1.default.BadRequestError('BAD_REQUEST', 'autoSendLine Error: ' + e, null);
+                console.error('BAD_REQUEST', 'autoSendLine Error: ' + e, null);
             }
         }
         setTimeout(() => this.autoSendLine(sec), sec * 1000);
+        console.log(`autoSendLine-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
     }
     async initialSampleApp(sec) {
         await new initial_fake_data_js_1.InitialFakeData(`t_1725992531001`).run();
@@ -279,6 +300,8 @@ class Schedule {
     async currenciesUpdate(sec) {
         const date = new Date();
         const date_index = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        let clock = new Date();
+        console.log(`currenciesUpdate-Start`);
         if ((await database_1.default.query(`select count(1) from \`${config_1.saasConfig.SAAS_NAME}\`.currency_config where updated='${date_index}'`, []))[0]['count(1)'] === 0) {
             let config = {
                 method: 'get',
@@ -299,11 +322,11 @@ class Schedule {
         }
         else {
             setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
+            console.log(`currenciesUpdate-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
         }
     }
     main() {
         const scheduleList = [
-            { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
             { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
             { second: 3600, status: true, func: 'birthBlessMail', desc: '生日祝福信件' },
             { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },

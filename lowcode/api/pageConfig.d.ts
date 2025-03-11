@@ -4,6 +4,10 @@ export declare class ApiPageConfig {
         result: boolean;
         response: any;
     }>;
+    static getGlitterVersion(): Promise<{
+        result: boolean;
+        response: any;
+    }>;
     static getTemplateList(): Promise<{
         result: boolean;
         response: any;
@@ -151,5 +155,5 @@ export declare class ApiPageConfig {
     } | {
         result: boolean;
         links: string[];
-    }>;
+    } | undefined>;
 }
