@@ -403,7 +403,7 @@ export class ApiPageConfig {
         for (const file of files){
             const fileSizeKB = file.size / 1024; // 轉換為 KB
             // 假設你想限制上傳檔案最大為 500 KB
-            if(file.name.endsWith('png')||file.name.endsWith('jpg')||file.name.endsWith('jpeg')){
+            if((file.name.toLowerCase()).endsWith('png')||(file.name.toLowerCase()).endsWith('jpg')||(file.name.toLowerCase()).endsWith('jpeg')){
                 if (fileSizeKB > 500) {
                     const result=await new Promise((resolve,reject)=>{
                         dialog.checkYesOrNot({
@@ -447,7 +447,7 @@ export class ApiPageConfig {
                 return file_name
             }
             //壓縮圖片後再上傳
-            if(file.name.endsWith('png')||file.name.endsWith('jpg')||file.name.endsWith('jpeg')){
+            if((file.name.toLowerCase()).endsWith('png')||(file.name.toLowerCase()).endsWith('jpg')||(file.name.toLowerCase()).endsWith('jpeg')){
                 async function loopSize(size:number):Promise<string>{
                     return new Promise( (resolve,reject)=>{
                        const reader = new FileReader();

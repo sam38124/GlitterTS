@@ -334,7 +334,7 @@ export class ApiPageConfig {
             let links = [];
             for (const file of files) {
                 const fileSizeKB = file.size / 1024;
-                if (file.name.endsWith('png') || file.name.endsWith('jpg') || file.name.endsWith('jpeg')) {
+                if ((file.name.toLowerCase()).endsWith('png') || (file.name.toLowerCase()).endsWith('jpg') || (file.name.toLowerCase()).endsWith('jpeg')) {
                     if (fileSizeKB > 500) {
                         const result = yield new Promise((resolve, reject) => {
                             dialog.checkYesOrNot({
@@ -374,7 +374,7 @@ export class ApiPageConfig {
                     }
                     return file_name;
                 }
-                if (file.name.endsWith('png') || file.name.endsWith('jpg') || file.name.endsWith('jpeg')) {
+                if ((file.name.toLowerCase()).endsWith('png') || (file.name.toLowerCase()).endsWith('jpg') || (file.name.toLowerCase()).endsWith('jpeg')) {
                     function loopSize(size) {
                         return __awaiter(this, void 0, void 0, function* () {
                             return new Promise((resolve, reject) => {

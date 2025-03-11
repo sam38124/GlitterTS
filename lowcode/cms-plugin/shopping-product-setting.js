@@ -1799,14 +1799,16 @@ export class ShoppingProductSetting {
                             }))}
                                 ${BgWidget.save(obj.gvc.event(() => {
                                 setTimeout(() => {
-                                    postMD.variants.forEach((variant) => {
-                                        if (Object.keys(variant.stockList).length > 0) {
-                                            variant.stock = 0;
-                                            Object.values(variant.stockList).forEach((data) => {
-                                                variant.stock += parseInt(data.count);
-                                            });
-                                        }
-                                    });
+                                    if (postMD.product_category !== 'kitchen') {
+                                        postMD.variants.forEach((variant) => {
+                                            if (Object.keys(variant.stockList).length > 0) {
+                                                variant.stock = 0;
+                                                Object.values(variant.stockList).forEach((data) => {
+                                                    variant.stock += parseInt(data.count);
+                                                });
+                                            }
+                                        });
+                                    }
                                     ProductService.checkData(postMD, obj, vm, () => {
                                         refreshProductPage();
                                     });

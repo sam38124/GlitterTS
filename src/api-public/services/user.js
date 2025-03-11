@@ -695,6 +695,7 @@ class User {
         }
     }
     async checkMember(userData, trigger) {
+        var _a;
         const member_update = await this.getConfigV2({
             key: 'member_update',
             user_id: userData.userID,
@@ -832,12 +833,19 @@ class User {
                     const dd = member_list.find(dd => {
                         return dd.id === original_member.id;
                     });
+                    dd.renew_condition = (_a = dd.renew_condition) !== null && _a !== void 0 ? _a : {};
+                    console.log(`dd===>`, dd);
                     const renew_check_data = (() => {
+                        var _a;
                         let start_with = new Date(original_member.start_with);
                         const order_match = order_list.filter((d1) => {
                             return new Date(d1.date).getTime() > start_with.getTime();
                         });
                         const dead_line = new Date(original_member.dead_line);
+                        dd.renew_condition = (_a = dd.renew_condition) !== null && _a !== void 0 ? _a : {
+                            "type": "total",
+                            "value": 0
+                        };
                         if (dd.dead_line.type === 'noLimit') {
                             dead_line.setDate(dead_line.getDate() + 365 * 10);
                             return {

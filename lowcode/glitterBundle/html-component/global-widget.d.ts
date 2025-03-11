@@ -15,6 +15,7 @@ export declare class GlobalWidget {
         custom_edit?: boolean;
         toggle_visible?: (result: boolean) => void;
         hide_selector?: boolean;
+        hide_ai?: boolean;
     }): string;
     static showCaseData(obj: {
         gvc: GVC;

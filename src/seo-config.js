@@ -3,7 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractProds = exports.extractCols = exports.SeoConfig = void 0;
+exports.SeoConfig = void 0;
+exports.extractCols = extractCols;
+exports.extractProds = extractProds;
 const manager_js_1 = require("./api-public/services/manager.js");
 const database_js_1 = __importDefault(require("./modules/database.js"));
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
@@ -117,34 +119,66 @@ class SeoConfig {
             limit: 100,
             id_list: [-99].concat(((_a = pd_content.relative_product) !== null && _a !== void 0 ? _a : [])).join(',')
         });
-        const variant = pd_content.variants[0];
-        let preview_image = [variant.preview_image].concat(pd_content.preview_image).filter((dd) => {
-            return dd;
-        });
-        return html `
+        if (pd_content.product_category === 'kitchen') {
+            const spec = pd_content.specs.find((dd) => { return dd.option.length; });
+            let preview_image = (pd_content.preview_image).filter((dd) => {
+                return dd;
+            });
+            return html `
                 <script type="application/ld+json">
                     ${JSON.stringify({
-            "@context": "http://schema.org/",
-            "@type": "Product",
-            "name": pd_content.title,
-            "brand": "",
-            "description": pd_content.content.replace(/<\/?[^>]+(>|$)/g, ""),
-            "offers": {
-                "@type": "Offer",
-                "price": parseFloat(variant.sale_price.toFixed(1)),
-                "priceCurrency": "TWD",
-                "availability": "http://schema.org/InStock"
-            },
-            "image": preview_image,
-            "isRelatedTo": relative_product.data.map((dd) => {
-                return {
-                    "@type": "Product",
-                    "name": dd.content.title,
-                    "offers": { "@type": "Offer", "price": parseFloat(dd.content.min_price.toFixed(1)), "priceCurrency": "TWD" }
-                };
-            })
-        })}
+                "@context": "http://schema.org/",
+                "@type": "Product",
+                "name": pd_content.title,
+                "brand": "",
+                "description": pd_content.content.replace(/<\/?[^>]+(>|$)/g, ""),
+                "offers": {
+                    "@type": "Offer",
+                    "price": parseFloat((parseInt((spec && spec.price) || pd_content.price || 0, 10).toFixed(1))),
+                    "priceCurrency": "TWD",
+                    "availability": "http://schema.org/InStock"
+                },
+                "image": preview_image,
+                "isRelatedTo": relative_product.data.map((dd) => {
+                    return {
+                        "@type": "Product",
+                        "name": dd.content.title,
+                        "offers": { "@type": "Offer", "price": parseFloat(dd.content.min_price.toFixed(1)), "priceCurrency": "TWD" }
+                    };
+                })
+            })}
                 </script>`;
+        }
+        else {
+            const variant = pd_content.variants[0];
+            let preview_image = [variant ? variant.preview_image : []].concat(pd_content.preview_image).filter((dd) => {
+                return dd;
+            });
+            return html `
+                <script type="application/ld+json">
+                    ${JSON.stringify({
+                "@context": "http://schema.org/",
+                "@type": "Product",
+                "name": pd_content.title,
+                "brand": "",
+                "description": pd_content.content.replace(/<\/?[^>]+(>|$)/g, ""),
+                "offers": {
+                    "@type": "Offer",
+                    "price": parseFloat(variant.sale_price.toFixed(1)),
+                    "priceCurrency": "TWD",
+                    "availability": "http://schema.org/InStock"
+                },
+                "image": preview_image,
+                "isRelatedTo": relative_product.data.map((dd) => {
+                    return {
+                        "@type": "Product",
+                        "name": dd.content.title,
+                        "offers": { "@type": "Offer", "price": parseFloat(dd.content.min_price.toFixed(1)), "priceCurrency": "TWD" }
+                    };
+                })
+            })}
+                </script>`;
+        }
     }
     static async articleSeo(cf) {
         var _a, _b;
@@ -321,7 +355,6 @@ function extractCols(data) {
     });
     return items;
 }
-exports.extractCols = extractCols;
 function extractProds(data) {
     const items = [];
     data.map((item) => {
@@ -330,7 +363,6 @@ function extractProds(data) {
     });
     return items;
 }
-exports.extractProds = extractProds;
 function isCurrentTimeWithinRange(data) {
     const now = new Date();
     now.setTime(now.getTime() + 8 * 3600 * 1000);

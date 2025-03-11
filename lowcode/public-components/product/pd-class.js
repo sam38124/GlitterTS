@@ -365,16 +365,18 @@ export class PdClass {
                                 });
                             }
                             const prod = obj.prod;
-                            const v = prod.variants.find((variant) => {
-                                return PdClass.ObjCompare(variant.spec, prod.specs.map((spec) => {
-                                    return spec.option[0].title;
-                                }), true);
-                            });
-                            if (v === null || v === void 0 ? void 0 : v.preview_image) {
-                                let index = prod.preview_image.findIndex((variant) => {
-                                    return variant == v.preview_image;
+                            if (prod.product_category !== 'kitchen') {
+                                const v = prod.variants.find((variant) => {
+                                    return PdClass.ObjCompare(variant.spec, prod.specs.map((spec) => {
+                                        return spec.option[0].title;
+                                    }), true);
                                 });
-                                if (index && obj.vm.swiper) {
+                                if (v === null || v === void 0 ? void 0 : v.preview_image) {
+                                    let index = prod.preview_image.findIndex((variant) => {
+                                        return variant == v.preview_image;
+                                    });
+                                    if (index && obj.vm.swiper) {
+                                    }
                                 }
                             }
                             clearInterval(si);
@@ -403,6 +405,50 @@ export class PdClass {
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             cl.changePage(path, 'page', {});
         });
+    }
+    static getVariant(prod, vm) {
+        var _a;
+        if (prod.product_category === 'kitchen') {
+            let price = 0;
+            let show_understocking = 'false';
+            let stock = Infinity;
+            if (prod.specs.length) {
+                price = vm.specs.map((spec, index) => {
+                    var _a, _b;
+                    const dpe = prod.specs[index].option.find((dd) => {
+                        return dd.title === spec;
+                    });
+                    if ((((_a = dpe.stock) !== null && _a !== void 0 ? _a : '') !== '') && (stock > parseInt(dpe.stock, 10))) {
+                        stock = parseInt(dpe.stock, 10);
+                    }
+                    if ((((_b = dpe.stock) !== null && _b !== void 0 ? _b : '') !== '')) {
+                        console.log(`stock=>`, stock);
+                        show_understocking = `true`;
+                    }
+                    return parseInt(dpe.price, 10);
+                }).reduce((a, b) => a + b, 0);
+            }
+            else {
+                price = parseInt(prod.price, 10);
+                show_understocking = `${((_a = prod.stock) !== null && _a !== void 0 ? _a : '') !== ''}`;
+                stock = parseInt(prod.stock, 10);
+            }
+            return {
+                "sku": "",
+                "spec": [],
+                "type": "variants",
+                "stock": stock,
+                "v_width": 0,
+                "product_id": prod.id,
+                "sale_price": price,
+                "compare_price": 0,
+                "shipment_type": "none",
+                "show_understocking": show_understocking
+            };
+        }
+        else {
+            return prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
+        }
     }
     static selectSpec(obj) {
         var _a, _b;
@@ -537,7 +583,7 @@ export class PdClass {
                 bind: ids.price,
                 view: () => {
                     var _a, _b;
-                    const v = prod.variants.find((variant) => PdClass.ObjCompare(variant.spec, vm.specs, true));
+                    const v = PdClass.getVariant(prod, vm);
                     if (!v)
                         return '錯誤';
                     const comparePrice = parseInt(`${(_a = v.compare_price) !== null && _a !== void 0 ? _a : 0}`, 10);
@@ -585,9 +631,7 @@ export class PdClass {
                                     });
                                     e.classList.toggle('selected-option');
                                     vm.specs[index1] = opt.title;
-                                    const v = prod.variants.find((variant) => {
-                                        return PdClass.ObjCompare(variant.spec, vm.specs, true);
-                                    });
+                                    const v = PdClass.getVariant(prod, vm);
                                     if (v === null || v === void 0 ? void 0 : v.preview_image) {
                                         let index = prod.preview_image.findIndex((src) => {
                                             return src == v.preview_image;
@@ -620,7 +664,8 @@ export class PdClass {
                     return {
                         bind: ids.qty_count,
                         view: () => {
-                            const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
+                            const variant = PdClass.getVariant(prod, vm);
+                            ;
                             const cartItem = new ApiCart().cart.line_items.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
                             if (variant &&
                                 (variant.stock < parseInt(vm.quantity, 10) || (cartItem && variant.stock < cartItem.count + parseInt(vm.quantity, 10))) &&
@@ -641,7 +686,8 @@ export class PdClass {
                                     >
                                         ${gvc.map([
                                 ...new Array((() => {
-                                    const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
+                                    const variant = PdClass.getVariant(prod, vm);
+                                    ;
                                     if (!variant || variant.show_understocking === 'false') {
                                         return 50;
                                     }
@@ -667,7 +713,8 @@ export class PdClass {
                         view: () => {
                             return [
                                 (() => {
-                                    const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
+                                    const variant = PdClass.getVariant(prod, vm);
+                                    ;
                                     if (variant && variant.show_understocking !== 'false') {
                                         const stockClass = `${variant.stock}` === '0' ? 'text-danger' : '';
                                         return html `
@@ -687,9 +734,8 @@ export class PdClass {
                 gvc.bindView({
                     bind: ids.addCartButton,
                     view: () => {
-                        const variant = prod.variants.find((item) => {
-                            return PdClass.ObjCompare(item.spec, vm.specs, true);
-                        });
+                        const variant = PdClass.getVariant(prod, vm);
+                        ;
                         const cartItem = new ApiCart().cart.line_items.find((item) => {
                             return PdClass.ObjCompare(item.spec, vm.specs, true);
                         });
@@ -817,7 +863,6 @@ export class PdClass {
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.dataLoading({ visible: true });
                                                         ApiShop.getWishList().then((getRes) => {
-                                                            var _a;
                                                             if (getRes.result && getRes.response.data) {
                                                                 if (getRes.response.data.find((item) => `${item.id}` === `${prod.id}`)) {
                                                                     ApiShop.deleteWishList(`${prod.id}`).then(() => __awaiter(this, void 0, void 0, function* () {
@@ -833,7 +878,8 @@ export class PdClass {
                                                                     }));
                                                                 }
                                                                 else {
-                                                                    const variant = (_a = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true))) !== null && _a !== void 0 ? _a : prod.variants[0];
+                                                                    const variant = PdClass.getVariant(prod, vm);
+                                                                    ;
                                                                     Ad.gtagEvent('add_to_wishlist', {
                                                                         currency: 'TWD',
                                                                         value: variant.sale_price,
@@ -1020,15 +1066,14 @@ ${aboutVoucherHTML}
         const solidButtonBgr = (_a = glitter.share.globalValue['theme_color.0.solid-button-bg']) !== null && _a !== void 0 ? _a : '#dddddd';
         const solidButtonText = (_b = glitter.share.globalValue['theme_color.0.solid-button-text']) !== null && _b !== void 0 ? _b : '#000000';
         obj.gvc.glitter.innerDialog((gvc) => {
-            const variant = prod.variants.find((item) => {
-                return PdClass.ObjCompare(item.spec, vm.specs, true);
-            });
+            const variant = PdClass.getVariant(prod, vm);
+            ;
             return html `
                 <div class="w-100 h-100 position-absolute bottom-0 left-0" onclick="${gvc.event(() => {
                 gvc.closeDialog();
             })}"></div>
                 <div class="rounded-top bg-white w-100 position-absolute bottom-0 left-0 px-3 pt-3"
-                     style="padding-bottom:100px;">
+                     style="padding-bottom:100px;max-height:calc(100vh - 100px);overflow-y:auto;">
                     <div class="d-flex align-items-center mb-3 " style="margin-top:20px;gap:10px;">
                         <div
                             style="width: 88px;height: 88px;border-radius: 10px;background: 50%/cover url('${((variant === null || variant === void 0 ? void 0 : variant.preview_image) === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') ? prod.preview_image[0] : variant === null || variant === void 0 ? void 0 : variant.preview_image}');"></div>
@@ -1038,7 +1083,7 @@ ${aboutVoucherHTML}
                 bind: ids.price,
                 view: () => {
                     var _a, _b;
-                    const v = prod.variants.find((variant) => PdClass.ObjCompare(variant.spec, vm.specs, true));
+                    const v = PdClass.getVariant(prod, vm);
                     if (!v)
                         return '錯誤';
                     const comparePrice = parseInt(`${(_a = v.compare_price) !== null && _a !== void 0 ? _a : 0}`, 10);
@@ -1086,9 +1131,7 @@ ${aboutVoucherHTML}
                             });
                             e.classList.toggle('selected-option');
                             vm.specs[index1] = opt.title;
-                            const v = prod.variants.find((variant) => {
-                                return PdClass.ObjCompare(variant.spec, vm.specs, true);
-                            });
+                            const v = PdClass.getVariant(prod, vm);
                             if (v === null || v === void 0 ? void 0 : v.preview_image) {
                                 let index = prod.preview_image.findIndex((src) => {
                                     return src == v.preview_image;
@@ -1116,7 +1159,7 @@ ${aboutVoucherHTML}
                         view: () => {
                             return [
                                 (() => {
-                                    const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
+                                    const variant = PdClass.getVariant(prod, vm);
                                     if (variant && variant.show_understocking !== 'false') {
                                         const stockClass = `${variant.stock}` === '0' ? 'text-danger' : '';
                                         return html `
@@ -1136,9 +1179,7 @@ ${aboutVoucherHTML}
                 gvc.bindView({
                     bind: ids.addCartButton,
                     view: () => {
-                        const variant = prod.variants.find((item) => {
-                            return PdClass.ObjCompare(item.spec, vm.specs, true);
-                        });
+                        const variant = PdClass.getVariant(prod, vm);
                         const cartItem = new ApiCart().cart.line_items.find((item) => {
                             return PdClass.ObjCompare(item.spec, vm.specs, true);
                         });
@@ -1244,7 +1285,7 @@ ${aboutVoucherHTML}
                                                     >
                                                         ${gvc.map([
                                         ...new Array((() => {
-                                            const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
+                                            const variant = PdClass.getVariant(prod, vm);
                                             if (!variant || variant.show_understocking === 'false') {
                                                 return 50;
                                             }

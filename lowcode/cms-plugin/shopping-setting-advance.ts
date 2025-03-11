@@ -7,6 +7,7 @@ import { Product, MultiSaleType } from '../public-models/product.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { Tool } from '../modules/tool.js';
+import { ShoppingSettingBasic } from './shopping-setting-basic.js';
 
 const html = String.raw;
 
@@ -27,127 +28,7 @@ export class ShoppingSettingAdvance {
         const gvc = obj.gvc;
         const postMD = obj.postMD;
         const vm = obj.vm2;
-        const shipment_config = obj.shipment_config;
-        const variantsViewID = gvc.glitter.getUUID();
 
-        function updateVariants() {
-            postMD.specs = postMD.specs.filter((dd) => dd.option && dd.option.length);
-            const specs: any = {};
-
-            // 生成所有可能的規格組合
-            const combinations = getCombinations(specs);
-
-            // 新增不存在的變體
-            combinations.forEach((combination) => {
-                const spec = postMD.specs.map((dd) => combination[dd.title]);
-                if (!postMD.variants.some((variant) => variant.spec.join('') === spec.join(''))) {
-                    postMD.variants.push(createVariant(spec));
-                }
-            });
-
-            // 過濾無效的變體
-            postMD.variants = postMD.variants.filter((variant) => isValidVariant(variant, postMD.specs));
-
-            // 如果沒有變體，新增一個預設的變體
-            if (postMD.variants.length === 0) {
-                postMD.variants.push(createVariant([]));
-            }
-
-            if (postMD.product_category === 'kitchen' && postMD.variants.length > 1) {
-                postMD.variants.forEach((variant) => {
-                    variant.compare_price = 0;
-                    variant.sale_price = variant.spec
-                        .map((specValue, index) => parseInt(postMD.specs[index].option.find((opt: any) => opt.title === specValue)?.price ?? '0', 10))
-                        .reduce((acc, cur) => acc + cur, 0);
-
-                    Object.assign(variant, {
-                        weight: parseFloat(postMD.weight ?? '0'),
-                        v_height: parseFloat(postMD.v_height ?? '0'),
-                        v_width: parseFloat(postMD.v_width ?? '0'),
-                        v_length: parseFloat(postMD.v_length ?? '0'),
-                        shipment_type: postMD.shipment_type,
-                    });
-                });
-            }
-
-            // 更新變體狀態並通知資料變更
-            postMD.variants.forEach((variant) => (variant.checked = undefined));
-            obj.vm.replaceData = postMD;
-
-            if (postMD.multi_sale_price) {
-                postMD.multi_sale_price.forEach((m) => {
-                    const variantMaps = new Map(m.variants.map((v) => [v.spec.join(','), v]));
-                    const temp = postMD.variants.map((item) => {
-                        return (
-                            variantMaps.get(item.spec.join(',')) ?? {
-                                spec: item.spec,
-                                price: Number(postMD.variants[0]?.sale_price) || 0,
-                            }
-                        );
-                    });
-                    m.variants = temp;
-                });
-            }
-
-            obj.gvc.notifyDataChange(variantsViewID);
-        }
-
-        // 生成所有規格組合
-        function getCombinations(specs: Record<string, string[]>): Record<string, string>[] {
-            const keys = Object.keys(specs);
-            const result: Record<string, string>[] = [];
-
-            function combine(index: number, current: Record<string, string>) {
-                if (index === keys.length) {
-                    result.push({ ...current });
-                    return;
-                }
-                const key = keys[index];
-                specs[key].forEach((value) => {
-                    current[key] = value;
-                    combine(index + 1, current);
-                });
-            }
-
-            combine(0, {});
-            return result;
-        }
-
-        // 創建一個新的變體
-        function createVariant(spec: string[]) {
-            return {
-                show_understocking: 'true',
-                type: 'variants',
-                sale_price: 0,
-                compare_price: 0,
-                origin_price: 0,
-                cost: 0,
-                spec: JSON.parse(JSON.stringify(spec)),
-                profit: 0,
-                v_length: 0,
-                v_width: 0,
-                v_height: 0,
-                weight: 0,
-                shipment_type: shipment_config.selectCalc || 'weight',
-                sku: '',
-                barcode: '',
-                stock: 0,
-                stockList: {},
-                preview_image: '',
-            };
-        }
-
-        // 檢查變體是否有效
-        function isValidVariant(variant: any, specs: any[]) {
-            return (
-                variant.spec.length === specs.length &&
-                variant.spec.every((value: string, index: number) => {
-                    return specs[index]?.option.some((dd: any) => dd.title === value);
-                })
-            );
-        }
-
-        updateVariants();
 
         const categoryTitles: Record<string, string> = {
             commodity: '商品',
@@ -155,7 +36,6 @@ export class ShoppingSettingAdvance {
         };
 
         const carTitle = categoryTitles[postMD.product_category] || '商品';
-
         return BgWidget.container(
             gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();

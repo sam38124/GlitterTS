@@ -476,7 +476,7 @@ export class Shopping {
             }
           })
           .join('');
-console.log(`scheduleConditions=>`, scheduleConditions);
+        console.log(`scheduleConditions=>`, scheduleConditions);
         // 組合 SQL 條件
         querySql.push(`(${statusCondition} ${scheduleConditions})`);
       }
@@ -596,52 +596,91 @@ console.log(`scheduleConditions=>`, scheduleConditions);
                   'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg',
                 ];
               }
-              content.min_price = Infinity;
-              content.max_price = Number.MIN_VALUE;
-              (content.variants || []).forEach((variant: any) => {
-                variant.stock = 0;
-                variant.sold_out = variant.sold_out || 0;
-                variant.preview_image = variant.preview_image ?? '';
-                if (!variant.preview_image.includes('https://')) {
-                  variant.preview_image = undefined;
-                }
-                variant.preview_image =
-                  variant[`preview_image_${language}`] ||
-                  variant.preview_image ||
-                  'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
-                if (content.min_price > variant.sale_price) {
-                  console.log(`content.min_price=>`, variant.sale_price);
-                  content.min_price = variant.sale_price;
-                }
 
-                if (content.max_price < variant.sale_price) {
-                  content.max_price = variant.sale_price;
+              if (content.product_category === 'kitchen') {
+                if (content.specs.length) {
+                  content.min_price = content.specs
+                    .map((dd: any) => {
+                      return Math.min(
+                        ...dd.option.map((d1:any) => {
+                          return d1.price;
+                        })
+                      );
+                    })
+                    .reduce((a:any, b:any) => a + b, 0);
+                  content.max_price = content.specs
+                    .map((dd: any) => {
+                      return Math.max(
+                        ...dd.option.map((d1:any) => {
+                          return d1.price;
+                        })
+                      );
+                    })
+                    .reduce((a:any, b:any) => a + b, 0);
+                } else {
+                  content.min_price = content.price || 0;
+                  content.max_price = content.price || 0;
                 }
-
-                if (
-                  variant.preview_image ===
-                  'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'
-                ) {
-                  variant.preview_image = content.preview_image?.[0];
-                }
-
-                // 過濾並計算庫存
-                Object.entries(variant.stockList || {}).forEach(([storeId, stockData]: [string, any]) => {
-                  if (!store_config.list.some((store: any) => store.id === storeId) || !stockData?.count) {
-                    delete variant.stockList[storeId];
-                  } else {
-                    variant.stockList[storeId].count = parseInt(stockData.count, 10);
-                    variant.stock += variant.stockList[storeId].count;
+                content.variants=[
+                  {
+                    "sku": "",
+                    "spec": [],
+                    "type": "variants",
+                    "v_width": 0,
+                    "product_id": content.id,
+                    "sale_price": content.min_price,
+                    "compare_price": 0,
+                    "shipment_type": "none",
+                    "show_understocking": ((content.stocke ?? '')==='') ? `false`:`true`
                   }
-                });
+                ];
+              }else{
+                (content.variants || []).forEach((variant: any) => {
+                  variant.stock = 0;
+                  variant.sold_out = variant.sold_out || 0;
+                  variant.preview_image = variant.preview_image ?? '';
+                  if (!variant.preview_image.includes('https://')) {
+                    variant.preview_image = undefined;
+                  }
+                  variant.preview_image =
+                    variant[`preview_image_${language}`] ||
+                    variant.preview_image ||
+                    'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+                  if (content.min_price > variant.sale_price) {
+                    console.log(`content.min_price=>`, variant.sale_price);
+                    content.min_price = variant.sale_price;
+                  }
 
-                // 確保所有商店 ID 都存在
-                store_config.list.forEach((store: any) => {
-                  variant.stockList[store.id] = variant.stockList[store.id] || { count: 0 };
-                });
+                  if (content.max_price < variant.sale_price) {
+                    content.max_price = variant.sale_price;
+                  }
 
-                totalSale += variant.sold_out;
-              });
+                  if (
+                    variant.preview_image ===
+                    'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'
+                  ) {
+                    variant.preview_image = content.preview_image?.[0];
+                  }
+
+                  // 過濾並計算庫存
+                  Object.entries(variant.stockList || {}).forEach(([storeId, stockData]: [string, any]) => {
+                    if (!store_config.list.some((store: any) => store.id === storeId) || !stockData?.count) {
+                      delete variant.stockList[storeId];
+                    } else {
+                      variant.stockList[storeId].count = parseInt(stockData.count, 10);
+                      variant.stock += variant.stockList[storeId].count;
+                    }
+                  });
+
+                  // 確保所有商店 ID 都存在
+                  store_config.list.forEach((store: any) => {
+                    variant.stockList[store.id] = variant.stockList[store.id] || { count: 0 };
+                  });
+
+                  totalSale += variant.sold_out;
+                });
+              }
+
               if (content.shopee_id && !query.skip_shopee_check) {
                 const shopee_data = await new Shopee(this.app, this.token).getProductDetail(content.shopee_id, {
                   skip_image_load: true,
@@ -1766,11 +1805,61 @@ console.log(`scheduleConditions=>`, scheduleConditions);
               setUserID: `${userData?.userID || ''}`,
             })
           ).data;
+          function getVariant(prod:any):any{
+            if(prod.product_category==='kitchen'){
+              let price=0
+              let show_understocking='false'
+              let stock=Infinity
+              if(prod.specs.length){
+                price=b.spec.map((spec:any,index:number)=>{
+                  const dpe=prod.specs[index].option.find((dd:any)=>{
+                    return dd.title===spec
+                  })
+                  if(((dpe.stock ??'')!=='') && (stock>parseInt(dpe.stock,10))){
+                    stock=parseInt(dpe.stock,10);
+                  }
+                  if(((dpe.stock ??'') !== '')){
+                    console.log(`stock=>`,stock)
+                    show_understocking=`true`
+                  }
+                  return parseInt(dpe.price,10)
+                }).reduce((a:any, b:any) => a + b, 0);
+                // price=prod.specs
+                //   .map((dd: any) => {
+                //       return Math.min(
+                //         ...dd.option.map((d1:any) => {
+                //             return d1.price;
+                //         })
+                //       );
+                //   })
+                //   .reduce((a:any, b:any) => a + b, 0);
+              }else{
+                price=parseInt((prod as any).price,10);
+                show_understocking=`${((prod as any).stock ?? '') !== ''}`
+                stock=parseInt((prod as any).stock,10);
+              }
+              return  {
+                "sku": "",
+                "spec": [],
+                "type": "variants",
+                "stock": stock,
+                "v_width": 0,
+                "product_id": prod.id,
+                "sale_price": price,
+                "origin_price":0,
+                "compare_price": 0,
+                "shipment_type": "none",
+                "show_understocking": show_understocking
+              }
+            }else{
+              return prod.variants.find((dd: any) => {
+                return dd.spec.join('-') === b.spec.join('-');
+              })
+            }
+          }
           if (pdDqlData) {
             const pd = pdDqlData.content;
-            const variant = pd.variants.find((dd: any) => {
-              return dd.spec.join('-') === b.spec.join('-');
-            });
+            const variant = getVariant(pd,)
             if (
               (Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
               Number.isInteger(b.count)
@@ -3173,8 +3262,8 @@ console.log(`scheduleConditions=>`, scheduleConditions);
         origin = (
           await db.query(
             `SELECT *
-           FROM \`${this.app}\`.t_checkout
-           WHERE id = ?;`,
+             FROM \`${this.app}\`.t_checkout
+             WHERE id = ?;`,
             [data.id]
           )
         )[0];
@@ -3183,8 +3272,8 @@ console.log(`scheduleConditions=>`, scheduleConditions);
         origin = (
           await db.query(
             `SELECT *
-           FROM \`${this.app}\`.t_checkout
-           WHERE cart_token = ?;`,
+             FROM \`${this.app}\`.t_checkout
+             WHERE cart_token = ?;`,
             [data.cart_token]
           )
         )[0];
@@ -3820,7 +3909,7 @@ console.log(`scheduleConditions=>`, scheduleConditions);
                 await new Invoice(this.app).getInvoice({
                   page: 0,
                   limit: 1,
-                  search: order.orderData.invoice_number,
+                  search: order.cart_token,
                   searchType: order.orderData.order_number,
                 })
               ).data[0];

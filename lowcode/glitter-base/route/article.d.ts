@@ -9,6 +9,7 @@ export declare class Article {
         for_index?: string;
         status?: string;
         page_type?: string;
+        app_name?: string;
     }): Promise<{
         result: boolean;
         response: any;

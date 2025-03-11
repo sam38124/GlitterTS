@@ -1,4 +1,4 @@
-import { Glitter } from "../glitterBundle/Glitter.js";
+import { Glitter } from '../glitterBundle/Glitter.js';
 export declare class ShareDialog {
     dataLoading: (obj: {
         text?: string;
@@ -14,6 +14,5 @@ export declare class ShareDialog {
         callback: (response: boolean) => void;
         text: string;
     }) => void;
-    policy: () => void;
     constructor(glitter: Glitter);
 }

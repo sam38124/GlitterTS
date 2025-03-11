@@ -12,6 +12,12 @@ export declare class ApiUser {
         account: string;
         pwd: string;
         userData: any;
+    } | {
+        userArray: {
+            account: string;
+            pwd: string;
+            userData: any;
+        }[];
     }): Promise<{
         result: boolean;
         response: any;
@@ -40,6 +46,10 @@ export declare class ApiUser {
         response: any;
     }>;
     static getEmailCount(email: string): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static getPhoneCount(phone: string): Promise<{
         result: boolean;
         response: any;
     }>;
@@ -88,7 +98,6 @@ export declare class ApiUser {
         result: boolean;
         response: any;
     }>;
-    static getFilterString(obj: any): string[];
     static getSubScribe(json: {
         limit: number;
         page: number;
@@ -124,7 +133,7 @@ export declare class ApiUser {
         result: boolean;
         response: any;
     }>;
-    static userListFilterString(obj: any): string[];
+    static formatFilterString(obj: any): string[];
     static userListGroupString(obj: any): string[];
     static getUserListOrders(json: {
         limit: number;
@@ -137,6 +146,7 @@ export declare class ApiUser {
         status?: number;
         group?: any;
         filter_type?: string;
+        with_level?: boolean;
     }): Promise<{
         response: {
             data: never[];
@@ -194,12 +204,14 @@ export declare class ApiUser {
     static login(json: {
         app_name?: string;
         account?: string;
+        user_id?: string;
         pwd?: string;
-        login_type?: 'fb' | 'normal' | 'line' | 'google' | 'apple';
+        login_type?: 'fb' | 'normal' | 'line' | 'google' | 'apple' | 'pin';
         google_token?: string;
         fb_token?: string;
         token?: string;
         line_token?: string;
+        pin?: string;
         redirect?: string;
     }): Promise<{
         result: boolean;
@@ -221,6 +233,10 @@ export declare class ApiUser {
         result: boolean;
         response: any;
     }>;
+    static getting_config: {
+        key: string;
+        array: ((res: any) => void)[];
+    }[];
     static getPublicConfig(key: string, user_id: string, appName?: string): Promise<{
         result: boolean;
         response: any;
@@ -236,7 +252,6 @@ export declare class ApiUser {
         result: boolean;
         response: any;
     }>;
-    static permissionFilterString(obj: any): string[];
     static getPermission(json: {
         page: number;
         limit: number;
@@ -256,6 +271,10 @@ export declare class ApiUser {
             title: string;
             phone: string;
             auth: any;
+            member_id: any;
+            pin: any;
+            is_manager?: boolean;
+            support_shop?: string[];
         };
         status: number;
     }): Promise<{

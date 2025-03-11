@@ -342,7 +342,7 @@ class Shopping {
             console.log(`get-product-sql-finish`, (new Date().getTime() - start) / 1000);
             await Promise.all((Array.isArray(products.data) ? products.data : [products.data]).map(product => {
                 return new Promise(async (resolve, reject) => {
-                    var _a, _b;
+                    var _a, _b, _c;
                     if (product) {
                         let totalSale = 0;
                         const { language } = query;
@@ -374,45 +374,80 @@ class Shopping {
                                 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg',
                             ];
                         }
-                        content.min_price = Infinity;
-                        content.max_price = Number.MIN_VALUE;
-                        (content.variants || []).forEach((variant) => {
-                            var _a, _b;
-                            variant.stock = 0;
-                            variant.sold_out = variant.sold_out || 0;
-                            variant.preview_image = (_a = variant.preview_image) !== null && _a !== void 0 ? _a : '';
-                            if (!variant.preview_image.includes('https://')) {
-                                variant.preview_image = undefined;
+                        if (content.product_category === 'kitchen') {
+                            if (content.specs.length) {
+                                content.min_price = content.specs
+                                    .map((dd) => {
+                                    return Math.min(...dd.option.map((d1) => {
+                                        return d1.price;
+                                    }));
+                                })
+                                    .reduce((a, b) => a + b, 0);
+                                content.max_price = content.specs
+                                    .map((dd) => {
+                                    return Math.max(...dd.option.map((d1) => {
+                                        return d1.price;
+                                    }));
+                                })
+                                    .reduce((a, b) => a + b, 0);
                             }
-                            variant.preview_image =
-                                variant[`preview_image_${language}`] ||
-                                    variant.preview_image ||
-                                    'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
-                            if (content.min_price > variant.sale_price) {
-                                console.log(`content.min_price=>`, variant.sale_price);
-                                content.min_price = variant.sale_price;
+                            else {
+                                content.min_price = content.price || 0;
+                                content.max_price = content.price || 0;
                             }
-                            if (content.max_price < variant.sale_price) {
-                                content.max_price = variant.sale_price;
-                            }
-                            if (variant.preview_image ===
-                                'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
-                                variant.preview_image = (_b = content.preview_image) === null || _b === void 0 ? void 0 : _b[0];
-                            }
-                            Object.entries(variant.stockList || {}).forEach(([storeId, stockData]) => {
-                                if (!store_config.list.some((store) => store.id === storeId) || !(stockData === null || stockData === void 0 ? void 0 : stockData.count)) {
-                                    delete variant.stockList[storeId];
+                            content.variants = [
+                                {
+                                    "sku": "",
+                                    "spec": [],
+                                    "type": "variants",
+                                    "v_width": 0,
+                                    "product_id": content.id,
+                                    "sale_price": content.min_price,
+                                    "compare_price": 0,
+                                    "shipment_type": "none",
+                                    "show_understocking": (((_c = content.stocke) !== null && _c !== void 0 ? _c : '') === '') ? `false` : `true`
                                 }
-                                else {
-                                    variant.stockList[storeId].count = parseInt(stockData.count, 10);
-                                    variant.stock += variant.stockList[storeId].count;
+                            ];
+                        }
+                        else {
+                            (content.variants || []).forEach((variant) => {
+                                var _a, _b;
+                                variant.stock = 0;
+                                variant.sold_out = variant.sold_out || 0;
+                                variant.preview_image = (_a = variant.preview_image) !== null && _a !== void 0 ? _a : '';
+                                if (!variant.preview_image.includes('https://')) {
+                                    variant.preview_image = undefined;
                                 }
+                                variant.preview_image =
+                                    variant[`preview_image_${language}`] ||
+                                        variant.preview_image ||
+                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+                                if (content.min_price > variant.sale_price) {
+                                    console.log(`content.min_price=>`, variant.sale_price);
+                                    content.min_price = variant.sale_price;
+                                }
+                                if (content.max_price < variant.sale_price) {
+                                    content.max_price = variant.sale_price;
+                                }
+                                if (variant.preview_image ===
+                                    'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
+                                    variant.preview_image = (_b = content.preview_image) === null || _b === void 0 ? void 0 : _b[0];
+                                }
+                                Object.entries(variant.stockList || {}).forEach(([storeId, stockData]) => {
+                                    if (!store_config.list.some((store) => store.id === storeId) || !(stockData === null || stockData === void 0 ? void 0 : stockData.count)) {
+                                        delete variant.stockList[storeId];
+                                    }
+                                    else {
+                                        variant.stockList[storeId].count = parseInt(stockData.count, 10);
+                                        variant.stock += variant.stockList[storeId].count;
+                                    }
+                                });
+                                store_config.list.forEach((store) => {
+                                    variant.stockList[store.id] = variant.stockList[store.id] || { count: 0 };
+                                });
+                                totalSale += variant.sold_out;
                             });
-                            store_config.list.forEach((store) => {
-                                variant.stockList[store.id] = variant.stockList[store.id] || { count: 0 };
-                            });
-                            totalSale += variant.sold_out;
-                        });
+                        }
                         if (content.shopee_id && !query.skip_shopee_check) {
                             const shopee_data = await new shopee_1.Shopee(this.app, this.token).getProductDetail(content.shopee_id, {
                                 skip_image_load: true,
@@ -1233,11 +1268,56 @@ class Shopping {
                         whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
                         setUserID: `${(userData === null || userData === void 0 ? void 0 : userData.userID) || ''}`,
                     })).data;
+                    function getVariant(prod) {
+                        var _a;
+                        if (prod.product_category === 'kitchen') {
+                            let price = 0;
+                            let show_understocking = 'false';
+                            let stock = Infinity;
+                            if (prod.specs.length) {
+                                price = b.spec.map((spec, index) => {
+                                    var _a, _b;
+                                    const dpe = prod.specs[index].option.find((dd) => {
+                                        return dd.title === spec;
+                                    });
+                                    if ((((_a = dpe.stock) !== null && _a !== void 0 ? _a : '') !== '') && (stock > parseInt(dpe.stock, 10))) {
+                                        stock = parseInt(dpe.stock, 10);
+                                    }
+                                    if ((((_b = dpe.stock) !== null && _b !== void 0 ? _b : '') !== '')) {
+                                        console.log(`stock=>`, stock);
+                                        show_understocking = `true`;
+                                    }
+                                    return parseInt(dpe.price, 10);
+                                }).reduce((a, b) => a + b, 0);
+                            }
+                            else {
+                                price = parseInt(prod.price, 10);
+                                show_understocking = `${((_a = prod.stock) !== null && _a !== void 0 ? _a : '') !== ''}`;
+                                stock = parseInt(prod.stock, 10);
+                            }
+                            return {
+                                "sku": "",
+                                "spec": [],
+                                "type": "variants",
+                                "stock": stock,
+                                "v_width": 0,
+                                "product_id": prod.id,
+                                "sale_price": price,
+                                "origin_price": 0,
+                                "compare_price": 0,
+                                "shipment_type": "none",
+                                "show_understocking": show_understocking
+                            };
+                        }
+                        else {
+                            return prod.variants.find((dd) => {
+                                return dd.spec.join('-') === b.spec.join('-');
+                            });
+                        }
+                    }
                     if (pdDqlData) {
                         const pd = pdDqlData.content;
-                        const variant = pd.variants.find((dd) => {
-                            return dd.spec.join('-') === b.spec.join('-');
-                        });
+                        const variant = getVariant(pd);
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
                             Number.isInteger(b.count)) {
                             const isPOS = data.checkOutType === 'POS';
@@ -2371,13 +2451,13 @@ class Shopping {
             let origin = undefined;
             if (data.id) {
                 origin = (await database_js_1.default.query(`SELECT *
-           FROM \`${this.app}\`.t_checkout
-           WHERE id = ?;`, [data.id]))[0];
+             FROM \`${this.app}\`.t_checkout
+             WHERE id = ?;`, [data.id]))[0];
             }
             if (data.cart_token) {
                 origin = (await database_js_1.default.query(`SELECT *
-           FROM \`${this.app}\`.t_checkout
-           WHERE cart_token = ?;`, [data.cart_token]))[0];
+             FROM \`${this.app}\`.t_checkout
+             WHERE cart_token = ?;`, [data.cart_token]))[0];
             }
             if (!origin) {
                 return {
@@ -2854,7 +2934,7 @@ class Shopping {
                 const invoice = (await new invoice_js_1.Invoice(this.app).getInvoice({
                     page: 0,
                     limit: 1,
-                    search: order.orderData.invoice_number,
+                    search: order.cart_token,
                     searchType: order.orderData.order_number,
                 })).data[0];
                 order.invoice_number = invoice && invoice.invoice_no;

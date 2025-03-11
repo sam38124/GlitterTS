@@ -31,6 +31,8 @@ export declare class GVC {
     recreateView: () => void;
     addObserver(obj: any, callback: () => void, viewBind?: string): void;
     initialElemCallback(id: any): void;
+    static add_style_string: string[];
+    getStyleCheckSum(style: string): string;
     bindView(map: (() => {
         view: () => (string) | Promise<string>;
         bind: string;

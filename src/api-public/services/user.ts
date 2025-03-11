@@ -1018,6 +1018,8 @@ export class User {
           const dd: MemberConfig = member_list.find(dd => {
             return dd.id === original_member.id;
           })!;
+          dd.renew_condition=dd.renew_condition ?? {};
+          console.log(`dd===>`,dd)
           //是否符合續費條件
           const renew_check_data = (() => {
             //取得續費計算起始時間
@@ -1028,6 +1030,10 @@ export class User {
             });
             //過期時間
             const dead_line = new Date(original_member.dead_line);
+            dd.renew_condition=dd.renew_condition ?? {
+                "type": "total",
+                "value": 0
+            }
             //當判斷有效期為無限期的話，則直接返回無條件續會。
             if (dd.dead_line.type === 'noLimit') {
               dead_line.setDate(dead_line.getDate() + 365 * 10);

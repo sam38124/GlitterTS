@@ -413,7 +413,6 @@ export class CheckoutIndex {
                             const cart = res;
                             ApiShop.getCheckout(cart).then(res => {
                                 if (res.result) {
-                                    console.log('vm.cartData -- ', JSON.parse(JSON.stringify(res.response.data)));
                                     resolve(res.response.data);
                                 }
                                 else {
@@ -2682,7 +2681,7 @@ ${log_config.content}
                                       <div style="height:100px;"></div>
                                       <div
                                         class="w-100 d-flex align-items-center justify-content-center position-fixed bottom-0 start-0 p-2 shadow bg-white"
-                                        style="height:76px;"
+                                        style="height:76px;z-index:10;"
                                       >
                                         <div
                                           class="d-flex align-items-center justify-content-end"

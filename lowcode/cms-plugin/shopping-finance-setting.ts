@@ -1869,234 +1869,11 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                           <div class="col-12 col-md-4 p-0 p-md-2">
                             <div
                               class="w-100 position-relative main-card"
-                              style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
+                              style="padding: 24px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
                             >
-                              ${(() => {
-                                if ((dd as any).custom) {
-                                  return html`
-                                    <div
-                                      class="position-absolute d-flex"
-                                      style="cursor:pointer;right:15px;top:15px;gap:5px;"
-                                    >
-                                      ${BgWidget.customButton({
-                                        button: {
-                                          color: 'gray',
-                                          size: 'sm',
-                                        },
-                                        text: {
-                                          name: `物流設定`,
-                                        },
-                                        event: gvc.event(() => {
-                                          updateCustomShipment({
-                                            function: 'replace',
-                                            data: vm.data.custom_delivery.find((d1: any) => {
-                                              return dd.value === d1.id;
-                                            }),
-                                          });
-                                        }),
-                                      })}
-                                      ${BgWidget.customButton({
-                                        button: {
-                                          color: 'gray',
-                                          size: 'sm',
-                                        },
-                                        text: {
-                                          name: `運費設定`,
-                                        },
-                                        event: gvc.event(() => {
-                                          const vm = {
-                                            gvc: gvc,
-                                            key: dd.value,
-                                            save_event: () => {
-                                              return new Promise((resolve, reject) => {
-                                                resolve(true);
-                                              });
-                                            },
-                                          };
-                                          BgWidget.settingDialog({
-                                            gvc: gvc,
-                                            width: 1200,
-                                            height: document.body.clientHeight - 100,
-                                            title: `『 ${dd.title} 』運費設定`,
-                                            d_main_style:
-                                              document.body.clientWidth < 768 ? 'padding:0px !important;' : ``,
-                                            innerHTML: (gvc: GVC) => {
-                                              vm.gvc = gvc;
-                                              return ShoppingShipmentSetting.main(vm);
-                                            },
-                                            footer_html: gvc => {
-                                              return [
-                                                BgWidget.cancel(
-                                                  gvc.event(() => {
-                                                    gvc.closeDialog();
-                                                  })
-                                                ),
-                                                BgWidget.save(
-                                                  gvc.event(() => {
-                                                    vm.save_event().then(() => {});
-                                                  })
-                                                ),
-                                              ].join('');
-                                            },
-                                          });
-                                        }),
-                                      })}
-                                    </div>
-                                  `;
-                                } else {
-                                  return html` <div
-                                    class="position-absolute fw-500 d-flex"
-                                    style="cursor:pointer;right:15px;top:15px;gap:5px;"
-                                  >
-                                    ${BgWidget.customButton({
-                                      button: {
-                                        color: 'gray',
-                                        size: 'sm',
-                                      },
-                                      text: {
-                                        name: `物流設定`,
-                                      },
-                                      event: gvc.event(async () => {
-                                        const log_config = (
-                                          await ApiUser.getPublicConfig(
-                                            'shipment_config_' + dd.value,
-                                            'manager',
-                                            saasConfig.config.appName
-                                          )
-                                        ).response.value;
-                                        BgWidget.settingDialog({
-                                          gvc: gvc,
-                                          title: '物流設定',
-                                          innerHTML: gvc => {
-                                            const view: string[] = [];
-                                            if (
-                                              ['UNIMARTC2C', 'UNIMARTFREEZE', 'FAMIC2C', 'FAMIC2CFREEZE'].includes(
-                                                dd.value
-                                              )
-                                            ) {
-                                              view.push(`<div class="d-flex flex-column w-100">
-${[
-  `<div
-                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
-                                >
-                                  <div class="tx_normal">大宗配送</div>
-                                  <div class="d-flex align-items-center" style="gap:4px;">
-                                    <div class="tx_normal">
-                                      ${log_config.bulk ? `開啟` : `關閉`}
-                                    </div>
-                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
-                                      <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        onchange="${gvc.event((e, event) => {
-                                          log_config.bulk = !log_config.bulk;
-                                          gvc.recreateView();
-                                        })}"
-                                        ${log_config.bulk ? `checked` : ``}
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                                               `,
-].join('')}
-</div>`);
-                                            }
-                                            view.push(
-                                              html` <div class="d-flex flex-column" style="gap:5px;">
-                                                ${[
-                                                  `  <div class="tx_normal">物流配送說明</div>`,
-                                                  BgWidget.richTextEditor({
-                                                    gvc: gvc,
-                                                    content: log_config.content ?? '',
-                                                    callback: data => {
-                                                      log_config.content=data;
-                                                    },
-                                                    title: '物流配送說明',
-                                                  }),
-                                                ].join('')}
-                                              </div>`
-                                            );
-                                            return `<div class="w-100 d-flex flex-column" style="gap:5px;">${view.join(`<div class="w-100 border-bottom my-2"></div>`)}</div>`;
-                                          },
-                                          footer_html: gvc => {
-                                            let array = [
-                                              BgWidget.cancel(
-                                                gvc.event(() => {
-                                                  gvc.closeDialog();
-                                                })
-                                              ),
-                                              BgWidget.save(
-                                                gvc.event(() => {
-                                                  const dialog = new ShareDialog(gvc.glitter);
-                                                  dialog.dataLoading({ visible: true });
-                                                  ApiUser.setPublicConfig({
-                                                    user_id: 'manager',
-                                                    key: 'shipment_config_' + dd.value,
-                                                    value: log_config,
-                                                  }).then(res => {
-                                                    dialog.dataLoading({ visible: false });
-                                                    dialog.successMessage({ text: '設定成功' });
-                                                    gvc.closeDialog();
-                                                  });
-                                                })
-                                              ),
-                                            ];
-                                            return array.join('');
-                                          },
-                                        });
-                                      }),
-                                    })}
-                                    ${BgWidget.customButton({
-                                      button: {
-                                        color: 'gray',
-                                        size: 'sm',
-                                      },
-                                      text: {
-                                        name: `運費設定`,
-                                      },
-                                      event: gvc.event(() => {
-                                        const vm = {
-                                          gvc: gvc,
-                                          key: dd.value,
-                                          save_event: () => {
-                                            return new Promise((resolve, reject) => {
-                                              resolve(true);
-                                            });
-                                          },
-                                        };
-                                        BgWidget.settingDialog({
-                                          gvc: gvc,
-                                          width: 1200,
-                                          height: document.body.clientHeight - 100,
-                                          title: `『 ${dd.title} 』運費設定`,
-                                          d_main_style:
-                                            document.body.clientWidth < 768 ? 'padding:0px !important;' : ``,
-                                          innerHTML: (gvc: GVC) => {
-                                            vm.gvc = gvc;
-                                            return ShoppingShipmentSetting.main(vm);
-                                          },
-                                          footer_html: gvc => {
-                                            return [
-                                              BgWidget.cancel(
-                                                gvc.event(() => {
-                                                  gvc.closeDialog();
-                                                })
-                                              ),
-                                              BgWidget.save(
-                                                gvc.event(() => {
-                                                  vm.save_event().then(() => {});
-                                                })
-                                              ),
-                                            ].join('');
-                                          },
-                                        });
-                                      }),
-                                    })}
-                                  </div>`;
-                                }
-                              })()}
+                             
                               <div
-                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex;padding-top:22px;"
+                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex;"
                               >
                                 <div style="min-width: 46px;max-width: 46px;">
                                   ${dd.type === 'font_awesome' ? dd.src : html` <img src="${dd.src}" />`}
@@ -2141,6 +1918,236 @@ ${[
                                     </div>
                                   </div>
                                 </div>
+                              </div>
+                              <div class="w-100 border-top pt-3 mt-n2">
+                                ${(() => {
+                                  let button_action:string[]=[BgWidget.customButton({
+                                    button: {
+                                      color: 'gray',
+                                      size: 'sm',
+                                    },
+                                    text: {
+                                      name: `物流設定`,
+                                    },
+                                    event: gvc.event(async () => {
+                                      const log_config = (
+                                        await ApiUser.getPublicConfig(
+                                          'shipment_config_' + dd.value,
+                                          'manager',
+                                          saasConfig.config.appName
+                                        )
+                                      ).response.value;
+                                      BgWidget.settingDialog({
+                                        gvc: gvc,
+                                        title: '物流設定',
+                                        innerHTML: gvc => {
+                                          const view: string[] = [];
+                                          if (
+                                            ['UNIMARTC2C', 'UNIMARTFREEZE', 'FAMIC2C', 'FAMIC2CFREEZE'].includes(
+                                              dd.value
+                                            )
+                                          ) {
+                                            view.push(`<div class="d-flex flex-column w-100">
+${[
+                                              `<div
+                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                >
+                                  <div class="tx_normal">大宗配送</div>
+                                  <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="tx_normal">
+                                      ${log_config.bulk ? `開啟` : `關閉`}
+                                    </div>
+                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
+                                      <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        onchange="${gvc.event((e, event) => {
+                                                log_config.bulk = !log_config.bulk;
+                                                gvc.recreateView();
+                                              })}"
+                                        ${log_config.bulk ? `checked` : ``}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                               `,
+                                            ].join('')}
+</div>`);
+                                          }
+                                          view.push(
+                                            html` <div class="d-flex flex-column" style="gap:5px;">
+                                            ${[
+                                              `  <div class="tx_normal">物流配送說明</div>`,
+                                              BgWidget.richTextEditor({
+                                                gvc: gvc,
+                                                content: log_config.content ?? '',
+                                                callback: data => {
+                                                  log_config.content=data;
+                                                },
+                                                title: '物流配送說明',
+                                              }),
+                                            ].join('')}
+                                          </div>`
+                                          );
+                                          return `<div class="w-100 d-flex flex-column" style="gap:5px;">${view.join(`<div class="w-100 border-bottom my-2"></div>`)}</div>`;
+                                        },
+                                        footer_html: gvc => {
+                                          let array = [
+                                            BgWidget.cancel(
+                                              gvc.event(() => {
+                                                gvc.closeDialog();
+                                              })
+                                            ),
+                                            BgWidget.save(
+                                              gvc.event(() => {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.dataLoading({ visible: true });
+                                                ApiUser.setPublicConfig({
+                                                  user_id: 'manager',
+                                                  key: 'shipment_config_' + dd.value,
+                                                  value: log_config,
+                                                }).then(res => {
+                                                  dialog.dataLoading({ visible: false });
+                                                  dialog.successMessage({ text: '設定成功' });
+                                                  gvc.closeDialog();
+                                                });
+                                              })
+                                            ),
+                                          ];
+                                          return array.join('');
+                                        },
+                                      });
+                                    }),
+                                  })]
+
+                                  if ((dd as any).custom) {
+                                    button_action=button_action.concat([BgWidget.customButton({
+                                      button: {
+                                        color: 'gray',
+                                        size: 'sm',
+                                      },
+                                      text: {
+                                        name: `自訂表單`,
+                                      },
+                                      event: gvc.event(() => {
+                                        updateCustomShipment({
+                                          function: 'replace',
+                                          data: vm.data.custom_delivery.find((d1: any) => {
+                                            return dd.value === d1.id;
+                                          }),
+                                        });
+                                      }),
+                                    }),BgWidget.customButton({
+                                      button: {
+                                        color: 'gray',
+                                        size: 'sm',
+                                      },
+                                      text: {
+                                        name: `運費設定`,
+                                      },
+                                      event: gvc.event(() => {
+                                        const vm = {
+                                          gvc: gvc,
+                                          key: dd.value,
+                                          save_event: () => {
+                                            return new Promise((resolve, reject) => {
+                                              resolve(true);
+                                            });
+                                          },
+                                        };
+                                        BgWidget.settingDialog({
+                                          gvc: gvc,
+                                          width: 1200,
+                                          height: document.body.clientHeight - 100,
+                                          title: `『 ${dd.title} 』運費設定`,
+                                          d_main_style:
+                                            document.body.clientWidth < 768 ? 'padding:0px !important;' : ``,
+                                          innerHTML: (gvc: GVC) => {
+                                            vm.gvc = gvc;
+                                            return ShoppingShipmentSetting.main(vm);
+                                          },
+                                          footer_html: gvc => {
+                                            return [
+                                              BgWidget.cancel(
+                                                gvc.event(() => {
+                                                  gvc.closeDialog();
+                                                })
+                                              ),
+                                              BgWidget.save(
+                                                gvc.event(() => {
+                                                  vm.save_event().then(() => {});
+                                                })
+                                              ),
+                                            ].join('');
+                                          },
+                                        });
+                                      }),
+                                    })])
+                                    return html`
+                                    <div
+                                      class="d-flex"
+                                      style="cursor:pointer;gap:5px;"
+                                    >
+                                      <div class="flex-fill"></div>
+                                      ${button_action.join('')}
+                                    </div>
+                                  `;
+                                  } else {
+                                    button_action=button_action.concat([BgWidget.customButton({
+                                      button: {
+                                        color: 'gray',
+                                        size: 'sm',
+                                      },
+                                      text: {
+                                        name: `運費設定`,
+                                      },
+                                      event: gvc.event(() => {
+                                        const vm = {
+                                          gvc: gvc,
+                                          key: dd.value,
+                                          save_event: () => {
+                                            return new Promise((resolve, reject) => {
+                                              resolve(true);
+                                            });
+                                          },
+                                        };
+                                        BgWidget.settingDialog({
+                                          gvc: gvc,
+                                          width: 1200,
+                                          height: document.body.clientHeight - 100,
+                                          title: `『 ${dd.title} 』運費設定`,
+                                          d_main_style:
+                                            document.body.clientWidth < 768 ? 'padding:0px !important;' : ``,
+                                          innerHTML: (gvc: GVC) => {
+                                            vm.gvc = gvc;
+                                            return ShoppingShipmentSetting.main(vm);
+                                          },
+                                          footer_html: gvc => {
+                                            return [
+                                              BgWidget.cancel(
+                                                gvc.event(() => {
+                                                  gvc.closeDialog();
+                                                })
+                                              ),
+                                              BgWidget.save(
+                                                gvc.event(() => {
+                                                  vm.save_event().then(() => {});
+                                                })
+                                              ),
+                                            ].join('');
+                                          },
+                                        });
+                                      }),
+                                    })])
+                                    return html` <div
+                                    class="d-flex"
+                                    style="cursor:pointer;gap:5px;"
+                                  >
+                                    <div class="flex-fill"></div>
+                                    ${button_action.join('')}
+                                  </div>`;
+                                  }
+                                })()}
                               </div>
                             </div>
                           </div>
