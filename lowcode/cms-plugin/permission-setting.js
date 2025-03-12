@@ -198,7 +198,6 @@ export class PermissionSetting {
                             return gvc.bindView({
                                 bind: id,
                                 view: () => {
-                                    var _a;
                                     const filterList = [
                                         BgWidget.selectFilter({
                                             gvc,
@@ -231,25 +230,7 @@ export class PermissionSetting {
                                         }),
                                     ];
                                     const filterTags = ListComp.getFilterTags(FilterOptions.permissionFunnel);
-                                    if (document.body.clientWidth < 768) {
-                                        return html ` <div
-                                style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between"
-                              >
-                                <div>${filterList[0]}</div>
-                                <div style="display: flex;">
-                                  ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
-                                  ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
-                                </div>
-                              </div>
-                              <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                              <div>${filterTags}</div>`;
-                                    }
-                                    else {
-                                        return html ` <div style="display: flex; align-items: center; gap: 10px;">
-                                ${filterList.join('')}
-                              </div>
-                              <div>${filterTags}</div>`;
-                                    }
+                                    return BgListComponent.listBarRWD(filterList, filterTags);
                                 },
                             });
                         })(),

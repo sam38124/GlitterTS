@@ -281,7 +281,6 @@ export class UserList {
                                 gvc.bindView({
                                     bind: vm.barId,
                                     view: () => __awaiter(this, void 0, void 0, function* () {
-                                        var _a, _b, _c;
                                         if (vm.loading) {
                                             return '';
                                         }
@@ -343,24 +342,7 @@ export class UserList {
                                             }),
                                         ];
                                         const filterTags = ListComp.getFilterTags(userFunnel);
-                                        if (document.body.clientWidth < 768) {
-                                            return html ` <div
-                                style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between"
-                              >
-                                <div>${filterList[0]}</div>
-                                <div style="display: flex; gap: 4px;">
-                                  ${(_a = filterList[2]) !== null && _a !== void 0 ? _a : ''} ${(_b = filterList[3]) !== null && _b !== void 0 ? _b : ''} ${(_c = filterList[4]) !== null && _c !== void 0 ? _c : ''}
-                                </div>
-                              </div>
-                              <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                              <div>${filterTags}</div>`;
-                                        }
-                                        else {
-                                            return html ` <div style="display: flex; align-items: center; gap: 10px;">
-                                ${filterList.join('')}
-                              </div>
-                              <div>${filterTags}</div>`;
-                                        }
+                                        return BgListComponent.listBarRWD(filterList, filterTags);
                                     }),
                                 }),
                                 gvc.bindView({
@@ -799,7 +781,6 @@ export class UserList {
                             return gvc.bindView({
                                 bind: vm.barId,
                                 view: () => __awaiter(this, void 0, void 0, function* () {
-                                    var _a;
                                     const userFunnel = yield FilterOptions.getUserFunnel();
                                     const filterList = [
                                         BgWidget.selectFilter({
@@ -830,24 +811,7 @@ export class UserList {
                                         }),
                                     ];
                                     const filterTags = ListComp.getFilterTags(userFunnel);
-                                    if (document.body.clientWidth < 768) {
-                                        return html ` <div
-                        style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between"
-                      >
-                        <div>${filterList[0]}</div>
-                        <div style="display: flex;">
-                          ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
-                        </div>
-                      </div>
-                      <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                      <div>${filterTags}</div>`;
-                                    }
-                                    else {
-                                        return html ` <div style="display: flex; align-items: center; gap: 10px;">
-                        ${filterList.join('')}
-                      </div>
-                      <div>${filterTags}</div>`;
-                                    }
+                                    return BgListComponent.listBarRWD(filterList, filterTags);
                                 }),
                             });
                         })(),

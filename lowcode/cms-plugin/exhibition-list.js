@@ -93,29 +93,28 @@ export class ExhibitionManager {
                     {
                         key: '狀態',
                         value: html `<span class="fs-7"
-                            >${(() => {
+              >${(() => {
                             const key = getTimeState(dd.startDate, dd.endDate);
                             return stateBadge[key];
                         })()}</span
-                        >`,
+            >`,
                     },
                 ];
             });
         }
         return BgWidget.container(html ` <div class="title-container">
-                    ${BgWidget.title('展場列表')}
-                    <div class="flex-fill"></div>
-                    ${BgWidget.grayButton('建立展場', gvc.event(() => {
+          ${BgWidget.title('展場列表')}
+          <div class="flex-fill"></div>
+          ${BgWidget.grayButton('建立展場', gvc.event(() => {
             vm.type = 'create';
         }))}
-                </div>
-                ${BgWidget.container(BgWidget.mainCard([
+        </div>
+        ${BgWidget.container(BgWidget.mainCard([
             (() => {
                 const id = gvc.glitter.getUUID();
                 return gvc.bindView({
                     bind: id,
                     view: () => {
-                        var _a;
                         const filterList = [
                             BgWidget.selectFilter({
                                 gvc,
@@ -132,25 +131,14 @@ export class ExhibitionManager {
                                     },
                                 ],
                             }),
-                            BgWidget.searchFilter(gvc.event((e) => {
+                            BgWidget.searchFilter(gvc.event(e => {
                                 vm.query = `${e.value}`.trim();
                                 gvc.notifyDataChange(vm.tableId);
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋展場名稱'),
                         ];
                         const filterTags = ListComp.getFilterTags(FilterOptions.exhibitionFunnel);
-                        if (document.body.clientWidth < 768) {
-                            return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                    <div>${filterList[0]}</div>
-                                                    <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}</div>
-                                                </div>
-                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                <div>${filterTags}</div>`;
-                        }
-                        else {
-                            return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                <div>${filterTags}</div>`;
-                        }
+                        return BgListComponent.listBarRWD(filterList, filterTags);
                     },
                 });
             })(),
@@ -159,7 +147,7 @@ export class ExhibitionManager {
                 view: () => {
                     return BgWidget.tableV3({
                         gvc: gvc,
-                        getData: (vd) => {
+                        getData: vd => {
                             vmi = vd;
                             const limit = 100;
                             function callback(list) {
@@ -211,7 +199,7 @@ export class ExhibitionManager {
         function getDatalist() {
             return vm.dataList.map((dd) => {
                 var _a;
-                const data = vm.data.dataList.find((item) => item.variantID == dd.id);
+                const data = vm.data.dataList.find(item => item.variantID == dd.id);
                 const ids = {
                     stock: `stock_${dd.id}`,
                     saleStock: `sale_stock_${dd.id}`,
@@ -235,11 +223,11 @@ export class ExhibitionManager {
                     {
                         key: '來自哪個門市',
                         value: html `<span class="fs-7"
-                            >${BgWidget.select({
+              >${BgWidget.select({
                             gvc: gvc,
                             default: data.storeFrom,
                             options: vm.storeData,
-                            callback: (text) => {
+                            callback: text => {
                                 function resetSaleStock() {
                                     var _a, _b;
                                     try {
@@ -259,7 +247,7 @@ export class ExhibitionManager {
                             },
                             readonly: state === 'inRange',
                         })}</span
-                        >`,
+            >`,
                     },
                     {
                         key: '庫存',
@@ -295,7 +283,7 @@ export class ExhibitionManager {
                                         type: 'number',
                                         default: `${(_a = data.saleStock) !== null && _a !== void 0 ? _a : ''}`,
                                         placeHolder: '',
-                                        callback: (text) => {
+                                        callback: text => {
                                             const n = parseInt(`${text}`, 10);
                                             const max = content.stockList[data.storeFrom].count;
                                             if (n > max || n < 0) {
@@ -330,7 +318,7 @@ export class ExhibitionManager {
                                     type: 'number',
                                     default: `${(_a = data.salePrice) !== null && _a !== void 0 ? _a : ''}`,
                                     placeHolder: '',
-                                    callback: (text) => {
+                                    callback: text => {
                                         const n = parseInt(`${text}`, 10);
                                         if (n < 0) {
                                             gvc.notifyDataChange(ids.salePrice);
@@ -351,117 +339,120 @@ export class ExhibitionManager {
         }
         return BgWidget.container([
             html ` <div class="title-container">
-                        <div>
-                            ${BgWidget.goBack(gvc.event(() => {
+            <div>
+              ${BgWidget.goBack(gvc.event(() => {
                 vm.type = 'list';
             }))}
-                        </div>
-                        <div>${BgWidget.title(type === 'create' ? `新增${st_name}` : vm.data.name)}</div>
-                    </div>
-                    <div class="flex-fill"></div>`,
-            html ` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                    ${BgWidget.container([
+            </div>
+            <div>${BgWidget.title(type === 'create' ? `新增${st_name}` : vm.data.name)}</div>
+          </div>
+          <div class="flex-fill"></div>`,
+            html ` <div
+          class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+          style="gap: 24px"
+        >
+          ${BgWidget.container([
                 BgWidget.mainCard([
                     html ` <div class="tx_700">${st_name}資訊</div>`,
                     html ` <div class="row">
-                                        <div class="col-12 col-md-6">
-                                            <div class="tx_normal">${st_name}名稱</div>
-                                            ${BgWidget.mbContainer(8)}
-                                            ${BgWidget.editeInput({
+                    <div class="col-12 col-md-6">
+                      <div class="tx_normal">${st_name}名稱</div>
+                      ${BgWidget.mbContainer(8)}
+                      ${BgWidget.editeInput({
                         gvc: gvc,
                         title: '',
                         default: (_a = vm.data.name) !== null && _a !== void 0 ? _a : '',
                         placeHolder: `請輸入${st_name}名稱`,
-                        callback: (text) => {
+                        callback: text => {
                             vm.data.name = text;
                         },
                     })}
-                                        </div>
-                                        ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(18)}
-                                        <div class="col-12 col-md-6">
-                                            <div class="tx_normal">${st_name}地址</div>
-                                            ${BgWidget.mbContainer(8)}
-                                            ${BgWidget.editeInput({
+                    </div>
+                    ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(18)}
+                    <div class="col-12 col-md-6">
+                      <div class="tx_normal">${st_name}地址</div>
+                      ${BgWidget.mbContainer(8)}
+                      ${BgWidget.editeInput({
                         gvc: gvc,
                         title: '',
                         default: (_b = vm.data.address) !== null && _b !== void 0 ? _b : '',
                         placeHolder: `請輸入${st_name}地址`,
-                        callback: (text) => {
+                        callback: text => {
                             vm.data.address = text;
                         },
                     })}
-                                        </div>
-                                    </div>`,
+                    </div>
+                  </div>`,
                     html ` <div class="row">
-                                        <div class="col-12 col-md-6">
-                                            <div class="tx_normal">展場開始時間</div>
-                                            ${BgWidget.mbContainer(8)}
-                                            ${BgWidget.editeInput({
+                    <div class="col-12 col-md-6">
+                      <div class="tx_normal">展場開始時間</div>
+                      ${BgWidget.mbContainer(8)}
+                      ${BgWidget.editeInput({
                         gvc: gvc,
                         title: '',
                         type: 'date',
                         default: (_c = vm.data.startDate) !== null && _c !== void 0 ? _c : '',
                         placeHolder: '請輸入展場開始時間',
-                        callback: (text) => {
+                        callback: text => {
                             vm.data.startDate = text;
                         },
                     })}
-                                        </div>
-                                        <div class="col-12 col-md-6">
-                                            <div class="tx_normal">展場結束時間</div>
-                                            ${BgWidget.mbContainer(8)}
-                                            ${BgWidget.editeInput({
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="tx_normal">展場結束時間</div>
+                      ${BgWidget.mbContainer(8)}
+                      ${BgWidget.editeInput({
                         gvc: gvc,
                         title: '',
                         type: 'date',
                         default: (_d = vm.data.endDate) !== null && _d !== void 0 ? _d : '',
                         placeHolder: '請輸入展場結束時間',
-                        callback: (text) => {
+                        callback: text => {
                             vm.data.endDate = text;
                         },
                     })}
-                                        </div>
-                                    </div>`,
+                    </div>
+                  </div>`,
                     html ` <div class="tx_normal">備註</div>
-                                        ${EditorElem.editeText({
+                    ${EditorElem.editeText({
                         gvc: gvc,
                         title: '',
                         default: (_e = vm.data.note) !== null && _e !== void 0 ? _e : '',
                         placeHolder: '請輸入備註',
-                        callback: (text) => {
+                        callback: text => {
                             vm.data.note = text;
                         },
                     })}`,
                 ]
-                    .filter((dd) => {
+                    .filter(dd => {
                     return dd;
                 })
                     .join(BgWidget.mbContainer(18))),
                 BgWidget.mainCard([
                     html `<div class="tx_700">展場商品</div>`,
                     html `<div class="d-flex align-items-center gap-2">
-                                        <div style="width: ${state === 'inRange' ? 100 : 90}%">
-                                            ${BgWidget.editeInput({
+                    <div style="width: ${state === 'inRange' ? 100 : 90}%">
+                      ${BgWidget.editeInput({
                         gvc: gvc,
                         title: '',
                         default: '',
                         placeHolder: '搜尋',
-                        callback: (text) => {
+                        callback: text => {
                             console.log('搜尋', text);
                         },
                         divStyle: 'display: none;',
                     })}
-                                        </div>
-                                        ${state === 'inRange'
+                    </div>
+                    ${state === 'inRange'
                         ? ''
                         : html `<div style="width: auto;">
-                                                  ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                          ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                             BgWidget.variantDialog({
                                 gvc,
                                 title: '所有商品',
                                 default: vm.data.dataList.slice().map(({ variantID }) => `${variantID}`),
-                                callback: (resultData) => {
-                                    const existingDataMap = new Map(vm.data.dataList.map((item) => [item.variantID, item]));
+                                callback: resultData => {
+                                    const existingDataMap = new Map(vm.data.dataList.map(item => [item.variantID, item]));
                                     vm.data.dataList = resultData.map((id) => {
                                         var _a;
                                         const variantID = parseInt(id, 10);
@@ -478,14 +469,14 @@ export class ExhibitionManager {
                                 },
                             });
                         }))}
-                                              </div>`}
-                                    </div> `,
+                        </div>`}
+                  </div> `,
                     gvc.bindView({
                         bind: tableID,
                         view: () => {
                             return BgWidget.tableV3({
                                 gvc: gvc,
-                                getData: (vd) => {
+                                getData: vd => {
                                     let vmi = vd;
                                     const limit = 10;
                                     const resetData = () => {
@@ -504,8 +495,8 @@ export class ExhibitionManager {
                                             ApiStock.getStoreProductStock({
                                                 page: vmi.page - 1,
                                                 limit: limit,
-                                                variant_id_list: vm.data.dataList.map((d) => d.variantID),
-                                            }).then((r) => {
+                                                variant_id_list: vm.data.dataList.map(d => d.variantID),
+                                            }).then(r => {
                                                 if (r.result && r.response.data) {
                                                     vm.dataList = r.response.data;
                                                     vmi.pageSize = Math.ceil(r.response.total / limit);
@@ -520,7 +511,7 @@ export class ExhibitionManager {
                                             });
                                         }
                                     };
-                                    this.getStoreData().then((data) => {
+                                    this.getStoreData().then(data => {
                                         vm.storeData = data.list.map((dd) => {
                                             return {
                                                 key: dd.id,
@@ -536,14 +527,14 @@ export class ExhibitionManager {
                                     : [
                                         {
                                             name: '移除',
-                                            event: (checkedData) => {
+                                            event: checkedData => {
                                                 dialog.warningMessage({
                                                     text: '確認移除所選商品嗎？',
-                                                    callback: (response) => {
+                                                    callback: response => {
                                                         if (!response)
                                                             return;
                                                         const checkedIDs = new Set(checkedData.map((item) => item.id));
-                                                        vm.data.dataList = vm.data.dataList.filter((data) => !checkedIDs.has(data.variantID));
+                                                        vm.data.dataList = vm.data.dataList.filter(data => !checkedIDs.has(data.variantID));
                                                         gvc.notifyDataChange(tableID);
                                                     },
                                                 });
@@ -555,20 +546,20 @@ export class ExhibitionManager {
                     }),
                 ].join(BgWidget.mbContainer(18))),
             ].join(BgWidget.mbContainer(24)))}
-                </div>`,
+        </div>`,
             BgWidget.mbContainer(240),
             html ` <div class="update-bar-container">
-                    ${type === 'replace'
+          ${type === 'replace'
                 ? BgWidget.danger(gvc.event(() => {
                     const cleanDelete = () => {
                         dialog.checkYesOrNot({
                             text: html `此操作無法恢復此展場資料<br />確定要刪除此庫存點？`,
-                            callback: (bool) => {
+                            callback: bool => {
                                 if (bool) {
                                     dialog.dataLoading({ visible: true });
                                     this.getPublicData().then((stores) => {
                                         const filterList = stores.list.filter((item) => item.id !== vm.data.id);
-                                        ApiStock.deleteStore({ id: vm.data.id }).then((d) => {
+                                        ApiStock.deleteStore({ id: vm.data.id }).then(d => {
                                             ApiUser.setPublicConfig({
                                                 key: 'exhibition_manager',
                                                 value: {
@@ -591,15 +582,15 @@ export class ExhibitionManager {
                     cleanDelete();
                 }))
                 : ''}
-                    ${BgWidget.cancel(gvc.event(() => {
+          ${BgWidget.cancel(gvc.event(() => {
                 vm.type = 'list';
             }))}
-                    ${BgWidget.save(gvc.event(() => {
+          ${BgWidget.save(gvc.event(() => {
                 this.verifyStoreForm(glitter, type, vm, () => {
                     vm.type = 'list';
                 });
             }))}
-                </div>`,
+        </div>`,
         ].join('<div class="my-2"></div>'));
     }
     static getPublicData() {
@@ -664,9 +655,7 @@ export class ExhibitionManager {
             }
             ApiUser.setPublicConfig({
                 key: 'exhibition_manager',
-                value: {
-                    list: exhibitions.list,
-                },
+                value: { list: exhibitions.list },
                 user_id: 'manager',
             }).then(() => {
                 dialog.dataLoading({ visible: false });

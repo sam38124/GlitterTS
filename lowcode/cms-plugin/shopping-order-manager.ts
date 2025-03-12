@@ -463,10 +463,8 @@ export class ShoppingOrderManager {
                             }),
                       ];
 
-                      return BgListComponent.listBarRWD(
-                        filterList,
-                        ListComp.getFilterTags(await FilterOptions.getOrderFunnel())
-                      );
+                      const filterTags = ListComp.getFilterTags(await FilterOptions.getOrderFunnel());
+                      return BgListComponent.listBarRWD(filterList, filterTags);
                     },
                   });
                 })(),

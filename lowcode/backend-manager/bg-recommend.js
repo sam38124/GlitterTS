@@ -43,15 +43,15 @@ export class BgRecommend {
                     }
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="title-container">
-                                ${BgWidget.title('分銷連結')}
-                                <div class="flex-fill"></div>
-                                ${BgWidget.darkButton('新增', gvc.event(() => {
+              <div class="title-container">
+                ${BgWidget.title('分銷連結')}
+                <div class="flex-fill"></div>
+                ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.type = 'add';
                             gvc.notifyDataChange(vm.id);
                         }))}
-                            </div>
-                            ${BgWidget.container(BgWidget.mainCard(this.linkTable({
+              </div>
+              ${BgWidget.container(BgWidget.mainCard(this.linkTable({
                             gvc,
                             vm,
                             rowCallback: (data, index) => {
@@ -59,7 +59,7 @@ export class BgRecommend {
                                 vm.type = 'replace';
                             },
                         })))}
-                        `);
+            `);
                     }
                     else if (vm.type === 'add') {
                         return this.editorLink({
@@ -87,13 +87,13 @@ export class BgRecommend {
                 divCreate: {},
                 onCreate: () => {
                     if (vm.loading) {
-                        new Promise((resolve) => {
+                        new Promise(resolve => {
                             ApiRecommend.getUsers({
                                 data: {},
                                 page: 0,
                                 limit: 99999,
                                 token: window.parent.config.token,
-                            }).then((data) => {
+                            }).then(data => {
                                 if (data.result) {
                                     resolve(data.response.data);
                                 }
@@ -101,7 +101,7 @@ export class BgRecommend {
                                     resolve([]);
                                 }
                             });
-                        }).then((data) => {
+                        }).then(data => {
                             vm.users = data;
                             vm.loading = false;
                             gvc.notifyDataChange(vm.id);
@@ -136,13 +136,13 @@ export class BgRecommend {
                                 bind: id,
                                 view: () => {
                                     return html `<span
-                                            style="cursor: pointer; color: #4D86DB;"
-                                            onclick="${gvc.event(() => {
+                      style="cursor: pointer; color: #4D86DB;"
+                      onclick="${gvc.event(() => {
                                         glitter.openNewTab(url);
                                     })}"
-                                        >
-                                            ${url}
-                                        </span>`;
+                    >
+                      ${url}
+                    </span>`;
                                 },
                                 divCreate: {
                                     class: 'me-4',
@@ -201,7 +201,7 @@ export class BgRecommend {
                                         left: dd.content.status ? '啟用' : '關閉',
                                     }, () => {
                                         dialog.dataLoading({ visible: true });
-                                        ApiRecommend.toggleListData({ id: dd.id }).then((data) => {
+                                        ApiRecommend.toggleListData({ id: dd.id }).then(data => {
                                             dialog.dataLoading({ visible: false });
                                             if (data.result) {
                                                 dd.content.status = !dd.content.status;
@@ -241,7 +241,7 @@ export class BgRecommend {
                     page: vmi.page - 1,
                     user_id: obj.user_id,
                     token: window.parent.config.token,
-                }).then((data) => {
+                }).then(data => {
                     vm.dataList = data.result ? data.response.data : [];
                     vmi.pageSize = Math.ceil(data.response.total / limit);
                     vmi.originalData = vm.dataList;
@@ -256,7 +256,7 @@ export class BgRecommend {
             filter: [
                 {
                     name: '批量移除',
-                    event: (checkedData) => {
+                    event: checkedData => {
                         this.deleteLink({
                             gvc: gvc,
                             ids: checkedData.map((dd) => dd.id),
@@ -317,15 +317,15 @@ export class BgRecommend {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="title-container">
-                                ${BgWidget.title('推薦人列表')}
-                                <div class="flex-fill"></div>
-                                ${BgWidget.darkButton('新增', gvc.event(() => {
+              <div class="title-container">
+                ${BgWidget.title('推薦人列表')}
+                <div class="flex-fill"></div>
+                ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.type = 'add';
                             gvc.notifyDataChange(vm.id);
                         }))}
-                            </div>
-                            ${BgWidget.container(BgWidget.mainCard([
+              </div>
+              ${BgWidget.container(BgWidget.mainCard([
                             (() => {
                                 const fvm = {
                                     id: gvc.glitter.getUUID(),
@@ -349,7 +349,7 @@ export class BgRecommend {
                                                 default: vm.queryType || 'name',
                                                 options: FilterOptions.recommendUserSelect,
                                             }),
-                                            BgWidget.searchFilter(gvc.event((e) => {
+                                            BgWidget.searchFilter(gvc.event(e => {
                                                 vm.query = `${e.value}`.trim();
                                                 gvc.notifyDataChange(vm.tableId);
                                                 gvc.notifyDataChange(fvm.id);
@@ -365,16 +365,7 @@ export class BgRecommend {
                                                 options: FilterOptions.recommendUserOrderBy,
                                             }),
                                         ];
-                                        if (document.body.clientWidth < 768) {
-                                            return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                <div>${filterList[0]}</div>
-                                                                <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}</div>
-                                                            </div>
-                                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>`;
-                                        }
-                                        else {
-                                            return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>`;
-                                        }
+                                        return BgListComponent.listBarRWD(filterList, '');
                                     },
                                     divCreate: {
                                         class: 'mb-3',
@@ -405,7 +396,7 @@ export class BgRecommend {
                                                 search: vm.query,
                                                 searchType: vm.queryType,
                                                 orderBy: vm.orderString,
-                                            }).then((data) => {
+                                            }).then(data => {
                                                 vm.dataList = data.response.data;
                                                 vmi.pageSize = Math.ceil(data.response.total / limit);
                                                 vmi.originalData = vm.dataList;
@@ -421,7 +412,7 @@ export class BgRecommend {
                                         filter: [
                                             {
                                                 name: '批量移除',
-                                                event: (checkedData) => {
+                                                event: checkedData => {
                                                     this.deleteUser({
                                                         gvc: gvc,
                                                         ids: checkedData.map((dd) => dd.id),
@@ -436,7 +427,7 @@ export class BgRecommend {
                                 },
                             }),
                         ].join('')))}
-                        `);
+            `);
                     }
                     else if (vm.type === 'add') {
                         return this.editorUser({
@@ -532,11 +523,15 @@ export class BgRecommend {
                 return [
                     {
                         key: '訂單編號',
-                        value: html ` <div style="overflow: hidden;white-space: normal;color: #4D86DB;word-break: break-all;">${dd.orderData.orderID}</div>`,
+                        value: html ` <div style="overflow: hidden;white-space: normal;color: #4D86DB;word-break: break-all;">
+              ${dd.orderData.orderID}
+            </div>`,
                     },
                     {
                         key: '訂單日期',
-                        value: html ` <div style="overflow: hidden;white-space: normal;word-break: break-all;">${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd')}</div>`,
+                        value: html ` <div style="overflow: hidden;white-space: normal;word-break: break-all;">
+              ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd')}
+            </div>`,
                     },
                     {
                         key: '總金額',
@@ -546,7 +541,7 @@ export class BgRecommend {
                         key: '訂單狀態',
                         value: (() => {
                             if (dd.orderData.progress) {
-                                const status = ApiShop.getShippingStatusArray().find((item) => item.value === dd.orderData.progress);
+                                const status = ApiShop.getShippingStatusArray().find(item => item.value === dd.orderData.progress);
                                 if (status) {
                                     return status ? status.title : '未設定出貨狀態';
                                 }
@@ -573,12 +568,12 @@ export class BgRecommend {
                     }
                     return BgWidget.container([
                         html ` <div class="title-container">
-                                ${BgWidget.goBack(gvc.event(() => {
+                ${BgWidget.goBack(gvc.event(() => {
                             cf.callback();
                         }))}
-                                ${BgWidget.title(vm.data.title || '新增分銷連結')}
-                                <div class="flex-fill"></div>
-                            </div>`,
+                ${BgWidget.title(vm.data.title || '新增分銷連結')}
+                <div class="flex-fill"></div>
+              </div>`,
                         BgWidget.container1x2({
                             html: gvc.bindView(() => {
                                 const id = glitter.getUUID();
@@ -590,25 +585,27 @@ export class BgRecommend {
                                         let map = [
                                             BgWidget.mainCard([
                                                 html ` <div class="tx_700 mb-2">連結網址</div>
-                                                                <div class="tx_normal">分銷代碼</div>
-                                                                <div style="margin: 4px 0 8px;">${BgWidget.grayNote('是一段唯一的識別碼，用於系統追蹤和記錄通過該代碼完成的銷售')}</div>
-                                                                ${BgWidget.editeInput({
+                                <div class="tx_normal">分銷代碼</div>
+                                <div style="margin: 4px 0 8px;">
+                                  ${BgWidget.grayNote('是一段唯一的識別碼，用於系統追蹤和記錄通過該代碼完成的銷售')}
+                                </div>
+                                ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_a = vm.data.code) !== null && _a !== void 0 ? _a : '',
                                                     placeHolder: '請輸入分銷代碼',
-                                                    callback: (text) => {
+                                                    callback: text => {
                                                         vm.data.code = text;
                                                     },
                                                     readonly: vm.readonly,
                                                 })}`,
                                                 html ` <div class="tx_normal">導向網頁</div>
-                                                                ${BgWidget.linkList({
+                                ${BgWidget.linkList({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_b = vm.data.redirect) !== null && _b !== void 0 ? _b : '',
                                                     placeHolder: '選擇或貼上外部連結',
-                                                    callback: (text) => {
+                                                    callback: text => {
                                                         vm.data.redirect = text;
                                                         gvc.notifyDataChange(vm.previewId);
                                                     },
@@ -624,29 +621,29 @@ export class BgRecommend {
                                                         return [
                                                             html ` <div class="tx_normal fw-normal mb-2">自訂網址</div>`,
                                                             html ` <div
-                                                                            style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                                      style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
                                                                 .body.clientWidth > 768
                                                                 ? 'gap: 18px; '
                                                                 : 'flex-direction: column; gap: 0px; '}"
-                                                                            class="w-100"
-                                                                        >
-                                                                            <div
-                                                                                style="width:100%;padding: 9px 18px;background: #EAEAEA; justify-content: flex-start; align-items: center; gap: 5px; display: flex"
-                                                                            >
-                                                                                <div
-                                                                                    style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
-                                                                                >
-                                                                                    ${prefixURL}
-                                                                                </div>
-                                                                            </div>
-                                                                            <input
-                                                                                class="flex-fill"
-                                                                                style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word; ${document
+                                      class="w-100"
+                                    >
+                                      <div
+                                        style="width:100%;padding: 9px 18px;background: #EAEAEA; justify-content: flex-start; align-items: center; gap: 5px; display: flex"
+                                      >
+                                        <div
+                                          style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                        >
+                                          ${prefixURL}
+                                        </div>
+                                      </div>
+                                      <input
+                                        class="flex-fill"
+                                        style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word; ${document
                                                                 .body.clientWidth > 768
                                                                 ? ''
                                                                 : 'padding: 9px 18px;'}"
-                                                                                value="${vm.data.link || ''}"
-                                                                                onchange="${gvc.event((e) => {
+                                        value="${vm.data.link || ''}"
+                                        onchange="${gvc.event(e => {
                                                                 let text = e.value;
                                                                 if (!CheckInput.isEnglishNumberHyphen(text)) {
                                                                     const dialog = new ShareDialog(gvc.glitter);
@@ -658,26 +655,26 @@ export class BgRecommend {
                                                                     gvc.notifyDataChange(id);
                                                                 }
                                                             })}"
-                                                                            />
-                                                                        </div>`,
+                                      />
+                                    </div>`,
                                                             html ` <div class="mt-2 mb-1">
-                                                                            <span class="tx_normal me-2">網址預覽</span>${BgWidget.greenNote(prefixURL + ((_a = vm.data.link) !== null && _a !== void 0 ? _a : ''), gvc.event(() => {
+                                      <span class="tx_normal me-2">網址預覽</span>${BgWidget.greenNote(prefixURL + ((_a = vm.data.link) !== null && _a !== void 0 ? _a : ''), gvc.event(() => {
                                                                 var _a;
                                                                 gvc.glitter.openNewTab(prefixURL + ((_a = vm.data.link) !== null && _a !== void 0 ? _a : ''));
                                                             }))}
-                                                                        </div>`,
+                                    </div>`,
                                                         ].join('');
                                                     },
                                                 }),
                                                 html ` <div class="tx_700 mb-2">基本設定</div>
-                                                                <div class="tx_normal">分銷連結名稱</div>
-                                                                ${BgWidget.mbContainer(8)}
-                                                                ${BgWidget.editeInput({
+                                <div class="tx_normal">分銷連結名稱</div>
+                                ${BgWidget.mbContainer(8)}
+                                ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_c = vm.data.title) !== null && _c !== void 0 ? _c : '',
                                                     placeHolder: '請輸入分銷連結名稱',
-                                                    callback: (text) => {
+                                                    callback: text => {
                                                         vm.data.title = text;
                                                     },
                                                 })}`,
@@ -685,13 +682,13 @@ export class BgRecommend {
                                             BgWidget.mainCard([
                                                 html ` <div class="tx_700">分潤條件</div>`,
                                                 html ` <div class="tx_700">訂單滿額</div>
-                                                                ${BgWidget.mbContainer(8)}
-                                                                ${EditorElem.numberInput({
+                                ${BgWidget.mbContainer(8)}
+                                ${EditorElem.numberInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_d = vm.data.condition) !== null && _d !== void 0 ? _d : 0,
                                                     placeHolder: '請輸入分銷代碼',
-                                                    callback: (text) => {
+                                                    callback: text => {
                                                         vm.data.condition = text;
                                                     },
                                                     min: 0,
@@ -700,19 +697,21 @@ export class BgRecommend {
                                                 })}`,
                                                 BgWidget.horizontalLine(),
                                                 html ` <div class="tx_700">分潤類型</div>
-                                                                ${BgWidget.mbContainer(8)}
-                                                                ${BgWidget.multiCheckboxContainer(gvc, [
+                                ${BgWidget.mbContainer(8)}
+                                ${BgWidget.multiCheckboxContainer(gvc, [
                                                     { key: 'none', name: '沒有分潤' },
                                                     {
                                                         key: 'fix',
                                                         name: '固定金額',
-                                                        innerHtml: html ` <div style="margin: 4px 0 8px;">${BgWidget.grayNote('每筆訂單分潤固定金額')}</div>
-                                                                                ${EditorElem.numberInput({
+                                                        innerHtml: html ` <div style="margin: 4px 0 8px;">
+                                          ${BgWidget.grayNote('每筆訂單分潤固定金額')}
+                                        </div>
+                                        ${EditorElem.numberInput({
                                                             gvc: gvc,
                                                             title: '',
                                                             default: (_e = vm.data.share_value) !== null && _e !== void 0 ? _e : 0,
                                                             placeHolder: '請輸入數值',
-                                                            callback: (text) => {
+                                                            callback: text => {
                                                                 vm.data.share_value = text;
                                                                 gvc.notifyDataChange(id);
                                                             },
@@ -724,14 +723,14 @@ export class BgRecommend {
                                                         key: 'percent',
                                                         name: '百分比',
                                                         innerHtml: html ` <div style="margin: 4px 0 8px;">
-                                                                                    ${BgWidget.grayNote('分潤計算方式為: (訂單結算金額 - 運費)*分潤百分比')}
-                                                                                </div>
-                                                                                ${EditorElem.numberInput({
+                                          ${BgWidget.grayNote('分潤計算方式為: (訂單結算金額 - 運費)*分潤百分比')}
+                                        </div>
+                                        ${EditorElem.numberInput({
                                                             gvc: gvc,
                                                             title: '',
                                                             default: (_f = vm.data.share_value) !== null && _f !== void 0 ? _f : 0,
                                                             placeHolder: '請輸入數值',
-                                                            callback: (text) => {
+                                                            callback: text => {
                                                                 vm.data.share_value = text;
                                                                 gvc.notifyDataChange(id);
                                                             },
@@ -756,7 +755,9 @@ export class BgRecommend {
                                                                     var _a, _b;
                                                                     let selectVariant = product.content.variants[parseInt((_a = product.selectIndex) !== null && _a !== void 0 ? _a : 0)];
                                                                     selectVariant.preview_image = (_b = selectVariant.preview_image) !== null && _b !== void 0 ? _b : '';
-                                                                    let productIMG = typeof selectVariant.preview_image == 'string' ? selectVariant.preview_image : selectVariant.preview_image[0];
+                                                                    let productIMG = typeof selectVariant.preview_image == 'string'
+                                                                        ? selectVariant.preview_image
+                                                                        : selectVariant.preview_image[0];
                                                                     productIMG = productIMG
                                                                         ? productIMG
                                                                         : product.content.preview_image[0]
@@ -764,56 +765,73 @@ export class BgRecommend {
                                                                             : BgWidget.noImageURL;
                                                                     selectVariant.qty = selectVariant.qty || 1;
                                                                     returnHTML += html `
-                                                                                    <div style="width: 100%;display: flex;align-items: center;position: relative;padding-right: 20px;">
-                                                                                        <div class="flex-fill d-flex align-items-center col-5" style="font-size: 16px;font-weight: 700;gap: 12px;">
-                                                                                            <div
-                                                                                                style="width: 54px;height: 54px; background: url('${productIMG}') lightgray 50% / cover no-repeat;"
-                                                                                            ></div>
-                                                                                            <div
-                                                                                                style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;width: calc(100% - 54px);padding-right: 15px;"
-                                                                                            >
-                                                                                                <div style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 100%;">
-                                                                                                    ${product.content.title}
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div
-                                                                                            class="col-3"
-                                                                                            style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 400;"
-                                                                                        >
-                                                                                            $${(() => {
+                                          <div
+                                            style="width: 100%;display: flex;align-items: center;position: relative;padding-right: 20px;"
+                                          >
+                                            <div
+                                              class="flex-fill d-flex align-items-center col-5"
+                                              style="font-size: 16px;font-weight: 700;gap: 12px;"
+                                            >
+                                              <div
+                                                style="width: 54px;height: 54px; background: url('${productIMG}') lightgray 50% / cover no-repeat;"
+                                              ></div>
+                                              <div
+                                                style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;width: calc(100% - 54px);padding-right: 15px;"
+                                              >
+                                                <div
+                                                  style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 100%;"
+                                                >
+                                                  ${product.content.title}
+                                                </div>
+                                              </div>
+                                            </div>
+                                            <div
+                                              class="col-3"
+                                              style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 400;"
+                                            >
+                                              $${(() => {
                                                                         const price = parseInt(`${selectVariant.sale_price}`, 10);
                                                                         return isNaN(price) ? 0 : price.toLocaleString();
                                                                     })()}
-                                                                                        </div>
-                                                                                        <div style="min-width: 6%;font-size: 16px;font-weight: 400;width: 100px;text-align: right;">
-                                                                                            <span>$${(selectVariant.sale_price * selectVariant.qty).toLocaleString()}</span>
-                                                                                            <div
-                                                                                                class="d-flex align-items-center cursor_pointer"
-                                                                                                style="position: absolute;right:0;top:50%;transform: translateY(-50%)"
-                                                                                                onclick="${gvc.event(() => {
+                                            </div>
+                                            <div
+                                              style="min-width: 6%;font-size: 16px;font-weight: 400;width: 100px;text-align: right;"
+                                            >
+                                              <span
+                                                >$${(selectVariant.sale_price * selectVariant.qty).toLocaleString()}</span
+                                              >
+                                              <div
+                                                class="d-flex align-items-center cursor_pointer"
+                                                style="position: absolute;right:0;top:50%;transform: translateY(-50%)"
+                                                onclick="${gvc.event(() => {
                                                                         newOrder.productCheck.splice(index, 1);
                                                                         gvc.notifyDataChange('listProduct');
                                                                     })}"
-                                                                                            >
-                                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="10" viewBox="0 0 11 10" fill="none">
-                                                                                                    <path
-                                                                                                        d="M1.51367 9.24219L9.99895 0.756906"
-                                                                                                        stroke="#DDDDDD"
-                                                                                                        stroke-width="1.3"
-                                                                                                        stroke-linecap="round"
-                                                                                                    />
-                                                                                                    <path
-                                                                                                        d="M9.99805 9.24219L1.51276 0.756907"
-                                                                                                        stroke="#DDDDDD"
-                                                                                                        stroke-width="1.3"
-                                                                                                        stroke-linecap="round"
-                                                                                                    />
-                                                                                                </svg>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                `;
+                                              >
+                                                <svg
+                                                  xmlns="http://www.w3.org/2000/svg"
+                                                  width="11"
+                                                  height="10"
+                                                  viewBox="0 0 11 10"
+                                                  fill="none"
+                                                >
+                                                  <path
+                                                    d="M1.51367 9.24219L9.99895 0.756906"
+                                                    stroke="#DDDDDD"
+                                                    stroke-width="1.3"
+                                                    stroke-linecap="round"
+                                                  />
+                                                  <path
+                                                    d="M9.99805 9.24219L1.51276 0.756907"
+                                                    stroke="#DDDDDD"
+                                                    stroke-width="1.3"
+                                                    stroke-linecap="round"
+                                                  />
+                                                </svg>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        `;
                                                                 });
                                                             }
                                                             return returnHTML;
@@ -832,10 +850,10 @@ export class BgRecommend {
                                                     bind: 'addProduct',
                                                     view: () => {
                                                         return html `
-                                                                        <div
-                                                                            class="w-100 d-flex justify-content-center align-items-center"
-                                                                            style="color: #36B;gap:5px;"
-                                                                            onclick="${gvc.event(() => {
+                                    <div
+                                      class="w-100 d-flex justify-content-center align-items-center"
+                                      style="color: #36B;gap:5px;"
+                                      onclick="${gvc.event(() => {
                                                             let confirm = true;
                                                             BgProduct.productsDialog({
                                                                 gvc: gvc,
@@ -845,23 +863,27 @@ export class BgRecommend {
                                                                 callback: (value) => __awaiter(this, void 0, void 0, function* () {
                                                                     const dialog = new ShareDialog(glitter);
                                                                     dialog.dataLoading({ visible: true });
-                                                                    const pd = yield ApiShop.getProduct({ limit: 1000, page: 0, id_list: value.join(',') });
+                                                                    const pd = yield ApiShop.getProduct({
+                                                                        limit: 1000,
+                                                                        page: 0,
+                                                                        id_list: value.join(','),
+                                                                    });
                                                                     newOrder.productCheck = pd.response.data;
                                                                     dialog.dataLoading({ visible: false });
                                                                     gvc.notifyDataChange(id);
                                                                 }),
-                                                                filter: (d1) => {
+                                                                filter: d1 => {
                                                                     return !newOrder.productCheck.find((dd) => {
                                                                         return dd.id === d1;
                                                                     });
                                                                 },
                                                             });
                                                         })}"
-                                                                        >
-                                                                            設定分潤商品
-                                                                            <i class="fa-duotone fa-solid fa-gear"></i>
-                                                                        </div>
-                                                                    `;
+                                    >
+                                      設定分潤商品
+                                      <i class="fa-duotone fa-solid fa-gear"></i>
+                                    </div>
+                                  `;
                                                     },
                                                     divCreate: {
                                                         style: `width: 100%;display: flex;align-items: center;margin:24px 0;cursor: pointer;`,
@@ -876,8 +898,8 @@ export class BgRecommend {
                                                         bind: id,
                                                         view: () => {
                                                             return BgWidget.mainCard(html ` <div style="display: flex; margin-bottom: 8px;padding-left:0.25rem;">
-                                                                              <span class="tx_700">訂單記錄</span>
-                                                                          </div>` +
+                                        <span class="tx_700">訂單記錄</span>
+                                      </div>` +
                                                                 gvc.bindView(() => {
                                                                     const id = gvc.glitter.getUUID();
                                                                     return {
@@ -887,14 +909,14 @@ export class BgRecommend {
                                                                             return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                                                                                 const h = BgWidget.tableV3({
                                                                                     gvc: gvc,
-                                                                                    getData: (vd) => {
+                                                                                    getData: vd => {
                                                                                         ApiShop.getOrder({
                                                                                             page: vd.page - 1,
                                                                                             limit: limit,
                                                                                             data_from: 'manager',
                                                                                             distribution_code: vm.data.code,
                                                                                             status: 1,
-                                                                                        }).then((data) => {
+                                                                                        }).then(data => {
                                                                                             vd.pageSize = Math.ceil(data.response.total / limit);
                                                                                             vd.originalData = data.response.data;
                                                                                             vd.tableData = getOrderlist(data.response.data);
@@ -905,7 +927,9 @@ export class BgRecommend {
                                                                                     rowClick: () => { },
                                                                                     filter: [],
                                                                                 });
-                                                                                resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
+                                                                                resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">
+                                                    ${h}
+                                                  </div>`);
                                                                             }));
                                                                         },
                                                                     };
@@ -924,19 +948,19 @@ export class BgRecommend {
                                                     view: () => {
                                                         var _a;
                                                         return html ` <div class="tx_700">分銷專屬折扣</div>
-                                                                        ${BgWidget.mbContainer(8)}
-                                                                        ${BgWidget.multiCheckboxContainer(gvc, [
+                                    ${BgWidget.mbContainer(8)}
+                                    ${BgWidget.multiCheckboxContainer(gvc, [
                                                             { key: 'no', name: '不套用折扣' },
                                                             {
                                                                 key: 'yes',
                                                                 name: '套用折扣',
                                                                 innerHtml: html `
-                                                                                        <div style="margin: 4px 0 8px;">
-                                                                                            ${BgWidget.grayNote('請至「優惠促銷」新增折扣，折扣方式必須勾選「供分銷連結使用」')}
-                                                                                        </div>
-                                                                                        ${BgWidget.select({
+                                            <div style="margin: 4px 0 8px;">
+                                              ${BgWidget.grayNote('請至「優惠促銷」新增折扣，折扣方式必須勾選「供分銷連結使用」')}
+                                            </div>
+                                            ${BgWidget.select({
                                                                     gvc: gvc,
-                                                                    callback: (text) => {
+                                                                    callback: text => {
                                                                         vm.data.voucher = parseInt(text, 10);
                                                                         gvc.notifyDataChange(id);
                                                                     },
@@ -953,11 +977,14 @@ export class BgRecommend {
                                                                         };
                                                                     })),
                                                                 })}
-                                                                                        ${[
+                                            ${[
                                                                     BgWidget.title(html `折扣商品
-                                                                                                    <div class="badge ms-2 mt-3" style="background:#eaeaea;color:#393939;">
-                                                                                                        僅以下設定的商品會套用折扣
-                                                                                                    </div>`, 'font-size: 16px;'),
+                                                  <div
+                                                    class="badge ms-2 mt-3"
+                                                    style="background:#eaeaea;color:#393939;"
+                                                  >
+                                                    僅以下設定的商品會套用折扣
+                                                  </div>`, 'font-size: 16px;'),
                                                                     html ` <div style="height: 10px;"></div>`,
                                                                     gvc.bindView((() => {
                                                                         const id = glitter.getUUID();
@@ -986,7 +1013,7 @@ export class BgRecommend {
                                                                                                 value: 'product',
                                                                                             },
                                                                                         ],
-                                                                                        callback: (text) => {
+                                                                                        callback: text => {
                                                                                             vm.data.relative = text;
                                                                                             gvc.notifyDataChange(id);
                                                                                         },
@@ -1008,15 +1035,18 @@ export class BgRecommend {
                                                                                                                 return BgWidget.spinner();
                                                                                                             }
                                                                                                             return html `
-                                                                                                                                            <div class="d-flex flex-column p-2" style="gap: 18px;">
-                                                                                                                                                <div
-                                                                                                                                                    class="d-flex align-items-center gray-bottom-line-18"
-                                                                                                                                                    style="gap: 24px; justify-content: space-between;"
-                                                                                                                                                >
-                                                                                                                                                    <div class="form-check-label c_updown_label">
-                                                                                                                                                        <div class="tx_normal">系列列表</div>
-                                                                                                                                                    </div>
-                                                                                                                                                    ${BgWidget.grayButton('選擇系列', gvc.event(() => {
+                                                                      <div
+                                                                        class="d-flex flex-column p-2"
+                                                                        style="gap: 18px;"
+                                                                      >
+                                                                        <div
+                                                                          class="d-flex align-items-center gray-bottom-line-18"
+                                                                          style="gap: 24px; justify-content: space-between;"
+                                                                        >
+                                                                          <div class="form-check-label c_updown_label">
+                                                                            <div class="tx_normal">系列列表</div>
+                                                                          </div>
+                                                                          ${BgWidget.grayButton('選擇系列', gvc.event(() => {
                                                                                                                 BgProduct.collectionsDialog({
                                                                                                                     gvc: gvc,
                                                                                                                     default: vm.data
@@ -1030,25 +1060,25 @@ export class BgRecommend {
                                                                                                                     }),
                                                                                                                 });
                                                                                                             }), { textStyle: 'font-weight: 400;' })}
-                                                                                                                                                </div>
-                                                                                                                                                ${gvc.map(subVM.dataList.map((opt, index) => {
+                                                                        </div>
+                                                                        ${gvc.map(subVM.dataList.map((opt, index) => {
                                                                                                                 return html ` <div
-                                                                                                                                                            class="d-flex align-items-center form-check-label c_updown_label gap-3"
-                                                                                                                                                        >
-                                                                                                                                                            <span class="tx_normal"
-                                                                                                                                                                >${index + 1} . ${opt.value}</span
-                                                                                                                                                            >
-                                                                                                                                                            ${opt.note
+                                                                                class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                                                              >
+                                                                                <span class="tx_normal"
+                                                                                  >${index + 1} . ${opt.value}</span
+                                                                                >
+                                                                                ${opt.note
                                                                                                                     ? html `
-                                                                                                                                                                      <span class="tx_gray_12 ms-2"
-                                                                                                                                                                          >${opt.note}</span
-                                                                                                                                                                      >
-                                                                                                                                                                  `
+                                                                                      <span class="tx_gray_12 ms-2"
+                                                                                        >${opt.note}</span
+                                                                                      >
+                                                                                    `
                                                                                                                     : ''}
-                                                                                                                                                        </div>`;
+                                                                              </div>`;
                                                                                                             }))}
-                                                                                                                                            </div>
-                                                                                                                                        `;
+                                                                      </div>
+                                                                    `;
                                                                                                         },
                                                                                                         onCreate: () => {
                                                                                                             if (subVM.loading) {
@@ -1060,9 +1090,9 @@ export class BgRecommend {
                                                                                                                     }, 300);
                                                                                                                 }
                                                                                                                 else {
-                                                                                                                    new Promise((resolve) => {
+                                                                                                                    new Promise(resolve => {
                                                                                                                         resolve(BgProduct.getCollectiosOpts(vm.data.relative_data));
-                                                                                                                    }).then((data) => {
+                                                                                                                    }).then(data => {
                                                                                                                         subVM.dataList = data;
                                                                                                                         subVM.loading = false;
                                                                                                                         gvc.notifyDataChange(subVM.id);
@@ -1086,70 +1116,71 @@ export class BgRecommend {
                                                                                                                 return BgWidget.spinner();
                                                                                                             }
                                                                                                             return html `
-                                                                                                                                            <div class="d-flex flex-column p-2" style="gap: 18px;">
-                                                                                                                                                <div
-                                                                                                                                                    class="d-flex align-items-center gray-bottom-line-18 "
-                                                                                                                                                    style="gap: 24px; justify-content: space-between;"
-                                                                                                                                                >
-                                                                                                                                                    <div class="form-check-label c_updown_label">
-                                                                                                                                                        <div class="tx_normal">產品列表</div>
-                                                                                                                                                    </div>
-                                                                                                                                                    ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                                                      <div
+                                                                        class="d-flex flex-column p-2"
+                                                                        style="gap: 18px;"
+                                                                      >
+                                                                        <div
+                                                                          class="d-flex align-items-center gray-bottom-line-18 "
+                                                                          style="gap: 24px; justify-content: space-between;"
+                                                                        >
+                                                                          <div class="form-check-label c_updown_label">
+                                                                            <div class="tx_normal">產品列表</div>
+                                                                          </div>
+                                                                          ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                                                                 var _a;
                                                                                                                 BgProduct.productsDialog({
                                                                                                                     gvc: gvc,
-                                                                                                                    default: (_a = vm.data
-                                                                                                                        .relative_data) !== null && _a !== void 0 ? _a : [],
+                                                                                                                    default: (_a = vm.data.relative_data) !== null && _a !== void 0 ? _a : [],
                                                                                                                     callback: (value) => __awaiter(this, void 0, void 0, function* () {
                                                                                                                         vm.data.relative_data = value;
                                                                                                                         subVM.dataList =
-                                                                                                                            yield BgProduct.getProductOpts(vm.data
-                                                                                                                                .relative_data);
+                                                                                                                            yield BgProduct.getProductOpts(vm.data.relative_data);
                                                                                                                         subVM.loading = true;
                                                                                                                         gvc.notifyDataChange(subVM.id);
                                                                                                                     }),
                                                                                                                 });
                                                                                                             }), { textStyle: 'font-weight: 400;' })}
-                                                                                                                                                </div>
-                                                                                                                                                ${subVM.dataList
+                                                                        </div>
+                                                                        ${subVM.dataList
                                                                                                                 .map((opt, index) => {
                                                                                                                 return html ` <div
-                                                                                                                                                            class="d-flex align-items-center form-check-label c_updown_label gap-3"
-                                                                                                                                                        >
-                                                                                                                                                            <span
-                                                                                                                                                                class="tx_normal"
-                                                                                                                                                                style="min-width: 20px;"
-                                                                                                                                                                >${index + 1} .</span
-                                                                                                                                                            >
-                                                                                                                                                            ${BgWidget.validImageBox({
+                                                                              class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                                                            >
+                                                                              <span
+                                                                                class="tx_normal"
+                                                                                style="min-width: 20px;"
+                                                                                >${index + 1} .</span
+                                                                              >
+                                                                              ${BgWidget.validImageBox({
                                                                                                                     gvc: gvc,
                                                                                                                     image: opt.image,
                                                                                                                     width: 40,
                                                                                                                 })}
-                                                                                                                                                            <div
-                                                                                                                                                                class="tx_normal ${opt.note
+                                                                              <div
+                                                                                class="tx_normal ${opt.note
                                                                                                                     ? 'mb-1'
                                                                                                                     : ''}"
-                                                                                                                                                            >
-                                                                                                                                                                ${opt.value}
-                                                                                                                                                            </div>
-                                                                                                                                                            ${opt.note
+                                                                              >
+                                                                                ${opt.value}
+                                                                              </div>
+                                                                              ${opt.note
                                                                                                                     ? html `
-                                                                                                                                                                      <div class="tx_gray_12">
-                                                                                                                                                                          ${opt.note}
-                                                                                                                                                                      </div>
-                                                                                                                                                                  `
+                                                                                    <div class="tx_gray_12">
+                                                                                      ${opt.note}
+                                                                                    </div>
+                                                                                  `
                                                                                                                     : ''}
-                                                                                                                                                        </div>`;
+                                                                            </div>`;
                                                                                                             })
                                                                                                                 .join('') ||
                                                                                                                 html ` <div
-                                                                                                                                                    class="w-100 d-flex align-content-center justify-content-center"
-                                                                                                                                                >
-                                                                                                                                                    尚未加入任何賣場商品
-                                                                                                                                                </div>`}
-                                                                                                                                            </div>
-                                                                                                                                        `;
+                                                                          class="w-100 d-flex align-content-center justify-content-center"
+                                                                        >
+                                                                          尚未加入任何賣場商品
+                                                                        </div>`}
+                                                                      </div>
+                                                                    `;
                                                                                                         },
                                                                                                         onCreate: () => {
                                                                                                             if (subVM.loading) {
@@ -1161,9 +1192,9 @@ export class BgRecommend {
                                                                                                                     }, 300);
                                                                                                                 }
                                                                                                                 else {
-                                                                                                                    new Promise((resolve) => {
+                                                                                                                    new Promise(resolve => {
                                                                                                                         resolve(BgProduct.getProductOpts(vm.data.relative_data));
-                                                                                                                    }).then((data) => {
+                                                                                                                    }).then(data => {
                                                                                                                         subVM.dataList = data;
                                                                                                                         subVM.loading = false;
                                                                                                                         gvc.notifyDataChange(subVM.id);
@@ -1183,7 +1214,7 @@ export class BgRecommend {
                                                                         };
                                                                     })()),
                                                                 ].join('')}
-                                                                                    `,
+                                          `,
                                                             },
                                                         ], [(_a = vm.data.voucher_status) !== null && _a !== void 0 ? _a : ''], (data) => {
                                                             vm.data.voucher_status = data[0];
@@ -1193,8 +1224,8 @@ export class BgRecommend {
                                             })()),
                                             BgWidget.mainCard([
                                                 html ` <div class="tx_700">推薦人帳號</div>
-                                                                ${BgWidget.mbContainer(8)}
-                                                                ${BgWidget.multiCheckboxContainer(gvc, [
+                                ${BgWidget.mbContainer(8)}
+                                ${BgWidget.multiCheckboxContainer(gvc, [
                                                     {
                                                         key: 'old',
                                                         name: '現有推薦人',
@@ -1204,11 +1235,11 @@ export class BgRecommend {
                                                                 bind: id,
                                                                 view: () => {
                                                                     var _a;
-                                                                    const user = vm.users.find((user) => user.id === vm.data.recommend_user.id);
+                                                                    const user = vm.users.find(user => user.id === vm.data.recommend_user.id);
                                                                     return html ` <div>
-                                                                                            ${BgWidget.select({
+                                              ${BgWidget.select({
                                                                         gvc: gvc,
-                                                                        callback: (text) => {
+                                                                        callback: text => {
                                                                             vm.data.recommend_user.id = parseInt(text, 10);
                                                                             gvc.notifyDataChange(id);
                                                                             gvc.notifyDataChange(vm.noteId);
@@ -1227,7 +1258,7 @@ export class BgRecommend {
                                                                         })),
                                                                         readonly: vm.readonly,
                                                                     })}
-                                                                                            ${user && vm.data.recommend_user.id !== 0
+                                              ${user && vm.data.recommend_user.id !== 0
                                                                         ? [
                                                                             '',
                                                                             html ` <div class="tx_normal">名字</div>`,
@@ -1240,7 +1271,7 @@ export class BgRecommend {
                                                                                 readonly: true,
                                                                             }),
                                                                             html ` <div class="tx_normal">電子信箱</div>
-                                                                                                          ${BgWidget.grayNote('將作為登入帳號，系統會寄送隨機密碼至此信箱')}`,
+                                                      ${BgWidget.grayNote('將作為登入帳號，系統會寄送隨機密碼至此信箱')}`,
                                                                             BgWidget.editeInput({
                                                                                 gvc: gvc,
                                                                                 title: '',
@@ -1260,7 +1291,7 @@ export class BgRecommend {
                                                                             }),
                                                                         ].join(BgWidget.mbContainer(8))
                                                                         : ''}
-                                                                                        </div>`;
+                                            </div>`;
                                                                 },
                                                             });
                                                         })(),
@@ -1270,23 +1301,23 @@ export class BgRecommend {
                                                         name: '添加新推薦人',
                                                         innerHtml: (() => {
                                                             var _a, _b;
-                                                            const user = vm.users.find((user) => user.id === vm.data.recommend_user.id);
+                                                            const user = vm.users.find(user => user.id === vm.data.recommend_user.id);
                                                             return html ` <div>
-                                                                                    ${[
+                                          ${[
                                                                 html ` <div class="tx_normal">名字</div>`,
                                                                 BgWidget.editeInput({
                                                                     gvc: gvc,
                                                                     title: '',
                                                                     default: user ? user.content.name : ((_a = vm.data.recommend_user.name) !== null && _a !== void 0 ? _a : ''),
                                                                     placeHolder: '請輸入名字',
-                                                                    callback: (text) => {
+                                                                    callback: text => {
                                                                         vm.data.recommend_user.name = text;
                                                                         gvc.notifyDataChange(vm.noteId);
                                                                     },
                                                                     readonly: vm.readonly,
                                                                 }),
                                                                 html ` <div class="tx_normal">電子信箱</div>
-                                                                                            ${BgWidget.grayNote('將作為登入帳號，系統會寄送隨機密碼至此信箱')}`,
+                                              ${BgWidget.grayNote('將作為登入帳號，系統會寄送隨機密碼至此信箱')}`,
                                                                 gvc.bindView((() => {
                                                                     const id = glitter.getUUID();
                                                                     return {
@@ -1296,11 +1327,15 @@ export class BgRecommend {
                                                                             return BgWidget.editeInput({
                                                                                 gvc: gvc,
                                                                                 title: '',
-                                                                                default: user ? user.content.email : ((_a = vm.data.recommend_user.email) !== null && _a !== void 0 ? _a : ''),
+                                                                                default: user
+                                                                                    ? user.content.email
+                                                                                    : ((_a = vm.data.recommend_user.email) !== null && _a !== void 0 ? _a : ''),
                                                                                 placeHolder: '請輸入電子信箱',
-                                                                                callback: (text) => {
-                                                                                    if (vm.users.find((user) => user.email === text)) {
-                                                                                        dialog.infoMessage({ text: '此推薦人信箱已建立<br />請更換其他信箱' });
+                                                                                callback: text => {
+                                                                                    if (vm.users.find(user => user.email === text)) {
+                                                                                        dialog.infoMessage({
+                                                                                            text: '此推薦人信箱已建立<br />請更換其他信箱',
+                                                                                        });
                                                                                         gvc.notifyDataChange(id);
                                                                                     }
                                                                                     else {
@@ -1318,13 +1353,13 @@ export class BgRecommend {
                                                                     title: '',
                                                                     default: user ? user.content.phone : ((_b = vm.data.recommend_user.phone) !== null && _b !== void 0 ? _b : ''),
                                                                     placeHolder: '請輸入電話',
-                                                                    callback: (text) => {
+                                                                    callback: text => {
                                                                         vm.data.recommend_user.phone = text;
                                                                     },
                                                                     readonly: vm.readonly,
                                                                 }),
                                                             ].join(BgWidget.mbContainer(8))}
-                                                                                </div>`;
+                                        </div>`;
                                                         })(),
                                                     },
                                                 ], [(_h = vm.data.recommend_status) !== null && _h !== void 0 ? _h : ''], (data) => {
@@ -1339,8 +1374,8 @@ export class BgRecommend {
                                                     }
                                                 }, { single: true, readonly: vm.readonly })}`,
                                                 html ` <div class="tx_700">推薦媒介（可複選）</div>
-                                                                ${BgWidget.mbContainer(8)}
-                                                                ${BgWidget.selectDropList({
+                                ${BgWidget.mbContainer(8)}
+                                ${BgWidget.selectDropList({
                                                     gvc: gvc,
                                                     callback: (value) => {
                                                         vm.data.recommend_medium = value;
@@ -1354,60 +1389,66 @@ export class BgRecommend {
                                                 html ` <div class="tx_700">活動時間</div>`,
                                                 BgWidget.mbContainer(18),
                                                 html ` <div class="tx_normal">開始時間</div>`,
-                                                html ` <div class="d-flex mb-2 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
-                                                                ${BgWidget.editeInput({
+                                                html ` <div
+                                class="d-flex mb-2 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+                                style="gap: 12px"
+                              >
+                                ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     type: 'date',
                                                     style: inputStyle,
                                                     default: (_k = vm.data.startDate) !== null && _k !== void 0 ? _k : getDateTime().date,
                                                     placeHolder: '',
-                                                    callback: (text) => {
+                                                    callback: text => {
                                                         vm.data.startDate = text;
                                                     },
                                                 })}
-                                                                ${BgWidget.editeInput({
+                                ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     type: 'time',
                                                     style: inputStyle,
                                                     default: (_l = vm.data.startTime) !== null && _l !== void 0 ? _l : getDateTime().time,
                                                     placeHolder: '',
-                                                    callback: (text) => {
+                                                    callback: text => {
                                                         vm.data.startTime = text;
                                                     },
                                                 })}
-                                                            </div>`,
+                              </div>`,
                                                 BgWidget.multiCheckboxContainer(gvc, [
                                                     {
                                                         key: 'withEnd',
                                                         name: '設定結束時間',
-                                                        innerHtml: html ` <div class="d-flex mt-1 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
-                                                                            ${BgWidget.editeInput({
+                                                        innerHtml: html ` <div
+                                      class="d-flex mt-1 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+                                      style="gap: 12px"
+                                    >
+                                      ${BgWidget.editeInput({
                                                             gvc: gvc,
                                                             title: '',
                                                             type: 'date',
                                                             style: inputStyle,
                                                             default: (_m = vm.data.endDate) !== null && _m !== void 0 ? _m : getDateTime(7).date,
                                                             placeHolder: '',
-                                                            callback: (text) => {
+                                                            callback: text => {
                                                                 vm.data.endDate = text;
                                                             },
                                                         })}
-                                                                            ${BgWidget.editeInput({
+                                      ${BgWidget.editeInput({
                                                             gvc: gvc,
                                                             title: '',
                                                             type: 'time',
                                                             style: inputStyle,
                                                             default: (_o = vm.data.endTime) !== null && _o !== void 0 ? _o : getDateTime(7).time,
                                                             placeHolder: '',
-                                                            callback: (text) => {
+                                                            callback: text => {
                                                                 vm.data.endTime = text;
                                                             },
                                                         })}
-                                                                        </div>`,
+                                    </div>`,
                                                     },
-                                                ], [vm.data.endDate ? 'withEnd' : ''], (data) => {
+                                                ], [vm.data.endDate ? 'withEnd' : ''], data => {
                                                     var _a, _b;
                                                     if (data[0] === 'withEnd') {
                                                         vm.data.endDate = (_a = vm.data.endDate) !== null && _a !== void 0 ? _a : getDateTime(7).date;
@@ -1449,8 +1490,10 @@ export class BgRecommend {
                                             [
                                                 vm.data.voucher_status === 'yes'
                                                     ? `套用折扣: ${(() => {
-                                                        const voucher = vm.voucherList.find((v) => v.id === vm.data.voucher);
-                                                        return voucher && voucher.content && voucher.content.title ? voucher.content.title : '尚未選擇優惠券';
+                                                        const voucher = vm.voucherList.find(v => v.id === vm.data.voucher);
+                                                        return voucher && voucher.content && voucher.content.title
+                                                            ? voucher.content.title
+                                                            : '尚未選擇優惠券';
                                                     })()}`
                                                     : '不套用折扣',
                                             ],
@@ -1473,10 +1516,10 @@ export class BgRecommend {
                                                         : '尚未選擇推薦人'}`,
                                                 `推薦媒介: ${vm.data.recommend_medium.length > 0
                                                     ? mediumList
-                                                        .filter((item) => {
+                                                        .filter(item => {
                                                         return vm.data.recommend_medium.includes(item.key);
                                                     })
-                                                        .map((item) => {
+                                                        .map(item => {
                                                         return item.value;
                                                     })
                                                     : ' 尚未選擇推薦媒介'}`,
@@ -1491,7 +1534,7 @@ export class BgRecommend {
                         }),
                         BgWidget.mbContainer(240),
                         html ` <div class="update-bar-container">
-                                ${cf.data.id
+                ${cf.data.id
                             ? BgWidget.danger(gvc.event(() => {
                                 this.deleteLink({
                                     gvc: gvc,
@@ -1502,10 +1545,10 @@ export class BgRecommend {
                                 });
                             }))
                             : ''}
-                                ${BgWidget.cancel(gvc.event(() => {
+                ${BgWidget.cancel(gvc.event(() => {
                             cf.callback();
                         }))}
-                                ${BgWidget.save(gvc.event(() => {
+                ${BgWidget.save(gvc.event(() => {
                             const valids = [
                                 { key: 'code', text: '分銷代碼不得為空白' },
                                 { key: 'title', text: '分銷連結名稱不得為空白' },
@@ -1525,7 +1568,9 @@ export class BgRecommend {
                                 return;
                             }
                             if (vm.data.recommend_status === 'new') {
-                                if (vm.data.recommend_user.email === '' || vm.data.recommend_user.email === '' || vm.data.recommend_user.email === '') {
+                                if (vm.data.recommend_user.email === '' ||
+                                    vm.data.recommend_user.email === '' ||
+                                    vm.data.recommend_user.email === '') {
                                     dialog.infoMessage({ text: '請確實填寫推薦人資訊' });
                                     return;
                                 }
@@ -1551,7 +1596,7 @@ export class BgRecommend {
                                 ApiRecommend.putListData({
                                     id: cf.data.id,
                                     data: vm.data,
-                                }).then((data) => {
+                                }).then(data => {
                                     dialog.dataLoading({ visible: false });
                                     if (data.result) {
                                         cf.callback();
@@ -1566,7 +1611,7 @@ export class BgRecommend {
                                 vm.data.status = true;
                                 ApiRecommend.postListData({
                                     data: vm.data,
-                                }).then((data) => {
+                                }).then(data => {
                                     var _a;
                                     dialog.dataLoading({ visible: false });
                                     if (data.result) {
@@ -1584,17 +1629,17 @@ export class BgRecommend {
                                 });
                             }
                         }))}
-                            </div>`,
+              </div>`,
                     ].join('<div class="my-2"></div>'));
                 },
                 onCreate: () => {
                     if (vm.loading) {
                         Promise.all([
-                            new Promise((resolve) => {
+                            new Promise(resolve => {
                                 ApiShop.getVoucher({
                                     page: 0,
                                     limit: 99999,
-                                }).then((data) => {
+                                }).then(data => {
                                     if (data.result) {
                                         resolve(data.response.data.filter((item) => {
                                             return item.content.trigger === 'distribution';
@@ -1605,13 +1650,13 @@ export class BgRecommend {
                                     }
                                 });
                             }),
-                            new Promise((resolve) => {
+                            new Promise(resolve => {
                                 ApiRecommend.getUsers({
                                     data: {},
                                     page: 0,
                                     limit: 99999,
                                     token: window.parent.config.token,
-                                }).then((data) => {
+                                }).then(data => {
                                     if (data.result) {
                                         resolve(data.response.data);
                                     }
@@ -1620,7 +1665,7 @@ export class BgRecommend {
                                     }
                                 });
                             }),
-                        ]).then((data) => {
+                        ]).then(data => {
                             vm.voucherList = data[0];
                             vm.users = data[1];
                             vm.loading = false;
@@ -1669,18 +1714,23 @@ export class BgRecommend {
                     if (vm.type === 'user') {
                         return BgWidget.container([
                             html ` <div class="title-container">
-                                        <div class="mt-1">
-                                            ${BgWidget.goBack(gvc.event(() => {
+                    <div class="mt-1">
+                      ${BgWidget.goBack(gvc.event(() => {
                                 cf.callback();
                             }))}
-                                        </div>
-                                        <div>
-                                            ${BgWidget.title(vm.data.name || '新增推薦人')}${cf.data.id ? BgWidget.grayNote(`建立時間: ${Tool.convertDateTimeFormat(cf.data.created_time)}`) : ''}
-                                        </div>
-                                    </div>
-                                    <div class="flex-fill"></div>`,
-                            html ` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                                    ${BgWidget.container(gvc.bindView(() => {
+                    </div>
+                    <div>
+                      ${BgWidget.title(vm.data.name || '新增推薦人')}${cf.data.id
+                                ? BgWidget.grayNote(`建立時間: ${Tool.convertDateTimeFormat(cf.data.created_time)}`)
+                                : ''}
+                    </div>
+                  </div>
+                  <div class="flex-fill"></div>`,
+                            html ` <div
+                  class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+                  style="gap: 24px"
+                >
+                  ${BgWidget.container(gvc.bindView(() => {
                                 const id = glitter.getUUID();
                                 return {
                                     bind: id,
@@ -1690,53 +1740,53 @@ export class BgRecommend {
                                             BgWidget.mainCard([
                                                 html ` <div class="tx_700">推薦人資訊</div>`,
                                                 html ` <div class="row">
-                                                                    <div class="col-12 col-md-6">
-                                                                        <div class="tx_normal">姓名</div>
-                                                                        ${BgWidget.mbContainer(8)}
-                                                                        ${BgWidget.editeInput({
+                                  <div class="col-12 col-md-6">
+                                    <div class="tx_normal">姓名</div>
+                                    ${BgWidget.mbContainer(8)}
+                                    ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_a = vm.data.name) !== null && _a !== void 0 ? _a : '',
                                                     placeHolder: '請輸入推薦人姓名',
-                                                    callback: (text) => {
+                                                    callback: text => {
                                                         vm.data.name = text;
                                                     },
                                                 })}
-                                                                    </div>
-                                                                    ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(18)}
-                                                                    <div class="col-12 col-md-6">
-                                                                        <div class="tx_normal">電子信箱</div>
-                                                                        ${BgWidget.mbContainer(8)}
-                                                                        ${BgWidget.editeInput({
+                                  </div>
+                                  ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(18)}
+                                  <div class="col-12 col-md-6">
+                                    <div class="tx_normal">電子信箱</div>
+                                    ${BgWidget.mbContainer(8)}
+                                    ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_b = vm.data.email) !== null && _b !== void 0 ? _b : '',
                                                     placeHolder: '請輸入推薦人電子信箱',
-                                                    callback: (text) => {
+                                                    callback: text => {
                                                         vm.data.email = text;
                                                     },
                                                 })}
-                                                                    </div>
-                                                                </div>`,
+                                  </div>
+                                </div>`,
                                                 html ` <div class="tx_normal">電話</div>
-                                                                    ${BgWidget.mbContainer(8)}
-                                                                    ${BgWidget.editeInput({
+                                  ${BgWidget.mbContainer(8)}
+                                  ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_c = vm.data.phone) !== null && _c !== void 0 ? _c : '',
                                                     placeHolder: '請輸入推薦人電話',
-                                                    callback: (text) => {
+                                                    callback: text => {
                                                         vm.data.phone = text;
                                                     },
                                                 })}`,
                                                 html ` <div class="tx_normal">推薦人備註</div>
-                                                                    <div style="margin: 4px 0 8px;">${BgWidget.grayNote('只有後台管理員看得見')}</div>
-                                                                    ${EditorElem.editeText({
+                                  <div style="margin: 4px 0 8px;">${BgWidget.grayNote('只有後台管理員看得見')}</div>
+                                  ${EditorElem.editeText({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_d = vm.data.note) !== null && _d !== void 0 ? _d : '',
                                                     placeHolder: '請輸入備註',
-                                                    callback: (text) => {
+                                                    callback: text => {
                                                         vm.data.note = text;
                                                     },
                                                 })}`,
@@ -1756,7 +1806,7 @@ export class BgRecommend {
                                                 ].join(''))
                                                 : '',
                                         ]
-                                            .filter((item) => {
+                                            .filter(item => {
                                             return item.length > 0;
                                         })
                                             .join(BgWidget.mbContainer(24));
@@ -1764,10 +1814,10 @@ export class BgRecommend {
                                     divCreate: { class: 'p-0' },
                                 };
                             }))}
-                                </div>`,
+                </div>`,
                             BgWidget.mbContainer(240),
                             html ` <div class="update-bar-container">
-                                    ${vm.readonly
+                  ${vm.readonly
                                 ? BgWidget.danger(gvc.event(() => {
                                     this.deleteUser({
                                         gvc: gvc,
@@ -1778,10 +1828,10 @@ export class BgRecommend {
                                     });
                                 }))
                                 : ''}
-                                    ${BgWidget.cancel(gvc.event(() => {
+                  ${BgWidget.cancel(gvc.event(() => {
                                 cf.callback();
                             }))}
-                                    ${BgWidget.save(gvc.event(() => {
+                  ${BgWidget.save(gvc.event(() => {
                                 const valids = [
                                     { key: 'name', text: '姓名不得為空白' },
                                     { key: 'email', text: '信箱不得為空白' },
@@ -1806,7 +1856,7 @@ export class BgRecommend {
                                     ApiRecommend.putUserData({
                                         id: cf.data.id,
                                         data: vm.data,
-                                    }).then((data) => {
+                                    }).then(data => {
                                         dialog.dataLoading({ visible: false });
                                         if (data.result) {
                                             cf.callback();
@@ -1820,7 +1870,7 @@ export class BgRecommend {
                                 else {
                                     ApiRecommend.postUserData({
                                         data: vm.data,
-                                    }).then((data) => {
+                                    }).then(data => {
                                         dialog.dataLoading({ visible: false });
                                         if (data.result) {
                                             cf.callback();
@@ -1832,7 +1882,7 @@ export class BgRecommend {
                                     });
                                 }
                             }))}
-                                </div>`,
+                </div>`,
                         ].join('<div class="my-2"></div>'));
                     }
                     if (vm.type === 'link') {
@@ -1849,11 +1899,11 @@ export class BgRecommend {
                 onCreate: () => {
                     if (vm.loading) {
                         Promise.all([
-                            new Promise((resolve) => {
+                            new Promise(resolve => {
                                 ApiShop.getVoucher({
                                     page: 0,
                                     limit: 99999,
-                                }).then((data) => {
+                                }).then(data => {
                                     if (data.result) {
                                         resolve(data.response.data.filter((item) => {
                                             return item.content.trigger === 'distribution';
@@ -1864,7 +1914,7 @@ export class BgRecommend {
                                     }
                                 });
                             }),
-                        ]).then((data) => {
+                        ]).then(data => {
                             vm.voucherList = data[0];
                             vm.loading = false;
                             gvc.notifyDataChange(vm.id);
@@ -1878,13 +1928,13 @@ export class BgRecommend {
         const dialog = new ShareDialog(obj.gvc.glitter);
         dialog.checkYesOrNot({
             text: '是否確認刪除所選項目？',
-            callback: (response) => {
+            callback: response => {
                 if (response) {
                     dialog.dataLoading({ visible: true });
                     ApiRecommend.deleteLinkData({
                         token: window.parent.config.token,
                         data: { id: obj.ids },
-                    }).then((data) => {
+                    }).then(data => {
                         var _a;
                         dialog.dataLoading({ visible: false });
                         if (data.result) {
@@ -1908,13 +1958,13 @@ export class BgRecommend {
         const dialog = new ShareDialog(obj.gvc.glitter);
         dialog.checkYesOrNot({
             text: '若刪除推薦人，也將同時刪除與此推薦人相關的分銷連結，<br />是否確認刪除所選項目？',
-            callback: (response) => {
+            callback: response => {
                 if (response) {
                     dialog.dataLoading({ visible: true });
                     ApiRecommend.deleteUserData({
                         token: window.parent.config.token,
                         data: { id: obj.ids },
-                    }).then((data) => {
+                    }).then(data => {
                         var _a;
                         dialog.dataLoading({ visible: false });
                         if (data.result) {
@@ -1939,7 +1989,7 @@ function getRecommender(userList, data) {
     if (data.name && data.name.length > 0) {
         return data.name;
     }
-    const user = userList.find((u) => u.id === data.id);
+    const user = userList.find(u => u.id === data.id);
     return user ? user.content.name : '';
 }
 function getDateTime(n = 0) {

@@ -89,29 +89,7 @@ export class LiveCapture {
                                                     ];
 
                                                     const filterTags = ListComp.getFilterTags(FilterOptions.invoiceFunnel);
-
-                                                    if (document.body.clientWidth < 768) {
-                                                        // 手機版
-                                                        return html`
-                                                            <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                <div>${filterList[0]}</div>
-                                                                <div style="display: flex;">
-                                                                    ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
-                                                                    ${filterList[3] ?? ''}
-                                                                </div>
-                                                            </div>
-                                                            <div style="display: flex; margin-top: 8px;">
-                                                                ${filterList[1]}
-                                                            </div>
-                                                            <div>${filterTags}</div>`;
-                                                    } else {
-                                                        // 電腦版
-                                                        return html`
-                                                            <div style="display: flex; align-items: center; gap: 10px;">
-                                                                ${filterList.join('')}
-                                                            </div>
-                                                            <div>${filterTags}</div>`;
-                                                    }
+                                                    return BgListComponent.listBarRWD(filterList, filterTags);
                                                 },
                                             });
                                         })(),

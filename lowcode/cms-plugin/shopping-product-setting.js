@@ -47,7 +47,7 @@ export class ShoppingProductSetting {
             replaceData: '',
             ai_initial: {},
             apiJSON: {},
-            checkedData: []
+            checkedData: [],
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.productFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -104,12 +104,12 @@ export class ShoppingProductSetting {
                                     }
                                     else {
                                         let importInput = {};
-                                        if (FilterOptions.productFunnel.findIndex((item) => item.key === 'collection') === -1) {
+                                        if (FilterOptions.productFunnel.findIndex(item => item.key === 'collection') === -1) {
                                             FilterOptions.productFunnel.push({
                                                 key: 'collection',
                                                 type: 'multi_checkbox',
                                                 name: '商品分類',
-                                                data: vmlist.collections.map((item) => {
+                                                data: vmlist.collections.map(item => {
                                                     return {
                                                         key: `${item.key}`,
                                                         name: item.value,
@@ -118,19 +118,19 @@ export class ShoppingProductSetting {
                                             });
                                         }
                                         return BgWidget.container(html `
-                                                <div class="title-container">
-                                                    ${BgWidget.title((() => {
+                      <div class="title-container">
+                        ${BgWidget.title((() => {
                                             const titleMap = {
-                                                'addProduct': '加購品',
-                                                'giveaway': '贈品',
-                                                'product': '商品列表',
-                                                'hidden': '隱形賣場商品'
+                                                addProduct: '加購品',
+                                                giveaway: '贈品',
+                                                product: '商品列表',
+                                                hidden: '隱形賣場商品',
                                             };
                                             return titleMap[type] || '';
                                         })())}
-                                                    <div class="flex-fill"></div>
-                                                    <div style="display: flex; gap: 10px;">
-                                                        ${[
+                        <div class="flex-fill"></div>
+                        <div style="display: flex; gap: 10px;">
+                          ${[
                                             BgWidget.grayButton('匯入', gvc.event(() => {
                                                 ProductExcel.importDialog(gvc, () => gvc.notifyDataChange(vm.id));
                                             })),
@@ -152,8 +152,8 @@ export class ShoppingProductSetting {
                                                     title: '選擇商品類型',
                                                     innerHTML: (gvc) => {
                                                         return html `
-                                                                        <div class="d-flex align-items-center">
-                                                                          ${BgWidget.select({
+                                      <div class="d-flex align-items-center">
+                                        ${BgWidget.select({
                                                             gvc: gvc,
                                                             callback: data => {
                                                                 ShoppingProductSetting.select_product_type = data;
@@ -161,8 +161,8 @@ export class ShoppingProductSetting {
                                                             options: supportProducts,
                                                             default: ShoppingProductSetting.select_product_type,
                                                         })}
-                                                                        </div>
-                                                                      `;
+                                      </div>
+                                    `;
                                                     },
                                                     footer_html: (gvc) => {
                                                         return BgWidget.save(gvc.event(() => {
@@ -176,15 +176,14 @@ export class ShoppingProductSetting {
                                                 class: `guide5-3`,
                                             }),
                                         ].join('')}
-                                                    </div>
-                                                </div>
-                                                ${BgWidget.container(BgWidget.mainCard([
+                        </div>
+                      </div>
+                      ${BgWidget.container(BgWidget.mainCard([
                                             (() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return gvc.bindView({
                                                     bind: id,
                                                     view: () => {
-                                                        var _b;
                                                         const filterList = [
                                                             BgWidget.selectFilter({
                                                                 gvc,
@@ -197,7 +196,7 @@ export class ShoppingProductSetting {
                                                                 options: FilterOptions.productSelect,
                                                                 style: 'min-width: 160px;',
                                                             }),
-                                                            BgWidget.searchFilter(gvc.event((e) => {
+                                                            BgWidget.searchFilter(gvc.event(e => {
                                                                 vm.query = `${e.value}`.trim();
                                                                 gvc.notifyDataChange(vm.tableId);
                                                                 gvc.notifyDataChange(id);
@@ -218,32 +217,7 @@ export class ShoppingProductSetting {
                                                             }),
                                                         ];
                                                         const filterTags = ListComp.getFilterTags(FilterOptions.productFunnel);
-                                                        if (document.body.clientWidth < 768) {
-                                                            return html `
-                                                                                <div
-                                                                                    style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                                    <div>${filterList[0]}</div>
-                                                                                    <div style="display: flex;">
-                                                                                        <div class="me-2">
-                                                                                            ${filterList[2]}
-                                                                                        </div>
-                                                                                        ${(_b = filterList[3]) !== null && _b !== void 0 ? _b : ''}
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div
-                                                                                    style="display: flex; margin-top: 8px;">
-                                                                                    ${filterList[1]}
-                                                                                </div>
-                                                                                <div>${filterTags}</div>`;
-                                                        }
-                                                        else {
-                                                            return html `
-                                                                                <div
-                                                                                    style="display: flex; align-items: center; gap: 10px;">
-                                                                                    ${filterList.join('')}
-                                                                                </div>
-                                                                                <div>${filterTags}</div>`;
-                                                        }
+                                                        return BgListComponent.listBarRWD(filterList, filterTags);
                                                     },
                                                 });
                                             })(),
@@ -253,7 +227,7 @@ export class ShoppingProductSetting {
                                                     const limit = 20;
                                                     return BgWidget.tableV3({
                                                         gvc: gvc,
-                                                        getData: (vmi) => {
+                                                        getData: vmi => {
                                                             function loop() {
                                                                 vm.apiJSON = {
                                                                     page: vmi.page - 1,
@@ -278,32 +252,28 @@ export class ShoppingProductSetting {
                                                                     accurate_search_collection: true,
                                                                     productType: type === 'hidden' ? 'product' : type,
                                                                 };
-                                                                ApiShop.getProduct(vm.apiJSON).then((data) => {
+                                                                ApiShop.getProduct(vm.apiJSON).then(data => {
                                                                     function getDatalist() {
                                                                         return data.response.data.map((dd) => {
                                                                             var _b;
                                                                             return [
                                                                                 {
                                                                                     key: '商品',
-                                                                                    value: html `
-                                                                                                        <div
-                                                                                                            class="d-flex align-items-center">
-                                                                                                            ${BgWidget.validImageBox({
+                                                                                    value: html ` <div class="d-flex align-items-center">
+                                                  ${BgWidget.validImageBox({
                                                                                         gvc: gvc,
                                                                                         image: dd.content.preview_image[0],
                                                                                         width: 40,
                                                                                         class: 'rounded border me-4',
                                                                                     })}
-                                                                                                            <div
-                                                                                                                class="d-flex flex-column"
-                                                                                                                style="">
-                                                                                                                ${(dd.content.shopee_id) ? `<div style="margin-bottom: -10px;"><div class="insignia" style="background: orangered;color: white;">蝦皮</div></div>
-                                                                                                                ` : ``}
-                                                                                                                <div>
-                                                                                                                    ${Tool.truncateString(dd.content.title)}
-                                                                                                                </div>
-                                                                                                            </div>
-                                                                                                        </div>`,
+                                                  <div class="d-flex flex-column" style="">
+                                                    ${dd.content.shopee_id
+                                                                                        ? `<div style="margin-bottom: -10px;"><div class="insignia" style="background: orangered;color: white;">蝦皮</div></div>
+                                                                                                                `
+                                                                                        : ``}
+                                                    <div>${Tool.truncateString(dd.content.title)}</div>
+                                                  </div>
+                                                </div>`,
                                                                                 },
                                                                                 {
                                                                                     key: '售價',
@@ -334,15 +304,12 @@ export class ShoppingProductSetting {
                                                                                             }
                                                                                         });
                                                                                         if (countStock == 0) {
-                                                                                            return html `
-                                                                                                                無追蹤庫存
-                                                                                                            `;
+                                                                                            return html ` 無追蹤庫存 `;
                                                                                         }
-                                                                                        return html `${countStock}個子類 ${sum > 1
+                                                                                        return html `${countStock}個子類
+                                                  ${sum > 1
                                                                                             ? `有${sum}件庫存`
-                                                                                            : html `
-                                                                                                                <span
-                                                                                                                    style="color:#8E0E2B">有${sum} 件庫存</span>`}`;
+                                                                                            : html ` <span style="color:#8E0E2B">有${sum} 件庫存</span>`}`;
                                                                                     })(),
                                                                                 },
                                                                                 {
@@ -372,12 +339,8 @@ export class ShoppingProductSetting {
                                                                                         };
                                                                                     }),
                                                                                 },
-                                                                            ].map((dd) => {
-                                                                                dd.value = html `
-                                                                                                    <div
-                                                                                                        style="line-height:40px;">
-                                                                                                        ${dd.value}
-                                                                                                    </div>`;
+                                                                            ].map(dd => {
+                                                                                dd.value = html ` <div style="line-height:40px;">${dd.value}</div>`;
                                                                                 return dd;
                                                                             });
                                                                         });
@@ -387,12 +350,13 @@ export class ShoppingProductSetting {
                                                                     vmi.originalData = vm.dataList;
                                                                     vmi.tableData = getDatalist();
                                                                     vmi.loading = false;
-                                                                    if ((ShoppingProductSetting.select_page_index !== (vmi.page - 1)) && ShoppingProductSetting.select_page_index <= vmi.pageSize) {
+                                                                    if (ShoppingProductSetting.select_page_index !== vmi.page - 1 &&
+                                                                        ShoppingProductSetting.select_page_index <= vmi.pageSize) {
                                                                         vmi.page = ShoppingProductSetting.select_page_index + 1;
                                                                         loop();
                                                                     }
                                                                     else {
-                                                                        ShoppingProductSetting.select_page_index = (vmi.page - 1);
+                                                                        ShoppingProductSetting.select_page_index = vmi.page - 1;
                                                                         vmi.callback();
                                                                     }
                                                                 });
@@ -401,19 +365,19 @@ export class ShoppingProductSetting {
                                                         },
                                                         rowClick: (data, index) => {
                                                             vm.replaceData = vm.dataList[index].content;
-                                                            ShoppingProductSetting.select_language = (window.parent.store_info.language_setting.def);
+                                                            ShoppingProductSetting.select_language = window.parent.store_info.language_setting.def;
                                                             vm.type = 'replace';
                                                         },
-                                                        tabClick: (vmi) => {
+                                                        tabClick: vmi => {
                                                             ShoppingProductSetting.select_page_index = vmi.page - 1;
                                                         },
                                                         filter: [
                                                             {
                                                                 name: '上架',
-                                                                event: (checkedData) => {
+                                                                event: checkedData => {
                                                                     const selCount = checkedData.length;
                                                                     dialog.dataLoading({ visible: true });
-                                                                    new Promise((resolve) => {
+                                                                    new Promise(resolve => {
                                                                         let n = 0;
                                                                         checkedData.map((dd) => {
                                                                             dd.content.active_schedule = this.getActiveDatetime();
@@ -424,7 +388,7 @@ export class ShoppingProductSetting {
                                                                                         postData: dd.content,
                                                                                         token: window.parent.config.token,
                                                                                         type: 'manager',
-                                                                                    }).then((res) => {
+                                                                                    }).then(res => {
                                                                                         res.result ? n++ : run();
                                                                                     });
                                                                                 });
@@ -443,10 +407,10 @@ export class ShoppingProductSetting {
                                                             },
                                                             {
                                                                 name: '下架',
-                                                                event: (checkedData) => {
+                                                                event: checkedData => {
                                                                     const selCount = checkedData.length;
                                                                     dialog.dataLoading({ visible: true });
-                                                                    new Promise((resolve) => {
+                                                                    new Promise(resolve => {
                                                                         let n = 0;
                                                                         checkedData.map((dd) => {
                                                                             dd.content.active_schedule = this.getInactiveDatetime();
@@ -457,7 +421,7 @@ export class ShoppingProductSetting {
                                                                                         postData: dd.content,
                                                                                         token: window.parent.config.token,
                                                                                         type: 'manager',
-                                                                                    }).then((res) => {
+                                                                                    }).then(res => {
                                                                                         res.result ? n++ : run();
                                                                                     });
                                                                                 });
@@ -476,10 +440,10 @@ export class ShoppingProductSetting {
                                                             },
                                                             {
                                                                 name: '刪除',
-                                                                event: (checkedData) => {
+                                                                event: checkedData => {
                                                                     dialog.checkYesOrNot({
                                                                         text: '是否確認刪除所選項目？',
-                                                                        callback: (response) => {
+                                                                        callback: response => {
                                                                             if (response) {
                                                                                 dialog.dataLoading({ visible: true });
                                                                                 ApiShop.delete({
@@ -488,7 +452,7 @@ export class ShoppingProductSetting {
                                                                                         return dd.id;
                                                                                     })
                                                                                         .join(`,`),
-                                                                                }).then((res) => {
+                                                                                }).then(res => {
                                                                                     dialog.dataLoading({ visible: false });
                                                                                     if (res.result) {
                                                                                         vm.dataList = undefined;
@@ -513,8 +477,8 @@ export class ShoppingProductSetting {
                                                 },
                                             }),
                                         ].join('')))}
-                                                ${BgWidget.minHeightContainer(240)}
-                                            `);
+                      ${BgWidget.minHeightContainer(240)}
+                    `);
                                     }
                                 },
                                 divCreate: {},
@@ -551,8 +515,7 @@ export class ShoppingProductSetting {
                 divCreate: {
                     class: `w-100 h-100`,
                 },
-                onCreate: () => {
-                },
+                onCreate: () => { },
             };
         });
     }
@@ -579,7 +542,7 @@ export class ShoppingProductSetting {
             if (JSON.stringify(orignData) !== JSON.stringify(variant)) {
                 dialog.checkYesOrNot({
                     text: '內容已變更是否儲存?',
-                    callback: (response) => {
+                    callback: response => {
                         if (obj && obj.goBackEvent) {
                             if (response) {
                                 orignData = JSON.parse(JSON.stringify(variant));
@@ -627,83 +590,89 @@ export class ShoppingProductSetting {
             const languageData = (_e = post.language_data) === null || _e === void 0 ? void 0 : _e[defaultLanguage];
             return ((_f = languageData === null || languageData === void 0 ? void 0 : languageData.preview_image) === null || _f === void 0 ? void 0 : _f[0]) || post.preview_image[0];
         }
-        return html `
-            <div class="d-flex"
-                 style="font-size: 16px;color:#393939;font-weight: 400;position: relative;padding:0;padding-bottom: ${obj.single ? `0px` : `80px`};">
-                ${BgWidget.container(html `
-                        <div class="title-container ${obj.single ? 'd-none' : ''}">
-                            ${BgWidget.goBack(obj.gvc.event(() => {
+        return html ` <div
+      class="d-flex"
+      style="font-size: 16px;color:#393939;font-weight: 400;position: relative;padding:0;padding-bottom: ${obj.single
+            ? `0px`
+            : `80px`};"
+    >
+      ${BgWidget.container(html `
+          <div class="title-container ${obj.single ? 'd-none' : ''}">
+            ${BgWidget.goBack(obj.gvc.event(() => {
             checkStore(obj && obj.goBackEvent
                 ? obj.goBackEvent.cancel
                 : () => {
                     obj.vm.type = 'replace';
                 });
         }))}
-                            ${BgWidget.title(variant.spec.length > 0 ? variant.spec.join(' / ') : '單一規格')}
-                            <div class="flex-fill"></div>
-                        </div>
-                        <div
-                            class="d-flex flex-column ${obj.single ? `flex-column-reverse` : `flex-sm-row mt-4`} w-100 p-0"
-                            style="gap: 24px;">
-                            <div class="leftBigArea d-flex flex-column flex-fill" style="gap: 18px;">
-                                ${!obj.single
+            ${BgWidget.title(variant.spec.length > 0 ? variant.spec.join(' / ') : '單一規格')}
+            <div class="flex-fill"></div>
+          </div>
+          <div
+            class="d-flex flex-column ${obj.single ? `flex-column-reverse` : `flex-sm-row mt-4`} w-100 p-0"
+            style="gap: 24px;"
+          >
+            <div class="leftBigArea d-flex flex-column flex-fill" style="gap: 18px;">
+              ${!obj.single
             ? BgWidget.mainCard(gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
                 return {
                     bind: id,
                     view: () => {
                         try {
-                            variant[`preview_image_${ShoppingProductSetting.select_language}`] = variant[`preview_image_${ShoppingProductSetting.select_language}`] || variant.preview_image || getDefImg();
+                            variant[`preview_image_${ShoppingProductSetting.select_language}`] =
+                                variant[`preview_image_${ShoppingProductSetting.select_language}`] ||
+                                    variant.preview_image ||
+                                    getDefImg();
                             let pre_ciew = variant[`preview_image_${ShoppingProductSetting.select_language}`];
-                            if ((pre_ciew === BgWidget.noImageURL) || !pre_ciew) {
+                            if (pre_ciew === BgWidget.noImageURL || !pre_ciew) {
                                 pre_ciew = getDefImg();
                             }
                             return html `
-                                                            <div style="font-weight: 700;">規格</div>
-                                                            <div>
-                                                                ${variant.spec.length > 0 ? variant.spec.join(' / ') : '單一規格'}
-                                                            </div>
-                                                            <div style="font-weight: 700;gap:5px;"
-                                                                 class="d-flex align-items-center">規格圖片
-                                                                ${BgWidget.languageInsignia(ShoppingProductSetting.select_language)}
-                                                            </div>
-                                                            <div
-                                                                class="d-flex align-items-center justify-content-center rounded-3 shadow"
-                                                                style="min-width:135px;135px;height:135px;cursor:pointer;background: 50%/cover url('${pre_ciew}');"
-                                                            >
-                                                                <div
-                                                                    class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image"
-                                                                    style="opacity:0;background: rgba(0,0,0,0.5);gap:20px;color:white;font-size:22px;"
-                                                                >
-                                                                    <i
-                                                                        class="fa-regular fa-eye"
-                                                                        onclick="${obj.gvc.event(() => {
-                                window.parent.glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', variant[`preview_image_${ShoppingProductSetting.select_language}`] || BgWidget.noImageURL);
+                              <div style="font-weight: 700;">規格</div>
+                              <div>${variant.spec.length > 0 ? variant.spec.join(' / ') : '單一規格'}</div>
+                              <div style="font-weight: 700;gap:5px;" class="d-flex align-items-center">
+                                規格圖片 ${BgWidget.languageInsignia(ShoppingProductSetting.select_language)}
+                              </div>
+                              <div
+                                class="d-flex align-items-center justify-content-center rounded-3 shadow"
+                                style="min-width:135px;135px;height:135px;cursor:pointer;background: 50%/cover url('${pre_ciew}');"
+                              >
+                                <div
+                                  class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image"
+                                  style="opacity:0;background: rgba(0,0,0,0.5);gap:20px;color:white;font-size:22px;"
+                                >
+                                  <i
+                                    class="fa-regular fa-eye"
+                                    onclick="${obj.gvc.event(() => {
+                                window.parent.glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', variant[`preview_image_${ShoppingProductSetting.select_language}`] ||
+                                    BgWidget.noImageURL);
                             })}"
-                                                                    ></i>
-                                                                </div>
-                                                            </div>
-                                                            <div
-                                                                style="width: 136px;text-align: center;color: #36B;cursor: pointer;"
-                                                                onclick="${obj.gvc.event(() => {
+                                  ></i>
+                                </div>
+                              </div>
+                              <div
+                                style="width: 136px;text-align: center;color: #36B;cursor: pointer;"
+                                onclick="${obj.gvc.event(() => {
                                 const language_data = postMD.language_data[ShoppingProductSetting.select_language];
                                 imageLibrary.selectImageFromArray(language_data.preview_image, {
                                     gvc: gvc,
-                                    title: html `
-                                                                            <div class="d-flex flex-column"
-                                                                                 style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
-                                                                                圖片庫
-                                                                            </div>`,
-                                    getSelect: (imageUrl) => {
+                                    title: html ` <div
+                                      class="d-flex flex-column"
+                                      style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                    >
+                                      圖片庫
+                                    </div>`,
+                                    getSelect: imageUrl => {
                                         variant[`preview_image_${ShoppingProductSetting.select_language}`] = imageUrl;
                                         gvc.notifyDataChange(id);
                                     },
                                 });
                             })}"
-                                                            >
-                                                                變更
-                                                            </div>
-                                                        `;
+                              >
+                                變更
+                              </div>
+                            `;
                         }
                         catch (e) {
                             console.log(e);
@@ -716,71 +685,70 @@ export class ShoppingProductSetting {
                 };
             }))
             : ''}
-                                ${(() => {
+              ${(() => {
             var _b, _c;
             let map_ = [
                 BgWidget.mainCard(html `
-                                            <div class="w-100"
-                                                 style="display: flex;gap: 18px;flex-direction: column;">
-                                                <div style="font-weight: 700;">定價</div>
-                                                <div class="d-flex w-100" style="gap:18px;">
-                                                    <div class="d-flex w-50 flex-column guide5-5" style="gap: 8px;">
-                                                        <div>售價*</div>
-                                                        <input
-                                                            style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                            placeholder="請輸入售價"
-                                                            onchange="${gvc.event((e) => {
+                    <div class="w-100" style="display: flex;gap: 18px;flex-direction: column;">
+                      <div style="font-weight: 700;">定價</div>
+                      <div class="d-flex w-100" style="gap:18px;">
+                        <div class="d-flex w-50 flex-column guide5-5" style="gap: 8px;">
+                          <div>售價*</div>
+                          <input
+                            style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                            placeholder="請輸入售價"
+                            onchange="${gvc.event(e => {
                     variant.sale_price = e.value;
                 })}"
-                                                            min="0"
-                                                            value="${variant.sale_price || '0'}"
-                                                            type="number"
-                                                        />
-                                                    </div>
-                                                    <div class="d-flex w-50 flex-column" style="gap: 8px;">
-                                                        <div>原價</div>
-                                                        <input
-                                                            style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                            placeholder="請輸入原價"
-                                                            min="0"
-                                                            onchange="${gvc.event((e) => {
+                            min="0"
+                            value="${variant.sale_price || '0'}"
+                            type="number"
+                          />
+                        </div>
+                        <div class="d-flex w-50 flex-column" style="gap: 8px;">
+                          <div>原價</div>
+                          <input
+                            style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                            placeholder="請輸入原價"
+                            min="0"
+                            onchange="${gvc.event(e => {
                     variant.compare_price = e.value;
                 })}"
-                                                            value="${variant.compare_price || '0'}"
-                                                            type="number"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div class="d-flex w-100" style="gap:18px;">
-                                                    <div class="d-flex w-50 flex-column" style="gap: 8px;">
-                                                        <div>成本</div>
-                                                        <input
-                                                            style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                            placeholder="請輸入成本"
-                                                            min="0"
-                                                            onchange="${gvc.event((e) => {
+                            value="${variant.compare_price || '0'}"
+                            type="number"
+                          />
+                        </div>
+                      </div>
+                      <div class="d-flex w-100" style="gap:18px;">
+                        <div class="d-flex w-50 flex-column" style="gap: 8px;">
+                          <div>成本</div>
+                          <input
+                            style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                            placeholder="請輸入成本"
+                            min="0"
+                            onchange="${gvc.event(e => {
                     variant.cost = e.value;
                 })}"
-                                                            value="${variant.cost || 0}"
-                                                            type="number"
-                                                        />
-                                                    </div>
-                                                    <div class="d-flex w-50 flex-column" style="gap: 8px;">
-                                                        <div>利潤</div>
-                                                        <input
-                                                            style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                            min="0"
-                                                            onchange="${gvc.event((e) => {
+                            value="${variant.cost || 0}"
+                            type="number"
+                          />
+                        </div>
+                        <div class="d-flex w-50 flex-column" style="gap: 8px;">
+                          <div>利潤</div>
+                          <input
+                            style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                            min="0"
+                            onchange="${gvc.event(e => {
                     variant.profit = e.value;
                 })}"
-                                                            placeholder="-"
-                                                            value="${variant.profit}"
-                                                            type="number"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `),
+                            placeholder="-"
+                            value="${variant.profit}"
+                            type="number"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  `),
             ];
             postMD.product_category = postMD.product_category || 'commodity';
             if (postMD.product_category === 'commodity') {
@@ -791,10 +759,8 @@ export class ShoppingProductSetting {
                     return {
                         bind: vm.id,
                         view: () => {
-                            return html `
-                                                        <div style="font-weight: 700;margin-bottom: 6px;">運費計算
-                                                        </div>
-                                                        ${BgWidget.multiCheckboxContainer(gvc, [
+                            return html ` <div style="font-weight: 700;margin-bottom: 6px;">運費計算</div>
+                              ${BgWidget.multiCheckboxContainer(gvc, [
                                 {
                                     key: 'volume',
                                     name: '依材積計算',
@@ -808,7 +774,7 @@ export class ShoppingProductSetting {
                                     key: 'none',
                                     name: '不計算運費',
                                 },
-                            ], [variant.shipment_type], (data) => {
+                            ], [variant.shipment_type], data => {
                                 variant.shipment_type = data[0];
                                 gvc.notifyDataChange(vm.id);
                             }, { single: true })}`;
@@ -820,11 +786,11 @@ export class ShoppingProductSetting {
                     };
                 })));
                 map_.push(BgWidget.mainCard(html `
-                                            <div class="d-flex flex-column " style="gap:18px;">
-                                                <div class="d-flex flex-column guide5-7" style="gap:18px;">
-                                                    <div style="font-weight: 700;">商品材積</div>
-                                                    <div class="row">
-                                                        ${[
+                      <div class="d-flex flex-column " style="gap:18px;">
+                        <div class="d-flex flex-column guide5-7" style="gap:18px;">
+                          <div style="font-weight: 700;">商品材積</div>
+                          <div class="row">
+                            ${[
                     {
                         title: '長度',
                         value: 'v_length',
@@ -841,59 +807,55 @@ export class ShoppingProductSetting {
                         unit: '公分',
                     },
                 ]
-                    .map((dd) => {
-                    return html `
-                                                                    <div
-                                                                        style="display: flex;justify-content: center;align-items: center;gap: 10px;position: relative;"
-                                                                        class=" col-12 col-sm-4 mb-2">
-                                                                        <div style="white-space: nowrap;">
-                                                                            ${dd.title}
-                                                                        </div>
-                                                                        <input
-                                                                            class="ps-3"
-                                                                            style="border-radius: 10px;border: 1px solid #DDD;height: 40px;width: calc(100% - 50px);"
-                                                                            type="number"
-                                                                            onchange="${gvc.event((e) => {
+                    .map(dd => {
+                    return html ` <div
+                                  style="display: flex;justify-content: center;align-items: center;gap: 10px;position: relative;"
+                                  class=" col-12 col-sm-4 mb-2"
+                                >
+                                  <div style="white-space: nowrap;">${dd.title}</div>
+                                  <input
+                                    class="ps-3"
+                                    style="border-radius: 10px;border: 1px solid #DDD;height: 40px;width: calc(100% - 50px);"
+                                    type="number"
+                                    onchange="${gvc.event(e => {
                         variant[dd.value] = e.value;
                     })}"
-                                                                            value="${variant[dd.value]}"
-                                                                        />
-                                                                        <div
-                                                                            style="color: #8D8D8D;position: absolute;right: 25px;top: 7px;">
-                                                                            ${dd.unit}
-                                                                        </div>
-                                                                    </div>`;
+                                    value="${variant[dd.value]}"
+                                  />
+                                  <div style="color: #8D8D8D;position: absolute;right: 25px;top: 7px;">${dd.unit}</div>
+                                </div>`;
                 })
                     .join('')}
-                                                    </div>
-                                                </div>
-                                                <div style="font-weight: 700;">商品重量</div>
-                                                <div class="w-100 row m-0" style="color:#393939;">
-                                                    <input
-                                                        class="col-6"
-                                                        style="display: flex;height: 40px;padding: 10px 18px;align-items: center;gap: 10px;border-radius: 10px;border: 1px solid #DDD;"
-                                                        placeholder="請輸入商品重量"
-                                                        value="${variant.weight || 0}"
-                                                        onchange="${gvc.event((e) => {
+                          </div>
+                        </div>
+                        <div style="font-weight: 700;">商品重量</div>
+                        <div class="w-100 row m-0" style="color:#393939;">
+                          <input
+                            class="col-6"
+                            style="display: flex;height: 40px;padding: 10px 18px;align-items: center;gap: 10px;border-radius: 10px;border: 1px solid #DDD;"
+                            placeholder="請輸入商品重量"
+                            value="${variant.weight || 0}"
+                            onchange="${gvc.event(e => {
                     variant.weight = e.value;
                 })}"
-                                                    />
-                                                    <div class="col-6"
-                                                         style="display: flex;align-items: center;gap: 10px;">
-                                                        <div style="white-space: nowrap;">單位</div>
-                                                        <select class="form-select d-flex align-items-center flex-fill"
-                                                                style="border-radius: 10px;border: 1px solid #DDD;padding-left: 18px;">
-                                                            <option value="kg">公斤</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `));
+                          />
+                          <div class="col-6" style="display: flex;align-items: center;gap: 10px;">
+                            <div style="white-space: nowrap;">單位</div>
+                            <select
+                              class="form-select d-flex align-items-center flex-fill"
+                              style="border-radius: 10px;border: 1px solid #DDD;padding-left: 18px;"
+                            >
+                              <option value="kg">公斤</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    `));
             }
             map_.push(BgWidget.mainCard(html `
-                                        <div class="d-flex flex-column" style="gap: 18px;">
-                                            <div style="font-weight: 700;">庫存政策</div>
-                                            ${gvc.bindView(() => {
+                    <div class="d-flex flex-column" style="gap: 18px;">
+                      <div style="font-weight: 700;">庫存政策</div>
+                      ${gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
                 return {
                     bind: stockId,
@@ -926,156 +888,157 @@ export class ShoppingProductSetting {
                                 if (!variant.stockList || Object.entries(variant.stockList).length == 0) {
                                     initStockList();
                                 }
-                                return html `
-                                                                    <div
-                                                                        class="w-100 align-items-center"
-                                                                        style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
-                                                                    >
-                                                                        <div class="flex-fill d-flex flex-column"
-                                                                             style="gap: 8px;border-left:solid 1px #E5E5E5;padding-left:14px;">
-                                                                            <div class="w-100"
-                                                                                 style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
-                                                                                ${postMD.shopee_id ? `
+                                return html ` <div
+                                  class="w-100 align-items-center"
+                                  style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
+                                >
+                                  <div
+                                    class="flex-fill d-flex flex-column"
+                                    style="gap: 8px;border-left:solid 1px #E5E5E5;padding-left:14px;"
+                                  >
+                                    <div class="w-100" style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
+                                      ${postMD.shopee_id
+                                    ? `
                                                                                     此商品來源為蝦皮電商平台，更改將自動同步蝦皮庫存，蝦皮商品僅支援單一庫存點。
-                                                                                    ` : `線上販售的商品將優先從庫存量較多的庫存點中扣除`}
-                                                                            </div>
-                                                                            ${(() => {
-                                    return stockList.map((stockSpot, index) => {
+                                                                                    `
+                                    : `線上販售的商品將優先從庫存量較多的庫存點中扣除`}
+                                    </div>
+                                    ${(() => {
+                                    return stockList
+                                        .map((stockSpot, index) => {
                                         var _b, _c, _d;
                                         if (postMD.shopee_id && index > 0) {
                                             return ``;
                                         }
                                         variant.stockList = (_b = variant.stockList) !== null && _b !== void 0 ? _b : {};
-                                        variant.stockList[stockSpot.id] = (_c = variant.stockList[stockSpot.id]) !== null && _c !== void 0 ? _c : { count: 0 };
+                                        variant.stockList[stockSpot.id] = (_c = variant.stockList[stockSpot.id]) !== null && _c !== void 0 ? _c : {
+                                            count: 0,
+                                        };
                                         return html `
-                                                                                        <div>
-                                                                                            ${postMD.shopee_id ? `蝦皮庫存` : stockSpot.name}
-                                                                                        </div>
-                                                                                        <input
-                                                                                            class="w-100"
-                                                                                            value="${(_d = variant.stockList[stockSpot.id].count) !== null && _d !== void 0 ? _d : 0}"
-                                                                                            type="number"
-                                                                                            style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                            placeholder="請輸入該庫存點庫存數量"
-                                                                                            onchange="${gvc.event((e) => {
+                                            <div>${postMD.shopee_id ? `蝦皮庫存` : stockSpot.name}</div>
+                                            <input
+                                              class="w-100"
+                                              value="${(_d = variant.stockList[stockSpot.id].count) !== null && _d !== void 0 ? _d : 0}"
+                                              type="number"
+                                              style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                              placeholder="請輸入該庫存點庫存數量"
+                                              onchange="${gvc.event(e => {
                                             const inputValue = parseInt(e.value, 10) || 0;
                                             variant.stockList[stockSpot.id].count = inputValue;
                                             variant.stock += inputValue;
                                             console.log('variant.stock -- ', variant.stock);
                                         })}"
-                                                                                        />
-                                                                                    `;
-                                    }).join(``);
+                                            />
+                                          `;
+                                    })
+                                        .join(``);
                                 })()}
-                                                                        </div>
-
-                                                                    </div>`;
+                                  </div>
+                                </div>`;
                             }
                             else {
-                                return html `
-                                                                    <div
-                                                                        class="w-100 align-items-center"
-                                                                        style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
-                                                                    >
-                                                                        <div
-                                                                            style="background-color: #E5E5E5;height: 80px;width: 1px;"></div>
-                                                                        <div class="flex-fill d-flex flex-column"
-                                                                             style="gap: 8px">
-                                                                            <div>庫存數量</div>
-                                                                            <div
-                                                                                class="w-100 ${postMD.shopee_id ? `` : `d-none`}"
-                                                                                style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
-                                                                                此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
-                                                                            </div>
-                                                                            <input
-                                                                                class="w-100"
-                                                                                type="number"
-                                                                                value="${(_b = variant.stock) !== null && _b !== void 0 ? _b : '0'}"
-                                                                                style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                placeholder="請輸入庫存數量"
-                                                                                onchange="${gvc.event((e) => {
+                                return html ` <div
+                                  class="w-100 align-items-center"
+                                  style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
+                                >
+                                  <div style="background-color: #E5E5E5;height: 80px;width: 1px;"></div>
+                                  <div class="flex-fill d-flex flex-column" style="gap: 8px">
+                                    <div>庫存數量</div>
+                                    <div
+                                      class="w-100 ${postMD.shopee_id ? `` : `d-none`}"
+                                      style="font-size: 14px;font-weight: 400;color: #8D8D8D;"
+                                    >
+                                      此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
+                                    </div>
+                                    <input
+                                      class="w-100"
+                                      type="number"
+                                      value="${(_b = variant.stock) !== null && _b !== void 0 ? _b : '0'}"
+                                      style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                      placeholder="請輸入庫存數量"
+                                      onchange="${gvc.event(e => {
                                     variant.stockList[stockList[0].id].count = e.value;
                                 })}"
-                                                                            />
-                                                                        </div>
-
-                                                                    </div>`;
+                                    />
+                                  </div>
+                                </div>`;
                             }
                         }
                         return html `
-                                                            <div class="d-flex flex-column w-100">
-                                                                <div
-                                                                    class="d-flex align-items-center"
-                                                                    style="gap:6px;cursor: pointer;"
-                                                                    onclick="${gvc.event(() => {
+                              <div class="d-flex flex-column w-100">
+                                <div
+                                  class="d-flex align-items-center"
+                                  style="gap:6px;cursor: pointer;"
+                                  onclick="${gvc.event(() => {
                             variant.show_understocking = 'true';
                             gvc.notifyDataChange(stockId);
                         })}"
-                                                                >
-                                                                    ${variant.show_understocking != 'false'
-                            ? html `
-                                                                            <div
-                                                                                style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
-                            : html `
-                                                                            <div
-                                                                                style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
-                                                                    追蹤庫存
-                                                                </div>
-                                                                ${variant.show_understocking != 'false'
-                            ? showStockView()
-                            : ``}
-                                                            </div>
-                                                            <div
-                                                                class="d-flex align-items-center"
-                                                                style="gap:6px;cursor: pointer;"
-                                                                onclick="${gvc.event(() => {
+                                >
+                                  ${variant.show_understocking != 'false'
+                            ? html ` <div
+                                        style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"
+                                      ></div>`
+                            : html ` <div
+                                        style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"
+                                      ></div>`}
+                                  追蹤庫存
+                                </div>
+                                ${variant.show_understocking != 'false' ? showStockView() : ``}
+                              </div>
+                              <div
+                                class="d-flex align-items-center"
+                                style="gap:6px;cursor: pointer;"
+                                onclick="${gvc.event(() => {
                             variant.show_understocking = 'false';
                             gvc.notifyDataChange(stockId);
                         })}"
-                                                            >
-                                                                ${variant.show_understocking == 'false'
-                            ? html `
-                                                                        <div
-                                                                            style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
-                            : html `
-                                                                        <div
-                                                                            style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
-                                                                不追蹤庫存
-                                                            </div>
-                                                            <div style="width:100%;height:1px;backgound:#DDDDDD;"></div>
-                                                            ${variant.show_understocking == 'false' ? '' : html `
-                                                                    <div class="flex-fill d-flex flex-column"
-                                                                         style="gap: 8px;font-size: 16px;font-weight: 700;">
-                                                                        <div>庫存警示</div>
-                                                                        <div class="w-100"
-                                                                             style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
-                                                                            當庫存低於此數量，會自動寄送警示通知。
-                                                                        </div>
-                                                                        <input
-                                                                            class="w-100"
-                                                                            value="${(_b = variant.save_stock) !== null && _b !== void 0 ? _b : '0'}"
-                                                                            style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                            placeholder="請輸入安全庫存"
-                                                                            onchange="${gvc.event((e) => {
-                            variant.save_stock = e.value;
-                        })}"
-                                                                        />
-                                                                    </div>`}
-                                                        `;
+                              >
+                                ${variant.show_understocking == 'false'
+                            ? html ` <div
+                                      style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"
+                                    ></div>`
+                            : html ` <div
+                                      style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"
+                                    ></div>`}
+                                不追蹤庫存
+                              </div>
+                              <div style="width:100%;height:1px;backgound:#DDDDDD;"></div>
+                              ${variant.show_understocking == 'false'
+                            ? ''
+                            : html ` <div
+                                    class="flex-fill d-flex flex-column"
+                                    style="gap: 8px;font-size: 16px;font-weight: 700;"
+                                  >
+                                    <div>庫存警示</div>
+                                    <div class="w-100" style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
+                                      當庫存低於此數量，會自動寄送警示通知。
+                                    </div>
+                                    <input
+                                      class="w-100"
+                                      value="${(_b = variant.save_stock) !== null && _b !== void 0 ? _b : '0'}"
+                                      style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                      placeholder="請輸入安全庫存"
+                                      onchange="${gvc.event(e => {
+                                variant.save_stock = e.value;
+                            })}"
+                                    />
+                                  </div>`}
+                            `;
                     },
-                    divCreate: { style: `display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;` },
+                    divCreate: {
+                        style: `display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;`,
+                    },
                 };
             })}
-                                        </div>
-                                    `));
+                    </div>
+                  `));
             if (postMD.product_category === 'commodity') {
                 map_.push(BgWidget.mainCard(html `
-                                            <div
-                                                style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
-                                                <div class="title-container px-0">
-                                                    <div style="color:#393939;font-weight: 700;">商品管理</div>
-                                                    <div class="flex-fill"></div>
-                                                    ${(() => {
+                      <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
+                        <div class="title-container px-0">
+                          <div style="color:#393939;font-weight: 700;">商品管理</div>
+                          <div class="flex-fill"></div>
+                          ${(() => {
                     const ba = [];
                     if (window.parent.glitter.share.PayConfig.deviceType === 'pos') {
                         ba.push(BgWidget.grayButton('條碼列印', gvc.event(() => {
@@ -1103,35 +1066,33 @@ export class ShoppingProductSetting {
                                 }
                                 window.parent.glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', url);
                             });
-                        }, () => {
-                        });
+                        }, () => { });
                     }), { icon: `fa-regular fa-eye` }));
                     return ba.join(`<div class="mx-2"></div>`);
                 })()}
-                                                </div>
-                                                <div
-                                                    style="display: flex;width: 100%;height: 70px;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;">
-                                                    <div style="font-weight: 400;font-size: 16px;">存貨單位 (SKU)
-                                                    </div>
-                                                    <input
-                                                        style="width:100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                        placeholder="請輸入存貨單位"
-                                                        value="${(_b = variant.sku) !== null && _b !== void 0 ? _b : ''}"
-                                                        onchange="${gvc.event((e) => {
+                        </div>
+                        <div
+                          style="display: flex;width: 100%;height: 70px;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;"
+                        >
+                          <div style="font-weight: 400;font-size: 16px;">存貨單位 (SKU)</div>
+                          <input
+                            style="width:100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                            placeholder="請輸入存貨單位"
+                            value="${(_b = variant.sku) !== null && _b !== void 0 ? _b : ''}"
+                            onchange="${gvc.event(e => {
                     variant.sku = e.value;
                 })}"
-                                                    />
-                                                </div>
-                                                <div
-                                                    style="display: flex;width: 100%;height: 70px;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;">
-                                                    <div style="font-weight: 400;font-size: 16px;">商品條碼
-                                                        (ISBN、UPC、GTIN等)
-                                                    </div>
-                                                    <input
-                                                        style="width:100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                        placeholder="請輸入商品條碼"
-                                                        value="${(_c = variant.barcode) !== null && _c !== void 0 ? _c : ''}"
-                                                        onchange="${gvc.event((e) => {
+                          />
+                        </div>
+                        <div
+                          style="display: flex;width: 100%;height: 70px;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;"
+                        >
+                          <div style="font-weight: 400;font-size: 16px;">商品條碼 (ISBN、UPC、GTIN等)</div>
+                          <input
+                            style="width:100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                            placeholder="請輸入商品條碼"
+                            value="${(_c = variant.barcode) !== null && _c !== void 0 ? _c : ''}"
+                            onchange="${gvc.event(e => {
                     const regex = /^[a-zA-Z0-9]+$/;
                     if (!regex.test(e.value)) {
                         e.value = '';
@@ -1142,57 +1103,59 @@ export class ShoppingProductSetting {
                         variant.barcode = e.value;
                     }
                 })}"
-                                                    />
-                                                </div>
-                                            </div>
-                                        `));
+                          />
+                        </div>
+                      </div>
+                    `));
             }
             return map_.join('');
         })()}
-                                ${document.body.clientWidth > 768 && obj.single === undefined ? BgWidget.mbContainer(120) : ''}
-                            </div>
-                            <div class="${obj.single ? `d-none` : ``}" style="min-width:300px; max-width:100%;">
-                                ${BgWidget.summaryCard(gvc.bindView({
+              ${document.body.clientWidth > 768 && obj.single === undefined ? BgWidget.mbContainer(120) : ''}
+            </div>
+            <div class="${obj.single ? `d-none` : ``}" style="min-width:300px; max-width:100%;">
+              ${BgWidget.summaryCard(gvc.bindView({
             bind: 'right',
             view: () => {
                 let rightHTML = postMD.variants
                     .map((data) => {
-                    data[`preview_image_${ShoppingProductSetting.select_language}`] = data[`preview_image_${ShoppingProductSetting.select_language}`] || data.preview_image || getDefImg();
+                    data[`preview_image_${ShoppingProductSetting.select_language}`] =
+                        data[`preview_image_${ShoppingProductSetting.select_language}`] ||
+                            data.preview_image ||
+                            getDefImg();
                     let pre_ciew = data[`preview_image_${ShoppingProductSetting.select_language}`];
-                    if ((pre_ciew === BgWidget.noImageURL) || !pre_ciew) {
+                    if (pre_ciew === BgWidget.noImageURL || !pre_ciew) {
                         pre_ciew = getDefImg();
                     }
                     if (!data.editable) {
                         return html `
-                                                            <div
-                                                                class="d-flex align-items-center"
-                                                                style="gap: 10px;cursor: pointer"
-                                                                onmouseover="${gvc.event((e) => {
+                            <div
+                              class="d-flex align-items-center"
+                              style="gap: 10px;cursor: pointer"
+                              onmouseover="${gvc.event(e => {
                             e.style.background = '#F7F7F7';
                         })}"
-                                                                onmouseout="${gvc.event((e) => {
+                              onmouseout="${gvc.event(e => {
                             e.style.background = '#FFFFFF';
                         })}"
-                                                                onclick="${gvc.event(() => {
+                              onclick="${gvc.event(() => {
                             checkStore(() => {
                                 postMD.variants.map((dd) => {
                                     dd.editable = false;
                                 });
                                 data.editable = true;
                                 obj.vm.type = 'editSpec';
-                            }, () => {
-                            });
+                            }, () => { });
                         })}"
-                                                            >
-                                                                ${BgWidget.validImageBox({
+                            >
+                              ${BgWidget.validImageBox({
                             gvc,
                             image: pre_ciew,
                             width: 40,
                             style: 'border-radius: 10px',
                         })}
-                                                                <div>${data.spec.join(' / ')}</div>
-                                                            </div>
-                                                        `;
+                              <div>${data.spec.join(' / ')}</div>
+                            </div>
+                          `;
                     }
                     else {
                         return ``;
@@ -1200,21 +1163,19 @@ export class ShoppingProductSetting {
                 })
                     .join('');
                 return html `
-                                                <div style="font-weight: 700;">其他規格</div>
-                                                <div class="d-flex flex-column mt-3" style="gap:16px">
-                                                    ${rightHTML}
-                                                </div>
-                                            `;
+                      <div style="font-weight: 700;">其他規格</div>
+                      <div class="d-flex flex-column mt-3" style="gap:16px">${rightHTML}</div>
+                    `;
             },
         }))}
-                            </div>
-                            ${obj.single ? '' : BgWidget.mbContainer(240)}
-                        </div>
-                    `, {
+            </div>
+            ${obj.single ? '' : BgWidget.mbContainer(240)}
+          </div>
+        `, {
             style: obj.vm.type === 'editSpec' ? '' : 'margin-top: 0 !important;',
         })}
-                <div class="update-bar-container ${obj.single ? `d-none` : ``}">
-                    ${BgWidget.cancel(obj.gvc.event(() => {
+      <div class="update-bar-container ${obj.single ? `d-none` : ``}">
+        ${BgWidget.cancel(obj.gvc.event(() => {
             checkStore(obj && obj.goBackEvent
                 ? obj.goBackEvent.cancel
                 : () => {
@@ -1222,7 +1183,7 @@ export class ShoppingProductSetting {
                     obj.vm.type = 'replace';
                 });
         }))}
-                    ${BgWidget.save(obj.gvc.event(() => {
+        ${BgWidget.save(obj.gvc.event(() => {
             let checkPass = true;
             if (checkPass) {
                 postMD.variants[index] = variant;
@@ -1234,8 +1195,8 @@ export class ShoppingProductSetting {
                 }
             }
         }))}
-                </div>
-            </div>`;
+      </div>
+    </div>`;
     }
     static getTimeState(jsonData) {
         const now = new Date();
@@ -1342,7 +1303,8 @@ export class ShoppingProductSetting {
                         languageData.content = (_c = languageData.content) !== null && _c !== void 0 ? _c : postMD.content;
                         languageData.content_array = (_d = languageData.content_array) !== null && _d !== void 0 ? _d : postMD.content_array;
                         languageData.content_json = (_e = languageData.content_json) !== null && _e !== void 0 ? _e : postMD.content_json;
-                        languageData.preview_image = (_f = languageData.preview_image) !== null && _f !== void 0 ? _f : JSON.parse(JSON.stringify(postMD.preview_image || []));
+                        languageData.preview_image =
+                            (_f = languageData.preview_image) !== null && _f !== void 0 ? _f : JSON.parse(JSON.stringify(postMD.preview_image || []));
                         ShoppingProductSetting.select_language = vm.language;
                         postMD.variants.forEach((variant) => {
                             variant.preview_image =
@@ -1351,19 +1313,20 @@ export class ShoppingProductSetting {
                                     BgWidget.noImageURL;
                         });
                         const categoryTitleMap = {
-                            'commodity': '商品',
-                            'course': '課程'
+                            commodity: '商品',
+                            course: '課程',
                         };
                         const categoryTitle = categoryTitleMap[postMD.product_category] || '商品';
                         return [
                             BgWidget.container(html `
-                                <div class="title-container flex-column flex-sm-row" style="">
-                                    <div class="d-flex align-items-center w-100">
-                                        ${BgWidget.goBack(obj.gvc.event(() => {
-                                if (window.parent.glitter.share.checkData && !window.parent.glitter.share.checkData()) {
+              <div class="title-container flex-column flex-sm-row" style="">
+                <div class="d-flex align-items-center w-100">
+                  ${BgWidget.goBack(obj.gvc.event(() => {
+                                if (window.parent.glitter.share.checkData &&
+                                    !window.parent.glitter.share.checkData()) {
                                     dialog.checkYesOrNot({
                                         text: '尚未儲存內容，是否確認跳轉?',
-                                        callback: (response) => {
+                                        callback: response => {
                                             if (response) {
                                                 window.parent.glitter.share.checkData = () => {
                                                     return true;
@@ -1377,25 +1340,26 @@ export class ShoppingProductSetting {
                                     obj.vm.type = 'list';
                                 }
                             }))}
-                                        <div class="d-flex align-items-center ">
-                                            <h3 class="mb-0 me-2 tx_title">
-                                                ${obj.type === 'replace' ? postMD.title || '編輯' + categoryTitle : `新增${categoryTitle}`}</h3>
-                                        </div>
-                                        <div class="flex-fill"></div>
-                                    </div>
-                                    <div class="flex-fill"></div>
-                                    <div class="d-flex align-items-center justify-content-end w-100 mt-2">
-                                        <div class="me-2 ">
-                                            ${LanguageBackend.switchBtn({
+                  <div class="d-flex align-items-center ">
+                    <h3 class="mb-0 me-2 tx_title">
+                      ${obj.type === 'replace' ? postMD.title || '編輯' + categoryTitle : `新增${categoryTitle}`}
+                    </h3>
+                  </div>
+                  <div class="flex-fill"></div>
+                </div>
+                <div class="flex-fill"></div>
+                <div class="d-flex align-items-center justify-content-end w-100 mt-2">
+                  <div class="me-2 ">
+                    ${LanguageBackend.switchBtn({
                                 gvc: gvc,
                                 language: vm.language,
-                                callback: (language) => {
+                                callback: language => {
                                     vm.language = language;
                                     refreshProductPage();
                                 },
                             })}
-                                        </div>
-                                        ${[
+                  </div>
+                  ${[
                                 obj.type === 'replace'
                                     ? ''
                                     : BgWidget.grayButton('代入現有商品', gvc.event(() => {
@@ -1403,14 +1367,14 @@ export class ShoppingProductSetting {
                                             gvc: gvc,
                                             default: [],
                                             single: true,
-                                            callback: (value) => {
+                                            callback: value => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.dataLoading({ visible: true });
                                                 ApiShop.getProduct({
                                                     page: 0,
                                                     limit: 1,
                                                     id: value[0],
-                                                }).then((data) => {
+                                                }).then(data => {
                                                     dialog.dataLoading({ visible: false });
                                                     if (data.result && data.response.data && data.response.data.content) {
                                                         const copy = data.response.data.content;
@@ -1438,12 +1402,11 @@ export class ShoppingProductSetting {
                                     }), { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined })
                                     : '',
                             ]
-                                .filter((str) => str.length > 0)
-                                .join(html `
-                                                <div class="mx-1"></div>`)}
-                                    </div>
-                                </div>
-                                ${BgWidget.tab([
+                                .filter(str => str.length > 0)
+                                .join(html ` <div class="mx-1"></div>`)}
+                </div>
+              </div>
+              ${BgWidget.tab([
                                 {
                                     title: '基本設定',
                                     key: 'normal',
@@ -1452,45 +1415,46 @@ export class ShoppingProductSetting {
                                     title: '進階設定',
                                     key: 'advance',
                                 },
-                            ], gvc, vm.show_page, (text) => {
+                            ], gvc, vm.show_page, text => {
                                 vm.show_page = text;
                                 gvc.notifyDataChange(vm.id);
                             }, 'margin-bottom: 0px;')}
-                                ${(vm.show_page === 'normal') ? ShoppingSettingBasic.main({
-                                gvc: gvc,
-                                vm2: vm,
-                                vm: obj.vm,
-                                reload: () => {
-                                    refreshProductPage();
-                                },
-                                language_data: languageData,
-                                postMD: postMD,
-                                shipment_config: shipment_config,
-                            }) : ShoppingSettingAdvance.main({
-                                gvc: gvc,
-                                vm2: vm,
-                                vm: obj.vm,
-                                reload: () => {
-                                    refreshProductPage();
-                                },
-                                language_data: languageData,
-                                postMD: postMD,
-                                shipment_config: shipment_config,
-                            })}
-                            `),
-                            html `
-                            <div class="update-bar-container">
-                                ${obj.type === 'replace'
+              ${vm.show_page === 'normal'
+                                ? ShoppingSettingBasic.main({
+                                    gvc: gvc,
+                                    vm2: vm,
+                                    vm: obj.vm,
+                                    reload: () => {
+                                        refreshProductPage();
+                                    },
+                                    language_data: languageData,
+                                    postMD: postMD,
+                                    shipment_config: shipment_config,
+                                })
+                                : ShoppingSettingAdvance.main({
+                                    gvc: gvc,
+                                    vm2: vm,
+                                    vm: obj.vm,
+                                    reload: () => {
+                                        refreshProductPage();
+                                    },
+                                    language_data: languageData,
+                                    postMD: postMD,
+                                    shipment_config: shipment_config,
+                                })}
+            `),
+                            html ` <div class="update-bar-container">
+              ${obj.type === 'replace'
                                 ? BgWidget.danger(obj.gvc.event(() => {
                                     const dialog = new ShareDialog(obj.gvc.glitter);
                                     dialog.checkYesOrNot({
                                         text: '是否確認刪除商品?',
-                                        callback: (response) => {
+                                        callback: response => {
                                             if (response) {
                                                 dialog.dataLoading({ visible: true });
                                                 ApiShop.delete({
                                                     id: postMD.id,
-                                                }).then((res) => {
+                                                }).then(res => {
                                                     dialog.dataLoading({ visible: false });
                                                     if (res.result) {
                                                         obj.vm.type = 'list';
@@ -1504,13 +1468,13 @@ export class ShoppingProductSetting {
                                     });
                                 }), '刪除商品')
                                 : ''}
-                                ${BgWidget.cancel(obj.gvc.event(() => {
+              ${BgWidget.cancel(obj.gvc.event(() => {
                                 obj.vm.type = 'list';
                             }))}
-                                ${BgWidget.save(obj.gvc.event(() => {
+              ${BgWidget.save(obj.gvc.event(() => {
                                 setTimeout(() => {
                                     if (postMD.product_category !== 'kitchen') {
-                                        postMD.variants.forEach((variant) => {
+                                        postMD.variants.forEach(variant => {
                                             if (Object.keys(variant.stockList).length > 0) {
                                                 variant.stock = 0;
                                                 Object.values(variant.stockList).forEach((data) => {
@@ -1524,7 +1488,7 @@ export class ShoppingProductSetting {
                                     });
                                 }, 500);
                             }), '儲存', 'guide5-8')}
-                            </div>`,
+            </div>`,
                         ].join('');
                     },
                     divCreate: {
@@ -1545,82 +1509,83 @@ export class ShoppingProductSetting {
         };
         let keyboard = '';
         let saveKeyEvent = undefined;
-        return html `
-            <div class="bg-white w-100">
-                ${[
-            html `
-                        <div class="w-100"
-                             style="background-color:white !important;display: flex;gap: 8px;flex-direction: column;">
-                            <div style="background-color:white !important;width: 70px">規格種類</div>
-                            <input
-                                class="w-100"
-                                style="background-color:white !important;height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                placeholder="例如 : 顏色、大小"
-                                value="${temp.title}"
-                                onchange="${gvc.event((e) => {
+        return html ` <div class="bg-white w-100">
+      ${[
+            html ` <div
+          class="w-100"
+          style="background-color:white !important;display: flex;gap: 8px;flex-direction: column;"
+        >
+          <div style="background-color:white !important;width: 70px">規格種類</div>
+          <input
+            class="w-100"
+            style="background-color:white !important;height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;"
+            placeholder="例如 : 顏色、大小"
+            value="${temp.title}"
+            onchange="${gvc.event(e => {
                 var _b;
                 temp.title = (_b = e === null || e === void 0 ? void 0 : e.value) !== null && _b !== void 0 ? _b : '';
             })}"
-                            />
-                        </div>`,
+          />
+        </div>`,
             gvc.bindView(() => {
                 return {
                     bind: vm.viewId,
                     view: () => {
                         return html `
-                                        <div class="w-100"
-                                             style="background-color:white !important;margin-top: 8px;">選項
-                                            (輸入完請按enter)
-                                        </div>
-                                        <div
-                                            class="w-100 d-flex align-items-center position-relative"
-                                            style="background-color:white !important;line-height: 40px;min-height: 40px;padding: 10px 18px;border-radius: 10px;border: 1px solid #DDD;gap: 10px; flex-wrap: wrap;"
-                                        >
-                                            <div class="d-flex align-items-center"
-                                                 style="gap: 10px; flex-wrap: wrap;background-color:white !important;">
-                                                ${(() => {
+                <div class="w-100" style="background-color:white !important;margin-top: 8px;">
+                  選項 (輸入完請按enter)
+                </div>
+                <div
+                  class="w-100 d-flex align-items-center position-relative"
+                  style="background-color:white !important;line-height: 40px;min-height: 40px;padding: 10px 18px;border-radius: 10px;border: 1px solid #DDD;gap: 10px; flex-wrap: wrap;"
+                >
+                  <div
+                    class="d-flex align-items-center"
+                    style="gap: 10px; flex-wrap: wrap;background-color:white !important;"
+                  >
+                    ${(() => {
                             const tempHTML = [];
                             temp.option.map((data, index) => {
                                 tempHTML.push(html `
-                                                                <div
-                                                                    class="d-flex align-items-center"
-                                                                    style="height: 24px;border-radius: 5px;background: #F2F2F2;display: flex;padding: 1px 6px;justify-content: center;align-items: center;gap: 4px;"
-                                                                >
-                                                                    ${data.title}<i
-                                                                    class="fa-solid fa-xmark ms-1 fs-5"
-                                                                    style="font-size: 12px;cursor: pointer;"
-                                                                    onclick="${gvc.event(() => {
+                          <div
+                            class="d-flex align-items-center"
+                            style="height: 24px;border-radius: 5px;background: #F2F2F2;display: flex;padding: 1px 6px;justify-content: center;align-items: center;gap: 4px;"
+                          >
+                            ${data.title}<i
+                              class="fa-solid fa-xmark ms-1 fs-5"
+                              style="font-size: 12px;cursor: pointer;"
+                              onclick="${gvc.event(() => {
                                     temp.option.splice(index, 1);
                                     gvc.notifyDataChange(vm.viewId);
                                 })}"
-                                                                ></i>
-                                                                </div>
-                                                            `);
+                            ></i>
+                          </div>
+                        `);
                             });
                             tempHTML.push(html `<input
-                                                        id="${vm.enterId}"
-                                                        class="flex-fill d-flex align-items-center border specInput-${vm.enterId} h-100 p-2"
-                                                        value=""
-                                                        style="background-color:white !important;"
-                                                        placeholder="${temp.option.length > 0 ? '請繼續輸入' : ''}"
-                                                    />`);
+                          id="${vm.enterId}"
+                          class="flex-fill d-flex align-items-center border specInput-${vm.enterId} h-100 p-2"
+                          value=""
+                          style="background-color:white !important;"
+                          placeholder="${temp.option.length > 0 ? '請繼續輸入' : ''}"
+                        />`);
                             return tempHTML.join('');
                         })()}
-                                            </div>
-                                            <div
-                                                class="d-flex align-items-center ${temp.option.length > 0 ? 'd-none' : ''} ps-2"
-                                                style="color: #8D8D8D;width: 100%;height:100%;position: absolute;left: 18px;top: 0;"
-                                                onclick="${gvc.event((e) => {
+                  </div>
+                  <div
+                    class="d-flex align-items-center ${temp.option.length > 0 ? 'd-none' : ''} ps-2"
+                    style="color: #8D8D8D;width: 100%;height:100%;position: absolute;left: 18px;top: 0;"
+                    onclick="${gvc.event(e => {
                             e.classList.add('d-none');
                             setTimeout(() => {
                                 document.querySelector(`.specInput-${vm.enterId}`).focus();
                             }, 100);
                         })}"
-                                            >
-                                                例如 : 黑色、S號
-                                            </div>
-                                        </div>
-                                    `;
+                  >
+                    例如 : 黑色、S號
+                  </div>
+                </div>
+              `;
                     },
                     divCreate: {
                         class: 'w-100 bg-white',
@@ -1650,7 +1615,7 @@ export class ShoppingProductSetting {
                                     });
                                     inputElement.value = '';
                                     temp.option = temp.option.reduce((acc, current) => {
-                                        const isTitleExist = acc.find((item) => item.title === current.title);
+                                        const isTitleExist = acc.find(item => item.title === current.title);
                                         if (!isTitleExist) {
                                             acc.push(current);
                                         }
@@ -1672,20 +1637,21 @@ export class ShoppingProductSetting {
                     },
                 };
             }),
-            html `
-                        <div class="d-flex w-100 justify-content-end align-items-center w-100 bg-white"
-                             style="gap:14px; margin-top: 12px;">
-                            ${BgWidget.cancel(gvc.event(() => {
+            html ` <div
+          class="d-flex w-100 justify-content-end align-items-center w-100 bg-white"
+          style="gap:14px; margin-top: 12px;"
+        >
+          ${BgWidget.cancel(gvc.event(() => {
                 cb.cancel();
             }))}
-                            ${BgWidget.save(gvc.event(() => {
+          ${BgWidget.save(gvc.event(() => {
                 saveKeyEvent().then(() => {
                     cb.save();
                 });
             }), '完成')}
-                        </div>`,
+        </div>`,
         ].join('')}
-            </div>`;
+    </div>`;
     }
     static putEvent(postMD, gvc, vm) {
         const dialog = new ShareDialog(gvc.glitter);
@@ -1698,7 +1664,7 @@ export class ShoppingProductSetting {
         ApiShop.putProduct({
             data: postMD,
             token: window.parent.config.token,
-        }).then((re) => {
+        }).then(re => {
             dialog.dataLoading({ visible: false });
             if (re.result) {
                 dialog.successMessage({ text: `更改成功` });
@@ -1723,7 +1689,7 @@ export class ShoppingProductSetting {
         ApiShop.postProduct({
             data: postMD,
             token: window.parent.config.token,
-        }).then((re) => {
+        }).then(re => {
             dialog.dataLoading({ visible: false });
             if (re.result) {
                 dialog.successMessage({ text: `上傳成功` });
