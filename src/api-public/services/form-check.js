@@ -281,7 +281,7 @@ class FormCheck {
     }
     static initialListHeader(data) {
         var _a, _b;
-        data !== null && data !== void 0 ? data : (data = {});
+        data = data || {};
         (_a = data['user-list']) !== null && _a !== void 0 ? _a : (data['user-list'] = [
             '顧客名稱',
             '電子信箱',

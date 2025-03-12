@@ -171,7 +171,6 @@ class Shopping {
             else if (!query.is_manger && `${query.show_hidden}` !== 'true') {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
             }
-            console.log(`is_manger=>`, query.is_manger);
             if (query.productType) {
                 query.productType.split(',').map(dd => {
                     if (dd === 'hidden') {
@@ -248,39 +247,38 @@ class Shopping {
                     switch (status) {
                         case 'inRange':
                             return `OR (
-                                    JSON_EXTRACT(content, '$.status') IN ('active', 1)
-                                    AND (
-                                        content->>'$.active_schedule' IS NULL OR 
-                                        (
-                                            (
-                                                ((CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL) and (CONCAT(content->>'$.active_schedule.startDate') IS NULL)) or
-                                                ((CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${currentDate}) or (CONCAT(content->>'$.active_schedule.startDate') <= ${database_js_1.default.escape((0, moment_1.default)().format('YYYY-MM-DD'))}))
-                                            )
-                                            AND (
-                                             ((CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL) and (CONCAT(content->>'$.active_schedule.endDate') IS NULL)) or
-                                                (CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${currentDate}) or (CONCAT(content->>'$.active_schedule.endDate') >= ${database_js_1.default.escape((0, moment_1.default)().format('YYYY-MM-DD'))})
-                                            )
-                                        )
-                                    )
-                                )`;
+                      JSON_EXTRACT(content, '$.status') IN ('active', 1)
+                      AND (
+                          content->>'$.active_schedule' IS NULL OR 
+                          (
+                              (
+                                  ((CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL) and (CONCAT(content->>'$.active_schedule.startDate') IS NULL)) or
+                                  ((CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${currentDate}) or (CONCAT(content->>'$.active_schedule.startDate') <= ${database_js_1.default.escape((0, moment_1.default)().format('YYYY-MM-DD'))}))
+                              )
+                              AND (
+                                ((CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL) and (CONCAT(content->>'$.active_schedule.endDate') IS NULL)) or
+                                  (CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${currentDate}) or (CONCAT(content->>'$.active_schedule.endDate') >= ${database_js_1.default.escape((0, moment_1.default)().format('YYYY-MM-DD'))})
+                              )
+                          )
+                      )
+                  )`;
                         case 'beforeStart':
                             return `
-                                OR (
-                                    JSON_EXTRACT(content, '$.status') IN ('active', 1)
-                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > ${currentDate}
-                                )`;
+                  OR (
+                      JSON_EXTRACT(content, '$.status') IN ('active', 1)
+                      AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > ${currentDate}
+                  )`;
                         case 'afterEnd':
                             return `
-                                OR (
-                                    JSON_EXTRACT(content, '$.status') IN ('active', 1)
-                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${currentDate}
-                                )`;
+                  OR (
+                      JSON_EXTRACT(content, '$.status') IN ('active', 1)
+                      AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${currentDate}
+                  )`;
                         default:
                             return '';
                     }
                 })
                     .join('');
-                console.log(`scheduleConditions=>`, scheduleConditions);
                 querySql.push(`(${statusCondition} ${scheduleConditions})`);
             }
             if (query.channel) {
@@ -340,7 +338,6 @@ class Shopping {
                     return dd;
                 });
             }
-            console.log(`get-product-sql-finish`, (new Date().getTime() - start) / 1000);
             await Promise.all((Array.isArray(products.data) ? products.data : [products.data]).map(product => {
                 return new Promise(async (resolve, reject) => {
                     var _a, _b, _c;
@@ -398,16 +395,16 @@ class Shopping {
                             }
                             content.variants = [
                                 {
-                                    "sku": "",
-                                    "spec": [],
-                                    "type": "variants",
-                                    "v_width": 0,
-                                    "product_id": content.id,
-                                    "sale_price": content.min_price,
-                                    "compare_price": 0,
-                                    "shipment_type": "none",
-                                    "show_understocking": (((_c = content.stocke) !== null && _c !== void 0 ? _c : '') === '') ? `false` : `true`
-                                }
+                                    sku: '',
+                                    spec: [],
+                                    type: 'variants',
+                                    v_width: 0,
+                                    product_id: content.id,
+                                    sale_price: content.min_price,
+                                    compare_price: 0,
+                                    shipment_type: 'none',
+                                    show_understocking: ((_c = content.stocke) !== null && _c !== void 0 ? _c : '') === '' ? `false` : `true`,
+                                },
                             ];
                         }
                         else {
@@ -421,11 +418,15 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                                 var _a, _b;
                                 variant.spec = variant.spec || [];
                                 variant.stock = 0;
-                                variant.sold_out = soldOldHistory.filter((dd) => {
-                                    return (dd.spec === variant.spec.join('-')) && (`${dd.product_id}` === `${content.id}`);
-                                }).map((dd) => {
-                                    return parseInt(dd.count, 10);
-                                }).reduce((a, b) => a + b, 0) || 0;
+                                variant.sold_out =
+                                    soldOldHistory
+                                        .filter((dd) => {
+                                        return dd.spec === variant.spec.join('-') && `${dd.product_id}` === `${content.id}`;
+                                    })
+                                        .map((dd) => {
+                                        return parseInt(dd.count, 10);
+                                    })
+                                        .reduce((a, b) => a + b, 0) || 0;
                                 variant.preview_image = (_a = variant.preview_image) !== null && _a !== void 0 ? _a : '';
                                 if (!variant.preview_image.includes('https://')) {
                                     variant.preview_image = undefined;
@@ -483,7 +484,6 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     resolve(true);
                 });
             }));
-            console.log(`get-product-shopee-finish`, (new Date().getTime() - start) / 1000);
             if (query.domain && products.data.length > 0) {
                 const decodedDomain = decodeURIComponent(query.domain);
                 const foundProduct = products.data.find((dd) => {
@@ -505,7 +505,6 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             const userData = (_f = (await userClass.getUserData(userID, 'userID'))) !== null && _f !== void 0 ? _f : { userID: -1 };
             const allVoucher = await this.getAllUseVoucher(userData.userID);
             const recommendData = await this.getDistributionRecommend(distributionCode);
-            console.log(`get-product-voucher-finish`, (new Date().getTime() - start) / 1000);
             const getPrice = (priceMap, key, specKey, priceList) => {
                 var _a;
                 const price = (_a = priceMap[key]) === null || _a === void 0 ? void 0 : _a.get(specKey);
@@ -1000,56 +999,63 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
-        const check_time = new Date().getTime();
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8;
+        const timer = {
+            count: 0,
+            history: [Date.now()],
+        };
+        const checkPoint = (name) => {
+            const t = Date.now();
+            timer.history.push(t);
+            const spendTime = t - timer.history[timer.count];
+            const totalTime = t - timer.history[0];
+            timer.count++;
+            const n = timer.count.toString().padStart(2, '0');
+            console.log(`TO-CHECKOUT-TIME-${n} [${name}] =>`, { totalTime, spendTime });
+        };
         try {
+            checkPoint('start');
+            const userClass = new user_js_1.User(this.app);
+            const rebateClass = new rebate_js_1.Rebate(this.app);
             data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
-            data.isExhibition = data.checkOutType === 'POS' && ((_b = data.pos_store) === null || _b === void 0 ? void 0 : _b.includes('exhibition_'));
+            data.isExhibition = data.checkOutType === 'POS' && ((_c = (_b = data.pos_store) === null || _b === void 0 ? void 0 : _b.includes('exhibition_')) !== null && _c !== void 0 ? _c : false);
             if (replace_order_id) {
-                const orderData = (await database_js_1.default.query(`SELECT *
-             FROM \`${this.app}\`.t_checkout
-             WHERE cart_token = ?
-               AND status = 0;`, [replace_order_id]))[0];
-                if (orderData) {
-                    await database_js_1.default.query(`DELETE
-             FROM \`${this.app}\`.t_checkout
-             WHERE cart_token = ?
-               AND status = 0;`, [replace_order_id]);
-                    data.line_items = orderData.orderData.lineItems;
-                    data.email = orderData.email;
-                    data.user_info = orderData.orderData.user_info;
-                    data.code = orderData.orderData.code;
-                    data.customer_info = orderData.orderData.customer_info;
-                    data.use_rebate = orderData.orderData.use_rebate;
+                const orderData = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ? AND status = 0;
+            `, [replace_order_id]))[0];
+                if (!orderData) {
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error: Cannot find this orderID.', null);
                 }
-                else {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error:Cant find this orderID.', null);
-                }
+                await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_checkout WHERE cart_token = ? AND status = 0;
+          `, [replace_order_id]);
+                const { lineItems, user_info, code, customer_info, use_rebate } = orderData.orderData;
+                data.line_items = lineItems;
+                data.email = orderData.email;
+                data.user_info = user_info;
+                data.code = code;
+                data.customer_info = customer_info;
+                data.use_rebate = use_rebate;
             }
             if (data.order_id && type === 'POS') {
-                const order = (await database_js_1.default.query(`SELECT *
-             FROM \`${this.app}\`.t_checkout
-             WHERE cart_token = ?`, [data.order_id]))[0];
-                if (order) {
-                    for (const b of order.orderData.lineItems) {
-                        console.log('1 getProduct');
-                        const pdDqlData = (await this.getProduct({
-                            page: 0,
-                            limit: 50,
-                            id: b.id,
-                            status: 'inRange',
-                            channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-                            whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
-                        })).data;
-                        const pd = pdDqlData.content;
-                        const variant = pd.variants.find((dd) => dd.spec.join('-') === b.spec.join('-'));
-                        await updateStock(variant, b.deduction_log);
-                        await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
-               SET content = ?
-               WHERE id = ?
-              `, [JSON.stringify(pd), pdDqlData.id]);
-                    }
+                const order = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?
+            `, [data.order_id]))[0];
+                if (!order) {
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error: Cannot find this POS order', null);
+                }
+                for (const b of order.orderData.lineItems) {
+                    const pdDqlData = (await this.getProduct({
+                        page: 0,
+                        limit: 50,
+                        id: b.id,
+                        status: 'inRange',
+                        channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
+                        whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
+                    })).data;
+                    const pd = pdDqlData.content;
+                    const variant = pd.variants.find((dd) => dd.spec.join('-') === b.spec.join('-'));
+                    await updateStock(variant, b.deduction_log);
+                    await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                    await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post SET content = ? WHERE id = ?
+            `, [JSON.stringify(pd), pdDqlData.id]);
                 }
             }
             async function updateStock(variant, deductionLog) {
@@ -1065,19 +1071,16 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             if (data.checkOutType === 'POS') {
                 this.token = undefined;
             }
-            console.log(`checkout-time-01=>`, new Date().getTime() - check_time);
-            const userClass = new user_js_1.User(this.app);
-            const rebateClass = new rebate_js_1.Rebate(this.app);
-            if (type !== 'preview' &&
-                !(this.token && this.token.userID) &&
-                !data.email &&
-                !(data.user_info && data.user_info.email)) {
-                if (!data.user_info.phone) {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
-                }
+            const hasAuthentication = (data) => {
+                return ((this.token && this.token.userID) ||
+                    data.email ||
+                    (data.user_info && data.user_info.email) ||
+                    (data.user_info && data.user_info.phone));
+            };
+            if (type !== 'preview' && !hasAuthentication(data)) {
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error: No email and phone', null);
             }
-            const checkOutType = (_c = data.checkOutType) !== null && _c !== void 0 ? _c : 'manual';
-            console.log(`checkOutType==>`, checkOutType);
+            const checkOutType = (_d = data.checkOutType) !== null && _d !== void 0 ? _d : 'manual';
             const getUserDataAsync = async (type, token, data) => {
                 if (type === 'preview' &&
                     !((token === null || token === void 0 ? void 0 : token.userID) || (data.user_info && data.user_info.email) || (data.user_info && data.user_info.phone))) {
@@ -1090,27 +1093,21 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     (data.user_info.phone && (await userClass.getUserData(data.user_info.phone, 'email_or_phone'))) ||
                     {});
             };
+            checkPoint('check user auth');
             const userData = await getUserDataAsync(type, this.token, data);
-            console.log(`checkout-time-02=>`, new Date().getTime() - check_time);
-            console.log(`the-userData-is=>`, userData);
-            if (userData && userData.userData && userData.userData.email) {
-                data.email = userData.userData.email || userData.userData.phone;
-            }
+            data.email = ((_e = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _e === void 0 ? void 0 : _e.email) || ((_f = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _f === void 0 ? void 0 : _f.phone) || '';
             if (!data.email || data.email === 'no-email') {
-                if (data.user_info.email && data.user_info.email !== 'no-email') {
-                    data.email = data.user_info.email;
-                }
-                else if (data.user_info.phone) {
-                    data.email = data.user_info.phone;
-                }
+                data.email =
+                    ((_g = data.user_info) === null || _g === void 0 ? void 0 : _g.email) && data.user_info.email !== 'no-email'
+                        ? data.user_info.email
+                        : ((_h = data.user_info) === null || _h === void 0 ? void 0 : _h.phone) || '';
             }
             if (!data.email && type !== 'preview') {
-                data.email = ((_d = data.user_info) === null || _d === void 0 ? void 0 : _d.email) || 'no-email';
+                data.email = 'no-email';
             }
             const appStatus = await rebateClass.mainStatus();
             if (appStatus && userData && data.use_rebate && data.use_rebate > 0) {
                 const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
-                console.log(`userRebate==>`, userRebate);
                 const sum = userRebate ? userRebate.point : 0;
                 if (sum < data.use_rebate) {
                     data.use_rebate = 0;
@@ -1119,7 +1116,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             else {
                 data.use_rebate = 0;
             }
-            console.log(`checkout-time-03=>`, new Date().getTime() - check_time);
+            checkPoint('check rebate');
             const shipment = await (async () => {
                 var _a, _b, _c;
                 data.user_info = data.user_info || {};
@@ -1159,7 +1156,6 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 }
                 return def;
             })();
-            console.log(`checkout-time-04=>`, new Date().getTime() - check_time);
             const shipment_setting = await new Promise(async (resolve, reject) => {
                 var _a;
                 try {
@@ -1178,61 +1174,50 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     resolve([]);
                 }
             });
-            console.log(`checkout-time-05=>`, new Date().getTime() - check_time);
-            shipment_setting.custom_delivery = (_e = shipment_setting.custom_delivery) !== null && _e !== void 0 ? _e : [];
+            checkPoint('set shipment');
+            shipment_setting.custom_delivery = (_j = shipment_setting.custom_delivery) !== null && _j !== void 0 ? _j : [];
             for (const form of shipment_setting.custom_delivery) {
-                form.form =
-                    (await new user_js_1.User(this.app).getConfigV2({
-                        user_id: 'manager',
-                        key: `form_delivery_${form.id}`,
-                    })).list || [];
+                const config = await new user_js_1.User(this.app).getConfigV2({
+                    user_id: 'manager',
+                    key: `form_delivery_${form.id}`,
+                });
+                form.form = config.list || [];
             }
-            shipment_setting.support = (_f = shipment_setting.support) !== null && _f !== void 0 ? _f : [];
-            shipment_setting.info =
-                (_g = (shipment_setting.language_data &&
-                    shipment_setting.language_data[data.language] &&
-                    shipment_setting.language_data[data.language].info)) !== null && _g !== void 0 ? _g : shipment_setting.info;
-            console.log(`checkout-time-06=>`, new Date().getTime() - check_time);
+            shipment_setting.support = (_k = shipment_setting.support) !== null && _k !== void 0 ? _k : [];
+            const languageInfo = (_m = (_l = shipment_setting.language_data) === null || _l === void 0 ? void 0 : _l[data.language]) === null || _m === void 0 ? void 0 : _m.info;
+            shipment_setting.info = languageInfo !== null && languageInfo !== void 0 ? languageInfo : shipment_setting.info;
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                email: (_h = data.email) !== null && _h !== void 0 ? _h : ((data.user_info && data.user_info.email) || ''),
+                email: (_q = (_o = data.email) !== null && _o !== void 0 ? _o : (_p = data.user_info) === null || _p === void 0 ? void 0 : _p.email) !== null && _q !== void 0 ? _q : '',
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
                 goodsWeight: 0,
                 use_rebate: data.use_rebate || 0,
-                orderID: data.order_id || `${new Date().getTime()}`,
+                orderID: data.order_id || `${Date.now()}`,
                 shipment_support: shipment_setting.support,
                 shipment_info: shipment_setting.info,
-                shipment_selector: shipment_config_js_1.ShipmentConfig.list
-                    .map(dd => {
-                    return {
+                shipment_selector: [
+                    ...shipment_config_js_1.ShipmentConfig.list.map(dd => ({
                         name: dd.title,
                         value: dd.value,
-                    };
-                })
-                    .concat(((_j = shipment_setting.custom_delivery) !== null && _j !== void 0 ? _j : []).map((dd) => {
-                    return {
+                    })),
+                    ...((_r = shipment_setting.custom_delivery) !== null && _r !== void 0 ? _r : []).map((dd) => ({
                         form: dd.form,
                         name: dd.name,
                         value: dd.id,
-                    };
-                }))
-                    .filter(d1 => {
-                    return shipment_setting.support.find((d2) => {
-                        return d2 === d1.value;
-                    });
-                }),
+                    })),
+                ].filter(option => shipment_setting.support.includes(option.value)),
                 use_wallet: 0,
-                method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || data.email || (data.user_info && data.user_info.email) || '',
+                method: (_s = data.user_info) === null || _s === void 0 ? void 0 : _s.method,
+                user_email: (_w = (_u = (_t = userData === null || userData === void 0 ? void 0 : userData.account) !== null && _t !== void 0 ? _t : data.email) !== null && _u !== void 0 ? _u : (_v = data.user_info) === null || _v === void 0 ? void 0 : _v.email) !== null && _w !== void 0 ? _w : '',
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
                 custom_receipt_form: data.custom_receipt_form,
-                orderSource: data.checkOutType === 'POS' ? `POS` : ``,
+                orderSource: data.checkOutType === 'POS' ? 'POS' : '',
                 code_array: data.code_array,
                 give_away: data.give_away,
                 user_rebate_sum: 0,
@@ -1267,8 +1252,8 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 return parseInt(dataList[dataList.length - 1].value);
             }
             const add_on_items = [];
-            let gift_product = [];
-            let saveStockArray = [];
+            const gift_product = [];
+            const saveStockArray = [];
             for (const b of data.line_items) {
                 try {
                     const pdDqlData = (await this.getProduct({
@@ -1287,20 +1272,21 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                             let show_understocking = 'false';
                             let stock = Infinity;
                             if (prod.specs.length) {
-                                price = b.spec.map((spec, index) => {
+                                price = b.spec
+                                    .map((spec, index) => {
                                     var _a, _b;
                                     const dpe = prod.specs[index].option.find((dd) => {
                                         return dd.title === spec;
                                     });
-                                    if ((((_a = dpe.stock) !== null && _a !== void 0 ? _a : '') !== '') && (stock > parseInt(dpe.stock, 10))) {
+                                    if (((_a = dpe.stock) !== null && _a !== void 0 ? _a : '') !== '' && stock > parseInt(dpe.stock, 10)) {
                                         stock = parseInt(dpe.stock, 10);
                                     }
-                                    if ((((_b = dpe.stock) !== null && _b !== void 0 ? _b : '') !== '')) {
-                                        console.log(`stock=>`, stock);
+                                    if (((_b = dpe.stock) !== null && _b !== void 0 ? _b : '') !== '') {
                                         show_understocking = `true`;
                                     }
                                     return parseInt(dpe.price, 10);
-                                }).reduce((a, b) => a + b, 0);
+                                })
+                                    .reduce((a, b) => a + b, 0);
                             }
                             else {
                                 price = parseInt(prod.price, 10);
@@ -1308,23 +1294,21 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                                 stock = parseInt(prod.stock, 10);
                             }
                             return {
-                                "sku": "",
-                                "spec": [],
-                                "type": "variants",
-                                "stock": stock,
-                                "v_width": 0,
-                                "product_id": prod.id,
-                                "sale_price": price,
-                                "origin_price": 0,
-                                "compare_price": 0,
-                                "shipment_type": "none",
-                                "show_understocking": show_understocking
+                                sku: '',
+                                spec: [],
+                                type: 'variants',
+                                stock: stock,
+                                v_width: 0,
+                                product_id: prod.id,
+                                sale_price: price,
+                                origin_price: 0,
+                                compare_price: 0,
+                                shipment_type: 'none',
+                                show_understocking: show_understocking,
                             };
                         }
                         else {
-                            return prod.variants.find((dd) => {
-                                return dd.spec.join('-') === b.spec.join('-');
-                            });
+                            return prod.variants.find((dd) => dd.spec.join('-') === b.spec.join('-'));
                         }
                     }
                     if (pdDqlData) {
@@ -1336,7 +1320,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                             const isUnderstockingVisible = variant.show_understocking !== 'false';
                             const isManualType = type === 'manual' || type === 'manual-preview';
                             if (isPOS && isUnderstockingVisible && !data.isExhibition) {
-                                variant.stock = ((_l = (_k = variant.stockList) === null || _k === void 0 ? void 0 : _k[data.pos_store]) === null || _l === void 0 ? void 0 : _l.count) || 0;
+                                variant.stock = ((_y = (_x = variant.stockList) === null || _x === void 0 ? void 0 : _x[data.pos_store]) === null || _y === void 0 ? void 0 : _y.count) || 0;
                             }
                             if (variant.stock < b.count && isUnderstockingVisible && !isManualType) {
                                 if (isPOS) {
@@ -1361,7 +1345,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                                     show_understocking: variant.show_understocking,
                                     stockList: variant.stockList,
                                     weight: parseInt(variant.weight || '0', 10),
-                                    designated_logistics: (_m = pd.designated_logistics) !== null && _m !== void 0 ? _m : { type: 'all', list: [] },
+                                    designated_logistics: (_z = pd.designated_logistics) !== null && _z !== void 0 ? _z : { type: 'all', list: [] },
                                 });
                                 const shipmentValue = (() => {
                                     if (!variant.shipment_type || variant.shipment_type === 'none')
@@ -1389,10 +1373,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                                     }
                                 }
                             }
-                            if (type !== 'preview' &&
-                                type !== 'manual' &&
-                                type !== 'manual-preview' &&
-                                variant.show_understocking !== 'false') {
+                            if (!['preview', 'manual', 'manual-preview'].includes(type) && variant.show_understocking !== 'false') {
                                 const remainingStock = Math.max(variant.stock - b.count, 0);
                                 variant.stock = remainingStock;
                                 if (type === 'POS') {
@@ -1439,14 +1420,11 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                                                 });
                                                 b.deduction_log = {};
                                                 b.deduction_log[store_config.list[0].id] = b.count;
-                                                console.log(`b.deduction_log==>`, b.deduction_log);
                                             }
                                             else {
                                                 await this.updateVariantsWithSpec(variant, b.id, b.spec);
                                             }
-                                            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
-                         SET ?
-                         WHERE id = ${pdDqlData.id}
+                                            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${pdDqlData.id}
                         `, [{ content: JSON.stringify(pd) }]);
                                             resolve(true);
                                         }
@@ -1481,7 +1459,28 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     console.error(e);
                 }
             }
-            console.log(`checkout-time-07=>`, new Date().getTime() - check_time);
+            checkPoint('get product info');
+            const maxProductMap = new Map(data.line_items.map(product => [product.id, Boolean(product.max_qty && product.max_qty > 0)]));
+            const hasMaxProduct = Array.from(maxProductMap.values()).some(Boolean);
+            if (data.email !== 'no-email' && hasMaxProduct) {
+                const existOrders = await database_js_1.default.query(`SELECT id, orderData FROM \`${this.app}\`.t_checkout WHERE email = ? AND status <> -2;`, [data.email]);
+                const purchaseHistory = existOrders.reduce((acc, order) => {
+                    order.orderData.lineItems.forEach(item => {
+                        var _a;
+                        if (maxProductMap.has(item.id)) {
+                            acc[item.id] = ((_a = acc[item.id]) !== null && _a !== void 0 ? _a : 0) + item.count;
+                        }
+                    });
+                    return acc;
+                }, {});
+                data.line_items.forEach(item => {
+                    var _a;
+                    if (item.max_qty && item.max_qty > 0) {
+                        item.buy_history_count = (_a = purchaseHistory[item.id]) !== null && _a !== void 0 ? _a : 0;
+                    }
+                });
+            }
+            checkPoint('set max product');
             carData.shipment_fee = (() => {
                 if (data.user_info.shipment === 'now') {
                     return 0;
@@ -1500,17 +1499,16 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             })();
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
-            console.log(`checkout-time-08=>`, new Date().getTime() - check_time);
             carData.useRebateInfo = f_rebate;
             carData.use_rebate = f_rebate.point;
             carData.total -= carData.use_rebate;
             carData.code = data.code;
             carData.voucherList = [];
+            checkPoint('set carData');
             if (userData && userData.account) {
                 const data = await rebateClass.getOneRebate({ user_id: userData.userID });
                 carData.user_rebate_sum = (data === null || data === void 0 ? void 0 : data.point) || 0;
             }
-            console.log(`checkout-time-09=>`, new Date().getTime() - check_time);
             if (data.distribution_code) {
                 const linkList = await new recommend_js_1.Recommend(this.app, this.token).getLinkList({
                     page: 0,
@@ -1526,7 +1524,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     }
                 }
             }
-            console.log(`checkout-time-10=>`, new Date().getTime() - check_time);
+            checkPoint('check distribution code');
             if (type !== 'manual' && type !== 'manual-preview') {
                 carData.lineItems = carData.lineItems.filter(dd => {
                     return !add_on_items.includes(dd);
@@ -1535,25 +1533,27 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     return !gift_product.includes(dd);
                 });
                 const c_carData = await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
-                console.log(`checkout-time-check-voucher-1=>`, new Date().getTime() - check_time);
-                add_on_items.map(dd => {
+                add_on_items.forEach(dd => {
                     var _a;
                     try {
-                        if ((_a = c_carData.voucherList) === null || _a === void 0 ? void 0 : _a.find(d1 => {
-                            return (d1.reBackType === 'add_on_items' &&
-                                d1.add_on_products.find(d2 => {
+                        const isAddOnItem = (_a = c_carData.voucherList) === null || _a === void 0 ? void 0 : _a.some(voucher => {
+                            return (voucher.reBackType === 'add_on_items' &&
+                                voucher.add_on_products.find(d2 => {
                                     return `${dd.id}` === `${d2}`;
                                 }));
-                        })) {
+                        });
+                        if (isAddOnItem) {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) { }
+                    catch (e) {
+                        console.error('Error processing add-on items:', e);
+                    }
                 });
                 await this.checkVoucher(carData);
-                console.log(`checkout-time-check-voucher-2=>`, new Date().getTime() - check_time);
+                checkPoint('check voucher');
                 let can_add_gift = [];
-                (_o = carData.voucherList) === null || _o === void 0 ? void 0 : _o.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
+                (_0 = carData.voucherList) === null || _0 === void 0 ? void 0 : _0.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
                 gift_product.forEach(dd => {
                     const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
                     if (dd.count <= max_count) {
@@ -1565,34 +1565,35 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 });
                 for (const dd of carData.voucherList.filter(dd => dd.reBackType === 'giveaway')) {
                     let index = -1;
-                    for (const b of (_p = dd.add_on_products) !== null && _p !== void 0 ? _p : []) {
+                    for (const b of (_1 = dd.add_on_products) !== null && _1 !== void 0 ? _1 : []) {
                         index++;
-                        console.log('3 getProduct');
-                        const pdDqlData = ((_q = (await this.getProduct({
+                        const pdDqlData = ((_2 = (await this.getProduct({
                             page: 0,
                             limit: 50,
                             id: `${b}`,
                             status: 'inRange',
                             channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
                             whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
-                        })).data) !== null && _q !== void 0 ? _q : { content: {} }).content;
+                        })).data) !== null && _2 !== void 0 ? _2 : { content: {} }).content;
                         pdDqlData.voucher_id = dd.id;
                         dd.add_on_products[index] = pdDqlData;
                     }
                 }
             }
-            console.log(`checkout-time-11=>`, new Date().getTime() - check_time);
-            const keyData = (await private_config_js_1.Private_config.getConfig({
+            const configData = await private_config_js_1.Private_config.getConfig({
                 appName: this.app,
                 key: 'glitter_finance',
-            }))[0].value;
-            carData.payment_info_custom = keyData.payment_info_custom;
+            });
+            const keyData = (_3 = configData[0]) === null || _3 === void 0 ? void 0 : _3.value;
+            if (keyData) {
+                carData.payment_info_custom = keyData.payment_info_custom;
+            }
             await new Promise(resolve => {
                 var _a;
                 let n = 0;
                 carData.payment_customer_form = (_a = carData.payment_customer_form) !== null && _a !== void 0 ? _a : [];
                 keyData.payment_info_custom.map((item, index) => {
-                    new user_js_1.User(this.app)
+                    userClass
                         .getConfigV2({
                         user_id: 'manager',
                         key: `form_finance_${item.id}`,
@@ -1612,6 +1613,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     resolve();
                 }
             });
+            checkPoint('set payment');
             carData.payment_setting = glitter_finance_js_1.onlinePayArray
                 .filter(dd => {
                 return keyData[dd.key] && keyData[dd.key].toggle;
@@ -1628,7 +1630,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     return dd.type !== 'pos';
                 }
             });
-            keyData.cash_on_delivery = (_r = keyData.cash_on_delivery) !== null && _r !== void 0 ? _r : { support: [] };
+            keyData.cash_on_delivery = (_4 = keyData.cash_on_delivery) !== null && _4 !== void 0 ? _4 : { support: [] };
             const is_support_cash = keyData.cash_on_delivery.support.find((item, index) => {
                 return carData.shipment_selector.find(dd => {
                     return dd.value === item;
@@ -1685,13 +1687,11 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 return dd;
             });
             carData.code_array = (carData.code_array || []).filter(code => {
-                return (carData.voucherList || []).find(dd => {
-                    return dd.code === code;
-                });
+                return (carData.voucherList || []).find(dd => dd.code === code);
             });
+            checkPoint('return preview');
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
-            console.log(`checkout-time-12=>`, new Date().getTime() - check_time);
             if (userData && userData.userID) {
                 await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
                     order_id: carData.orderID,
@@ -1707,6 +1707,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                  and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
                 carData.use_wallet = sum < carData.total ? sum : carData.total;
             }
+            checkPoint('check user rebate');
             if (type === 'manual') {
                 carData.orderSource = 'manual';
                 let tempVoucher = {
@@ -1742,7 +1743,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_s = data.total) !== null && _s !== void 0 ? _s : 0;
+                carData.total = (_5 = data.total) !== null && _5 !== void 0 ? _5 : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1750,7 +1751,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 if (tempVoucher.reBackType == 'rebate') {
                     let customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
                     if (!customerData) {
-                        await new user_js_1.User(this.app).createUser(data.email, tool_js_1.default.randomString(8), {
+                        await userClass.createUser(data.email, tool_js_1.default.randomString(8), {
                             email: data.email,
                             name: data.customer_info.name,
                             phone: data.customer_info.phone,
@@ -1766,7 +1767,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     status: data.pay_status,
                     app: this.app,
                 });
-                console.log(`checkout-time-13=>`, new Date().getTime() - check_time);
+                checkPoint('manual ordeer done');
                 return {
                     data: carData,
                 };
@@ -1776,7 +1777,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 if (data.checkOutType === 'POS' && Array.isArray(data.voucherList)) {
                     const manualVoucher = data.voucherList.find((item) => item.id === 0);
                     if (manualVoucher) {
-                        manualVoucher.discount = (_t = manualVoucher.discount_total) !== null && _t !== void 0 ? _t : 0;
+                        manualVoucher.discount = (_6 = manualVoucher.discount_total) !== null && _6 !== void 0 ? _6 : 0;
                         carData.total -= manualVoucher.discount;
                     }
                 }
@@ -1785,9 +1786,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     carData.progress = 'pre_order';
                     carData.orderStatus = '0';
                     const payTotal = data.pos_info.payment
-                        .map((dd) => {
-                        return dd.total;
-                    })
+                        .map((dd) => dd.total)
                         .reduce((acc, val) => acc + val, 0);
                     if (carData.total <= payTotal) {
                         data.pay_status = 1;
@@ -1810,10 +1809,9 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 }
                 await trans.commit();
                 await trans.release();
-                await Promise.all(saveStockArray.map(dd => {
-                    return dd();
-                }));
-                await new Shopping(this.app).releaseCheckout((_u = data.pay_status) !== null && _u !== void 0 ? _u : 0, carData.orderID);
+                await Promise.all(saveStockArray.map(dd => dd()));
+                await this.releaseCheckout((_7 = data.pay_status) !== null && _7 !== void 0 ? _7 : 0, carData.orderID);
+                checkPoint('release pos checkout');
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
             const id = 'redirect_' + tool_js_1.default.randomString(6);
@@ -1844,6 +1842,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 await Promise.all(saveStockArray.map(dd => {
                     return dd();
                 }));
+                checkPoint('insert order & create invoice');
                 return {
                     is_free: true,
                     return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
@@ -1854,7 +1853,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                let kd = (_v = keyData[carData.customer_info.payment_select]) !== null && _v !== void 0 ? _v : {
+                let kd = (_8 = keyData[carData.customer_info.payment_select]) !== null && _8 !== void 0 ? _8 : {
                     ReturnURL: '',
                     NotifyURL: '',
                 };
@@ -1873,6 +1872,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                         await Promise.all(saveStockArray.map(dd => {
                             return dd();
                         }));
+                        checkPoint('select newWebPay');
                         return {
                             form: subMitData,
                         };
@@ -1882,6 +1882,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                         await Promise.all(saveStockArray.map(dd => {
                             return dd();
                         }));
+                        checkPoint('select paypal');
                         return await new financial_service_js_1.PayPal(this.app, kd).checkout(carData);
                     case 'line_pay':
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
@@ -1889,6 +1890,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                         await Promise.all(saveStockArray.map(dd => {
                             return dd();
                         }));
+                        checkPoint('select linepay');
                         return await new financial_service_js_1.LinePay(this.app, kd).createOrder(carData);
                     case 'paynow': {
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
@@ -1896,13 +1898,14 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                         await Promise.all(saveStockArray.map(dd => {
                             return dd();
                         }));
+                        checkPoint('select paynow');
                         return await new financial_service_js_1.PayNow(this.app, kd).createOrder(carData);
                     }
                     case 'jkopay': {
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&orderid=${carData.orderID}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&jkopay=true`;
+                        checkPoint('select jkopay');
                         return await new financial_service_js_1.JKO(this.app, kd).createOrder(carData);
-                        break;
                     }
                     default:
                         carData.method = 'off_line';
@@ -1930,6 +1933,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                         }
                         auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email, carData.language);
                         await this.releaseVoucherHistory(carData.orderID, 1);
+                        checkPoint('default release checkout');
                         return {
                             off_line: true,
                             return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,

@@ -280,6 +280,7 @@ export declare class Shopping {
             sale_price: number;
             min_qty?: number;
             max_qty?: number;
+            buy_history_count?: boolean;
             collection?: string[];
             title?: string;
             preview_image?: string;

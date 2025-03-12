@@ -1433,6 +1433,7 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                                         count += b.count;
                                                       }
                                                     }
+
                                                     if (count > max_qty) {
                                                       return `<div class="text-danger">${Language.text('max_p_count').replace('_c_', max_qty)}</div>`;
                                                     } else {
@@ -1946,12 +1947,12 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                 'manager'
                               )
                             ).response.value;
-                            if(log_config.content){
+                            if (log_config.content) {
                               return `
 <label class="${gClass('label')}">${Language.text('shipping_instructions')}</label>
 <div class="border rounded-3 p-2">
 ${log_config.content}
-</div>`
+</div>`;
                             }
                             return ``;
                           },
@@ -2952,7 +2953,6 @@ ${log_config.content}
                                                 ? `min-width:100px;`
                                                 : `min-width:380px;`}"
                                               onclick="${gvc.event(() => {
-                                               
                                                 if (
                                                   (window as any).login_config.login_in_to_order &&
                                                   !GlobalUser.token
@@ -2999,8 +2999,17 @@ ${log_config.content}
                                                   if (count > max_qty) {
                                                     dialog.errorMessage({
                                                       text: Language.text('max_p_count_d')
-                                                        .replace('_c_', min)
+                                                        .replace('_c_', max_qty)
                                                         .replace('_p_', `『${title}』`),
+                                                    });
+                                                    return;
+                                                  }
+                                                  if (max_qty > 0 && count + item.buy_history_count > max_qty) {
+                                                    dialog.errorMessage({
+                                                      text: Language.text('trigger_maximum_item').replace(
+                                                        '_p_',
+                                                        `『${title}』`
+                                                      ),
                                                     });
                                                     return;
                                                   }
@@ -3647,7 +3656,7 @@ ${log_config.content}
       cartData.custom_form_data = JSON.parse(localStorage.getItem('custom_form_data') || '{}');
       cartData.user_info = JSON.parse(localStorage.getItem('custom_user_info') || '{}');
       cartData.give_away = JSON.parse(localStorage.getItem('give_away') || '[]');
-    }catch (e) {
+    } catch (e) {
       cartData.customer_info = {};
       cartData.custom_form_data = {};
       cartData.user_info = {};

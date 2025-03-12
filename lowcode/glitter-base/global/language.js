@@ -15,7 +15,7 @@ export class Language {
             },
         ];
         return sup
-            .filter((dd) => {
+            .filter(dd => {
             return window.parent.store_info.language_setting.support.includes(dd.key);
         })
             .sort((dd) => {
@@ -74,7 +74,7 @@ export class Language {
                 value: cf.local ? '繁體中文' : '繁',
             },
         ];
-        return (_a = sup.find((dd) => {
+        return (_a = sup.find(dd => {
             return dd.key === (cf.compare || Language.getLanguage());
         })) === null || _a === void 0 ? void 0 : _a.value;
     }
@@ -82,7 +82,7 @@ export class Language {
         localStorage.setItem('select_language_' + window.appName, value);
     }
     static text(key) {
-        const find_ = this.languageDataList().find((dd) => {
+        const find_ = this.languageDataList().find(dd => {
             return dd.key === key;
         });
         if (!find_) {
@@ -151,6 +151,12 @@ export class Language {
                 tw: '_p_ 最多購買數量為_c_件',
                 cn: '_p_ 最多购买数量为_c_件',
                 en: `_p_ Maximum purchase quantity is _c_ pieces.`,
+            },
+            {
+                key: 'trigger_maximum_item',
+                tw: '_p_ 您已多次購買此商品，並累計超過最高購買數量',
+                cn: '_p_ 您已多次购买此商品，并累计超过最高购买数量',
+                en: '_p_ You have purchased this item multiple times and have exceeded the maximum purchase quantity.',
             },
             {
                 key: 'min_p_count',
@@ -870,17 +876,20 @@ export class Language {
             { key: 'collect', tw: '收藏', cn: '收藏', en: 'collect' },
             { key: 'h_collect', tw: '已收藏', cn: '已收藏', en: 'collected' },
             {
-                key: 'cookie_use', tw: `
+                key: 'cookie_use',
+                tw: `
             本網站中使用 cookie，欲查詢有關本網站使用 cookie 方式之詳情，及若您不希望在裝置上使用 cookie 時應如何變更裝置的 cookie 設定，請參閱本網站「 <a class="fw-bold" style="font-size:16px;color:${window.glitter.share.globalValue['theme_color.0.solid-button-text']};" href="/privacy">
              隱私權條款
 </a> 」之 Cookie 聲明。您繼續使用本網站即表示您同意本公司得按本網站使用條款之 Cookie 聲明使用 cookie。
-            `, en: `
+            `,
+                en: `
              This website uses cookies. To learn more about how this website uses cookies and how to change your device's cookie settings if you do not wish to use cookies, please refer to the Cookie Statement in our <a class="fw-bold"
               style="color:${window.glitter.share.globalValue['theme_color.0.solid-button-text']};font-size:16px;"
               href="/privacy">
              Privacy Policy
 </a>. By continuing to use this website, you agree to our use of cookies as described in the Cookie Statement of our Terms of Use.
-            `, cn: `
+            `,
+                cn: `
              本网站使用 Cookie。欲了解本网站如何使用 Cookie，以及如果您不希望在设备上使用 Cookie 时应如何更改计算机的 Cookie 设置，请参阅本网站『
              <a href="/privacy"
              style="color:${window.glitter.share.globalValue['theme_color.0.solid-button-text']};font-size:16px;"

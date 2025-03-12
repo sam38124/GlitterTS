@@ -2747,8 +2747,14 @@ ${log_config.content}
                                                 if (count > max_qty) {
                                                     dialog.errorMessage({
                                                         text: Language.text('max_p_count_d')
-                                                            .replace('_c_', min)
+                                                            .replace('_c_', max_qty)
                                                             .replace('_p_', `『${title}』`),
+                                                    });
+                                                    return;
+                                                }
+                                                if (max_qty > 0 && count + item.buy_history_count > max_qty) {
+                                                    dialog.errorMessage({
+                                                        text: Language.text('trigger_maximum_item').replace('_p_', `『${title}』`),
                                                     });
                                                     return;
                                                 }
