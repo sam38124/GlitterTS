@@ -638,383 +638,579 @@ export class ShoppingOrderManager {
                     vm.data = vm.dataList[index];
                     vm.type = 'replace';
                   },
-                  filter: [
-                    ...(query.isShipment
-                      ? [
-                          {
-                            name: '取消配號/出貨',
-                            option: true,
-                            event: async () => {
-                              dialog.dataLoading({
-                                visible: true,
-                              });
-                              const checkArray = vm.dataList.filter((dd: any) => dd.checked);
-                              await Promise.all(
-                                checkArray.map((orderData: any) => {
-                                  return new Promise(async (resolve, reject) => {
-                                    ApiDelivery.cancelOrder({
-                                      cart_token: orderData.cart_token,
-                                      logistic_number: orderData.orderData.user_info.shipment_number as any,
-                                      total_amount: orderData.orderData.total as any,
-                                    })
-                                      .then(res => {
-                                        // if (res.result && res.response.data.includes('F,')) {
-                                        //   dialog.errorMessage({
-                                        //     text: res.response.data.replace('F,', ''),
-                                        //   });
-                                        // }
-                                        resolve(true);
-                                      })
-                                      .catch(err => {
-                                        resolve(true);
-                                      });
+                  filter: (() => {
+                    async function updateOrders(orders: Order[]) {
+                      dialog.dataLoading({ visible: true });
+                      Promise.all(
+                        orders.map(order => {
+                          return new Promise<void>((resolve, reject) => {
+                            ApiShop.putOrder({
+                              id: `${order.id}`,
+                              order_data: order.orderData,
+                              status: order.status,
+                            }).then(response => {
+                              response.result ? resolve() : reject();
+                            });
+                          });
+                        })
+                      )
+                        .then(() => {
+                          dialog.dataLoading({ visible: false });
+                          dialog.successMessage({ text: '更新成功' });
+                          gvc.notifyDataChange(vm.id);
+                        })
+                        .catch(() => {
+                          dialog.dataLoading({ visible: false });
+                          dialog.errorMessage({ text: '更新失敗' });
+                        });
+                    }
+
+                    const normalArray = [
+                      {
+                        name: '合併訂單',
+                        option: true,
+                        event: (checkArray: any) => {
+                          return OrderSetting.combineOrders(gvc, checkArray, () => gvc.notifyDataChange(vm.id));
+                        },
+                      },
+                      {
+                        name: '批量自動取號',
+                        option: true,
+                        event: (checkArray: any) => {
+                          const strArray = checkArray.map((dd: any) => {
+                            try {
+                              return dd.orderData.user_info.shipment;
+                            } catch (error) {
+                              return undefined;
+                            }
+                          });
+
+                          const allEqual = strArray.every((val: string) => val && val === strArray[0]);
+
+                          if (!allEqual) {
+                            dialog.errorMessage({ text: '配送的方式必須相同' });
+                            return;
+                          }
+                          if (checkArray.find((dd: any) => dd.orderData.user_info.shipment_number)) {
+                            dialog.errorMessage({ text: `已取號訂單無法再次取號` });
+                            return;
+                          }
+
+                          this.printStoreOrderInfo({
+                            gvc,
+                            cart_token: checkArray.map((dd: any) => dd.cart_token).join(','),
+                            print: false,
+                            callback: () => gvc.notifyDataChange(vm.id),
+                          });
+                        },
+                      },
+                      {
+                        name: '批量手動取號',
+                        option: true,
+                        event: (checkArray: any) => {
+                          if (checkArray.find((dd: any) => dd.orderData.user_info.shipment_number)) {
+                            dialog.errorMessage({ text: `已取號訂單無法再次取號` });
+                            return;
+                          }
+                          if (checkArray.find((dd: any) => !['', 'wait'].includes(dd.orderData.progress ?? ''))) {
+                            dialog.errorMessage({ text: `未出貨的訂單才可以進行取號` });
+                            return;
+                          }
+
+                          dialog.checkYesOrNot({
+                            text: '系統將自動生成配號並產生出貨單',
+                            callback: response => {
+                              if (response) {
+                                let shipment_date = gvc.glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd');
+                                let shipment_time = gvc.glitter.ut.dateFormat(new Date(), 'hh:mm');
+
+                                async function next() {
+                                  dialog.dataLoading({
+                                    visible: true,
                                   });
-                                })
-                              );
-                              dialog.dataLoading({
-                                visible: false,
-                              });
-                              gvc.recreateView();
-                            },
-                          },
-                          {
-                            name: '列印托運單',
-                            option: true,
-                            event: () => {
-                              const checkArray = vm.dataList.filter((dd: any) => dd.checked);
+                                  let index_number = 0;
+                                  await Promise.all(
+                                    checkArray.map((orderData: any) => {
+                                      return new Promise(async (resolve, reject) => {
+                                        orderData.orderData.user_info.shipment_number = `${new Date().getTime()}${index_number++}`;
+                                        orderData.orderData.user_info.shipment_date = new Date(
+                                          `${shipment_date} ${shipment_time}:00`
+                                        ).toISOString();
 
-                              const strArray = checkArray.map((dd: any) => {
-                                try {
-                                  return dd.orderData.user_info.shipment;
-                                } catch (error) {
-                                  return undefined;
-                                }
-                              });
-
-                              if (strArray.includes(undefined)) {
-                                dialog.errorMessage({
-                                  text: html` <div class="text-center">
-                                    已勾選訂單中不可含有<br />非超商店到店的配送方式
-                                  </div>`,
-                                });
-                                return;
-                              }
-
-                              const allEqual = strArray.every((val: string) => val && val === strArray[0]);
-
-                              if (!allEqual) {
-                                dialog.errorMessage({ text: '配送的方式必須相同' });
-                                return;
-                              }
-
-                              if (strArray.includes('HILIFEC2C') && strArray.length > 1) {
-                                dialog.errorMessage({ text: '萊爾富不支援一次列印多張托運單' });
-                                return;
-                              }
-
-                              return this.printStoreOrderInfo({
-                                gvc,
-                                cart_token: checkArray.map((dd: any) => dd.cart_token).join(','),
-                                print: true,
-                              });
-                            },
-                          },
-                          {
-                            name: '列印揀貨單',
-                            option: true,
-                            event: () => {
-                              const checkArray = vm.dataList.filter((dd: any) => dd.checked);
-                              return DeliveryHTML.print(gvc, checkArray, 'pick');
-                            },
-                          },
-                        ]
-                      : [
-                          {
-                            name: '合併訂單',
-                            option: true,
-                            event: () => {
-                              const checkArray = vm.dataList.filter((dd: any) => dd.checked);
-                              return OrderSetting.combineOrders(gvc, checkArray, () => {
-                                gvc.notifyDataChange(vm.id);
-                              });
-                            },
-                          },
-                          {
-                            name: '批量自動取號',
-                            option: true,
-                            event: () => {
-                              const checkArray = vm.dataList.filter((dd: any) => dd.checked);
-
-                              const strArray = checkArray.map((dd: any) => {
-                                try {
-                                  return dd.orderData.user_info.shipment;
-                                } catch (error) {
-                                  return undefined;
-                                }
-                              });
-
-                              const allEqual = strArray.every((val: string) => val && val === strArray[0]);
-
-                              if (!allEqual) {
-                                dialog.errorMessage({ text: '配送的方式必須相同' });
-                                return;
-                              }
-                              if (checkArray.find((dd: any) => dd.orderData.user_info.shipment_number)) {
-                                dialog.errorMessage({ text: `已取號訂單無法再次取號` });
-                                return;
-                              }
-
-                              this.printStoreOrderInfo({
-                                gvc,
-                                cart_token: checkArray.map((dd: any) => dd.cart_token).join(','),
-                                print: false,
-                                callback: () => {
+                                        ApiShop.putOrder({
+                                          id: `${orderData.id}`,
+                                          order_data: orderData.orderData,
+                                        }).then(response => {
+                                          resolve(true);
+                                        });
+                                      });
+                                    })
+                                  );
+                                  dialog.dataLoading({
+                                    visible: false,
+                                  });
                                   gvc.notifyDataChange(vm.id);
-                                },
-                              });
+                                }
+                                BgWidget.settingDialog({
+                                  gvc: gvc,
+                                  title: '設定出貨日期',
+                                  innerHTML: (gvc: GVC) => {
+                                    return [
+                                      BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: '出貨日期',
+                                        default: shipment_date,
+                                        callback: text => {
+                                          shipment_date = text;
+                                        },
+                                        type: 'date',
+                                        placeHolder: '請輸入出貨日期',
+                                      }),
+                                      BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: '出貨時間',
+                                        default: shipment_time,
+                                        callback: text => {
+                                          shipment_time = text;
+                                        },
+                                        type: 'time',
+                                        placeHolder: '請輸入出貨時間',
+                                      }),
+                                    ].join('');
+                                  },
+                                  footer_html: (gvc: GVC) => {
+                                    return [
+                                      BgWidget.cancel(
+                                        gvc.event(() => {
+                                          gvc.closeDialog();
+                                        }),
+                                        '取消'
+                                      ),
+                                      BgWidget.save(
+                                        gvc.event(() => {
+                                          gvc.closeDialog();
+                                          next();
+                                        }),
+                                        '儲存'
+                                      ),
+                                    ].join('');
+                                  },
+                                  width: 350,
+                                });
+                              }
                             },
-                          },
-                          {
-                            name: '批量手動取號',
-                            option: true,
-                            event: async () => {
-                              const checkArray = vm.dataList.filter((dd: any) => dd.checked);
-                              if (checkArray.find((dd: any) => dd.orderData.user_info.shipment_number)) {
-                                dialog.errorMessage({ text: `已取號訂單無法再次取號` });
-                                return;
-                              }
-                              if (checkArray.find((dd: any) => !['', 'wait'].includes(dd.orderData.progress ?? ''))) {
-                                dialog.errorMessage({ text: `未出貨的訂單才可以進行取號` });
-                                return;
-                              }
-
-                              dialog.checkYesOrNot({
-                                text: '系統將自動生成配號並產生出貨單',
-                                callback: response => {
-                                  if (response) {
-                                    let shipment_date = gvc.glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd');
-                                    let shipment_time = gvc.glitter.ut.dateFormat(new Date(), 'hh:mm');
-
-                                    async function next() {
-                                      dialog.dataLoading({
-                                        visible: true,
+                          });
+                        },
+                      },
+                      {
+                        name: '批量更改訂單狀態',
+                        option: true,
+                        event: (dataArray: any) => {
+                          function showDialog(orders: Order[]) {
+                            let orderStatus = '';
+                            BgWidget.settingDialog({
+                              gvc: gvc,
+                              title: '批量更改訂單狀態',
+                              innerHTML: (gvc: GVC) => {
+                                return html`<div>
+                                  <div class="tx_700 mb-2">更改為</div>
+                                  ${BgWidget.select({
+                                    gvc,
+                                    callback: (value: any) => {
+                                      orderStatus = value;
+                                    },
+                                    default: orderStatus,
+                                    options: [{ title: '變更訂單狀態', value: '' }]
+                                      .concat(ApiShop.getOrderStatusArray())
+                                      .map(item => {
+                                        return {
+                                          key: item.value,
+                                          value: item.title,
+                                        };
+                                      }),
+                                  })}
+                                </div>`;
+                              },
+                              footer_html: (gvc: GVC) => {
+                                return [
+                                  BgWidget.cancel(
+                                    gvc.event(() => {
+                                      gvc.closeDialog();
+                                    }),
+                                    '取消'
+                                  ),
+                                  BgWidget.save(
+                                    gvc.event(() => {
+                                      if (orderStatus === '') {
+                                        dialog.infoMessage({ text: '請選擇欲更改的訂單狀態' });
+                                        return;
+                                      }
+                                      gvc.closeDialog();
+                                      orders.forEach(order => {
+                                        order.orderData.orderStatus = orderStatus;
                                       });
-                                      let index_number = 0;
-                                      await Promise.all(
-                                        checkArray.map((orderData: any) => {
-                                          return new Promise(async (resolve, reject) => {
-                                            orderData.orderData.user_info.shipment_number = `${new Date().getTime()}${index_number++}`;
-                                            orderData.orderData.user_info.shipment_date = new Date(
-                                              `${shipment_date} ${shipment_time}:00`
-                                            ).toISOString();
+                                      updateOrders(orders);
+                                    }),
+                                    '儲存'
+                                  ),
+                                ].join('');
+                              },
+                              width: 350,
+                            });
+                          }
 
-                                            ApiShop.putOrder({
-                                              id: `${orderData.id}`,
-                                              order_data: orderData.orderData,
-                                            }).then(response => {
-                                              resolve(true);
-                                            });
-                                          });
-                                        })
-                                      );
-                                      dialog.dataLoading({
-                                        visible: false,
+                          function main() {
+                            dialog.dataLoading({ visible: true });
+                            ApiShop.getOrder({
+                              page: 0,
+                              limit: 1000,
+                              id_list: dataArray.map((data: any) => data.id).join(','),
+                            }).then(d => {
+                              dialog.dataLoading({ visible: false });
+                              if (d.result && Array.isArray(d.response.data)) {
+                                showDialog(d.response.data);
+                              } else {
+                                dialog.errorMessage({ text: '取得訂單資料錯誤' });
+                              }
+                            });
+                          }
+
+                          main();
+                        },
+                      },
+                      {
+                        name: '批量更改付款狀態',
+                        option: true,
+                        event: (dataArray: any) => {
+                          function showDialog(orders: Order[]) {
+                            let status = '';
+                            BgWidget.settingDialog({
+                              gvc: gvc,
+                              title: '批量更改付款狀態',
+                              innerHTML: (gvc: GVC) => {
+                                return html`<div>
+                                  <div class="tx_700 mb-2">更改為</div>
+                                  ${BgWidget.select({
+                                    gvc,
+                                    callback: (value: any) => {
+                                      status = value;
+                                    },
+                                    default: status,
+                                    options: [
+                                      { title: '變更付款狀態', value: '' },
+                                      { title: '已付款', value: '1' },
+                                      { title: '部分付款', value: '3' },
+                                      { title: '待核款 / 貨到付款 / 未付款', value: '0' },
+                                      { title: '已退款', value: '-2' },
+                                    ].map(item => {
+                                      return {
+                                        key: item.value,
+                                        value: item.title,
+                                      };
+                                    }),
+                                  })}
+                                </div>`;
+                              },
+                              footer_html: (gvc: GVC) => {
+                                return [
+                                  BgWidget.cancel(
+                                    gvc.event(() => {
+                                      gvc.closeDialog();
+                                    }),
+                                    '取消'
+                                  ),
+                                  BgWidget.save(
+                                    gvc.event(() => {
+                                      if (status === '') {
+                                        dialog.infoMessage({ text: '請選擇欲更改的付款狀態' });
+                                        return;
+                                      }
+                                      gvc.closeDialog();
+                                      orders.forEach(order => {
+                                        order.status = Number(status);
                                       });
-                                      gvc.notifyDataChange(vm.id);
-                                    }
-                                    BgWidget.settingDialog({
-                                      gvc: gvc,
-                                      title: '設定出貨日期',
-                                      innerHTML: (gvc: GVC) => {
-                                        return [
-                                          BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '出貨日期',
-                                            default: shipment_date,
-                                            callback: text => {
-                                              shipment_date = text;
-                                            },
-                                            type: 'date',
-                                            placeHolder: '請輸入出貨日期',
-                                          }),
-                                          BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '出貨時間',
-                                            default: shipment_time,
-                                            callback: text => {
-                                              shipment_time = text;
-                                            },
-                                            type: 'time',
-                                            placeHolder: '請輸入出貨時間',
-                                          }),
-                                        ].join('');
-                                      },
-                                      footer_html: (gvc: GVC) => {
-                                        return [
-                                          BgWidget.cancel(
-                                            gvc.event(() => {
-                                              gvc.closeDialog();
-                                            }),
-                                            '取消'
-                                          ),
-                                          BgWidget.save(
-                                            gvc.event(() => {
-                                              gvc.closeDialog();
-                                              next();
-                                            }),
-                                            '儲存'
-                                          ),
-                                        ].join('');
-                                      },
-                                      width: 350,
+                                      updateOrders(orders);
+                                    }),
+                                    '儲存'
+                                  ),
+                                ].join('');
+                              },
+                              width: 350,
+                            });
+                          }
+
+                          function main() {
+                            dialog.dataLoading({ visible: true });
+                            ApiShop.getOrder({
+                              page: 0,
+                              limit: 1000,
+                              id_list: dataArray.map((data: any) => data.id).join(','),
+                            }).then(d => {
+                              dialog.dataLoading({ visible: false });
+                              if (d.result && Array.isArray(d.response.data)) {
+                                showDialog(d.response.data);
+                              } else {
+                                dialog.errorMessage({ text: '取得訂單資料錯誤' });
+                              }
+                            });
+                          }
+
+                          main();
+                        },
+                      },
+                    ];
+
+                    const shipmentArray = [
+                      {
+                        name: '取消配號/出貨',
+                        option: true,
+                        event: async (checkArray: any) => {
+                          dialog.dataLoading({ visible: true });
+                          await Promise.all(
+                            checkArray.map((orderData: any) => {
+                              return new Promise(async (resolve, reject) => {
+                                ApiDelivery.cancelOrder({
+                                  cart_token: orderData.cart_token,
+                                  logistic_number: orderData.orderData.user_info.shipment_number as any,
+                                  total_amount: orderData.orderData.total as any,
+                                })
+                                  .then(res => {
+                                    // if (res.result && res.response.data.includes('F,')) {
+                                    //   dialog.errorMessage({
+                                    //     text: res.response.data.replace('F,', ''),
+                                    //   });
+                                    // }
+                                    resolve(true);
+                                  })
+                                  .catch(err => {
+                                    resolve(true);
+                                  });
+                              });
+                            })
+                          );
+                          dialog.dataLoading({ visible: false });
+                          gvc.recreateView();
+                        },
+                      },
+                      {
+                        name: '列印托運單',
+                        option: true,
+                        event: (checkArray: any) => {
+                          const strArray = checkArray.map((dd: any) => {
+                            try {
+                              return dd.orderData.user_info.shipment;
+                            } catch (error) {
+                              return undefined;
+                            }
+                          });
+
+                          if (strArray.includes(undefined)) {
+                            dialog.errorMessage({
+                              text: html` <div class="text-center">
+                                已勾選訂單中不可含有<br />非超商店到店的配送方式
+                              </div>`,
+                            });
+                            return;
+                          }
+
+                          const allEqual = strArray.every((val: string) => val && val === strArray[0]);
+
+                          if (!allEqual) {
+                            dialog.errorMessage({ text: '配送的方式必須相同' });
+                            return;
+                          }
+
+                          if (strArray.includes('HILIFEC2C') && strArray.length > 1) {
+                            dialog.errorMessage({ text: '萊爾富不支援一次列印多張托運單' });
+                            return;
+                          }
+
+                          return this.printStoreOrderInfo({
+                            gvc,
+                            cart_token: checkArray.map((dd: any) => dd.cart_token).join(','),
+                            print: true,
+                          });
+                        },
+                      },
+                      {
+                        name: '列印揀貨單',
+                        option: true,
+                        event: (checkArray: any) => {
+                          return DeliveryHTML.print(gvc, checkArray, 'pick');
+                        },
+                      },
+                      {
+                        name: '批量更改出貨狀態',
+                        option: true,
+                        event: (dataArray: any) => {
+                          function showDialog(orders: Order[]) {
+                            let progress = '';
+                            BgWidget.settingDialog({
+                              gvc: gvc,
+                              title: '批量更改出貨狀態',
+                              innerHTML: (gvc: GVC) => {
+                                return html`<div>
+                                  <div class="tx_700 mb-2">更改為</div>
+                                  ${BgWidget.select({
+                                    gvc,
+                                    callback: (value: any) => {
+                                      progress = value;
+                                    },
+                                    default: progress,
+                                    options: [
+                                      { title: '變更出貨狀態', value: '' },
+                                      { title: '已出貨', value: 'shipping' },
+                                      { title: '備貨中', value: 'wait' },
+                                      { title: '已取貨', value: 'finish' },
+                                      { title: '已退貨', value: 'returns' },
+                                      { title: '已到貨', value: 'arrived' },
+                                    ].map(item => {
+                                      return {
+                                        key: item.value,
+                                        value: item.title,
+                                      };
+                                    }),
+                                  })}
+                                </div>`;
+                              },
+                              footer_html: (gvc: GVC) => {
+                                return [
+                                  BgWidget.cancel(
+                                    gvc.event(() => {
+                                      gvc.closeDialog();
+                                    }),
+                                    '取消'
+                                  ),
+                                  BgWidget.save(
+                                    gvc.event(() => {
+                                      if (progress === '') {
+                                        dialog.infoMessage({ text: '請選擇欲更改的出貨狀態' });
+                                        return;
+                                      }
+                                      gvc.closeDialog();
+                                      orders.forEach(order => {
+                                        order.orderData.progress = progress;
+                                      });
+                                      updateOrders(orders);
+                                    }),
+                                    '儲存'
+                                  ),
+                                ].join('');
+                              },
+                              width: 350,
+                            });
+                          }
+
+                          function main() {
+                            dialog.dataLoading({ visible: true });
+                            ApiShop.getOrder({
+                              page: 0,
+                              limit: 1000,
+                              id_list: dataArray.map((data: any) => data.id).join(','),
+                            }).then(d => {
+                              dialog.dataLoading({ visible: false });
+                              if (d.result && Array.isArray(d.response.data)) {
+                                const orders = d.response.data as Order[];
+                                const hasPaynowShipping = orders.find(order => {
+                                  try {
+                                    return order.orderData.user_info.shipment_refer === 'paynow';
+                                  } catch (error) {
+                                    return false;
+                                  }
+                                });
+
+                                if (hasPaynowShipping) {
+                                  dialog.infoMessage({
+                                    text: `自動物流追蹤之出貨單，不可手動更改<br/>（訂單編號：${hasPaynowShipping.cart_token}）`,
+                                  });
+                                } else {
+                                  showDialog(d.response.data);
+                                }
+                              } else {
+                                dialog.errorMessage({ text: '取得訂單資料錯誤' });
+                              }
+                            });
+                          }
+
+                          main();
+                        },
+                      },
+                    ];
+
+                    return [
+                      ...(query.isShipment ? shipmentArray : normalArray),
+                      // {
+                      //     name: '列印出貨單',
+                      //     option: true,
+                      //     event: () => {
+                      //         const checkArray = vm.dataList.filter((dd: any) => dd.checked);
+                      //         const infoHTML = html`
+                      //             <div class="text-center">
+                      //                 物流追蹤設定尚未開啟<br/>
+                      //                 請前往「配送設定」啟用後即可列印
+                      //             </div>
+                      //         `;
+                      //
+                      //         dialog.dataLoading({visible: true});
+                      //         ApiPageConfig.getPrivateConfig((window.parent as any).appName, 'glitter_delivery').then((res) => {
+                      //             dialog.dataLoading({visible: false});
+                      //             try {
+                      //                 if (res.response.result[0].value.toggle === 'true') {
+                      //                     DeliveryHTML.print(gvc, checkArray, 'shipment');
+                      //                     return;
+                      //                 } else {
+                      //                     dialog.infoMessage({text: infoHTML});
+                      //                 }
+                      //             } catch (error) {
+                      //                 dialog.infoMessage({text: infoHTML});
+                      //             }
+                      //         });
+                      //     },
+                      // },
+                      {
+                        name: query.isArchived ? '解除封存' : '批量封存',
+                        event: (checkArray: any) => {
+                          const action_with = ['order_list', 'order_list_archive'].includes(
+                            (window as any).glitter.getUrlParameter('page')
+                          )
+                            ? '出貨單'
+                            : '訂單';
+                          dialog.checkYesOrNot({
+                            text: html`<div class="d-flex flex-column" style="gap:5px;">
+                              是否確認${query.isArchived ? '解除封存' : '封存'}所選項目?
+                              ${BgWidget.grayNote(
+                                `**請注意**  將連同${action_with}一併${query.isArchived ? '解除封存' : '封存'}`
+                              )}
+                            </div>`,
+                            callback: (response: boolean) => {
+                              if (response) {
+                                dialog.dataLoading({ visible: true });
+                                new Promise<void>(resolve => {
+                                  let n = 0;
+                                  for (const b of checkArray) {
+                                    b.orderData.archived = `${!query.isArchived}`;
+                                    ApiShop.putOrder({
+                                      id: `${b.id}`,
+                                      order_data: b.orderData,
+                                    }).then(resp => {
+                                      if (resp.result) {
+                                        if (++n == checkArray.length) {
+                                          resolve();
+                                        }
+                                      }
                                     });
                                   }
-                                },
-                              });
-                            },
-                          },
-                          {
-                            name: '批量更改訂單狀態',
-                            option: true,
-                            event: async (dataArray: any) => {
-                              ApiShop.getOrder({
-                                page: 0,
-                                limit: 1000,
-                                id_list: dataArray.map((data: any) => data.id).join(','),
-                              });
-
-                              function updateOrders(orderData: Order) {
-                                ApiShop.putOrder({
-                                  id: `${orderData.id}`,
-                                  order_data: orderData.orderData,
-                                  status: orderData.status,
-                                }).then(response => {
-                                  dialog.dataLoading({ text: '上傳中', visible: false });
-                                  if (response.result) {
-                                    dialog.successMessage({ text: '更新成功' });
-                                    gvc.notifyDataChange('orderDetailRefresh');
-                                  } else {
-                                    dialog.errorMessage({ text: '更新異常' });
-                                  }
+                                }).then(() => {
+                                  dialog.dataLoading({ visible: false });
+                                  gvc.notifyDataChange(vm.id);
                                 });
                               }
-
-                              BgWidget.settingDialog({
-                                gvc: gvc,
-                                title: '批量更改訂單狀態',
-                                innerHTML: (gvc: GVC) => {
-                                  return [
-                                    html`<div class="tx_700">更改為</div>`,
-                                    BgWidget.select({
-                                      gvc,
-                                      callback: (value: any) => {
-                                        console.log(value);
-                                      },
-                                      default: '',
-                                      options: [],
-                                    }),
-                                  ].join('');
-                                },
-                                footer_html: (gvc: GVC) => {
-                                  return [
-                                    BgWidget.cancel(
-                                      gvc.event(() => {
-                                        gvc.closeDialog();
-                                      }),
-                                      '取消'
-                                    ),
-                                    BgWidget.save(
-                                      gvc.event(() => {
-                                        gvc.closeDialog();
-                                      }),
-                                      '儲存'
-                                    ),
-                                  ].join('');
-                                },
-                                width: 350,
-                              });
                             },
-                          },
-                          {
-                            name: '批量更改付款狀態',
-                            option: true,
-                            event: async () => {},
-                          },
-                        ]),
-                    // {
-                    //     name: '列印出貨單',
-                    //     option: true,
-                    //     event: () => {
-                    //         const checkArray = vm.dataList.filter((dd: any) => dd.checked);
-                    //         const infoHTML = html`
-                    //             <div class="text-center">
-                    //                 物流追蹤設定尚未開啟<br/>
-                    //                 請前往「配送設定」啟用後即可列印
-                    //             </div>
-                    //         `;
-                    //
-                    //         dialog.dataLoading({visible: true});
-                    //         ApiPageConfig.getPrivateConfig((window.parent as any).appName, 'glitter_delivery').then((res) => {
-                    //             dialog.dataLoading({visible: false});
-                    //             try {
-                    //                 if (res.response.result[0].value.toggle === 'true') {
-                    //                     DeliveryHTML.print(gvc, checkArray, 'shipment');
-                    //                     return;
-                    //                 } else {
-                    //                     dialog.infoMessage({text: infoHTML});
-                    //                 }
-                    //             } catch (error) {
-                    //                 dialog.infoMessage({text: infoHTML});
-                    //             }
-                    //         });
-                    //     },
-                    // },
-                    {
-                      name: query.isArchived ? '解除封存' : '批量封存',
-                      event: () => {
-                        const action_with = ['order_list', 'order_list_archive'].includes(
-                          (window as any).glitter.getUrlParameter('page')
-                        )
-                          ? '出貨單'
-                          : '訂單';
-                        dialog.checkYesOrNot({
-                          text: html`<div class="d-flex flex-column" style="gap:5px;">
-                            是否確認${query.isArchived ? '解除封存' : '封存'}所選項目?
-                            ${BgWidget.grayNote(
-                              `**請注意**  將連同${action_with}一併${query.isArchived ? '解除封存' : '封存'}`
-                            )}
-                          </div>`,
-                          callback: (response: boolean) => {
-                            if (response) {
-                              dialog.dataLoading({ visible: true });
-                              new Promise<void>(resolve => {
-                                let n = 0;
-                                const check = vm.dataList.filter((dd: any) => {
-                                  return dd.checked;
-                                });
-                                for (const b of check) {
-                                  b.orderData.archived = `${!query.isArchived}`;
-                                  ApiShop.putOrder({
-                                    id: `${b.id}`,
-                                    order_data: b.orderData,
-                                  }).then(resp => {
-                                    if (resp.result) {
-                                      if (++n == check.length) {
-                                        resolve();
-                                      }
-                                    }
-                                  });
-                                }
-                              }).then(() => {
-                                dialog.dataLoading({ visible: false });
-                                gvc.notifyDataChange(vm.id);
-                              });
-                            }
-                          },
-                        });
+                          });
+                        },
                       },
-                    },
-                  ],
+                    ];
+                  })(),
                   filterCallback: (dataArray: any) => {
                     vm.checkedData = dataArray;
                   },
@@ -1365,36 +1561,7 @@ export class ShoppingOrderManager {
                                   title: ``,
                                   gvc: gvc,
                                   def: `${orderData.orderData.progress}`,
-                                  array: [
-                                    {
-                                      title: '出貨狀態',
-                                      value: '',
-                                    },
-                                    {
-                                      title: '已出貨',
-                                      value: 'shipping',
-                                    },
-                                    {
-                                      title: '待預購',
-                                      value: 'pre_order',
-                                    },
-                                    {
-                                      title: orderData.orderData.user_info.shipment_number ? `備貨中` : '未出貨',
-                                      value: 'wait',
-                                    },
-                                    {
-                                      title: '已取貨',
-                                      value: 'finish',
-                                    },
-                                    {
-                                      title: '已退貨',
-                                      value: 'returns',
-                                    },
-                                    {
-                                      title: '已到貨',
-                                      value: 'arrived',
-                                    },
-                                  ],
+                                  array: ApiShop.getProgressArray(orderData.orderData.user_info.shipment_number),
                                   readonly: orderData.orderData.user_info.shipment_refer === 'paynow',
                                   callback: text => {
                                     function next() {
@@ -2441,25 +2608,11 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                 title: '變更付款狀態',
                                                 value: '',
                                               },
-                                              {
-                                                title: '已付款',
-                                                value: '1',
-                                              },
-                                              {
-                                                title: '部分付款',
-                                                value: '3',
-                                              },
-                                              {
-                                                title: orderData.orderData.proof_purchase ? `待核款` : `未付款`,
-                                                value: '0',
-                                              },
-                                              {
-                                                title: '已退款',
-                                                value: '-2',
-                                              },
-                                            ].find(dd => {
-                                              return dd.value === `${orderData.status}`;
-                                            })?.title
+                                            ]
+                                              .concat(ApiShop.getStatusArray(orderData.orderData.proof_purchase))
+                                              .find(dd => {
+                                                return dd.value === `${orderData.status}`;
+                                              })?.title
                                           : EditorElem.select({
                                               title: ``,
                                               gvc: gvc,
@@ -2469,23 +2622,7 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                   title: '變更付款狀態',
                                                   value: '',
                                                 },
-                                                {
-                                                  title: '已付款',
-                                                  value: '1',
-                                                },
-                                                {
-                                                  title: '部分付款',
-                                                  value: '3',
-                                                },
-                                                {
-                                                  title: orderData.orderData.proof_purchase ? `待核款` : `未付款`,
-                                                  value: '0',
-                                                },
-                                                {
-                                                  title: '已退款',
-                                                  value: '-2',
-                                                },
-                                              ],
+                                              ].concat(ApiShop.getStatusArray(orderData.orderData.proof_purchase)),
                                               callback: text => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.checkYesOrNot({

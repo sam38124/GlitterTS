@@ -981,6 +981,46 @@ export class ApiShop {
             { title: '已取消', value: '-1' },
         ];
     }
+    static getStatusArray(proof_purchase) {
+        return [
+            { title: '已付款', value: '1' },
+            { title: '部分付款', value: '3' },
+            { title: proof_purchase ? '待核款' : '未付款', value: '0' },
+            { title: '已退款', value: '-2' },
+        ];
+    }
+    static getProgressArray(shipment_number) {
+        return [
+            {
+                title: '出貨狀態',
+                value: '',
+            },
+            {
+                title: '已出貨',
+                value: 'shipping',
+            },
+            {
+                title: '待預購',
+                value: 'pre_order',
+            },
+            {
+                title: shipment_number ? `備貨中` : '未出貨',
+                value: 'wait',
+            },
+            {
+                title: '已取貨',
+                value: 'finish',
+            },
+            {
+                title: '已退貨',
+                value: 'returns',
+            },
+            {
+                title: '已到貨',
+                value: 'arrived',
+            },
+        ];
+    }
     static getVariants(json) {
         return BaseApi.create({
             url: getBaseUrl() +
