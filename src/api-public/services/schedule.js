@@ -17,12 +17,19 @@ const config_1 = require("../../config");
 const initial_fake_data_js_1 = require("./initial-fake-data.js");
 const line_message_1 = require("./line-message");
 const public_table_check_js_1 = require("./public-table-check.js");
+const app_js_1 = require("../../services/app.js");
 class Schedule {
     async perload(app) {
-        if (!(await this.isDatabasePass(app)))
+        const brand_type = await app_js_1.App.checkBrandAndMemberType(app);
+        if (brand_type.brand === 'shopnex' && brand_type.domain) {
+            if (!(await this.isDatabasePass(app)))
+                return false;
+            await public_table_check_js_1.ApiPublic.createScheme(app);
+            return true;
+        }
+        else {
             return false;
-        await public_table_check_js_1.ApiPublic.createScheme(app);
-        return true;
+        }
     }
     async isDatabaseExists(app) {
         return (await database_1.default.query(`SHOW DATABASES LIKE \'${app}\';`, [])).length > 0;
@@ -64,9 +71,9 @@ class Schedule {
                                     status = 0 
                                     AND created_time < NOW() - INTERVAL ${config.auto_cancel_order_timer} HOUR
                                     AND (orderData->>'$.proof_purchase' IS NULL)
-                                    AND (orderData->>'$.orderStatus' = 0 OR orderData->>'$.orderStatus' IS NULL)
-                                    AND (orderData->>'$.progress' = 'wait' OR orderData->>'$.progress' IS NULL)
-                                    AND (orderData->>'$.customer_info.payment_select' <> 'cash_on_delivery')
+                                    AND order_status='0'
+                                    AND progress='wait'
+                                    AND payment_method != 'cash_on_delivery'
                                 ORDER BY id DESC;`, []);
                         await Promise.all(orders.map(async (order) => {
                             order.orderData.orderStatus = '-1';
@@ -334,7 +341,6 @@ class Schedule {
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
             { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
             { second: 3600 * 24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
-            { second: 3600 * 24, status: false, func: 'initialSampleApp', desc: '重新刷新示範商店' },
             { second: 30, status: true, func: 'autoCancelOrder', desc: '自動取消未付款未出貨訂單' },
         ];
         try {

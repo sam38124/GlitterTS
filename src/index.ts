@@ -137,7 +137,7 @@ export async function createAPP(dd: any) {
     // const brand_type=await App.checkBrandAndMemberType(dd.appName)
     //SHOPNEX 才可以跑排程，並且需有DOMAIN
     // if(brand_type.brand==='shopnex' && brand_type.domain){
-    //     Schedule.app.push(dd.appName);
+        Schedule.app.push(dd.appName);
     // }
 
     const file_path = path.resolve(__dirname, '../lowcode');
