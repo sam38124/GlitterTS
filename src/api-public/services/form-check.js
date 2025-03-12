@@ -222,7 +222,7 @@ class FormCheck {
             { key: 'consignee_email', title: '收貨人電子郵件', type: 'consignee' },
             { key: 'consignee_phone', title: '收貨人手機', type: 'consignee' },
         ];
-        userObject.map((item) => {
+        userObject.map(item => {
             var _a;
             if (!form_formats.find((dd) => {
                 return dd.key === item.key;
@@ -278,6 +278,22 @@ class FormCheck {
             }
         });
         return form_formats;
+    }
+    static initialListHeader(data) {
+        var _a, _b;
+        data !== null && data !== void 0 ? data : (data = {});
+        (_a = data['user-list']) !== null && _a !== void 0 ? _a : (data['user-list'] = [
+            '顧客名稱',
+            '電子信箱',
+            '訂單',
+            '會員等級',
+            '累積消費',
+            '上次登入時間',
+            '社群綁定',
+            '用戶狀態',
+        ]);
+        (_b = data['order-list']) !== null && _b !== void 0 ? _b : (data['order-list'] = ['訂單編號', '訂單日期', '訂購人', '訂單金額', '付款狀態', '出貨狀態', '訂單狀態']);
+        return data;
     }
 }
 exports.FormCheck = FormCheck;

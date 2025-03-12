@@ -834,7 +834,6 @@ class User {
                         return dd.id === original_member.id;
                     });
                     dd.renew_condition = (_a = dd.renew_condition) !== null && _a !== void 0 ? _a : {};
-                    console.log(`dd===>`, dd);
                     const renew_check_data = (() => {
                         var _a;
                         let start_with = new Date(original_member.start_with);
@@ -843,8 +842,8 @@ class User {
                         });
                         const dead_line = new Date(original_member.dead_line);
                         dd.renew_condition = (_a = dd.renew_condition) !== null && _a !== void 0 ? _a : {
-                            "type": "total",
-                            "value": 0
+                            type: 'total',
+                            value: 0,
                         };
                         if (dd.dead_line.type === 'noLimit') {
                             dead_line.setDate(dead_line.getDate() + 365 * 10);
@@ -1917,18 +1916,7 @@ class User {
                         'store-information': {
                             language_setting: { def: 'zh-TW', support: ['zh-TW'] },
                         },
-                        'list-header-view': {
-                            'user-list': [
-                                '顧客名稱',
-                                '電子信箱',
-                                '訂單',
-                                '會員等級',
-                                '累積消費',
-                                '上次登入時間',
-                                '社群綁定',
-                                '用戶狀態',
-                            ],
-                        },
+                        'list-header-view': form_check_js_1.FormCheck.initialListHeader(),
                     };
                     if (config.key.startsWith('terms-related-')) {
                         defaultValues[config.key] = terms_check_js_1.TermsCheck.check(config.key);
@@ -2001,6 +1989,9 @@ class User {
                 break;
             case 'customer_form_user_setting':
                 value.list = form_check_js_1.FormCheck.initialUserForm(value.list);
+                break;
+            case 'list-header-view':
+                value = form_check_js_1.FormCheck.initialListHeader(value);
                 break;
         }
     }

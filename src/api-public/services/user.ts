@@ -1018,8 +1018,7 @@ export class User {
           const dd: MemberConfig = member_list.find(dd => {
             return dd.id === original_member.id;
           })!;
-          dd.renew_condition=dd.renew_condition ?? {};
-          console.log(`dd===>`,dd)
+          dd.renew_condition = dd.renew_condition ?? {};
           //是否符合續費條件
           const renew_check_data = (() => {
             //取得續費計算起始時間
@@ -1030,10 +1029,10 @@ export class User {
             });
             //過期時間
             const dead_line = new Date(original_member.dead_line);
-            dd.renew_condition=dd.renew_condition ?? {
-                "type": "total",
-                "value": 0
-            }
+            dd.renew_condition = dd.renew_condition ?? {
+              type: 'total',
+              value: 0,
+            };
             //當判斷有效期為無限期的話，則直接返回無條件續會。
             if (dd.dead_line.type === 'noLimit') {
               dead_line.setDate(dead_line.getDate() + 365 * 10);
@@ -2396,18 +2395,7 @@ export class User {
             'store-information': {
               language_setting: { def: 'zh-TW', support: ['zh-TW'] },
             },
-            'list-header-view': {
-              'user-list': [
-                '顧客名稱',
-                '電子信箱',
-                '訂單',
-                '會員等級',
-                '累積消費',
-                '上次登入時間',
-                '社群綁定',
-                '用戶狀態',
-              ],
-            },
+            'list-header-view': FormCheck.initialListHeader(),
           };
 
           // 處理條款類型的 key
@@ -2488,6 +2476,9 @@ export class User {
         break;
       case 'customer_form_user_setting':
         value.list = FormCheck.initialUserForm(value.list);
+        break;
+      case 'list-header-view':
+        value = FormCheck.initialListHeader(value);
         break;
     }
   }

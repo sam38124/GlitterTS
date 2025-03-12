@@ -29,6 +29,7 @@ import { OrderExcel } from './module/order-excel.js';
 import { PaymentPage } from './pos-pages/payment-page.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { PaymentConfig } from '../glitter-base/global/payment-config.js';
+import { ListHeaderOption } from './list-header-option.js';
 const html = String.raw;
 export class ShoppingOrderManager {
     static main(gvc, query) {
@@ -37,6 +38,7 @@ export class ShoppingOrderManager {
         query.isArchived = Boolean(query.isArchived);
         const vm = {
             id: glitter.getUUID(),
+            loading: true,
             type: 'list',
             data: {},
             invoiceData: {},
@@ -52,6 +54,7 @@ export class ShoppingOrderManager {
             return_order: false,
             apiJSON: {},
             checkedData: [],
+            headerConfig: [],
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.orderFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -66,6 +69,9 @@ export class ShoppingOrderManager {
             bind: vm.id,
             dataList: [{ obj: vm, key: 'type' }],
             view: () => {
+                if (vm.loading) {
+                    return '';
+                }
                 if (vm.type === 'list') {
                     if (vm.return_order) {
                         vm.return_order = false;
@@ -142,7 +148,6 @@ export class ShoppingOrderManager {
                             return gvc.bindView({
                                 bind: id,
                                 view: () => __awaiter(this, void 0, void 0, function* () {
-                                    var _a;
                                     const orderFunnel = yield FilterOptions.getOrderFunnel();
                                     const filterList = [
                                         BgWidget.selectFilter({
@@ -173,26 +178,38 @@ export class ShoppingOrderManager {
                                             default: vm.orderString || 'created_time_desc',
                                             options: FilterOptions.orderOrderBy,
                                         }),
+                                        query.isShipment
+                                            ? ''
+                                            : BgWidget.columnFilter({
+                                                gvc,
+                                                callback: () => BgListComponent.rightMenu({
+                                                    menuTitle: '表格設定',
+                                                    items: ListHeaderOption.orderListItems,
+                                                    frame: ListHeaderOption.orderListFrame,
+                                                    default: {
+                                                        headerColumn: vm.headerConfig,
+                                                    },
+                                                    cancelType: 'default',
+                                                    save: data => {
+                                                        if (data.headerColumn) {
+                                                            dialog.dataLoading({ visible: true });
+                                                            ApiUser.getPublicConfig('list-header-view', 'manager').then((dd) => {
+                                                                ApiUser.setPublicConfig({
+                                                                    key: 'list-header-view',
+                                                                    value: Object.assign(Object.assign({}, dd.response.value), { 'order-list': data.headerColumn }),
+                                                                    user_id: 'manager',
+                                                                }).then(() => {
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    vm.loading = true;
+                                                                    gvc.notifyDataChange(vm.id);
+                                                                });
+                                                            });
+                                                        }
+                                                    },
+                                                }),
+                                            }),
                                     ];
-                                    const filterTags = ListComp.getFilterTags(yield FilterOptions.getOrderFunnel());
-                                    if (document.body.clientWidth < 768) {
-                                        return html ` <div
-                            style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between"
-                          >
-                            <div>${filterList[0]}</div>
-                            <div style="display: flex;">
-                              ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
-                            </div>
-                          </div>
-                          <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                          <div>${filterTags}</div>`;
-                                    }
-                                    else {
-                                        return html ` <div style="display: flex; align-items: center; gap: 10px;">
-                            ${filterList.join('')}
-                          </div>
-                          <div>${filterTags}</div>`;
-                                    }
+                                    return BgListComponent.listBarRWD(filterList, ListComp.getFilterTags(yield FilterOptions.getOrderFunnel()));
                                 }),
                             });
                         })(),
@@ -367,7 +384,11 @@ export class ShoppingOrderManager {
                                                             }
                                                         })(),
                                                     },
-                                                ].map((dd) => {
+                                                ]
+                                                    .filter(item => {
+                                                    return vm.headerConfig.includes(item.key);
+                                                })
+                                                    .map((dd) => {
                                                     dd.value = html ` <div style="line-height:40px;">${dd.value}</div>`;
                                                     return dd;
                                                 });
@@ -917,6 +938,15 @@ export class ShoppingOrderManager {
                     return ShoppingInvoiceManager.replaceOrder(gvc, vm, vm.invoiceData);
                 }
                 return '';
+            },
+            onCreate: () => {
+                if (vm.loading) {
+                    ApiUser.getPublicConfig('list-header-view', 'manager').then((dd) => {
+                        vm.headerConfig = dd.response.value['order-list'];
+                        vm.loading = false;
+                        gvc.notifyDataChange(vm.id);
+                    });
+                }
             },
         });
     }
