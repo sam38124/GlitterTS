@@ -1205,68 +1205,67 @@ export class ShoppingSettingBasic {
                 })),
                 postMD.product_category === 'kitchen'
                     ? (() => {
-                        var _a, _b;
-                        if (postMD.product_category === 'kitchen') {
-                            let map_ = [];
-                            postMD.shipment_type = (_a = postMD.shipment_type) !== null && _a !== void 0 ? _a : 'volume';
-                            map_.push(BgWidget.mainCard(gvc.bindView(() => {
-                                const vm = {
-                                    id: gvc.glitter.getUUID(),
-                                };
-                                return {
-                                    bind: vm.id,
-                                    view: () => {
-                                        return html ` <div style="font-weight: 700;margin-bottom: 6px;">運費計算</div>
+                        var _a;
+                        let map_ = [];
+                        postMD.shipment_type = (_a = postMD.shipment_type) !== null && _a !== void 0 ? _a : 'volume';
+                        map_.push(BgWidget.mainCard(gvc.bindView(() => {
+                            const vm = {
+                                id: gvc.glitter.getUUID(),
+                            };
+                            return {
+                                bind: vm.id,
+                                view: () => {
+                                    return html ` <div style="font-weight: 700;margin-bottom: 6px;">運費計算</div>
                               ${BgWidget.multiCheckboxContainer(gvc, [
-                                            {
-                                                key: 'volume',
-                                                name: '依材積計算',
-                                                customerClass: 'guide5-6',
-                                            },
-                                            {
-                                                key: 'weight',
-                                                name: '依重量計算',
-                                            },
-                                            {
-                                                key: 'none',
-                                                name: '不計算運費',
-                                            },
-                                        ], [postMD.shipment_type], data => {
-                                            postMD.shipment_type = data[0];
-                                            gvc.notifyDataChange(vm.id);
-                                        }, { single: true })}`;
-                                    },
-                                    divCreate: {
-                                        class: `d-flex flex-column `,
-                                        style: `gap:12px;`,
-                                    },
-                                };
-                            })));
-                            map_.push(BgWidget.mainCard(html `
+                                        {
+                                            key: 'volume',
+                                            name: '依材積計算',
+                                            customerClass: 'guide5-6',
+                                        },
+                                        {
+                                            key: 'weight',
+                                            name: '依重量計算',
+                                        },
+                                        {
+                                            key: 'none',
+                                            name: '不計算運費',
+                                        },
+                                    ], [postMD.shipment_type], data => {
+                                        postMD.shipment_type = data[0];
+                                        gvc.notifyDataChange(vm.id);
+                                    }, { single: true })}`;
+                                },
+                                divCreate: {
+                                    class: `d-flex flex-column `,
+                                    style: `gap:12px;`,
+                                },
+                            };
+                        })));
+                        map_.push(BgWidget.mainCard(html `
                       <div class="d-flex flex-column " style="gap:18px;">
                         <div class="d-flex flex-column guide5-7" style="gap:18px;">
                           <div style="font-weight: 700;">商品材積</div>
                           <div class="row">
                             ${[
-                                {
-                                    title: '長度',
-                                    value: 'v_length',
-                                    unit: '公分',
-                                },
-                                {
-                                    title: '寬度',
-                                    value: 'v_width',
-                                    unit: '公分',
-                                },
-                                {
-                                    title: '高度',
-                                    value: 'v_height',
-                                    unit: '公分',
-                                },
-                            ]
-                                .map(dd => {
-                                postMD[dd.value] = postMD[dd.value] || '0';
-                                return html ` <div
+                            {
+                                title: '長度',
+                                value: 'v_length',
+                                unit: '公分',
+                            },
+                            {
+                                title: '寬度',
+                                value: 'v_width',
+                                unit: '公分',
+                            },
+                            {
+                                title: '高度',
+                                value: 'v_height',
+                                unit: '公分',
+                            },
+                        ]
+                            .map(dd => {
+                            postMD[dd.value] = postMD[dd.value] || '0';
+                            return html ` <div
                                   style="display: flex;justify-content: center;align-items: center;gap: 10px;position: relative;"
                                   class=" col-12 col-sm-4 mb-2"
                                 >
@@ -1276,14 +1275,14 @@ export class ShoppingSettingBasic {
                                     style="border-radius: 10px;border: 1px solid #DDD;height: 40px;width: calc(100% - 50px);"
                                     type="number"
                                     onchange="${gvc.event(e => {
-                                    postMD[dd.value] = e.value;
-                                })}"
+                                postMD[dd.value] = e.value;
+                            })}"
                                     value="${postMD[dd.value]}"
                                   />
                                   <div style="color: #8D8D8D;position: absolute;right: 25px;top: 7px;">${dd.unit}</div>
                                 </div>`;
-                            })
-                                .join('')}
+                        })
+                            .join('')}
                           </div>
                         </div>
                         <div style="font-weight: 700;">商品重量</div>
@@ -1294,8 +1293,8 @@ export class ShoppingSettingBasic {
                             placeholder="請輸入商品重量"
                             value="${postMD['weight'] || 0}"
                             onchange="${gvc.event(e => {
-                                postMD['weight'] = e.value;
-                            })}"
+                            postMD['weight'] = e.value;
+                        })}"
                           />
                           <div class="col-6" style="display: flex;align-items: center;gap: 10px;">
                             <div style="white-space: nowrap;">單位</div>
@@ -1309,195 +1308,197 @@ export class ShoppingSettingBasic {
                         </div>
                       </div>
                     `));
-                            if (postMD.specs.length) {
-                                map_.push(BgWidget.mainCard([
-                                    `
+                        if (postMD.specs.length) {
+                            map_.push(BgWidget.mainCard([
+                                `
                                 <div class="d-flex flex-column" style="font-size: 16px;font-weight: 700;color:#393939;${postMD.shopee_id ? `` : `margin-bottom: 10px;`}">組合費用
                                      ${BgWidget.grayNote('購買金額為用戶選擇的選項價格去進行加總，如未輸入庫存數量則不追蹤庫存')}
                                 </div>
                      
                                 `,
-                                    obj.gvc.bindView(() => {
-                                        const vm = {
-                                            id: obj.gvc.glitter.getUUID(),
-                                        };
-                                        return {
-                                            bind: vm.id,
-                                            view: () => {
-                                                console.log(`postMD.specs==>`, postMD.specs);
-                                                return (html `
-                                    <div class="w-100 d-flex align-items-center border-bottom py-2 border-top">
-                                      <div class="fw-500" style="flex:1;">名稱</div>
-                                      <div class="fw-500" style="flex:1;">價格</div>
-                                      <div class="fw-500" style="flex:1;">庫存</div>
-                                    </div>
-                                  ` +
-                                                    postMD.specs
-                                                        .map(dd => {
-                                                        return dd.option
-                                                            .map((d1) => {
-                                                            var _a;
-                                                            d1.price = (_a = d1.price) !== null && _a !== void 0 ? _a : 0;
-                                                            return `<div class="w-100 d-flex align-items-center py-2">
-                                                    <div class="fw-500" style="flex:1;">${dd.title} / ${d1.title}</div>
-                                                    <div class="fw-50 pe-3" style="flex:1;">${BgWidget.editeInput({
-                                                                gvc: gvc,
-                                                                title: '',
-                                                                default: `${d1.price}`,
-                                                                callback: text => {
-                                                                    d1.price = parseInt(text, 10);
-                                                                    ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
-                                                                },
-                                                                placeHolder: '價格',
-                                                                type: 'number',
-                                                            })}</div>
-                                                        <div class="fw-50 " style="flex:1;">${BgWidget.editeInput({
-                                                                gvc: gvc,
-                                                                title: '',
-                                                                default: `${d1.stock}`,
-                                                                callback: text => {
-                                                                    d1.stock = text;
-                                                                },
-                                                                placeHolder: '不追蹤庫存',
-                                                                type: 'number',
-                                                            })}</div>
-                                                </div>`;
-                                                        })
-                                                            .join('');
-                                                    })
-                                                        .join(''));
-                                            },
-                                            divCreate: {},
-                                        };
-                                    })
-                                ].join('')));
-                            }
-                            else {
-                                map_.push(BgWidget.mainCard(obj.gvc.bindView(() => {
+                                obj.gvc.bindView(() => {
                                     const vm = {
                                         id: obj.gvc.glitter.getUUID(),
                                     };
                                     return {
                                         bind: vm.id,
                                         view: () => {
-                                            var _a, _b;
                                             console.log(`postMD.specs==>`, postMD.specs);
-                                            postMD.price = (_a = postMD.price) !== null && _a !== void 0 ? _a : 0;
-                                            postMD.stock = (_b = postMD.stock) !== null && _b !== void 0 ? _b : 0;
-                                            return [
-                                                `
+                                            return (html `
+                                    <div class="w-100 d-flex align-items-center border-bottom py-2 border-top">
+                                      <div class="fw-500" style="flex:1;">名稱</div>
+                                      <div class="fw-500" style="flex:1;">價格</div>
+                                      <div class="fw-500" style="flex:1;">庫存</div>
+                                    </div>
+                                  ` +
+                                                postMD.specs
+                                                    .map(dd => {
+                                                    return dd.option
+                                                        .map((d1) => {
+                                                        var _a;
+                                                        d1.price = (_a = d1.price) !== null && _a !== void 0 ? _a : 0;
+                                                        return `<div class="w-100 d-flex align-items-center py-2">
+                                                    <div class="fw-500" style="flex:1;">${dd.title} / ${d1.title}</div>
+                                                    <div class="fw-50 pe-3" style="flex:1;">${BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '',
+                                                            default: `${d1.price}`,
+                                                            callback: text => {
+                                                                d1.price = parseInt(text, 10);
+                                                                ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
+                                                            },
+                                                            placeHolder: '價格',
+                                                            type: 'number',
+                                                        })}</div>
+                                                        <div class="fw-50 " style="flex:1;">${BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '',
+                                                            default: `${d1.stock}`,
+                                                            callback: text => {
+                                                                d1.stock = text;
+                                                            },
+                                                            placeHolder: '不追蹤庫存',
+                                                            type: 'number',
+                                                        })}</div>
+                                                </div>`;
+                                                    })
+                                                        .join('');
+                                                })
+                                                    .join(''));
+                                        },
+                                        divCreate: {},
+                                    };
+                                })
+                            ].join('')));
+                        }
+                        else {
+                            map_.push(BgWidget.mainCard(obj.gvc.bindView(() => {
+                                const vm = {
+                                    id: obj.gvc.glitter.getUUID(),
+                                };
+                                return {
+                                    bind: vm.id,
+                                    view: () => {
+                                        var _a, _b;
+                                        console.log(`postMD.specs==>`, postMD.specs);
+                                        postMD.price = (_a = postMD.price) !== null && _a !== void 0 ? _a : 0;
+                                        postMD.stock = (_b = postMD.stock) !== null && _b !== void 0 ? _b : 0;
+                                        return [
+                                            `
                                 <div class="d-flex flex-column" style="font-size: 16px;font-weight: 700;color:#393939;${postMD.shopee_id ? `` : `margin-bottom: 10px;`}">組合費用
                                      ${BgWidget.grayNote('如未輸入庫存數量則不追蹤庫存')}
                                 </div>
                      
                                 `,
-                                                html `
+                                            html `
                                     <div class="w-100 d-flex align-items-center border-bottom py-2 border-top">
                                       <div class="fw-500" style="flex:1;">價格</div>
                                       <div class="fw-500" style="flex:1;">庫存</div>
                                     </div>
                                   `,
-                                                `<div class="w-100 d-flex align-items-center py-2">
+                                            `<div class="w-100 d-flex align-items-center py-2">
                                                     <div class="fw-50 pe-3" style="flex:1;">${BgWidget.editeInput({
-                                                    gvc: gvc,
-                                                    title: '',
-                                                    default: `${postMD.price}`,
-                                                    callback: text => {
-                                                        postMD.price = parseInt(text, 10);
-                                                        ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
-                                                    },
-                                                    placeHolder: '價格',
-                                                    type: 'number',
-                                                })}</div>
+                                                gvc: gvc,
+                                                title: '',
+                                                default: `${postMD.price}`,
+                                                callback: text => {
+                                                    postMD.price = parseInt(text, 10);
+                                                    ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
+                                                },
+                                                placeHolder: '價格',
+                                                type: 'number',
+                                            })}</div>
                                                         <div class="fw-50 " style="flex:1;">${BgWidget.editeInput({
-                                                    gvc: gvc,
-                                                    title: '',
-                                                    default: `${postMD.stock}`,
-                                                    callback: text => {
-                                                        postMD.stock = text;
-                                                    },
-                                                    placeHolder: '不追蹤庫存',
-                                                    type: 'number',
-                                                })}</div>
+                                                gvc: gvc,
+                                                title: '',
+                                                default: `${postMD.stock}`,
+                                                callback: text => {
+                                                    postMD.stock = text;
+                                                },
+                                                placeHolder: '不追蹤庫存',
+                                                type: 'number',
+                                            })}</div>
                                                 </div>`
-                                            ].join('');
-                                        },
-                                        divCreate: {},
-                                    };
-                                })));
-                            }
-                            return map_.join(BgWidget.mbContainer(18));
+                                        ].join('');
+                                    },
+                                    divCreate: {},
+                                };
+                            })));
                         }
-                        else {
-                            return BgWidget.mainCard(html `
+                        return map_.join(BgWidget.mbContainer(18));
+                    })()
+                    : '',
+                (postMD.product_category !== 'kitchen' && postMD.specs.length) ? (() => {
+                    var _a;
+                    return BgWidget.mainCard(html `
                     <div
                       style="font-size: 16px;font-weight: 700;color:#393939;${postMD.shopee_id ? `` : `margin-bottom: 18px;`}">
                                             <span class="me-2">規格設定<span>
-                                            ${((_b = postMD.multi_sale_price) === null || _b === void 0 ? void 0 : _b.some(m => m.variants.length > 0))
-                                ? html ` ${BgWidget.infoInsignia('已啟用專屬價格')}`
-                                : ''}
+                                            ${((_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.some(m => m.variants.length > 0))
+                        ? html ` ${BgWidget.infoInsignia('已啟用專屬價格')}`
+                        : ''}
                     </div>
                     <div class="w-100 ${postMD.shopee_id ? `` : `d-none`}"
                          style="font-size: 14px;font-weight: 400;color: #8D8D8D;margin-bottom: 18px;">
                       此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
                     </div>
                   ` +
-                                obj.gvc.bindView(() => {
-                                    var _a;
-                                    function getPreviewImage(img) {
-                                        return img || BgWidget.noImageURL;
-                                    }
-                                    function getSpecTitle(first, second) {
-                                        var _a, _b;
-                                        let first_t = postMD.specs.find(dd => {
-                                            return dd.title === first;
-                                        });
-                                        first_t.language_title = (_a = first_t.language_title) !== null && _a !== void 0 ? _a : {};
-                                        if (!second) {
-                                            return first_t.language_title[sel_lan()] || first_t.title;
-                                        }
-                                        let second_t = first_t.option.find((dd) => {
-                                            return dd.title === second;
-                                        });
-                                        second_t.language_title = (_b = second_t.language_title) !== null && _b !== void 0 ? _b : {};
-                                        return second_t.language_title[sel_lan()] || second_t.title;
-                                    }
-                                    postMD.specs[0].option = (_a = postMD.specs[0].option) !== null && _a !== void 0 ? _a : [];
-                                    return {
-                                        bind: variantsViewID,
+                        obj.gvc.bindView(() => {
+                            var _a;
+                            function getPreviewImage(img) {
+                                return img || BgWidget.noImageURL;
+                            }
+                            function getSpecTitle(first, second) {
+                                var _a, _b;
+                                let first_t = postMD.specs.find(dd => {
+                                    return dd.title === first;
+                                });
+                                first_t.language_title = (_a = first_t.language_title) !== null && _a !== void 0 ? _a : {};
+                                if (!second) {
+                                    return first_t.language_title[sel_lan()] || first_t.title;
+                                }
+                                let second_t = first_t.option.find((dd) => {
+                                    return dd.title === second;
+                                });
+                                second_t.language_title = (_b = second_t.language_title) !== null && _b !== void 0 ? _b : {};
+                                return second_t.language_title[sel_lan()] || second_t.title;
+                            }
+                            postMD.specs[0].option = (_a = postMD.specs[0].option) !== null && _a !== void 0 ? _a : [];
+                            return {
+                                bind: variantsViewID,
+                                view: () => {
+                                    return gvc.bindView({
+                                        bind: 'productInf',
                                         view: () => {
-                                            return gvc.bindView({
-                                                bind: 'productInf',
-                                                view: () => {
-                                                    try {
-                                                        return [
-                                                            gvc.bindView({
-                                                                bind: 'selectFunRow',
-                                                                view: () => {
-                                                                    let selected = postMD.variants.filter(dd => {
-                                                                        return dd.checked;
-                                                                    });
-                                                                    if (selected.length) {
-                                                                        function saveQueue(key, value) {
-                                                                            postMD.variants.filter(dd => {
-                                                                                if (dd.checked) {
-                                                                                    if (key == 'volume') {
-                                                                                        dd.v_length = value.v_length;
-                                                                                        dd.v_width = value.v_width;
-                                                                                        dd.v_height = value.v_height;
-                                                                                    }
-                                                                                    dd[key] = value;
-                                                                                }
-                                                                            });
-                                                                            gvc.notifyDataChange('productInf');
-                                                                            gvc.glitter.closeDiaLog();
+                                            try {
+                                                return [
+                                                    gvc.bindView({
+                                                        bind: 'selectFunRow',
+                                                        view: () => {
+                                                            let selected = postMD.variants.filter(dd => {
+                                                                return dd.checked;
+                                                            });
+                                                            if (selected.length) {
+                                                                function saveQueue(key, value) {
+                                                                    postMD.variants.filter(dd => {
+                                                                        if (dd.checked) {
+                                                                            if (key == 'volume') {
+                                                                                dd.v_length = value.v_length;
+                                                                                dd.v_width = value.v_width;
+                                                                                dd.v_height = value.v_height;
+                                                                            }
+                                                                            dd[key] = value;
                                                                         }
-                                                                        function editDialog(type) {
-                                                                            let inputTemp = {};
-                                                                            switch (type) {
-                                                                                case 'price': {
-                                                                                    inputTemp = 0;
-                                                                                    return html `
+                                                                    });
+                                                                    gvc.notifyDataChange('productInf');
+                                                                    gvc.glitter.closeDiaLog();
+                                                                }
+                                                                function editDialog(type) {
+                                                                    let inputTemp = {};
+                                                                    switch (type) {
+                                                                        case 'price': {
+                                                                            inputTemp = 0;
+                                                                            return html `
                                                   <div
                                                     style="cursor: pointer;display: flex;width: 569px;padding-bottom: 20px;flex-direction: column;align-items: center;gap: 24px;border-radius: 10px;background: #FFF;max-width: calc(100vw - 20px);"
                                                   >
@@ -1516,8 +1517,8 @@ export class ShoppingSettingBasic {
                                                         style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px 9px 18px;"
                                                         placeholder="請輸入金額"
                                                         onchange="${gvc.event(e => {
-                                                                                        inputTemp = e.value;
-                                                                                    })}"
+                                                                                inputTemp = e.value;
+                                                                            })}"
                                                       />
                                                     </div>
                                                     <div
@@ -1525,18 +1526,18 @@ export class ShoppingSettingBasic {
                                                       style="padding-right: 20px;gap: 14px;"
                                                     >
                                                       ${BgWidget.cancel(gvc.event(() => {
-                                                                                        gvc.glitter.closeDiaLog();
-                                                                                    }))}
+                                                                                gvc.glitter.closeDiaLog();
+                                                                            }))}
                                                       ${BgWidget.save(gvc.event(() => {
-                                                                                        saveQueue('sale_price', inputTemp);
-                                                                                    }))}
+                                                                                saveQueue('sale_price', inputTemp);
+                                                                            }))}
                                                     </div>
                                                   </div>
                                                 `;
-                                                                                }
-                                                                                case 'compare_price': {
-                                                                                    inputTemp = 0;
-                                                                                    return html `
+                                                                        }
+                                                                        case 'compare_price': {
+                                                                            inputTemp = 0;
+                                                                            return html `
                                                   <div
                                                     style="cursor: pointer;display: flex;width: 569px;padding-bottom: 20px;flex-direction: column;align-items: center;gap: 24px;border-radius: 10px;background: #FFF;max-width: calc(100vw - 20px);"
                                                   >
@@ -1555,8 +1556,8 @@ export class ShoppingSettingBasic {
                                                         style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px 9px 18px;"
                                                         placeholder="請輸入金額"
                                                         onchange="${gvc.event(e => {
-                                                                                        inputTemp = e.value;
-                                                                                    })}"
+                                                                                inputTemp = e.value;
+                                                                            })}"
                                                       />
                                                     </div>
                                                     <div
@@ -1564,18 +1565,18 @@ export class ShoppingSettingBasic {
                                                       style="padding-right: 20px;gap: 14px;"
                                                     >
                                                       ${BgWidget.cancel(gvc.event(() => {
-                                                                                        gvc.glitter.closeDiaLog();
-                                                                                    }))}
+                                                                                gvc.glitter.closeDiaLog();
+                                                                            }))}
                                                       ${BgWidget.save(gvc.event(() => {
-                                                                                        saveQueue('compare_price', inputTemp);
-                                                                                    }))}
+                                                                                saveQueue('compare_price', inputTemp);
+                                                                            }))}
                                                     </div>
                                                   </div>
                                                 `;
-                                                                                }
-                                                                                case 'stock': {
-                                                                                    inputTemp = 0;
-                                                                                    return html ` <div
+                                                                        }
+                                                                        case 'stock': {
+                                                                            inputTemp = 0;
+                                                                            return html ` <div
                                                   style="cursor: pointer;display: flex;width: 569px;padding-bottom: 20px;flex-direction: column;align-items: center;gap: 24px;border-radius: 10px;background: #FFF;max-width: calc(100vw - 20px);"
                                                 >
                                                   <div
@@ -1594,8 +1595,8 @@ export class ShoppingSettingBasic {
                                                       style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px 9px 18px;"
                                                       placeholder="請輸入數量"
                                                       onchange="${gvc.event(e => {
-                                                                                        inputTemp = e.value;
-                                                                                    })}"
+                                                                                inputTemp = e.value;
+                                                                            })}"
                                                     />
                                                   </div>
                                                   <div
@@ -1603,21 +1604,21 @@ export class ShoppingSettingBasic {
                                                     style="padding-right: 20px;gap: 14px;"
                                                   >
                                                     ${BgWidget.cancel(gvc.event(() => {
-                                                                                        gvc.glitter.closeDiaLog();
-                                                                                    }))}
+                                                                                gvc.glitter.closeDiaLog();
+                                                                            }))}
                                                     ${BgWidget.save(gvc.event(e => {
-                                                                                        saveQueue('stock', inputTemp);
-                                                                                    }))}
+                                                                                saveQueue('stock', inputTemp);
+                                                                            }))}
                                                   </div>
                                                 </div>`;
-                                                                                }
-                                                                                case 'volume': {
-                                                                                    inputTemp = {
-                                                                                        v_height: 0,
-                                                                                        v_length: 0,
-                                                                                        v_width: 0,
-                                                                                    };
-                                                                                    return html ` <div
+                                                                        }
+                                                                        case 'volume': {
+                                                                            inputTemp = {
+                                                                                v_height: 0,
+                                                                                v_length: 0,
+                                                                                v_width: 0,
+                                                                            };
+                                                                            return html ` <div
                                                   style="display: flex;width: 569px;padding-bottom: 20px;flex-direction: column;align-items: center;gap: 24px;border-radius: 10px;background: #FFF;cursor: pointer;max-width: calc(100vw - 20px);"
                                                 >
                                                   <div
@@ -1632,24 +1633,24 @@ export class ShoppingSettingBasic {
                                                     將${cat_title} 材積套用到所有選取的規格中
                                                     <div class="row">
                                                       ${[
-                                                                                        {
-                                                                                            title: '長度',
-                                                                                            value: 'v_length',
-                                                                                            unit: '公分',
-                                                                                        },
-                                                                                        {
-                                                                                            title: '寬度',
-                                                                                            value: 'v_width',
-                                                                                            unit: '公分',
-                                                                                        },
-                                                                                        {
-                                                                                            title: '高度',
-                                                                                            value: 'v_height',
-                                                                                            unit: '公分',
-                                                                                        },
-                                                                                    ]
-                                                                                        .map(dd => {
-                                                                                        return html ` <div
+                                                                                {
+                                                                                    title: '長度',
+                                                                                    value: 'v_length',
+                                                                                    unit: '公分',
+                                                                                },
+                                                                                {
+                                                                                    title: '寬度',
+                                                                                    value: 'v_width',
+                                                                                    unit: '公分',
+                                                                                },
+                                                                                {
+                                                                                    title: '高度',
+                                                                                    value: 'v_height',
+                                                                                    unit: '公分',
+                                                                                },
+                                                                            ]
+                                                                                .map(dd => {
+                                                                                return html ` <div
                                                             style="display: flex;justify-content: center;align-items: center;gap: 10px;position: relative;"
                                                             class=" col-12 col-sm-4 mb-2"
                                                           >
@@ -1659,8 +1660,8 @@ export class ShoppingSettingBasic {
                                                               style="border-radius: 10px;border: 1px solid #DDD;height: 40px;width: calc(100% - 50px);"
                                                               type="number"
                                                               onchange="${gvc.event(e => {
-                                                                                            inputTemp[dd.value] = e.value;
-                                                                                        })}"
+                                                                                    inputTemp[dd.value] = e.value;
+                                                                                })}"
                                                               value="${inputTemp[dd.value]}"
                                                             />
                                                             <div
@@ -1669,8 +1670,8 @@ export class ShoppingSettingBasic {
                                                               ${dd.unit}
                                                             </div>
                                                           </div>`;
-                                                                                    })
-                                                                                        .join('')}
+                                                                            })
+                                                                                .join('')}
                                                     </div>
                                                   </div>
                                                   <div
@@ -1678,17 +1679,17 @@ export class ShoppingSettingBasic {
                                                     style="padding-right: 20px;gap: 14px;"
                                                   >
                                                     ${BgWidget.cancel(gvc.event(() => {
-                                                                                        gvc.glitter.closeDiaLog();
-                                                                                    }))}
+                                                                                gvc.glitter.closeDiaLog();
+                                                                            }))}
                                                     ${BgWidget.save(gvc.event(() => {
-                                                                                        saveQueue('volume', inputTemp);
-                                                                                    }))}
+                                                                                saveQueue('volume', inputTemp);
+                                                                            }))}
                                                   </div>
                                                 </div>`;
-                                                                                }
-                                                                                case 'weight': {
-                                                                                    inputTemp = 0;
-                                                                                    return html ` <div
+                                                                        }
+                                                                        case 'weight': {
+                                                                            inputTemp = 0;
+                                                                            return html ` <div
                                                   style="cursor: pointer;display: flex;width: 569px;padding-bottom: 20px;flex-direction: column;align-items: center;gap: 24px;border-radius: 10px;background: #FFF;max-width: calc(100vw - 20px);"
                                                 >
                                                   <div
@@ -1707,8 +1708,8 @@ export class ShoppingSettingBasic {
                                                         style="display: flex;height: 40px;padding: 10px 18px;align-items: center;gap: 10px;border-radius: 10px;border: 1px solid #DDD;"
                                                         placeholder="請輸入${cat_title}重量"
                                                         onchange="${gvc.event(e => {
-                                                                                        inputTemp = e.value;
-                                                                                    })}"
+                                                                                inputTemp = e.value;
+                                                                            })}"
                                                       />
                                                       <div
                                                         class="col-6"
@@ -1729,17 +1730,17 @@ export class ShoppingSettingBasic {
                                                     style="padding-right: 20px;gap: 14px;"
                                                   >
                                                     ${BgWidget.cancel(gvc.event(() => {
-                                                                                        gvc.glitter.closeDiaLog();
-                                                                                    }))}
+                                                                                gvc.glitter.closeDiaLog();
+                                                                            }))}
                                                     ${BgWidget.save(gvc.event(e => {
-                                                                                        saveQueue('weight', inputTemp);
-                                                                                    }))}
+                                                                                saveQueue('weight', inputTemp);
+                                                                            }))}
                                                   </div>
                                                 </div>`;
-                                                                                }
-                                                                                case 'sku': {
-                                                                                    inputTemp = 0;
-                                                                                    return html ` <div
+                                                                        }
+                                                                        case 'sku': {
+                                                                            inputTemp = 0;
+                                                                            return html ` <div
                                                   style="cursor: pointer;display: flex;width: 569px;padding-bottom: 20px;flex-direction: column;align-items: center;gap: 24px;border-radius: 10px;background: #FFF; max-width: calc(100vw - 20px);"
                                                 >
                                                   <div
@@ -1752,13 +1753,13 @@ export class ShoppingSettingBasic {
                                                     style="margin-bottom:18px;padding: 0px 20px;gap:18px;color:#393939;"
                                                   >
                                                     ${(() => {
-                                                                                        let arrayHTML = ``;
-                                                                                        postMD.specs[0].option.map((option) => {
-                                                                                            option.sortQueue.map((data) => {
-                                                                                                var _a;
-                                                                                                if (data.select) {
-                                                                                                    let name = data.spec.slice(1).join('/');
-                                                                                                    arrayHTML += html `
+                                                                                let arrayHTML = ``;
+                                                                                postMD.specs[0].option.map((option) => {
+                                                                                    option.sortQueue.map((data) => {
+                                                                                        var _a;
+                                                                                        if (data.select) {
+                                                                                            let name = data.spec.slice(1).join('/');
+                                                                                            arrayHTML += html `
                                                               <div
                                                                 style="display: flex;padding: 0px 20px;align-items: center;align-self: stretch;width:100%"
                                                               >
@@ -1768,32 +1769,32 @@ export class ShoppingSettingBasic {
                                                                   style="height:22px;border-radius: 10px;border: 1px solid #DDD;width:60%;padding: 18px;"
                                                                   placeholder="請輸入存貨單位"
                                                                   onchange="${gvc.event(e => {
-                                                                                                        data.sku = e.value;
-                                                                                                    })}"
+                                                                                                data.sku = e.value;
+                                                                                            })}"
                                                                 />
                                                               </div>
                                                             `;
-                                                                                                }
-                                                                                            });
-                                                                                        });
-                                                                                        return arrayHTML;
-                                                                                    })()}
+                                                                                        }
+                                                                                    });
+                                                                                });
+                                                                                return arrayHTML;
+                                                                            })()}
                                                   </div>
                                                   <div
                                                     class="w-100 justify-content-end d-flex"
                                                     style="padding-right: 20px;gap: 14px;"
                                                   >
                                                     ${BgWidget.cancel(gvc.event(() => {
-                                                                                        gvc.glitter.closeDiaLog();
-                                                                                    }))}
+                                                                                gvc.glitter.closeDiaLog();
+                                                                            }))}
                                                     ${BgWidget.save(gvc.event(e => {
-                                                                                        saveQueue('weight', inputTemp);
-                                                                                    }))}
+                                                                                saveQueue('weight', inputTemp);
+                                                                            }))}
                                                   </div>
                                                 </div>`;
-                                                                                }
-                                                                                case 'delete': {
-                                                                                    return html ` <div
+                                                                        }
+                                                                        case 'delete': {
+                                                                            return html ` <div
                                                   style="cursor: pointer;position:relative;display: flex;width: 432px;height: 255px;border-radius: 10px;background: #FFF;background: #FFF;align-items: center;justify-content: center;max-width: calc(100vw - 20px);"
                                                 >
                                                   <div
@@ -1833,14 +1834,14 @@ export class ShoppingSettingBasic {
                                                       style="padding-right: 20px;gap: 14px;"
                                                     >
                                                       ${BgWidget.cancel(gvc.event(() => {
-                                                                                        gvc.glitter.closeDiaLog();
-                                                                                    }))}
+                                                                                gvc.glitter.closeDiaLog();
+                                                                            }))}
                                                       ${BgWidget.save(gvc.event(() => {
-                                                                                        postMD.specs[0].option.map((option) => {
-                                                                                            option.sortQueue = option.sortQueue.filter((data) => !data.select);
-                                                                                        });
-                                                                                        saveQueue('delete', '');
-                                                                                    }))}
+                                                                                postMD.specs[0].option.map((option) => {
+                                                                                    option.sortQueue = option.sortQueue.filter((data) => !data.select);
+                                                                                });
+                                                                                saveQueue('delete', '');
+                                                                            }))}
                                                     </div>
                                                   </div>
                                                   <svg
@@ -1851,18 +1852,18 @@ export class ShoppingSettingBasic {
                                                     fill="none"
                                                     style="position: absolute;top:12px;right:12px;"
                                                     onclick="${gvc.event(() => {
-                                                                                        gvc.glitter.closeDiaLog();
-                                                                                    })}"
+                                                                                gvc.glitter.closeDiaLog();
+                                                                            })}"
                                                   >
                                                     <path d="M1 1L13 13" stroke="#393939" stroke-linecap="round" />
                                                     <path d="M13 1L1 13" stroke="#393939" stroke-linecap="round" />
                                                   </svg>
                                                 </div>`;
-                                                                                }
-                                                                                case 'shipment_type': {
-                                                                                    inputTemp = 'volume';
-                                                                                    let windowsid = gvc.glitter.getUUID();
-                                                                                    return html ` <div
+                                                                        }
+                                                                        case 'shipment_type': {
+                                                                            inputTemp = 'volume';
+                                                                            let windowsid = gvc.glitter.getUUID();
+                                                                            return html ` <div
                                                   style="display: flex;width: 569px;padding-bottom: 20px;flex-direction: column;align-items: center;gap: 24px;border-radius: 10px;background: #FFF;font-size: 16px;max-width: calc(100vw - 20px);"
                                                 >
                                                   <div
@@ -1871,73 +1872,73 @@ export class ShoppingSettingBasic {
                                                     更改運費計算方式
                                                   </div>
                                                   ${gvc.bindView({
-                                                                                        bind: windowsid,
-                                                                                        view: () => {
-                                                                                            return html `
+                                                                                bind: windowsid,
+                                                                                view: () => {
+                                                                                    return html `
                                                         <div
                                                           class="d-flex align-items-center"
                                                           style="gap:6px;cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                                inputTemp = 'volume';
-                                                                                                gvc.notifyDataChange(windowsid);
-                                                                                            })}"
+                                                                                        inputTemp = 'volume';
+                                                                                        gvc.notifyDataChange(windowsid);
+                                                                                    })}"
                                                         >
                                                           ${inputTemp == 'volume'
-                                                                                                ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
-                                                                                                : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
+                                                                                        ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
+                                                                                        : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
                                                           依材積計算
                                                         </div>
                                                         <div
                                                           class="d-flex align-items-center"
                                                           style="gap:6px;cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                                inputTemp = 'weight';
-                                                                                                gvc.notifyDataChange(windowsid);
-                                                                                            })}"
+                                                                                        inputTemp = 'weight';
+                                                                                        gvc.notifyDataChange(windowsid);
+                                                                                    })}"
                                                         >
                                                           ${inputTemp == 'weight'
-                                                                                                ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
-                                                                                                : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
+                                                                                        ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
+                                                                                        : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
                                                           依重量計算
                                                         </div>
                                                         <div
                                                           class="d-flex align-items-center"
                                                           style="gap:6px;cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                                inputTemp = 'none';
-                                                                                                gvc.notifyDataChange(windowsid);
-                                                                                            })}"
+                                                                                        inputTemp = 'none';
+                                                                                        gvc.notifyDataChange(windowsid);
+                                                                                    })}"
                                                         >
                                                           ${inputTemp == 'none'
-                                                                                                ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
-                                                                                                : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
+                                                                                        ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
+                                                                                        : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
                                                           不計算
                                                         </div>
                                                       `;
-                                                                                        },
-                                                                                        divCreate: {
-                                                                                            class: `w-100 d-flex flex-column`,
-                                                                                            style: `padding: 0px 20px;gap:8px;color:#393939;`,
-                                                                                        },
-                                                                                    })}
+                                                                                },
+                                                                                divCreate: {
+                                                                                    class: `w-100 d-flex flex-column`,
+                                                                                    style: `padding: 0px 20px;gap:8px;color:#393939;`,
+                                                                                },
+                                                                            })}
 
                                                   <div
                                                     class="w-100 justify-content-end d-flex"
                                                     style="padding-right: 20px;gap: 14px;"
                                                   >
                                                     ${BgWidget.cancel(gvc.event(() => {
-                                                                                        gvc.glitter.closeDiaLog();
-                                                                                    }))}
+                                                                                gvc.glitter.closeDiaLog();
+                                                                            }))}
                                                     ${BgWidget.save(gvc.event(() => {
-                                                                                        saveQueue('shipment_type', inputTemp);
-                                                                                    }))}
+                                                                                saveQueue('shipment_type', inputTemp);
+                                                                            }))}
                                                   </div>
                                                 </div>`;
-                                                                                }
-                                                                                case 'show_understocking': {
-                                                                                    inputTemp = 'volume';
-                                                                                    let windowsid = gvc.glitter.getUUID();
-                                                                                    return html ` <div
+                                                                        }
+                                                                        case 'show_understocking': {
+                                                                            inputTemp = 'volume';
+                                                                            let windowsid = gvc.glitter.getUUID();
+                                                                            return html ` <div
                                                   style="display: flex;width: 569px;padding-bottom: 20px;flex-direction: column;align-items: center;gap: 24px;border-radius: 10px;background: #FFF;font-size: 16px;max-width: calc(100vw - 20px);"
                                                 >
                                                   <div
@@ -1947,58 +1948,58 @@ export class ShoppingSettingBasic {
                                                   </div>
 
                                                   ${gvc.bindView({
-                                                                                        bind: windowsid,
-                                                                                        view: () => {
-                                                                                            return html `
+                                                                                bind: windowsid,
+                                                                                view: () => {
+                                                                                    return html `
                                                         <div
                                                           class="d-flex align-items-center"
                                                           style="gap:6px;cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                                inputTemp = 'false';
-                                                                                                gvc.notifyDataChange(windowsid);
-                                                                                            })}"
+                                                                                        inputTemp = 'false';
+                                                                                        gvc.notifyDataChange(windowsid);
+                                                                                    })}"
                                                         >
                                                           ${inputTemp == 'false'
-                                                                                                ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
-                                                                                                : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
+                                                                                        ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
+                                                                                        : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
                                                           不追蹤庫存
                                                         </div>
                                                         <div
                                                           class="d-flex align-items-center"
                                                           style="gap:6px;cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                                inputTemp = 'true';
-                                                                                                gvc.notifyDataChange(windowsid);
-                                                                                            })}"
+                                                                                        inputTemp = 'true';
+                                                                                        gvc.notifyDataChange(windowsid);
+                                                                                    })}"
                                                         >
                                                           ${inputTemp == 'true'
-                                                                                                ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
-                                                                                                : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
+                                                                                        ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
+                                                                                        : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
                                                           追蹤庫存
                                                         </div>
                                                       `;
-                                                                                        },
-                                                                                        divCreate: {
-                                                                                            class: `w-100 d-flex flex-column`,
-                                                                                            style: `padding: 0px 20px;gap:8px;color:#393939;`,
-                                                                                        },
-                                                                                    })}
+                                                                                },
+                                                                                divCreate: {
+                                                                                    class: `w-100 d-flex flex-column`,
+                                                                                    style: `padding: 0px 20px;gap:8px;color:#393939;`,
+                                                                                },
+                                                                            })}
 
                                                   <div
                                                     class="w-100 justify-content-end d-flex"
                                                     style="padding-right: 20px;gap: 14px;"
                                                   >
                                                     ${BgWidget.cancel(gvc.event(() => {
-                                                                                        gvc.glitter.closeDiaLog();
-                                                                                    }))}
+                                                                                gvc.glitter.closeDiaLog();
+                                                                            }))}
                                                     ${BgWidget.save(gvc.event(() => {
-                                                                                        saveQueue('show_understocking', inputTemp);
-                                                                                    }))}
+                                                                                saveQueue('show_understocking', inputTemp);
+                                                                            }))}
                                                   </div>
                                                 </div>`;
-                                                                                }
-                                                                            }
-                                                                            return html ` <div
+                                                                        }
+                                                                    }
+                                                                    return html ` <div
                                               style="display: flex;width: 569px;padding-bottom: 20px;flex-direction: column;align-items: center;gap: 24px;border-radius: 10px;background: #FFF;"
                                             >
                                               <div
@@ -2022,13 +2023,13 @@ export class ShoppingSettingBasic {
                                                 style="padding-right: 20px;"
                                               >
                                                 ${BgWidget.cancel(gvc.event(() => {
-                                                                                gvc.glitter.closeDiaLog();
-                                                                            }))}
+                                                                        gvc.glitter.closeDiaLog();
+                                                                    }))}
                                                 ${BgWidget.save(gvc.event(() => { }))}
                                               </div>
                                             </div>`;
-                                                                        }
-                                                                        return html `
+                                                                }
+                                                                return html `
                                             <div
                                               style="display: flex;padding: 8px 17px 8px 18px;align-items: center;gap: 4px;align-self: stretch;border-radius: 10px;background: #F7F7F7;"
                                             >
@@ -2037,11 +2038,11 @@ export class ShoppingSettingBasic {
                                                   class="fa-solid fa-square-check"
                                                   style="width: 16px;height: 16px; margin-left: 3px; cursor: pointer;color: #393939;font-size: 18px;"
                                                   onclick="${gvc.event(() => {
-                                                                            postMD.variants.map(dd => {
-                                                                                dd.checked = false;
-                                                                            });
-                                                                            gvc.notifyDataChange(variantsViewID);
-                                                                        })}"
+                                                                    postMD.variants.map(dd => {
+                                                                        dd.checked = false;
+                                                                    });
+                                                                    gvc.notifyDataChange(variantsViewID);
+                                                                })}"
                                                 ></i>
                                                 已選取 ${selected.length} 項
                                               </div>
@@ -2049,15 +2050,15 @@ export class ShoppingSettingBasic {
                                                 <div
                                                   style="border-radius: 7px;border: 1px solid #DDD;background: #FFF;box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.10);padding: 3px 13px;cursor: pointer;"
                                                   onclick="${gvc.event(() => {
-                                                                            ProductSetting.showBatchEditDialog({
-                                                                                gvc: gvc,
-                                                                                postMD: postMD,
-                                                                                selected: selected,
-                                                                                callback: () => {
-                                                                                    gvc.notifyDataChange(vm.id);
-                                                                                },
-                                                                            });
-                                                                        })}"
+                                                                    ProductSetting.showBatchEditDialog({
+                                                                        gvc: gvc,
+                                                                        postMD: postMD,
+                                                                        selected: selected,
+                                                                        callback: () => {
+                                                                            gvc.notifyDataChange(vm.id);
+                                                                        },
+                                                                    });
+                                                                })}"
                                                 >
                                                   批量編輯
                                                 </div>
@@ -2065,9 +2066,9 @@ export class ShoppingSettingBasic {
                                               <div
                                                 style="position: relative"
                                                 onclick="${gvc.event(() => {
-                                                                            selectFunRow = !selectFunRow;
-                                                                            gvc.notifyDataChange('selectFunRow');
-                                                                        })}"
+                                                                    selectFunRow = !selectFunRow;
+                                                                    gvc.notifyDataChange('selectFunRow');
+                                                                })}"
                                               >
                                                 <svg
                                                   style="cursor: pointer;"
@@ -2082,25 +2083,25 @@ export class ShoppingSettingBasic {
                                                   <rect x="14.5" y="8" width="4" height="4" rx="2" fill="#393939" />
                                                 </svg>
                                                 ${selectFunRow
-                                                                            ? html `
+                                                                    ? html `
                                                       <div
                                                         style="cursor: pointer;z-index:2;width:200px;gap:16px;color: #393939;font-size: 16px;font-weight: 400;position: absolute;right:-17px;top: calc(100% + 23px);display: flex;padding: 24px 24px 42px 24px;flex-direction: column;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #FFF;box-shadow: 2px 2px 10px 0px rgba(0, 0, 0, 0.15);"
                                                       >
                                                         <div
                                                           onclick="${gvc.event(() => {
-                                                                                gvc.glitter.innerDialog((gvc) => {
-                                                                                    return editDialog('price');
-                                                                                }, 'edit');
-                                                                            })}"
+                                                                        gvc.glitter.innerDialog((gvc) => {
+                                                                            return editDialog('price');
+                                                                        }, 'edit');
+                                                                    })}"
                                                         >
                                                           編輯售價
                                                         </div>
                                                         <div
                                                           onclick="${gvc.event(() => {
-                                                                                gvc.glitter.innerDialog((gvc) => {
-                                                                                    return editDialog('compare_price');
-                                                                                }, 'edit');
-                                                                            })}"
+                                                                        gvc.glitter.innerDialog((gvc) => {
+                                                                            return editDialog('compare_price');
+                                                                        }, 'edit');
+                                                                    })}"
                                                         >
                                                           編輯原價
                                                         </div>
@@ -2108,10 +2109,10 @@ export class ShoppingSettingBasic {
                                                           class="d-none"
                                                           style="cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                gvc.glitter.innerDialog((gvc) => {
-                                                                                    return editDialog('stock');
-                                                                                }, '');
-                                                                            })}"
+                                                                        gvc.glitter.innerDialog((gvc) => {
+                                                                            return editDialog('stock');
+                                                                        }, '');
+                                                                    })}"
                                                         >
                                                           編輯庫存數量
                                                         </div>
@@ -2119,10 +2120,10 @@ export class ShoppingSettingBasic {
                                                           class="d-none"
                                                           style="cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                gvc.glitter.innerDialog((gvc) => {
-                                                                                    return editDialog('sku');
-                                                                                }, 'sku');
-                                                                            })}"
+                                                                        gvc.glitter.innerDialog((gvc) => {
+                                                                            return editDialog('sku');
+                                                                        }, 'sku');
+                                                                    })}"
                                                         >
                                                           編輯存貨單位(SKU)
                                                         </div>
@@ -2130,290 +2131,290 @@ export class ShoppingSettingBasic {
                                                           class="d-none"
                                                           style="cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                gvc.glitter.innerDialog((gvc) => {
-                                                                                    return editDialog('delete');
-                                                                                }, 'delete');
-                                                                            })}"
+                                                                        gvc.glitter.innerDialog((gvc) => {
+                                                                            return editDialog('delete');
+                                                                        }, 'delete');
+                                                                    })}"
                                                         >
                                                           刪除規格
                                                         </div>
                                                         <div
                                                           style="cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                gvc.glitter.innerDialog((gvc) => {
-                                                                                    return editDialog('show_understocking');
-                                                                                }, 'show_understocking');
-                                                                            })}"
+                                                                        gvc.glitter.innerDialog((gvc) => {
+                                                                            return editDialog('show_understocking');
+                                                                        }, 'show_understocking');
+                                                                    })}"
                                                         >
                                                           編輯庫存政策
                                                         </div>
                                                         <div
                                                           style="cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                gvc.glitter.innerDialog((gvc) => {
-                                                                                    return editDialog('shipment_type');
-                                                                                }, 'shipment_type');
-                                                                            })}"
+                                                                        gvc.glitter.innerDialog((gvc) => {
+                                                                            return editDialog('shipment_type');
+                                                                        }, 'shipment_type');
+                                                                    })}"
                                                         >
                                                           運費計算方式
                                                         </div>
                                                         <div
                                                           style="cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                const language_data = postMD.language_data[ShoppingProductSetting.select_language];
-                                                                                imageLibrary.selectImageFromArray(language_data.preview_image, {
-                                                                                    gvc: gvc,
-                                                                                    title: html ` <div
+                                                                        const language_data = postMD.language_data[ShoppingProductSetting.select_language];
+                                                                        imageLibrary.selectImageFromArray(language_data.preview_image, {
+                                                                            gvc: gvc,
+                                                                            title: html ` <div
                                                                   class="d-flex flex-column"
                                                                   style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
                                                                 >
                                                                   圖片庫
                                                                 </div>`,
-                                                                                    getSelect: imageUrl => {
-                                                                                        postMD.variants.filter(dd => {
-                                                                                            if (dd.checked) {
-                                                                                                dd[`preview_image_${ShoppingProductSetting.select_language}`] = imageUrl;
-                                                                                            }
-                                                                                        });
-                                                                                        gvc.notifyDataChange(vm.id);
-                                                                                    },
+                                                                            getSelect: imageUrl => {
+                                                                                postMD.variants.filter(dd => {
+                                                                                    if (dd.checked) {
+                                                                                        dd[`preview_image_${ShoppingProductSetting.select_language}`] = imageUrl;
+                                                                                    }
                                                                                 });
-                                                                            })}"
+                                                                                gvc.notifyDataChange(vm.id);
+                                                                            },
+                                                                        });
+                                                                    })}"
                                                         >
                                                           編輯規格圖片
                                                         </div>
                                                         <div
                                                           style="cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                gvc.glitter.innerDialog((gvc) => {
-                                                                                    return editDialog('volume');
-                                                                                }, 'volume');
-                                                                            })}"
+                                                                        gvc.glitter.innerDialog((gvc) => {
+                                                                            return editDialog('volume');
+                                                                        }, 'volume');
+                                                                    })}"
                                                         >
                                                           編輯${cat_title} 材積
                                                         </div>
                                                         <div
                                                           style="cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                                                gvc.glitter.innerDialog((gvc) => {
-                                                                                    return editDialog('weight');
-                                                                                }, 'weight');
-                                                                            })}"
+                                                                        gvc.glitter.innerDialog((gvc) => {
+                                                                            return editDialog('weight');
+                                                                        }, 'weight');
+                                                                    })}"
                                                         >
                                                           編輯${cat_title} 重量
                                                         </div>
                                                       </div>
                                                     `
-                                                                            : ``}
+                                                                    : ``}
                                               </div>
                                             </div>
                                           `;
-                                                                    }
-                                                                    return html `
+                                                            }
+                                                            return html `
                                           <div
                                             style="border-radius: 10px;border: 1px solid #DDD;;display: flex;height: 40px;padding: 8px 0px 8px 18px;align-items: center;"
                                           >
                                             <i
                                               class="${selected.length
-                                                                        ? `fa-solid fa-square-check`
-                                                                        : `fa-regular fa-square`}"
+                                                                ? `fa-solid fa-square-check`
+                                                                : `fa-regular fa-square`}"
                                               style="width: 16px;height: 16px;margin-left:2px;margin-right:18px;cursor: pointer; color: ${selected.length
-                                                                        ? `#393939`
-                                                                        : `#DDD`};font-size: 18px;"
+                                                                ? `#393939`
+                                                                : `#DDD`};font-size: 18px;"
                                               onclick="${gvc.event(() => {
-                                                                        postMD.variants.map(dd => {
-                                                                            dd.checked = !selected.length;
-                                                                        });
-                                                                        gvc.notifyDataChange([variantsViewID]);
-                                                                    })}"
+                                                                postMD.variants.map(dd => {
+                                                                    dd.checked = !selected.length;
+                                                                });
+                                                                gvc.notifyDataChange([variantsViewID]);
+                                                            })}"
                                             ></i>
                                             <div style="width:40%;font-size: 16px;font-weight: 400;">規格</div>
                                             ${document.body.clientWidth < 768
-                                                                        ? html ` <div
+                                                                ? html ` <div
                                                   style="color:#393939;font-size: 16px;font-weight: 400;"
                                                   class="me-3"
                                                 >
                                                   售價*
                                                 </div>`
-                                                                        : `${['售價*', '庫存數量*', '運費計算方式']
-                                                                            .map(dd => {
-                                                                            return html ` <div
+                                                                : `${['售價*', '庫存數量*', '運費計算方式']
+                                                                    .map(dd => {
+                                                                    return html ` <div
                                                       style="color:#393939;font-size: 16px;font-weight: 400;width: 20%; "
                                                     >
                                                       ${dd}
                                                     </div>`;
-                                                                        })
-                                                                            .join('')}`}
+                                                                })
+                                                                    .join('')}`}
                                           </div>
                                         `;
-                                                                },
-                                                                divCreate: { style: `` },
-                                                            }),
-                                                            gvc.bindView(() => {
-                                                                const vm = {
-                                                                    id: gvc.glitter.getUUID(),
-                                                                };
-                                                                return {
-                                                                    bind: vm.id,
-                                                                    view: () => {
-                                                                        function cartesianProductSort(arrays) {
-                                                                            const getCombinations = (arrays, index) => {
-                                                                                if (index === arrays.length) {
-                                                                                    return [[]];
-                                                                                }
-                                                                                const currentArray = arrays[index];
-                                                                                const nextCombinations = getCombinations(arrays, index + 1);
-                                                                                const currentCombinations = [];
-                                                                                for (const value of currentArray) {
-                                                                                    for (const combination of nextCombinations) {
-                                                                                        currentCombinations.push([value, ...combination]);
-                                                                                    }
-                                                                                }
-                                                                                return currentCombinations;
-                                                                            };
-                                                                            return getCombinations(arrays, 0);
+                                                        },
+                                                        divCreate: { style: `` },
+                                                    }),
+                                                    gvc.bindView(() => {
+                                                        const vm = {
+                                                            id: gvc.glitter.getUUID(),
+                                                        };
+                                                        return {
+                                                            bind: vm.id,
+                                                            view: () => {
+                                                                function cartesianProductSort(arrays) {
+                                                                    const getCombinations = (arrays, index) => {
+                                                                        if (index === arrays.length) {
+                                                                            return [[]];
                                                                         }
-                                                                        function compareArrays(arr1, arr2) {
-                                                                            if (arr1.length !== arr2.length) {
-                                                                                return false;
+                                                                        const currentArray = arrays[index];
+                                                                        const nextCombinations = getCombinations(arrays, index + 1);
+                                                                        const currentCombinations = [];
+                                                                        for (const value of currentArray) {
+                                                                            for (const combination of nextCombinations) {
+                                                                                currentCombinations.push([value, ...combination]);
                                                                             }
-                                                                            for (let i = 0; i < arr1.length; i++) {
-                                                                                if (arr1[i] !== arr2[i]) {
-                                                                                    return false;
-                                                                                }
-                                                                            }
-                                                                            return true;
                                                                         }
-                                                                        return postMD.specs[0].option
-                                                                            .map((spec) => {
-                                                                            var _a;
-                                                                            const viewList = [];
-                                                                            spec.expand = (_a = spec.expand) !== null && _a !== void 0 ? _a : true;
-                                                                            if (postMD.specs.length > 1) {
-                                                                                let isCheck = !postMD.variants
-                                                                                    .filter(dd => {
-                                                                                    return dd.spec[0] === spec.title;
-                                                                                })
-                                                                                    .find(dd => {
-                                                                                    return !dd.checked;
-                                                                                });
-                                                                                viewList.push(html ` <div
+                                                                        return currentCombinations;
+                                                                    };
+                                                                    return getCombinations(arrays, 0);
+                                                                }
+                                                                function compareArrays(arr1, arr2) {
+                                                                    if (arr1.length !== arr2.length) {
+                                                                        return false;
+                                                                    }
+                                                                    for (let i = 0; i < arr1.length; i++) {
+                                                                        if (arr1[i] !== arr2[i]) {
+                                                                            return false;
+                                                                        }
+                                                                    }
+                                                                    return true;
+                                                                }
+                                                                return postMD.specs[0].option
+                                                                    .map((spec) => {
+                                                                    var _a;
+                                                                    const viewList = [];
+                                                                    spec.expand = (_a = spec.expand) !== null && _a !== void 0 ? _a : true;
+                                                                    if (postMD.specs.length > 1) {
+                                                                        let isCheck = !postMD.variants
+                                                                            .filter(dd => {
+                                                                            return dd.spec[0] === spec.title;
+                                                                        })
+                                                                            .find(dd => {
+                                                                            return !dd.checked;
+                                                                        });
+                                                                        viewList.push(html ` <div
                                                     style="display: flex;padding: 8px 0px;align-items: center;border-radius: 10px;background: #FFF;width:100%;"
                                                   >
                                                     <i
                                                       class="${isCheck
-                                                                                    ? `fa-solid fa-square-check`
-                                                                                    : `fa-regular fa-square`}"
+                                                                            ? `fa-solid fa-square-check`
+                                                                            : `fa-regular fa-square`}"
                                                       style="width: 16px;height: 16px;margin-left:19px;margin-right:18px;cursor: pointer;color: ${isCheck
-                                                                                    ? `#393939`
-                                                                                    : `#DDD`};font-size: 18px;"
+                                                                            ? `#393939`
+                                                                            : `#DDD`};font-size: 18px;"
                                                       onclick="${gvc.event(() => {
-                                                                                    postMD.variants
-                                                                                        .filter(dd => {
-                                                                                        return dd.spec[0] === spec.title;
-                                                                                    })
-                                                                                        .map(dd => {
-                                                                                        dd.checked = !isCheck;
-                                                                                    });
-                                                                                    gvc.notifyDataChange([vm.id, 'selectFunRow']);
-                                                                                })}"
+                                                                            postMD.variants
+                                                                                .filter(dd => {
+                                                                                return dd.spec[0] === spec.title;
+                                                                            })
+                                                                                .map(dd => {
+                                                                                dd.checked = !isCheck;
+                                                                            });
+                                                                            gvc.notifyDataChange([vm.id, 'selectFunRow']);
+                                                                        })}"
                                                     ></i>
                                                     <div
                                                       style="flex:1 0 0;font-size: 16px;font-weight: 400;display: flex;align-items: center;
                                                                                                                               gap:${document
-                                                                                    .body.clientWidth < 800
-                                                                                    ? 10
-                                                                                    : 24}px;"
+                                                                            .body.clientWidth < 800
+                                                                            ? 10
+                                                                            : 24}px;"
                                                     >
                                                       <div
                                                         onclick="${gvc.event(() => {
-                                                                                    imageLibrary.selectImageFromArray(language_data.preview_image, {
-                                                                                        gvc: gvc,
-                                                                                        title: html ` <div
+                                                                            imageLibrary.selectImageFromArray(language_data.preview_image, {
+                                                                                gvc: gvc,
+                                                                                title: html ` <div
                                                                 class="d-flex flex-column"
                                                                 style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
                                                               >
                                                                 統一設定圖片
                                                               </div>`,
-                                                                                        getSelect: imageUrl => {
-                                                                                            postMD.variants
-                                                                                                .filter(dd => {
-                                                                                                return dd.spec[0] === spec.title;
-                                                                                            })
-                                                                                                .forEach(d1 => {
-                                                                                                d1.preview_image = imageUrl;
-                                                                                                d1['preview_image_' + sel_lan()] =
-                                                                                                    imageUrl;
-                                                                                            });
-                                                                                            obj.gvc.notifyDataChange(vm.id);
-                                                                                        },
+                                                                                getSelect: imageUrl => {
+                                                                                    postMD.variants
+                                                                                        .filter(dd => {
+                                                                                        return dd.spec[0] === spec.title;
+                                                                                    })
+                                                                                        .forEach(d1 => {
+                                                                                        d1.preview_image = imageUrl;
+                                                                                        d1['preview_image_' + sel_lan()] =
+                                                                                            imageUrl;
                                                                                     });
-                                                                                })}"
+                                                                                    obj.gvc.notifyDataChange(vm.id);
+                                                                                },
+                                                                            });
+                                                                        })}"
                                                       >
                                                         ${BgWidget.validImageBox({
-                                                                                    gvc,
-                                                                                    image: getPreviewImage(postMD.variants.filter(dd => dd.spec[0] === spec.title)[0]['preview_image_' + sel_lan()] ||
-                                                                                        postMD.variants.filter(dd => dd.spec[0] === spec.title)[0]
-                                                                                            .preview_image),
-                                                                                    width: 50,
-                                                                                    style: 'border-radius: 10px;cursor:pointer;',
-                                                                                })}
+                                                                            gvc,
+                                                                            image: getPreviewImage(postMD.variants.filter(dd => dd.spec[0] === spec.title)[0]['preview_image_' + sel_lan()] ||
+                                                                                postMD.variants.filter(dd => dd.spec[0] === spec.title)[0]
+                                                                                    .preview_image),
+                                                                            width: 50,
+                                                                            style: 'border-radius: 10px;cursor:pointer;',
+                                                                        })}
                                                       </div>
 
                                                       <div
                                                         class="me-2"
                                                         style="display: flex;align-items: center;gap: 8px;cursor: pointer;overflow-wrap: anywhere;"
                                                         onclick="${gvc.event(() => {
-                                                                                    spec.expand = !spec.expand;
-                                                                                    gvc.notifyDataChange(vm.id);
-                                                                                })}"
+                                                                            spec.expand = !spec.expand;
+                                                                            gvc.notifyDataChange(vm.id);
+                                                                        })}"
                                                       >
                                                         ${getSpecTitle(postMD.specs[0].title, spec.title)}
                                                         ${spec.expand
-                                                                                    ? html ` <i class="fa-regular fa-chevron-up"></i>`
-                                                                                    : html ` <i class="fa-regular fa-chevron-down"></i>`}
+                                                                            ? html ` <i class="fa-regular fa-chevron-up"></i>`
+                                                                            : html ` <i class="fa-regular fa-chevron-down"></i>`}
                                                       </div>
                                                     </div>
                                                     ${[
-                                                                                    {
-                                                                                        title: '統一設定價格',
-                                                                                        key: 'sale_price',
-                                                                                    },
-                                                                                    {
-                                                                                        title: '統一設定存貨',
-                                                                                        key: 'stock',
-                                                                                    },
-                                                                                ]
-                                                                                    .filter(dd => {
-                                                                                    return (dd.key === 'sale_price' || document.body.clientWidth > 768);
-                                                                                })
-                                                                                    .map((dd, index) => {
-                                                                                    let minPrice = Infinity;
-                                                                                    let maxPrice = 0;
-                                                                                    let stock = 0;
-                                                                                    postMD.variants
-                                                                                        .filter(dd => {
-                                                                                        return dd.spec[0] === spec.title;
-                                                                                    })
-                                                                                        .map(d1 => {
-                                                                                        minPrice = Math.min(d1.sale_price, minPrice);
-                                                                                        maxPrice = Math.max(d1.sale_price, maxPrice);
-                                                                                        stock = stock + parseInt(d1.stock, 10);
-                                                                                    });
-                                                                                    if (dd.key == 'sale_price') {
-                                                                                        dd.title = `${minPrice} ~ ${maxPrice}`;
-                                                                                    }
-                                                                                    else {
-                                                                                        dd.title = `${stock}`;
-                                                                                    }
-                                                                                    return html ` <div
+                                                                            {
+                                                                                title: '統一設定價格',
+                                                                                key: 'sale_price',
+                                                                            },
+                                                                            {
+                                                                                title: '統一設定存貨',
+                                                                                key: 'stock',
+                                                                            },
+                                                                        ]
+                                                                            .filter(dd => {
+                                                                            return (dd.key === 'sale_price' || document.body.clientWidth > 768);
+                                                                        })
+                                                                            .map((dd, index) => {
+                                                                            let minPrice = Infinity;
+                                                                            let maxPrice = 0;
+                                                                            let stock = 0;
+                                                                            postMD.variants
+                                                                                .filter(dd => {
+                                                                                return dd.spec[0] === spec.title;
+                                                                            })
+                                                                                .map(d1 => {
+                                                                                minPrice = Math.min(d1.sale_price, minPrice);
+                                                                                maxPrice = Math.max(d1.sale_price, maxPrice);
+                                                                                stock = stock + parseInt(d1.stock, 10);
+                                                                            });
+                                                                            if (dd.key == 'sale_price') {
+                                                                                dd.title = `${minPrice} ~ ${maxPrice}`;
+                                                                            }
+                                                                            else {
+                                                                                dd.title = `${stock}`;
+                                                                            }
+                                                                            return html ` <div
                                                           style="color:#393939;font-size: 16px;font-weight: 400;width:  ${document
-                                                                                        .body.clientWidth > 800
-                                                                                        ? `20%;`
-                                                                                        : 'auto;max-width:140px;'}padding-right: ${document.body
-                                                                                        .clientWidth > 768
-                                                                                        ? `10px`
-                                                                                        : '0px'};"
+                                                                                .body.clientWidth > 800
+                                                                                ? `20%;`
+                                                                                : 'auto;max-width:140px;'}padding-right: ${document.body
+                                                                                .clientWidth > 768
+                                                                                ? `10px`
+                                                                                : '0px'};"
                                                         >
                                                           <input
                                                             style="height: 40px;width:100%;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;font-size: 13px;"
@@ -2422,31 +2423,31 @@ export class ShoppingSettingBasic {
                                                             ${dd.key == 'stock' ? `readonly` : ``}
                                                             min="0"
                                                             onclick="${gvc.event(() => {
-                                                                                        if (index === 1) {
-                                                                                            ProductSetting.showBatchEditDialog({
-                                                                                                gvc: gvc,
-                                                                                                postMD: postMD,
-                                                                                                selected: postMD.variants,
-                                                                                                callback: () => {
-                                                                                                    gvc.notifyDataChange(vm.id);
-                                                                                                },
-                                                                                            });
-                                                                                        }
-                                                                                    })}"
+                                                                                if (index === 1) {
+                                                                                    ProductSetting.showBatchEditDialog({
+                                                                                        gvc: gvc,
+                                                                                        postMD: postMD,
+                                                                                        selected: postMD.variants,
+                                                                                        callback: () => {
+                                                                                            gvc.notifyDataChange(vm.id);
+                                                                                        },
+                                                                                    });
+                                                                                }
+                                                                            })}"
                                                             onchange="${gvc.event(e => {
-                                                                                        postMD.variants
-                                                                                            .filter(dd => {
-                                                                                            return dd.spec[0] === spec.title;
-                                                                                        })
-                                                                                            .map(d1 => {
-                                                                                            d1[dd.key] = e.value;
-                                                                                        });
-                                                                                        gvc.notifyDataChange(vm.id);
-                                                                                    })}"
+                                                                                postMD.variants
+                                                                                    .filter(dd => {
+                                                                                    return dd.spec[0] === spec.title;
+                                                                                })
+                                                                                    .map(d1 => {
+                                                                                    d1[dd.key] = e.value;
+                                                                                });
+                                                                                gvc.notifyDataChange(vm.id);
+                                                                            })}"
                                                           />
                                                         </div>`;
-                                                                                })
-                                                                                    .join('')}
+                                                                        })
+                                                                            .join('')}
                                                     <div
                                                       class="d-none d-sm-block"
                                                       style="color:#393939;font-size: 16px;font-weight: 400;width: 20%;"
@@ -2455,60 +2456,60 @@ export class ShoppingSettingBasic {
                                                         class="form-select"
                                                         style="height: 40px;width: 100%;padding: 0 18px;border-radius: 10px;"
                                                         onchange="${gvc.event(e => {
-                                                                                    postMD.variants
-                                                                                        .filter(dd => {
-                                                                                        return dd.spec[0] === spec.title;
-                                                                                    })
-                                                                                        .map(dd => {
-                                                                                        dd.shipment_type = e.value;
-                                                                                    });
-                                                                                    gvc.notifyDataChange(vm.id);
-                                                                                })}"
+                                                                            postMD.variants
+                                                                                .filter(dd => {
+                                                                                return dd.spec[0] === spec.title;
+                                                                            })
+                                                                                .map(dd => {
+                                                                                dd.shipment_type = e.value;
+                                                                            });
+                                                                            gvc.notifyDataChange(vm.id);
+                                                                        })}"
                                                       >
                                                         ${(() => {
-                                                                                    let checkVolume = false;
-                                                                                    let checkWeight = false;
-                                                                                    postMD.variants
-                                                                                        .filter(dd => {
-                                                                                        return dd.spec[0] === spec.title;
-                                                                                    })
-                                                                                        .forEach(dd => {
-                                                                                        if (dd.shipment_type == 'weight') {
-                                                                                            checkWeight = true;
-                                                                                        }
-                                                                                        if (dd.shipment_type == 'volume') {
-                                                                                            checkVolume = true;
-                                                                                        }
-                                                                                    });
-                                                                                    const data = [
-                                                                                        {
-                                                                                            class: 'd-none',
-                                                                                            value: 'all',
-                                                                                            text: '依重量,運費',
-                                                                                            select: checkVolume && checkWeight,
-                                                                                        },
-                                                                                        {
-                                                                                            class: '',
-                                                                                            value: 'none',
-                                                                                            text: '無運費',
-                                                                                            select: !checkVolume && !checkWeight,
-                                                                                        },
-                                                                                        {
-                                                                                            class: '',
-                                                                                            value: 'volume',
-                                                                                            text: '依材積',
-                                                                                            select: checkVolume && !checkWeight,
-                                                                                        },
-                                                                                        {
-                                                                                            class: '',
-                                                                                            value: 'weight',
-                                                                                            text: '依重量',
-                                                                                            select: !checkVolume && checkWeight,
-                                                                                        },
-                                                                                    ];
-                                                                                    return data.map(value => {
-                                                                                        var _a;
-                                                                                        return html `
+                                                                            let checkVolume = false;
+                                                                            let checkWeight = false;
+                                                                            postMD.variants
+                                                                                .filter(dd => {
+                                                                                return dd.spec[0] === spec.title;
+                                                                            })
+                                                                                .forEach(dd => {
+                                                                                if (dd.shipment_type == 'weight') {
+                                                                                    checkWeight = true;
+                                                                                }
+                                                                                if (dd.shipment_type == 'volume') {
+                                                                                    checkVolume = true;
+                                                                                }
+                                                                            });
+                                                                            const data = [
+                                                                                {
+                                                                                    class: 'd-none',
+                                                                                    value: 'all',
+                                                                                    text: '依重量,運費',
+                                                                                    select: checkVolume && checkWeight,
+                                                                                },
+                                                                                {
+                                                                                    class: '',
+                                                                                    value: 'none',
+                                                                                    text: '無運費',
+                                                                                    select: !checkVolume && !checkWeight,
+                                                                                },
+                                                                                {
+                                                                                    class: '',
+                                                                                    value: 'volume',
+                                                                                    text: '依材積',
+                                                                                    select: checkVolume && !checkWeight,
+                                                                                },
+                                                                                {
+                                                                                    class: '',
+                                                                                    value: 'weight',
+                                                                                    text: '依重量',
+                                                                                    select: !checkVolume && checkWeight,
+                                                                                },
+                                                                            ];
+                                                                            return data.map(value => {
+                                                                                var _a;
+                                                                                return html `
                                                               <option
                                                                 value="${value.value}"
                                                                 class="${(_a = value.class) !== null && _a !== void 0 ? _a : ''}"
@@ -2517,92 +2518,92 @@ export class ShoppingSettingBasic {
                                                                 ${value.text}
                                                               </option>
                                                             `;
-                                                                                    });
-                                                                                })()}
+                                                                            });
+                                                                        })()}
                                                       </select>
                                                     </div>
                                                   </div>`);
-                                                                            }
-                                                                            if (spec.expand || postMD.specs.length === 1) {
-                                                                                postMD.variants = cartesianProductSort(postMD.specs.map(item => {
-                                                                                    return item.option.map((item2) => item2.title);
-                                                                                }))
-                                                                                    .map(item => {
-                                                                                    return postMD.variants.find(variant => {
-                                                                                        return compareArrays(variant.spec, item);
-                                                                                    });
-                                                                                })
-                                                                                    .filter(item => item !== undefined);
-                                                                                viewList.push(postMD.variants
-                                                                                    .filter(dd => {
-                                                                                    return dd.spec[0] === spec.title;
-                                                                                })
-                                                                                    .map((data, index) => {
-                                                                                    const viewID = gvc.glitter.getUUID();
-                                                                                    return gvc.bindView({
-                                                                                        bind: viewID,
-                                                                                        view: () => {
-                                                                                            return html `
+                                                                    }
+                                                                    if (spec.expand || postMD.specs.length === 1) {
+                                                                        postMD.variants = cartesianProductSort(postMD.specs.map(item => {
+                                                                            return item.option.map((item2) => item2.title);
+                                                                        }))
+                                                                            .map(item => {
+                                                                            return postMD.variants.find(variant => {
+                                                                                return compareArrays(variant.spec, item);
+                                                                            });
+                                                                        })
+                                                                            .filter(item => item !== undefined);
+                                                                        viewList.push(postMD.variants
+                                                                            .filter(dd => {
+                                                                            return dd.spec[0] === spec.title;
+                                                                        })
+                                                                            .map((data, index) => {
+                                                                            const viewID = gvc.glitter.getUUID();
+                                                                            return gvc.bindView({
+                                                                                bind: viewID,
+                                                                                view: () => {
+                                                                                    return html `
                                                             <div
                                                               style="background-color: white;position:relative;display: flex;padding: 8px 0px;align-items: center;border-radius: 10px;width:100%;"
                                                             >
                                                               <div
                                                                 style="flex:1 0 0;font-size: 16px;font-weight: 400;gap:14px;display: flex;align-items: center;padding-left: ${postMD
-                                                                                                .specs.length > 1 && document.body.clientWidth > 768
-                                                                                                ? `32px`
-                                                                                                : `12px`};"
+                                                                                        .specs.length > 1 && document.body.clientWidth > 768
+                                                                                        ? `32px`
+                                                                                        : `12px`};"
                                                                 onclick="${gvc.event(() => {
-                                                                                                postMD.variants.map((dd) => {
-                                                                                                    dd.editable = false;
-                                                                                                });
-                                                                                                data.editable = true;
-                                                                                                obj.vm.type = 'editSpec';
-                                                                                            })}"
+                                                                                        postMD.variants.map((dd) => {
+                                                                                            dd.editable = false;
+                                                                                        });
+                                                                                        data.editable = true;
+                                                                                        obj.vm.type = 'editSpec';
+                                                                                    })}"
                                                               >
                                                                 <i
                                                                   class="${data.checked
-                                                                                                ? `fa-solid fa-square-check`
-                                                                                                : `fa-regular fa-square`}"
+                                                                                        ? `fa-solid fa-square-check`
+                                                                                        : `fa-regular fa-square`}"
                                                                   style="width: 16px;height: 16px;margin-left:19px;margin-right:0px;cursor: pointer;color: ${data.checked
-                                                                                                ? `#393939`
-                                                                                                : `#DDD`};font-size: 18px;"
+                                                                                        ? `#393939`
+                                                                                        : `#DDD`};font-size: 18px;"
                                                                   onclick="${gvc.event((e, event) => {
-                                                                                                data.checked = !data.checked;
-                                                                                                event.stopPropagation();
-                                                                                                gvc.notifyDataChange([vm.id, 'selectFunRow']);
-                                                                                            })}"
+                                                                                        data.checked = !data.checked;
+                                                                                        event.stopPropagation();
+                                                                                        gvc.notifyDataChange([vm.id, 'selectFunRow']);
+                                                                                    })}"
                                                                 ></i>
                                                                 ${BgWidget.validImageBox({
-                                                                                                gvc,
-                                                                                                image: getPreviewImage(data.preview_image),
-                                                                                                width: 40,
-                                                                                                style: 'border-radius: 10px',
-                                                                                            })}
+                                                                                        gvc,
+                                                                                        image: getPreviewImage(data.preview_image),
+                                                                                        width: 40,
+                                                                                        style: 'border-radius: 10px',
+                                                                                    })}
                                                                 <div class="hover-underline">
                                                                   <span>
                                                                     ${Tool.truncateString(data.spec
-                                                                                                .map((dd, index) => {
-                                                                                                return getSpecTitle(postMD.specs[index].title, dd);
-                                                                                            })
-                                                                                                .join(' / '), 14)}</span
+                                                                                        .map((dd, index) => {
+                                                                                        return getSpecTitle(postMD.specs[index].title, dd);
+                                                                                    })
+                                                                                        .join(' / '), 14)}</span
                                                                   >
                                                                 </div>
                                                               </div>
                                                               ${['sale_price', 'stock']
-                                                                                                .filter(dd => {
-                                                                                                return (dd === 'sale_price' ||
-                                                                                                    document.body.clientWidth > 768);
-                                                                                            })
-                                                                                                .map((dd, index) => {
-                                                                                                var _a;
-                                                                                                return html ` <div
+                                                                                        .filter(dd => {
+                                                                                        return (dd === 'sale_price' ||
+                                                                                            document.body.clientWidth > 768);
+                                                                                    })
+                                                                                        .map((dd, index) => {
+                                                                                        var _a;
+                                                                                        return html ` <div
                                                                     style="color:#393939;font-size: 16px;font-weight: 400;width:   ${document
-                                                                                                    .body.clientWidth > 800
-                                                                                                    ? `20%;`
-                                                                                                    : 'auto;max-width:140px;'}padding-right: ${document
-                                                                                                    .body.clientWidth > 800
-                                                                                                    ? `12px`
-                                                                                                    : '0px'};"
+                                                                                            .body.clientWidth > 800
+                                                                                            ? `20%;`
+                                                                                            : 'auto;max-width:140px;'}padding-right: ${document
+                                                                                            .body.clientWidth > 800
+                                                                                            ? `12px`
+                                                                                            : '0px'};"
                                                                   >
                                                                     <input
                                                                       style="width: 100%;height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
@@ -2610,33 +2611,33 @@ export class ShoppingSettingBasic {
                                                                       min="0"
                                                                       ${index === 1 ? `readonly` : ``}
                                                                       onclick="${gvc.event(() => {
-                                                                                                    if (index === 1) {
-                                                                                                        ProductSetting.showBatchEditDialog({
-                                                                                                            gvc: gvc,
-                                                                                                            postMD: postMD,
-                                                                                                            selected: postMD.variants,
-                                                                                                            callback: () => {
-                                                                                                                gvc.notifyDataChange(vm.id);
-                                                                                                            },
-                                                                                                        });
-                                                                                                    }
-                                                                                                })}"
+                                                                                            if (index === 1) {
+                                                                                                ProductSetting.showBatchEditDialog({
+                                                                                                    gvc: gvc,
+                                                                                                    postMD: postMD,
+                                                                                                    selected: postMD.variants,
+                                                                                                    callback: () => {
+                                                                                                        gvc.notifyDataChange(vm.id);
+                                                                                                    },
+                                                                                                });
+                                                                                            }
+                                                                                        })}"
                                                                       oninput="${gvc.event(e => {
-                                                                                                    const regex = /^[0-9]*$/;
-                                                                                                    if (!regex.test(e.value)) {
-                                                                                                        e.value = e.value
-                                                                                                            .replace(/[^0-9]/g, '')
-                                                                                                            .replace(/e/gi, '');
-                                                                                                    }
-                                                                                                })}"
+                                                                                            const regex = /^[0-9]*$/;
+                                                                                            if (!regex.test(e.value)) {
+                                                                                                e.value = e.value
+                                                                                                    .replace(/[^0-9]/g, '')
+                                                                                                    .replace(/e/gi, '');
+                                                                                            }
+                                                                                        })}"
                                                                       onchange="${gvc.event(e => {
-                                                                                                    data[dd] = e.value;
-                                                                                                    gvc.notifyDataChange(vm.id);
-                                                                                                })}"
+                                                                                            data[dd] = e.value;
+                                                                                            gvc.notifyDataChange(vm.id);
+                                                                                        })}"
                                                                     />
                                                                   </div>`;
-                                                                                            })
-                                                                                                .join('')}
+                                                                                    })
+                                                                                        .join('')}
                                                               <div
                                                                 class="d-none d-sm-block"
                                                                 style="color:#393939;font-size: 16px;font-weight: 400;width: 20%;"
@@ -2645,8 +2646,8 @@ export class ShoppingSettingBasic {
                                                                   class="form-select"
                                                                   style="height: 40px;width: 100%;padding: 0 18px;border-radius: 10px;"
                                                                   onchange="${gvc.event(e => {
-                                                                                                data.shipment_type = e.value;
-                                                                                            })}"
+                                                                                        data.shipment_type = e.value;
+                                                                                    })}"
                                                                 >
                                                                   <option
                                                                     value="none"
@@ -2670,39 +2671,37 @@ export class ShoppingSettingBasic {
                                                               </div>
                                                             </div>
                                                           `;
-                                                                                        },
-                                                                                        divCreate: {
-                                                                                            class: `w-100 ${viewID} ${index === 0 && postMD.specs.length > 1 ? `border-top` : ``}`,
-                                                                                        },
-                                                                                    });
-                                                                                })
-                                                                                    .join('<div class="border-bottom my-1 w-100"></div>'));
-                                                                            }
-                                                                            return viewList.join('');
+                                                                                },
+                                                                                divCreate: {
+                                                                                    class: `w-100 ${viewID} ${index === 0 && postMD.specs.length > 1 ? `border-top` : ``}`,
+                                                                                },
+                                                                            });
                                                                         })
-                                                                            .join('<div class="border-bottom mx-n2 my-1 w-100"></div>');
-                                                                    },
-                                                                    divCreate: {},
-                                                                };
-                                                            }),
-                                                        ].join('');
-                                                    }
-                                                    catch (e) {
-                                                        return `${e}`;
-                                                    }
-                                                },
-                                                divCreate: {},
-                                            });
+                                                                            .join('<div class="border-bottom my-1 w-100"></div>'));
+                                                                    }
+                                                                    return viewList.join('');
+                                                                })
+                                                                    .join('<div class="border-bottom mx-n2 my-1 w-100"></div>');
+                                                            },
+                                                            divCreate: {},
+                                                        };
+                                                    }),
+                                                ].join('');
+                                            }
+                                            catch (e) {
+                                                return `${e}`;
+                                            }
                                         },
-                                        divCreate: {
-                                            class: '',
-                                            style: 'overflow: visible;',
-                                        },
-                                    };
-                                }));
-                        }
-                    })()
-                    : '',
+                                        divCreate: {},
+                                    });
+                                },
+                                divCreate: {
+                                    class: '',
+                                    style: 'overflow: visible;',
+                                },
+                            };
+                        }));
+                })() : ``,
                 BgWidget.mainCard(obj.gvc.bindView(() => {
                     var _a;
                     postMD.seo = (_a = postMD.seo) !== null && _a !== void 0 ? _a : {

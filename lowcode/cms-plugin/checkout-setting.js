@@ -131,9 +131,9 @@ export class MemberSetting {
                                     key: 'custom_form_checkout_recipient',
                                     title: html `
                         <div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
-                          配送資訊表單
+                          收件資訊表單
                           <span class="" style="color:#8D8D8D;font-size: 12px;"
-                            >於結帳頁面中設定顧客必須填寫的配送資訊表單</span
+                            >於結帳頁面中設定顧客必須填寫的收件人資訊表單</span
                           >
                         </div>
                       `,

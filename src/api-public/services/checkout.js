@@ -7,7 +7,7 @@ exports.CheckoutService = void 0;
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 class CheckoutService {
     static async updateAndMigrateToTableColumn(obj) {
-        var _a, _b;
+        var _a, _b, _c;
         const update_object = {};
         const json = obj.orderData;
         json.progress = (_a = json.progress) !== null && _a !== void 0 ? _a : 'wait';
@@ -44,6 +44,25 @@ class CheckoutService {
         await database_js_1.default.query(`update \`${obj.app_name}\`.t_checkout
        set ?
        where id = ${obj.id}`, [update_object]);
+        try {
+            await database_js_1.default.query(`delete
+                      from \`${obj.app_name}\`.t_products_sold_history
+                      where order_id = ? and id>0`, [obj.orderData.orderID]);
+            for (const b of obj.orderData.lineItems) {
+                await database_js_1.default.query(`insert into \`${obj.app_name}\`.t_products_sold_history
+                        set ?`, [
+                    {
+                        product_id: (_c = b.id) !== null && _c !== void 0 ? _c : -1,
+                        order_id: obj.orderData.orderID,
+                        spec: (b.spec || []).join('-'),
+                        count: b.count
+                    },
+                ]);
+            }
+        }
+        catch (e) {
+            console.error(`insert-history-error: ${e}`);
+        }
     }
 }
 exports.CheckoutService = CheckoutService;

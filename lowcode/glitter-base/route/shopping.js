@@ -970,7 +970,7 @@ export class ApiShop {
     static getShippingStatusArray() {
         return [
             { title: '未出貨', value: 'wait' },
-            { title: '配送中', value: 'shipping' },
+            { title: '已出貨', value: 'shipping' },
             { title: '已送達', value: 'finish' },
         ];
     }

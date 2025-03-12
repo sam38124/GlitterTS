@@ -240,6 +240,7 @@ export class Shopping {
     product_category?: string;
   }) {
     try {
+      const count_sql=await new User(this.app).getCheckoutCountingModeSQL();
       const start = new Date().getTime();
       const userClass = new User(this.app);
       const userID = query.setUserID ?? (this.token ? `${this.token.userID}` : '');
@@ -635,9 +636,21 @@ export class Shopping {
                   }
                 ];
               }else{
+                 //尋找規格販售數量
+                 const soldOldHistory=await db.query(`
+                 select \`${this.app}\`.t_products_sold_history.* from  \`${this.app}\`.t_products_sold_history
+where 
+product_id = ${db.escape(content.id)} and    
+order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql})
+                 `,[]);
                 (content.variants || []).forEach((variant: any) => {
+                  variant.spec = variant.spec || [];
                   variant.stock = 0;
-                  variant.sold_out = variant.sold_out || 0;
+                  variant.sold_out = soldOldHistory.filter((dd:any)=>{
+                    return (dd.spec===variant.spec.join('-')) && (`${dd.product_id}` === `${content.id}`)
+                  }).map((dd:any)=>{
+                    return parseInt(dd.count ,10)
+                  }).reduce((a:number,b:number)=>a+b,0) || 0;
                   variant.preview_image = variant.preview_image ?? '';
                   if (!variant.preview_image.includes('https://')) {
                     variant.preview_image = undefined;
@@ -650,13 +663,10 @@ export class Shopping {
                     console.log(`content.min_price=>`, variant.sale_price);
                     content.min_price = variant.sale_price;
                   }
-
                   if (content.max_price < variant.sale_price) {
                     content.max_price = variant.sale_price;
                   }
-
-                  if (
-                    variant.preview_image ===
+                  if (variant.preview_image ===
                     'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'
                   ) {
                     variant.preview_image = content.preview_image?.[0];

@@ -127,7 +127,7 @@ export class BgShopping {
                                                                 case 'wait':
                                                                     return `<div class="badge bg-warning fs-7 " style="color:black;">尚未出貨</div>`;
                                                                 case 'shipping':
-                                                                    return `<div class="badge bg-info fs-7" style="max-height:34px;">配送中</div>`;
+                                                                    return `<div class="badge bg-info fs-7" style="max-height:34px;">已出貨</div>`;
                                                                 case 'finish':
                                                                     return `<div class="badge  fs-7" style="background:#0000000f;color:black;">已出貨</div>`;
                                                             }
@@ -344,7 +344,7 @@ export class BgShopping {
                                 if (orderData.orderData.progress === 'finish') {
                                     return `<div class="badge  fs-6" style="background:#0000000f;color:black;max-height:34px;">已出貨</div>`;
                                 } else if (orderData.orderData.progress === 'shipping') {
-                                    return `<div class="badge bg-info fs-6" style="max-height:34px;">配送中</div>`;
+                                    return `<div class="badge bg-info fs-6" style="max-height:34px;">已出貨</div>`;
                                 } else {
                                     return `<div class="badge bg-warning fs-6" style="max-height:34px;">未出貨</div>`;
                                 }

@@ -66,6 +66,7 @@ class Shopping {
     async getProduct(query) {
         var _a, _b, _c, _d, _e, _f;
         try {
+            const count_sql = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
             const start = new Date().getTime();
             const userClass = new user_js_1.User(this.app);
             const userID = (_a = query.setUserID) !== null && _a !== void 0 ? _a : (this.token ? `${this.token.userID}` : '');
@@ -410,10 +411,21 @@ class Shopping {
                             ];
                         }
                         else {
+                            const soldOldHistory = await database_js_1.default.query(`
+                 select \`${this.app}\`.t_products_sold_history.* from  \`${this.app}\`.t_products_sold_history
+where 
+product_id = ${database_js_1.default.escape(content.id)} and    
+order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql})
+                 `, []);
                             (content.variants || []).forEach((variant) => {
                                 var _a, _b;
+                                variant.spec = variant.spec || [];
                                 variant.stock = 0;
-                                variant.sold_out = variant.sold_out || 0;
+                                variant.sold_out = soldOldHistory.filter((dd) => {
+                                    return (dd.spec === variant.spec.join('-')) && (`${dd.product_id}` === `${content.id}`);
+                                }).map((dd) => {
+                                    return parseInt(dd.count, 10);
+                                }).reduce((a, b) => a + b, 0) || 0;
                                 variant.preview_image = (_a = variant.preview_image) !== null && _a !== void 0 ? _a : '';
                                 if (!variant.preview_image.includes('https://')) {
                                     variant.preview_image = undefined;

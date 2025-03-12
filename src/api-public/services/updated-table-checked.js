@@ -83,6 +83,24 @@ ADD INDEX \`index11\` (\`shipment_number\` ASC) VISIBLE;`
                 });
             }
         });
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_products_sold_history',
+            last_version: [''],
+            new_version: 'V1.0',
+            event: () => {
+                return new Promise(async (resolve, reject) => {
+                    for (const b of (await database_1.default.query(`select * from \`${app_name}\`.t_checkout`, []))) {
+                        await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
+                            id: b.id,
+                            orderData: b.orderData,
+                            app_name: app_name
+                        });
+                    }
+                    resolve(true);
+                });
+            }
+        });
     }
     static async update(obj) {
         var _a;

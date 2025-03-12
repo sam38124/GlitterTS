@@ -14,7 +14,6 @@ export class UpdatedTableChecked {
                 ADD COLUMN \`store\` VARCHAR(45) NOT NULL DEFAULT '' AFTER \`execute\`,
 ADD INDEX \`index5\` (\`store\` ASC) VISIBLE;`
         })
-
         //購物車''->1.1版本，先更新資料表欄位
         await UpdatedTableChecked.update({
             app_name: app_name,
@@ -86,26 +85,25 @@ ADD INDEX \`index11\` (\`shipment_number\` ASC) VISIBLE;`
                 })
             }
         });
-        //商品資料更新
-        // await UpdatedTableChecked.update({
-        //     app_name: app_name,
-        //     table_name: 't_products',
-        //     last_version: [''],
-        //     new_version: 'V1.0',
-        //     event: ()=>{
-        //         return new Promise(async (resolve, reject) => {
-        //             await ProductMigrate.migrate(app_name,(await db.query(`select * from \`${app_name}\`.t_manager_post where content->>'$.type'='product'`,[])).map((dd:any)=>{
-        //                 return {
-        //                     id:dd.id,
-        //                     content:dd.content,
-        //                     updated_time:dd.updated_time,
-        //                     created_time:dd.created_time
-        //                 }
-        //             }))
-        //             resolve(true);
-        //         })
-        //     }
-        // });
+        //更新商品銷售紀錄
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_products_sold_history',
+            last_version: [''],
+            new_version: 'V1.0',
+            event: ()=>{
+                return new Promise(async (resolve, reject) => {
+                    for (const b of (await db.query(`select * from \`${app_name}\`.t_checkout`,[]))){
+                        await CheckoutService.updateAndMigrateToTableColumn({
+                            id:b.id,
+                            orderData:b.orderData,
+                            app_name:app_name
+                        })
+                    }
+                    resolve(true);
+                })
+            }
+        });
     }
 
     public static async update(obj: {
