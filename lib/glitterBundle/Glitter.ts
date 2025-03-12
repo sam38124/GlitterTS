@@ -407,7 +407,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 }
 
             } catch (e) {
-                error(`Add ${urlArray[index]} ERROR!!`);
+                error(`Add ${urlArray[index]} ERROR`);
             }
         }
 

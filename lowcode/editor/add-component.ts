@@ -427,7 +427,7 @@ export class AddComponent {
                                                         }
                                                     } catch (e) {
                                                         const dialog = new ShareDialog(gvc.glitter);
-                                                        dialog.errorMessage({text: '請先選擇元件複製!'});
+                                                        dialog.errorMessage({text: '請先選擇元件複製'});
                                                     }
                                                 });
                                             })}"
@@ -519,7 +519,7 @@ background-clip: text;
                                                         }
                                                     } catch (e) {
                                                         const dialog = new ShareDialog(gvc.glitter);
-                                                        dialog.errorMessage({text: '請先選擇元件複製!'});
+                                                        dialog.errorMessage({text: '請先選擇元件複製'});
                                                     }
                                                 });
                                             })}"
@@ -558,7 +558,7 @@ background-clip: text;
                                                             }
                                                         } catch (e) {
                                                             const dialog = new ShareDialog(gvc.glitter);
-                                                            dialog.errorMessage({text: '請先選擇元件複製!'});
+                                                            dialog.errorMessage({text: '請先選擇元件複製'});
                                                         }
                                                     });
                                                 })}"

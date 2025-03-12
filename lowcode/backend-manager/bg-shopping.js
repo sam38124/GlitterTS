@@ -312,7 +312,7 @@ export class BgShopping {
                                     gvc.notifyDataChange(id);
                                 }
                                 else {
-                                    dialog.errorMessage({ text: '更新異常!' });
+                                    dialog.errorMessage({ text: '更新異常' });
                                 }
                             });
                         })}"

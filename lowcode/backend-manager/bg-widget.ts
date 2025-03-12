@@ -2838,10 +2838,10 @@ ${obj.default ?? ''}</textarea
         view: () => {
           if (vm.show) {
             return html` <div class="c_absolute" style="top: 0; right: 0;">
-              <div class="form-check d-flex flex-column ps-0" style="gap: 16px">
+              <div class="form-check d-flex flex-column ps-0" style="gap: 8px">
                 ${obj.gvc.map(
                   obj.options.map(opt => {
-                    return html` <div class="cursor_pointer" onclick="${opt.event}">${opt.name}</div>`;
+                    return html` <div class="sel_option" onclick="${opt.event}">${opt.name}</div>`;
                   })
                 )}
               </div>

@@ -2907,7 +2907,7 @@ ${obj.gvc.bindView(() => {
                     onclick="${gvc.event(() => {
                     navigator.clipboard.writeText(JSON.stringify(obj.originalArray));
                     const dialog = new ShareDialog(gvc.glitter);
-                    dialog.successMessage({ text: '已複製至剪貼簿!' });
+                    dialog.successMessage({ text: '已複製至剪貼簿' });
                 })}"
                   >
                     <i class="fa-sharp fa-regular fa-scissors" aria-hidden="true"></i>
@@ -3279,7 +3279,7 @@ ${obj.gvc.bindView(() => {
                     onclick="${gvc.event(() => {
                     navigator.clipboard.writeText(JSON.stringify(obj.originalArray));
                     const dialog = new ShareDialog(gvc.glitter);
-                    dialog.successMessage({ text: '已複製至剪貼簿!' });
+                    dialog.successMessage({ text: '已複製至剪貼簿' });
                 })}"
                   >
                     <i class="fa-sharp fa-regular fa-scissors" aria-hidden="true"></i>

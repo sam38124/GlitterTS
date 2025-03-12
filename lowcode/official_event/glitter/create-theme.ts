@@ -102,7 +102,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 if (d2.result) {
                                     resolve(true);
                                 } else {
-                                    shareDialog.errorMessage({ text: '建立失敗，此名稱已被使用!' });
+                                    shareDialog.errorMessage({ text: '建立失敗，此名稱已被使用' });
                                     resolve(false);
                                 }
                             });

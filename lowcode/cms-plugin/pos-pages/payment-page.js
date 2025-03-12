@@ -747,7 +747,7 @@ export class PaymentPage {
                                                                 }).then((r) => {
                                                                     dialog.dataLoading({ visible: false });
                                                                     if (!r.result) {
-                                                                        dialog.errorMessage({ text: '沒有權限!' });
+                                                                        dialog.errorMessage({ text: '沒有權限' });
                                                                     }
                                                                     else {
                                                                         dialog.infoMessage({ text: '成功新增會員' });
@@ -1305,16 +1305,16 @@ export class PaymentPage {
                                     function paymentNext(pre_order) {
                                         TempOrder.removeTempOrders(orderDetail.orderID);
                                         if (orderDetail.lineItems.length <= 0) {
-                                            dialog.errorMessage({ text: '請先選擇商品!' });
+                                            dialog.errorMessage({ text: '請先選擇商品' });
                                             return;
                                         }
                                         if (obj.ogOrderData.user_info.shipment === 'normal' && !obj.ogOrderData.user_info.address) {
-                                            dialog.errorMessage({ text: '請輸入地址!' });
+                                            dialog.errorMessage({ text: '請輸入地址' });
                                             return;
                                         }
                                         if (['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].includes(obj.ogOrderData.user_info.shipment) &&
                                             !gvc.glitter.getUrlParameter('CVSStoreName')) {
-                                            dialog.errorMessage({ text: '請選擇到店門市!' });
+                                            dialog.errorMessage({ text: '請選擇到店門市' });
                                             return;
                                         }
                                         orderDetail.pos_info = {

@@ -639,8 +639,96 @@ export class ShoppingOrderManager {
                     vm.type = 'replace';
                   },
                   filter: [
-                    ...(!query.isShipment
+                    ...(query.isShipment
                       ? [
+                          {
+                            name: '取消配號/出貨',
+                            option: true,
+                            event: async () => {
+                              dialog.dataLoading({
+                                visible: true,
+                              });
+                              const checkArray = vm.dataList.filter((dd: any) => dd.checked);
+                              await Promise.all(
+                                checkArray.map((orderData: any) => {
+                                  return new Promise(async (resolve, reject) => {
+                                    ApiDelivery.cancelOrder({
+                                      cart_token: orderData.cart_token,
+                                      logistic_number: orderData.orderData.user_info.shipment_number as any,
+                                      total_amount: orderData.orderData.total as any,
+                                    })
+                                      .then(res => {
+                                        // if (res.result && res.response.data.includes('F,')) {
+                                        //   dialog.errorMessage({
+                                        //     text: res.response.data.replace('F,', ''),
+                                        //   });
+                                        // }
+                                        resolve(true);
+                                      })
+                                      .catch(err => {
+                                        resolve(true);
+                                      });
+                                  });
+                                })
+                              );
+                              dialog.dataLoading({
+                                visible: false,
+                              });
+                              gvc.recreateView();
+                            },
+                          },
+                          {
+                            name: '列印托運單',
+                            option: true,
+                            event: () => {
+                              const checkArray = vm.dataList.filter((dd: any) => dd.checked);
+
+                              const strArray = checkArray.map((dd: any) => {
+                                try {
+                                  return dd.orderData.user_info.shipment;
+                                } catch (error) {
+                                  return undefined;
+                                }
+                              });
+
+                              if (strArray.includes(undefined)) {
+                                dialog.errorMessage({
+                                  text: html` <div class="text-center">
+                                    已勾選訂單中不可含有<br />非超商店到店的配送方式
+                                  </div>`,
+                                });
+                                return;
+                              }
+
+                              const allEqual = strArray.every((val: string) => val && val === strArray[0]);
+
+                              if (!allEqual) {
+                                dialog.errorMessage({ text: '配送的方式必須相同' });
+                                return;
+                              }
+
+                              if (strArray.includes('HILIFEC2C') && strArray.length > 1) {
+                                dialog.errorMessage({ text: '萊爾富不支援一次列印多張托運單' });
+                                return;
+                              }
+
+                              return this.printStoreOrderInfo({
+                                gvc,
+                                cart_token: checkArray.map((dd: any) => dd.cart_token).join(','),
+                                print: true,
+                              });
+                            },
+                          },
+                          {
+                            name: '列印揀貨單',
+                            option: true,
+                            event: () => {
+                              const checkArray = vm.dataList.filter((dd: any) => dd.checked);
+                              return DeliveryHTML.print(gvc, checkArray, 'pick');
+                            },
+                          },
+                        ]
+                      : [
                           {
                             name: '合併訂單',
                             option: true,
@@ -672,7 +760,7 @@ export class ShoppingOrderManager {
                                 return;
                               }
                               if (checkArray.find((dd: any) => dd.orderData.user_info.shipment_number)) {
-                                dialog.errorMessage({ text: `已取號訂單無法再次取號 !!` });
+                                dialog.errorMessage({ text: `已取號訂單無法再次取號` });
                                 return;
                               }
 
@@ -692,11 +780,11 @@ export class ShoppingOrderManager {
                             event: async () => {
                               const checkArray = vm.dataList.filter((dd: any) => dd.checked);
                               if (checkArray.find((dd: any) => dd.orderData.user_info.shipment_number)) {
-                                dialog.errorMessage({ text: `已取號訂單無法再次取號 !!` });
+                                dialog.errorMessage({ text: `已取號訂單無法再次取號` });
                                 return;
                               }
                               if (checkArray.find((dd: any) => !['', 'wait'].includes(dd.orderData.progress ?? ''))) {
-                                dialog.errorMessage({ text: `未出貨的訂單才可以進行取號 !!` });
+                                dialog.errorMessage({ text: `未出貨的訂單才可以進行取號` });
                                 return;
                               }
 
@@ -785,93 +873,72 @@ export class ShoppingOrderManager {
                               });
                             },
                           },
-                        ]
-                      : [
                           {
-                            name: '取消配號/出貨',
+                            name: '批量更改訂單狀態',
                             option: true,
-                            event: async () => {
-                              dialog.dataLoading({
-                                visible: true,
-                              });
-                              const checkArray = vm.dataList.filter((dd: any) => dd.checked);
-                              await Promise.all(
-                                checkArray.map((orderData: any) => {
-                                  return new Promise(async (resolve, reject) => {
-                                    ApiDelivery.cancelOrder({
-                                      cart_token: orderData.cart_token,
-                                      logistic_number: orderData.orderData.user_info.shipment_number as any,
-                                      total_amount: orderData.orderData.total as any,
-                                    })
-                                      .then(res => {
-                                        // if (res.result && res.response.data.includes('F,')) {
-                                        //   dialog.errorMessage({
-                                        //     text: res.response.data.replace('F,', ''),
-                                        //   });
-                                        // }
-                                        resolve(true);
-                                      })
-                                      .catch(err => {
-                                        resolve(true);
-                                      });
-                                  });
-                                })
-                              );
-                              dialog.dataLoading({
-                                visible: false,
-                              });
-                              gvc.recreateView();
-                            },
-                          },
-                          {
-                            name: '列印托運單',
-                            option: true,
-                            event: () => {
-                              const checkArray = vm.dataList.filter((dd: any) => dd.checked);
-
-                              const strArray = checkArray.map((dd: any) => {
-                                try {
-                                  return dd.orderData.user_info.shipment;
-                                } catch (error) {
-                                  return undefined;
-                                }
+                            event: async (dataArray: any) => {
+                              ApiShop.getOrder({
+                                page: 0,
+                                limit: 1000,
+                                id_list: dataArray.map((data: any) => data.id).join(','),
                               });
 
-                              if (strArray.includes(undefined)) {
-                                dialog.errorMessage({
-                                  text: html` <div class="text-center">
-                                    已勾選訂單中不可含有<br />非超商店到店的配送方式
-                                  </div>`,
+                              function updateOrders(orderData: Order) {
+                                ApiShop.putOrder({
+                                  id: `${orderData.id}`,
+                                  order_data: orderData.orderData,
+                                  status: orderData.status,
+                                }).then(response => {
+                                  dialog.dataLoading({ text: '上傳中', visible: false });
+                                  if (response.result) {
+                                    dialog.successMessage({ text: '更新成功' });
+                                    gvc.notifyDataChange('orderDetailRefresh');
+                                  } else {
+                                    dialog.errorMessage({ text: '更新異常' });
+                                  }
                                 });
-                                return;
                               }
 
-                              const allEqual = strArray.every((val: string) => val && val === strArray[0]);
-
-                              if (!allEqual) {
-                                dialog.errorMessage({ text: '配送的方式必須相同' });
-                                return;
-                              }
-
-                              if (strArray.includes('HILIFEC2C') && strArray.length > 1) {
-                                dialog.errorMessage({ text: '萊爾富不支援一次列印多張托運單' });
-                                return;
-                              }
-
-                              return this.printStoreOrderInfo({
-                                gvc,
-                                cart_token: checkArray.map((dd: any) => dd.cart_token).join(','),
-                                print: true,
+                              BgWidget.settingDialog({
+                                gvc: gvc,
+                                title: '批量更改訂單狀態',
+                                innerHTML: (gvc: GVC) => {
+                                  return [
+                                    html`<div class="tx_700">更改為</div>`,
+                                    BgWidget.select({
+                                      gvc,
+                                      callback: (value: any) => {
+                                        console.log(value);
+                                      },
+                                      default: '',
+                                      options: [],
+                                    }),
+                                  ].join('');
+                                },
+                                footer_html: (gvc: GVC) => {
+                                  return [
+                                    BgWidget.cancel(
+                                      gvc.event(() => {
+                                        gvc.closeDialog();
+                                      }),
+                                      '取消'
+                                    ),
+                                    BgWidget.save(
+                                      gvc.event(() => {
+                                        gvc.closeDialog();
+                                      }),
+                                      '儲存'
+                                    ),
+                                  ].join('');
+                                },
+                                width: 350,
                               });
                             },
                           },
                           {
-                            name: '列印揀貨單',
+                            name: '批量更改付款狀態',
                             option: true,
-                            event: () => {
-                              const checkArray = vm.dataList.filter((dd: any) => dd.checked);
-                              return DeliveryHTML.print(gvc, checkArray, 'pick');
-                            },
+                            event: async () => {},
                           },
                         ]),
                     // {
@@ -910,15 +977,13 @@ export class ShoppingOrderManager {
                         )
                           ? '出貨單'
                           : '訂單';
-                        // order_list
-                        // shipment_list
                         dialog.checkYesOrNot({
                           text: html`<div class="d-flex flex-column" style="gap:5px;">
                             是否確認${query.isArchived ? '解除封存' : '封存'}所選項目?
                             ${BgWidget.grayNote(
                               `**請注意**  將連同${action_with}一併${query.isArchived ? '解除封存' : '封存'}`
                             )}
-                          </div> `,
+                          </div>`,
                           callback: (response: boolean) => {
                             if (response) {
                               dialog.dataLoading({ visible: true });
@@ -1198,7 +1263,7 @@ export class ShoppingOrderManager {
                   }
                   gvc.notifyDataChange('orderDetailRefresh');
                 } else {
-                  dialog.errorMessage({ text: '更新異常!' });
+                  dialog.errorMessage({ text: '更新異常' });
                 }
               });
             }
@@ -1679,7 +1744,7 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                         onclick="${gvc.event(() => {
                                           const dialog = new ShareDialog(gvc.glitter);
                                           if (orderData.orderData.user_info.shipment_number) {
-                                            dialog.errorMessage({ text: '請先取消配號!' });
+                                            dialog.errorMessage({ text: '請先取消配號' });
                                             return;
                                           }
                                           const url = new URL((window.parent as any).location.href);
@@ -3161,7 +3226,7 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
 
                                       vm.type = 'list';
                                     } else {
-                                      dialog.errorMessage({ text: '刪除異常!' });
+                                      dialog.errorMessage({ text: '刪除異常' });
                                     }
                                   });
                                 }

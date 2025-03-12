@@ -277,7 +277,7 @@ onclick="${gvc.event(() => {
                                                 event.stopPropagation();
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.checkYesOrNot({
-                                                    text: `是否確認移除，此網域將停止掛載至踔號${dd.port}!`,
+                                                    text: `是否確認移除，此網域將停止掛載至踔號${dd.port}`,
                                                     callback: (response) => __awaiter(void 0, void 0, void 0, function* () {
                                                         if (response) {
                                                             dialog.dataLoading({

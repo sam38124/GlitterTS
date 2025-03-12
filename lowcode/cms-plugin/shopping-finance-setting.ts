@@ -1787,7 +1787,7 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                               const dialog = new ShareDialog(gvc.glitter);
 
                               if (!custom_delivery.name) {
-                                dialog.errorMessage({ text: `請輸入物流名稱!` });
+                                dialog.errorMessage({ text: `請輸入物流名稱` });
                                 return;
                               }
                               vm.data.custom_delivery = vm.data.custom_delivery ?? [];
@@ -2427,7 +2427,7 @@ ${[
                               const dialog = new ShareDialog(gvc.glitter);
 
                               if (!custom_delivery.name) {
-                                dialog.errorMessage({ text: `請輸入物流名稱!` });
+                                dialog.errorMessage({ text: `請輸入物流名稱` });
                                 return;
                               }
                               vm.data.custom_delivery = vm.data.custom_delivery ?? [];

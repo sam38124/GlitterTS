@@ -730,7 +730,7 @@ export class BgProject {
                                     gvc.notifyDataChange(id);
                                 }
                                 else {
-                                    dialog.errorMessage({ text: '更新異常!' });
+                                    dialog.errorMessage({ text: '更新異常' });
                                 }
                             });
                         })}"
@@ -980,7 +980,7 @@ export class BgProject {
                                         </div>
                                     </div>
                                     <div class="my-3"></div>
-                                    ${BgWidget.alertInfo('請注意!!', [
+                                    ${BgWidget.alertInfo('請注意!', [
                                 '必須升級至電商+APP方案才能使用此功能',
                                 '審核通過的結果可能會因應用程式的完整性、商店條款、隱私權政策、以及平台政策等方面而有所不同，建議送審時，請再三進行確認',
                                 '審核時間預計落在 7 到 14 個工作天',
@@ -1190,7 +1190,7 @@ export class BgProject {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         resolve(html ` <div style="width: 100%;">
                                     ${[
-                            BgWidget.alertInfo('請注意 !!', ['模板發佈請注意上架規範守則，嚴禁發佈觸犯法律條款之內容']),
+                            BgWidget.alertInfo('請注意 !', ['模板發佈請注意上架規範守則，嚴禁發佈觸犯法律條款之內容']),
                             BgWidget.card([
                                 html `
                                                     ${[
@@ -1461,7 +1461,7 @@ export class BgProject {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         resolve(html ` <div style="width: 100%;">
                                     ${[
-                            BgWidget.alertInfo('請注意!!', [
+                            BgWidget.alertInfo('請注意!', [
                                 '審核通過的結果可能會因應用程式的完整性、商店條款、隱私權政策、以及平台政策等方面而有所不同',
                                 '建議送審時，請再三進行確認',
                                 '審核時間預計落在 7 到 14 個工作天',

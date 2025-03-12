@@ -338,7 +338,7 @@ export class EcPay {
             .replace(/%2d/g, '-')
             .replace(/%5f/g, '_')
             .replace(/%2e/g, '.')
-            .replace(/%21/g, '!')
+            .replace(/%21/g, '!ff')
             .replace(/%2a/g, '*')
             .replace(/%28/g, '(')
             .replace(/%29/g, ')')

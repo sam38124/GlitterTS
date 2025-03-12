@@ -438,7 +438,7 @@ export class ShoppingReturnOrderManager {
                                 vm.type = 'list';
                             }
                             else {
-                                dialog.errorMessage({ text: '更新異常!' });
+                                dialog.errorMessage({ text: '更新異常' });
                             }
                         });
                     })}"
@@ -972,7 +972,7 @@ export class ShoppingReturnOrderManager {
                                 vm.type = 'list';
                             }
                             else {
-                                dialog.errorMessage({ text: '更新異常!' });
+                                dialog.errorMessage({ text: '更新異常' });
                             }
                         });
                     }), '送出')}
