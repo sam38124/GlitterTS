@@ -589,15 +589,7 @@ export class ProductList {
                                                     }
                                                 }
                                             }
-                                            console.log(
-                                                `in--->`,
-                                                [item.code].concat(
-                                                    vm.collections.filter((col: any) => {
-                                                        return item.subCollections.includes(col.title) && col.parentTitles[0] === item.title;
-                                                    })
-                                                )
-                                            );
-                                            console.log(`in--->cludes->`, decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]));
+                                            
                                             return html` <li
                                                 class="${index + 1 === cols.length ? '' : 'border-bottom'}"
                                                 style="${item.subCollections.length > 0 ? '' : 'padding: 16px;'} cursor: pointer;"

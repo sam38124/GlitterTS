@@ -66,22 +66,12 @@ class Shopping {
     async getProduct(query) {
         var _a, _b, _c, _d, _e, _f;
         try {
-            const count_sql = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
-            const start = new Date().getTime();
             const userClass = new user_js_1.User(this.app);
+            const count_sql = await userClass.getCheckoutCountingModeSQL();
+            const store_info = await userClass.getConfigV2({ key: 'store-information', user_id: 'manager' });
+            const store_config = await userClass.getConfigV2({ key: 'store_manager', user_id: 'manager' });
+            const exh_config = await userClass.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
             const userID = (_a = query.setUserID) !== null && _a !== void 0 ? _a : (this.token ? `${this.token.userID}` : '');
-            const store_info = await userClass.getConfigV2({
-                key: 'store-information',
-                user_id: 'manager',
-            });
-            const store_config = await userClass.getConfigV2({
-                key: 'store_manager',
-                user_id: 'manager',
-            });
-            const exh_config = await userClass.getConfigV2({
-                key: 'exhibition_manager',
-                user_id: 'manager',
-            });
             const querySql = [`(content->>'$.type'='product')`];
             query.language = (_b = query.language) !== null && _b !== void 0 ? _b : store_info.language_setting.def;
             query.show_hidden = (_c = query.show_hidden) !== null && _c !== void 0 ? _c : 'true';
@@ -143,10 +133,11 @@ class Shopping {
                     querySql.push(`(${sqlJoinSearch.map(condition => `(${condition})`).join(' OR ')})`);
                 }
                 query.order_by = `
-        ORDER BY CASE 
-        WHEN content->>'$.language_data."zh-TW".seo.domain' = '${decodedDomain}' THEN 1
-            ELSE 2
-        END`;
+          ORDER BY CASE 
+          WHEN content->>'$.language_data."zh-TW".seo.domain' = '${decodedDomain}' THEN 1
+              ELSE 2
+          END
+        `;
             }
             if (query.id) {
                 const ids = `${query.id}`
@@ -185,9 +176,7 @@ class Shopping {
                 querySql.push(`(content->>'$.productType.product' = "true")`);
             }
             if (query.collection) {
-                const collection_cf = (await database_js_1.default.query(`SELECT *
-             FROM \`${this.app}\`.public_config
-             where \`key\` = 'collection';
+                const collection_cf = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';
             `, []))[0]['value'];
                 query.collection = decodeURI(query.collection);
                 query.collection = query.collection
@@ -232,7 +221,7 @@ class Shopping {
                 querySql.push(`(content->>'$.hideIndex' IS NULL OR content->>'$.hideIndex' = 'false')`);
             }
             if (query.id_list) {
-                query.order_by = ` order by id in (${query.id_list})`;
+                query.order_by = ` ORDER BY id IN (${query.id_list})`;
             }
             if (!query.is_manger && !query.status) {
                 query.status = 'inRange';
@@ -285,8 +274,9 @@ class Shopping {
                 if (query.channel === 'exhibition') {
                     const exh = exh_config.list.find((item) => item.id === query.whereStore);
                     if (exh) {
-                        querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants 
-                        where id in (${exh.dataList.map((d) => d.variantID).join(',')})))`);
+                        querySql.push(`
+              (id IN (SELECT product_id FROM \`${this.app}\`.t_variants 
+              WHERE id IN (${exh.dataList.map((d) => d.variantID).join(',')})))`);
                     }
                 }
                 else {
@@ -307,17 +297,20 @@ class Shopping {
                 querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price' <= ${query.max_price}))`);
             }
             const products = await this.querySql(querySql, query);
-            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter(product => product);
-            if (userID !== '') {
-                for (const b of productList) {
-                    b.content.in_wish_list =
-                        (await database_js_1.default.query(`SELECT count(1)
-                 FROM \`${this.app}\`.t_post
-                 WHERE (content ->>'$.type'='wishlist')
-                   and userID = ${userID}
-                   and (content ->>'$.product_id'=${b.id})`, []))[0]['count(1)'] == '1';
-                    b.content.id = b.id;
-                }
+            products.data = (Array.isArray(products.data) ? products.data : [products.data]).filter(product => product);
+            if (userID !== '' && products.data.length > 0) {
+                const productIds = products.data.map((product) => product.id);
+                const wishListData = await database_js_1.default.query(`SELECT content->>'$.product_id' AS product_id
+           FROM \`${this.app}\`.t_post
+           WHERE userID = ? 
+             AND content->>'$.type' = 'wishlist'
+             AND content->>'$.product_id' IN (${productIds.map(() => '?').join(',')})`, [userID, ...productIds]);
+                const wishListSet = new Set(wishListData.map((row) => row.product_id));
+                products.data = products.data.map((product) => {
+                    product.content.in_wish_list = wishListSet.has(String(product.id));
+                    product.content.id = product.id;
+                    return product;
+                });
             }
             if (query.id_list) {
                 const idSet = new Set(query.id_list
@@ -330,16 +323,12 @@ class Shopping {
                 products.data = query.id_list
                     .split(',')
                     .map(id => {
-                    return products.data.find((product) => {
-                        return `${product.id}` === `${id}`;
-                    });
+                    return products.data.find((product) => `${product.id}` === `${id}`);
                 })
-                    .filter(dd => {
-                    return dd;
-                });
+                    .filter(dd => dd);
             }
-            await Promise.all((Array.isArray(products.data) ? products.data : [products.data]).map(product => {
-                return new Promise(async (resolve, reject) => {
+            await Promise.all(products.data.map((product) => {
+                return new Promise(async (resolve) => {
                     var _a, _b, _c;
                     if (product) {
                         let totalSale = 0;
@@ -436,7 +425,6 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                                         variant.preview_image ||
                                         'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
                                 if (content.min_price > variant.sale_price) {
-                                    console.log(`content.min_price=>`, variant.sale_price);
                                     content.min_price = variant.sale_price;
                                 }
                                 if (content.max_price < variant.sale_price) {
@@ -488,9 +476,8 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 const decodedDomain = decodeURIComponent(query.domain);
                 const foundProduct = products.data.find((dd) => {
                     var _a, _b;
-                    if (!query.language) {
+                    if (!query.language)
                         return false;
-                    }
                     const languageData = (_b = (_a = dd.content.language_data) === null || _a === void 0 ? void 0 : _a[query.language]) === null || _b === void 0 ? void 0 : _b.seo;
                     const seoData = dd.content.seo;
                     return ((languageData && languageData.domain === decodedDomain) || (seoData && seoData.domain === decodedDomain));
@@ -503,8 +490,15 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             const viewSource = (_d = query.view_source) !== null && _d !== void 0 ? _d : 'normal';
             const distributionCode = (_e = query.distribution_code) !== null && _e !== void 0 ? _e : '';
             const userData = (_f = (await userClass.getUserData(userID, 'userID'))) !== null && _f !== void 0 ? _f : { userID: -1 };
-            const allVoucher = await this.getAllUseVoucher(userData.userID);
-            const recommendData = await this.getDistributionRecommend(distributionCode);
+            const voucherObj = await Promise.all([
+                this.getAllUseVoucher(userData.userID),
+                this.getDistributionRecommend(distributionCode),
+            ]).then(dataArray => {
+                return {
+                    allVoucher: dataArray[0],
+                    recommendData: dataArray[1],
+                };
+            });
             const getPrice = (priceMap, key, specKey, priceList) => {
                 var _a;
                 const price = (_a = priceMap[key]) === null || _a === void 0 ? void 0 : _a.get(specKey);
@@ -520,8 +514,8 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     product,
                     userID,
                     viewSource,
-                    allVoucher,
-                    recommendData,
+                    allVoucher: voucherObj.allVoucher,
+                    recommendData: voucherObj.recommendData,
                     userData,
                 });
                 product.content.comments = [];
@@ -627,16 +621,10 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     });
                 }
             };
-            if (products.total && products.data) {
-                if (!Array.isArray(products.data)) {
-                    products.data.total = 1;
-                    await processProduct(products.data);
-                }
-                else {
-                    await Promise.all(products.data.map(processProduct));
-                }
+            if (Array.isArray(products.data)) {
+                await Promise.all(products.data.map(processProduct));
             }
-            else if (typeof products.data === 'object' && products.data.id) {
+            else {
                 await processProduct(products.data);
             }
             return products;
@@ -736,29 +724,30 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         });
         return voucherList;
     }
-    async querySql(querySql, query) {
-        let sql = `SELECT *
-               FROM \`${this.app}\`.t_manager_post
-               WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
+    async querySql(conditions, query) {
+        const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+        const orderClause = query.order_by || 'ORDER BY id DESC';
+        const offset = query.page * query.limit;
+        let sql = `
+      SELECT * 
+      FROM \`${this.app}\`.t_manager_post
+      ${whereClause} 
+      ${orderClause}
     `;
+        const data = await database_js_1.default.query(`SELECT * FROM (${sql}) AS subquery LIMIT ?, ?`, [offset, Number(query.limit)]);
         if (query.id) {
-            const data = (await database_js_1.default.query(`SELECT *
-           FROM (${sql}) as subqyery
-               limit ${query.page * query.limit}
-              , ${query.limit}`, []))[0];
-            return { data: data, result: !!data };
+            return {
+                data: data[0] || {},
+                result: !!data[0],
+            };
         }
         else {
+            const total = await database_js_1.default
+                .query(`SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}`, [])
+                .then((res) => { var _a; return ((_a = res[0]) === null || _a === void 0 ? void 0 : _a.count) || 0; });
             return {
-                data: (await database_js_1.default.query(`SELECT *
-             FROM (${sql}) as subqyery
-                 limit ${query.page * query.limit}
-                , ${query.limit}`, [])).map((dd) => {
-                    dd.content.id = dd.id;
-                    return dd;
-                }),
-                total: (await database_js_1.default.query(`SELECT count(1)
-             FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                data: data.map((dd) => (Object.assign(Object.assign({}, dd), { content: Object.assign(Object.assign({}, dd.content), { id: dd.id }) }))),
+                total,
             };
         }
     }
@@ -999,7 +988,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
         const timer = {
             count: 0,
             history: [Date.now()],
@@ -1011,7 +1000,10 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             const totalTime = t - timer.history[0];
             timer.count++;
             const n = timer.count.toString().padStart(2, '0');
-            console.log(`TO-CHECKOUT-TIME-${n} [${name}] =>`, { totalTime, spendTime });
+            console.log(`TO-CHECKOUT-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
+                totalTime,
+                spendTime,
+            });
         };
         try {
             checkPoint('start');
@@ -1175,22 +1167,24 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 }
             });
             checkPoint('set shipment');
-            shipment_setting.custom_delivery = (_j = shipment_setting.custom_delivery) !== null && _j !== void 0 ? _j : [];
-            for (const form of shipment_setting.custom_delivery) {
-                const config = await new user_js_1.User(this.app).getConfigV2({
-                    user_id: 'manager',
-                    key: `form_delivery_${form.id}`,
-                });
-                form.form = config.list || [];
-            }
-            shipment_setting.support = (_k = shipment_setting.support) !== null && _k !== void 0 ? _k : [];
-            const languageInfo = (_m = (_l = shipment_setting.language_data) === null || _l === void 0 ? void 0 : _l[data.language]) === null || _m === void 0 ? void 0 : _m.info;
+            shipment_setting.custom_delivery = shipment_setting.custom_delivery
+                ? await Promise.all(shipment_setting.custom_delivery.map(async (form) => {
+                    const config = await new user_js_1.User(this.app).getConfigV2({
+                        user_id: 'manager',
+                        key: `form_delivery_${form.id}`,
+                    });
+                    form.form = config.list || [];
+                    return form;
+                })).then(dataArray => dataArray)
+                : [];
+            shipment_setting.support = (_j = shipment_setting.support) !== null && _j !== void 0 ? _j : [];
+            const languageInfo = (_l = (_k = shipment_setting.language_data) === null || _k === void 0 ? void 0 : _k[data.language]) === null || _l === void 0 ? void 0 : _l.info;
             shipment_setting.info = languageInfo !== null && languageInfo !== void 0 ? languageInfo : shipment_setting.info;
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                email: (_q = (_o = data.email) !== null && _o !== void 0 ? _o : (_p = data.user_info) === null || _p === void 0 ? void 0 : _p.email) !== null && _q !== void 0 ? _q : '',
+                email: (_p = (_m = data.email) !== null && _m !== void 0 ? _m : (_o = data.user_info) === null || _o === void 0 ? void 0 : _o.email) !== null && _p !== void 0 ? _p : '',
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
@@ -1204,7 +1198,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                         name: dd.title,
                         value: dd.value,
                     })),
-                    ...((_r = shipment_setting.custom_delivery) !== null && _r !== void 0 ? _r : []).map((dd) => ({
+                    ...((_q = shipment_setting.custom_delivery) !== null && _q !== void 0 ? _q : []).map((dd) => ({
                         form: dd.form,
                         name: dd.name,
                         value: dd.id,
@@ -1212,13 +1206,13 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     })),
                 ].filter(option => shipment_setting.support.includes(option.value)),
                 use_wallet: 0,
-                method: (_s = data.user_info) === null || _s === void 0 ? void 0 : _s.method,
-                user_email: (_w = (_u = (_t = userData === null || userData === void 0 ? void 0 : userData.account) !== null && _t !== void 0 ? _t : data.email) !== null && _u !== void 0 ? _u : (_v = data.user_info) === null || _v === void 0 ? void 0 : _v.email) !== null && _w !== void 0 ? _w : '',
+                method: (_r = data.user_info) === null || _r === void 0 ? void 0 : _r.method,
+                user_email: (_v = (_t = (_s = userData === null || userData === void 0 ? void 0 : userData.account) !== null && _s !== void 0 ? _s : data.email) !== null && _t !== void 0 ? _t : (_u = data.user_info) === null || _u === void 0 ? void 0 : _u.email) !== null && _v !== void 0 ? _v : '',
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
                 custom_receipt_form: data.custom_receipt_form,
-                orderSource: data.checkOutType === 'POS' ? 'POS' : '',
+                orderSource: checkOutType === 'POS' ? 'POS' : '',
                 code_array: data.code_array,
                 give_away: data.give_away,
                 user_rebate_sum: 0,
@@ -1255,237 +1249,219 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             const add_on_items = [];
             const gift_product = [];
             const saveStockArray = [];
-            for (const b of data.line_items) {
-                try {
-                    const pdDqlData = (await this.getProduct({
-                        page: 0,
-                        limit: 50,
-                        id: b.id,
-                        status: 'inRange',
-                        channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-                        whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
-                        setUserID: `${(userData === null || userData === void 0 ? void 0 : userData.userID) || ''}`,
-                    })).data;
-                    function getVariant(prod) {
-                        var _a;
-                        if (prod.product_category === 'kitchen') {
-                            let price = 0;
-                            let show_understocking = 'false';
-                            let stock = Infinity;
-                            if (prod.specs.length) {
-                                price = b.spec
-                                    .map((spec, index) => {
-                                    var _a, _b;
-                                    const dpe = prod.specs[index].option.find((dd) => {
-                                        return dd.title === spec;
-                                    });
-                                    if (((_a = dpe.stock) !== null && _a !== void 0 ? _a : '') !== '' && stock > parseInt(dpe.stock, 10)) {
-                                        stock = parseInt(dpe.stock, 10);
-                                    }
-                                    if (((_b = dpe.stock) !== null && _b !== void 0 ? _b : '') !== '') {
-                                        show_understocking = `true`;
-                                    }
-                                    return parseInt(dpe.price, 10);
-                                })
-                                    .reduce((a, b) => a + b, 0);
+            function getVariant(prod, item) {
+                var _a;
+                if (prod.product_category === 'kitchen') {
+                    let price = 0;
+                    let show_understocking = false;
+                    let stock = Infinity;
+                    if (prod.specs.length) {
+                        price = item.spec.reduce((total, spec, index) => {
+                            const dpe = prod.specs[index].option.find((dd) => dd.title === spec);
+                            if (dpe) {
+                                const currentStock = Number(dpe.stock) || Infinity;
+                                stock = Math.min(stock, currentStock);
+                                if (dpe.stock !== undefined) {
+                                    show_understocking = true;
+                                }
+                                return total + (Number(dpe.price) || 0);
                             }
-                            else {
-                                price = parseInt(prod.price, 10);
-                                show_understocking = `${((_a = prod.stock) !== null && _a !== void 0 ? _a : '') !== ''}`;
-                                stock = parseInt(prod.stock, 10);
-                            }
-                            return {
-                                sku: '',
-                                spec: [],
-                                type: 'variants',
-                                stock: stock,
-                                v_width: 0,
-                                product_id: prod.id,
-                                sale_price: price,
-                                origin_price: 0,
-                                compare_price: 0,
-                                shipment_type: 'none',
-                                show_understocking: show_understocking,
-                            };
-                        }
-                        else {
-                            return prod.variants.find((dd) => dd.spec.join('-') === b.spec.join('-'));
-                        }
+                            return total;
+                        }, 0);
                     }
-                    if (pdDqlData) {
-                        const pd = pdDqlData.content;
-                        const variant = getVariant(pd);
-                        if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
-                            Number.isInteger(b.count)) {
-                            const isPOS = data.checkOutType === 'POS';
-                            const isUnderstockingVisible = variant.show_understocking !== 'false';
-                            const isManualType = type === 'manual' || type === 'manual-preview';
-                            if (isPOS && isUnderstockingVisible && !data.isExhibition) {
-                                variant.stock = ((_y = (_x = variant.stockList) === null || _x === void 0 ? void 0 : _x[data.pos_store]) === null || _y === void 0 ? void 0 : _y.count) || 0;
-                            }
-                            if (variant.stock < b.count && isUnderstockingVisible && !isManualType) {
-                                if (isPOS) {
-                                    b.pre_order = true;
-                                }
-                                else {
-                                    b.count = variant.stock;
-                                }
-                            }
-                            if (variant && b.count > 0) {
-                                Object.assign(b, {
-                                    specs: pd.specs,
-                                    language_data: pd.language_data,
-                                    product_category: pd.product_category,
-                                    preview_image: variant.preview_image || pd.preview_image[0],
-                                    title: pd.title,
-                                    sale_price: variant.sale_price,
-                                    origin_price: variant.origin_price,
-                                    collection: pd.collection,
-                                    sku: variant.sku,
-                                    stock: variant.stock,
-                                    show_understocking: variant.show_understocking,
-                                    stockList: variant.stockList,
-                                    weight: parseInt(variant.weight || '0', 10),
-                                    designated_logistics: (_z = pd.designated_logistics) !== null && _z !== void 0 ? _z : { type: 'all', list: [] },
-                                });
-                                const shipmentValue = (() => {
-                                    if (!variant.shipment_type || variant.shipment_type === 'none')
-                                        return 0;
-                                    if (variant.shipment_type === 'volume') {
-                                        return b.count * variant.v_length * variant.v_width * variant.v_height;
-                                    }
-                                    if (variant.shipment_type === 'weight') {
-                                        return b.count * variant.weight;
-                                    }
-                                    return 0;
-                                })();
-                                b.shipment_obj = {
-                                    type: variant.shipment_type,
-                                    value: shipmentValue,
-                                };
-                                variant.shipment_weight = parseInt(variant.shipment_weight || '0', 10);
-                                carData.lineItems.push(b);
-                                if (type !== 'manual') {
-                                    if (pd.productType.giveaway) {
-                                        b.sale_price = 0;
-                                    }
-                                    else {
-                                        carData.total += variant.sale_price * b.count;
-                                    }
-                                }
-                            }
-                            if (!['preview', 'manual', 'manual-preview'].includes(type) && variant.show_understocking !== 'false') {
-                                const remainingStock = Math.max(variant.stock - b.count, 0);
-                                variant.stock = remainingStock;
-                                if (type === 'POS') {
-                                    if (data.isExhibition) {
-                                        if (data.pos_store) {
-                                            await this.updateExhibitionActiveStock(data.pos_store, variant.variant_id, b.count);
-                                        }
-                                    }
-                                    else {
-                                        variant.deduction_log = { [data.pos_store]: b.count };
-                                        variant.stockList[data.pos_store].count -= b.count;
-                                        b.deduction_log = variant.deduction_log;
-                                    }
-                                }
-                                else {
-                                    const returnData = new stock_1.Stock(this.app, this.token).allocateStock(variant.stockList, b.count);
-                                    variant.deduction_log = returnData.deductionLog;
-                                    b.deduction_log = returnData.deductionLog;
-                                }
-                                saveStockArray.push(() => {
-                                    return new Promise(async (resolve, reject) => {
-                                        try {
-                                            if (pd.shopee_id) {
-                                                await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
-                                                    product: pdDqlData,
-                                                    callback: () => { },
-                                                });
-                                            }
-                                            if (pd.product_category === 'kitchen' && variant.spec && variant.spec.length) {
-                                                variant.spec.map((d1, index) => {
-                                                    var _a;
-                                                    const count_s = `${(_a = pd.specs[index].option.find((d2) => {
-                                                        return d2.title === d1;
-                                                    }).stock) !== null && _a !== void 0 ? _a : ''}`;
-                                                    if (count_s) {
-                                                        pd.specs[index].option.find((d2) => {
-                                                            return d2.title === d1;
-                                                        }).stock = parseInt(count_s, 10) - b.count;
-                                                    }
-                                                });
-                                                const store_config = await userClass.getConfigV2({
-                                                    key: 'store_manager',
-                                                    user_id: 'manager',
-                                                });
-                                                b.deduction_log = {};
-                                                b.deduction_log[store_config.list[0].id] = b.count;
-                                            }
-                                            else {
-                                                await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                                            }
-                                            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${pdDqlData.id}
-                        `, [{ content: JSON.stringify(pd) }]);
-                                            resolve(true);
-                                        }
-                                        catch (error) {
-                                            reject(error);
-                                        }
-                                    });
-                                });
-                            }
-                        }
-                        if (!pd.productType.product && pd.productType.addProduct) {
-                            b.is_add_on_items = true;
-                            add_on_items.push(b);
-                        }
-                        if (pd.visible === 'false') {
-                            b.is_hidden = true;
-                        }
-                        if (pd.productType.giveaway) {
-                            b.is_gift = true;
-                            b.sale_price = 0;
-                            gift_product.push(b);
-                        }
-                        if (pd.min_qty) {
-                            b.min_qty = pd.min_qty;
-                        }
-                        if (pd.max_qty) {
-                            b.max_qty = pd.max_qty;
-                        }
+                    else {
+                        price = Number(prod.price) || 0;
+                        show_understocking = Boolean((_a = prod.stock) !== null && _a !== void 0 ? _a : '');
+                        stock = Number(prod.stock) || 0;
                     }
+                    return {
+                        sku: '',
+                        spec: [],
+                        type: 'variants',
+                        stock,
+                        v_width: 0,
+                        product_id: prod.id,
+                        sale_price: price,
+                        origin_price: 0,
+                        compare_price: 0,
+                        shipment_type: 'none',
+                        show_understocking: String(show_understocking),
+                    };
                 }
-                catch (e) {
-                    console.error(e);
+                else {
+                    return prod.variants.find((dd) => dd.spec.join('-') === item.spec.join('-'));
                 }
             }
-            checkPoint('get product info');
-            const maxProductMap = new Map(data.line_items.map(product => [product.id, Boolean(product.max_qty && product.max_qty > 0)]));
-            const hasMaxProduct = Array.from(maxProductMap.values()).some(Boolean);
-            if (data.email !== 'no-email' && hasMaxProduct) {
-                const existOrders = await database_js_1.default.query(`SELECT id, orderData FROM \`${this.app}\`.t_checkout WHERE email = ? AND status <> -2;`, [data.email]);
-                const purchaseHistory = existOrders.reduce((acc, order) => {
-                    order.orderData.lineItems.forEach(item => {
-                        var _a;
-                        if (maxProductMap.has(item.id)) {
-                            acc[item.id] = ((_a = acc[item.id]) !== null && _a !== void 0 ? _a : 0) + item.count;
+            data.line_items = await Promise.all(data.line_items.map(async (item) => {
+                var _a, _b, _c, _d, _e;
+                const getProductArray = (await this.getProduct({
+                    page: 0,
+                    limit: 1,
+                    id: item.id,
+                    status: 'inRange',
+                    channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
+                    whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
+                    setUserID: `${(userData === null || userData === void 0 ? void 0 : userData.userID) || ''}`,
+                })).data;
+                if (getProductArray[0]) {
+                    const getProductData = getProductArray[0];
+                    const content = getProductData.content;
+                    const variant = getVariant(content, item);
+                    if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
+                        Number.isInteger(item.count)) {
+                        const isPOS = checkOutType === 'POS';
+                        const isUnderstockingVisible = variant.show_understocking !== 'false';
+                        const isManualType = type === 'manual' || type === 'manual-preview';
+                        if (isPOS && isUnderstockingVisible && !data.isExhibition) {
+                            variant.stock = ((_b = (_a = variant.stockList) === null || _a === void 0 ? void 0 : _a[data.pos_store]) === null || _b === void 0 ? void 0 : _b.count) || 0;
                         }
-                    });
-                    return acc;
-                }, {});
-                data.line_items.forEach(item => {
-                    var _a;
-                    if (item.max_qty && item.max_qty > 0) {
-                        item.buy_history_count = (_a = purchaseHistory[item.id]) !== null && _a !== void 0 ? _a : 0;
+                        if (variant.stock < item.count && isUnderstockingVisible && !isManualType) {
+                            if (isPOS) {
+                                item.pre_order = true;
+                            }
+                            else {
+                                item.count = variant.stock;
+                            }
+                        }
+                        if (variant && item.count > 0) {
+                            Object.assign(item, {
+                                specs: content.specs,
+                                language_data: content.language_data,
+                                product_category: content.product_category,
+                                preview_image: variant.preview_image || content.preview_image[0],
+                                title: content.title,
+                                sale_price: variant.sale_price,
+                                origin_price: variant.origin_price,
+                                collection: content.collection,
+                                sku: variant.sku,
+                                stock: variant.stock,
+                                show_understocking: variant.show_understocking,
+                                stockList: variant.stockList,
+                                weight: parseInt(variant.weight || '0', 10),
+                                designated_logistics: (_c = content.designated_logistics) !== null && _c !== void 0 ? _c : { type: 'all', list: [] },
+                            });
+                            const shipmentValue = (() => {
+                                if (!variant.shipment_type || variant.shipment_type === 'none')
+                                    return 0;
+                                if (variant.shipment_type === 'weight') {
+                                    return item.count * variant.weight;
+                                }
+                                if (variant.shipment_type === 'volume') {
+                                    return item.count * variant.v_length * variant.v_width * variant.v_height;
+                                }
+                                return 0;
+                            })();
+                            item.shipment_obj = {
+                                type: variant.shipment_type,
+                                value: shipmentValue,
+                            };
+                            variant.shipment_weight = parseInt(variant.shipment_weight || '0', 10);
+                            carData.lineItems.push(item);
+                            if (type !== 'manual') {
+                                if (content.productType.giveaway) {
+                                    item.sale_price = 0;
+                                }
+                                else {
+                                    carData.total += variant.sale_price * item.count;
+                                }
+                            }
+                        }
+                        if (!['preview', 'manual', 'manual-preview'].includes(type) && variant.show_understocking !== 'false') {
+                            const remainingStock = Math.max(variant.stock - item.count, 0);
+                            variant.stock = remainingStock;
+                            if (type === 'POS') {
+                                if (data.isExhibition) {
+                                    if (data.pos_store) {
+                                        await this.updateExhibitionActiveStock(data.pos_store, variant.variant_id, item.count);
+                                    }
+                                }
+                                else {
+                                    variant.deduction_log = { [data.pos_store]: item.count };
+                                    variant.stockList[data.pos_store].count -= item.count;
+                                    item.deduction_log = variant.deduction_log;
+                                }
+                            }
+                            else {
+                                const returnData = new stock_1.Stock(this.app, this.token).allocateStock(variant.stockList, item.count);
+                                variant.deduction_log = returnData.deductionLog;
+                                item.deduction_log = returnData.deductionLog;
+                            }
+                            saveStockArray.push(() => new Promise(async (resolve, reject) => {
+                                var _a;
+                                try {
+                                    if (content.shopee_id) {
+                                        await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
+                                            product: getProductData,
+                                            callback: () => { },
+                                        });
+                                    }
+                                    if (content.product_category === 'kitchen' && ((_a = variant.spec) === null || _a === void 0 ? void 0 : _a.length)) {
+                                        variant.spec.forEach((d1, index) => {
+                                            const option = content.specs[index].option.find((d2) => d2.title === d1);
+                                            if ((option === null || option === void 0 ? void 0 : option.stock) !== undefined) {
+                                                option.stock = parseInt(option.stock, 10) - item.count;
+                                            }
+                                        });
+                                        const store_config = await userClass.getConfigV2({
+                                            key: 'store_manager',
+                                            user_id: 'manager',
+                                        });
+                                        item.deduction_log = { [store_config.list[0].id]: item.count };
+                                    }
+                                    else {
+                                        await this.updateVariantsWithSpec(variant, item.id, item.spec);
+                                    }
+                                    await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${getProductData.id}`, [{ content: JSON.stringify(content) }]);
+                                    resolve(true);
+                                }
+                                catch (error) {
+                                    reject(error);
+                                }
+                            }));
+                        }
                     }
-                });
+                    Object.assign(item, {
+                        is_add_on_items: content.productType.addProduct && !content.productType.product,
+                        is_hidden: content.visible === 'false',
+                        is_gift: content.productType.giveaway,
+                        sale_price: content.productType.giveaway ? 0 : item.sale_price,
+                        min_qty: (_d = content.min_qty) !== null && _d !== void 0 ? _d : item.min_qty,
+                        max_qty: (_e = content.max_qty) !== null && _e !== void 0 ? _e : item.max_qty,
+                    });
+                    item.is_add_on_items && add_on_items.push(item);
+                    item.is_gift && gift_product.push(item);
+                }
+                return item;
+            })).then(dataArray => dataArray);
+            checkPoint('get product info');
+            const maxProductMap = new Map();
+            let hasMaxProduct = false;
+            for (const product of data.line_items) {
+                if (product.max_qty && product.max_qty > 0) {
+                    maxProductMap.set(product.id, true);
+                    hasMaxProduct = true;
+                }
+            }
+            if (hasMaxProduct && data.email !== 'no-email') {
+                const existOrders = await database_js_1.default.query(`SELECT id, orderData FROM \`${this.app}\`.t_checkout WHERE email = ? AND status <> -2;`, [data.email]);
+                const purchaseHistory = new Map();
+                for (const order of existOrders) {
+                    for (const item of order.orderData.lineItems) {
+                        if (maxProductMap.has(item.id) && !item.is_gift) {
+                            purchaseHistory.set(item.id, ((_w = purchaseHistory.get(item.id)) !== null && _w !== void 0 ? _w : 0) + item.count);
+                        }
+                    }
+                }
+                for (const item of data.line_items) {
+                    if (maxProductMap.has(item.id)) {
+                        item.buy_history_count = purchaseHistory.get(item.id) || 0;
+                    }
+                }
             }
             checkPoint('set max product');
             carData.shipment_fee = (() => {
-                if (data.user_info.shipment === 'now') {
+                if (data.user_info.shipment === 'now')
                     return 0;
-                }
                 let total_volume = 0;
                 let total_weight = 0;
                 carData.lineItems.map(item => {
@@ -1525,15 +1501,12 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     }
                 }
             }
-            checkPoint('check distribution code');
+            checkPoint('distribution code');
             if (type !== 'manual' && type !== 'manual-preview') {
                 carData.lineItems = carData.lineItems.filter(dd => {
-                    return !add_on_items.includes(dd);
+                    return !add_on_items.includes(dd) && !gift_product.includes(dd);
                 });
-                carData.lineItems = carData.lineItems.filter(dd => {
-                    return !gift_product.includes(dd);
-                });
-                const c_carData = await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
+                const c_carData = await this.checkVoucher(structuredClone(carData));
                 add_on_items.forEach(dd => {
                     var _a;
                     try {
@@ -1554,7 +1527,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 await this.checkVoucher(carData);
                 checkPoint('check voucher');
                 let can_add_gift = [];
-                (_0 = carData.voucherList) === null || _0 === void 0 ? void 0 : _0.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
+                (_x = carData.voucherList) === null || _x === void 0 ? void 0 : _x.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
                 gift_product.forEach(dd => {
                     const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
                     if (dd.count <= max_count) {
@@ -1564,28 +1537,30 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                         carData.lineItems.push(dd);
                     }
                 });
-                for (const dd of carData.voucherList.filter(dd => dd.reBackType === 'giveaway')) {
-                    let index = -1;
-                    for (const b of (_1 = dd.add_on_products) !== null && _1 !== void 0 ? _1 : []) {
-                        index++;
-                        const pdDqlData = ((_2 = (await this.getProduct({
+                for (const giveawayData of carData.voucherList.filter(dd => dd.reBackType === 'giveaway')) {
+                    if (!((_y = giveawayData.add_on_products) === null || _y === void 0 ? void 0 : _y.length))
+                        continue;
+                    const productPromises = giveawayData.add_on_products.map(async (id) => {
+                        var _a;
+                        const getGiveawayData = ((_a = (await this.getProduct({
                             page: 0,
-                            limit: 50,
-                            id: `${b}`,
+                            limit: 1,
+                            id: `${id}`,
                             status: 'inRange',
-                            channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-                            whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
-                        })).data) !== null && _2 !== void 0 ? _2 : { content: {} }).content;
-                        pdDqlData.voucher_id = dd.id;
-                        dd.add_on_products[index] = pdDqlData;
-                    }
+                            channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
+                            whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
+                        })).data[0]) !== null && _a !== void 0 ? _a : { content: {} }).content;
+                        getGiveawayData.voucher_id = giveawayData.id;
+                        return getGiveawayData;
+                    });
+                    giveawayData.add_on_products = await Promise.all(productPromises);
                 }
             }
             const configData = await private_config_js_1.Private_config.getConfig({
                 appName: this.app,
                 key: 'glitter_finance',
             });
-            const keyData = (_3 = configData[0]) === null || _3 === void 0 ? void 0 : _3.value;
+            const keyData = (_z = configData[0]) === null || _z === void 0 ? void 0 : _z.value;
             if (keyData) {
                 carData.payment_info_custom = keyData.payment_info_custom;
             }
@@ -1631,7 +1606,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     return dd.type !== 'pos';
                 }
             });
-            keyData.cash_on_delivery = (_4 = keyData.cash_on_delivery) !== null && _4 !== void 0 ? _4 : { support: [] };
+            keyData.cash_on_delivery = (_0 = keyData.cash_on_delivery) !== null && _0 !== void 0 ? _0 : { support: [] };
             const is_support_cash = keyData.cash_on_delivery.support.find((item, index) => {
                 return carData.shipment_selector.find(dd => {
                     return dd.value === item;
@@ -1744,7 +1719,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_5 = data.total) !== null && _5 !== void 0 ? _5 : 0;
+                carData.total = (_1 = data.total) !== null && _1 !== void 0 ? _1 : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1775,10 +1750,10 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             }
             else if (type === 'POS') {
                 carData.orderSource = 'POS';
-                if (data.checkOutType === 'POS' && Array.isArray(data.voucherList)) {
+                if (checkOutType === 'POS' && Array.isArray(data.voucherList)) {
                     const manualVoucher = data.voucherList.find((item) => item.id === 0);
                     if (manualVoucher) {
-                        manualVoucher.discount = (_6 = manualVoucher.discount_total) !== null && _6 !== void 0 ? _6 : 0;
+                        manualVoucher.discount = (_2 = manualVoucher.discount_total) !== null && _2 !== void 0 ? _2 : 0;
                         carData.total -= manualVoucher.discount;
                     }
                 }
@@ -1811,7 +1786,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 await trans.commit();
                 await trans.release();
                 await Promise.all(saveStockArray.map(dd => dd()));
-                await this.releaseCheckout((_7 = data.pay_status) !== null && _7 !== void 0 ? _7 : 0, carData.orderID);
+                await this.releaseCheckout((_3 = data.pay_status) !== null && _3 !== void 0 ? _3 : 0, carData.orderID);
                 checkPoint('release pos checkout');
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
@@ -1840,9 +1815,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 if (carData.use_wallet > 0) {
                     new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData.orderID, false);
                 }
-                await Promise.all(saveStockArray.map(dd => {
-                    return dd();
-                }));
+                await Promise.all(saveStockArray.map(dd => dd()));
                 checkPoint('insert order & create invoice');
                 return {
                     is_free: true,
@@ -1854,7 +1827,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                let kd = (_8 = keyData[carData.customer_info.payment_select]) !== null && _8 !== void 0 ? _8 : {
+                let kd = (_4 = keyData[carData.customer_info.payment_select]) !== null && _4 !== void 0 ? _4 : {
                     ReturnURL: '',
                     NotifyURL: '',
                 };
@@ -3268,7 +3241,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             const pd_data = (await this.getProduct({
                 id: product_id,
                 page: 0,
-                limit: 10,
+                limit: 1,
             })).data.content;
             const variant_s = pd_data.variants.find((dd) => {
                 return dd.spec.join('-') === spec.join('-');
@@ -3764,8 +3737,6 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             }));
             let max_id = ((await database_js_1.default.query(`select max(id)
              from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0) + 1;
-            console.log(`max_id==>`, max_id);
-            console.log(`productArrayOG==>`, productArray);
             productArray.map((product) => {
                 var _a;
                 if (!product.id) {

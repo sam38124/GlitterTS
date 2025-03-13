@@ -3,11 +3,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+<<<<<<< HEAD
 exports.SeoConfig = void 0;
 exports.extractCols = extractCols;
 exports.extractProds = extractProds;
 const manager_js_1 = require("./api-public/services/manager.js");
+=======
+exports.extractProds = exports.extractCols = exports.SeoConfig = void 0;
+>>>>>>> ce965bc8 (refactor: toCheckout API & add checkPoint)
 const database_js_1 = __importDefault(require("./modules/database.js"));
+const manager_js_1 = require("./api-public/services/manager.js");
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
 const shopping_js_1 = require("./api-public/services/shopping.js");
 const html = String.raw;
@@ -28,7 +33,7 @@ class SeoConfig {
                 return item.language_data[cf.language].seo.domain === urlCode || item.title === urlCode;
             }
             else {
-                return (item.code === urlCode) || item.title === urlCode;
+                return item.code === urlCode || item.title === urlCode;
             }
         });
         console.log(`colData===>`, colData);
@@ -50,10 +55,8 @@ class SeoConfig {
     static async distributionSEO(cf) {
         var _a, _b;
         const redURL = new URL(`https://127.0.0.1${cf.url}`);
-        const rec = await database_js_1.default.query(`SELECT *
-             FROM \`${cf.appName}\`.t_recommend_links
-             WHERE content ->>'$.link' = ?;
-            `, [cf.page.split('/')[1]]);
+        const rec = await database_js_1.default.query(`SELECT * FROM \`${cf.appName}\`.t_recommend_links WHERE content ->>'$.link' = ?;
+      `, [cf.page.split('/')[1]]);
         const page = rec[0] && rec[0].content ? rec[0].content : { status: false };
         if (page.status && isCurrentTimeWithinRange(page)) {
             let query = [`(content->>'$.type'='article')`, `(content->>'$.tag'='${page.redirect.split('/')[2]}')`];
@@ -75,9 +78,8 @@ class SeoConfig {
                     cf.data.page_config.seo.keywords = article.data[0].content.seo.keywords;
                 }
             }
-            return html `localStorage.setItem('distributionCode','${page.code}');
-            location.href = '${cf.link_prefix ? `/` : ``}${cf.link_prefix}${page.redirect}${redURL.search}';
-            `;
+            return html `localStorage.setItem('distributionCode','${page.code}'); location.href =
+      '${cf.link_prefix ? `/` : ``}${cf.link_prefix}${page.redirect}${redURL.search}'; `;
         }
         else {
             return html `location.href = '/';`;
@@ -101,83 +103,87 @@ class SeoConfig {
             });
         if (pd.data.content) {
             pd.data.content.language_data = (_a = pd.data.content.language_data) !== null && _a !== void 0 ? _a : {};
-            const productSeo = (pd.data.content.language_data[cf.language] && pd.data.content.language_data[cf.language].seo) || ((_b = pd.data.content.seo) !== null && _b !== void 0 ? _b : {});
+            const productSeo = (pd.data.content.language_data[cf.language] && pd.data.content.language_data[cf.language].seo) ||
+                ((_b = pd.data.content.seo) !== null && _b !== void 0 ? _b : {});
             const language_data = pd.data.content.language_data;
             cf.data.page_config = (_c = cf.data.page_config) !== null && _c !== void 0 ? _c : {};
             cf.data.page_config.seo = (_d = cf.data.page_config.seo) !== null && _d !== void 0 ? _d : {};
             cf.data.page_config.seo.title = productSeo.title || pd.data.content.title;
-            cf.data.page_config.seo.image = (language_data && language_data[cf.language] && language_data.preview_image && language_data.preview_image[0]) || pd.data.content.preview_image[0];
+            cf.data.page_config.seo.image =
+                (language_data &&
+                    language_data[cf.language] &&
+                    language_data.preview_image &&
+                    language_data.preview_image[0]) ||
+                    pd.data.content.preview_image[0];
             cf.data.page_config.seo.content = productSeo.content;
             cf.data.tag = cf.page;
-            cf.data.page_config.seo.code = ((_e = cf.data.page_config.seo.code) !== null && _e !== void 0 ? _e : "") + (await this.getProductJsonLd(cf.appName, pd.data.content));
+            cf.data.page_config.seo.code =
+                ((_e = cf.data.page_config.seo.code) !== null && _e !== void 0 ? _e : '') + (await this.getProductJsonLd(cf.appName, pd.data.content));
         }
     }
     static async getProductJsonLd(app_name, pd_content) {
         var _a;
+        if (!pd_content || !Array.isArray(pd_content.relative_product) || pd_content.relative_product.length === 0) {
+            return '';
+        }
         const relative_product = await new shopping_js_1.Shopping(app_name, undefined).getProduct({
             page: 0,
             limit: 100,
-            id_list: [-99].concat(((_a = pd_content.relative_product) !== null && _a !== void 0 ? _a : [])).join(',')
+            id_list: [-99].concat((_a = pd_content.relative_product) !== null && _a !== void 0 ? _a : []).join(','),
         });
         if (pd_content.product_category === 'kitchen') {
-            const spec = pd_content.specs.find((dd) => { return dd.option.length; });
-            let preview_image = (pd_content.preview_image).filter((dd) => {
-                return dd;
-            });
-            return html `
-                <script type="application/ld+json">
-                    ${JSON.stringify({
-                "@context": "http://schema.org/",
-                "@type": "Product",
-                "name": pd_content.title,
-                "brand": "",
-                "description": pd_content.content.replace(/<\/?[^>]+(>|$)/g, ""),
-                "offers": {
-                    "@type": "Offer",
-                    "price": parseFloat((parseInt((spec && spec.price) || pd_content.price || 0, 10).toFixed(1))),
-                    "priceCurrency": "TWD",
-                    "availability": "http://schema.org/InStock"
+            const spec = pd_content.specs.find((dd) => dd.option.length);
+            let preview_image = pd_content.preview_image.filter((dd) => dd);
+            return html ` <script type="application/ld+json">
+        ${JSON.stringify({
+                '@context': 'http://schema.org/',
+                '@type': 'Product',
+                name: pd_content.title,
+                brand: '',
+                description: pd_content.content.replace(/<\/?[^>]+(>|$)/g, ''),
+                offers: {
+                    '@type': 'Offer',
+                    price: parseFloat(parseInt((spec && spec.price) || pd_content.price || 0, 10).toFixed(1)),
+                    priceCurrency: 'TWD',
+                    availability: 'http://schema.org/InStock',
                 },
-                "image": preview_image,
-                "isRelatedTo": relative_product.data.map((dd) => {
+                image: preview_image,
+                isRelatedTo: relative_product.data.map((dd) => {
                     return {
-                        "@type": "Product",
-                        "name": dd.content.title,
-                        "offers": { "@type": "Offer", "price": parseFloat(dd.content.min_price.toFixed(1)), "priceCurrency": "TWD" }
+                        '@type': 'Product',
+                        name: dd.content.title,
+                        offers: { '@type': 'Offer', price: parseFloat(dd.content.min_price.toFixed(1)), priceCurrency: 'TWD' },
                     };
-                })
+                }),
             })}
-                </script>`;
+      </script>`;
         }
         else {
             const variant = pd_content.variants[0];
-            let preview_image = [variant ? variant.preview_image : []].concat(pd_content.preview_image).filter((dd) => {
-                return dd;
-            });
-            return html `
-                <script type="application/ld+json">
-                    ${JSON.stringify({
-                "@context": "http://schema.org/",
-                "@type": "Product",
-                "name": pd_content.title,
-                "brand": "",
-                "description": pd_content.content.replace(/<\/?[^>]+(>|$)/g, ""),
-                "offers": {
-                    "@type": "Offer",
-                    "price": parseFloat(variant.sale_price.toFixed(1)),
-                    "priceCurrency": "TWD",
-                    "availability": "http://schema.org/InStock"
+            let preview_image = [variant ? variant.preview_image : []].concat(pd_content.preview_image).filter(dd => dd);
+            return html ` <script type="application/ld+json">
+        ${JSON.stringify({
+                '@context': 'http://schema.org/',
+                '@type': 'Product',
+                name: pd_content.title,
+                brand: '',
+                description: pd_content.content.replace(/<\/?[^>]+(>|$)/g, ''),
+                offers: {
+                    '@type': 'Offer',
+                    price: parseFloat(variant.sale_price.toFixed(1)),
+                    priceCurrency: 'TWD',
+                    availability: 'http://schema.org/InStock',
                 },
-                "image": preview_image,
-                "isRelatedTo": relative_product.data.map((dd) => {
+                image: preview_image,
+                isRelatedTo: relative_product.data.map((dd) => {
                     return {
-                        "@type": "Product",
-                        "name": dd.content.title,
-                        "offers": { "@type": "Offer", "price": parseFloat(dd.content.min_price.toFixed(1)), "priceCurrency": "TWD" }
+                        '@type': 'Product',
+                        name: dd.content.title,
+                        offers: { '@type': 'Offer', price: parseFloat(dd.content.min_price.toFixed(1)), priceCurrency: 'TWD' },
                     };
-                })
+                }),
             })}
-                </script>`;
+      </script>`;
         }
     }
     static async articleSeo(cf) {
@@ -243,53 +249,58 @@ class SeoConfig {
     static fbCode(FBCode) {
         return FBCode && FBCode.pixel
             ? html `<!-- Meta Pixel Code -->
-                <script>
-                    !(function (f, b, e, v, n, t, s) {
-                        if (f.fbq) return;
-                        n = f.fbq = function () {
-                            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-                        };
-                        if (!f._fbq) f._fbq = n;
-                        n.push = n;
-                        n.loaded = !0;
-                        n.version = '2.0';
-                        n.queue = [];
-                        t = b.createElement(e);
-                        t.async = !0;
-                        t.src = v;
-                        s = b.getElementsByTagName(e)[0];
-                        s.parentNode.insertBefore(t, s);
-                    })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-                    fbq('init', '${FBCode.pixel}');
-                    fbq('track', 'PageView');
-                </script>
-                <noscript><img height="1" width="1" style="display:none"
-                               src="https://www.facebook.com/tr?id=617830100580621&ev=PageView&noscript=1"/>
-                </noscript>
-                <!-- End Meta Pixel Code -->`
+          <script>
+            !(function (f, b, e, v, n, t, s) {
+              if (f.fbq) return;
+              n = f.fbq = function () {
+                n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+              };
+              if (!f._fbq) f._fbq = n;
+              n.push = n;
+              n.loaded = !0;
+              n.version = '2.0';
+              n.queue = [];
+              t = b.createElement(e);
+              t.async = !0;
+              t.src = v;
+              s = b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t, s);
+            })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '${FBCode.pixel}');
+            fbq('track', 'PageView');
+          </script>
+          <noscript
+            ><img
+              height="1"
+              width="1"
+              style="display:none"
+              src="https://www.facebook.com/tr?id=617830100580621&ev=PageView&noscript=1"
+            />
+          </noscript>
+          <!-- End Meta Pixel Code -->`
             : '';
     }
     static gTag(g_tag) {
         return (g_tag || [])
             .map((dd) => {
             return html `<!-- Google tag (gtag.js) -->
-                <!-- Google Tag Manager -->
-                <script>
-                    (function (w, d, s, l, i) {
-                        w[l] = w[l] || [];
-                        w[l].push({
-                            'gtm.start': new Date().getTime(),
-                            event: 'gtm.js',
-                        });
-                        var f = d.getElementsByTagName(s)[0],
-                                j = d.createElement(s),
-                                dl = l != 'dataLayer' ? '&l=' + l : '';
-                        j.async = true;
-                        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-                        f.parentNode.insertBefore(j, f);
-                    })(window, document, 'script', 'dataLayer', '${dd.code}');
-                </script>
-                <!-- End Google Tag Manager -->`;
+          <!-- Google Tag Manager -->
+          <script>
+            (function (w, d, s, l, i) {
+              w[l] = w[l] || [];
+              w[l].push({
+                'gtm.start': new Date().getTime(),
+                event: 'gtm.js',
+              });
+              var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s),
+                dl = l != 'dataLayer' ? '&l=' + l : '';
+              j.async = true;
+              j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+              f.parentNode.insertBefore(j, f);
+            })(window, document, 'script', 'dataLayer', '${dd.code}');
+          </script>
+          <!-- End Google Tag Manager -->`;
         })
             .join('');
     }
@@ -297,49 +308,50 @@ class SeoConfig {
         return (ga4 || [])
             .map((dd) => {
             return html `<!-- Google tag (gtag.js) -->
-                <script async
-                        src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
-                <script>
-                    window.dataLayer = window.dataLayer || [];
+          <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+          <script>
+            window.dataLayer = window.dataLayer || [];
 
-                    function gtag() {
-                        dataLayer.push(arguments);
-                    }
+            function gtag() {
+              dataLayer.push(arguments);
+            }
 
-                    gtag('js', new Date());
+            gtag('js', new Date());
 
-                    gtag('config', '${dd.code}');
-                </script>`;
+            gtag('config', '${dd.code}');
+          </script>`;
         })
             .join('');
     }
 }
 exports.SeoConfig = SeoConfig;
 SeoConfig.editorSeo = html `<title>SHOPNEX後台系統</title>
-    <link rel="canonical" href="/index"/>
-    <meta name="keywords" content="SHOPNEX,電商平台"/>
+    <link rel="canonical" href="/index" />
+    <meta name="keywords" content="SHOPNEX,電商平台" />
     <link
-            id="appImage"
-            rel="shortcut icon"
-            href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-            type="image/x-icon"
+      id="appImage"
+      rel="shortcut icon"
+      href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+      type="image/x-icon"
     />
     <link
-            rel="icon"
-            href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-            type="image/png"
-            sizes="128x128"
-    />
-    <meta property="og:image"
-          content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg"/>
-    <meta property="og:title" content="SHOPNEX後台系統"/>
-    <meta
-            name="description"
-            content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
+      rel="icon"
+      href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+      type="image/png"
+      sizes="128x128"
     />
     <meta
-            name="og:description"
-            content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
+      property="og:image"
+      content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg"
+    />
+    <meta property="og:title" content="SHOPNEX後台系統" />
+    <meta
+      name="description"
+      content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
+    />
+    <meta
+      name="og:description"
+      content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
     />`;
 function extractCols(data) {
     let items = [];
@@ -349,7 +361,7 @@ function extractCols(data) {
         if (item.array && item.array.length > 0) {
             items = items.concat(extractCols({
                 value: item.array,
-                updated_at: data.updated_at
+                updated_at: data.updated_at,
             }));
         }
     });

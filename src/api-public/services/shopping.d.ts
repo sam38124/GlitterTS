@@ -100,6 +100,18 @@ type CartItem = {
         type: 'all' | 'designated';
         list: string[];
     };
+    deduction_log?: {
+        [p: string]: number;
+    };
+    min_qty?: number;
+    max_qty?: number;
+    buy_history_count?: number;
+    sku: string;
+    stock: number;
+    show_understocking: 'true' | 'false';
+    is_add_on_items: CartItem | boolean;
+    pre_order: boolean;
+    is_hidden: boolean;
 };
 export type Cart = {
     archived?: string;
@@ -210,7 +222,7 @@ export declare class Shopping {
         userID: string;
         viewSource: string;
     }): Promise<VoucherData[]>;
-    querySql(querySql: string[], query: {
+    querySql(conditions: string[], query: {
         page: number;
         limit: number;
         id?: string;
@@ -270,34 +282,7 @@ export declare class Shopping {
     getPostAddressData(address: string): Promise<any>;
     updateExhibitionActiveStock(exh_id: string, v_id: number, count: number): Promise<void>;
     toCheckout(data: {
-        line_items: {
-            deduction_log?: {
-                [p: string]: number;
-            };
-            id: string;
-            spec: string[];
-            count: number;
-            sale_price: number;
-            min_qty?: number;
-            max_qty?: number;
-            buy_history_count?: boolean;
-            collection?: string[];
-            title?: string;
-            preview_image?: string;
-            sku: string;
-            shipment_obj: {
-                type: string;
-                value: number;
-            };
-            weight: number;
-            is_gift?: boolean;
-            stock: number;
-            show_understocking: 'true' | 'false';
-            designated_logistics: {
-                type: 'all' | 'designated';
-                list: string[];
-            };
-        }[];
+        line_items: CartItem[];
         customer_info?: any;
         email?: string;
         return_url: string;

@@ -403,7 +403,7 @@ export class ShoppingSettingAdvance {
                             };
                             const isDesktop = document.body.clientWidth > 768;
                             const getIndexStyle = (index) => index === 0
-                                ? `height: 100%; padding: 0; min-width: ${isDesktop ? 250 : 125}px; position: sticky; left: 0; background: #fff; box-shadow: 1px 0px 0px 0px rgba(0, 0, 0, 0.10);`
+                                ? `height: 100%; padding: 0; min-width: ${isDesktop ? 250 : 125}px; max-width: ${isDesktop ? 250 : 125}px;position: sticky; left: 0; background: #fff; box-shadow: 1px 0px 0px 0px rgba(0, 0, 0, 0.10);`
                                 : 'height: 100%; padding: 0; text-align: center; justify-content: center; min-width: 126px;';
                             const resetPostList = (result, type) => {
                                 var _a, _b, _c;

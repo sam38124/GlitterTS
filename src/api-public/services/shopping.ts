@@ -140,6 +140,18 @@ type CartItem = {
     type: 'all' | 'designated';
     list: string[];
   };
+  deduction_log?: {
+    [p: string]: number;
+  };
+  min_qty?: number;
+  max_qty?: number;
+  buy_history_count?: number;
+  sku: string;
+  stock: number;
+  show_understocking: 'true' | 'false';
+  is_add_on_items: CartItem | boolean;
+  pre_order: boolean;
+  is_hidden: boolean;
 };
 
 type MultiSaleType = 'store' | 'level' | 'tags';
@@ -240,22 +252,13 @@ export class Shopping {
     product_category?: string;
   }) {
     try {
-      const count_sql = await new User(this.app).getCheckoutCountingModeSQL();
-      const start = new Date().getTime();
       const userClass = new User(this.app);
+      const count_sql = await userClass.getCheckoutCountingModeSQL();
+      const store_info = await userClass.getConfigV2({ key: 'store-information', user_id: 'manager' });
+      const store_config = await userClass.getConfigV2({ key: 'store_manager', user_id: 'manager' });
+      const exh_config = await userClass.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
+
       const userID = query.setUserID ?? (this.token ? `${this.token.userID}` : '');
-      const store_info = await userClass.getConfigV2({
-        key: 'store-information',
-        user_id: 'manager',
-      });
-      const store_config = await userClass.getConfigV2({
-        key: 'store_manager',
-        user_id: 'manager',
-      });
-      const exh_config = await userClass.getConfigV2({
-        key: 'exhibition_manager',
-        user_id: 'manager',
-      });
       const querySql = [`(content->>'$.type'='product')`];
       query.language = query.language ?? store_info.language_setting.def;
       query.show_hidden = query.show_hidden ?? 'true';
@@ -309,6 +312,7 @@ export class Shopping {
       if (query.product_category) {
         querySql.push(`JSON_EXTRACT(content, '$.product_category') = ${db.escape(query.product_category)}`);
       }
+
       if (query.domain) {
         const decodedDomain = decodeURIComponent(query.domain);
         const sqlJoinSearch = [
@@ -320,12 +324,15 @@ export class Shopping {
         if (sqlJoinSearch.length) {
           querySql.push(`(${sqlJoinSearch.map(condition => `(${condition})`).join(' OR ')})`);
         }
+
         query.order_by = `
-        ORDER BY CASE 
-        WHEN content->>'$.language_data."zh-TW".seo.domain' = '${decodedDomain}' THEN 1
-            ELSE 2
-        END`;
+          ORDER BY CASE 
+          WHEN content->>'$.language_data."zh-TW".seo.domain' = '${decodedDomain}' THEN 1
+              ELSE 2
+          END
+        `;
       }
+
       if (query.id) {
         const ids = `${query.id}`
           .split(',')
@@ -337,6 +344,7 @@ export class Shopping {
           querySql.push(`id = '${ids[0]}'`);
         }
       }
+
       // 當非管理員時，檢查是否顯示隱形商品
       if (query.filter_visible) {
         if (query.filter_visible === 'true') {
@@ -365,9 +373,7 @@ export class Shopping {
       if (query.collection) {
         const collection_cf = (
           await db.query(
-            `SELECT *
-             FROM \`${this.app}\`.public_config
-             where \`key\` = 'collection';
+            `SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';
             `,
             []
           )
@@ -424,12 +430,13 @@ export class Shopping {
       }
 
       if (query.id_list) {
-        query.order_by = ` order by id in (${query.id_list})`;
+        query.order_by = ` ORDER BY id IN (${query.id_list})`;
       }
 
       if (!query.is_manger && !query.status) {
         query.status = 'inRange';
       }
+
       if (query.status) {
         const statusSplit = query.status.split(',').map(status => status.trim());
         const statusJoin = statusSplit.map(status => `"${status}"`).join(',');
@@ -477,6 +484,7 @@ export class Shopping {
             }
           })
           .join('');
+
         // 組合 SQL 條件
         querySql.push(`(${statusCondition} ${scheduleConditions})`);
       }
@@ -485,8 +493,9 @@ export class Shopping {
         if (query.channel === 'exhibition') {
           const exh = exh_config.list.find((item: { id: string }) => item.id === query.whereStore);
           if (exh) {
-            querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants 
-                        where id in (${exh.dataList.map((d: any) => d.variantID).join(',')})))`);
+            querySql.push(`
+              (id IN (SELECT product_id FROM \`${this.app}\`.t_variants 
+              WHERE id IN (${exh.dataList.map((d: any) => d.variantID).join(',')})))`);
           }
         } else {
           const channelSplit = query.channel.split(',').map(channel => channel.trim());
@@ -517,24 +526,29 @@ export class Shopping {
       const products = await this.querySql(querySql, query);
 
       // 產品清單
-      const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter(product => product);
+      products.data = (Array.isArray(products.data) ? products.data : [products.data]).filter(product => product);
 
       // 許願清單判斷
-      if (userID !== '') {
-        for (const b of productList) {
-          b.content.in_wish_list =
-            (
-              await db.query(
-                `SELECT count(1)
-                 FROM \`${this.app}\`.t_post
-                 WHERE (content ->>'$.type'='wishlist')
-                   and userID = ${userID}
-                   and (content ->>'$.product_id'=${b.id})`,
-                []
-              )
-            )[0]['count(1)'] == '1';
-          b.content.id = b.id;
-        }
+      if (userID !== '' && products.data.length > 0) {
+        const productIds = products.data.map((product: any) => product.id);
+
+        // 一次性查詢所有 wishlist 商品
+        const wishListData = await db.query(
+          `SELECT content->>'$.product_id' AS product_id
+           FROM \`${this.app}\`.t_post
+           WHERE userID = ? 
+             AND content->>'$.type' = 'wishlist'
+             AND content->>'$.product_id' IN (${productIds.map(() => '?').join(',')})`,
+          [userID, ...productIds]
+        );
+
+        const wishListSet = new Set(wishListData.map((row: any) => row.product_id));
+
+        products.data = products.data.map((product: any) => {
+          product.content.in_wish_list = wishListSet.has(String(product.id));
+          product.content.id = product.id;
+          return product;
+        });
       }
 
       if (query.id_list) {
@@ -551,24 +565,21 @@ export class Shopping {
         products.data = query.id_list
           .split(',')
           .map(id => {
-            return products.data.find((product: { id: number }) => {
-              return `${product.id}` === `${id}`;
-            });
+            return products.data.find((product: { id: number }) => `${product.id}` === `${id}`);
           })
-          .filter(dd => {
-            return dd;
-          });
+          .filter(dd => dd);
       }
 
       // 判斷需要多國語言，或者蝦皮庫存同步
       await Promise.all(
-        (Array.isArray(products.data) ? products.data : [products.data]).map(product => {
-          return new Promise(async (resolve, reject) => {
+        products.data.map((product: any) => {
+          return new Promise(async resolve => {
             if (product) {
               let totalSale = 0;
               const { language } = query;
               const { content } = product;
               content.preview_image = content.preview_image ?? [];
+
               if (language && content?.language_data?.[language]) {
                 const langData = content.language_data[language];
                 if ((langData.preview_image && langData.preview_image.length === 0) || !langData.preview_image) {
@@ -589,6 +600,7 @@ export class Shopping {
                   preview_image: langData.preview_image || content.preview_image,
                 });
               }
+
               if ((content.preview_image && content.preview_image.length === 0) || !content.preview_image) {
                 content.preview_image = [
                   'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg',
@@ -664,7 +676,6 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     variant.preview_image ||
                     'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
                   if (content.min_price > variant.sale_price) {
-                    console.log(`content.min_price=>`, variant.sale_price);
                     content.min_price = variant.sale_price;
                   }
                   if (content.max_price < variant.sale_price) {
@@ -725,12 +736,10 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
       if (query.domain && products.data.length > 0) {
         const decodedDomain = decodeURIComponent(query.domain);
         const foundProduct = products.data.find((dd: any) => {
-          if (!query.language) {
-            return false;
-          }
+          if (!query.language) return false;
+
           const languageData = dd.content.language_data?.[query.language]?.seo;
           const seoData = dd.content.seo;
-
           return (
             (languageData && languageData.domain === decodedDomain) || (seoData && seoData.domain === decodedDomain)
           );
@@ -749,8 +758,16 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
 
       // 取得所有優惠券與適配的分銷連結
       const userData = (await userClass.getUserData(userID, 'userID')) ?? { userID: -1 };
-      const allVoucher = await this.getAllUseVoucher(userData.userID);
-      const recommendData = await this.getDistributionRecommend(distributionCode);
+
+      const voucherObj = await Promise.all([
+        this.getAllUseVoucher(userData.userID),
+        this.getDistributionRecommend(distributionCode),
+      ]).then(dataArray => {
+        return {
+          allVoucher: dataArray[0],
+          recommendData: dataArray[1],
+        };
+      });
 
       const getPrice = (
         priceMap: Record<string, Map<string, number>>,
@@ -775,8 +792,8 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
           product,
           userID,
           viewSource,
-          allVoucher,
-          recommendData,
+          allVoucher: voucherObj.allVoucher,
+          recommendData: voucherObj.recommendData,
           userData,
         });
 
@@ -902,14 +919,9 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         }
       };
 
-      if (products.total && products.data) {
-        if (!Array.isArray(products.data)) {
-          products.data.total = 1;
-          await processProduct(products.data);
-        } else {
-          await Promise.all(products.data.map(processProduct));
-        }
-      } else if (typeof products.data === 'object' && products.data.id) {
+      if (Array.isArray(products.data)) {
+        await Promise.all(products.data.map(processProduct));
+      } else {
         await processProduct(products.data);
       }
 
@@ -1040,43 +1052,32 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
     return voucherList;
   }
 
-  async querySql(querySql: string[], query: { page: number; limit: number; id?: string; order_by?: string }) {
-    let sql = `SELECT *
-               FROM \`${this.app}\`.t_manager_post
-               WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
+  async querySql(conditions: string[], query: { page: number; limit: number; id?: string; order_by?: string }) {
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const orderClause = query.order_by || 'ORDER BY id DESC';
+    const offset = query.page * query.limit;
+
+    let sql = `
+      SELECT * 
+      FROM \`${this.app}\`.t_manager_post
+      ${whereClause} 
+      ${orderClause}
     `;
+
+    const data = await db.query(`SELECT * FROM (${sql}) AS subquery LIMIT ?, ?`, [offset, Number(query.limit)]);
     if (query.id) {
-      const data = (
-        await db.query(
-          `SELECT *
-           FROM (${sql}) as subqyery
-               limit ${query.page * query.limit}
-              , ${query.limit}`,
-          []
-        )
-      )[0];
-      return { data: data, result: !!data };
-    } else {
       return {
-        data: (
-          await db.query(
-            `SELECT *
-             FROM (${sql}) as subqyery
-                 limit ${query.page * query.limit}
-                , ${query.limit}`,
-            []
-          )
-        ).map((dd: any) => {
-          dd.content.id = dd.id;
-          return dd;
-        }),
-        total: (
-          await db.query(
-            `SELECT count(1)
-             FROM (${sql}) as subqyery`,
-            []
-          )
-        )[0]['count(1)'],
+        data: data[0] || {},
+        result: !!data[0],
+      };
+    } else {
+      const total = await db
+        .query(`SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}`, [])
+        .then((res: any) => res[0]?.count || 0);
+
+      return {
+        data: data.map((dd: any) => ({ ...dd, content: { ...dd.content, id: dd.id } })),
+        total,
       };
     }
   }
@@ -1386,34 +1387,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
 
   async toCheckout(
     data: {
-      line_items: {
-        deduction_log?: {
-          [p: string]: number;
-        };
-        id: string;
-        spec: string[];
-        count: number;
-        sale_price: number;
-        min_qty?: number;
-        max_qty?: number;
-        buy_history_count?: boolean;
-        collection?: string[];
-        title?: string;
-        preview_image?: string;
-        sku: string;
-        shipment_obj: {
-          type: string;
-          value: number;
-        };
-        weight: number;
-        is_gift?: boolean;
-        stock: number;
-        show_understocking: 'true' | 'false';
-        designated_logistics: {
-          type: 'all' | 'designated';
-          list: string[];
-        };
-      }[];
+      line_items: CartItem[];
       customer_info?: any; //顧客資訊 訂單人
       email?: string;
       return_url: string;
@@ -1467,7 +1441,10 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
       timer.count++;
       const n = timer.count.toString().padStart(2, '0');
 
-      console.log(`TO-CHECKOUT-TIME-${n} [${name}] =>`, { totalTime, spendTime });
+      console.log(`TO-CHECKOUT-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
+        totalTime,
+        spendTime,
+      });
     };
 
     try {
@@ -1729,18 +1706,20 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
 
       checkPoint('set shipment');
 
-      // 確保自訂配送表單是一個陣列
-      shipment_setting.custom_delivery = shipment_setting.custom_delivery ?? [];
+      // 確保自訂配送表單的配置
+      shipment_setting.custom_delivery = shipment_setting.custom_delivery
+        ? await Promise.all(
+            shipment_setting.custom_delivery.map(async (form: any) => {
+              const config = await new User(this.app).getConfigV2({
+                user_id: 'manager',
+                key: `form_delivery_${form.id}`,
+              });
 
-      // 獲取每個自定義交付表單的配置
-      for (const form of shipment_setting.custom_delivery) {
-        const config = await new User(this.app).getConfigV2({
-          user_id: 'manager',
-          key: `form_delivery_${form.id}`,
-        });
-
-        form.form = config.list || [];
-      }
+              form.form = config.list || [];
+              return form;
+            })
+          ).then(dataArray => dataArray)
+        : [];
 
       // 確保 support 是一個陣列
       shipment_setting.support = shipment_setting.support ?? [];
@@ -1784,7 +1763,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         custom_form_format: data.custom_form_format,
         custom_form_data: data.custom_form_data,
         custom_receipt_form: data.custom_receipt_form,
-        orderSource: data.checkOutType === 'POS' ? 'POS' : '',
+        orderSource: checkOutType === 'POS' ? 'POS' : '',
         code_array: data.code_array,
         give_away: data.give_away as any,
         user_rebate_sum: 0,
@@ -1828,71 +1807,76 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
       const gift_product: any[] = [];
       const saveStockArray: (() => Promise<boolean>)[] = [];
 
-      for (const b of data.line_items) {
-        try {
-          const pdDqlData = (
+      // 取得 Variant 物件
+      function getVariant(prod: any, item: any): any {
+        if (prod.product_category === 'kitchen') {
+          let price = 0;
+          let show_understocking = false;
+          let stock = Infinity;
+
+          if (prod.specs.length) {
+            price = item.spec.reduce((total: number, spec: any, index: number) => {
+              const dpe = prod.specs[index].option.find((dd: any) => dd.title === spec);
+
+              if (dpe) {
+                const currentStock = Number(dpe.stock) || Infinity;
+                stock = Math.min(stock, currentStock);
+                if (dpe.stock !== undefined) {
+                  show_understocking = true;
+                }
+                return total + (Number(dpe.price) || 0);
+              }
+              return total;
+            }, 0);
+          } else {
+            price = Number(prod.price) || 0;
+            show_understocking = Boolean(prod.stock ?? '');
+            stock = Number(prod.stock) || 0;
+          }
+
+          return {
+            sku: '',
+            spec: [],
+            type: 'variants',
+            stock,
+            v_width: 0,
+            product_id: prod.id,
+            sale_price: price,
+            origin_price: 0,
+            compare_price: 0,
+            shipment_type: 'none',
+            show_understocking: String(show_understocking), // 保持原本的 string 格式
+          };
+        } else {
+          return prod.variants.find((dd: any) => dd.spec.join('-') === item.spec.join('-'));
+        }
+      }
+
+      data.line_items = await Promise.all(
+        data.line_items.map(async item => {
+          const getProductArray = (
             await this.getProduct({
               page: 0,
-              limit: 50,
-              id: b.id,
+              limit: 1,
+              id: item.id,
               status: 'inRange',
-              channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-              whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
+              channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
+              whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
               setUserID: `${userData?.userID || ''}`,
             })
           ).data;
 
-          function getVariant(prod: any): any {
-            if (prod.product_category === 'kitchen') {
-              let price = 0;
-              let show_understocking = 'false';
-              let stock = Infinity;
-              if (prod.specs.length) {
-                price = b.spec
-                  .map((spec: any, index: number) => {
-                    const dpe = prod.specs[index].option.find((dd: any) => {
-                      return dd.title === spec;
-                    });
-                    if ((dpe.stock ?? '') !== '' && stock > parseInt(dpe.stock, 10)) {
-                      stock = parseInt(dpe.stock, 10);
-                    }
-                    if ((dpe.stock ?? '') !== '') {
-                      show_understocking = `true`;
-                    }
-                    return parseInt(dpe.price, 10);
-                  })
-                  .reduce((a: any, b: any) => a + b, 0);
-              } else {
-                price = parseInt((prod as any).price, 10);
-                show_understocking = `${((prod as any).stock ?? '') !== ''}`;
-                stock = parseInt((prod as any).stock, 10);
-              }
-              return {
-                sku: '',
-                spec: [],
-                type: 'variants',
-                stock: stock,
-                v_width: 0,
-                product_id: prod.id,
-                sale_price: price,
-                origin_price: 0,
-                compare_price: 0,
-                shipment_type: 'none',
-                show_understocking: show_understocking,
-              };
-            } else {
-              return prod.variants.find((dd: any) => dd.spec.join('-') === b.spec.join('-'));
-            }
-          }
+          // 搜尋此商品資料並存在
+          if (getProductArray[0]) {
+            const getProductData = getProductArray[0];
+            const content = getProductData.content;
+            const variant = getVariant(content, item);
 
-          if (pdDqlData) {
-            const pd = pdDqlData.content;
-            const variant = getVariant(pd);
             if (
               (Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
-              Number.isInteger(b.count)
+              Number.isInteger(item.count)
             ) {
-              const isPOS = data.checkOutType === 'POS';
+              const isPOS = checkOutType === 'POS';
               const isUnderstockingVisible = variant.show_understocking !== 'false';
               const isManualType = type === 'manual' || type === 'manual-preview';
 
@@ -1900,195 +1884,187 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 variant.stock = variant.stockList?.[data.pos_store!]?.count || 0;
               }
 
-              if (variant.stock < b.count && isUnderstockingVisible && !isManualType) {
+              if (variant.stock < item.count && isUnderstockingVisible && !isManualType) {
                 if (isPOS) {
-                  (b as any).pre_order = true;
+                  item.pre_order = true;
                 } else {
-                  b.count = variant.stock;
+                  item.count = variant.stock;
                 }
               }
 
-              if (variant && b.count > 0) {
-                Object.assign(b, {
-                  specs: pd.specs,
-                  language_data: pd.language_data,
-                  product_category: pd.product_category,
-                  preview_image: variant.preview_image || pd.preview_image[0],
-                  title: pd.title,
+              if (variant && item.count > 0) {
+                Object.assign(item, {
+                  specs: content.specs,
+                  language_data: content.language_data,
+                  product_category: content.product_category,
+                  preview_image: variant.preview_image || content.preview_image[0],
+                  title: content.title,
                   sale_price: variant.sale_price,
                   origin_price: variant.origin_price,
-                  collection: pd.collection,
+                  collection: content.collection,
                   sku: variant.sku,
                   stock: variant.stock,
                   show_understocking: variant.show_understocking,
                   stockList: variant.stockList,
                   weight: parseInt(variant.weight || '0', 10),
-                  designated_logistics: pd.designated_logistics ?? { type: 'all', list: [] },
+                  designated_logistics: content.designated_logistics ?? { type: 'all', list: [] },
                 });
 
                 const shipmentValue = (() => {
                   if (!variant.shipment_type || variant.shipment_type === 'none') return 0;
-                  if (variant.shipment_type === 'volume') {
-                    return b.count * variant.v_length * variant.v_width * variant.v_height;
-                  }
                   if (variant.shipment_type === 'weight') {
-                    return b.count * variant.weight;
+                    return item.count * variant.weight;
+                  }
+                  if (variant.shipment_type === 'volume') {
+                    return item.count * variant.v_length * variant.v_width * variant.v_height;
                   }
                   return 0;
                 })();
 
-                b.shipment_obj = {
+                item.shipment_obj = {
                   type: variant.shipment_type,
                   value: shipmentValue,
                 };
 
                 variant.shipment_weight = parseInt(variant.shipment_weight || '0', 10);
-                carData.lineItems.push(b as any);
+                carData.lineItems.push(item);
 
                 if (type !== 'manual') {
-                  if (pd.productType.giveaway) {
-                    b.sale_price = 0;
+                  if (content.productType.giveaway) {
+                    item.sale_price = 0;
                   } else {
-                    carData.total += variant.sale_price * b.count;
+                    carData.total += variant.sale_price * item.count;
                   }
                 }
               }
 
               if (!['preview', 'manual', 'manual-preview'].includes(type) && variant.show_understocking !== 'false') {
-                const remainingStock = Math.max(variant.stock - b.count, 0);
+                const remainingStock = Math.max(variant.stock - item.count, 0);
                 variant.stock = remainingStock;
 
-                // Handle stock deduction based on checkout type
                 if (type === 'POS') {
-                  // Deduct stock based on store for POS
                   if (data.isExhibition) {
                     if (data.pos_store) {
-                      await this.updateExhibitionActiveStock(data.pos_store, variant.variant_id, b.count);
+                      await this.updateExhibitionActiveStock(data.pos_store, variant.variant_id, item.count);
                     }
                   } else {
-                    variant.deduction_log = { [data.pos_store!!]: b.count };
-                    variant.stockList[data.pos_store!!].count -= b.count;
-                    b.deduction_log = variant.deduction_log;
+                    variant.deduction_log = { [data.pos_store!!]: item.count };
+                    variant.stockList[data.pos_store!!].count -= item.count;
+                    item.deduction_log = variant.deduction_log;
                   }
                 } else {
-                  // Allocate stock from the largest storage
-                  const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, b.count);
+                  const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, item.count);
                   variant.deduction_log = returnData.deductionLog;
-                  b.deduction_log = returnData.deductionLog;
+                  item.deduction_log = returnData.deductionLog;
                 }
-                saveStockArray.push(() => {
-                  return new Promise<boolean>(async (resolve, reject) => {
-                    try {
-                      //如果他有shopee_id 這邊還要處理同步至蝦皮的庫存 todo 還要新增一個是否同步至蝦皮的選項
-                      if (pd.shopee_id) {
-                        await new Shopee(this.app, this.token).asyncStockToShopee({
-                          product: pdDqlData,
-                          callback: () => {},
-                        });
-                      }
-                      if (pd.product_category === 'kitchen' && variant.spec && variant.spec.length) {
-                        //如果是餐廳的話扣庫存的方式不太相同
-                        variant.spec.map((d1: any, index: number) => {
-                          const count_s = `${
-                            pd.specs[index].option.find((d2: any) => {
-                              return d2.title === d1;
-                            }).stock ?? ''
-                          }`;
-                          if (count_s) {
-                            pd.specs[index].option.find((d2: any) => {
-                              return d2.title === d1;
-                            }).stock = parseInt(count_s, 10) - b.count;
-                          }
-                        });
-                        const store_config = await userClass.getConfigV2({
-                          key: 'store_manager',
-                          user_id: 'manager',
-                        });
-                        b.deduction_log = {};
-                        b.deduction_log[store_config.list[0].id] = b.count;
-                      } else {
-                        await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                      }
 
-                      // Update information in the database
-                      await db.query(
-                        `UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${pdDqlData.id}
-                        `,
-                        [{ content: JSON.stringify(pd) }]
-                      );
+                saveStockArray.push(
+                  () =>
+                    new Promise<boolean>(async (resolve, reject) => {
+                      try {
+                        // 如果有 shopee_id，則同步庫存至蝦皮（Todo: 需要新增是否同步的選項）
+                        if (content.shopee_id) {
+                          await new Shopee(this.app, this.token).asyncStockToShopee({
+                            product: getProductData,
+                            callback: () => {},
+                          });
+                        }
 
-                      resolve(true);
-                    } catch (error) {
-                      reject(error);
-                    }
-                  });
-                });
+                        if (content.product_category === 'kitchen' && variant.spec?.length) {
+                          // 餐廳類別的庫存處理方式
+                          variant.spec.forEach((d1: any, index: number) => {
+                            const option = content.specs[index].option.find((d2: any) => d2.title === d1);
+                            if (option?.stock !== undefined) {
+                              option.stock = parseInt(option.stock, 10) - item.count;
+                            }
+                          });
+
+                          // 取得 store_config 並記錄扣庫存紀錄
+                          const store_config = await userClass.getConfigV2({
+                            key: 'store_manager',
+                            user_id: 'manager',
+                          });
+                          item.deduction_log = { [store_config.list[0].id]: item.count };
+                        } else {
+                          await this.updateVariantsWithSpec(variant, item.id, item.spec);
+                        }
+
+                        // 更新資料庫
+                        await db.query(
+                          `UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${getProductData.id}`,
+                          [{ content: JSON.stringify(content) }]
+                        );
+
+                        resolve(true);
+                      } catch (error) {
+                        reject(error);
+                      }
+                    })
+                );
               }
             }
-            if (!pd.productType.product && pd.productType.addProduct) {
-              (b as any).is_add_on_items = true;
-              add_on_items.push(b);
-            }
-            if (pd.visible === 'false') {
-              (b as any).is_hidden = true;
-            }
-            if (pd.productType.giveaway) {
-              (b as any).is_gift = true;
-              b.sale_price = 0;
-              gift_product.push(b);
-            }
-            if (pd.min_qty) {
-              b.min_qty = pd.min_qty;
-            }
-            if (pd.max_qty) {
-              b.max_qty = pd.max_qty;
-            }
+
+            Object.assign(item, {
+              is_add_on_items: content.productType.addProduct && !content.productType.product,
+              is_hidden: content.visible === 'false',
+              is_gift: content.productType.giveaway,
+              sale_price: content.productType.giveaway ? 0 : item.sale_price,
+              min_qty: content.min_qty ?? item.min_qty,
+              max_qty: content.max_qty ?? item.max_qty,
+            });
+
+            // 推入對應的陣列
+            item.is_add_on_items && add_on_items.push(item);
+            item.is_gift && gift_product.push(item);
           }
-        } catch (e) {
-          console.error(e);
-        }
-      }
+
+          return item;
+        })
+      ).then(dataArray => dataArray);
 
       checkPoint('get product info');
 
-      // 創建一個映射，追蹤哪些產品有最大購買數量限制
-      const maxProductMap = new Map(
-        data.line_items.map(product => [product.id, Boolean(product.max_qty && product.max_qty > 0)])
-      );
+      // 建立 Map 並檢查是否有 max_qty 限制的產品
+      const maxProductMap = new Map();
+      let hasMaxProduct = false;
 
-      // 檢查是否有任何產品存在最大購買數量限制
-      const hasMaxProduct = Array.from(maxProductMap.values()).some(Boolean);
+      for (const product of data.line_items) {
+        if (product.max_qty && product.max_qty > 0) {
+          maxProductMap.set(product.id, true);
+          hasMaxProduct = true;
+        }
+      }
 
-      if (data.email !== 'no-email' && hasMaxProduct) {
+      if (hasMaxProduct && data.email !== 'no-email') {
+        // 查詢歷史訂單
         const existOrders = await db.query(
           `SELECT id, orderData FROM \`${this.app}\`.t_checkout WHERE email = ? AND status <> -2;`,
           [data.email]
         );
 
-        // 計算每個產品的歷史購買數量
-        const purchaseHistory = existOrders.reduce((acc: Record<string, number>, order: Order) => {
-          order.orderData.lineItems.forEach(item => {
-            if (maxProductMap.has(item.id)) {
-              acc[item.id] = (acc[item.id] ?? 0) + item.count;
+        // 使用 Map 計算歷史購買數量
+        const purchaseHistory = new Map();
+
+        for (const order of existOrders) {
+          for (const item of order.orderData.lineItems) {
+            if (maxProductMap.has(item.id) && !item.is_gift) {
+              purchaseHistory.set(item.id, (purchaseHistory.get(item.id) ?? 0) + item.count);
             }
-          });
-          return acc;
-        }, {});
+          }
+        }
 
         // 更新當前訂單項目的歷史購買數量
-        data.line_items.forEach(item => {
-          if (item.max_qty && item.max_qty > 0) {
-            item.buy_history_count = purchaseHistory[item.id] ?? 0;
+        for (const item of data.line_items) {
+          if (maxProductMap.has(item.id)) {
+            item.buy_history_count = purchaseHistory.get(item.id) || 0;
           }
-        });
+        }
       }
 
       checkPoint('set max product');
 
       carData.shipment_fee = (() => {
-        if (data.user_info.shipment === 'now') {
-          return 0;
-        }
+        if (data.user_info.shipment === 'now') return 0;
 
         let total_volume = 0;
         let total_weight = 0;
@@ -2133,22 +2109,17 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
           }
         }
       }
-      checkPoint('check distribution code');
+      checkPoint('distribution code');
 
       // 手動新增訂單的優惠卷設定
       if (type !== 'manual' && type !== 'manual-preview') {
-        // 過濾加購品
+        // 過濾加購品與贈品
         carData.lineItems = carData.lineItems.filter(dd => {
-          return !add_on_items.includes(dd);
-        });
-
-        // 過濾贈品
-        carData.lineItems = carData.lineItems.filter(dd => {
-          return !gift_product.includes(dd);
+          return !add_on_items.includes(dd) && !gift_product.includes(dd);
         });
 
         // 濾出可用的加購商品，避免折扣被double所以要stringify
-        const c_carData = await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
+        const c_carData = await this.checkVoucher(structuredClone(carData));
 
         add_on_items.forEach(dd => {
           try {
@@ -2185,7 +2156,6 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         // 處理每個贈品
         gift_product.forEach(dd => {
           const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
-
           if (dd.count <= max_count) {
             for (let a = 0; a < dd.count; a++) {
               can_add_gift = can_add_gift.filter(d1 => !d1.includes(dd.id)); // 移除已添加的贈品
@@ -2194,25 +2164,29 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
           }
         });
 
-        for (const dd of carData.voucherList!!.filter(dd => dd.reBackType === 'giveaway')) {
-          let index = -1;
-          for (const b of dd.add_on_products ?? []) {
-            index++;
-            const pdDqlData = (
+        for (const giveawayData of carData.voucherList!!.filter(dd => dd.reBackType === 'giveaway')) {
+          if (!giveawayData.add_on_products?.length) continue;
+
+          const productPromises = giveawayData.add_on_products.map(async id => {
+            const getGiveawayData = (
               (
                 await this.getProduct({
                   page: 0,
-                  limit: 50,
-                  id: `${b}`,
+                  limit: 1,
+                  id: `${id}`,
                   status: 'inRange',
-                  channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-                  whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
+                  channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
+                  whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
                 })
-              ).data ?? { content: {} }
+              ).data[0] ?? { content: {} }
             ).content;
-            pdDqlData.voucher_id = dd.id;
-            (dd.add_on_products as any)[index] = pdDqlData;
-          }
+
+            getGiveawayData.voucher_id = giveawayData.id;
+            return getGiveawayData;
+          });
+
+          // 等待所有 add_on_products 產品資料同時獲取
+          giveawayData.add_on_products = await Promise.all(productPromises);
         }
       }
 
@@ -2449,7 +2423,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
       } else if (type === 'POS') {
         carData.orderSource = 'POS';
 
-        if (data.checkOutType === 'POS' && Array.isArray(data.voucherList)) {
+        if (checkOutType === 'POS' && Array.isArray(data.voucherList)) {
           const manualVoucher = data.voucherList.find((item: any) => item.id === 0);
           if (manualVoucher) {
             manualVoucher.discount = manualVoucher.discount_total ?? 0;
@@ -2525,11 +2499,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         if (carData.use_wallet > 0) {
           new Invoice(this.app).postCheckoutInvoice(carData.orderID, false);
         }
-        await Promise.all(
-          saveStockArray.map(dd => {
-            return dd();
-          })
-        );
+        await Promise.all(saveStockArray.map(dd => dd()));
         checkPoint('insert order & create invoice');
 
         return {
@@ -4402,7 +4372,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         await this.getProduct({
           id: product_id,
           page: 0,
-          limit: 10,
+          limit: 1,
         })
       ).data.content;
       const variant_s: any = pd_data.variants.find((dd: any) => {
@@ -5015,8 +4985,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             []
           )
         )[0]['max(id)'] || 0) + 1;
-      console.log(`max_id==>`, max_id);
-      console.log(`productArrayOG==>`, productArray);
+
       productArray.map((product: any) => {
         if (!product.id) {
           product.id = max_id++;
