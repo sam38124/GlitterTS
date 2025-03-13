@@ -9,6 +9,7 @@ const config_js_1 = require("../../../config.js");
 const axios_1 = __importDefault(require("axios"));
 const app_js_1 = require("../../../services/app.js");
 const process_1 = __importDefault(require("process"));
+const customer_sessions_1 = require("../customer-sessions");
 const mime = require('mime');
 class ShopnexLineMessage {
     static get token() {
@@ -127,7 +128,7 @@ class ShopnexLineMessage {
         }
     }
     static async handlePostbackEvent(event, app) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         const userId = event.source.userId;
         const data = event.postback.data;
         const userData = await this.getUserProfile(userId);
@@ -166,10 +167,11 @@ class ShopnexLineMessage {
                         SELECT *
                         FROM ${appName}.t_temporary_cart
                         WHERE JSON_EXTRACT(content, '$.from.purchase') = 'group_buy'
-                          AND JSON_EXTRACT(content, '$.from.scheduled_id') = ?
+                          AND JSON_EXTRACT(content, '$.from.scheduled_id') = '${scheduledID}'
                           AND JSON_EXTRACT(content, '$.from.source') = 'LINE'
-                          AND JSON_EXTRACT(content, '$.from.user_id') = ?;
-                    `, [scheduledID, userId]);
+                          AND JSON_EXTRACT(content, '$.from.user_id') = ?
+                          AND JSON_EXTRACT(content, '$.cart_data') IS NULL
+                    `, [userId]);
                 }
                 function generateRandomNumberCode(length = 12) {
                     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -254,7 +256,10 @@ class ShopnexLineMessage {
                 const spec = queryParams.get('spec') === "單一規格" ? "" : queryParams.get('spec');
                 const price = queryParams.get('price');
                 const data = await getScheduled(scheduledID);
+                await new customer_sessions_1.CustomerSessions(appName).checkAndRestoreCart(data);
+                return;
                 if (data.status != 1 || !isNowWithinRange(data.content.start_date, data.content.start_time, data.content.end_date, data.content.end_time)) {
+                    await this.sendPrivateMessage(userId, `🚫【團購已結束】🚫\n感謝您的關注！此次團購已經結束，無法再下單。\n請稍後關注群組內的新活動通知，期待您下一次的參與！🎉`);
                     return;
                 }
                 const item_list = data.content.item_list;
@@ -271,8 +276,6 @@ class ShopnexLineMessage {
                 };
                 const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                 let cartData = await checkTempCart(scheduledID !== null && scheduledID !== void 0 ? scheduledID : "", userId);
-                console.log("cartData -- ", cartData);
-                return;
                 let cartID = "";
                 variant.live_model.sold = (_b = variant.live_model.sold) !== null && _b !== void 0 ? _b : 0;
                 if (variant.live_model.sold == variant.live_model.available_Qty) {
@@ -296,7 +299,8 @@ class ShopnexLineMessage {
                     data.content.pending_order.push(cartID);
                     data.content.pending_order_total = (_d = data.content.pending_order_total) !== null && _d !== void 0 ? _d : 0;
                     data.content.pending_order_total += parseInt(price, 10);
-                    variant.live_model.sold = 1;
+                    cartData[0].content.total = parseInt(cartData[0].content.total, 10) + parseInt(price, 10);
+                    variant.live_model.sold++;
                     await updateScheduled(data.content);
                     await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartID}\n\n請點擊上方連結查看您的購物車內容！`);
                 }
@@ -307,17 +311,20 @@ class ShopnexLineMessage {
                     if (changeData) {
                         if (changeData.count <= variant.live_model.limit && variant.live_model.available_Qty > variant.live_model.sold) {
                             changeData.count++;
-                            variant.live_model.sold++;
                         }
                         else {
                             await this.sendPrivateMessage(userId, `⚠️ 很抱歉，您已經達到可購買的數量上限。`);
+                            return;
                         }
                     }
                     else {
                         cartData[0].content.cart.push(cart);
                     }
+                    variant.live_model.available_Qty--;
                     cartID = cartData[0].cart_id;
                     cartData[0].content.total = parseInt(cartData[0].content.total, 10) + parseInt(price, 10);
+                    data.content.pending_order_total = (_e = data.content.pending_order_total) !== null && _e !== void 0 ? _e : 0;
+                    data.content.pending_order_total += parseInt(price, 10);
                     variant.live_model.sold++;
                     await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartID}\n\n請點擊上方連結查看您的購物車內容！`);
                     try {
@@ -328,7 +335,7 @@ class ShopnexLineMessage {
                         `, [{ content: JSON.stringify(cartData[0].content) }, cartData[0].cart_id]);
                     }
                     catch (err) {
-                        console.log("UPDATE t_temporary_cart error : ", ((_e = err.response) === null || _e === void 0 ? void 0 : _e.data) || err.message);
+                        console.log("UPDATE t_temporary_cart error : ", ((_f = err.response) === null || _f === void 0 ? void 0 : _f.data) || err.message);
                     }
                 }
                 break;

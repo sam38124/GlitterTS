@@ -223,6 +223,17 @@ class CustomerSessions {
                     FROM \`${appName}\`.\`t_live_purchase_interactions\`
                     order by id desc
                 `, []);
+                const expiredItems = data.filter((item) => item.status === 1 && isPastEndTime(item.content.end_date, item.content.end_time));
+                if (expiredItems.length !== 0) {
+                    await Promise.all(expiredItems.map((item) => {
+                        item.status = 2;
+                        database_js_1.default.query(`
+                                UPDATE \`${appName}\`.\`t_live_purchase_interactions\`
+                                SET \`status\` = 2
+                                WHERE \`id\` = ?;
+                            `, [item.id]);
+                    }));
+                }
                 return data;
             }
             catch (err) {
@@ -280,6 +291,7 @@ class CustomerSessions {
     async changeScheduledStatus(scheduleID, status) {
         var _a;
         try {
+            console.log("scheduleID -- ", scheduleID);
             await database_js_1.default.query(`
                 UPDATE \`${this.app}\`.\`t_live_purchase_interactions\`
                 SET \`status\` = ?
@@ -446,7 +458,56 @@ class CustomerSessions {
             return JSON.stringify(cart);
         }).join(',')});`, []);
     }
-    async listenChatRoom() {
+    async checkAndRestoreCart(scheduledData) {
+        var _a;
+        let cartDataArray = [];
+        let cartIDArray = [];
+        const appName = this.app;
+        try {
+            cartDataArray = await database_js_1.default.query(`
+                            SELECT *
+                            FROM ${this.app}.t_temporary_cart
+                            WHERE cart_id in (?) 
+                            AND created_time < DATE_SUB(NOW(), INTERVAL ? DAY);
+                        `, [scheduledData.content.pending_order, scheduledData.content.stock.period]);
+            if (cartDataArray.length > 0) {
+                cartIDArray = cartDataArray.map((item) => item.cart_id);
+                await Promise.all(cartDataArray.map(async (cartData) => {
+                    cartData.content.cart.forEach((cart) => {
+                        const item_list = scheduledData.content.item_list;
+                        const product = item_list.find((item) => {
+                            return item.id == cart.id;
+                        });
+                        let variant = product.content.variants.find((item) => {
+                            return item.spec.join(',') == cart.spec;
+                        });
+                        variant.live_model.sold = variant.live_model.sold - cart.count;
+                        scheduledData.content.pending_order_total = scheduledData.content.pending_order_total - (cart.count * variant.live_model.live_price);
+                    });
+                })).then(async () => {
+                    async function updateScheduled(content) {
+                        var _a;
+                        try {
+                            await database_js_1.default.query(`
+                            UPDATE ${appName}.t_live_purchase_interactions
+                            SET ?
+                            WHERE \`id\` = ?
+                        `, [{ content: JSON.stringify(content) }, scheduledData.id]);
+                        }
+                        catch (err) {
+                            console.log("UPDATE t_temporary_cart error : ", ((_a = err.response) === null || _a === void 0 ? void 0 : _a.data) || err.message);
+                        }
+                    }
+                    scheduledData.content.pending_order = scheduledData.content.pending_order.filter(item => !cartIDArray.includes(item));
+                    console.log("cartIDArray -- ", cartIDArray);
+                    console.log("scheduledData.content.pending_order -- ", scheduledData.content.pending_order);
+                    await updateScheduled(scheduledData.content);
+                });
+            }
+        }
+        catch (err) {
+            console.log("UPDATE t_temporary_cart error : ", ((_a = err.response) === null || _a === void 0 ? void 0 : _a.data) || err.message);
+        }
     }
 }
 exports.CustomerSessions = CustomerSessions;

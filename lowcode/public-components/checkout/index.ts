@@ -506,15 +506,10 @@ export class CheckoutIndex {
                     vm.cartData = data;
                     if (onlineData.interaction){
                         let newTotal = 0;
-
                         (data as any).lineItems.forEach((lineItem:any) => {
-                            console.log("lineItem -- " , lineItem)
-                            console.log("onlineData.interaction.content.item_list -- " , onlineData.interaction.content.item_list)
                             let product = onlineData.interaction.content.item_list.find((item:any) => {return item.id == lineItem.id});
                             console.log("product -- " , product)
                             let variant = product.content.variants.find((item:any) => {return item.spec.join(',') == lineItem.spec.join(',')});
-                            console.log("variant -- " , variant)
-                            console.log("product.content.variants -- " , product.content.variants)
                             lineItem.sale_price =  parseInt(variant.live_model.live_price);
                             newTotal += lineItem.sale_price * lineItem.count;
                         });
@@ -3086,6 +3081,8 @@ ${log_config.content}
                                                             custom_receipt_form: vm.cartData.receipt_form,
                                                             distribution_code: localStorage.getItem('distributionCode') ?? '',
                                                             give_away: apiCart.cart.give_away,
+                                                            checkOutType : glitter.getUrlParameter('source'),
+                                                            temp_cart_id : glitter.getUrlParameter('cart_id')
                                                         }).then(res => {
                                                             dialog.dataLoading({ visible: false });
                                                             if (vm.cartData.customer_info.payment_select == 'paynow') {
@@ -3200,7 +3197,8 @@ ${log_config.content}
                                                                     }
                                                                 );
                                                             }
-
+                                                            console.log("res -- " , res);
+                                                            return 
                                                             localStorage.setItem(
                                                                 'clear_cart_items',
                                                                 JSON.stringify(vm.cartData.lineItems.map((item: any) => item.id))

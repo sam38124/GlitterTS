@@ -67,7 +67,7 @@ router.post('/realOrder', async (req, resp) => {
         return resp.status(http_status_codes_1.default.OK).send(data);
     }
     catch (err) {
-        return response_js_1fail(resp, err);
+        return response_js_1.default.fail(resp, err);
     }
 });
 router.post('/listenChat', async (req, resp) => {

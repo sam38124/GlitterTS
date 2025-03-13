@@ -468,13 +468,9 @@ export class CheckoutIndex {
                     if (onlineData.interaction) {
                         let newTotal = 0;
                         data.lineItems.forEach((lineItem) => {
-                            console.log("lineItem -- ", lineItem);
-                            console.log("onlineData.interaction.content.item_list -- ", onlineData.interaction.content.item_list);
                             let product = onlineData.interaction.content.item_list.find((item) => { return item.id == lineItem.id; });
                             console.log("product -- ", product);
                             let variant = product.content.variants.find((item) => { return item.spec.join(',') == lineItem.spec.join(','); });
-                            console.log("variant -- ", variant);
-                            console.log("product.content.variants -- ", product.content.variants);
                             lineItem.sale_price = parseInt(variant.live_model.live_price);
                             newTotal += lineItem.sale_price * lineItem.count;
                         });
@@ -2830,6 +2826,8 @@ ${log_config.content}
                                                 custom_receipt_form: vm.cartData.receipt_form,
                                                 distribution_code: (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '',
                                                 give_away: apiCart.cart.give_away,
+                                                checkOutType: glitter.getUrlParameter('source'),
+                                                temp_cart_id: glitter.getUrlParameter('cart_id')
                                             }).then(res => {
                                                 var _a, _b, _c;
                                                 dialog.dataLoading({ visible: false });
@@ -2928,6 +2926,8 @@ ${log_config.content}
                                                         },
                                                     });
                                                 }
+                                                console.log("res -- ", res);
+                                                return;
                                                 localStorage.setItem('clear_cart_items', JSON.stringify(vm.cartData.lineItems.map((item) => item.id)));
                                                 if (res.response.off_line || res.response.is_free) {
                                                     location.href = res.response.return_url;

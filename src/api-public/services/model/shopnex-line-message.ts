@@ -4,6 +4,7 @@ import axios from 'axios';
 import {App} from '../../../services/app.js';
 import process from "process";
 import {User} from "../user";
+import { CustomerSessions } from '../customer-sessions';
 
 const mime = require('mime');
 
@@ -18,27 +19,62 @@ interface LineResponse {
     message?: string;
 }
 
-export interface ChatRoom {
-    chat_id: string;
-    type: 'user' | 'group';
-    info: any;
-    participant: string[];
+export interface CartInfo {
+    id:string,
+    cart_id:string,
+    content:{
+        cart:{
+            id:string,
+            spec:string,
+            count:number
+        }[],
+        from:{
+            purchase:string,
+            scheduled_id:string,
+            source:string,
+            user_id:string,
+            user_photo:string,
+            user_name:string
+        },
+        total:number,
+        checkUrl:string,
+    },
+    created_time:string
 }
 
-interface Config {
-    method: 'post' | 'get';
-    url: string;
-    headers: Record<string, string>;
-    data: any;
+export interface ScheduledInfo {
+    id:string,
+    type:string,
+    status:number,
+    content:{
+        stock:{
+            period:number,
+            reserve:boolean,
+            expiry_date:string
+        },
+        purpose:string,
+        start_date:string,
+        start_time:string,
+        end_date:string,
+        end_time:string,
+        item_list:{
+            id:string,
+            content:{
+                name:string,
+                variants:any
+            }
+        }[],
+        lineGroup?:{
+            groupId:string,
+            groupName:string
+        },
+        discount_set:boolean,
+        pending_order:string[],
+        pending_order_total:number,
+    },
+    created_time:string
 }
 
-interface LineData {
-    username: string;
-    password: string;
-    dstaddr: string;
-    smbody: string;
-    smsPointFlag: number;
-}
 
 export class ShopnexLineMessage {
     public static get token() {
@@ -223,10 +259,11 @@ export class ShopnexLineMessage {
                         SELECT *
                         FROM ${appName}.t_temporary_cart
                         WHERE JSON_EXTRACT(content, '$.from.purchase') = 'group_buy'
-                          AND JSON_EXTRACT(content, '$.from.scheduled_id') = ?
+                          AND JSON_EXTRACT(content, '$.from.scheduled_id') = '${scheduledID}'
                           AND JSON_EXTRACT(content, '$.from.source') = 'LINE'
-                          AND JSON_EXTRACT(content, '$.from.user_id') = ?;
-                    `, [scheduledID, userId])
+                          AND JSON_EXTRACT(content, '$.from.user_id') = ?
+                          AND JSON_EXTRACT(content, '$.cart_data') IS NULL
+                    `, [userId])
                 }
 
                 function generateRandomNumberCode(length: number = 12): string {
@@ -309,6 +346,7 @@ export class ShopnexLineMessage {
                     }
                 }
 
+
                 //團購單ID
                 const scheduledID = queryParams.get('scheduledID');
                 //哪個商店的
@@ -320,12 +358,11 @@ export class ShopnexLineMessage {
                 //點擊商品的價格
                 const price = queryParams.get('price');
                 //先取得團購單上的內容
-                const data = await getScheduled(scheduledID as string);
-
-
-
-                //todo 若是已經關閉的團購單回覆
+                const data:ScheduledInfo = await getScheduled(scheduledID as string);
+                await new CustomerSessions(appName).checkAndRestoreCart(data)
+                return
                 if (data.status!=1 || !isNowWithinRange(data.content.start_date,data.content.start_time,data.content.end_date,data.content.end_time)){
+                    await this.sendPrivateMessage(userId, `🚫【團購已結束】🚫\n感謝您的關注！此次團購已經結束，無法再下單。\n請稍後關注群組內的新活動通知，期待您下一次的參與！🎉`)
                     return
                 }
                 //比對商品資訊
@@ -334,7 +371,8 @@ export class ShopnexLineMessage {
                 const item = item_list.find((item: any) => {
                     return item.id == productID
                 });
-                let variant = item.content.variants.find((item: any) => {
+
+                let variant = item!.content.variants.find((item: any) => {
                     return item.spec.join(',') == spec
                 });
 
@@ -344,13 +382,12 @@ export class ShopnexLineMessage {
                     spec: spec,
                     count: 1
                 }
-                //
+
                 const brandAndMemberType = await App.checkBrandAndMemberType(appName);
 
                 //確認現在的團購單 這個用戶是否已經有購物車了
                 let cartData = await checkTempCart(scheduledID ?? "", userId);
-                console.log("cartData -- ", cartData);
-                return
+
                 let cartID = ""
                 variant.live_model.sold = variant.live_model.sold ?? 0;
                 //todo 若是這項商品已經完售 要做怎樣通知
@@ -376,29 +413,44 @@ export class ShopnexLineMessage {
                     //取得購物車資訊之後 推進待定表中
                     data.content.pending_order = data.content.pending_order ?? [];
                     data.content.pending_order.push(cartID);
+                    //初始化scheduled的pending_order_total
                     data.content.pending_order_total = data.content.pending_order_total ?? 0;
+                    //pending_order_total 總價增加這次的售價
                     data.content.pending_order_total += parseInt(price as string, 10);
-                    variant.live_model.sold = 1;
+                    //這張購物車的總價增加
+                    cartData[0].content.total = parseInt(cartData[0].content.total , 10) + parseInt(price as string, 10);
+                    //在scheduled裡的這個variant 賣出量+1
+                    variant.live_model.sold++;
                     await updateScheduled(data.content);
                     await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartID}\n\n請點擊上方連結查看您的購物車內容！`)
-
                 } else {
+                    //若是已經有購物車了 就開始尋找購物車裡跟這次商品相同的
                     let changeData = cartData[0].content.cart.find((item: any) => {
                         return item.id == productID && item.spec == spec
                     });
+                    //有在購物車裡面找到的話 做購物車內容的修改
                     if (changeData) {
+                        //判定條件 個人可買數量還有剩 而且全部統一售量也還有剩
                         if (changeData.count <= variant.live_model.limit && variant.live_model.available_Qty > variant.live_model.sold) {
                             changeData.count++;
-                            variant.live_model.sold++;
                         }else{
                             await this.sendPrivateMessage(userId, `⚠️ 很抱歉，您已經達到可購買的數量上限。`)
+                            return
                         }
                     } else {
+                        //若是沒找到商品就推進購物車
                         cartData[0].content.cart.push(cart);
                     }
-
+                    //全部可售數量-1
+                    variant.live_model.available_Qty--;
+                    //把亂數的cart_id獨立變數
                     cartID = cartData[0].cart_id;
+                    //這張購物車的總價增加
                     cartData[0].content.total = parseInt(cartData[0].content.total , 10) + parseInt(price as string, 10);
+                    //scheduled裡的賣出總價增加
+                    data.content.pending_order_total = data.content.pending_order_total ?? 0;
+                    data.content.pending_order_total += parseInt(price as string, 10);
+                    //在scheduled這個表裡的這個商品售出量++
                     variant.live_model.sold++;
                     await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartID}\n\n請點擊上方連結查看您的購物車內容！`)
                     try {
@@ -411,9 +463,6 @@ export class ShopnexLineMessage {
                         console.log("UPDATE t_temporary_cart error : ", err.response?.data || err.message)
                     }
                 }
-
-
-
                 break
             }
             default:

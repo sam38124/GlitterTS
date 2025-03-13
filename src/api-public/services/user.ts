@@ -1019,7 +1019,6 @@ export class User {
             return dd.id === original_member.id;
           })!;
           dd.renew_condition=dd.renew_condition ?? {};
-          console.log(`dd===>`,dd)
           //是否符合續費條件
           const renew_check_data = (() => {
             //取得續費計算起始時間

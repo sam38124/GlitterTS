@@ -834,7 +834,6 @@ class User {
                         return dd.id === original_member.id;
                     });
                     dd.renew_condition = (_a = dd.renew_condition) !== null && _a !== void 0 ? _a : {};
-                    console.log(`dd===>`, dd);
                     const renew_check_data = (() => {
                         var _a;
                         let start_with = new Date(original_member.start_with);

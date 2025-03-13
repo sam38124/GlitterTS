@@ -1,7 +1,7 @@
 import {IToken} from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import {ShopnexLineMessage} from "./model/shopnex-line-message";
+import { CartInfo, ScheduledInfo, ShopnexLineMessage } from './model/shopnex-line-message';
 import axios from "axios";
 import {loadFont} from "jimp";
 import {Shopping} from "./shopping.js";
@@ -296,26 +296,22 @@ export class CustomerSessions {
                     order by id desc
                 `, [])
                 // ✅ 2. 篩選出已過期的團購
-                // const expiredItems = data.filter((item: any) =>
-                //     isPastEndTime(item.content.end_date, item.content.end_time)
-                // );
-                // if (expiredItems.length === 0) {
-                //     console.log("✅ 沒有需要更新的團購");
-                //     return [];
-                // } else {
-                //
-                //     await Promise.all(
-                //         expiredItems.map((item: any) => {
-                //             item.status = 2;
-                //             db.query(`
-                //                 UPDATE \`${appName}\`.\`t_live_purchase_interactions\`
-                //                 SET \`status\` = 2
-                //                 WHERE \`id\` = ?;
-                //             `, [item.id])
-                //             }
-                //         )
-                //     );
-                // }
+                const expiredItems = data.filter((item: any) =>
+                    item.status === 1 &&isPastEndTime(item.content.end_date, item.content.end_time)
+                );
+                if (expiredItems.length !== 0) {
+                    await Promise.all(
+                      expiredItems.map((item: any) => {
+                            item.status = 2;
+                            db.query(`
+                                UPDATE \`${appName}\`.\`t_live_purchase_interactions\`
+                                SET \`status\` = 2
+                                WHERE \`id\` = ?;
+                            `, [item.id])
+                        }
+                      )
+                    );
+                }
                 return data
             } catch (err: any) {
                 console.error('取得資料錯誤:', err.response?.data || err.message);
@@ -374,6 +370,7 @@ export class CustomerSessions {
 
     async changeScheduledStatus(scheduleID: string , status: string) {
         try {
+            console.log("scheduleID -- " , scheduleID);
             await db.query(`
                 UPDATE \`${this.app}\`.\`t_live_purchase_interactions\`
                 SET \`status\` = ?
@@ -558,8 +555,69 @@ export class CustomerSessions {
                                }).join(',')});`, [])
     }
 
-    async listenChatRoom() {
+    async checkAndRestoreCart(scheduledData:ScheduledInfo){
+        let cartDataArray:CartInfo[] =[]
+        let cartIDArray:string[] =[]
+        const appName = this.app;
+        try {
+            cartDataArray = await db.query(`
+                            SELECT *
+                            FROM ${this.app}.t_temporary_cart
+                            WHERE cart_id in (?) 
+                            AND created_time < DATE_SUB(NOW(), INTERVAL ? DAY);
+                        `,[scheduledData.content.pending_order , scheduledData.content.stock.period]);
+            // console.log();
+            //對已經過期的購物車做庫存釋放
+            if (cartDataArray.length > 0){
+                cartIDArray = cartDataArray.map((item:any) => item.cart_id)
+                //檢索每個過期的購物車
+                await Promise.all(cartDataArray.map(async (cartData) => {
+                    //檢索每樣商品
+                    cartData.content.cart.forEach((cart: {
+                        id: string,
+                        spec: string,
+                        count: number,
+                    }) => {
+                        //取得scheduled裡的商品列表
+                        const item_list = scheduledData.content.item_list;
+                        //取得列表內對應購物車的商品
+                        const product = item_list.find((item: any) => {
+                            return item.id == cart.id
+                        });
+                        //找到對應的variant
+                        let variant = product!.content.variants.find((item: any) => {
+                            return item.spec.join(',') == cart.spec
+                        });
+                        //歸還售出量
+                        variant.live_model.sold = variant.live_model.sold - cart.count;
+                        //歸還scheduled上的總售出價格
+                        scheduledData.content.pending_order_total = scheduledData.content.pending_order_total - (cart.count * variant.live_model.live_price);
 
+                    })
+                    // console.log("scheduledData -- " ,scheduledData.content.item_list);
+                })).then(async () => {
+                    async function updateScheduled(content: any) {
+                        try {
+                            await db.query(`
+                            UPDATE ${appName}.t_live_purchase_interactions
+                            SET ?
+                            WHERE \`id\` = ?
+                        `, [{content: JSON.stringify(content)}, scheduledData.id])
+                        } catch (err: any) {
+                            console.log("UPDATE t_temporary_cart error : ", err.response?.data || err.message)
+                        }
+                    }
+                    scheduledData.content.pending_order = scheduledData.content.pending_order.filter(item => !cartIDArray.includes(item));
+                    console.log("cartIDArray -- " , cartIDArray);
+                    console.log("scheduledData.content.pending_order -- " , scheduledData.content.pending_order);
+                    await updateScheduled(scheduledData.content);
+
+                })
+
+            }
+        }catch (err: any) {
+            console.log("UPDATE t_temporary_cart error : ", err.response?.data || err.message)
+        }
     }
 
 }

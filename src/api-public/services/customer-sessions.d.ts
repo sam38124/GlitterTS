@@ -1,4 +1,5 @@
 import { IToken } from '../models/Auth.js';
+import { ScheduledInfo } from './model/shopnex-line-message';
 interface scheduled {
     type: string;
     name: string;
@@ -43,6 +44,6 @@ export declare class CustomerSessions {
         total: any;
     }>;
     getRealOrder(cart_array: string[]): Promise<any>;
-    listenChatRoom(): Promise<void>;
+    checkAndRestoreCart(scheduledData: ScheduledInfo): Promise<void>;
 }
 export {};
