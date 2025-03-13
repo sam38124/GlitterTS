@@ -696,4 +696,12 @@ export class FormCheck {
 
         return form_formats;
     }
+
+    public static initial_shipment_form(form_formats: any[]) {
+        const userObject = [
+            { key: 'address', title: '地址',type:'address' },
+            { key: 'tw-city', title: '台灣縣市選擇器',type:'tw-city-selector' },
+        ];
+        return form_formats;
+    }
 }

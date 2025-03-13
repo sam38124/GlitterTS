@@ -5,6 +5,7 @@ import { PaymentPage } from './payment-page.js';
 export class IminModule {
     //列印發票
     public static async printInvoice(invoice: any, orderID: string, staff_title: string) {
+
         if (PayConfig.posType === 'SUNMI') {
             IminModule.printInvoiceSunMi(invoice, orderID, staff_title);
             return;
@@ -150,7 +151,7 @@ ${tempDiv.querySelector('.invoice-detail-sum')!!.children[2].textContent!.replac
 
         async function mergeQRCodes(code: string[]) {
             return new Promise(async (resolve, reject) => {
-                let size = 185; // QR Code 尺寸
+                let size = 190; // QR Code 尺寸
                 let gap = 15; // 間距
 
                 let qr1 = await generateQRCode(code[0], size);
@@ -190,7 +191,7 @@ ${tempDiv.querySelector('.invoice-detail-sum')!!.children[2].textContent!.replac
                     width: size,
                     height: size,
                     correctLevel: 1,
-                    version: 40,
+                    version:40
                 });
 
                 // 等待 QR Code 生成完畢
@@ -201,10 +202,14 @@ ${tempDiv.querySelector('.invoice-detail-sum')!!.children[2].textContent!.replac
         }
 
         const ba = (new Blob([invoice.qrcode_0]).size - (new Blob([invoice.qrcode_1]).size)) * 1.1;
+        console.log(`ba=>`, invoice.qrcode_0);
+        console.log(`ba=>`, invoice.qrcode_1);
         for (let a = 0; a <= ba; a++) {
             invoice.qrcode_1 += '*';
         }
+
         mergeQRCodes([invoice.qrcode_0, invoice.qrcode_1]).then((res) => {
+            console.log(`two-qrcode=>`, res);
             glitter.runJsInterFace('start-print', {
                 'command-list': [
                     {
@@ -473,6 +478,8 @@ ${tempDiv.querySelector('.invoice-detail-sum')!!.children[2].textContent!.replac
             }, () => {
 
             }, {});
+
+
         });
     }
 

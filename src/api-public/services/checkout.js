@@ -32,7 +32,7 @@ class CheckoutService {
         else {
             update_object.shipment_date = null;
         }
-        update_object.total = json.total;
+        update_object.total = json.total || 0;
         if (!obj.no_shipment_number) {
             if (json.user_info.shipment_number) {
                 update_object.shipment_number = json.user_info.shipment_number;

@@ -1960,16 +1960,41 @@ ${log_config.content}
                       })}</div>
                       <!-- 配送地址 -->
                       ${
-                        ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
-                          vm.cartData.user_info.shipment
-                        )
+                        (() => {
+                          const ship_method = this.getShipmentMethod(vm.cartData).find((dd: any) => {
+                            return vm.cartData.user_info.shipment === dd.value;
+                          });
+                          if (ship_method && ship_method.system_form) {
+                            return (ship_method.system_form ?? []).includes('tw-address-selector');
+                          }
+                          // ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
+                          //   vm.cartData.user_info.shipment
+                          // )
+                          return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
+                            vm.cartData.user_info.shipment
+                          );
+                        })()
                           ? gvc.bindView(() => {
                               const id = gvc.glitter.getUUID();
+                              gvc.addStyle(`             
+  .city-selector select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: #ddd;
+    outline: none;
+    padding: .3em 1.25em;
+flex:1;
+  }
+                              `);
+                           let select_id=''
                               return {
                                 bind: id,
                                 view: () => {
-                                  return html`<label class="${gClass('label')} w-100 d-flex align-items-center"
-                                      >${Language.text('shipping_address')}
+                                  select_id=gvc.glitter.getUUID();
+                                  return html`<label class="${gClass('label')} w-100 d-flex align-items-center">${Language.text('shipping_address')}
                                       <div class="flex-fill"></div>
                                       <div
                                         class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
@@ -1985,20 +2010,76 @@ ${log_config.content}
                                         ${Language.text('quick_input')}
                                       </div>
                                     </label>
-                                    <input
-                                      class="${gClass('input')}"
-                                      type="address"
-                                      placeholder="${Language.text('please_enter_delivery_address')}"
-                                      value="${vm.cartData.user_info.address || ''}"
-                                      onchange="${gvc.event(e => {
-                                        vm.cartData.user_info.address = e.value;
-                                        this.storeLocalData(vm.cartData);
-                                      })}"
-                                    />`;
+                                    <div class="row">
+                                      <div class="col-12 mb-3">
+                                        <div role="tw-city-selector" id="select_id_${id}" class="w-100 city-selector d-flex d_${select_id}" style="gap:15px;"></div>
+                                      </div>
+                                      <div class="col-12">
+                                        <input
+                                          class="${gClass('input')}"
+                                          type="address"
+                                          placeholder="${Language.text('please_enter_street_location')}"
+                                          value="${vm.cartData.user_info.address || ''}"
+                                          onchange="${gvc.event(e => {
+                                            vm.cartData.user_info.address = e.value;
+                                            this.storeLocalData(vm.cartData);
+                                          })}"
+                                        />
+                                      </div>
+                                    </div> `;
                                 },
                                 divCreate: {
                                   class: `col-12  mb-2`,
                                 },
+                                onCreate:()=>{
+                                  gvc.glitter.addMtScript(
+                                    [
+                                      {
+                                        src: 'https://cdn.jsdelivr.net/npm/tw-city-selector@2.1.1/dist/tw-city-selector.min.js',
+                                      },
+                                    ],
+                                    () => {
+                                      //@ts-ignore
+                                      const tw_selector=new TwCitySelector({
+                                        el:`.d_${select_id}`
+                                      });
+                                      const interVal = setInterval(() => {
+                                        if( (document.querySelector(`#select_id_${id} .county`) as any)){
+                                          clearInterval(interVal);
+                                          (document.querySelector(`#select_id_${id} .county`) as any).addEventListener("change", (event:any) => {
+                                            // 獲取當前選中的值
+                                            const selectedValue = event.target.value;
+                                            // 在控制台輸出當前選中的值
+                                            console.log(`選中的值是: ${selectedValue}`);
+                                            // 根據選中的值執行其他操作
+                                            vm.cartData.user_info.city=selectedValue
+                                            vm.cartData.user_info.area=undefined;
+                                            this.storeLocalData(vm.cartData);
+                                          });
+                                          (document.querySelector(`#select_id_${id} .district`) as any).addEventListener("change", (event:any) => {
+                                            // 獲取當前選中的值
+                                            const selectedValue = event.target.value;
+
+                                            // 在控制台輸出當前選中的值
+                                            console.log(`選中的值是: ${selectedValue}`);
+
+                                            // 根據選中的值執行其他操作
+                                            vm.cartData.user_info.area=selectedValue
+                                            this.storeLocalData(vm.cartData);
+                                          });
+
+                                          if((vm.cartData.user_info.city) && (vm.cartData.user_info.area)){
+                                            tw_selector.setValue(vm.cartData.user_info.city,vm.cartData.user_info.area);
+                                          }else if(vm.cartData.user_info.city){
+                                            tw_selector.setValue(vm.cartData.user_info.city);
+                                          }
+                                        }
+                                        glitter.share.tw_selector=tw_selector;
+                                      }, 100);
+                                    },
+                                    () => {}
+                                  )
+                                }
                               };
                             })
                           : ``
@@ -2049,7 +2130,19 @@ ${log_config.content}
                           : ''
                       }
                       ${
-                        ['global_express'].includes(vm.cartData.user_info.shipment)
+                                    (() => {
+                                      const ship_method = this.getShipmentMethod(vm.cartData).find((dd: any) => {
+                                        return vm.cartData.user_info.shipment === dd.value;
+                                      });
+                                      if (ship_method && ship_method.system_form) {
+                                        return (ship_method.system_form ?? []).includes('global-address-selector');
+                                      }
+                                      // ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
+                                      //   vm.cartData.user_info.shipment
+                                      // )
+                                      return  ['global_express'].includes(vm.cartData.user_info.shipment)
+                                    })()
+                      
                           ? [
                               html`<label class="${gClass('label')}">${Language.text('country')}</label> ${gvc.bindView(
                                   () => {
@@ -2182,6 +2275,7 @@ ${log_config.content}
                           const formData = this.getShipmentMethod(vm.cartData).find((dd: any) => {
                             return vm.cartData.user_info.shipment === dd.value;
                           }).form;
+
                           if (!formData) {
                             return '';
                           }
@@ -3356,15 +3450,50 @@ ${log_config.content}
     }
 
     // 驗證配送地址是否填寫
-    if (
-      ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(subData['shipment']) &&
-      (!subData['address'] || subData['address'] === '')
-    ) {
-      dialog.errorMessage({
-        text: `${Language.text('please_enter')}「${Language.text('shipping_address')}」`,
+    if((() => {
+      const ship_method = this.getShipmentMethod(cartData).find((dd: any) => {
+        return subData['shipment'] === dd.value;
       });
-      return false;
+      if (ship_method && ship_method.system_form) {
+        return (ship_method.system_form ?? []).includes('tw-address-selector');
+      }
+      // ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
+      //   vm.cartData.user_info.shipment
+      // )
+      return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
+        subData['shipment']
+      );
+    })()){
+      console.log(`subData===>`,subData)
+      if (
+        (!subData['address'] || subData['address'] === '')
+      ) {
+        dialog.errorMessage({
+          text: `${Language.text('please_enter')}「${Language.text('shipping_address')}」`,
+        });
+        return false;
+      }else if (
+        (!subData['city'] || subData['city'] === '')
+      ) {
+        dialog.errorMessage({
+          text: `${Language.text('please_enter')}「${Language.text('city')}」`,
+        });
+        return false;
+      }else if (
+        (!subData['area'] || subData['area'] === '')
+      ) {
+        dialog.errorMessage({
+          text: `${Language.text('please_enter')}「${Language.text('area')}」`,
+        });
+        return false;
+      }
+    }else{
+      delete subData['city']
+      delete subData['area']
+      delete subData['address']
     }
+
+
 
     // 驗證配送地址內容
     if (subData['shipment'] === 'normal' && !checkAddressPattern(subData['address'])) {

@@ -35,7 +35,7 @@ export class CheckoutService {
     } else {
       update_object.shipment_date = null;
     }
-    update_object.total = json.total;
+    update_object.total = json.total || 0;
     //出貨單號碼
     if (!obj.no_shipment_number) {
       if (json.user_info.shipment_number) {

@@ -305,10 +305,22 @@ export class Language {
                 en: 'State/Province',
             },
             {
+                key: 'area',
+                tw: '地區',
+                cn: '地區',
+                en: 'Area',
+            },
+            {
                 key: 'postal_code',
                 tw: '郵遞區號',
                 cn: '邮政编码',
                 en: 'Postal code',
+            },
+            {
+                key: 'please_enter_street_location',
+                tw: '請輸入街道與門牌位置',
+                cn: '请输入街道与门牌位置',
+                en: 'Please enter the street and house number location',
             },
             {
                 key: 'please_enter_delivery_address',

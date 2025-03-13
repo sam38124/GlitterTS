@@ -2660,18 +2660,23 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                                 case 'global_express':
                                                                 case 'black_cat_freezing':
                                                                 case 'normal':
-                                                                    return [
-                                                                        html ` <div class="fw-normal fs-6" style="white-space: normal;">
-                                                      ${orderData.orderData.user_info.address}
-                                                    </div>`,
-                                                                    ].join('');
                                                                 default:
+                                                                    const mapView = [];
+                                                                    if (orderData.orderData.user_info.address) {
+                                                                        mapView.push(html `
+                                                      <div class="tx_700">配送地址</div>
+                                                      <div class="fw-normal fs-6" style="white-space: normal;">
+                                                      ${[orderData.orderData.user_info.city, orderData.orderData.user_info.area, orderData.orderData.user_info.address].filter((dd) => {
+                                                                            return dd;
+                                                                        }).join('')}
+                                                    </div>`);
+                                                                    }
                                                                     const formData = (orderData.orderData.shipment_selector ||
                                                                         ShoppingOrderManager.supportShipmentMethod()).find(dd => {
                                                                         return dd.value === orderData.orderData.user_info.shipment;
                                                                     });
                                                                     if (formData.form) {
-                                                                        return formData.form
+                                                                        mapView.push(formData.form
                                                                             .map((dd) => {
                                                                             return `<div class="d-flex flex-wrap w-100">
                                                                                 <span class="me-2 fw-normal fs-6">${Language.getLanguageCustomText(dd.title)}:</span>
@@ -2680,11 +2685,12 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                                                 </div>
                                                                             </div>`;
                                                                         })
-                                                                            .join('');
+                                                                            .join(''));
                                                                     }
                                                                     else {
-                                                                        return ``;
+                                                                        mapView.push(``);
                                                                     }
+                                                                    return mapView.join('');
                                                             }
                                                         })()}
                                             ${orderData.orderData.orderSource === 'POS'

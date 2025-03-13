@@ -862,7 +862,9 @@ export class UMOrder {
                         else if (orderData.user_info.address) {
                             arr.push({
                                 title: Language.text('receiving_address'),
-                                value: orderData.user_info.address,
+                                value: [orderData.user_info.city,
+                                    orderData.user_info.area,
+                                    orderData.user_info.address].filter((dd) => { return dd; }).join(','),
                             });
                         }
                         arr.push({
@@ -942,7 +944,7 @@ export class UMOrder {
                         return gvc.map(arr.map((item) => {
                             return html `
                                                         <div class="o-title-container">
-                                                            <div class="o-title me-1">${item.title}：</div>
+                                                            <div class="o-title me-1" style="white-space: nowrap;">${item.title}：</div>
                                                             <div class="o-title">${item.value}</div>
                                                         </div>
                                                     `;

@@ -5201,6 +5201,8 @@ ${obj.default ?? ''}</textarea
                   FormCheck.initialRecipientForm(form_formats[b.key].list);
                 } else if (b.key === 'customer_form_user_setting') {
                   FormCheck.initialUserForm(form_formats[b.key].list);
+                }else if(b.key.includes('form_delivery_')){
+                  FormCheck.initial_shipment_form(form_formats[b.key].list)
                 }
                 form_formats[b.key].list.map((dd: any) => {
                   dd.toggle = false;

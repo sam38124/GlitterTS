@@ -4407,6 +4407,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 else if (b.key === 'customer_form_user_setting') {
                                     FormCheck.initialUserForm(form_formats[b.key].list);
                                 }
+                                else if (b.key.includes('form_delivery_')) {
+                                    FormCheck.initial_shipment_form(form_formats[b.key].list);
+                                }
                                 form_formats[b.key].list.map((dd) => {
                                     dd.toggle = false;
                                 });

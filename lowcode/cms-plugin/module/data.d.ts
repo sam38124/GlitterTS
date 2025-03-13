@@ -46,6 +46,8 @@ interface OrderData {
     user_info: {
         name: string;
         email: string;
+        city?:string;
+        area?:string;
         phone: string;
         address: string;
         custom_form_delivery?: any;

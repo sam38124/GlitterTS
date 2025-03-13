@@ -1774,6 +1774,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             form: dd.form,
             name: dd.name,
             value: dd.id,
+            system_form:dd.system_form
           })),
         ].filter(option => shipment_setting.support.includes(option.value)),
         use_wallet: 0,

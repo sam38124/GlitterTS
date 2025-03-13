@@ -1756,6 +1756,7 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                       return gvc.bindView(
                         (() => {
                           const id = gvc.glitter.getUUID();
+                          (custom_delivery as any).system_form=(custom_delivery as any).system_form??[]
                           return {
                             bind: id,
                             view: () => {
@@ -1770,6 +1771,29 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                   placeHolder: '請輸入自訂物流名稱',
                                   global_language: true,
                                 }),
+                                `<div
+                            class="tx_normal fw-bolder mt-2 d-flex flex-column"
+                            style="margin-bottom: 12px;"
+                          >
+                            預設系統對應表單
+                            <span style="color:#8D8D8D;font-size: 12px;">此為預設系統表單，將對應系統特定欄位</span>
+                            ${
+                                  BgWidget.inlineCheckBox({
+                                    title: '',
+                                    gvc,
+                                    def: (custom_delivery as any).system_form,
+                                    array: [
+                                      { title: '國際縣市地址選擇', value: 'global-address-selector' },
+                                      { title: '台灣縣市地址選擇', value: 'tw-address-selector' }
+                                    ],
+                                    callback: (array: any) => {
+                                      (custom_delivery as any).system_form = array;
+                                    },
+                                    type: 'multiple',
+                                  })
+                                }
+                          </div>`,
+                                `<div class="w-100 border-top"></div>`,
                                 form.view,
                               ].join(BgWidget.mbContainer(12));
                             },

@@ -800,8 +800,6 @@ export class UmClass {
             min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
             max-width: ${obj.width}px;
             max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
-            width: 100%;
-            height: 100%;
             object-fit: cover;
             object-position: center;
         `;
