@@ -2038,7 +2038,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
       if (hasMaxProduct && data.email !== 'no-email') {
         // 查詢歷史訂單
         const existOrders = await db.query(
-          `SELECT id, orderData FROM \`${this.app}\`.t_checkout WHERE email = ? AND status <> -2;`,
+          `SELECT id, orderData FROM \`${this.app}\`.t_checkout WHERE email = ? AND order_status != '-1';`,
           [data.email]
         );
 
@@ -4095,7 +4095,6 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
     const rebateClass = new Rebate(this.app);
     const userClass = new User(this.app);
     const userData = await userClass.getUserData(cartData.email, 'account');
-
     if (order_id && userData && cartData.orderData.rebate > 0) {
       for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
         const orderVoucher = cartData.orderData.voucherList[i];
@@ -4109,34 +4108,17 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         );
 
         if (voucherRow[0]) {
-          for (const item of orderVoucher.bind) {
-            const useCheck = await rebateClass.canUseRebate(userData.userID, 'voucher', {
-              voucher_id: orderVoucher.id,
-              order_id: order_id,
-              sku: item.sku,
-              quantity: item.count,
-            });
-            const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
-
-            if (item.rebate > 0 && useCheck?.result && !usedVoucher) {
-              const content = voucherRow[0].content;
-              if (item.rebate * item.count !== 0) {
-                await rebateClass.insertRebate(
-                  userData.userID,
-                  item.rebate * item.count,
-                  `優惠券購物金：${content.title}`,
-                  {
-                    voucher_id: orderVoucher.id,
-                    order_id: order_id,
-                    sku: item.sku,
-                    quantity: item.count,
-                    deadTime: content.rebateEndDay
-                      ? moment().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss')
-                      : undefined,
-                  }
-                );
+          const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
+          if(orderVoucher.rebate_total && !usedVoucher){
+            await rebateClass.insertRebate(
+              userData.userID,
+              orderVoucher.rebate_total,
+              `優惠券購物金：${voucherRow[0].content.title}`,
+              {
+                voucher_id: orderVoucher.id,
+                order_id: order_id
               }
-            }
+            )
           }
         }
       }
