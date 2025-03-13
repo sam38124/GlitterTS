@@ -170,6 +170,12 @@ export class Language{
                 en: 'Please enter delivery address'
             },
             {
+                key: 'please_enter_street_location',
+                tw: '請輸入街道與門牌位置',
+                cn: '請輸入街道與門牌位置',
+                en: 'Please enter the street and house number location'
+            },
+            {
                 key: 'please_enter_contact_number',
                 tw: '請輸入聯絡電話',
                 cn: '请输入联系电话',

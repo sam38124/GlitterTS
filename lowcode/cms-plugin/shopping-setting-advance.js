@@ -34,27 +34,29 @@ export class ShoppingSettingAdvance {
                     return [
                         BgWidget.mainCard([
                             html `
-                                        <div class="d-flex flex-column guide5-4">
-                                            <div style="font-weight: 700;" class="mb-1">${carTitle}標籤 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
-                                            ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + carTitle)}
-                                            <div class="mb-2"></div>
-                                            ${BgWidget.multipleInput(gvc, postMD.product_tag.language[vm.language], {
-                                save: (def) => {
+                    <div class="d-flex flex-column guide5-4">
+                      <div style="font-weight: 700;" class="mb-1">
+                        ${carTitle}標籤 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
+                      </div>
+                      ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + carTitle)}
+                      <div class="mb-2"></div>
+                      ${BgWidget.multipleInput(gvc, postMD.product_tag.language[vm.language], {
+                                save: def => {
                                     postMD.product_tag.language[vm.language] = def;
                                 },
                             })}
-                                        </div>
-                                    `,
+                    </div>
+                  `,
                             html ` <div class="mt-2 mb-2 position-relative" style="font-weight: 700;">
-                                            ${carTitle}促銷標籤
-                                            ${BgWidget.questionButton(gvc.event(() => {
+                      ${carTitle}促銷標籤
+                      ${BgWidget.questionButton(gvc.event(() => {
                                 QuestionInfo.promoteLabel(gvc);
                             }))}
-                                        </div>
-                                        ${gvc.bindView((() => {
+                    </div>
+                    ${gvc.bindView((() => {
                                 const id = gvc.glitter.getUUID();
                                 let options = [];
-                                ApiUser.getPublicConfig('promo-label', 'manager').then((data) => {
+                                ApiUser.getPublicConfig('promo-label', 'manager').then(data => {
                                     var _a;
                                     if (data.result && Array.isArray((_a = data.response) === null || _a === void 0 ? void 0 : _a.value)) {
                                         options = [
@@ -85,10 +87,12 @@ export class ShoppingSettingAdvance {
                             postMD.product_category === 'course'
                                 ? ''
                                 : html `<div class="d-flex flex-column mt-2">
-                                              <div style="font-weight: 700;" class="mb-1">數量單位 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
-                                              ${BgWidget.grayNote('例如 : 坪、件、個、打，預設單位為件。')}
-                                              <div class="mb-2"></div>
-                                              ${BgWidget.editeInput({
+                        <div style="font-weight: 700;" class="mb-1">
+                          數量單位 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
+                        </div>
+                        ${BgWidget.grayNote('例如 : 坪、件、個、打，預設單位為件。')}
+                        <div class="mb-2"></div>
+                        ${BgWidget.editeInput({
                                     gvc: obj.gvc,
                                     default: `${postMD.unit[vm.language] || ''}`,
                                     title: '',
@@ -99,14 +103,14 @@ export class ShoppingSettingAdvance {
                                         gvc.notifyDataChange(id);
                                     },
                                 })}
-                                          </div>`,
+                      </div>`,
                         ].join('')),
                         BgWidget.mainCard([
                             html `
-                                        <div class="d-flex flex-column guide5-4">
-                                            <div style="font-weight: 700;" class="mb-2">${carTitle}購買限制</div>
-                                        </div>
-                                    `,
+                    <div class="d-flex flex-column guide5-4">
+                      <div style="font-weight: 700;" class="mb-2">${carTitle}購買限制</div>
+                    </div>
+                  `,
                             ...(postMD.productType.giveaway
                                 ? []
                                 : [
@@ -130,8 +134,8 @@ export class ShoppingSettingAdvance {
                                         key: 'legacy_by_with',
                                         checked: postMD.legacy_by_with,
                                     },
-                                ].map((dd) => {
-                                    const text_ = [
+                                ].map(dd => {
+                                    const stringArray = [
                                         BgWidget.inlineCheckBox({
                                             title: '',
                                             gvc: gvc,
@@ -170,8 +174,8 @@ export class ShoppingSettingAdvance {
                                         switch (dd.key) {
                                             case 'min_qty':
                                             case 'max_qty':
-                                                text_.push(html `<div class="d-flex align-items-center fw-500" style="gap:10px;">
-                                                                  ${BgWidget.editeInput({
+                                                stringArray.push(html `<div class="d-flex align-items-center fw-500" style="gap:10px;">
+                                  ${BgWidget.editeInput({
                                                     gvc: obj.gvc,
                                                     default: `${postMD[dd.key] || ''}`,
                                                     title: '',
@@ -182,25 +186,28 @@ export class ShoppingSettingAdvance {
                                                         gvc.notifyDataChange(id);
                                                     },
                                                 })}
-                                                                  件
-                                                              </div>`);
+                                  件
+                                </div>`);
                                                 break;
                                             case 'match_by_with':
-                                                text_.push(obj.gvc.bindView(() => {
+                                                stringArray.push(obj.gvc.bindView(() => {
                                                     const id = gvc.glitter.getUUID();
                                                     return {
                                                         bind: id,
                                                         view: () => {
                                                             try {
                                                                 return html `
-                                                                                  <div style="font-weight: 700;" class=" d-flex flex-column">
-                                                                                      ${BgWidget.grayNote(`購物車必須連同包含以下其中一個${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可結帳`)}
-                                                                                  </div>
-                                                                                  <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
-                                                                                      <div class="form-check-label c_updown_label">
-                                                                                          <div class="tx_normal">商品列表</div>
-                                                                                      </div>
-                                                                                      ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                          <div style="font-weight: 700;" class=" d-flex flex-column">
+                                            ${BgWidget.grayNote(`購物車必須連同包含以下其中一個${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可結帳`)}
+                                          </div>
+                                          <div
+                                            class="d-flex align-items-center gray-bottom-line-18"
+                                            style="gap: 24px; justify-content: space-between;"
+                                          >
+                                            <div class="form-check-label c_updown_label">
+                                              <div class="tx_normal">商品列表</div>
+                                            </div>
+                                            ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                     BgProduct.productsDialog({
                                                                         gvc: gvc,
                                                                         default: postMD.match_by_with,
@@ -208,17 +215,17 @@ export class ShoppingSettingAdvance {
                                                                             postMD.match_by_with = value;
                                                                             gvc.notifyDataChange(id);
                                                                         }),
-                                                                        filter: (dd) => dd.key !== postMD.id,
+                                                                        filter: dd => dd.key !== postMD.id,
                                                                     });
                                                                 }), { textStyle: 'font-weight: 400;' })}
-                                                                                  </div>
-                                                                                  ${gvc.bindView(() => {
+                                          </div>
+                                          ${gvc.bindView(() => {
                                                                     const vm = {
                                                                         id: gvc.glitter.getUUID(),
                                                                         loading: true,
                                                                         data: [],
                                                                     };
-                                                                    BgProduct.getProductOpts(postMD.match_by_with).then((res) => {
+                                                                    BgProduct.getProductOpts(postMD.match_by_with).then(res => {
                                                                         vm.data = res;
                                                                         vm.loading = false;
                                                                         gvc.notifyDataChange(vm.id);
@@ -231,16 +238,22 @@ export class ShoppingSettingAdvance {
                                                                             }
                                                                             return vm.data
                                                                                 .map((opt, index) => {
-                                                                                return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                                                          <span class="tx_normal">${index + 1} .</span>
-                                                                                                          ${BgWidget.validImageBox({
+                                                                                return html ` <div
+                                                      class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                                    >
+                                                      <span class="tx_normal">${index + 1} .</span>
+                                                      ${BgWidget.validImageBox({
                                                                                     gvc: gvc,
                                                                                     image: opt.image,
                                                                                     width: 40,
                                                                                 })}
-                                                                                                          <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                                                                          ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                                                                      </div>`;
+                                                      <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                        ${opt.value}
+                                                      </div>
+                                                      ${opt.note
+                                                                                    ? html ` <div class="tx_gray_12">${opt.note}</div> `
+                                                                                    : ''}
+                                                    </div>`;
                                                                             })
                                                                                 .join('');
                                                                         }),
@@ -250,7 +263,7 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     };
                                                                 })}
-                                                                              `;
+                                        `;
                                                             }
                                                             catch (e) {
                                                                 console.error(e);
@@ -264,21 +277,24 @@ export class ShoppingSettingAdvance {
                                                 }));
                                                 break;
                                             case 'legacy_by_with':
-                                                text_.push(obj.gvc.bindView(() => {
+                                                stringArray.push(obj.gvc.bindView(() => {
                                                     const id = gvc.glitter.getUUID();
                                                     return {
                                                         bind: id,
                                                         view: () => {
                                                             try {
                                                                 return html `
-                                                                                  <div style="font-weight: 700;" class=" d-flex flex-column">
-                                                                                      ${BgWidget.grayNote(`已購買過的訂單記錄中，必須包含以下${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可以結帳`)}
-                                                                                  </div>
-                                                                                  <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
-                                                                                      <div class="form-check-label c_updown_label">
-                                                                                          <div class="tx_normal">商品列表</div>
-                                                                                      </div>
-                                                                                      ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                          <div style="font-weight: 700;" class=" d-flex flex-column">
+                                            ${BgWidget.grayNote(`已購買過的訂單記錄中，必須包含以下${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可以結帳`)}
+                                          </div>
+                                          <div
+                                            class="d-flex align-items-center gray-bottom-line-18"
+                                            style="gap: 24px; justify-content: space-between;"
+                                          >
+                                            <div class="form-check-label c_updown_label">
+                                              <div class="tx_normal">商品列表</div>
+                                            </div>
+                                            ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                     BgProduct.productsDialog({
                                                                         gvc: gvc,
                                                                         default: postMD.match_by_with,
@@ -286,19 +302,19 @@ export class ShoppingSettingAdvance {
                                                                             postMD.match_by_with = value;
                                                                             gvc.notifyDataChange(id);
                                                                         }),
-                                                                        filter: (dd) => {
+                                                                        filter: dd => {
                                                                             return dd.key !== postMD.id;
                                                                         },
                                                                     });
                                                                 }), { textStyle: 'font-weight: 400;' })}
-                                                                                  </div>
-                                                                                  ${gvc.bindView(() => {
+                                          </div>
+                                          ${gvc.bindView(() => {
                                                                     const vm = {
                                                                         id: gvc.glitter.getUUID(),
                                                                         loading: true,
                                                                         data: [],
                                                                     };
-                                                                    BgProduct.getProductOpts(postMD.match_by_with).then((res) => {
+                                                                    BgProduct.getProductOpts(postMD.match_by_with).then(res => {
                                                                         vm.data = res;
                                                                         vm.loading = false;
                                                                         gvc.notifyDataChange(vm.id);
@@ -311,16 +327,22 @@ export class ShoppingSettingAdvance {
                                                                             }
                                                                             return vm.data
                                                                                 .map((opt, index) => {
-                                                                                return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                                                          <span class="tx_normal">${index + 1} .</span>
-                                                                                                          ${BgWidget.validImageBox({
+                                                                                return html ` <div
+                                                      class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                                    >
+                                                      <span class="tx_normal">${index + 1} .</span>
+                                                      ${BgWidget.validImageBox({
                                                                                     gvc: gvc,
                                                                                     image: opt.image,
                                                                                     width: 40,
                                                                                 })}
-                                                                                                          <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                                                                          ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                                                                      </div>`;
+                                                      <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                        ${opt.value}
+                                                      </div>
+                                                      ${opt.note
+                                                                                    ? html ` <div class="tx_gray_12">${opt.note}</div> `
+                                                                                    : ''}
+                                                    </div>`;
                                                                             })
                                                                                 .join('');
                                                                         }),
@@ -330,7 +352,7 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     };
                                                                 })}
-                                                                              `;
+                                        `;
                                                             }
                                                             catch (e) {
                                                                 console.error(e);
@@ -345,32 +367,32 @@ export class ShoppingSettingAdvance {
                                                 break;
                                         }
                                     }
-                                    return text_.join('');
+                                    return stringArray.join('');
                                 })),
                         ].join(``)),
                         BgWidget.mainCard([
                             html `
-                                        <div class="d-flex flex-column guide5-4">
-                                            <div style="font-weight: 700;" class="mb-2">商品稅額</div>
-                                        </div>
-                                    `,
+                    <div class="d-flex flex-column guide5-4">
+                      <div style="font-weight: 700;" class="mb-2">商品稅額</div>
+                    </div>
+                  `,
                             BgWidget.select({
                                 gvc: gvc,
-                                callback: (text) => {
-                                    (postMD).tax = text;
+                                callback: text => {
+                                    postMD.tax = text;
                                 },
-                                default: (_a = (postMD).tax) !== null && _a !== void 0 ? _a : '5',
+                                default: (_a = postMD.tax) !== null && _a !== void 0 ? _a : '5',
                                 options: [
                                     {
                                         key: '5',
-                                        value: '一般稅額(5%)'
+                                        value: '一般稅額(5%)',
                                     },
                                     {
                                         key: '0',
-                                        value: '免稅商品(0%)'
-                                    }
-                                ]
-                            })
+                                        value: '免稅商品(0%)',
+                                    },
+                                ],
+                            }),
                         ].join(``)),
                         BgWidget.mainCard((() => {
                             const priceVM = {
@@ -381,21 +403,21 @@ export class ShoppingSettingAdvance {
                             };
                             const isDesktop = document.body.clientWidth > 768;
                             const getIndexStyle = (index) => index === 0
-                                ? `height: 100%; padding: 0; min-width: ${isDesktop ? 250 : 125}px; position: sticky; left: 0; background: #fff; box-shadow: 1px 0px 0px 0px rgba(0, 0, 0, 0.10);`
+                                ? `height: 100%; padding: 0; min-width: ${isDesktop ? 250 : 125}px; max-width: ${isDesktop ? 250 : 125}px;position: sticky; left: 0; background: #fff; box-shadow: 1px 0px 0px 0px rgba(0, 0, 0, 0.10);`
                                 : 'height: 100%; padding: 0; text-align: center; justify-content: center; min-width: 126px;';
                             const resetPostList = (result, type) => {
                                 var _a, _b, _c;
-                                const existingPrices = new Map((_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.filter((m) => {
+                                const existingPrices = new Map((_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.filter(m => {
                                     return m.type === type;
-                                }).map((m) => {
-                                    return [m.key, new Map(m.variants.map((v) => [v.spec.join(','), v.price]))];
+                                }).map(m => {
+                                    return [m.key, new Map(m.variants.map(v => [v.spec.join(','), v.price]))];
                                 }));
                                 postMD.multi_sale_price = [
-                                    ...((_c = (_b = postMD.multi_sale_price) === null || _b === void 0 ? void 0 : _b.filter((item) => item.type !== type)) !== null && _c !== void 0 ? _c : []),
-                                    ...result.map((key) => ({
+                                    ...((_c = (_b = postMD.multi_sale_price) === null || _b === void 0 ? void 0 : _b.filter(item => item.type !== type)) !== null && _c !== void 0 ? _c : []),
+                                    ...result.map(key => ({
                                         type,
                                         key,
-                                        variants: postMD.variants.map((v) => {
+                                        variants: postMD.variants.map(v => {
                                             var _a, _b;
                                             return ({
                                                 spec: v.spec,
@@ -409,7 +431,9 @@ export class ShoppingSettingAdvance {
                             const toggleObject = (type) => {
                                 return {
                                     gvc,
-                                    postData: postMD.multi_sale_price ? postMD.multi_sale_price.filter((item) => item.type === type).map((item) => item.key) : [],
+                                    postData: postMD.multi_sale_price
+                                        ? postMD.multi_sale_price.filter(item => item.type === type).map(item => item.key)
+                                        : [],
                                     callback: (result) => resetPostList(result, type),
                                 };
                             };
@@ -446,79 +470,83 @@ export class ShoppingSettingAdvance {
                                         return BgWidget.spinner();
                                     }
                                     const toggleList = createToggleList();
-                                    const particularKeys = priceVM.typeData.filter((item) => {
+                                    const particularKeys = priceVM.typeData.filter(item => {
                                         var _a;
-                                        return (_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.some((m) => m.type === item.type && m.key === item.key);
+                                        return (_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.some(m => m.type === item.type && m.key === item.key);
                                     });
                                     try {
                                         return html `
-                                                    <div class="title-container px-0 mb-2">
-                                                        <div style="color:#393939;font-weight: 700;">專屬價格</div>
-                                                        <div class="flex-fill"></div>
-                                                    </div>
-                                                    ${toggleList
-                                            .map((item) => {
+                          <div class="title-container px-0 mb-2">
+                            <div style="color:#393939;font-weight: 700;">專屬價格</div>
+                            <div class="flex-fill"></div>
+                          </div>
+                          ${toggleList
+                                            .map(item => {
                                             var _a;
                                             return html `
-                                                                <div class="d-flex align-items-center">
-                                                                    <div>
-                                                                        <div class="d-flex align-items-center gap-2 mb-1">
-                                                                            <span class="tx_normal">${item.title}</span>
-                                                                            <div class="cursor_pointer form-check form-switch m-0">
-                                                                                <input
-                                                                                    class="form-check-input"
-                                                                                    style="cursor: pointer;"
-                                                                                    type="checkbox"
-                                                                                    onchange="${gvc.event((e) => {
+                                <div class="d-flex align-items-center">
+                                  <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                      <span class="tx_normal">${item.title}</span>
+                                      <div class="cursor_pointer form-check form-switch m-0">
+                                        <input
+                                          class="form-check-input"
+                                          style="cursor: pointer;"
+                                          type="checkbox"
+                                          onchange="${gvc.event(e => {
                                                 var _a;
                                                 if (e.checked) {
                                                     item.event();
                                                 }
                                                 else {
-                                                    postMD.multi_sale_price = (_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.filter((m) => m.type !== item.type);
+                                                    postMD.multi_sale_price = (_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.filter(m => m.type !== item.type);
                                                     gvc.notifyDataChange(priceVM.id);
                                                 }
                                             })}"
-                                                                                    ${((_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.some((m) => m.type === item.type)) ? `checked` : ``}
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                        ${BgWidget.grayNote(item.note)}
-                                                                    </div>
-                                                                    <div class="flex-fill"></div>
-                                                                    <div style="cursor: pointer;" onclick="${gvc.event(item.event)}">設定<i class="fa-regular fa-gear ms-1"></i></div>
-                                                                </div>
-                                                            `;
+                                          ${((_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.some(m => m.type === item.type)) ? `checked` : ``}
+                                        />
+                                      </div>
+                                    </div>
+                                    ${BgWidget.grayNote(item.note)}
+                                  </div>
+                                  <div class="flex-fill"></div>
+                                  <div style="cursor: pointer;" onclick="${gvc.event(item.event)}">
+                                    設定<i class="fa-regular fa-gear ms-1"></i>
+                                  </div>
+                                </div>
+                              `;
                                         })
                                             .join(`<div class="w-100 my-3 border-top"></div>`)}
-                                                    ${particularKeys.length > 1
+                          ${particularKeys.length > 1
                                             ? html `
-                                                              <div
-                                                                  class="d-flex justify-content-start align-items-center mt-2 my-1"
-                                                                  style="border-radius: 10px; padding: 10px 20px; background: #F7F7F7;"
-                                                              >
-                                                                  <span style="font-weight: 700;">※ 若是規則有重疊，例 : VIP客戶在大安門市消費，則取兩者之中最低價格</span>
-                                                              </div>
-                                                          `
+                                <div
+                                  class="d-flex justify-content-start align-items-center mt-2 my-1"
+                                  style="border-radius: 10px; padding: 10px 20px; background: #F7F7F7;"
+                                >
+                                  <span style="font-weight: 700;"
+                                    >※ 若是規則有重疊，例 : VIP客戶在大安門市消費，則取兩者之中最低價格</span
+                                  >
+                                </div>
+                              `
                                             : ''}
-                                                    ${postMD.multi_sale_price && postMD.multi_sale_price.length > 0
+                          ${postMD.multi_sale_price && postMD.multi_sale_price.length > 0
                                             ? html `<div class="mt-3 d-grid" style="overflow: scroll;" id="scrollDiv">
-                                                              <div class="d-flex">
-                                                                  ${['商品名稱', '成本', '原價', '售價', ...particularKeys.map((item) => item.name)]
+                                <div class="d-flex">
+                                  ${['商品名稱', '成本', '原價', '售價', ...particularKeys.map(item => item.name)]
                                                 .map((item, index) => html `
-                                                                              <div style="${getIndexStyle(index)}">
-                                                                                  <div>${item}</div>
-                                                                                  ${BgWidget.horizontalLine({ margin: '1rem 0 0;' })}
-                                                                              </div>
-                                                                          `)
+                                        <div style="${getIndexStyle(index)}">
+                                          <div>${item}</div>
+                                          ${BgWidget.horizontalLine({ margin: '1rem 0 0;' })}
+                                        </div>
+                                      `)
                                                 .join('')}
-                                                              </div>
-                                                              <div class="w-100 d-flex flex-column">
-                                                                  ${postMD.variants
+                                </div>
+                                <div class="w-100 d-flex flex-column">
+                                  ${postMD.variants
                                                 .map((variant, index) => {
                                                 const { spec, cost = 0, sale_price, preview_image, compare_price } = variant;
                                                 return html ` <div class="d-flex align-items-center">
-                                                                              ${[
+                                        ${[
                                                     [
                                                         BgWidget.validImageBox({
                                                             gvc,
@@ -531,13 +559,18 @@ export class ShoppingSettingAdvance {
                                                             dataList: [{ obj: priceVM, key: 'showPriceDetail' }],
                                                             view: () => {
                                                                 return html `
-                                                                                                  <div>${spec && spec.length > 0 ? spec.join(' / ') : Tool.truncateString(postMD.title, 10)}</div>
-                                                                                                  ${priceVM.showPriceDetail
+                                                  <div>
+                                                    ${spec && spec.length > 0
+                                                                    ? spec.join(' / ')
+                                                                    : Tool.truncateString(postMD.title, 10)}
+                                                  </div>
+                                                  ${priceVM.showPriceDetail
                                                                     ? html `<div style="color: #8D8D8D;">
-                                                                                                            定價 : ${compare_price.toLocaleString()} / 售價 : ${sale_price.toLocaleString()}
-                                                                                                        </div>`
+                                                        定價 : ${compare_price.toLocaleString()} / 售價 :
+                                                        ${sale_price.toLocaleString()}
+                                                      </div>`
                                                                     : ''}
-                                                                                              `;
+                                                `;
                                                             },
                                                             divCreate: {
                                                                 class: 'ms-2',
@@ -548,20 +581,20 @@ export class ShoppingSettingAdvance {
                                                     `$ ${cost.toLocaleString()}`,
                                                     `$ ${compare_price.toLocaleString()}`,
                                                     `$ ${sale_price.toLocaleString()}`,
-                                                    ...particularKeys.map((item) => gvc.bindView((() => {
+                                                    ...particularKeys.map(item => gvc.bindView((() => {
                                                         const id = gvc.glitter.getUUID();
                                                         return {
                                                             bind: id,
                                                             view: () => {
                                                                 var _a, _b;
-                                                                const priceObj = (_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.find((m) => m.type === item.type && m.key === item.key);
-                                                                const variantObj = priceObj === null || priceObj === void 0 ? void 0 : priceObj.variants.find((v) => v.spec.join(',') === spec.join(','));
+                                                                const priceObj = (_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.find(m => m.type === item.type && m.key === item.key);
+                                                                const variantObj = priceObj === null || priceObj === void 0 ? void 0 : priceObj.variants.find(v => v.spec.join(',') === spec.join(','));
                                                                 return BgWidget.editeInput({
                                                                     gvc,
                                                                     title: '',
                                                                     default: `${(_b = variantObj === null || variantObj === void 0 ? void 0 : variantObj.price) !== null && _b !== void 0 ? _b : 0}`,
                                                                     placeHolder: '',
-                                                                    callback: (value) => {
+                                                                    callback: value => {
                                                                         const n = parseInt(`${value !== null && value !== void 0 ? value : 0}`, 10);
                                                                         if (variantObj && !isNaN(n) && n > 0) {
                                                                             variantObj.price = n;
@@ -576,15 +609,19 @@ export class ShoppingSettingAdvance {
                                                         };
                                                     })())),
                                                 ]
-                                                    .map((item, index) => html ` <div class="d-flex align-items-center" style="${getIndexStyle(index)}">${item}</div> `)
+                                                    .map((item, index) => html `
+                                              <div class="d-flex align-items-center" style="${getIndexStyle(index)}">
+                                                ${item}
+                                              </div>
+                                            `)
                                                     .join('')}
-                                                                          </div>`;
+                                      </div>`;
                                             })
                                                 .join('')}
-                                                              </div>
-                                                          </div>`
+                                </div>
+                              </div>`
                                             : ''}
-                                                `;
+                        `;
                                     }
                                     catch (error) {
                                         console.error(error);
@@ -594,7 +631,7 @@ export class ShoppingSettingAdvance {
                                 onCreate: () => {
                                     if (priceVM.loading) {
                                         Promise.all([
-                                            ApiUser.getUserGroupList('level').then((r) => {
+                                            ApiUser.getUserGroupList('level').then(r => {
                                                 if (r.result && r.response && Array.isArray(r.response.data)) {
                                                     return r.response.data.map((item) => ({
                                                         type: 'level',
@@ -632,8 +669,8 @@ export class ShoppingSettingAdvance {
                                     }
                                     else {
                                         const scrollDiv = document.getElementById('scrollDiv');
-                                        if (isDesktop) {
-                                            scrollDiv === null || scrollDiv === void 0 ? void 0 : scrollDiv.addEventListener('scroll', () => {
+                                        if (isDesktop && scrollDiv) {
+                                            scrollDiv.addEventListener('scroll', () => {
                                                 const status = scrollDiv.scrollLeft > 360;
                                                 if (priceVM.showPriceDetail !== status) {
                                                     priceVM.showPriceDetail = status;
@@ -657,17 +694,17 @@ export class ShoppingSettingAdvance {
                                             return '';
                                         }
                                         return html ` <div class="tx_700">指定物流配送方式</div>
-                                                      ${BgWidget.mbContainer(18)}
-                                                      ${gvc.bindView(() => {
+                            ${BgWidget.mbContainer(18)}
+                            ${gvc.bindView(() => {
                                             const id = gvc.glitter.getUUID();
                                             return {
                                                 bind: id,
                                                 view: () => {
                                                     return html `
-                                                                      <div style="display: flex; flex-direction: column; gap: 8px;">
-                                                                          ${BgWidget.selectFilter({
+                                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                                      ${BgWidget.selectFilter({
                                                         gvc: gvc,
-                                                        callback: (text) => {
+                                                        callback: text => {
                                                             postMD.designated_logistics.type = text;
                                                             gvc.notifyDataChange(id);
                                                         },
@@ -684,8 +721,8 @@ export class ShoppingSettingAdvance {
                                                         ],
                                                         style: 'width: 100%;',
                                                     })}
-                                                                          <div>
-                                                                              ${(() => {
+                                      <div>
+                                        ${(() => {
                                                         switch (postMD.designated_logistics.type) {
                                                             case 'designated':
                                                                 return (() => {
@@ -727,7 +764,7 @@ export class ShoppingSettingAdvance {
                                                                                     }
                                                                                     const shipment_setting = dd.response.result[0].value;
                                                                                     const combinedList = [
-                                                                                        ...ShipmentConfig.list.map((dd) => ({
+                                                                                        ...ShipmentConfig.list.map(dd => ({
                                                                                             name: dd.title,
                                                                                             value: dd.value,
                                                                                         })),
@@ -737,15 +774,15 @@ export class ShoppingSettingAdvance {
                                                                                             value: dd.id,
                                                                                         })),
                                                                                     ];
-                                                                                    const supportedList = combinedList.filter((d1) => shipment_setting.support.some((d2) => d2 === d1.value));
-                                                                                    designatedVM.dataList = supportedList.map((item) => ({
+                                                                                    const supportedList = combinedList.filter(d1 => shipment_setting.support.some((d2) => d2 === d1.value));
+                                                                                    designatedVM.dataList = supportedList.map(item => ({
                                                                                         key: item.value,
                                                                                         value: item.name,
                                                                                     }));
                                                                                     designatedVM.loading = false;
                                                                                     gvc.notifyDataChange(designatedVM.id);
                                                                                 })
-                                                                                    .catch((error) => {
+                                                                                    .catch(error => {
                                                                                     console.error('Error fetching logistics setting:', error);
                                                                                     designatedVM.loading = false;
                                                                                     gvc.notifyDataChange(designatedVM.id);
@@ -758,16 +795,16 @@ export class ShoppingSettingAdvance {
                                                                 return '';
                                                         }
                                                     })()}
-                                                                          </div>
-                                                                      </div>
-                                                                  `;
+                                      </div>
+                                    </div>
+                                  `;
                                                 },
                                             };
                                         })}`;
                                     },
                                     onCreate: () => {
                                         if (loading) {
-                                            ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then((res) => {
+                                            ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then(res => {
                                                 dataList = (() => {
                                                     try {
                                                         return res.response.result[0].value;
@@ -793,12 +830,17 @@ export class ShoppingSettingAdvance {
                                     postMD.relative_product = (_a = postMD.relative_product) !== null && _a !== void 0 ? _a : [];
                                     try {
                                         return html `
-                                                    <div style="font-weight: 700;" class="mb-3 d-flex flex-column">相關商品 ${BgWidget.grayNote('相關商品將會顯示於商品頁底部')}</div>
-                                                    <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
-                                                        <div class="form-check-label c_updown_label">
-                                                            <div class="tx_normal">商品列表</div>
-                                                        </div>
-                                                        ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                          <div style="font-weight: 700;" class="mb-3 d-flex flex-column">
+                            相關商品 ${BgWidget.grayNote('相關商品將會顯示於商品頁底部')}
+                          </div>
+                          <div
+                            class="d-flex align-items-center gray-bottom-line-18"
+                            style="gap: 24px; justify-content: space-between;"
+                          >
+                            <div class="form-check-label c_updown_label">
+                              <div class="tx_normal">商品列表</div>
+                            </div>
+                            ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                             BgProduct.productsDialog({
                                                 gvc: gvc,
                                                 default: postMD.relative_product,
@@ -806,19 +848,19 @@ export class ShoppingSettingAdvance {
                                                     postMD.relative_product = value;
                                                     gvc.notifyDataChange(id);
                                                 }),
-                                                filter: (dd) => {
+                                                filter: dd => {
                                                     return dd.key !== postMD.id;
                                                 },
                                             });
                                         }), { textStyle: 'font-weight: 400;' })}
-                                                    </div>
-                                                    ${gvc.bindView(() => {
+                          </div>
+                          ${gvc.bindView(() => {
                                             const vm = {
                                                 id: gvc.glitter.getUUID(),
                                                 loading: true,
                                                 data: [],
                                             };
-                                            BgProduct.getProductOpts(postMD.relative_product).then((res) => {
+                                            BgProduct.getProductOpts(postMD.relative_product).then(res => {
                                                 vm.data = res;
                                                 vm.loading = false;
                                                 gvc.notifyDataChange(vm.id);
@@ -831,16 +873,18 @@ export class ShoppingSettingAdvance {
                                                     }
                                                     return vm.data
                                                         .map((opt, index) => {
-                                                        return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                            <span class="tx_normal">${index + 1} .</span>
-                                                                            ${BgWidget.validImageBox({
+                                                        return html ` <div
+                                      class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                    >
+                                      <span class="tx_normal">${index + 1} .</span>
+                                      ${BgWidget.validImageBox({
                                                             gvc: gvc,
                                                             image: opt.image,
                                                             width: 40,
                                                         })}
-                                                                            <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                                            ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                                        </div>`;
+                                      <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                      ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                    </div>`;
                                                     })
                                                         .join('');
                                                 }),
@@ -850,7 +894,7 @@ export class ShoppingSettingAdvance {
                                                 },
                                             };
                                         })}
-                                                `;
+                        `;
                                     }
                                     catch (e) {
                                         console.error(e);
@@ -871,13 +915,13 @@ export class ShoppingSettingAdvance {
                                     postMD.relative_product = (_a = postMD.relative_product) !== null && _a !== void 0 ? _a : [];
                                     try {
                                         return html `
-                                                    <div style="font-weight: 700;" class="mb-3 d-flex flex-column">
-                                                        ${carTitle}通知 ${BgWidget.grayNote(`購買此${carTitle}會收到的通知信，內容為空則不寄送。`)}
-                                                    </div>
-                                                    ${BgWidget.richTextEditor({
+                          <div style="font-weight: 700;" class="mb-3 d-flex flex-column">
+                            ${carTitle}通知 ${BgWidget.grayNote(`購買此${carTitle}會收到的通知信，內容為空則不寄送。`)}
+                          </div>
+                          ${BgWidget.richTextEditor({
                                             gvc: gvc,
                                             content: (_b = postMD.email_notice) !== null && _b !== void 0 ? _b : '',
-                                            callback: (content) => {
+                                            callback: content => {
                                                 postMD.email_notice = content;
                                             },
                                             title: '內容編輯',
@@ -910,7 +954,7 @@ export class ShoppingSettingAdvance {
                                                 ];
                                             })(),
                                         })}
-                                                `;
+                        `;
                                     }
                                     catch (e) {
                                         console.error(e);
@@ -929,26 +973,26 @@ export class ShoppingSettingAdvance {
                                 view: () => {
                                     return [
                                         html ` <div class="title-container px-0">
-                                                    <div style="color:#393939;font-weight: 700;">AI 選品</div>
-                                                    <div class="flex-fill"></div>
-                                                    ${BgWidget.grayButton('設定描述語句', gvc.event(() => {
+                          <div style="color:#393939;font-weight: 700;">AI 選品</div>
+                          <div class="flex-fill"></div>
+                          ${BgWidget.grayButton('設定描述語句', gvc.event(() => {
                                             let description = postMD.ai_description;
                                             BgWidget.settingDialog({
                                                 gvc: gvc,
                                                 title: '描述語句',
-                                                innerHTML: (gvc) => {
+                                                innerHTML: gvc => {
                                                     return BgWidget.textArea({
                                                         gvc: gvc,
                                                         title: '',
                                                         default: postMD.ai_description || '',
                                                         placeHolder: `請告訴我這是什麼商品，範例:現代極簡風格的淺灰色布藝沙發，可以同時乘坐3個人，配金屬腳座，採用鈦合金製作十分的堅固。`,
-                                                        callback: (text) => {
+                                                        callback: text => {
                                                             description = text;
                                                         },
                                                         style: `min-height:100px;`,
                                                     });
                                                 },
-                                                footer_html: (gvc) => {
+                                                footer_html: gvc => {
                                                     return [
                                                         BgWidget.save(gvc.event(() => {
                                                             postMD.ai_description = description;
@@ -961,20 +1005,20 @@ export class ShoppingSettingAdvance {
                                         }), {
                                             textStyle: 'width:100%;',
                                         })}
-                                                </div>`,
+                        </div>`,
                                         html `
-                                                    <div>
-                                                        ${postMD.ai_description
+                          <div>
+                            ${postMD.ai_description
                                             ? `您設定的描述語句：${postMD.ai_description}`
                                             : BgWidget.grayNote('尚未設定描述語句，透過設定描述語句，可以幫助AI更準確的定位產品。')}
-                                                    </div>
-                                                `,
+                          </div>
+                        `,
                                     ].join(BgWidget.mbContainer(18));
                                 },
                             };
                         })),
                     ]
-                        .filter((dd) => dd)
+                        .filter(dd => dd)
                         .join('<div class="my-3"></div>');
                 },
                 divCreate: {

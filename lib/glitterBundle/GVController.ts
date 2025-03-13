@@ -458,7 +458,7 @@ export class GVC {
                 }
 
             } catch (e) {
-                error(`Add ${urlArray[index]} ERROR!!`);
+                error(`Add ${urlArray[index]} ERROR`);
             }
         }
 

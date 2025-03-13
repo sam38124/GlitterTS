@@ -354,11 +354,35 @@ export class BgListComponent {
                 background-color: #fff !important;
               }
             `);
+                        items.map((item) => {
+                            const elem = window.parent.document.getElementById(`heading${item.key}`);
+                            if (elem && item.defaultOpen) {
+                                setTimeout(() => {
+                                    const button = elem.querySelector('.accordion-button');
+                                    button ? button.click() : elem.click();
+                                }, 200);
+                            }
+                        });
                     },
                 };
             }),
             right: true,
         });
+    }
+    static listBarRWD(filterList, filterTags) {
+        var _a, _b, _c;
+        if (document.body.clientWidth > 768) {
+            return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
+        <div>${filterTags}</div>`;
+        }
+        return html ` <div
+        style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between"
+      >
+        <div>${filterList[0]}</div>
+        <div style="display: flex; gap: 4px;">${(_a = filterList[2]) !== null && _a !== void 0 ? _a : ''} ${(_b = filterList[3]) !== null && _b !== void 0 ? _b : ''} ${(_c = filterList[4]) !== null && _c !== void 0 ? _c : ''}</div>
+      </div>
+      <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+      <div>${filterTags}</div>`;
     }
 }
 window.glitter.setModule(import.meta.url, BgListComponent);

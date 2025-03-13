@@ -10,81 +10,86 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         question: html `<i class="fa-regular fa-circle-question mb-1" style="font-size: 4rem;"></i>`,
     };
     const createButton = (config, classes = '') => {
-        return html `<div class="btn ${classes}" style="font-size: 14px;" onclick="${gvc.event(config.event)}">${config.title}</div>`;
+        return html `<div class="btn ${classes}" style="font-size: 14px;" onclick="${gvc.event(config.event)}">
+      ${config.title}
+    </div>`;
     };
     const createDialogBox = (config) => {
         var _a, _b;
         return html `
-        <div class="dialog-box">
-            <div class="dialog-content" style="width: ${(_a = config.width) !== null && _a !== void 0 ? _a : 280}px;">
-                ${(_b = config.icon) !== null && _b !== void 0 ? _b : ''}
-                <div class="mt-3 mb-3 fs-6 text-center w-100" style="white-space: normal;word-break: break-all;">${config.content}</div>
-                <div class="d-flex gap-3 justify-content-center">
-                    ${config.cancel ? createButton(config.cancel, 'btn-snow text-dark') : ''} ${config.confirm ? createButton(config.confirm, 'btn-black text-white') : ''}
-                </div>
-            </div>
+    <div class="dialog-box">
+      <div class="dialog-content" style="width: ${(_a = config.width) !== null && _a !== void 0 ? _a : 280}px;">
+        ${(_b = config.icon) !== null && _b !== void 0 ? _b : ''}
+        <div class="mt-3 mb-3 fs-6 text-center w-100" style="white-space: normal;word-break: break-all;">
+          ${config.content}
         </div>
-    `;
+        <div class="d-flex gap-3 justify-content-center">
+          ${config.cancel ? createButton(config.cancel, 'btn-snow text-dark') : ''}
+          ${config.confirm ? createButton(config.confirm, 'btn-black text-white') : ''}
+        </div>
+      </div>
+    </div>
+  `;
     };
     gvc.addStyle(`
-        .dialog-box {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 10000;
-        }
-        .dialog-content {
-            background: white;
-            padding: 24px 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            color: #393939;
-            max-width: 90%;
-        }
-        .btn-black {
-            display: flex;
-            padding: 8px 14px;
-            max-height: 36px;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            border: 0;
-            border-radius: 10px;
-            background: #393939;
-            cursor: pointer;
-        }
-        .btn-black:hover {
-            background: #646464 !important;
-        }
-        .btn-snow {
-            display: flex;
-            padding: 8px 14px;
-            max-height: 36px;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            border: 0;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            background: #fff;
-            cursor: pointer;
-        }
-        .btn-snow:hover {
-            background: #d5d5d5;
-        }
-    `);
+    .dialog-box {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+    }
+    .dialog-content {
+      background: white;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      color: #393939;
+      max-width: 90%;
+    }
+    .btn-black {
+      display: flex;
+      padding: 8px 14px;
+      max-height: 36px;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      border-radius: 10px;
+      background: #393939;
+      cursor: pointer;
+    }
+    .btn-black:hover {
+      background: #646464 !important;
+    }
+    .btn-snow {
+      display: flex;
+      padding: 8px 14px;
+      max-height: 36px;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      background: #fff;
+      cursor: pointer;
+    }
+    .btn-snow:hover {
+      background: #d5d5d5;
+    }
+  `);
     return {
         onCreateView: () => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
             try {
                 switch (gBundle.type) {
                     case 'dataLoading':
@@ -127,18 +132,18 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             icon: icons.question,
                             content: (_j = gBundle.title) !== null && _j !== void 0 ? _j : '',
                             confirm: {
-                                title: Language.text('okay'),
+                                title: (_k = gBundle.yesString) !== null && _k !== void 0 ? _k : Language.text('okay'),
                                 event: () => { var _a; return (_a = gBundle.callback) === null || _a === void 0 ? void 0 : _a.call(gBundle, true); },
                             },
                             cancel: {
-                                title: Language.text('cancel'),
+                                title: (_l = gBundle.notString) !== null && _l !== void 0 ? _l : Language.text('cancel'),
                                 event: () => { var _a; return (_a = gBundle.callback) === null || _a === void 0 ? void 0 : _a.call(gBundle, false); },
                             },
                             width: 420,
                         });
                     case 'input_text':
                         return createDialogBox({
-                            content: (_k = gBundle.title) !== null && _k !== void 0 ? _k : '',
+                            content: (_m = gBundle.title) !== null && _m !== void 0 ? _m : '',
                             confirm: {
                                 title: Language.text('confirm'),
                                 event: () => { var _a; return (_a = gBundle.callback) === null || _a === void 0 ? void 0 : _a.call(gBundle, true); },

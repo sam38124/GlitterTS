@@ -65,7 +65,9 @@ export class DeliveryHTML {
                                                                   </tr>
                                                                   <tr>
                                                                       <td>訂購日期：${glitter.ut.dateFormat(new Date(data.created_time), 'yyyy-MM-dd hh:mm')}</td>
-                                                                      <td>送貨地址：${orderData.user_info.address}</td>
+                                                                      <td>送貨地址：${[orderData.user_info.city,orderData.user_info.area,orderData.user_info.address].filter((dd)=>{
+                                                                          return dd
+                                                                      }).join('')}</td>
                                                                   </tr>
                                                                   <tr>
                                                                       <td>訂購人帳號：${orderData.email}</td>

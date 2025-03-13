@@ -134,7 +134,7 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
             function mergeQRCodes(code) {
                 return __awaiter(this, void 0, void 0, function* () {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        let size = 185;
+                        let size = 190;
                         let gap = 15;
                         let qr1 = yield generateQRCode(code[0], size);
                         let qr2 = yield generateQRCode(code[1], size);
@@ -167,7 +167,7 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                         width: size,
                         height: size,
                         correctLevel: 1,
-                        version: 40,
+                        version: 40
                     });
                     setTimeout(() => {
                         resolve(div.querySelector('canvas').toDataURL('image/png'));
@@ -175,10 +175,13 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                 });
             }
             const ba = (new Blob([invoice.qrcode_0]).size - (new Blob([invoice.qrcode_1]).size)) * 1.1;
+            console.log(`ba=>`, invoice.qrcode_0);
+            console.log(`ba=>`, invoice.qrcode_1);
             for (let a = 0; a <= ba; a++) {
                 invoice.qrcode_1 += '*';
             }
             mergeQRCodes([invoice.qrcode_0, invoice.qrcode_1]).then((res) => {
+                console.log(`two-qrcode=>`, res);
                 glitter.runJsInterFace('start-print', {
                     'command-list': [
                         {

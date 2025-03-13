@@ -684,91 +684,91 @@ export class UMOrder {
         return html`
             <div class="container py-4">
                 ${gvc.bindView({
-            bind: ids.view,
-            dataList: [{ obj: vm, key: 'type' }],
-            view: () => {
-                try {
-                    if (loadings.view) {
-                        return UmClass.spinner({
-                            container: {
-                                style: 'height: 100%;',
-                            },
-                        });
-                    }
+                    bind: ids.view,
+                    dataList: [{ obj: vm, key: 'type' }],
+                    view: () => {
+                        try {
+                            if (loadings.view) {
+                                return UmClass.spinner({
+                                    container: {
+                                        style: 'height: 100%;',
+                                    },
+                                });
+                            }
 
-                    if (!vm.data || !vm.data.orderData || !vm.data.cart_token) {
-                        return html`
+                            if (!vm.data || !vm.data.orderData || !vm.data.cart_token) {
+                                return html`
                                     <section class="o-h2">${Language.text('order_not_found')}</section> `;
-                    }
+                            }
 
-                    const orderData = vm.data.orderData;
+                            const orderData = vm.data.orderData;
 
-                    function payInfo() {
-                        const id = glitter.getUUID();
-                        return gvc.bindView({
-                            bind: id,
-                            view: async () => {
-                                let arr = [] as any;
-                                if (orderData.customer_info.payment_select === 'atm') {
-                                    arr = [
-                                        {
-                                            title: Language.text('bank_name'),
-                                            value: orderData.payment_info_atm.bank_name,
-                                        },
-                                        {
-                                            title: Language.text('bank_code'),
-                                            value: orderData.payment_info_atm.bank_code,
-                                        },
-                                        {
-                                            title: Language.text('remittance_account_name'),
-                                            value: orderData.payment_info_atm.bank_user,
-                                        },
-                                        {
-                                            title: Language.text('remittance_account_number'),
-                                            value: orderData.payment_info_atm.bank_account,
-                                        },
-                                        {
-                                            title: Language.text('remittance_amount'),
-                                            value: orderData.total.toLocaleString(),
-                                        },
-                                        {
-                                            title: Language.text('payment_instructions'),
-                                            value: orderData.payment_info_atm.text,
-                                        },
-                                    ];
-                                } else if (orderData.customer_info.payment_select === 'line') {
-                                    arr = [
-                                        {
-                                            title: Language.text('payment_instructions'),
-                                            value: orderData.payment_info_line_pay.text,
-                                        },
-                                    ];
-                                } else {
-                                    await new Promise<any[]>((resolve) => {
-                                        ApiShop.getOrderPaymentMethod().then((data) => {
-                                            if (data.result && data.response) {
-                                                const customer = data.response.payment_info_custom.find((item: any) => {
-                                                    return item.id === orderData.customer_info.payment_select;
+                            function payInfo() {
+                                const id = glitter.getUUID();
+                                return gvc.bindView({
+                                    bind: id,
+                                    view: async () => {
+                                        let arr = [] as any;
+                                        if (orderData.customer_info.payment_select === 'atm') {
+                                            arr = [
+                                                {
+                                                    title: Language.text('bank_name'),
+                                                    value: orderData.payment_info_atm.bank_name,
+                                                },
+                                                {
+                                                    title: Language.text('bank_code'),
+                                                    value: orderData.payment_info_atm.bank_code,
+                                                },
+                                                {
+                                                    title: Language.text('remittance_account_name'),
+                                                    value: orderData.payment_info_atm.bank_user,
+                                                },
+                                                {
+                                                    title: Language.text('remittance_account_number'),
+                                                    value: orderData.payment_info_atm.bank_account,
+                                                },
+                                                {
+                                                    title: Language.text('remittance_amount'),
+                                                    value: orderData.total.toLocaleString(),
+                                                },
+                                                {
+                                                    title: Language.text('payment_instructions'),
+                                                    value: orderData.payment_info_atm.text,
+                                                },
+                                            ];
+                                        } else if (orderData.customer_info.payment_select === 'line') {
+                                            arr = [
+                                                {
+                                                    title: Language.text('payment_instructions'),
+                                                    value: orderData.payment_info_line_pay.text,
+                                                },
+                                            ];
+                                        } else {
+                                            await new Promise<any[]>((resolve) => {
+                                                ApiShop.getOrderPaymentMethod().then((data) => {
+                                                    if (data.result && data.response) {
+                                                        const customer = data.response.payment_info_custom.find((item: any) => {
+                                                            return item.id === orderData.customer_info.payment_select;
+                                                        });
+                                                        if (customer) {
+                                                            resolve([
+                                                                {
+                                                                    title: Language.text('payment_instructions'),
+                                                                    value: customer.text,
+                                                                },
+                                                            ]);
+                                                        } else {
+                                                            resolve([]);
+                                                        }
+                                                    }
                                                 });
-                                                if (customer) {
-                                                    resolve([
-                                                        {
-                                                            title: Language.text('payment_instructions'),
-                                                            value: customer.text,
-                                                        },
-                                                    ]);
-                                                } else {
-                                                    resolve([]);
-                                                }
-                                            }
-                                        });
-                                    }).then((finalArr) => {
-                                        arr = finalArr;
-                                    });
-                                }
-                                return gvc.map(
-                                  arr.map((item: any) => {
-                                      return html`
+                                            }).then((finalArr) => {
+                                                arr = finalArr;
+                                            });
+                                        }
+                                        return gvc.map(
+                                            arr.map((item: any) => {
+                                                return html`
                                                     <div
                                                         class="o-title-container ${item.title === Language.text('payment_instructions') ? 'align-items-start mt-2' : ''}"
                                                         style="">
@@ -778,69 +778,69 @@ export class UMOrder {
                                                         <div class="o-title fr-view">${item.value}</div>
                                                     </div>
                                                 `;
-                                  }),
-                                );
-                            },
-                        });
-                    }
-
-                    function validateForm(data: any) {
-                        // 1. 檢查LINE轉帳是否上傳圖片
-                        if (orderData.customer_info.payment_select === 'line') {
-                            if (CheckInput.isEmpty(data.image)) {
-                                dialog.errorMessage({ text: Language.text('upload_screenshot_for_verification') });
-                                return false;
+                                            }),
+                                        );
+                                    },
+                                });
                             }
-                            return true;
-                        }
 
-                        // 2. 自訂表單驗證
-                        if (vm.formList.length > 0) {
-                            for (const item of vm.formList) {
-                                if (item.require === 'true' && CheckInput.isEmpty(data[item.key])) {
-                                    dialog.errorMessage({ text: `${Language.text('please_enter')}「${item.title}」` });
+                            function validateForm(data: any) {
+                                // 1. 檢查LINE轉帳是否上傳圖片
+                                if (orderData.customer_info.payment_select === 'line') {
+                                    if (CheckInput.isEmpty(data.image)) {
+                                        dialog.errorMessage({ text: Language.text('upload_screenshot_for_verification') });
+                                        return false;
+                                    }
+                                    return true;
+                                }
+
+                                // 2. 自訂表單驗證
+                                if (vm.formList.length > 0) {
+                                    for (const item of vm.formList) {
+                                        if (item.require === 'true' && CheckInput.isEmpty(data[item.key])) {
+                                            dialog.errorMessage({ text: `${Language.text('please_enter')}「${item.title}」` });
+                                            return false;
+                                        }
+                                    }
+                                    return true;
+                                }
+
+                                // 3. 銀行轉帳驗證
+                                const paymentTime = data['pay-date'];
+                                const bankName = data.bank_name;
+                                const accountName = data.bank_account;
+                                const accountLastFive = data.trasaction_code;
+
+                                // 檢查付款時間
+                                if (!paymentTime) {
+                                    dialog.errorMessage({ text: Language.text('payment_time_not_filled') });
                                     return false;
                                 }
+
+                                // 檢查銀行名稱
+                                if (!bankName) {
+                                    dialog.errorMessage({ text: Language.text('bank_name_not_filled') });
+                                    return false;
+                                }
+
+                                // 檢查銀行戶名
+                                if (!accountName) {
+                                    dialog.errorMessage({ text: Language.text('bank_account_name_not_filled') });
+                                    return false;
+                                }
+
+                                // 檢查銀行帳號後五碼
+                                if (!/^\d{5}$/.test(accountLastFive)) {
+                                    dialog.errorMessage({ text: Language.text('last_five_digits_five_digits') });
+                                    return false;
+                                }
+
+                                return true;
                             }
-                            return true;
-                        }
 
-                        // 3. 銀行轉帳驗證
-                        const paymentTime = data['pay-date'];
-                        const bankName = data.bank_name;
-                        const accountName = data.bank_account;
-                        const accountLastFive = data.trasaction_code;
-
-                        // 檢查付款時間
-                        if (!paymentTime) {
-                            dialog.errorMessage({ text: Language.text('payment_time_not_filled') });
-                            return false;
-                        }
-
-                        // 檢查銀行名稱
-                        if (!bankName) {
-                            dialog.errorMessage({ text: Language.text('bank_name_not_filled') });
-                            return false;
-                        }
-
-                        // 檢查銀行戶名
-                        if (!accountName) {
-                            dialog.errorMessage({ text: Language.text('bank_account_name_not_filled') });
-                            return false;
-                        }
-
-                        // 檢查銀行帳號後五碼
-                        if (!/^\d{5}$/.test(accountLastFive)) {
-                            dialog.errorMessage({ text: Language.text('last_five_digits_five_digits') });
-                            return false;
-                        }
-
-                        return true;
-                    }
-
-                    if (vm.type === 'upload') {
-                        let formData = {} as any;
-                        return html`
+                            if (vm.type === 'upload') {
+                                let formData = {} as any;
+                                return html`
                                     <section class="o-h1">${Language.text('order_number')}<br />#${vm.data.cart_token}
                                     </section>
                                     <section class="o-card-row" style="max-width: 100%;">
@@ -854,75 +854,75 @@ export class UMOrder {
                                             <div class="o-gray-line"></div>
                                             <span class="o-gray-text"
                                             >${(() => {
-                            if (orderData.customer_info.payment_select === 'atm') {
-                                return html`＊${Language.text('please_confirm_bank_account_details')}`;
-                            }
-                            if (orderData.customer_info.payment_select === 'line') {
-                                return html`＊${Language.text('upload_screenshot_for_verification')}`;
-                            }
-                            if (orderData.customer_info.payment_select === 'cash_on_delivery') {
-                                return html`＊${Language.text('please_confirm_bank_account_details')}
+                                                if (orderData.customer_info.payment_select === 'atm') {
+                                                    return html`＊${Language.text('please_confirm_bank_account_details')}`;
+                                                }
+                                                if (orderData.customer_info.payment_select === 'line') {
+                                                    return html`＊${Language.text('upload_screenshot_for_verification')}`;
+                                                }
+                                                if (orderData.customer_info.payment_select === 'cash_on_delivery') {
+                                                    return html`＊${Language.text('please_confirm_bank_account_details')}
                                                     <br />＊${Language.text('upload_screenshot_or_transfer_proof')}`;
-                            }
-                            return '';
-                        })()}</span
+                                                }
+                                                return '';
+                                            })()}</span
                                             >
                                             ${gvc.bindView(
-                          (() => {
-                              const id = glitter.getUUID();
-                              return {
-                                  bind: id,
-                                  view: () => {
-                                      return FormWidget.editorView({
-                                          gvc: gvc,
-                                          array: (() => {
-                                              if (orderData.customer_info.payment_select === 'line') {
-                                                  return UMOrder.lineFormList;
-                                              }
-                                              if (orderData.customer_info.payment_select === 'atm') {
-                                                  return UMOrder.atmFormList;
-                                              }
+                                                (() => {
+                                                    const id = glitter.getUUID();
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            return FormWidget.editorView({
+                                                                gvc: gvc,
+                                                                array: (() => {
+                                                                    if (orderData.customer_info.payment_select === 'line') {
+                                                                        return UMOrder.lineFormList;
+                                                                    }
+                                                                    if (orderData.customer_info.payment_select === 'atm') {
+                                                                        return UMOrder.atmFormList;
+                                                                    }
 
-                                              const from = orderData.payment_customer_form.find((item: any) => {
-                                                  return item.id === orderData.customer_info.payment_select;
-                                              });
-                                              formData.paymentForm = from;
+                                                                    const from = orderData.payment_customer_form.find((item: any) => {
+                                                                        return item.id === orderData.customer_info.payment_select;
+                                                                    });
+                                                                    formData.paymentForm = from;
 
-                                              if (from === undefined || from.list.length === 0) {
-                                                  return [];
-                                              }
-                                              vm.formList = from.list;
-                                              return from.list;
-                                          })(),
-                                          refresh: () => {
-                                              setTimeout(() => {
-                                                  gvc.notifyDataChange(id);
-                                              });
-                                          },
-                                          formData: formData,
-                                      });
-                                  },
-                                  divCreate: {
-                                      class: 'mt-2 mb-3',
-                                  },
-                              };
-                          })(),
-                        )}
+                                                                    if (from === undefined || from.list.length === 0) {
+                                                                        return [];
+                                                                    }
+                                                                    vm.formList = from.list;
+                                                                    return from.list;
+                                                                })(),
+                                                                refresh: () => {
+                                                                    setTimeout(() => {
+                                                                        gvc.notifyDataChange(id);
+                                                                    });
+                                                                },
+                                                                formData: formData,
+                                                            });
+                                                        },
+                                                        divCreate: {
+                                                            class: 'mt-2 mb-3',
+                                                        },
+                                                    };
+                                                })(),
+                                            )}
                                             <div
                                                 class="o-button mx-2"
                                                 onclick="${gvc.event(() => {
-                            if (!validateForm(formData)) {
-                                return;
-                            }
-                            dialog.dataLoading({
-                                visible: true,
-                                text: Language.text('data_submitting'),
-                            });
-                            ApiShop.proofPurchase(vm.data.cart_token, formData).then(() => {
-                                dialog.dataLoading({ visible: false });
-                                location.reload();
-                            });
-                        })}"
+                                                    if (!validateForm(formData)) {
+                                                        return;
+                                                    }
+                                                    dialog.dataLoading({
+                                                        visible: true,
+                                                        text: Language.text('data_submitting'),
+                                                    });
+                                                    ApiShop.proofPurchase(vm.data.cart_token, formData).then(() => {
+                                                        dialog.dataLoading({ visible: false });
+                                                        location.reload();
+                                                    });
+                                                })}"
                                             >
                                                 <span class="o-button-text">${Language.text('confirm')}</span>
                                             </div>
@@ -932,90 +932,90 @@ export class UMOrder {
                                         class="m-auto d-flex align-items-center justify-content-center my-5"
                                         style="cursor: pointer;"
                                         onclick="${gvc.event(() => {
-                            setTimeout(() => {
-                                $('html').scrollTop(0);
-                            }, 100);
-                            vm.type = '';
-                        })}"
+                                            setTimeout(() => {
+                                                $('html').scrollTop(0);
+                                            }, 100);
+                                            vm.type = '';
+                                        })}"
                                     >
                                         <img class="me-2"
                                              src="https://ui.homee.ai/htmlExtension/shopify/order/img/back.svg" />
                                         <span class="go-back-text">${Language.text('return_to_order_details')}</span>
                                     </section>
                                 `;
-                    }
+                            }
 
-                    return html`
+                            return html`
                                 <section class="o-h1">${Language.text('order_number')}<br />#${vm.data.cart_token}
                                 </section>
                                 <section class="o-card">
                                     <h3 class="mb-3">${Language.text('order_details')}</h3>
                                     ${gvc.map(
-                      orderData.lineItems.map((item) => {
-                          return html`
+                                        orderData.lineItems.map((item) => {
+                                            return html`
                                                 <div
                                                     class="o-line-item ${document.body.clientWidth < 800 ? `p-2` : ``}">
                                                     <div class="d-flex gap-3 align-items-center">
                                                         <div>
                                                             ${UmClass.validImageBox({
-                              gvc,
-                              image: item.preview_image,
-                              width: 60,
-                              style: 'border-radius: 10px;',
-                          })}
+                                                                gvc,
+                                                                image: item.preview_image,
+                                                                width: 60,
+                                                                style: 'border-radius: 10px;',
+                                                            })}
                                                         </div>
                                                         <div>
                                                             <p
                                                                 class="o-item-title"
                                                                 onclick="${gvc.event(() => {
-                              dialog.dataLoading({
-                                  visible: true,
-                                  text: Language.text('loading'),
-                              });
-                              ApiShop.getProduct({
-                                  page: 0,
-                                  limit: 1,
-                                  id: `${item.id}`,
-                              }).then((data) => {
-                                  dialog.dataLoading({ visible: false });
-                                  try {
-                                      if (data.result && data.response.data) {
-                                          gvc.glitter.href = `/products/${data.response.data.content.seo.domain}`;
-                                      }
-                                  } catch (error) {
-                                      dialog.errorMessage({ text: Language.text('product_not_found') });
-                                  }
-                              });
-                          })}"
+                                                                    dialog.dataLoading({
+                                                                        visible: true,
+                                                                        text: Language.text('loading'),
+                                                                    });
+                                                                    ApiShop.getProduct({
+                                                                        page: 0,
+                                                                        limit: 1,
+                                                                        id: `${item.id}`,
+                                                                    }).then((data) => {
+                                                                        dialog.dataLoading({ visible: false });
+                                                                        try {
+                                                                            if (data.result && data.response.data) {
+                                                                                gvc.glitter.href = `/products/${data.response.data.content.seo.domain}`;
+                                                                            }
+                                                                        } catch (error) {
+                                                                            dialog.errorMessage({ text: Language.text('product_not_found') });
+                                                                        }
+                                                                    });
+                                                                })}"
                                                             >
                                                                 ${(() => {
-                              const title = (item.language_data && (item as any).language_data[Language.getLanguage()].title) || item.title;
-                              return title;
-                          })()}
+                                                                    const title = (item.language_data && (item as any).language_data[Language.getLanguage()].title) || item.title;
+                                                                    return title;
+                                                                })()}
                                                             </p>
                                                             <p class="o-item-spec">
                                                                 ${item.spec.length > 0
-                            ? `${Language.text('specification')}：${(() => {
-                                const spec: any = (() => {
-                                    if (item.spec) {
-                                        return item.spec.map((dd: string, index: number) => {
-                                            try {
-                                                return (
-                                                  (item.specs[index] as any).option.find((d1: any) => {
-                                                      return d1.title === dd;
-                                                  }).language_title[Language.getLanguage()] || dd
-                                                );
-                                            } catch (e) {
-                                                return dd;
-                                            }
-                                        });
-                                    } else {
-                                        return [];
-                                    }
-                                })();
-                                return spec.join(' / ');
-                            })()}`
-                            : Language.text('single_specification')}
+                                                                    ? `${Language.text('specification')}：${(() => {
+                                                                        const spec: any = (() => {
+                                                                            if (item.spec) {
+                                                                                return item.spec.map((dd: string, index: number) => {
+                                                                                    try {
+                                                                                        return (
+                                                                                            (item.specs[index] as any).option.find((d1: any) => {
+                                                                                                return d1.title === dd;
+                                                                                            }).language_title[Language.getLanguage()] || dd
+                                                                                        );
+                                                                                    } catch (e) {
+                                                                                        return dd;
+                                                                                    }
+                                                                                });
+                                                                            } else {
+                                                                                return [];
+                                                                            }
+                                                                        })();
+                                                                        return spec.join(' / ');
+                                                                    })()}`
+                                                                    : Language.text('single_specification')}
                                                             </p>
                                                             <span
                                                                 class="me-3  d-sm-none">NT ${item.sale_price.toLocaleString()} × ${item.count}</span>
@@ -1029,8 +1029,8 @@ export class UMOrder {
                                                     </div>
                                                 </div>
                                             `;
-                      }),
-                    )}
+                                        }),
+                                    )}
                                     <div class="o-total-container">
                                         <div class="o-total-item">
                                             <span>${Language.text('subtotal_amount')}</span>
@@ -1058,72 +1058,72 @@ export class UMOrder {
                                     </div>
                                 </section>
                                 ${orderData.method === 'off_line' && orderData.customer_info.payment_select !== 'cash_on_delivery' && `${orderData.orderStatus}` != '-1'
-                      ? html`
+                                    ? html`
                                         <section class="o-card">
                                             <h3 class="mb-3">${Language.text('payment_info')}</h3>
                                             ${payInfo()}
                                             <div
                                                 class="o-button"
                                                 onclick="${gvc.event(() => {
-                          setTimeout(() => {
-                              $('html').scrollTop(0);
-                          }, 100);
-                          vm.type = 'upload';
-                      })}"
+                                                    setTimeout(() => {
+                                                        $('html').scrollTop(0);
+                                                    }, 100);
+                                                    vm.type = 'upload';
+                                                })}"
                                             >
                                                 <span
                                                     class="o-button-text">${orderData.proof_purchase ? Language.text('reupload_checkout_proof') : Language.text('upload_checkout_proof')}</span>
                                             </div>
                                         </section>`
-                      : ''}
+                                    : ''}
                                 <section class="o-card-row">
                                     <div class="col-12 col-md-6 mb-3 px-0">
                                         <h3 class="mb-3">${Language.text('order_information')}</h3>
                                         ${(() => {
-                        function checkAndRemoveURLParameter() {
-                            if (glitter.getUrlParameter('EndCheckout')) {
-                                glitter.setUrlParameter('EndCheckout', undefined);
-                                Ad.gtagEvent('purchase', {
-                                    transaction_id: vm.data.cart_token,
-                                    value: orderData.total,
-                                    shipping: orderData.shipment_fee,
-                                    currency: 'TWD',
-                                    coupon: orderData.voucherList && orderData.voucherList.length > 0 ? orderData.voucherList[0].title : '',
-                                    items: orderData.lineItems.map((item: any, index: number) => {
-                                        return {
-                                            item_id: item.id,
-                                            item_name: item.title,
-                                            discount: item.discount_price,
-                                            index: index,
-                                            item_variant: item.spec.join('-'),
-                                            price: item.sale_price,
-                                            quantity: item.count,
-                                        };
-                                    }),
-                                });
-                            }
-                        }
+                                            function checkAndRemoveURLParameter() {
+                                                if (glitter.getUrlParameter('EndCheckout')) {
+                                                    glitter.setUrlParameter('EndCheckout', undefined);
+                                                    Ad.gtagEvent('purchase', {
+                                                        transaction_id: vm.data.cart_token,
+                                                        value: orderData.total,
+                                                        shipping: orderData.shipment_fee,
+                                                        currency: 'TWD',
+                                                        coupon: orderData.voucherList && orderData.voucherList.length > 0 ? orderData.voucherList[0].title : '',
+                                                        items: orderData.lineItems.map((item: any, index: number) => {
+                                                            return {
+                                                                item_id: item.id,
+                                                                item_name: item.title,
+                                                                discount: item.discount_price,
+                                                                index: index,
+                                                                item_variant: item.spec.join('-'),
+                                                                price: item.sale_price,
+                                                                quantity: item.count,
+                                                            };
+                                                        }),
+                                                    });
+                                                }
+                                            }
 
-                        function customerCancelOrder() {
-                            const origin = vm.data;
-                            const proofPurchase = orderData.proof_purchase === undefined;
-                            const paymentStatus = origin.status === undefined || origin.status === 0 || origin.status === -1;
-                            const progressStatus = orderData.progress === undefined || orderData.progress === 'wait';
-                            const orderStatus = orderData.orderStatus === undefined || `${orderData.orderStatus}` === '0';
+                                            function customerCancelOrder() {
+                                                const origin = vm.data;
+                                                const proofPurchase = orderData.proof_purchase === undefined;
+                                                const paymentStatus = origin.status === undefined || origin.status === 0 || origin.status === -1;
+                                                const progressStatus = orderData.progress === undefined || orderData.progress === 'wait';
+                                                const orderStatus = orderData.orderStatus === undefined || `${orderData.orderStatus}` === '0';
 
-                            if (!(proofPurchase && paymentStatus && progressStatus && orderStatus)) {
-                                return '';
-                            }
+                                                if (!(proofPurchase && paymentStatus && progressStatus && orderStatus)) {
+                                                    return '';
+                                                }
 
-                            const id = glitter.getUUID();
-                            let loading = true;
-                            let allow = false;
+                                                const id = glitter.getUUID();
+                                                let loading = true;
+                                                let allow = false;
 
-                            return gvc.bindView({
-                                bind: id,
-                                view: () => {
-                                    return !loading && allow
-                                      ? html`
+                                                return gvc.bindView({
+                                                    bind: id,
+                                                    view: () => {
+                                                        return !loading && allow
+                                                            ? html`
                                                                 <div class="customer-btn ms-3"
                                                                      onclick="${gvc.event(() => UMOrder.cancelOrder(gvc, vm.data.cart_token))}">
                                                                     <div class="customer-btn-text">
@@ -1131,365 +1131,367 @@ export class UMOrder {
                                                                     </div>
                                                                 </div>
                                                             `
-                                      : '';
-                                },
-                                divCreate: {
-                                    elem: 'span',
-                                },
-                                onCreate: () => {
-                                    if (loading) {
-                                        ApiUser.getPublicConfig('login_config', 'manager').then((data) => {
-                                            loading = false;
-                                            allow = Boolean(data.result && data.response?.value?.customer_cancel_order);
-                                            gvc.notifyDataChange(id);
-                                        });
-                                    }
-                                },
-                            });
-                        }
+                                                            : '';
+                                                    },
+                                                    divCreate: {
+                                                        elem: 'span',
+                                                    },
+                                                    onCreate: () => {
+                                                        if (loading) {
+                                                            ApiUser.getPublicConfig('login_config', 'manager').then((data) => {
+                                                                loading = false;
+                                                                allow = Boolean(data.result && data.response?.value?.customer_cancel_order);
+                                                                gvc.notifyDataChange(id);
+                                                            });
+                                                        }
+                                                    },
+                                                });
+                                            }
 
-                        function gotoCheckout() {
-                            const isOffLine = orderData.method === 'off_line';
-                            if (isOffLine) {
-                                return '';
-                            }
-                            return html`
+                                            function gotoCheckout() {
+                                                const isOffLine = orderData.method === 'off_line';
+                                                if (isOffLine) {
+                                                    return '';
+                                                }
+                                                return html`
                                                     <div
                                                         class="customer-btn ms-3 d-none"
                                                         onclick="${gvc.event(() => {
-                                UMOrder.repay(gvc, vm.data.cart_token);
-                            })}"
+                                                            UMOrder.repay(gvc, vm.data.cart_token);
+                                                        })}"
                                                     >
                                                         <div class="customer-btn-text">
                                                             ${Language.text('proceed_to_checkout')}
                                                         </div>
                                                     </div>`;
-                        }
+                                            }
 
-                        checkAndRemoveURLParameter();
+                                            checkAndRemoveURLParameter();
 
-                        const arr = [
-                            {
-                                title: Language.text('order_number'),
-                                value: vm.data.cart_token,
-                            },
-                            {
-                                title: Language.text('order_date'),
-                                value: gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd'),
-                            },
-                            {
-                                title: Language.text('order_status'),
-                                value: (() => {
-                                    switch (orderData.orderStatus) {
-                                        case '-1':
-                                            return `<div class="text-danger">${Language.text('cancelled')}</div>`;
-                                        case '1':
-                                            return Language.text('completed');
-                                        case '-99':
-                                            return Language.text('deleted');
-                                        default:
-                                            return Language.text('processing') + customerCancelOrder();
-                                    }
-                                })(),
-                            },
-                            {
-                                title: Language.text('payment_status'),
-                                value: (() => {
-                                    if (orderData.customer_info.payment_select === 'cash_on_delivery') {
-                                        return Language.text('cash_on_delivery');
-                                    }
-                                    switch (vm.data.status) {
-                                        case 0:
-                                            return orderData.proof_purchase ? Language.text('awaiting_verification') : `${Language.text('unpaid')}${gotoCheckout()}`;
-                                        case 1:
-                                            return Language.text('paid');
-                                        case -1:
-                                            return Language.text('payment_failed');
-                                        case -2:
-                                            return Language.text('refunded');
-                                    }
-                                })(),
-                            },
-                        ];
+                                            const arr = [
+                                                {
+                                                    title: Language.text('order_number'),
+                                                    value: vm.data.cart_token,
+                                                },
+                                                {
+                                                    title: Language.text('order_date'),
+                                                    value: gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd'),
+                                                },
+                                                {
+                                                    title: Language.text('order_status'),
+                                                    value: (() => {
+                                                        switch (orderData.orderStatus) {
+                                                            case '-1':
+                                                                return `<div class="text-danger">${Language.text('cancelled')}</div>`;
+                                                            case '1':
+                                                                return Language.text('completed');
+                                                            case '-99':
+                                                                return Language.text('deleted');
+                                                            default:
+                                                                return Language.text('processing') + customerCancelOrder();
+                                                        }
+                                                    })(),
+                                                },
+                                                {
+                                                    title: Language.text('payment_status'),
+                                                    value: (() => {
+                                                        if (orderData.customer_info.payment_select === 'cash_on_delivery') {
+                                                            return Language.text('cash_on_delivery');
+                                                        }
+                                                        switch (vm.data.status) {
+                                                            case 0:
+                                                                return orderData.proof_purchase ? Language.text('awaiting_verification') : `${Language.text('unpaid')}${gotoCheckout()}`;
+                                                            case 1:
+                                                                return Language.text('paid');
+                                                            case -1:
+                                                                return Language.text('payment_failed');
+                                                            case -2:
+                                                                return Language.text('refunded');
+                                                        }
+                                                    })(),
+                                                },
+                                            ];
 
-                        return gvc.map(
-                          arr.map((item) => {
-                              return html`
+                                            return gvc.map(
+                                                arr.map((item) => {
+                                                    return html`
                                                         <div class="o-title-container">
                                                             <div class="o-title me-1">${item.title}：</div>
                                                             <div class="o-title">${item.value}</div>
                                                         </div>
                                                     `;
-                          }),
-                        );
-                    })()}
+                                                }),
+                                            );
+                                        })()}
                                     </div>
                                     <div class="col-12 col-md-6 mb-3 px-0">
                                         <h3 class="mb-3">${Language.text('customer_information')}</h3>
                                         ${(() => {
-                        const arr = [
-                            {
-                                title: Language.text('name'),
-                                value: orderData.customer_info.name,
-                            },
-                            {
-                                title: Language.text('contact_number'),
-                                value: orderData.customer_info.phone,
-                            },
-                            ...(orderData.customer_info.email
-                              ? [
-                                  {
-                                      title: Language.text('email'),
-                                      value: orderData.customer_info.email,
-                                  },
-                              ]
-                              : []),
-                        ].concat(
-                          (orderData.custom_form_format ?? [])
-                            .map((dd) => {
-                                return {
-                                    title: Language.getLanguageCustomText(dd.title),
-                                    value: orderData.custom_form_data[dd.key],
-                                };
-                            })
-                            .filter((d1) => {
-                                return d1.value;
-                            }),
-                        );
+                                            const arr = [
+                                                {
+                                                    title: Language.text('name'),
+                                                    value: orderData.customer_info.name,
+                                                },
+                                                {
+                                                    title: Language.text('contact_number'),
+                                                    value: orderData.customer_info.phone,
+                                                },
+                                                ...(orderData.customer_info.email
+                                                    ? [
+                                                        {
+                                                            title: Language.text('email'),
+                                                            value: orderData.customer_info.email,
+                                                        },
+                                                    ]
+                                                    : []),
+                                            ].concat(
+                                                (orderData.custom_form_format ?? [])
+                                                    .map((dd) => {
+                                                        return {
+                                                            title: Language.getLanguageCustomText(dd.title),
+                                                            value: orderData.custom_form_data[dd.key],
+                                                        };
+                                                    })
+                                                    .filter((d1) => {
+                                                        return d1.value;
+                                                    }),
+                                            );
 
-                        return gvc.map(
-                          arr.map((item) => {
-                              return html`
+                                            return gvc.map(
+                                                arr.map((item) => {
+                                                    return html`
                                                         <div class="o-title-container">
                                                             <div class="o-title me-1">${item.title}：</div>
                                                             <div class="o-title">${item.value}</div>
                                                         </div>
                                                     `;
-                          }),
-                        );
-                    })()}
+                                                }),
+                                            );
+                                        })()}
                                     </div>
                                     <div class="col-12 col-md-6 mb-3 px-0">
                                         <h3 class="mb-3">${Language.text('shipping_information')}</h3>
                                         ${(() => {
-
-                        const selector = orderData.shipment_selector.find((dd) => {
-                            return dd.value === orderData.user_info.shipment;
-                        });
-                        let arr = [
-                            {
-                                title: Language.text('shipping_method'),
-                                value: (() => {
-                                    switch (orderData.user_info.shipment) {
-                                        case 'FAMIC2C':
-                                            return Language.text('ship_FAMIC2C');
-                                        case 'HILIFEC2C':
-                                            return Language.text('ship_HILIFEC2C');
-                                        case 'OKMARTC2C':
-                                            return Language.text('ship_OKMARTC2C');
-                                        case 'UNIMARTC2C':
-                                            return Language.text('ship_UNIMARTC2C');
-                                        case 'shop':
-                                            return Language.text('ship_shop');
-                                        case 'global_express':
-                                            return Language.text('ship_global_express');
-                                        default:
-                                            if (selector) {
-                                                return Language.getLanguageCustomText(selector.name);
-                                            } else {
-                                                return Language.text('ship_normal');
+                                           
+                                            const selector = orderData.shipment_selector.find((dd) => {
+                                                return dd.value === orderData.user_info.shipment;
+                                            });
+                                            let arr = [
+                                                {
+                                                    title: Language.text('shipping_method'),
+                                                    value: (() => {
+                                                        switch (orderData.user_info.shipment) {
+                                                            case 'FAMIC2C':
+                                                                return Language.text('ship_FAMIC2C');
+                                                            case 'HILIFEC2C':
+                                                                return Language.text('ship_HILIFEC2C');
+                                                            case 'OKMARTC2C':
+                                                                return Language.text('ship_OKMARTC2C');
+                                                            case 'UNIMARTC2C':
+                                                                return Language.text('ship_UNIMARTC2C');
+                                                            case 'shop':
+                                                                return Language.text('ship_shop');
+                                                            case 'global_express':
+                                                                return Language.text('ship_global_express');
+                                                            default:
+                                                                if (selector) {
+                                                                    return Language.getLanguageCustomText(selector.name);
+                                                                } else {
+                                                                    return Language.text('ship_normal');
+                                                                }
+                                                        }
+                                                    })(),
+                                                },
+                                            ];
+                                            if ((vm.data as any).invoice_number) {
+                                                arr.push({
+                                                    title: Language.text('invoice_number'),
+                                                    value: (vm.data as any).invoice_number,
+                                                });
                                             }
-                                    }
-                                })(),
-                            },
-                        ];
-                        if ((vm.data as any).invoice_number) {
-                            arr.push({
-                                title: Language.text('invoice_number'),
-                                value: (vm.data as any).invoice_number,
-                            });
-                        }
+                                           
+                                            if ((vm.data as any).orderData.user_info.shipment_number) {
+                                                arr.push({
+                                                    title: Language.text('shipment_number'),
+                                                    value: (vm.data as any).orderData.user_info.shipment_number,
+                                                });
+                                            }
 
-                        if ((vm.data as any).orderData.user_info.shipment_number) {
-                            arr.push({
-                                title: Language.text('shipment_number'),
-                                value: (vm.data as any).orderData.user_info.shipment_number,
-                            });
-                        }
-
-                        if ((vm.data as any).orderData.user_info.shipment_date) {
-                            arr.push({
-                                title: Language.text('shipment_date'),
-                                value: gvc.glitter.ut.dateFormat(new Date((vm.data as any).orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm'),
-                            });
-                        }
-                        if ((vm.data as any).orderData.user_info.shipment_detail && (vm.data as any).orderData.user_info.shipment_detail.paymentno) {
-                            arr.push({
-                                title: Language.text('track_number'),
-                                value: (vm.data as any).orderData.user_info.shipment_detail.paymentno,
-                            });
-                        }
-
-                        if (
-                          ['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].find((dd) => {
-                              return dd === orderData.user_info.shipment;
-                          })
-                        ) {
-                            arr = [
-                                ...arr,
-                                ...[
-                                    {
-                                        title: Language.text('store_number'),
-                                        value: decodeURI(orderData.user_info.CVSStoreID),
-                                    },
-                                    {
-                                        title: Language.text('store_name'),
-                                        value: decodeURI(orderData.user_info.CVSStoreName),
-                                    },
-                                    {
-                                        title: Language.text('store_address'),
-                                        value: decodeURI(orderData.user_info.CVSAddress),
-                                    },
-                                ],
-                            ];
-                        } else if (orderData.user_info.address) {
-                            arr.push({
-                                title: Language.text('receiving_address'),
-                                value: orderData.user_info.address,
-                            });
-                        }
-                        arr.push({
-                            title: Language.text('shipping_status'),
-                            value: (() => {
-                                switch (orderData.progress) {
-                                    case 'shipping':
-                                        return Language.text('shipped');
-                                    case 'finish':
-                                        return Language.text('delivered');
-                                    case 'arrived':
-                                        return Language.text('picked_up');
-                                    case 'returns':
-                                        return Language.text('returned');
-                                    default:
-                                        return Language.text('not_yet_shipped');
-                                }
-                            })(),
-                        });
-                        if (orderData.user_info.shipment_info) {
-                            arr.push({
-                                title: Language.text('shipping_instructions'),
-                                value: orderData.user_info.shipment_info,
-                            });
-                        }
-                        arr = [
-                            ...arr,
-                            ...[
-                                {
-                                    title: Language.text('recipient_name'),
-                                    value: orderData.user_info.name,
-                                },
-                                ...(orderData.user_info.phone
-                                  ? [
-                                      {
-                                          title: Language.text('recipient_phone'),
-                                          value: orderData.user_info.phone,
-                                      },
-                                  ]
-                                  : []),
-                                ...(orderData.user_info.email
-                                  ? [
-                                      {
-                                          title: Language.text('recipient_email'),
-                                          value: orderData.user_info.email,
-                                      },
-                                  ]
-                                  : []),
-                            ],
-                        ];
-                        if (selector && selector.form) {
-                            arr = arr.concat(
-                              selector.form.map((dd: any) => {
-                                  return {
-                                      title: Language.getLanguageCustomText(dd.title),
-                                      value: Language.getLanguageCustomText(orderData.user_info.custom_form_delivery[dd.key]),
-                                  };
-                              }),
-                            );
-                        }
-                        if ((orderData as any).custom_receipt_form) {
-                            arr = arr.concat(
-                              (orderData.custom_receipt_form ?? [])
-                                .map((dd) => {
-                                    return {
-                                        title: Language.getLanguageCustomText(dd.title),
-                                        value: (orderData.user_info as any)[dd.key],
-                                    };
-                                })
-                                .filter((d1) => {
-                                    return d1.value;
-                                }),
-                            );
-                        }
-                        if (orderData.user_info.note) {
-                            arr.push({
-                                title: Language.text('shipping_notes'),
-                                value: orderData.user_info.note,
-                            });
-                        }
-                        return gvc.map(
-                          arr.map((item) => {
-                              return html`
+                                            if ((vm.data as any).orderData.user_info.shipment_date) {
+                                                arr.push({
+                                                    title: Language.text('shipment_date'),
+                                                    value: gvc.glitter.ut.dateFormat(new Date((vm.data as any).orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm'),
+                                                });
+                                            }
+                                            if ((vm.data as any).orderData.user_info.shipment_detail && (vm.data as any).orderData.user_info.shipment_detail.paymentno) {
+                                                arr.push({
+                                                    title: Language.text('track_number'),
+                                                    value: (vm.data as any).orderData.user_info.shipment_detail.paymentno,
+                                                });
+                                            }
+                                            
+                                            if (
+                                                ['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].find((dd) => {
+                                                    return dd === orderData.user_info.shipment;
+                                                })
+                                            ) {
+                                                arr = [
+                                                    ...arr,
+                                                    ...[
+                                                        {
+                                                            title: Language.text('store_number'),
+                                                            value: decodeURI(orderData.user_info.CVSStoreID),
+                                                        },
+                                                        {
+                                                            title: Language.text('store_name'),
+                                                            value: decodeURI(orderData.user_info.CVSStoreName),
+                                                        },
+                                                        {
+                                                            title: Language.text('store_address'),
+                                                            value: decodeURI(orderData.user_info.CVSAddress),
+                                                        },
+                                                    ],
+                                                ];
+                                            } else if (orderData.user_info.address) {
+                                                arr.push({
+                                                    title: Language.text('receiving_address'),
+                                                    value: [(orderData.user_info as any).city,
+                                                        (orderData.user_info as any).area,
+                                                        orderData.user_info.address].filter((dd)=>{return dd}).join(','),
+                                                });
+                                            }
+                                            arr.push({
+                                                title: Language.text('shipping_status'),
+                                                value: (() => {
+                                                    switch (orderData.progress) {
+                                                        case 'shipping':
+                                                            return Language.text('shipped');
+                                                        case 'finish':
+                                                            return Language.text('delivered');
+                                                        case 'arrived':
+                                                            return Language.text('picked_up');
+                                                        case 'returns':
+                                                            return Language.text('returned');
+                                                        default:
+                                                            return Language.text('not_yet_shipped');
+                                                    }
+                                                })(),
+                                            });
+                                            if (orderData.user_info.shipment_info) {
+                                                arr.push({
+                                                    title: Language.text('shipping_instructions'),
+                                                    value: orderData.user_info.shipment_info,
+                                                });
+                                            }
+                                            arr = [
+                                                ...arr,
+                                                ...[
+                                                    {
+                                                        title: Language.text('recipient_name'),
+                                                        value: orderData.user_info.name,
+                                                    },
+                                                    ...(orderData.user_info.phone
+                                                        ? [
+                                                            {
+                                                                title: Language.text('recipient_phone'),
+                                                                value: orderData.user_info.phone,
+                                                            },
+                                                        ]
+                                                        : []),
+                                                    ...(orderData.user_info.email
+                                                        ? [
+                                                            {
+                                                                title: Language.text('recipient_email'),
+                                                                value: orderData.user_info.email,
+                                                            },
+                                                        ]
+                                                        : []),
+                                                ],
+                                            ];
+                                            if (selector && selector.form) {
+                                                arr = arr.concat(
+                                                    selector.form.map((dd: any) => {
+                                                        return {
+                                                            title: Language.getLanguageCustomText(dd.title),
+                                                            value: Language.getLanguageCustomText(orderData.user_info.custom_form_delivery[dd.key]),
+                                                        };
+                                                    }),
+                                                );
+                                            }
+                                            if ((orderData as any).custom_receipt_form) {
+                                                arr = arr.concat(
+                                                    (orderData.custom_receipt_form ?? [])
+                                                        .map((dd) => {
+                                                            return {
+                                                                title: Language.getLanguageCustomText(dd.title),
+                                                                value: (orderData.user_info as any)[dd.key],
+                                                            };
+                                                        })
+                                                        .filter((d1) => {
+                                                            return d1.value;
+                                                        }),
+                                                );
+                                            }
+                                            if (orderData.user_info.note) {
+                                                arr.push({
+                                                    title: Language.text('shipping_notes'),
+                                                    value: orderData.user_info.note,
+                                                });
+                                            }
+                                            return gvc.map(
+                                                arr.map((item) => {
+                                                    return html`
                                                         <div class="o-title-container">
-                                                            <div class="o-title me-1">${item.title}：</div>
+                                                            <div class="o-title me-1" style="white-space: nowrap;">${item.title}：</div>
                                                             <div class="o-title">${item.value}</div>
                                                         </div>
                                                     `;
-                          }),
-                        );
-                    })()}
+                                                }),
+                                            );
+                                        })()}
                                     </div>
                                 </section>
                                 <section
                                     class="m-auto d-flex align-items-center justify-content-center my-5"
                                     style="cursor: pointer;"
                                     onclick="${gvc.event(() => {
-                        gvc.glitter.href = `/order_list`;
-                    })}"
+                                        gvc.glitter.href = `/order_list`;
+                                    })}"
                                 >
                                     <img class="me-2"
                                          src="https://ui.homee.ai/htmlExtension/shopify/order/img/back.svg" />
                                     <span class="go-back-text">${Language.text('return_to_order_list')}</span>
                                 </section>
                             `;
-                } catch (e) {
-                    console.error(e);
-                    return ``;
-                }
-            },
-            divCreate: {
-                class: 'd-flex align-items-center justify-content-center gap-3 flex-column',
-                style: 'min-height: 50vh;',
-            },
-            onCreate: () => {
-                if (loadings.view) {
-                    ApiShop.getOrder({
-                        limit: 1,
-                        page: 0,
-                        data_from: 'user',
-                        search: glitter.getUrlParameter('cart_token'),
-                        searchType: 'cart_token',
-                    }).then((res: any) => {
-                        if (res.result && res.response.data) {
-                            vm.data = res.response.data[0];
-                        } else {
-                            vm.data = {} as any;
+                        } catch (e) {
+                            console.error(e);
+                            return ``;
                         }
-                        loadings.view = false;
-                        gvc.notifyDataChange(ids.view);
-                    });
-                }
-            },
-        })}
+                    },
+                    divCreate: {
+                        class: 'd-flex align-items-center justify-content-center gap-3 flex-column',
+                        style: 'min-height: 50vh;',
+                    },
+                    onCreate: () => {
+                        if (loadings.view) {
+                            ApiShop.getOrder({
+                                limit: 1,
+                                page: 0,
+                                data_from: 'user',
+                                search: glitter.getUrlParameter('cart_token'),
+                                searchType: 'cart_token',
+                            }).then((res: any) => {
+                                if (res.result && res.response.data) {
+                                    vm.data = res.response.data[0];
+                                } else {
+                                    vm.data = {} as any;
+                                }
+                                loadings.view = false;
+                                gvc.notifyDataChange(ids.view);
+                            });
+                        }
+                    },
+                })}
             </div>`;
     }
 }

@@ -300,12 +300,12 @@ export class ApiShop {
     static getRebate(query: { userID?: string }) {
         return BaseApi.create({
             url:
-                getBaseUrl() +
-                `/api-public/v1/ec/rebate/sum?${(() => {
-                    let par = [];
-                    query.userID && par.push(`userID=${query.userID}`);
-                    return par.join('&');
-                })()}`,
+              getBaseUrl() +
+              `/api-public/v1/ec/rebate/sum?${(() => {
+                  let par = [];
+                  query.userID && par.push(`userID=${query.userID}`);
+                  return par.join('&');
+              })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -422,51 +422,51 @@ export class ApiShop {
     }) {
         return BaseApi.create({
             url:
-                getBaseUrl() +
-                `/api-public/v1/ec/product?${(() => {
-                    let par = [`limit=${json.limit}`, `page=${json.page}`];
-                    json.collection && par.push(`collection=${encodeURI(json.collection)}`);
-                    json.accurate_search_collection && par.push(`accurate_search_collection=true`);
-                    json.accurate_search_text && par.push(`accurate_search_text=true`);
-                    json.search && par.push(`search=${json.search}`);
-                    json.id && par.push(`id=${json.id}`);
-                    json.domain && par.push(`domain=${json.domain}`);
-                    json.maxPrice && par.push(`max_price=${json.maxPrice}`);
-                    json.minPrice && par.push(`min_price=${json.minPrice}`);
-                    json.status && par.push(`status=${json.status}`);
-                    json.channel && par.push(`channel=${json.channel}`);
-                    json.whereStore && par.push(`whereStore=${json.whereStore}`);
-                    if (json.schedule === true || json.schedule === false) {
-                        par.push(`schedule=${json.schedule}`);
-                    }
-                    json.orderBy && par.push(`order_by=${json.orderBy}`);
-                    json.id_list && par.push(`id_list=${json.id_list}`);
-                    json.productType && par.push(`productType=${json.productType}`);
-                    json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
-                    json.searchType && par.push(`searchType=${json.searchType}`);
-                    json.filter_visible && par.push(`filter_visible=${json.filter_visible}`);
-                    json.view_source && par.push(`view_source=${json.view_source}`);
-                    json.show_hidden && par.push(`show_hidden=${json.show_hidden}`);
-                    json.distribution_code && par.push(`distribution_code=${json.distribution_code}`);
-                    json.product_category && par.push(`product_category=${json.product_category}`);
-                    if (location.pathname.includes('/hidden/')) {
-                        par.push(`filter_visible=false`);
-                    } else if ((window as any).glitter.getUrlParameter('function') === 'user-editor') {
-                        par.push(`filter_visible=true`);
-                    }
-                    return par.join('&');
-                })()}`,
+              getBaseUrl() +
+              `/api-public/v1/ec/product?${(() => {
+                  let par = [`limit=${json.limit}`, `page=${json.page}`];
+                  json.collection && par.push(`collection=${encodeURI(json.collection)}`);
+                  json.accurate_search_collection && par.push(`accurate_search_collection=true`);
+                  json.accurate_search_text && par.push(`accurate_search_text=true`);
+                  json.search && par.push(`search=${json.search}`);
+                  json.id && par.push(`id=${json.id}`);
+                  json.domain && par.push(`domain=${json.domain}`);
+                  json.maxPrice && par.push(`max_price=${json.maxPrice}`);
+                  json.minPrice && par.push(`min_price=${json.minPrice}`);
+                  json.status && par.push(`status=${json.status}`);
+                  json.channel && par.push(`channel=${json.channel}`);
+                  json.whereStore && par.push(`whereStore=${json.whereStore}`);
+                  if (json.schedule === true || json.schedule === false) {
+                      par.push(`schedule=${json.schedule}`);
+                  }
+                  json.orderBy && par.push(`order_by=${json.orderBy}`);
+                  json.id_list && par.push(`id_list=${json.id_list}`);
+                  json.productType && par.push(`productType=${json.productType}`);
+                  json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
+                  json.searchType && par.push(`searchType=${json.searchType}`);
+                  json.filter_visible && par.push(`filter_visible=${json.filter_visible}`);
+                  json.view_source && par.push(`view_source=${json.view_source}`);
+                  json.show_hidden && par.push(`show_hidden=${json.show_hidden}`);
+                  json.distribution_code && par.push(`distribution_code=${json.distribution_code}`);
+                  json.product_category && par.push(`product_category=${json.product_category}`);
+                  if (location.pathname.includes('/hidden/')) {
+                      par.push(`filter_visible=false`);
+                  } else if ((window as any).glitter.getUrlParameter('function') === 'user-editor') {
+                      par.push(`filter_visible=true`);
+                  }
+                  return par.join('&');
+              })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app':
-                    json.app_name ||
-                    ((window as any).glitter.getUrlParameter('type') === 'find_idea'
-                        ? (window as any).appName
-                        : encodeURIComponent(getConfig().config.appName)),
+                  json.app_name ||
+                  ((window as any).glitter.getUrlParameter('type') === 'find_idea'
+                    ? (window as any).appName
+                    : encodeURIComponent(getConfig().config.appName)),
                 Authorization:
-                    ((window.parent as any).glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) ||
-                    GlobalUser.token,
+                  ((window.parent as any).glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) ||
+                  GlobalUser.token,
             },
         });
     }
@@ -474,25 +474,25 @@ export class ApiShop {
     static getProductDomain(json: { id?: string; search?: string; domain?: string; app_name?: string }) {
         return BaseApi.create({
             url:
-                getBaseUrl() +
-                `/api-public/v1/ec/product/domain?${(() => {
-                    let par = [];
-                    json.id && par.push(`id=${json.id}`);
-                    json.search && par.push(`search=${json.search}`);
-                    json.domain && par.push(`domain=${json.domain}`);
-                    return par.join('&');
-                })()}`,
+              getBaseUrl() +
+              `/api-public/v1/ec/product/domain?${(() => {
+                  let par = [];
+                  json.id && par.push(`id=${json.id}`);
+                  json.search && par.push(`search=${json.search}`);
+                  json.domain && par.push(`domain=${json.domain}`);
+                  return par.join('&');
+              })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app':
-                    json.app_name ||
-                    ((window as any).glitter.getUrlParameter('type') === 'find_idea'
-                        ? (window as any).appName
-                        : encodeURIComponent(getConfig().config.appName)),
+                  json.app_name ||
+                  ((window as any).glitter.getUrlParameter('type') === 'find_idea'
+                    ? (window as any).appName
+                    : encodeURIComponent(getConfig().config.appName)),
                 Authorization:
-                    ((window.parent as any).glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) ||
-                    GlobalUser.token,
+                  ((window.parent as any).glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) ||
+                  GlobalUser.token,
             },
         });
     }
@@ -502,18 +502,18 @@ export class ApiShop {
         let list = [] as string[];
         if (obj) {
             if (
-                obj.created_time &&
-                obj.created_time.length > 1 &&
-                obj?.created_time[0].length > 0 &&
-                obj?.created_time[1].length > 0
+              obj.created_time &&
+              obj.created_time.length > 1 &&
+              obj?.created_time[0].length > 0 &&
+              obj?.created_time[1].length > 0
             ) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
             }
             if (
-                obj.shipment_time &&
-                obj.shipment_time.length > 1 &&
-                obj?.shipment_time[0].length > 0 &&
-                obj?.shipment_time[1].length > 0
+              obj.shipment_time &&
+              obj.shipment_time.length > 1 &&
+              obj?.shipment_time[0].length > 0 &&
+              obj?.shipment_time[1].length > 0
             ) {
                 list.push(`shipment_time=${obj.shipment_time[0]},${obj.shipment_time[1]}`);
             }
@@ -543,10 +543,10 @@ export class ApiShop {
 
         if (obj) {
             if (
-                obj.created_time &&
-                obj.created_time.length > 1 &&
-                obj?.created_time[0].length > 0 &&
-                obj?.created_time[1].length > 0
+              obj.created_time &&
+              obj.created_time.length > 1 &&
+              obj?.created_time[0].length > 0 &&
+              obj?.created_time[1].length > 0
             ) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
             }
@@ -621,28 +621,28 @@ export class ApiShop {
         const filterString = this.orderListFilterString(json.filter);
         return BaseApi.create({
             url:
-                getBaseUrl() +
-                `/api-public/v1/ec/order?${(() => {
-                    let par = [`limit=${json.limit}`, `page=${json.page}`];
-                    json.search && par.push(`search=${json.search}`);
-                    json.id && par.push(`id=${json.id}`);
-                    json.id_list && par.push(`id_list=${json.id_list}`);
-                    json.email && par.push(`email=${json.email}`);
-                    json.phone && par.push(`phone=${json.phone}`);
-                    json.status && par.push(`status=${json.status}`);
-                    json.valid && par.push(`valid=${json.valid}`);
-                    json.searchType && par.push(`searchType=${json.searchType}`);
-                    json.orderString && par.push(`orderString=${json.orderString}`);
-                    json.archived && par.push(`archived=${json.archived}`);
-                    json.distribution_code && par.push(`distribution_code=${json.distribution_code}`);
-                    json.returnSearch && par.push(`returnSearch=${json.returnSearch ?? 'false'}`);
-                    json.is_shipment && par.push(`is_shipment=${json.is_shipment}`);
-                    if (json.is_pos === true || json.is_pos === false) {
-                        par.push(`is_pos=${json.is_pos}`);
-                    }
-                    filterString.length > 0 && par.push(filterString.join('&'));
-                    return par.join('&');
-                })()}`,
+              getBaseUrl() +
+              `/api-public/v1/ec/order?${(() => {
+                  let par = [`limit=${json.limit}`, `page=${json.page}`];
+                  json.search && par.push(`search=${json.search}`);
+                  json.id && par.push(`id=${json.id}`);
+                  json.id_list && par.push(`id_list=${json.id_list}`);
+                  json.email && par.push(`email=${json.email}`);
+                  json.phone && par.push(`phone=${json.phone}`);
+                  json.status && par.push(`status=${json.status}`);
+                  json.valid && par.push(`valid=${json.valid}`);
+                  json.searchType && par.push(`searchType=${json.searchType}`);
+                  json.orderString && par.push(`orderString=${json.orderString}`);
+                  json.archived && par.push(`archived=${json.archived}`);
+                  json.distribution_code && par.push(`distribution_code=${json.distribution_code}`);
+                  json.returnSearch && par.push(`returnSearch=${json.returnSearch ?? 'false'}`);
+                  json.is_shipment && par.push(`is_shipment=${json.is_shipment}`);
+                  if (json.is_pos === true || json.is_pos === false) {
+                      par.push(`is_pos=${json.is_pos}`);
+                  }
+                  filterString.length > 0 && par.push(filterString.join('&'));
+                  return par.join('&');
+              })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -669,19 +669,19 @@ export class ApiShop {
         const filterString = this.returnOrderListFilterString(json.filter);
         return BaseApi.create({
             url:
-                getBaseUrl() +
-                `/api-public/v1/ec/returnOrder?${(() => {
-                    let par = [`limit=${json.limit}`, `page=${json.page}`];
-                    json.search && par.push(`search=${json.search}`);
-                    json.id && par.push(`id=${json.id}`);
-                    json.email && par.push(`email=${json.email}`);
-                    json.status && par.push(`status=${json.status}`);
-                    json.searchType && par.push(`searchType=${json.searchType}`);
-                    json.orderString && par.push(`orderString=${json.orderString}`);
-                    json.archived && par.push(`archived=${json.archived}`);
-                    filterString.length > 0 && par.push(filterString.join('&'));
-                    return par.join('&');
-                })()}`,
+              getBaseUrl() +
+              `/api-public/v1/ec/returnOrder?${(() => {
+                  let par = [`limit=${json.limit}`, `page=${json.page}`];
+                  json.search && par.push(`search=${json.search}`);
+                  json.id && par.push(`id=${json.id}`);
+                  json.email && par.push(`email=${json.email}`);
+                  json.status && par.push(`status=${json.status}`);
+                  json.searchType && par.push(`searchType=${json.searchType}`);
+                  json.orderString && par.push(`orderString=${json.orderString}`);
+                  json.archived && par.push(`archived=${json.archived}`);
+                  filterString.length > 0 && par.push(filterString.join('&'));
+                  return par.join('&');
+              })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -741,16 +741,16 @@ export class ApiShop {
     }) {
         return BaseApi.create({
             url:
-                getBaseUrl() +
-                `/api-public/v1/ec/voucher?${(() => {
-                    let par = [`limit=${json.limit}`, `page=${json.page}`];
-                    json.search && par.push(`search=${json.search}`);
-                    json.id && par.push(`id=${json.id}`);
-                    json.date_confirm && par.push(`date_confirm=${json.date_confirm}`);
-                    json.user_email && par.push(`user_email=${json.user_email}`);
-                    json.voucher_type && par.push(`voucher_type=${json.voucher_type}`);
-                    return par.join('&');
-                })()}`,
+              getBaseUrl() +
+              `/api-public/v1/ec/voucher?${(() => {
+                  let par = [`limit=${json.limit}`, `page=${json.page}`];
+                  json.search && par.push(`search=${json.search}`);
+                  json.id && par.push(`id=${json.id}`);
+                  json.date_confirm && par.push(`date_confirm=${json.date_confirm}`);
+                  json.user_email && par.push(`user_email=${json.user_email}`);
+                  json.voucher_type && par.push(`voucher_type=${json.voucher_type}`);
+                  return par.join('&');
+              })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -900,16 +900,16 @@ export class ApiShop {
         // filterString.length > 0 && par.push(filterString.join('&'));
         return BaseApi.create({
             url:
-                getBaseUrl() +
-                `/api-public/v1/invoice?${(() => {
-                    let par = [`limit=${json.limit}`, `page=${json.page}`];
-                    json.search && par.push(`search=${json.search}`);
-                    json.searchType && par.push(`searchType=${json.searchType}`);
-                    json.orderString && par.push(`orderString=${json.orderString}`);
-                    json.filter && par.push(`filter=${JSON.stringify(json.filter)}`);
-                    filterString.length > 0 && par.push(filterString.join('&'));
-                    return par.join('&');
-                })()}`,
+              getBaseUrl() +
+              `/api-public/v1/invoice?${(() => {
+                  let par = [`limit=${json.limit}`, `page=${json.page}`];
+                  json.search && par.push(`search=${json.search}`);
+                  json.searchType && par.push(`searchType=${json.searchType}`);
+                  json.orderString && par.push(`orderString=${json.orderString}`);
+                  json.filter && par.push(`filter=${JSON.stringify(json.filter)}`);
+                  filterString.length > 0 && par.push(filterString.join('&'));
+                  return par.join('&');
+              })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -932,16 +932,16 @@ export class ApiShop {
         // filterString.length > 0 && par.push(filterString.join('&'));
         return BaseApi.create({
             url:
-                getBaseUrl() +
-                `/api-public/v1/invoice/allowance?${(() => {
-                    let par = [`limit=${json.limit}`, `page=${json.page}`];
-                    json.search && par.push(`search=${json.search}`);
-                    json.searchType && par.push(`searchType=${json.searchType}`);
-                    json.orderString && par.push(`orderString=${json.orderString}`);
-                    json.filter && par.push(`filter=${json.filter}`);
-                    filterString.length > 0 && par.push(filterString.join('&'));
-                    return par.join('&');
-                })()}`,
+              getBaseUrl() +
+              `/api-public/v1/invoice/allowance?${(() => {
+                  let par = [`limit=${json.limit}`, `page=${json.page}`];
+                  json.search && par.push(`search=${json.search}`);
+                  json.searchType && par.push(`searchType=${json.searchType}`);
+                  json.orderString && par.push(`orderString=${json.orderString}`);
+                  json.filter && par.push(`filter=${json.filter}`);
+                  filterString.length > 0 && par.push(filterString.join('&'));
+                  return par.join('&');
+              })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -1284,7 +1284,7 @@ export class ApiShop {
     static getShippingStatusArray() {
         return [
             { title: '未出貨', value: 'wait' },
-            { title: '配送中', value: 'shipping' },
+            { title: '已出貨', value: 'shipping' },
             { title: '已送達', value: 'finish' },
         ];
     }
@@ -1294,6 +1294,48 @@ export class ApiShop {
             { title: '已完成', value: '1' },
             { title: '處理中', value: '0' },
             { title: '已取消', value: '-1' },
+        ];
+    }
+
+    static getStatusArray(proof_purchase: any) {
+        return [
+            { title: '已付款', value: '1' },
+            { title: '部分付款', value: '3' },
+            { title: proof_purchase ? '待核款' : '未付款', value: '0' },
+            { title: '已退款', value: '-2' },
+        ];
+    }
+
+    static getProgressArray(shipment_number: any) {
+        return [
+            {
+                title: '出貨狀態',
+                value: '',
+            },
+            {
+                title: '已出貨',
+                value: 'shipping',
+            },
+            {
+                title: '待預購',
+                value: 'pre_order',
+            },
+            {
+                title: shipment_number ? `備貨中` : '未出貨',
+                value: 'wait',
+            },
+            {
+                title: '已取貨',
+                value: 'finish',
+            },
+            {
+                title: '已退貨',
+                value: 'returns',
+            },
+            {
+                title: '已到貨',
+                value: 'arrived',
+            },
         ];
     }
 
@@ -1313,23 +1355,23 @@ export class ApiShop {
     }) {
         return BaseApi.create({
             url:
-                getBaseUrl() +
-                `/api-public/v1/ec/product/variants?${(() => {
-                    let par = [`limit=${json.limit}`, `page=${json.page}`];
-                    json.collection && par.push(`collection=${encodeURI(json.collection)}`);
-                    json.accurate_search_collection && par.push(`accurate_search_collection=true`);
-                    json.search && par.push(`search=${json.search}`);
-                    json.id && par.push(`id=${json.id}`);
-                    json.status && par.push(`status=${json.status}`);
-                    json.orderBy && par.push(`order_by=${json.orderBy}`);
-                    json.id_list && par.push(`id_list=${json.id_list}`);
-                    json.searchType && par.push(`searchType=${json.searchType}`);
-                    json.productType && par.push(`productType=${json.productType}`);
-                    if (json.stockCount && json.stockCount.key !== '') {
-                        par.push(`stockCount=${json.stockCount.key},${json.stockCount.value}`);
-                    }
-                    return par.join('&');
-                })()}`,
+              getBaseUrl() +
+              `/api-public/v1/ec/product/variants?${(() => {
+                  let par = [`limit=${json.limit}`, `page=${json.page}`];
+                  json.collection && par.push(`collection=${encodeURI(json.collection)}`);
+                  json.accurate_search_collection && par.push(`accurate_search_collection=true`);
+                  json.search && par.push(`search=${json.search}`);
+                  json.id && par.push(`id=${json.id}`);
+                  json.status && par.push(`status=${json.status}`);
+                  json.orderBy && par.push(`order_by=${json.orderBy}`);
+                  json.id_list && par.push(`id_list=${json.id_list}`);
+                  json.searchType && par.push(`searchType=${json.searchType}`);
+                  json.productType && par.push(`productType=${json.productType}`);
+                  if (json.stockCount && json.stockCount.key !== '') {
+                      par.push(`stockCount=${json.stockCount.key},${json.stockCount.value}`);
+                  }
+                  return par.join('&');
+              })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',

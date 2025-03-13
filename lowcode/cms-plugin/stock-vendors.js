@@ -66,19 +66,18 @@ export class StockVendors {
             });
         }
         return BgWidget.container(html ` <div class="title-container">
-                    ${BgWidget.title('供應商管理')}
-                    <div class="flex-fill"></div>
-                    ${BgWidget.grayButton('新增供應商', gvc.event(() => {
+          ${BgWidget.title('供應商管理')}
+          <div class="flex-fill"></div>
+          ${BgWidget.grayButton('新增供應商', gvc.event(() => {
             vm.type = 'create';
         }))}
-                </div>
-                ${BgWidget.container(BgWidget.mainCard([
+        </div>
+        ${BgWidget.container(BgWidget.mainCard([
             (() => {
                 const id = gvc.glitter.getUUID();
                 return gvc.bindView({
                     bind: id,
                     view: () => {
-                        var _a;
                         const filterList = [
                             BgWidget.selectFilter({
                                 gvc,
@@ -90,25 +89,14 @@ export class StockVendors {
                                 default: vm.queryType || 'name',
                                 options: FilterOptions.vendorsSelect,
                             }),
-                            BgWidget.searchFilter(gvc.event((e) => {
+                            BgWidget.searchFilter(gvc.event(e => {
                                 vm.query = `${e.value}`.trim();
                                 gvc.notifyDataChange(vm.tableId);
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋庫存點名稱'),
                         ];
                         const filterTags = ListComp.getFilterTags(FilterOptions.vendorsFunnel);
-                        if (document.body.clientWidth < 768) {
-                            return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                    <div>${filterList[0]}</div>
-                                                    <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}</div>
-                                                </div>
-                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                <div>${filterTags}</div>`;
-                        }
-                        else {
-                            return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                <div>${filterTags}</div>`;
-                        }
+                        return BgListComponent.listBarRWD(filterList, filterTags);
                     },
                 });
             })(),
@@ -117,7 +105,7 @@ export class StockVendors {
                 view: () => {
                     return BgWidget.tableV3({
                         gvc: gvc,
-                        getData: (vd) => {
+                        getData: vd => {
                             vmi = vd;
                             const limit = 100;
                             this.getPublicData().then((data) => {
@@ -149,16 +137,19 @@ export class StockVendors {
         const dialog = new ShareDialog(glitter);
         return BgWidget.container([
             html ` <div class="title-container">
-                        <div class="mt-1">
-                            ${BgWidget.goBack(gvc.event(() => {
+            <div class="mt-1">
+              ${BgWidget.goBack(gvc.event(() => {
                 vm.type = 'list';
             }))}
-                        </div>
-                        <div>${BgWidget.title(type === 'create' ? '新增供應商' : vm.data.name)}</div>
-                    </div>
-                    <div class="flex-fill"></div>`,
-            html ` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                    ${BgWidget.container(gvc.bindView(() => {
+            </div>
+            <div>${BgWidget.title(type === 'create' ? '新增供應商' : vm.data.name)}</div>
+          </div>
+          <div class="flex-fill"></div>`,
+            html ` <div
+          class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+          style="gap: 24px"
+        >
+          ${BgWidget.container(gvc.bindView(() => {
                 const id = glitter.getUUID();
                 return {
                     bind: id,
@@ -167,69 +158,69 @@ export class StockVendors {
                         return BgWidget.mainCard([
                             html ` <div class="tx_700">供應商資訊</div>`,
                             html ` <div class="row">
-                                                <div class="col-12 col-md-6">
-                                                    <div class="tx_normal">供應商名稱</div>
-                                                    ${BgWidget.mbContainer(8)}
-                                                    ${BgWidget.editeInput({
+                        <div class="col-12 col-md-6">
+                          <div class="tx_normal">供應商名稱</div>
+                          ${BgWidget.mbContainer(8)}
+                          ${BgWidget.editeInput({
                                 gvc: gvc,
                                 title: '',
                                 default: (_a = vm.data.name) !== null && _a !== void 0 ? _a : '',
                                 placeHolder: '請輸入供應商名稱',
-                                callback: (text) => {
+                                callback: text => {
                                     vm.data.name = text;
                                 },
                             })}
-                                                </div>
-                                                ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(18)}
-                                                <div class="col-12 col-md-6">
-                                                    <div class="tx_normal">供應商地址</div>
-                                                    ${BgWidget.mbContainer(8)}
-                                                    ${BgWidget.editeInput({
+                        </div>
+                        ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(18)}
+                        <div class="col-12 col-md-6">
+                          <div class="tx_normal">供應商地址</div>
+                          ${BgWidget.mbContainer(8)}
+                          ${BgWidget.editeInput({
                                 gvc: gvc,
                                 title: '',
                                 default: (_b = vm.data.address) !== null && _b !== void 0 ? _b : '',
                                 placeHolder: '請輸入供應商地址',
-                                callback: (text) => {
+                                callback: text => {
                                     vm.data.address = text;
                                 },
                             })}
-                                                </div>
-                                            </div>`,
+                        </div>
+                      </div>`,
                             html `<div class="row">
-                                                <div class="col-12 col-md-6">
-                                                    <div class="tx_normal">聯絡人姓名</div>
-                                                    ${BgWidget.mbContainer(8)}
-                                                    ${BgWidget.editeInput({
+                        <div class="col-12 col-md-6">
+                          <div class="tx_normal">聯絡人姓名</div>
+                          ${BgWidget.mbContainer(8)}
+                          ${BgWidget.editeInput({
                                 gvc: gvc,
                                 title: '',
                                 default: (_c = vm.data.manager_name) !== null && _c !== void 0 ? _c : '',
                                 placeHolder: '請輸入聯絡人姓名',
-                                callback: (text) => {
+                                callback: text => {
                                     vm.data.manager_name = text;
                                 },
                             })}
-                                                </div>
-                                                <div class="col-12 col-md-6">
-                                                    <div class="tx_normal">電話</div>
-                                                    ${BgWidget.mbContainer(8)}
-                                                    ${BgWidget.editeInput({
+                        </div>
+                        <div class="col-12 col-md-6">
+                          <div class="tx_normal">電話</div>
+                          ${BgWidget.mbContainer(8)}
+                          ${BgWidget.editeInput({
                                 gvc: gvc,
                                 title: '',
                                 default: (_d = vm.data.manager_phone) !== null && _d !== void 0 ? _d : '',
                                 placeHolder: '請輸入電話',
-                                callback: (text) => {
+                                callback: text => {
                                     vm.data.manager_phone = text;
                                 },
                             })}
-                                                </div>
-                                            </div> `,
+                        </div>
+                      </div> `,
                             html ` <div class="tx_normal">備註</div>
-                                                ${EditorElem.editeText({
+                        ${EditorElem.editeText({
                                 gvc: gvc,
                                 title: '',
                                 default: (_e = vm.data.note) !== null && _e !== void 0 ? _e : '',
                                 placeHolder: '請輸入備註',
-                                callback: (text) => {
+                                callback: text => {
                                     vm.data.note = text;
                                 },
                             })}`,
@@ -238,14 +229,14 @@ export class StockVendors {
                     divCreate: { class: 'p-0' },
                 };
             }))}
-                </div>`,
+        </div>`,
             BgWidget.mbContainer(240),
             html ` <div class="update-bar-container">
-                    ${type === 'replace'
+          ${type === 'replace'
                 ? BgWidget.danger(gvc.event(() => {
                     dialog.checkYesOrNot({
                         text: '確定要刪除此供應商？',
-                        callback: (bool) => {
+                        callback: bool => {
                             if (bool) {
                                 dialog.dataLoading({ visible: true });
                                 this.getPublicData().then((vendors) => {
@@ -268,15 +259,15 @@ export class StockVendors {
                     });
                 }))
                 : ''}
-                    ${BgWidget.cancel(gvc.event(() => {
+          ${BgWidget.cancel(gvc.event(() => {
                 vm.type = 'list';
             }))}
-                    ${BgWidget.save(gvc.event(() => {
+          ${BgWidget.save(gvc.event(() => {
                 this.verifyStoreForm(glitter, type, vm.data, () => {
                     vm.type = 'list';
                 });
             }))}
-                </div>`,
+        </div>`,
         ].join('<div class="my-2"></div>'));
     }
     static getPublicData() {
@@ -348,7 +339,7 @@ StockVendors.emptyData = () => {
         manager_name: '',
         manager_phone: '',
         note: '',
-        is_shop: false
+        is_shop: false,
     };
 };
 window.glitter.setModule(import.meta.url, StockVendors);

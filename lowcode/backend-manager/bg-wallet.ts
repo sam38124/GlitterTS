@@ -169,7 +169,7 @@ export class BgWallet {
                                                                                                     refresh();
                                                                                                 });
                                                                                             } else {
-                                                                                                dialog.errorMessage({ text: '請選擇變動對象!' });
+                                                                                                dialog.errorMessage({ text: '請選擇變動對象' });
                                                                                             }
                                                                                         })}"
                                                                                     >
@@ -635,7 +635,7 @@ export class BgWallet {
                                                                     visible: false,
                                                                 });
                                                                 if (!res.result) {
-                                                                    dialog.errorMessage({ text: `撥款失敗，用戶錢包金額不足!` });
+                                                                    dialog.errorMessage({ text: `撥款失敗，用戶錢包金額不足` });
                                                                     gvc.closeDialog();
                                                                     gvc2.closeDialog();
                                                                 } else {
@@ -908,7 +908,7 @@ export class BgWallet {
                                                                                                     refresh();
                                                                                                 });
                                                                                             } else {
-                                                                                                dialog.errorMessage({ text: '請選擇變動對象!' });
+                                                                                                dialog.errorMessage({ text: '請選擇變動對象' });
                                                                                             }
                                                                                         })}"
                                                                                     >

@@ -3,8 +3,13 @@ import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { Variant } from '../../public-models/product.js';
-import { ActiveSchedule, Product, ProductInitial } from '../../public-models/product.js';
-import { ShoppingProductSetting } from '../shopping-product-setting.js';
+import { BgWidget } from '../../backend-manager/bg-widget.js';
+
+const html = String.raw;
+
+type Range = 'search' | 'checked' | 'all';
+
+type ProductCategory = 'course' | 'commodity' | 'kitchen';
 
 export interface RowInitData {
   id?: string;
@@ -127,7 +132,6 @@ export class ProductExcel {
     this.worksheet.addRow(this.headers);
   }
 
-  // 設定標頭粗體
   private setHeaderStyle(): void {
     this.worksheet.getRow(1).eachCell((cell: any) => {
       cell.font = { name: 'Microsoft JhengHei', bold: true };
@@ -136,7 +140,6 @@ export class ProductExcel {
     });
   }
 
-  // 設定行高1.2
   private setRowHeight(): void {
     this.worksheet.eachRow((row: any) => {
       row.height = 18;
@@ -184,29 +187,33 @@ export class ProductExcel {
     });
   }
 
-  // 透過位元組的大小，判斷內容文字的適合寬度計算
   private getByteLength(str: string): number {
-    let byteLength = 0;
-    for (let i = 0; i < str.length; i++) {
-      const charCode = str.charCodeAt(i);
-      if (charCode <= 0x007f) {
-        // ASCII 字符
-        byteLength += 1;
-      } else if (charCode <= 0x07ff) {
-        // 扩展拉丁字符
-        byteLength += 2;
-      } else if (charCode <= 0xffff) {
-        // 大部分语言字符
-        byteLength += 3;
-      } else {
-        // 补充字符
-        byteLength += 4;
+    try {
+      // 嘗試使用 TextEncoder（現代瀏覽器支援）
+      return new TextEncoder().encode(str).length;
+    } catch (e) {
+      // 降級方案：手動計算字節長度
+      let byteLength = 0;
+      for (let i = 0; i < str.length; i++) {
+        const charCode = str.charCodeAt(i);
+        if (charCode <= 0x007f) {
+          // ASCII 字符
+          byteLength += 1;
+        } else if (charCode <= 0x07ff) {
+          // 擴展拉丁字符
+          byteLength += 2;
+        } else if (charCode <= 0xffff) {
+          // 大部分語言字符
+          byteLength += 3;
+        } else {
+          // 補充字符
+          byteLength += 4;
+        }
       }
+      return byteLength;
     }
-    return byteLength;
   }
 
-  // 調整excel內容的寬度
   private adjustColumnWidths(sheetData: any): void {
     const maxLengths = this.headers.map(header => this.getByteLength(header));
     sheetData.forEach((row: any) => {
@@ -222,503 +229,21 @@ export class ProductExcel {
     });
   }
 
-  // 匯入excel
-  async importData(notifyId: string, file: any, product_category: 'course' | 'commodity' | 'kitchen') {
-    const dialog = new ShareDialog(this.gvc.glitter);
-    dialog.dataLoading({ visible: true, text: '資料處理中' });
-
-    await this.loadScript();
-    const reader = new FileReader();
-    const allProductDomain: string[] = await new Promise<string[]>((resolve, reject) => {
-      ApiShop.getProductDomain({}).then(data => {
-        if (data.result && data.response.data) {
-          const list = data.response.data.map((item: any) => {
-            if (item.seo) {
-              const seo = JSON.parse(item.seo);
-              return seo.domain ? `${seo.domain}` : '';
-            }
-            return '';
-          });
-          resolve(list.filter((domain: string) => domain.length > 0));
-        } else {
-          resolve([]);
-        }
-      });
-    });
-
-    reader.onload = async e => {
-      try {
-        const arrayBuffer = e.target!.result;
-        const workbook = new this.ExcelJS.Workbook();
-        await workbook.xlsx.load(arrayBuffer);
-        const worksheet = workbook.getWorksheet(1);
-        const data: any = [];
-        let id_list: string[] = [];
-        worksheet.eachRow({ includeEmpty: true }, (row: any, rowNumber: any) => {
-          const rowData: any = [];
-          row.eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
-            rowData.push(cell.value);
-          });
-          const isEmptyRow = rowData.every((cellValue: any) => cellValue === null || cellValue === '');
-          if (!isEmptyRow) {
-            data.push(rowData);
-          }
-        });
-        if (data[0][0] === '商品ID') {
-          data.map((dd: any, index: number) => {
-            //帶入商品ID
-            id_list.push(dd[0]);
-            data[index] = dd.filter((d1: any, index: number) => {
-              return index > 0;
-            });
-          });
-        }
-        id_list = id_list.filter((item: string) => {
-          return !['商品ID', ''].includes(item);
-        });
-        let error = false;
-        let addCollection: any = [];
-        let appendCollection: any = [];
-        let postMD: {
-          title: string;
-          productType: {
-            product: boolean;
-            addProduct: boolean;
-            giveaway: boolean;
-          };
-          content: string;
-          preview_image: string;
-          hideIndex: string;
-          collection: string[];
-          status: 'active' | 'draft';
-          specs: { title: string; option: any }[];
-          variants: Variant[];
-          seo: {
-            title: string;
-            content: string;
-            keywords: string;
-          };
-          template: string;
-        }[] = [];
-        let productData: any = {};
-        const getVariantData: () => Variant = () => {
-          return {
-            barcode: '',
-            compare_price: 0,
-            origin_price: 0,
-            cost: 0,
-            preview_image: '',
-            profit: 0,
-            sale_price: 0,
-            shipment_type: 'weight',
-            show_understocking: '',
-            sku: '',
-            spec: [],
-            stock: 0,
-            stockList: {},
-            type: '',
-            v_height: 0,
-            v_length: 0,
-            v_width: 0,
-            weight: 0,
-          };
-        };
-
-        function errorCallback(
-          text: string,
-          obj?: {
-            warningMessageView?: boolean;
-          }
-        ) {
-          error = true;
-          dialog.dataLoading({ visible: false });
-          if (obj && obj.warningMessageView) {
-            dialog.warningMessage({
-              text,
-              callback: () => {},
-            });
-          } else {
-            dialog.infoMessage({ text });
-          }
-        }
-
-        data.forEach((row: any, index: number) => {
-          row.forEach((rowData: any, i: number) => {
-            let text = '';
-            if (rowData && rowData.richText) {
-              rowData.richText.map((item: any) => {
-                text += item.text;
-              });
-            } else {
-              text = rowData ?? '';
-            }
-            row[i] = text;
-          });
-          const variantData = getVariantData();
-          if (index != 0) {
-            //判斷是餐飲組合且有多組合
-            if (product_category === 'kitchen') {
-              if (row[1]) {
-                if (Object.keys(productData).length != 0) {
-                  postMD.push(productData);
-                }
-                addCollection = [];
-                productData = {
-                  title: '',
-                  productType: {
-                    product: false,
-                    addProduct: false,
-                    giveaway: false,
-                  },
-                  visible: 'true',
-                  content: '',
-                  status: 'active',
-                  collection: [],
-                  hideIndex: 'false',
-                  preview_image: '',
-                  specs: [],
-                  variants: [],
-                  seo: {
-                    domain: '',
-                    title: '',
-                    content: '',
-                    keywords: '',
-                  },
-                  template: '',
-                };
-                productData.id = id_list[postMD.length];
-                productData.title = this.checkString(row[0]);
-                productData.status = row[1] == '啟用' ? 'active' : 'draft';
-                productData.collection = row[2].split(',') ?? [];
-                const regex = /[\s\/\\]+/g;
-                // 去除多餘空白
-                productData.collection = productData.collection.map((item: string) => item.replace(/\s+/g, ''));
-                productData.collection.forEach((row: any) => {
-                  let collection = row.replace(/\s+/g, '');
-                  // if (regex.test(collection)) {
-                  //     errorCallback(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別`);
-                  //     return;
-                  // }
-
-                  // 若帶有/，要自動加上父類
-                  function splitStringIncrementally(input: string): string[] {
-                    const parts = input.split('/');
-                    const result: string[] = [];
-
-                    // 使用 reduce 来构建每一部分的拼接字符串
-                    parts.reduce((acc, part) => {
-                      const newAcc = acc ? `${acc} / ${part}` : part;
-                      result.push(newAcc);
-                      return newAcc;
-                    }, '');
-
-                    return result;
-                  }
-
-                  if (collection.split('/').length > 1) {
-                    // 會進來代表有/的內容 需要檢查放進去的collection有沒有父類
-                    // 先取得目前分層 例如 貓/貓用品/貓砂/A品牌 會拆分成 貓/貓用品/貓砂 , 貓/貓用品, 貓
-                    // 然後把父層自動推進去
-                    let check = splitStringIncrementally(collection);
-                    const newItems = check.filter((item: string) => !productData.collection.includes(item));
-                    addCollection.push(...newItems);
-                  }
-                  addCollection.push(collection);
-                });
-                productData.collection = addCollection;
-                appendCollection = appendCollection.concat(addCollection).filter((dd: any) => {
-                  return dd;
-                });
-                switch (row[3]) {
-                  case '贈品':
-                    productData.productType.giveaway = true;
-                    break;
-                  case '加購品':
-                    productData.productType.addProduct = true;
-                    break;
-                  case '隱形賣場':
-                    productData.productType.product = true;
-                    productData.visible = 'false';
-                    break;
-                  default:
-                    productData.productType.product = true;
-                    break;
-                }
-                productData.preview_image = row[4] ? [row[4]] : ['商品圖片'];
-                productData.seo.domain = this.checkString(row[5]);
-                productData.seo.title = this.checkString(row[6]);
-                productData.seo.content = this.checkString(row[7]);
-                productData.product_category = 'kitchen';
-                productData.specs = [];
-                let first=true
-                // spec值 merge
-                  let ind_ = index;
-                  while (first || (data[ind_] && !data[ind_][1])) {
-                      const row_data = data[ind_];
-                      const spec_title = this.checkString(row_data[8]);
-                      const spec_value = this.checkString(row_data[9]);
-                      if (
-                        !productData.specs.find((dd: any) => {
-                            return dd.title === spec_title;
-                        })
-                      ) {
-                          productData.specs.push({
-                              language_title: {},
-                              title: spec_title,
-                              option: [],
-                          });
-                      }
-                      productData.specs
-                        .find((dd: any) => {
-                            return dd.title === spec_title;
-                        })
-                        .option.push({
-                          title: spec_value,
-                          price: parseInt(this.checkNumber(row_data[10]), 10),
-                          stock: (row[17] == '追蹤') ? this.checkNumber(row_data[18]):'',
-                          language_title: {},
-                      });
-                      if(first){
-                          const shipmentTypeMap: { [key: string]: 'weight' | 'volume' } = {
-                              依重量計算: 'weight',
-                              依材積計算: 'volume',
-                          };
-                          productData.shipment_type = shipmentTypeMap[row[11]] || 'none';
-                          productData.v_length = this.checkNumber(row[12]);
-                          productData.v_width = this.checkNumber(row[13]);
-                          productData.v_height = this.checkNumber(row[14]);
-                          productData.weight = this.checkNumber(row[15]);
-                        productData.stock = row[17] == '追蹤' ? this.checkNumber(row_data[18]) : 'false';
-                      }
-                      first=false
-                      ind_++;
-                  }
-
-                  function updateVariants() {
-                      productData.specs = productData.specs.filter((dd: any) => {
-                          return dd.option && dd.option.length;
-                      });
-                      const specs: any = {};
-                      productData.specs.map((dd: any) => {
-                          specs[dd.title] = dd.option.map((d1: any) => {
-                              return d1.title;
-                          });
-                      });
-                  }
-
-                  updateVariants();
-              }
-            } else {
-              if (row[1]) {
-                if (Object.keys(productData).length != 0) {
-                  postMD.push(productData);
-                }
-                addCollection = [];
-                productData = {
-                  title: '',
-                  productType: {
-                    product: false,
-                    addProduct: false,
-                    giveaway: false,
-                  },
-                  visible: 'true',
-                  content: '',
-                  status: 'active',
-                  collection: [],
-                  hideIndex: 'false',
-                  preview_image: '',
-                  specs: [],
-                  variants: [],
-                  seo: {
-                    domain: '',
-                    title: '',
-                    content: '',
-                    keywords: '',
-                  },
-                  template: '',
-                };
-                productData.id = id_list[postMD.length];
-                productData.title = this.checkString(row[0]);
-                productData.status = row[1] == '啟用' ? 'active' : 'draft';
-                productData.collection = row[2].split(',') ?? [];
-                const regex = /[\s\/\\]+/g;
-                // 去除多餘空白
-                productData.collection = productData.collection.map((item: string) => item.replace(/\s+/g, ''));
-                productData.collection.forEach((row: any) => {
-                  let collection = row.replace(/\s+/g, '');
-                  // if (regex.test(collection)) {
-                  //     errorCallback(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別`);
-                  //     return;
-                  // }
-
-                  // 若帶有/，要自動加上父類
-                  function splitStringIncrementally(input: string): string[] {
-                    const parts = input.split('/');
-                    const result: string[] = [];
-
-                    // 使用 reduce 来构建每一部分的拼接字符串
-                    parts.reduce((acc, part) => {
-                      const newAcc = acc ? `${acc} / ${part}` : part;
-                      result.push(newAcc);
-                      return newAcc;
-                    }, '');
-
-                    return result;
-                  }
-
-                  if (collection.split('/').length > 1) {
-                    // 會進來代表有/的內容 需要檢查放進去的collection有沒有父類
-                    // 先取得目前分層 例如 貓/貓用品/貓砂/A品牌 會拆分成 貓/貓用品/貓砂 , 貓/貓用品, 貓
-                    // 然後把父層自動推進去
-                    let check = splitStringIncrementally(collection);
-                    const newItems = check.filter((item: string) => !productData.collection.includes(item));
-                    addCollection.push(...newItems);
-                  }
-                  addCollection.push(collection);
-                });
-                productData.collection = addCollection;
-                appendCollection = appendCollection.concat(addCollection).filter((dd: any) => {
-                  return dd;
-                });
-                switch (row[3]) {
-                  case '贈品':
-                    productData.productType.giveaway = true;
-                    break;
-                  case '加購品':
-                    productData.productType.addProduct = true;
-                    break;
-                  case '隱形賣場':
-                    productData.productType.product = true;
-                    productData.visible = 'false';
-                    break;
-                  default:
-                    productData.productType.product = true;
-                    break;
-                }
-                productData.preview_image = row[4] ? [row[4]] : ['商品圖片'];
-                productData.seo.domain = this.checkString(row[5]);
-                productData.seo.title = this.checkString(row[6]);
-                productData.seo.content = this.checkString(row[7]);
-                // spec值 merge
-                let indices = [8, 10, 12];
-                indices.forEach(index => {
-                  if (row[index]) {
-                    productData.specs.push({
-                      title: row[index],
-                      option: [],
-                    });
-                  }
-                });
-              }
-              let indices = [9, 11, 13];
-              indices.forEach((rowindex, key) => {
-                if (row[rowindex] && productData.specs.length > key) {
-                  productData.specs[key].option = productData.specs[key].option ?? [];
-                  const exists = productData.specs[key].option.some((item: any) => item.title === row[rowindex]);
-                  if (!exists) {
-                    productData.specs[key].option.push({ title: row[rowindex], expand: true });
-                  }
-                  variantData.spec.push(row[rowindex]);
-                }
-              });
-              variantData.preview_image = row[4];
-              variantData.sku = this.checkString(row[14]);
-              variantData.cost = this.checkString(row[15]);
-              variantData.sale_price = this.checkNumber(row[16]);
-              variantData.compare_price = this.checkNumber(row[17]);
-              variantData.profit = this.checkNumber(row[18]);
-              const shipmentTypeMap: { [key: string]: 'weight' | 'volume' } = {
-                依重量計算: 'weight',
-                依材積計算: 'volume',
-              };
-              variantData.shipment_type = shipmentTypeMap[row[19]] || 'none';
-              variantData.v_length = this.checkNumber(row[20]);
-              variantData.v_width = this.checkNumber(row[21]);
-              variantData.v_height = this.checkNumber(row[22]);
-              variantData.weight = this.checkNumber(row[23]);
-              variantData.show_understocking = row[25] == '追蹤' ? 'true' : 'false';
-              variantData.stock = this.checkNumber(row[26]);
-              variantData.save_stock = this.checkNumber(row[27]);
-              variantData.barcode = this.checkString(row[28]);
-              productData.variants.push(JSON.parse(JSON.stringify(variantData)));
-            }
-          }
-        });
-        postMD.push(productData);
-
-        //商品連結若為空，則預設值為商品名稱
-        postMD.map((dd: any) => {
-          dd.seo.domain = dd.seo.domain || dd.title;
-        });
-        const domainList = postMD
-          .filter((item: any, index: number) => {
-            return !id_list[index];
-          })
-          .map((item: any) => {
-            return item.seo.domain;
-          });
-        // 判斷excel中是否有重複的domain
-        const filteredArr = domainList.filter((item: string) => {
-          return item && item.length > 0 && item.trim().length > 0;
-        });
-        // 過濾掉空白字串
-        const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
-        if (hasDuplicates) {
-          errorCallback(
-            '「商品連結」的值不可重複<br/>如果「商品連結」為空，預設值為該商品的「商品名稱」<br/>則該「商品名稱」不可與其它「商品連結」重複',
-            {
-              warningMessageView: true,
-            }
-          );
-          return;
-        }
-
-        //判斷已建立產品中是否有重複存在的domain
-        const productDomainSet = new Set(allProductDomain);
-        const duplicateDomain = domainList.find((domain: string) => domain.length > 0 && productDomainSet.has(domain));
-        if (duplicateDomain) {
-          errorCallback(`商品連結「${duplicateDomain}」已有產品使用，請更換該欄位的值`);
-          return;
-        }
-
-        let passData = {
-          data: postMD,
-          collection: appendCollection,
-        };
-        dialog.dataLoading({ visible: false });
-        if (!error) {
-          // return
-          dialog.dataLoading({ visible: true, text: '上傳資料中' });
-          console.log(`passData=>`,passData);
-          await ApiShop.postMultiProduct({
-            data: passData,
-            token: (window.parent as any).config.token,
-          }).then(() => {
-            dialog.dataLoading({ visible: false });
-            dialog.successMessage({ text: '上傳成功' });
-            this.gvc.glitter.closeDiaLog();
-            this.gvc.notifyDataChange(notifyId);
-          });
-        }
-      } catch (e) {
-        console.error(e);
-        dialog.dataLoading({ visible: false });
-        dialog.errorMessage({ text: '資料錯誤' });
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  }
-
-  async exportData(data: any, name: string) {
-    await this.loadScript();
-    this.setHeader();
-    this.insertData(data);
-    this.setHeaderStyle();
-    this.setRowHeight();
-    this.setFontAndAlignmentStyle();
-    this.adjustColumnWidths(data);
-    const buffer = await this.workbook.xlsx.writeBuffer();
-    this.saveAsExcelFile(buffer, `${name}.xlsx`);
+  private async getProductDomains(): Promise<string[]> {
+    try {
+      const data = await ApiShop.getProductDomain({});
+      return data.result && data.response.data
+        ? data.response.data
+            .map((item: any) => {
+              const seo = typeof item.seo === 'string' ? JSON.parse(item.seo) : item.seo;
+              return seo?.domain ?? '';
+            })
+            .filter((domain: string) => domain.length > 0)
+        : [];
+    } catch (error) {
+      console.error('獲取產品網域失敗', error);
+      return [];
+    }
   }
 
   static getFileTime() {
@@ -789,41 +314,6 @@ export class ProductExcel {
       '重量單位',
       '庫存政策',
       '庫存數量',
-    ];
-  }
-
-  static exampleHeaderKitchen() {
-    return [
-      '商品ID',
-      '商品名稱',
-      '使用狀態（啟用/草稿）',
-      '商品類別',
-      '上架類型（前台商品/加購品/贈品/隱形賣場）',
-      '規格圖網址',
-      '商品連結',
-      'SEO標題',
-      'SEO描述',
-      '規格1',
-      '規格詳細',
-      '規格2',
-      '規格詳細',
-      '規格3',
-      '規格詳細',
-      'SKU',
-      '成本',
-      '售價',
-      '原價',
-      '利潤',
-      '運費計算方式',
-      '長度',
-      '寬度',
-      '高度',
-      '商品重量',
-      '重量單位',
-      '庫存政策',
-      '庫存數量',
-      '安全庫存數量',
-      '商品條碼',
     ];
   }
 
@@ -1049,13 +539,90 @@ export class ProductExcel {
     ];
   }
 
-  //匯出零售商品資料
-  static exportCommodity(getFormData: any, gvc: GVC) {
+  static getInitData = () => ({
+    name: '',
+    status: '',
+    category: '',
+    productType: '',
+    img: '',
+    SEO_domain: '',
+    SEO_title: '',
+    SEO_desc: '',
+    spec1: '',
+    spec1Value: '',
+    spec2: '',
+    spec2Value: '',
+    spec3: '',
+    spec3Value: '',
+    sku: '',
+    cost: '',
+    sale_price: '',
+    compare_price: '',
+    benefit: '',
+    shipment_type: '',
+    length: '',
+    width: '',
+    height: '',
+    weight: '',
+    weightUnit: '',
+    stockPolicy: '',
+    stock: '',
+    save_stock: '',
+    barcode: '',
+  });
+
+  static getProductTypeString(product: any) {
+    product.productType = product.productType ?? {
+      product: true,
+      addProduct: false,
+      giveaway: false,
+    };
+    if (product.productType['product']) {
+      if ((product.visible || 'true') === 'false') {
+        return '隱形賣場';
+      } else {
+        return '前台商品';
+      }
+    } else if (product.productType['addProduct']) {
+      return '加購品';
+    } else if (product.productType['giveaway']) {
+      return '贈品';
+    }
+    return '未知';
+  }
+
+  static getSupportProductCategory() {
+    const productCategories = [
+      { key: 'course', value: '課程販售', compare: 'teaching' },
+      { key: 'commodity', value: '零售商品', compare: 'shop' },
+      { key: 'kitchen', value: '餐飲組合', compare: 'kitchen' },
+    ];
+
+    const webType = (window.parent as any)?.store_info?.web_type || [];
+
+    return productCategories.filter(product => webType.includes(product.compare));
+  }
+
+  // 匯出方法
+  async export(data: any, name: string) {
+    await this.loadScript();
+    this.setHeader();
+    this.insertData(data);
+    this.setHeaderStyle();
+    this.setRowHeight();
+    this.setFontAndAlignmentStyle();
+    this.adjustColumnWidths(data);
+    const buffer = await this.workbook.xlsx.writeBuffer();
+    this.saveAsExcelFile(buffer, `${name}.xlsx`);
+  }
+
+  // 匯出零售商品
+  static exportCommodity(gvc: GVC, getFormData: any) {
     const rowInitData: RowInitData = {
       name: '',
       status: '',
       category: '',
-      productType: ``,
+      productType: '',
       img: '',
       SEO_domain: '',
       SEO_title: '',
@@ -1106,8 +673,7 @@ export class ProductExcel {
                 })()
               : '',
           category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
-          productType:
-            index === 0 ? expo.checkString(ShoppingProductSetting.getProductTypeString(productData.content)) : '',
+          productType: index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
           img: expo.checkString(
             (productData.content.variants[index] && productData.content.variants[index].preview_image) ||
               productData.content.preview_image[0]
@@ -1155,18 +721,18 @@ export class ProductExcel {
         });
       });
 
-      expo.exportData(exportData, `商品詳細列表_${ProductExcel.getFileTime()}`);
+      expo.export(exportData, `商品列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}`);
       dialog.dataLoading({ visible: false });
     });
   }
 
-  //匯出餐飲組合
-  static exportKitchen(getFormData: any, gvc: GVC) {
+  // 匯出餐飲組合
+  static exportKitchen(gvc: GVC, getFormData: any) {
     const rowInitData: RowInitKitchen = {
       name: '',
       status: '',
       category: '',
-      productType: ``,
+      productType: '',
       img: '',
       SEO_domain: '',
       SEO_title: '',
@@ -1219,8 +785,7 @@ export class ProductExcel {
                   })()
                 : '',
             category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
-            productType:
-              index === 0 ? expo.checkString(ShoppingProductSetting.getProductTypeString(productData.content)) : '',
+            productType: index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
             img: expo.checkString(productData.content.preview_image[0]),
             SEO_domain: index === 0 ? expo.checkString(productData.content?.seo?.domain) : '',
             SEO_title: index === 0 ? expo.checkString(productData.content?.seo?.title) : '',
@@ -1261,8 +826,7 @@ export class ProductExcel {
                   })()
                 : '',
             category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
-            productType:
-              index === 0 ? expo.checkString(ShoppingProductSetting.getProductTypeString(productData.content)) : '',
+            productType: index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
             img: expo.checkString(
               (productData.content.variants[index] && productData.content.variants[index].preview_image) ||
                 productData.content.preview_image[0]
@@ -1287,8 +851,743 @@ export class ProductExcel {
         }
       });
 
-      expo.exportData(exportData, `餐飲組合列表_${ProductExcel.getFileTime()}`);
+      expo.export(exportData, `餐飲組合列表_${ProductExcel.getFileTime()}`);
       dialog.dataLoading({ visible: false });
     });
+  }
+
+  // 匯出檔案彈出視窗
+  static exportDialog(gvc: GVC, pageType: string, apiJSON: any, dataArray: any[]) {
+    const vm = {
+      support: '',
+      file: 'excel',
+      select: 'all' as Range,
+      column: [] as string[],
+    };
+
+    BgWidget.settingDialog({
+      gvc,
+      title: '匯出商品',
+      width: 700,
+      innerHTML: gvc2 => {
+        try {
+          return html`<div class="d-flex flex-column align-items-start gap-2">
+            <div class="tx_700 mb-1">匯出為</div>
+            ${BgWidget.multiCheckboxContainer(
+              gvc2,
+              [
+                {
+                  key: 'excel',
+                  name: 'Excel檔案',
+                },
+              ],
+              [vm.file],
+              (res: any) => {
+                vm.file = res[0];
+              },
+              { single: true }
+            )}
+            <div class="tx_700 mt-2 mb-1">匯出商品類型</div>
+            ${BgWidget.multiCheckboxContainer(
+              gvc2,
+              this.getSupportProductCategory().map(dd => {
+                if (vm.support === '') {
+                  vm.support = dd.key;
+                }
+                return {
+                  key: dd.key,
+                  name: dd.value,
+                };
+              }),
+              [vm.support],
+              (res: any) => {
+                vm.support = res[0];
+              },
+              { single: true }
+            )}
+            <div class="tx_700 mt-2 mb-1">匯出範圍</div>
+            ${BgWidget.multiCheckboxContainer(
+              gvc2,
+              [
+                { key: 'all', name: `全部商品` },
+                { key: 'search', name: '目前搜尋與篩選的結果' },
+                { key: 'checked', name: `勾選的 ${dataArray.length} 個商品` },
+              ],
+              [vm.select],
+              (res: any) => {
+                vm.select = res[0];
+              },
+              { single: true }
+            )}
+          </div>`;
+        } catch (error) {
+          console.error(error);
+          return '';
+        }
+      },
+      footer_html: gvc2 => {
+        return [
+          BgWidget.cancel(
+            gvc2.event(() => {
+              gvc2.glitter.closeDiaLog();
+            })
+          ),
+          BgWidget.save(
+            gvc2.event(() => {
+              const dialog = new ShareDialog(gvc2.glitter);
+
+              // 檢查是否有選中商品
+              if (vm.select === 'checked' && dataArray.length === 0) {
+                dialog.infoMessage({ text: '請勾選至少一個以上的商品' });
+                return;
+              }
+
+              // 根據不同選擇模式生成表單數據
+              const getFormData = (() => {
+                const baseFormData = {
+                  page: 0,
+                  limit: 250,
+                  productType: pageType,
+                  product_category: vm.support,
+                };
+
+                const { search, searchType, orderBy, status, collection, accurate_search_collection } = apiJSON;
+
+                const formDataMap: Record<string, any> = {
+                  search: {
+                    ...baseFormData,
+                    search,
+                    searchType,
+                    orderBy,
+                    status,
+                    collection,
+                    accurate_search_collection,
+                  },
+                  checked: {
+                    ...baseFormData,
+                    id_list: dataArray.map((item: { id: number }) => item.id).join(','),
+                  },
+                  all: baseFormData,
+                };
+
+                return formDataMap[vm.select] || baseFormData;
+              })();
+
+              // 根據產品類別匯出不同格式
+              if (['course', 'commodity'].includes(vm.support)) {
+                this.exportCommodity(gvc, getFormData);
+              } else if (vm.support === 'kitchen') {
+                this.exportKitchen(gvc, getFormData);
+              }
+            }),
+            '匯出'
+          ),
+        ].join('');
+      },
+    });
+  }
+
+  // 匯入方法
+  async import(files: any, product_category: ProductCategory, callback: () => void) {
+    const dialog = new ShareDialog(this.gvc.glitter);
+
+    if (!files.files?.length) {
+      return dialog.errorMessage({ text: '檔案載入失敗' });
+    }
+
+    dialog.dataLoading({ visible: true, text: '資料處理中' });
+
+    await this.loadScript();
+
+    const allProductDomain = await this.getProductDomains();
+
+    const reader = new FileReader();
+    reader.onload = async e => {
+      try {
+        const arrayBuffer = e.target!.result;
+        const workbook = new this.ExcelJS.Workbook();
+        await workbook.xlsx.load(arrayBuffer);
+        const worksheet = workbook.getWorksheet(1);
+        const data: any = [];
+        let id_list: string[] = [];
+        worksheet.eachRow({ includeEmpty: true }, (row: any) => {
+          const rowData: any = [];
+          row.eachCell({ includeEmpty: true }, (cell: any) => rowData.push(cell.value));
+          const isEmptyRow = rowData.every((cellValue: any) => cellValue === null || cellValue === '');
+          if (!isEmptyRow) {
+            data.push(rowData);
+          }
+        });
+        if (data[0][0] === '商品ID') {
+          data.map((dd: any, index: number) => {
+            //帶入商品ID
+            id_list.push(dd[0]);
+            data[index] = dd.filter((_: any, index: number) => index > 0);
+          });
+        }
+        id_list = id_list.filter((item: string) => !['商品ID', ''].includes(item));
+        let error = false;
+        let addCollection: any = [];
+        let appendCollection: any = [];
+        let postMD: {
+          title: string;
+          productType: {
+            product: boolean;
+            addProduct: boolean;
+            giveaway: boolean;
+          };
+          content: string;
+          preview_image: string;
+          hideIndex: string;
+          collection: string[];
+          status: 'active' | 'draft';
+          specs: { title: string; option: any }[];
+          variants: Variant[];
+          seo: {
+            title: string;
+            content: string;
+            keywords: string;
+          };
+          template: string;
+        }[] = [];
+        let productData: any = {};
+        const getVariantData: () => Variant = () => {
+          return {
+            barcode: '',
+            compare_price: 0,
+            origin_price: 0,
+            cost: 0,
+            preview_image: '',
+            profit: 0,
+            sale_price: 0,
+            shipment_type: 'weight',
+            show_understocking: '',
+            sku: '',
+            spec: [],
+            stock: 0,
+            stockList: {},
+            type: '',
+            v_height: 0,
+            v_length: 0,
+            v_width: 0,
+            weight: 0,
+          };
+        };
+
+        function errorCallback(
+          text: string,
+          obj?: {
+            warningMessageView?: boolean;
+          }
+        ) {
+          error = true;
+          dialog.dataLoading({ visible: false });
+          if (obj && obj.warningMessageView) {
+            dialog.warningMessage({
+              text,
+              callback: () => {},
+            });
+          } else {
+            dialog.infoMessage({ text });
+          }
+        }
+
+        data.forEach((row: any, index: number) => {
+          row.forEach((rowData: any, i: number) => {
+            let text = '';
+            if (rowData && rowData.richText) {
+              rowData.richText.map((item: any) => {
+                text += item.text;
+              });
+            } else {
+              text = rowData ?? '';
+            }
+            row[i] = text;
+          });
+          const variantData = getVariantData();
+          if (index != 0) {
+            //判斷是餐飲組合且有多組合
+            if (product_category === 'kitchen') {
+              if (row[1]) {
+                if (Object.keys(productData).length != 0) {
+                  postMD.push(productData);
+                }
+                addCollection = [];
+                productData = {
+                  title: '',
+                  productType: {
+                    product: false,
+                    addProduct: false,
+                    giveaway: false,
+                  },
+                  visible: 'true',
+                  content: '',
+                  status: 'active',
+                  collection: [],
+                  hideIndex: 'false',
+                  preview_image: '',
+                  specs: [],
+                  variants: [],
+                  seo: {
+                    domain: '',
+                    title: '',
+                    content: '',
+                    keywords: '',
+                  },
+                  template: '',
+                };
+                productData.id = id_list[postMD.length];
+                productData.title = this.checkString(row[0]);
+                productData.status = row[1] == '啟用' ? 'active' : 'draft';
+                productData.collection = row[2].split(',') ?? [];
+                // 去除多餘空白
+                productData.collection = productData.collection.map((item: string) => item.replace(/\s+/g, ''));
+                productData.collection.forEach((row: any) => {
+                  let collection = row.replace(/\s+/g, '');
+                  // if (regex.test(collection)) {
+                  //     errorCallback(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別`);
+                  //     return;
+                  // }
+
+                  // 若帶有/，要自動加上父類
+                  function splitStringIncrementally(input: string): string[] {
+                    const parts = input.split('/');
+                    const result: string[] = [];
+
+                    // 使用 reduce 来构建每一部分的拼接字符串
+                    parts.reduce((acc, part) => {
+                      const newAcc = acc ? `${acc} / ${part}` : part;
+                      result.push(newAcc);
+                      return newAcc;
+                    }, '');
+
+                    return result;
+                  }
+
+                  if (collection.split('/').length > 1) {
+                    // 會進來代表有/的內容 需要檢查放進去的collection有沒有父類
+                    // 先取得目前分層 例如 貓/貓用品/貓砂/A品牌 會拆分成 貓/貓用品/貓砂 , 貓/貓用品, 貓
+                    // 然後把父層自動推進去
+                    let check = splitStringIncrementally(collection);
+                    const newItems = check.filter((item: string) => !productData.collection.includes(item));
+                    addCollection.push(...newItems);
+                  }
+                  addCollection.push(collection);
+                });
+                productData.collection = addCollection;
+                appendCollection = appendCollection.concat(addCollection).filter((dd: any) => {
+                  return dd;
+                });
+                switch (row[3]) {
+                  case '贈品':
+                    productData.productType.giveaway = true;
+                    break;
+                  case '加購品':
+                    productData.productType.addProduct = true;
+                    break;
+                  case '隱形賣場':
+                    productData.productType.product = true;
+                    productData.visible = 'false';
+                    break;
+                  default:
+                    productData.productType.product = true;
+                    break;
+                }
+                productData.preview_image = row[4] ? [row[4]] : ['商品圖片'];
+                productData.seo.domain = this.checkString(row[5]);
+                productData.seo.title = this.checkString(row[6]);
+                productData.seo.content = this.checkString(row[7]);
+                productData.product_category = 'kitchen';
+                productData.specs = [];
+                let first = true;
+                // spec值 merge
+                let ind_ = index;
+                while (first || (data[ind_] && !data[ind_][1])) {
+                  const row_data = data[ind_];
+                  const spec_title = this.checkString(row_data[8]);
+                  const spec_value = this.checkString(row_data[9]);
+                  if (
+                    !productData.specs.find((dd: any) => {
+                      return dd.title === spec_title;
+                    })
+                  ) {
+                    productData.specs.push({
+                      language_title: {},
+                      title: spec_title,
+                      option: [],
+                    });
+                  }
+                  productData.specs
+                    .find((dd: any) => {
+                      return dd.title === spec_title;
+                    })
+                    .option.push({
+                      title: spec_value,
+                      price: parseInt(this.checkNumber(row_data[10]), 10),
+                      stock: row[17] == '追蹤' ? this.checkNumber(row_data[18]) : '',
+                      language_title: {},
+                    });
+                  if (first) {
+                    const shipmentTypeMap: { [key: string]: 'weight' | 'volume' } = {
+                      依重量計算: 'weight',
+                      依材積計算: 'volume',
+                    };
+                    productData.shipment_type = shipmentTypeMap[row[11]] || 'none';
+                    productData.v_length = this.checkNumber(row[12]);
+                    productData.v_width = this.checkNumber(row[13]);
+                    productData.v_height = this.checkNumber(row[14]);
+                    productData.weight = this.checkNumber(row[15]);
+                    productData.stock = row[17] == '追蹤' ? this.checkNumber(row_data[18]) : 'false';
+                  }
+                  first = false;
+                  ind_++;
+                }
+
+                function updateVariants() {
+                  productData.specs = productData.specs.filter((dd: any) => dd.option && dd.option.length);
+                  const specs: any = {};
+                  productData.specs.map((dd: any) => {
+                    specs[dd.title] = dd.option.map((d1: any) => d1.title);
+                  });
+                }
+
+                updateVariants();
+              }
+            } else {
+              if (row[1]) {
+                if (Object.keys(productData).length != 0) {
+                  postMD.push(productData);
+                }
+                addCollection = [];
+                productData = {
+                  title: '',
+                  productType: {
+                    product: false,
+                    addProduct: false,
+                    giveaway: false,
+                  },
+                  visible: 'true',
+                  content: '',
+                  status: 'active',
+                  collection: [],
+                  hideIndex: 'false',
+                  preview_image: '',
+                  specs: [],
+                  variants: [],
+                  seo: {
+                    domain: '',
+                    title: '',
+                    content: '',
+                    keywords: '',
+                  },
+                  template: '',
+                };
+                productData.id = id_list[postMD.length];
+                productData.title = this.checkString(row[0]);
+                productData.status = row[1] == '啟用' ? 'active' : 'draft';
+                productData.collection = row[2].split(',') ?? [];
+                // 去除多餘空白
+                productData.collection = productData.collection.map((item: string) => item.replace(/\s+/g, ''));
+                productData.collection.forEach((row: any) => {
+                  let collection = row.replace(/\s+/g, '');
+                  // if (regex.test(collection)) {
+                  //     errorCallback(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別`);
+                  //     return;
+                  // }
+
+                  // 若帶有/，要自動加上父類
+                  function splitStringIncrementally(input: string): string[] {
+                    const parts = input.split('/');
+                    const result: string[] = [];
+
+                    // 使用 reduce 来构建每一部分的拼接字符串
+                    parts.reduce((acc, part) => {
+                      const newAcc = acc ? `${acc} / ${part}` : part;
+                      result.push(newAcc);
+                      return newAcc;
+                    }, '');
+
+                    return result;
+                  }
+
+                  if (collection.split('/').length > 1) {
+                    // 會進來代表有/的內容 需要檢查放進去的collection有沒有父類
+                    // 先取得目前分層 例如 貓/貓用品/貓砂/A品牌 會拆分成 貓/貓用品/貓砂 , 貓/貓用品, 貓
+                    // 然後把父層自動推進去
+                    let check = splitStringIncrementally(collection);
+                    const newItems = check.filter((item: string) => !productData.collection.includes(item));
+                    addCollection.push(...newItems);
+                  }
+                  addCollection.push(collection);
+                });
+                productData.collection = addCollection;
+                appendCollection = appendCollection.concat(addCollection).filter((dd: any) => dd);
+                switch (row[3]) {
+                  case '贈品':
+                    productData.productType.giveaway = true;
+                    break;
+                  case '加購品':
+                    productData.productType.addProduct = true;
+                    break;
+                  case '隱形賣場':
+                    productData.productType.product = true;
+                    productData.visible = 'false';
+                    break;
+                  default:
+                    productData.productType.product = true;
+                    break;
+                }
+                productData.preview_image = row[4] ? [row[4]] : ['商品圖片'];
+                productData.seo.domain = this.checkString(row[5]);
+                productData.seo.title = this.checkString(row[6]);
+                productData.seo.content = this.checkString(row[7]);
+                // spec值 merge
+                let indices = [8, 10, 12];
+                indices.forEach(index => {
+                  if (row[index]) {
+                    productData.specs.push({
+                      title: row[index],
+                      option: [],
+                    });
+                  }
+                });
+              }
+              let indices = [9, 11, 13];
+              indices.forEach((rowindex, key) => {
+                if (row[rowindex] && productData.specs.length > key) {
+                  productData.specs[key].option = productData.specs[key].option ?? [];
+                  const exists = productData.specs[key].option.some((item: any) => item.title === row[rowindex]);
+                  if (!exists) {
+                    productData.specs[key].option.push({ title: row[rowindex], expand: true });
+                  }
+                  variantData.spec.push(row[rowindex]);
+                }
+              });
+              variantData.preview_image = row[4];
+              variantData.sku = this.checkString(row[14]);
+              variantData.cost = this.checkString(row[15]);
+              variantData.sale_price = this.checkNumber(row[16]);
+              variantData.compare_price = this.checkNumber(row[17]);
+              variantData.profit = this.checkNumber(row[18]);
+              const shipmentTypeMap: { [key: string]: 'weight' | 'volume' } = {
+                依重量計算: 'weight',
+                依材積計算: 'volume',
+              };
+              variantData.shipment_type = shipmentTypeMap[row[19]] || 'none';
+              variantData.v_length = this.checkNumber(row[20]);
+              variantData.v_width = this.checkNumber(row[21]);
+              variantData.v_height = this.checkNumber(row[22]);
+              variantData.weight = this.checkNumber(row[23]);
+              variantData.show_understocking = row[25] == '追蹤' ? 'true' : 'false';
+              variantData.stock = this.checkNumber(row[26]);
+              variantData.save_stock = this.checkNumber(row[27]);
+              variantData.barcode = this.checkString(row[28]);
+              productData.variants.push(JSON.parse(JSON.stringify(variantData)));
+            }
+          }
+        });
+        postMD.push(productData);
+
+        //商品連結若為空，則預設值為商品名稱
+        postMD.map((dd: any) => {
+          dd.seo.domain = dd.seo.domain || dd.title;
+        });
+        const domainList = postMD
+          .filter((item: any, index: number) => {
+            return !id_list[index];
+          })
+          .map((item: any) => {
+            return item.seo.domain;
+          });
+        // 判斷excel中是否有重複的domain
+        const filteredArr = domainList.filter((item: string) => {
+          return item && item.length > 0 && item.trim().length > 0;
+        });
+        // 過濾掉空白字串
+        const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
+        if (hasDuplicates) {
+          errorCallback(
+            '「商品連結」的值不可重複<br/>如果「商品連結」為空，預設值為該商品的「商品名稱」<br/>則該「商品名稱」不可與其它「商品連結」重複',
+            {
+              warningMessageView: true,
+            }
+          );
+          return;
+        }
+
+        //判斷已建立產品中是否有重複存在的domain
+        const productDomainSet = new Set(allProductDomain);
+        const duplicateDomain = domainList.find((domain: string) => domain.length > 0 && productDomainSet.has(domain));
+        if (duplicateDomain) {
+          errorCallback(`商品連結「${duplicateDomain}」已有產品使用，請更換該欄位的值`);
+          return;
+        }
+
+        let passData = {
+          data: postMD,
+          collection: appendCollection,
+        };
+        dialog.dataLoading({ visible: false });
+        if (!error) {
+          dialog.dataLoading({ visible: true, text: '上傳資料中' });
+          await ApiShop.postMultiProduct({
+            data: passData,
+            token: (window.parent as any).config.token,
+          }).then(() => {
+            dialog.dataLoading({ visible: false });
+            dialog.successMessage({ text: '上傳成功' });
+            this.gvc.glitter.closeDiaLog();
+            callback();
+          });
+        }
+      } catch (e) {
+        console.error(e);
+        dialog.dataLoading({ visible: false });
+        dialog.errorMessage({ text: '資料錯誤' });
+      }
+    };
+
+    const file = files.files[0];
+    reader.readAsArrayBuffer(file);
+  }
+
+  // 匯入檔案彈出視窗
+  static importDialog(gvc: GVC, callback: () => void) {
+    const dialog = new ShareDialog(gvc.glitter);
+    const vm = {
+      id: 'importDialog',
+      fileInput: {} as HTMLInputElement,
+      type: '' as ProductCategory,
+    };
+
+    gvc.glitter.innerDialog((gvc: GVC) => {
+      const excel = new ProductExcel(
+        gvc,
+        this.exampleHeader().filter(item => item !== '商品ID'),
+        Object.keys(this.getInitData())
+      );
+
+      return gvc.bindView({
+        bind: vm.id,
+        view: () => {
+          const viewData = {
+            title: '匯入商品',
+            category: {
+              title: '匯入商品類型',
+              options: this.getSupportProductCategory().map(dd => {
+                if (!vm.type) {
+                  vm.type = dd.key as ProductCategory;
+                }
+                return {
+                  key: dd.key,
+                  name: dd.value,
+                };
+              }),
+            },
+            example: {
+              event: () => {
+                excel.export(
+                  ProductExcel.exampleSheet(),
+                  `範例_商品列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}`
+                );
+              },
+            },
+            import: {
+              event: () => {
+                excel.import(vm.fileInput, vm.type, () => {
+                  gvc.glitter.closeDiaLog();
+                  callback();
+                });
+              },
+            },
+          };
+
+          return html`
+            <div
+              class="d-flex align-items-center w-100 tx_700"
+              style="padding: 12px 0 12px 20px; align-items: center; border-radius: 10px 10px 0px 0px; background: #F2F2F2;"
+            >
+              ${viewData.title}
+            </div>
+            ${viewData.category.options.length > 0
+              ? html`<div class="d-flex flex-column align-items-start gap-2" style="padding: 20px 20px 0px;">
+                  <div class="tx_700">${viewData.category.title}</div>
+                  ${BgWidget.multiCheckboxContainer(
+                    gvc,
+                    viewData.category.options,
+                    [vm.type],
+                    res => {
+                      vm.type = res[0] as ProductCategory;
+                    },
+                    { single: true }
+                  )}
+                </div>`
+              : ''}
+            <div class="d-flex flex-column w-100 align-items-start gap-3" style="padding: 20px">
+              <div class="d-flex align-items-center gap-2">
+                <div class="tx_700">透過XLSX檔案匯入商品</div>
+                ${BgWidget.blueNote('下載範例', gvc.event(viewData.example.event))}
+              </div>
+              <input
+                class="d-none"
+                type="file"
+                id="upload-excel"
+                onchange="${gvc.event((_, event) => {
+                  vm.fileInput = event.target;
+                  gvc.notifyDataChange(vm.id);
+                })}"
+              />
+              <div
+                class="d-flex flex-column w-100 justify-content-center align-items-center gap-3"
+                style="border: 1px solid #DDD; border-radius: 10px; min-height: 180px;"
+              >
+                ${(() => {
+                  if (vm.fileInput.files && vm.fileInput.files.length > 0) {
+                    return html`
+                      ${BgWidget.customButton({
+                        button: { color: 'snow', size: 'md' },
+                        text: { name: '更換檔案' },
+                        event: gvc.event(() => {
+                          (document.querySelector('#upload-excel') as HTMLInputElement)!.click();
+                        }),
+                      })}
+                      ${BgWidget.grayNote(vm.fileInput.files[0].name)}
+                    `;
+                  } else {
+                    return BgWidget.customButton({
+                      button: { color: 'snow', size: 'md' },
+                      text: { name: '新增檔案' },
+                      event: gvc.event(() => {
+                        (document.querySelector('#upload-excel') as HTMLInputElement)!.click();
+                      }),
+                    });
+                  }
+                })()}
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-3" style="padding-right: 20px; padding-bottom: 20px;">
+              ${BgWidget.cancel(
+                gvc.event(() => {
+                  gvc.glitter.closeDiaLog();
+                })
+              )}
+              ${BgWidget.save(
+                gvc.event(() => {
+                  if (vm.fileInput.files && vm.fileInput.files.length > 0) {
+                    viewData.import.event();
+                  } else {
+                    dialog.infoMessage({ text: '尚未上傳檔案' });
+                  }
+                }),
+                '匯入'
+              )}
+            </div>
+          `;
+        },
+        divCreate: {
+          style: 'border-radius: 10px; background: #FFF; width: 570px; min-height: 360px; max-width: 90%;',
+        },
+      });
+    }, vm.id);
   }
 }

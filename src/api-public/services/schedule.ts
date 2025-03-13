@@ -11,6 +11,7 @@ import { saasConfig } from '../../config';
 import { InitialFakeData } from './initial-fake-data.js';
 import { LineMessage } from './line-message';
 import { ApiPublic } from './public-table-check.js';
+import { App } from '../../services/app.js';
 
 type ScheduleItem = {
     second: number;
@@ -23,9 +24,15 @@ export class Schedule {
     static app: string[] = [];
 
     async perload(app: string) {
-        if (!(await this.isDatabasePass(app))) return false;
-        await ApiPublic.createScheme(app);
-        return true;
+        const brand_type=await App.checkBrandAndMemberType(app)
+        if(brand_type.brand==='shopnex' && brand_type.domain){
+            if (!(await this.isDatabasePass(app))) return false;
+            await ApiPublic.createScheme(app);
+            return true;
+        }else{
+            return  false
+        }
+
     }
 
     async isDatabaseExists(app: string) {
@@ -74,9 +81,9 @@ export class Schedule {
                                     status = 0 
                                     AND created_time < NOW() - INTERVAL ${config.auto_cancel_order_timer} HOUR
                                     AND (orderData->>'$.proof_purchase' IS NULL)
-                                    AND (orderData->>'$.orderStatus' = 0 OR orderData->>'$.orderStatus' IS NULL)
-                                    AND (orderData->>'$.progress' = 'wait' OR orderData->>'$.progress' IS NULL)
-                                    AND (orderData->>'$.customer_info.payment_select' <> 'cash_on_delivery')
+                                    AND order_status='0'
+                                    AND progress='wait'
+                                    AND payment_method != 'cash_on_delivery'
                                 ORDER BY id DESC;`,
                           []
                         );
@@ -386,7 +393,7 @@ export class Schedule {
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
             { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
             { second: 3600 * 24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
-            { second: 3600 * 24, status: false, func: 'initialSampleApp', desc: '重新刷新示範商店' },
+            // { second: 3600 * 24, status: false, func: 'initialSampleApp', desc: '重新刷新示範商店' },
             { second: 30, status: true, func: 'autoCancelOrder', desc: '自動取消未付款未出貨訂單' },
         ];
         try {

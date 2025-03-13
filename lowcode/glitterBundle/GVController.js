@@ -392,7 +392,7 @@ ${(typeof gvc.glitter.elementCallback[bind_id].initial_view === 'string') ? gvc.
                 }
             }
             catch (e) {
-                error(`Add ${urlArray[index]} ERROR!!`);
+                error(`Add ${urlArray[index]} ERROR`);
             }
         }
         addScript();

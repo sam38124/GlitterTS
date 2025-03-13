@@ -65,7 +65,7 @@ export class BgListComponent {
     </div>`;
   }
 
-  getFilterTags(items: FilterItem[]) {
+  getFilterTags(items: FilterItem[]): string {
     let h = '';
     items.map(item => {
       const data = this.vm.filter[item.key];
@@ -414,11 +414,39 @@ export class BgListComponent {
                 background-color: #fff !important;
               }
             `);
+
+            // 預設開啟列表
+            items.map((item: any) => {
+              const elem = window.parent.document.getElementById(`heading${item.key}`);
+              if (elem && item.defaultOpen) {
+                setTimeout(() => {
+                  const button = elem.querySelector('.accordion-button');
+                  button ? (button as HTMLElement).click() : elem.click();
+                }, 200);
+              }
+            });
           },
         };
       }),
       right: true,
     });
+  }
+
+  static listBarRWD(filterList: string[], filterTags: string) {
+    if (document.body.clientWidth > 768) {
+      // 電腦版
+      return html` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
+        <div>${filterTags}</div>`;
+    }
+    // 手機版
+    return html` <div
+        style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between"
+      >
+        <div>${filterList[0]}</div>
+        <div style="display: flex; gap: 4px;">${filterList[2] ?? ''} ${filterList[3] ?? ''} ${filterList[4] ?? ''}</div>
+      </div>
+      <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+      <div>${filterTags}</div>`;
   }
 }
 

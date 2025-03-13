@@ -48,7 +48,6 @@ export class PaymentConfig {
         ...data.response.result[0].value,
       };
     }
-    console.log(`keyDatakeyData=>`, keyData);
     const offlinePayArray = [
       {
         key: 'atm',

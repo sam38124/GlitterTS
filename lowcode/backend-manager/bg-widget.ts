@@ -2838,10 +2838,10 @@ ${obj.default ?? ''}</textarea
         view: () => {
           if (vm.show) {
             return html` <div class="c_absolute" style="top: 0; right: 0;">
-              <div class="form-check d-flex flex-column ps-0" style="gap: 16px">
+              <div class="form-check d-flex flex-column ps-0" style="gap: 8px">
                 ${obj.gvc.map(
                   obj.options.map(opt => {
-                    return html` <div class="cursor_pointer" onclick="${opt.event}">${opt.name}</div>`;
+                    return html` <div class="sel_option" onclick="${opt.event}">${opt.name}</div>`;
                   })
                 )}
               </div>
@@ -5201,6 +5201,8 @@ ${obj.default ?? ''}</textarea
                   FormCheck.initialRecipientForm(form_formats[b.key].list);
                 } else if (b.key === 'customer_form_user_setting') {
                   FormCheck.initialUserForm(form_formats[b.key].list);
+                }else if(b.key.includes('form_delivery_')){
+                  FormCheck.initial_shipment_form(form_formats[b.key].list)
                 }
                 form_formats[b.key].list.map((dd: any) => {
                   dd.toggle = false;

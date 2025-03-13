@@ -941,12 +941,148 @@ export class UMOrder {
                         }
                         return gvc.map(arr.map((item) => {
                             return html `
-                                                        <div class="o-title-container">
-                                                            <div class="o-title me-1">${item.title}：</div>
-                                                            <div class="o-title">${item.value}</div>
-                                                        </div>
-                                                    `;
-                        }));
+=======
+                                            if ((vm.data as any).orderData.user_info.shipment_detail && (vm.data as any).orderData.user_info.shipment_detail.paymentno) {
+                                                arr.push({
+                                                    title: Language.text('track_number'),
+                                                    value: (vm.data as any).orderData.user_info.shipment_detail.paymentno,
+                                                });
+                                            }
+                                            
+                                            if (
+                                                ['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].find((dd) => {
+                                                    return dd === orderData.user_info.shipment;
+                                                })
+                                            ) {
+                                                arr = [
+                                                    ...arr,
+                                                    ...[
+                                                        {
+                                                            title: Language.text('store_number'),
+                                                            value: decodeURI(orderData.user_info.CVSStoreID),
+                                                        },
+                                                        {
+                                                            title: Language.text('store_name'),
+                                                            value: decodeURI(orderData.user_info.CVSStoreName),
+                                                        },
+                                                        {
+                                                            title: Language.text('store_address'),
+                                                            value: decodeURI(orderData.user_info.CVSAddress),
+                                                        },
+                                                    ],
+                                                ];
+                                            } else if (orderData.user_info.address) {
+                                                arr.push({
+                                                    title: Language.text('receiving_address'),
+                                                    value: [(orderData.user_info as any).city,
+                                                        (orderData.user_info as any).area,
+                                                        orderData.user_info.address].filter((dd)=>{return dd}).join(','),
+                                                });
+                                            }
+                                            arr.push({
+                                                title: Language.text('shipping_status'),
+                                                value: (() => {
+                                                    switch (orderData.progress) {
+                                                        case 'shipping':
+                                                            return Language.text('shipped');
+                                                        case 'finish':
+                                                            return Language.text('delivered');
+                                                        case 'arrived':
+                                                            return Language.text('picked_up');
+                                                        case 'returns':
+                                                            return Language.text('returned');
+                                                        default:
+                                                            return Language.text('not_yet_shipped');
+                                                    }
+                                                })(),
+                                            });
+                                            if (orderData.user_info.shipment_info) {
+                                                arr.push({
+                                                    title: Language.text('shipping_instructions'),
+                                                    value: orderData.user_info.shipment_info,
+                                                });
+                                            }
+                                            arr = [
+                                                ...arr,
+                                                ...[
+                                                    {
+                                                        title: Language.text('recipient_name'),
+                                                        value: orderData.user_info.name,
+                                                    },
+                                                    ...(orderData.user_info.phone
+                                                        ? [
+                                                            {
+                                                                title: Language.text('recipient_phone'),
+                                                                value: orderData.user_info.phone,
+                                                            },
+                                                        ]
+                                                        : []),
+                                                    ...(orderData.user_info.email
+                                                        ? [
+                                                            {
+                                                                title: Language.text('recipient_email'),
+                                                                value: orderData.user_info.email,
+                                                            },
+                                                        ]
+                                                        : []),
+                                                ],
+                                            ];
+                                            if (selector && selector.form) {
+                                                arr = arr.concat(
+                                                    selector.form.map((dd: any) => {
+                                                        return {
+                                                            title: Language.getLanguageCustomText(dd.title),
+                                                            value: Language.getLanguageCustomText(orderData.user_info.custom_form_delivery[dd.key]),
+                                                        };
+                                                    }),
+                                                );
+                                            }
+                                            if ((orderData as any).custom_receipt_form) {
+                                                arr = arr.concat(
+                                                    (orderData.custom_receipt_form ?? [])
+                                                        .map((dd) => {
+                                                            return {
+                                                                title: Language.getLanguageCustomText(dd.title),
+                                                                value: (orderData.user_info as any)[dd.key],
+                                                            };
+                                                        })
+                                                        .filter((d1) => {
+                                                            return d1.value;
+                                                        }),
+                                                );
+                                            }
+                                            if (orderData.user_info.note) {
+                                                arr.push({
+                                                    title: Language.text('shipping_notes'),
+                                                    value: orderData.user_info.note,
+                                                });
+                                            }
+                                            return gvc.map(
+                                                arr.map((item) => {
+                                                    return html`
+                                < div;
+                            class {
+                            }
+                            "o-title-container" >
+                                class {
+                                };
+                            "o-title me-1";
+                            style = "white-space: nowrap;" > $;
+                            {
+                                item.title;
+                            }
+                            /div>
+                                < div;
+                            class {
+                            }
+                            "o-title" > $;
+                            {
+                                item.value;
+                            }
+                            /div>
+                                < /div> `;
+                          }),
+                        );
                     })()}
                                     </div>
                                 </section>
@@ -954,44 +1090,54 @@ export class UMOrder {
                                     class="m-auto d-flex align-items-center justify-content-center my-5"
                                     style="cursor: pointer;"
                                     onclick="${gvc.event(() => {
-                        gvc.glitter.href = `/order_list`;
-                    })}"
+                                    gvc.glitter.href = `/order_list`;
+                                })}"
                                 >
                                     <img class="me-2"
                                          src="https://ui.homee.ai/htmlExtension/shopify/order/img/back.svg" />
                                     <span class="go-back-text">${Language.text('return_to_order_list')}</span>
                                 </section>
                             `;
-                }
-                catch (e) {
-                    console.error(e);
-                    return ``;
-                }
-            },
-            divCreate: {
-                class: 'd-flex align-items-center justify-content-center gap-3 flex-column',
-                style: 'min-height: 50vh;',
-            },
-            onCreate: () => {
-                if (loadings.view) {
-                    ApiShop.getOrder({
-                        limit: 1,
-                        page: 0,
-                        data_from: 'user',
-                        search: glitter.getUrlParameter('cart_token'),
-                        searchType: 'cart_token',
-                    }).then((res) => {
-                        if (res.result && res.response.data) {
-                            vm.data = res.response.data[0];
+                        }));
+                        try { }
+                        catch (e) {
+                            console.error(e);
+                            return ``;
                         }
-                        else {
-                            vm.data = {};
+                    },
+                        divCreate);
+                    {
+                        class {
                         }
-                        loadings.view = false;
-                        gvc.notifyDataChange(ids.view);
-                    });
+                        'd-flex align-items-center justify-content-center gap-3 flex-column',
+                            style;
+                        'min-height: 50vh;',
+                        ;
+                    }
+                    onCreate: () => {
+                        if (loadings.view) {
+                            ApiShop.getOrder({
+                                limit: 1,
+                                page: 0,
+                                data_from: 'user',
+                                search: glitter.getUrlParameter('cart_token'),
+                                searchType: 'cart_token',
+                            }).then((res) => {
+                                if (res.result && res.response.data) {
+                                    vm.data = res.response.data[0];
+                                }
+                                else {
+                                    vm.data = {};
+                                }
+                                loadings.view = false;
+                                gvc.notifyDataChange(ids.view);
+                            });
+                        }
+                    },
+                    ;
                 }
-            },
+                finally { }
+            }
         })}
             </div>`;
     }

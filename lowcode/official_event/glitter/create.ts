@@ -81,7 +81,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     location.href = url.href;
                                     resolve(true);
                                 } else {
-                                    shareDialog.errorMessage({ text: '建立失敗，此名稱已被使用!' });
+                                    shareDialog.errorMessage({ text: '建立失敗，此名稱已被使用' });
                                     resolve(false);
                                 }
                             });

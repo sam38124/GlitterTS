@@ -13,18 +13,9 @@ import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { PaymentConfig } from '../../glitter-base/global/payment-config.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { Tool } from '../../modules/tool.js';
+import { Excel } from './excel.js';
 const html = String.raw;
 export class OrderExcel {
-    static loadXLSX(gvc) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const XLSX = yield new Promise((resolve, reject) => {
-                gvc.addMtScript([{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }], () => {
-                    resolve(window.XLSX);
-                }, reject);
-            });
-            return XLSX;
-        });
-    }
     static optionsView(gvc, callback) {
         let columnList = new Set();
         const randomString = BgWidget.getCheckedClass(gvc);
@@ -38,7 +29,11 @@ export class OrderExcel {
           ${checked ? 'checked' : ''}
           onclick="${gvc.event(toggle)}"
         />
-        <label class="form-check-label cursor_pointer" for="${name}" style="font-size: 16px; color: #393939;">
+        <label
+          class="form-check-label cursor_pointer"
+          for="${name}"
+          style="padding-top: 2px; font-size: 16px; color: #393939;"
+        >
           ${name}
         </label>
       </div>
@@ -83,71 +78,7 @@ export class OrderExcel {
             .join('')}
       </div>
     `;
-        return checkboxContainer(this.orderColumns);
-    }
-    static exportDialog(gvc, apiJSON, dataArray) {
-        const vm = {
-            select: 'all',
-            column: [],
-        };
-        const pageType = (() => {
-            const isArchived = apiJSON.archived === 'true';
-            const isShipment = apiJSON.is_shipment;
-            const isPOS = apiJSON.is_pos;
-            if (isShipment && isArchived)
-                return '已封存出貨單';
-            if (isShipment)
-                return '出貨單';
-            if (isArchived && isPOS)
-                return '已封存POS訂單';
-            if (isArchived)
-                return '已封存訂單';
-            if (isPOS)
-                return 'POS訂單';
-            return '訂單';
-        })();
-        BgWidget.settingDialog({
-            gvc,
-            title: '匯出訂單',
-            width: 700,
-            innerHTML: gvc2 => {
-                return html `<div class="d-flex flex-column align-items-start gap-2">
-          <div class="tx_700 mb-2">匯出範圍</div>
-          ${BgWidget.multiCheckboxContainer(gvc2, [
-                    { key: 'all', name: `全部${pageType}` },
-                    { key: 'search', name: '目前搜尋與篩選的結果' },
-                    { key: 'checked', name: `勾選的 ${dataArray.length} 個訂單` },
-                ], [vm.select], (res) => {
-                    vm.select = res[0];
-                }, { single: true })}
-          <div class="tx_700 mb-2">匯出欄位</div>
-          ${this.optionsView(gvc2, dataArray => {
-                    vm.column = dataArray;
-                })}
-        </div>`;
-            },
-            footer_html: gvc2 => {
-                return [
-                    BgWidget.cancel(gvc2.event(() => {
-                        gvc2.glitter.closeDiaLog();
-                    })),
-                    BgWidget.save(gvc2.event(() => {
-                        var _a;
-                        const dialog = new ShareDialog(gvc.glitter);
-                        if (vm.select === 'checked' && dataArray.length === 0) {
-                            dialog.infoMessage({ text: '請勾選至少一個以上的訂單' });
-                            return;
-                        }
-                        const dataMap = {
-                            search: apiJSON,
-                            checked: Object.assign(Object.assign({}, apiJSON), { id_list: dataArray.map(data => data.id).join(',') }),
-                            all: {},
-                        };
-                        this.export(gvc, (_a = dataMap[vm.select]) !== null && _a !== void 0 ? _a : dataMap.all, vm.column);
-                    }), '匯出'),
-                ].join('');
-            },
-        });
+        return checkboxContainer(this.headerColumn);
     }
     static export(gvc, apiJSON, column) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -156,12 +87,12 @@ export class OrderExcel {
                 dialog.infoMessage({ text: '請至少勾選一個匯出欄位' });
                 return;
             }
-            const XLSX = yield this.loadXLSX(gvc);
+            const XLSX = yield Excel.loadXLSX(gvc);
             const [shipment_methods, payment_methods] = yield Promise.all([
                 ShipmentConfig.allShipmentMethod(),
                 PaymentConfig.getSupportPayment(true),
             ]);
-            const showLineItems = this.orderColumns['商品'].some(a => column.includes(a));
+            const showLineItems = this.headerColumn['商品'].some(a => column.includes(a));
             const formatDate = (date) => date ? gvc.glitter.ut.dateFormat(new Date(date), 'yyyy-MM-dd hh:mm') : '';
             const getStatusLabel = (status, mapping, defaultLabel = '未知') => { var _a, _b; return (_b = mapping[(_a = status === null || status === void 0 ? void 0 : status.toString()) !== null && _a !== void 0 ? _a : '']) !== null && _b !== void 0 ? _b : defaultLabel; };
             const findMethodName = (key, methods) => { var _a, _b; return (_b = (_a = methods.find(m => m.key === key)) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '未知'; };
@@ -193,6 +124,17 @@ export class OrderExcel {
                     分銷連結名稱: (_f = (_e = orderData.distribution_info) === null || _e === void 0 ? void 0 : _e.title) !== null && _f !== void 0 ? _f : '',
                 });
             };
+            const getProductJSON = (item) => {
+                var _a;
+                return formatJSON({
+                    商品名稱: item.title,
+                    商品規格: item.spec.length > 0 ? item.spec.join(' / ') : '單一規格',
+                    商品SKU: (_a = item.sku) !== null && _a !== void 0 ? _a : '',
+                    商品購買數量: item.count,
+                    商品價格: item.sale_price,
+                    商品折扣: item.discount_price,
+                });
+            };
             const getUserJSON = (order, orderData) => {
                 var _a, _b, _c, _d, _e, _f;
                 return formatJSON({
@@ -204,22 +146,15 @@ export class OrderExcel {
                     收件人信箱: orderData.user_info.email,
                     付款方式: findMethodName(orderData.customer_info.payment_select, payment_methods),
                     配送方式: findMethodName(orderData.user_info.shipment, shipment_methods),
+                    收貨地址: [orderData.user_info.city, orderData.user_info.area, orderData.user_info.address]
+                        .filter(Boolean)
+                        .join(''),
+                    代收金額: orderData.customer_info.payment_select === 'cash_on_delivery' ? orderData.total : 0,
                     出貨單號碼: (_a = orderData.user_info.shipment_number) !== null && _a !== void 0 ? _a : '',
                     出貨單日期: formatDate(orderData.user_info.shipment_date),
                     發票號碼: (_b = order.invoice_number) !== null && _b !== void 0 ? _b : '',
                     會員等級: (_e = (_d = (_c = order.user_data) === null || _c === void 0 ? void 0 : _c.member_level) === null || _d === void 0 ? void 0 : _d.tag_name) !== null && _e !== void 0 ? _e : '',
                     備註: (_f = orderData.user_info.note) !== null && _f !== void 0 ? _f : '無備註',
-                });
-            };
-            const getProductJSON = (item) => {
-                var _a;
-                return formatJSON({
-                    商品名稱: item.title,
-                    商品規格: item.spec.length > 0 ? item.spec.join(' / ') : '單一規格',
-                    商品SKU: (_a = item.sku) !== null && _a !== void 0 ? _a : '',
-                    商品購買數量: item.count,
-                    商品價格: item.sale_price,
-                    商品折扣: item.discount_price,
                 });
             };
             function exportOrdersToExcel(dataArray) {
@@ -266,28 +201,316 @@ export class OrderExcel {
             });
         });
     }
-    static import(gvc, event) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const input = event.target;
-            if (!input.files || input.files.length === 0)
-                return;
-            const file = input.files[0];
-            const reader = new FileReader();
-            const XLSX = yield this.loadXLSX(gvc);
-            reader.onload = (e) => {
-                if (!e.target)
-                    return;
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                XLSX.utils.sheet_to_json(worksheet);
-            };
-            reader.readAsArrayBuffer(file);
+    static exportDialog(gvc, apiJSON, dataArray) {
+        const vm = {
+            select: 'all',
+            column: [],
+        };
+        const pageType = (() => {
+            const isArchived = apiJSON.archived === 'true';
+            const isShipment = apiJSON.is_shipment;
+            const isPOS = apiJSON.is_pos;
+            if (isShipment && isArchived)
+                return '已封存出貨單';
+            if (isShipment)
+                return '出貨單';
+            if (isArchived && isPOS)
+                return '已封存POS訂單';
+            if (isArchived)
+                return '已封存訂單';
+            if (isPOS)
+                return 'POS訂單';
+            return '訂單';
+        })();
+        BgWidget.settingDialog({
+            gvc,
+            title: '匯出訂單',
+            width: 700,
+            innerHTML: gvc2 => {
+                return html `<div class="d-flex flex-column align-items-start gap-2">
+          <div class="tx_700 mb-2">匯出範圍</div>
+          ${BgWidget.multiCheckboxContainer(gvc2, [
+                    { key: 'all', name: `全部${pageType}` },
+                    { key: 'search', name: '目前搜尋與篩選的結果' },
+                    { key: 'checked', name: `勾選的 ${dataArray.length} 個訂單` },
+                ], [vm.select], (res) => {
+                    vm.select = res[0];
+                }, { single: true })}
+          <div class="tx_700 mb-2">
+            匯出欄位 ${BgWidget.grayNote('＊若勾選商品系列的欄位，將會以訂單商品作為資料列匯出 Excel', 'margin: 4px;')}
+          </div>
+          ${this.optionsView(gvc2, cols => {
+                    vm.column = cols;
+                })}
+        </div>`;
+            },
+            footer_html: gvc2 => {
+                return [
+                    BgWidget.cancel(gvc2.event(() => {
+                        gvc2.glitter.closeDiaLog();
+                    })),
+                    BgWidget.save(gvc2.event(() => {
+                        const dialog = new ShareDialog(gvc.glitter);
+                        if (vm.select === 'checked' && dataArray.length === 0) {
+                            dialog.infoMessage({ text: '請勾選至少一個以上的訂單' });
+                            return;
+                        }
+                        const dataMap = {
+                            search: apiJSON,
+                            checked: Object.assign(Object.assign({}, apiJSON), { id_list: dataArray.map(data => data.id).join(',') }),
+                            all: {},
+                        };
+                        this.export(gvc, dataMap[vm.select], vm.column);
+                    }), '匯出'),
+                ].join('');
+            },
         });
     }
+    static importWithShipment(gvc, target, callback) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const dialog = new ShareDialog(gvc.glitter);
+            function errorMsg(text) {
+                dialog.dataLoading({ visible: false });
+                dialog.errorMessage({ text: text });
+            }
+            if ((_a = target.files) === null || _a === void 0 ? void 0 : _a.length) {
+                try {
+                    dialog.dataLoading({ visible: true, text: '上傳檔案中' });
+                    const jsonData = yield Excel.parseExcelToJson(gvc, target.files[0]);
+                    const importMap = new Map();
+                    for (let i = 0; i < jsonData.length; i++) {
+                        const order = jsonData[i];
+                        if ((order['出貨單號碼'] && !order['訂單編號']) || (!order['出貨單號碼'] && order['訂單編號'])) {
+                            errorMsg('每個訂單編號必須與出貨單號碼成對');
+                            return;
+                        }
+                        importMap.set(`${order['訂單編號']}`, `${order['出貨單號碼']}`);
+                    }
+                    const cartTokens = [...importMap.keys()];
+                    const getOrders = yield ApiShop.getOrder({
+                        page: 0,
+                        limit: 1000,
+                        searchType: 'cart_token',
+                        id_list: cartTokens.join(','),
+                    });
+                    if (!getOrders.result) {
+                        errorMsg('訂單資料取得失敗');
+                        return;
+                    }
+                    const orders = getOrders.response.data;
+                    const orderMap = new Map(orders.map((order) => [order.cart_token, true]));
+                    const importKey = cartTokens.find(key => !orderMap.has(key));
+                    if (importKey) {
+                        errorMsg(`訂單編號 #${importKey} 不存在`);
+                        return;
+                    }
+                    for (const order of orders) {
+                        try {
+                            if (order.orderData.user_info.shipment_number) {
+                                errorMsg(`出貨單號碼不可覆寫<br/>（訂單編號: ${order.cart_token}）`);
+                                return;
+                            }
+                            if (order.orderData.progress && order.orderData.progress !== 'wait') {
+                                errorMsg(`訂單出貨狀態必須為「未出貨」<br/>（訂單編號: ${order.cart_token}）`);
+                                return;
+                            }
+                            order.orderData.user_info.shipment_number = importMap.get(order.cart_token);
+                        }
+                        catch (error) {
+                            errorMsg('訂單資料有誤');
+                        }
+                    }
+                    const saveEvent = (order, setShipping) => {
+                        var _a;
+                        const orderData = order.orderData;
+                        const temps = [
+                            {
+                                time: Tool.formatDateTime(),
+                                record: `建立出貨單號碼 #${orderData.user_info.shipment_number}`,
+                            },
+                        ];
+                        if (setShipping) {
+                            orderData.progress = 'shipping';
+                            temps.push({
+                                time: Tool.formatDateTime(),
+                                record: '訂單已出貨',
+                            });
+                        }
+                        orderData.editRecord = [...((_a = orderData.editRecord) !== null && _a !== void 0 ? _a : []), ...temps];
+                        return ApiShop.putOrder({ id: `${order.id}`, order_data: orderData });
+                    };
+                    dialog.dataLoading({ visible: false });
+                    dialog.checkYesOrNot({
+                        text: '匯入的出貨單資料，是否要將出貨狀態改成「已出貨」？',
+                        yesString: '是',
+                        notString: '否',
+                        callback: (bool) => __awaiter(this, void 0, void 0, function* () {
+                            try {
+                                dialog.dataLoading({ visible: true });
+                                const responses = yield Promise.all(orders.map((order) => {
+                                    return saveEvent(order, bool);
+                                }));
+                                const failedResponse = responses.find(res => !res.result);
+                                dialog.dataLoading({ visible: false });
+                                if (failedResponse) {
+                                    console.error('匯入失敗:', failedResponse);
+                                    dialog.errorMessage({ text: '匯入失敗' });
+                                }
+                                else {
+                                    dialog.successMessage({ text: '匯入成功' });
+                                    setTimeout(() => callback(), 300);
+                                }
+                            }
+                            catch (error) {
+                                dialog.dataLoading({ visible: false });
+                                console.error('批次出貨更新錯誤:', error);
+                                dialog.errorMessage({ text: '系統錯誤，請稍後再試' });
+                            }
+                        }),
+                    });
+                }
+                catch (error) {
+                    console.error('Order Excel 解析失敗', error);
+                }
+            }
+        });
+    }
+    static importDialog(gvc, query, callback) {
+        const dialog = new ShareDialog(gvc.glitter);
+        const vm = {
+            id: 'importDialog',
+            fileInput: {},
+            type: '',
+            orderTitle: (() => {
+                if (query.isShipment)
+                    return '出貨單';
+                if (query.isArchived)
+                    return '已封存訂單';
+                return '訂單';
+            })(),
+        };
+        gvc.glitter.innerDialog((gvc) => {
+            return gvc.bindView({
+                bind: vm.id,
+                view: () => {
+                    const viewData = {
+                        title: `匯入${vm.orderTitle}`,
+                        category: {
+                            title: `匯入${vm.orderTitle}類型`,
+                            options: [],
+                        },
+                        example: {
+                            event: () => {
+                                Excel.downloadExcel(gvc, (() => {
+                                    if (query.isShipment)
+                                        return OrderExcel.importShipmentExample;
+                                    if (query.isArchived)
+                                        return [];
+                                    return [];
+                                })(), `範例_${vm.orderTitle}列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`, `範例${vm.orderTitle}列表`);
+                            },
+                        },
+                        import: {
+                            event: () => {
+                                if (query.isShipment) {
+                                    return this.importWithShipment(gvc, vm.fileInput, () => {
+                                        gvc.glitter.closeDiaLog();
+                                        callback();
+                                    });
+                                }
+                                if (query.isArchived) {
+                                }
+                            },
+                        },
+                    };
+                    return html `
+            <div
+              class="d-flex align-items-center w-100 tx_700"
+              style="padding: 12px 0 12px 20px; align-items: center; border-radius: 10px 10px 0px 0px; background: #F2F2F2;"
+            >
+              ${viewData.title}
+            </div>
+            ${viewData.category.options.length > 0
+                        ? html `<div class="d-flex flex-column align-items-start gap-2" style="padding: 20px 20px 0px;">
+                  <div class="tx_700">${viewData.category.title}</div>
+                  ${BgWidget.multiCheckboxContainer(gvc, viewData.category.options, [vm.type], res => {
+                            vm.type = res[0];
+                        }, { single: true })}
+                </div>`
+                        : ''}
+            <div class="d-flex flex-column w-100 align-items-start gap-3" style="padding: 20px">
+              <div class="d-flex align-items-center gap-2">
+                <div class="tx_700">透過XLSX檔案匯入商品</div>
+                ${BgWidget.blueNote('下載範例', gvc.event(viewData.example.event))}
+              </div>
+              <input
+                class="d-none"
+                type="file"
+                id="upload-excel"
+                onchange="${gvc.event((_, event) => {
+                        vm.fileInput = event.target;
+                        gvc.notifyDataChange(vm.id);
+                    })}"
+              />
+              <div
+                class="d-flex flex-column w-100 justify-content-center align-items-center gap-3"
+                style="border: 1px solid #DDD; border-radius: 10px; min-height: 180px;"
+              >
+                ${(() => {
+                        if (vm.fileInput.files && vm.fileInput.files.length > 0) {
+                            return html `
+                      ${BgWidget.customButton({
+                                button: { color: 'snow', size: 'md' },
+                                text: { name: '更換檔案' },
+                                event: gvc.event(() => {
+                                    document.querySelector('#upload-excel').click();
+                                }),
+                            })}
+                      ${BgWidget.grayNote(vm.fileInput.files[0].name)}
+                    `;
+                        }
+                        else {
+                            return BgWidget.customButton({
+                                button: { color: 'snow', size: 'md' },
+                                text: { name: '新增檔案' },
+                                event: gvc.event(() => {
+                                    document.querySelector('#upload-excel').click();
+                                }),
+                            });
+                        }
+                    })()}
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-3" style="padding-right: 20px; padding-bottom: 20px;">
+              ${BgWidget.cancel(gvc.event(() => {
+                        gvc.glitter.closeDiaLog();
+                    }))}
+              ${BgWidget.save(gvc.event(() => {
+                        if (vm.fileInput.files && vm.fileInput.files.length > 0) {
+                            viewData.import.event();
+                        }
+                        else {
+                            dialog.infoMessage({ text: '尚未上傳檔案' });
+                        }
+                    }), '匯入')}
+            </div>
+          `;
+                },
+                divCreate: {
+                    style: 'border-radius: 10px; background: #FFF; width: 570px; min-height: 360px; max-width: 90%;',
+                },
+            });
+        }, vm.id);
+    }
 }
-OrderExcel.orderColumns = {
+OrderExcel.importShipmentExample = [
+    {
+        訂單編號: '1241770010001',
+        出貨單號碼: '1249900602345',
+    },
+];
+OrderExcel.headerColumn = {
     訂單: [
         '訂單編號',
         '訂單來源',
@@ -314,6 +537,8 @@ OrderExcel.orderColumns = {
         '收件人信箱',
         '付款方式',
         '配送方式',
+        '收貨地址',
+        '代收金額',
         '出貨單號碼',
         '出貨單日期',
         '發票號碼',

@@ -25,7 +25,6 @@ import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { Currency } from '../../glitter-base/global/currency.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { Animation } from '../../glitterBundle/module/Animation.js';
-import { ApiLiveInteraction } from "../../glitter-base/route/live-purchase-interactions.js";
 const html = String.raw;
 export class CheckoutIndex {
     static main(gvc, widget, subData) {
@@ -415,9 +414,6 @@ export class CheckoutIndex {
                             const cart = res;
                             ApiShop.getCheckout(cart).then(res => {
                                 if (res.result) {
-                                    if (gvc.glitter.getUrlParameter('source') == 'group_buy') {
-                                        res.response.data.voucherList = [];
-                                    }
                                     resolve(res.response.data);
                                 }
                                 else {
@@ -571,28 +567,10 @@ export class CheckoutIndex {
             };
             return dd;
         }
-        if (gvc.glitter.getUrlParameter('source') == 'group_buy' && gvc.glitter.getUrlParameter('cart_id')) {
-            const cart_id = glitter.getUrlParameter('cart_id');
-            const online_cart = new ApiCart(cart_id);
-            online_cart.clearCart();
-            ApiLiveInteraction.getOnlineCart(cart_id).then(r => {
-                r.response.cartData.content.cart.forEach((item) => {
-                    online_cart.addToCart(item.id, item.spec.split(','), item.count);
-                });
-                onlineData = r.response;
-                apiCart = online_cart;
-                refreshCartData();
-                glitter.share.reloadCartData = () => {
-                    refreshCartData();
-                };
-            });
-        }
-        else {
+        refreshCartData();
+        glitter.share.reloadCartData = () => {
             refreshCartData();
-            glitter.share.reloadCartData = () => {
-                refreshCartData();
-            };
-        }
+        };
         return (gvc.bindView((() => {
             return {
                 bind: ids.page,
@@ -1813,14 +1791,37 @@ ${log_config.content}
                                         };
                                     })}</div>
                       <!-- 配送地址 -->
-                      ${['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(vm.cartData.user_info.shipment)
+                      ${(() => {
+                                        var _a;
+                                        const ship_method = this.getShipmentMethod(vm.cartData).find((dd) => {
+                                            return vm.cartData.user_info.shipment === dd.value;
+                                        });
+                                        if (ship_method && ship_method.system_form) {
+                                            return ((_a = ship_method.system_form) !== null && _a !== void 0 ? _a : []).includes('tw-address-selector');
+                                        }
+                                        return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(vm.cartData.user_info.shipment);
+                                    })()
                                         ? gvc.bindView(() => {
                                             const id = gvc.glitter.getUUID();
+                                            gvc.addStyle(`             
+  .city-selector select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: #ddd;
+    outline: none;
+    padding: .3em 1.25em;
+flex:1;
+  }
+                              `);
+                                            let select_id = '';
                                             return {
                                                 bind: id,
                                                 view: () => {
-                                                    return html `<label class="${gClass('label')} w-100 d-flex align-items-center"
-                                      >${Language.text('shipping_address')}
+                                                    select_id = gvc.glitter.getUUID();
+                                                    return html `<label class="${gClass('label')} w-100 d-flex align-items-center">${Language.text('shipping_address')}
                                       <div class="flex-fill"></div>
                                       <div
                                         class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
@@ -1836,20 +1837,63 @@ ${log_config.content}
                                         ${Language.text('quick_input')}
                                       </div>
                                     </label>
-                                    <input
-                                      class="${gClass('input')}"
-                                      type="address"
-                                      placeholder="${Language.text('please_enter_delivery_address')}"
-                                      value="${vm.cartData.user_info.address || ''}"
-                                      onchange="${gvc.event(e => {
+                                    <div class="row">
+                                      <div class="col-12 mb-3">
+                                        <div role="tw-city-selector" id="select_id_${id}" class="w-100 city-selector d-flex d_${select_id}" style="gap:15px;"></div>
+                                      </div>
+                                      <div class="col-12">
+                                        <input
+                                          class="${gClass('input')}"
+                                          type="address"
+                                          placeholder="${Language.text('please_enter_street_location')}"
+                                          value="${vm.cartData.user_info.address || ''}"
+                                          onchange="${gvc.event(e => {
                                                         vm.cartData.user_info.address = e.value;
                                                         this.storeLocalData(vm.cartData);
                                                     })}"
-                                    />`;
+                                        />
+                                      </div>
+                                    </div> `;
                                                 },
                                                 divCreate: {
                                                     class: `col-12  mb-2`,
                                                 },
+                                                onCreate: () => {
+                                                    gvc.glitter.addMtScript([
+                                                        {
+                                                            src: 'https://cdn.jsdelivr.net/npm/tw-city-selector@2.1.1/dist/tw-city-selector.min.js',
+                                                        },
+                                                    ], () => {
+                                                        const tw_selector = new TwCitySelector({
+                                                            el: `.d_${select_id}`
+                                                        });
+                                                        const interVal = setInterval(() => {
+                                                            if (document.querySelector(`#select_id_${id} .county`)) {
+                                                                clearInterval(interVal);
+                                                                document.querySelector(`#select_id_${id} .county`).addEventListener("change", (event) => {
+                                                                    const selectedValue = event.target.value;
+                                                                    console.log(`選中的值是: ${selectedValue}`);
+                                                                    vm.cartData.user_info.city = selectedValue;
+                                                                    vm.cartData.user_info.area = undefined;
+                                                                    this.storeLocalData(vm.cartData);
+                                                                });
+                                                                document.querySelector(`#select_id_${id} .district`).addEventListener("change", (event) => {
+                                                                    const selectedValue = event.target.value;
+                                                                    console.log(`選中的值是: ${selectedValue}`);
+                                                                    vm.cartData.user_info.area = selectedValue;
+                                                                    this.storeLocalData(vm.cartData);
+                                                                });
+                                                                if ((vm.cartData.user_info.city) && (vm.cartData.user_info.area)) {
+                                                                    tw_selector.setValue(vm.cartData.user_info.city, vm.cartData.user_info.area);
+                                                                }
+                                                                else if (vm.cartData.user_info.city) {
+                                                                    tw_selector.setValue(vm.cartData.user_info.city);
+                                                                }
+                                                            }
+                                                            glitter.share.tw_selector = tw_selector;
+                                                        }, 100);
+                                                    }, () => { });
+                                                }
                                             };
                                         })
                                         : ``}
@@ -1882,7 +1926,16 @@ ${log_config.content}
                               </button>
                             </div>`
                                         : ''}
-                      ${['global_express'].includes(vm.cartData.user_info.shipment)
+                      ${(() => {
+                                        var _a;
+                                        const ship_method = this.getShipmentMethod(vm.cartData).find((dd) => {
+                                            return vm.cartData.user_info.shipment === dd.value;
+                                        });
+                                        if (ship_method && ship_method.system_form) {
+                                            return ((_a = ship_method.system_form) !== null && _a !== void 0 ? _a : []).includes('global-address-selector');
+                                        }
+                                        return ['global_express'].includes(vm.cartData.user_info.shipment);
+                                    })()
                                         ? [
                                             html `<label class="${gClass('label')}">${Language.text('country')}</label> ${gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
@@ -2781,8 +2834,14 @@ ${log_config.content}
                                                 if (count > max_qty) {
                                                     dialog.errorMessage({
                                                         text: Language.text('max_p_count_d')
-                                                            .replace('_c_', min)
+                                                            .replace('_c_', max_qty)
                                                             .replace('_p_', `『${title}』`),
+                                                    });
+                                                    return;
+                                                }
+                                                if (max_qty > 0 && count + item.buy_history_count > max_qty) {
+                                                    dialog.errorMessage({
+                                                        text: Language.text('trigger_maximum_item').replace('_p_', `『${title}』`),
                                                     });
                                                     return;
                                                 }
@@ -2926,8 +2985,6 @@ ${log_config.content}
                                                         },
                                                     });
                                                 }
-                                                console.log("res -- ", res);
-                                                return;
                                                 localStorage.setItem('clear_cart_items', JSON.stringify(vm.cartData.lineItems.map((item) => item.id)));
                                                 if (res.response.off_line || res.response.is_free) {
                                                     location.href = res.response.return_url;
@@ -3091,12 +3148,40 @@ ${log_config.content}
                 }
             });
         }
-        if (['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(subData['shipment']) &&
-            (!subData['address'] || subData['address'] === '')) {
-            dialog.errorMessage({
-                text: `${Language.text('please_enter')}「${Language.text('shipping_address')}」`,
+        if ((() => {
+            var _a;
+            const ship_method = this.getShipmentMethod(cartData).find((dd) => {
+                return subData['shipment'] === dd.value;
             });
-            return false;
+            if (ship_method && ship_method.system_form) {
+                return ((_a = ship_method.system_form) !== null && _a !== void 0 ? _a : []).includes('tw-address-selector');
+            }
+            return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(subData['shipment']);
+        })()) {
+            console.log(`subData===>`, subData);
+            if ((!subData['address'] || subData['address'] === '')) {
+                dialog.errorMessage({
+                    text: `${Language.text('please_enter')}「${Language.text('shipping_address')}」`,
+                });
+                return false;
+            }
+            else if ((!subData['city'] || subData['city'] === '')) {
+                dialog.errorMessage({
+                    text: `${Language.text('please_enter')}「${Language.text('city')}」`,
+                });
+                return false;
+            }
+            else if ((!subData['area'] || subData['area'] === '')) {
+                dialog.errorMessage({
+                    text: `${Language.text('please_enter')}「${Language.text('area')}」`,
+                });
+                return false;
+            }
+        }
+        else {
+            delete subData['city'];
+            delete subData['area'];
+            delete subData['address'];
         }
         if (subData['shipment'] === 'normal' && !checkAddressPattern(subData['address'])) {
             dialog.errorMessage({
