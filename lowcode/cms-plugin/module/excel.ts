@@ -31,4 +31,33 @@ export class Excel {
     // 生成 Excel 檔案並下載
     XLSX.writeFile(workbook, fileName);
   }
+
+  static async parseExcelToJson(gvc: GVC, file: File): Promise<any[]> {
+    const XLSX = await Excel.loadXLSX(gvc);
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = event => {
+        try {
+          const data = new Uint8Array(event.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+
+          // 取得第一個工作表名稱
+          const sheetName = workbook.SheetNames[0];
+
+          // 取得工作表內容並轉換為 JSON
+          const sheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+          resolve(jsonData);
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      reader.onerror = error => reject(error);
+
+      reader.readAsArrayBuffer(file);
+    });
+  }
 }

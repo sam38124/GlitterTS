@@ -48,6 +48,8 @@ export class ShareDialog {
             type,
             title: obj.text,
             icon: obj.icon,
+            yesString: obj.yesString,
+            notString: obj.notString,
             callback: (response) => {
                 this.glitter.closeDiaLog(type);
                 obj.callback(response);

@@ -1602,7 +1602,7 @@ export class UserList {
                             const registerDateHTML = () => {
                               return [
                                 html`<div class="tx_700">註冊時間</div>`,
-                                Tool.convertDateTimeFormat(vm.data.created_time),
+                                Tool.formatDateTime(vm.data.created_time),
                               ].join(BgWidget.mbContainer(12));
                             };
                             if (!(vm.plan > 1)) {
@@ -1784,7 +1784,7 @@ export class UserList {
                                 html`<div class="tx_700">會員有效期</div>`,
                                 html`<div class="tx_noraml">
                                   ${vm.data.member_level.dead_line?.length > 0
-                                    ? Tool.convertDateTimeFormat(vm.data.member_level.dead_line)
+                                    ? Tool.formatDateTime(vm.data.member_level.dead_line)
                                     : '永久'}
                                 </div>`,
                               ].join(BgWidget.mbContainer(12)),

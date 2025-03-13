@@ -22,6 +22,7 @@ import { PaymentPage } from './pos-pages/payment-page.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 import { ListHeaderOption } from './list-header-option.js';
+import { Tool } from '../modules/tool.js';
 
 interface VoucherData {
   id: number;
@@ -160,8 +161,8 @@ interface OrderData {
     name: string;
     email: string;
     phone: string;
-    city?:string;
-    area?:string;
+    city?: string;
+    area?: string;
     shipment_date: string;
     shipment_refer: string;
     address: string;
@@ -351,6 +352,14 @@ export class ShoppingOrderManager {
               )}
               <div class="flex-fill"></div>
               <div class="d-flex" style="gap: 14px;">
+                ${query.isShipment
+                  ? BgWidget.grayButton(
+                      '匯入',
+                      gvc.event(() => {
+                        OrderExcel.importDialog(gvc, query, () => gvc.notifyDataChange(vm.id));
+                      })
+                    )
+                  : ''}
                 ${BgWidget.grayButton(
                   '匯出',
                   gvc.event(() => {
@@ -1374,21 +1383,6 @@ export class ShoppingOrderManager {
             let userDataLoading = true;
             const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
 
-            function formatDateString(isoDate?: string): string {
-              // 使用給定的 ISO 8601 日期字符串，或建立一個當前時間的 Date 對象
-              const date = isoDate ? new Date(isoDate) : new Date();
-
-              // 提取年、月、日、時、分
-              const year = date.getFullYear();
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const day = String(date.getDate()).padStart(2, '0');
-              const hours = String(date.getHours()).padStart(2, '0');
-              const minutes = String(date.getMinutes()).padStart(2, '0');
-
-              // 格式化為所需的字符串
-              return `${year}-${month}-${day} ${hours}:${minutes}`;
-            }
-
             const vt = OrderSetting.getAllStatusBadge(orderData);
             ApiUser.getUsersDataWithEmailOrPhone(orderData.email).then(res => {
               userData = res.response;
@@ -1442,7 +1436,7 @@ export class ShoppingOrderManager {
                     '0': '修改為未付款',
                   };
                   editArray.push({
-                    time: formatDateString(),
+                    time: Tool.formatDateTime(),
                     record: text[orderData.status],
                   });
                 }
@@ -1453,7 +1447,7 @@ export class ShoppingOrderManager {
                     '-1': '訂單已取消',
                   };
                   editArray.push({
-                    time: formatDateString(),
+                    time: Tool.formatDateTime(),
                     record: text[orderData.orderData.orderStatus],
                   });
                 }
@@ -1466,7 +1460,7 @@ export class ShoppingOrderManager {
                     arrived: '商品已到貨',
                   };
                   editArray.push({
-                    time: formatDateString(),
+                    time: Tool.formatDateTime(),
                     record: text[orderData.orderData.progress],
                   });
                 }
@@ -2972,12 +2966,14 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                   return gvc.map(
                                     orderData.orderData.editRecord
                                       .sort((a: any, b: any) => {
-                                        return formatDateString(a.time) < formatDateString(b.time) ? 1 : -1;
+                                        return Tool.formatDateTime(a.time, true) < Tool.formatDateTime(b.time, true)
+                                          ? 1
+                                          : -1;
                                       })
                                       .map((record: any) => {
                                         return html`
                                           <div class="d-flex" style="gap: 42px">
-                                            <div>${formatDateString(record.time)}</div>
+                                            <div>${Tool.formatDateTime(record.time)}</div>
                                             <div>${record.record}</div>
                                           </div>
                                         `;
@@ -2985,7 +2981,7 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                   );
                                 })()}
                                 <div class="d-flex" style="gap: 42px">
-                                  <div>${formatDateString(orderData.created_time)}</div>
+                                  <div>${Tool.formatDateTime(orderData.created_time, true)}</div>
                                   <div>訂單成立</div>
                                 </div>
                               </div>
@@ -3139,16 +3135,22 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                 case 'black_cat_freezing':
                                                 case 'normal':
                                                 default:
-                                                  const mapView=[]
-                                                  if(orderData.orderData.user_info.address){
-                                                    mapView.push(html`
-                                                      <div class="tx_700">配送地址</div>
-                                                      <div class="fw-normal fs-6" style="white-space: normal;">
-                                                      ${[orderData.orderData.user_info.city,orderData.orderData.user_info.area,orderData.orderData.user_info.address].filter((dd)=>{
-                                                        return dd
-                                                      }).join('')
-                                                      }
-                                                    </div>`)
+                                                  const mapView = [];
+                                                  if (orderData.orderData.user_info.address) {
+                                                    mapView.push(
+                                                      html` <div class="tx_700">配送地址</div>
+                                                        <div class="fw-normal fs-6" style="white-space: normal;">
+                                                          ${[
+                                                            orderData.orderData.user_info.city,
+                                                            orderData.orderData.user_info.area,
+                                                            orderData.orderData.user_info.address,
+                                                          ]
+                                                            .filter(dd => {
+                                                              return dd;
+                                                            })
+                                                            .join('')}
+                                                        </div>`
+                                                    );
                                                   }
                                                   const formData: any = (
                                                     orderData.orderData.shipment_selector ||
@@ -3157,18 +3159,20 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                     return dd.value === orderData.orderData.user_info.shipment;
                                                   });
                                                   if (formData.form) {
-                                                    mapView.push(formData.form
-                                                      .map((dd: any) => {
-                                                        return `<div class="d-flex flex-wrap w-100">
+                                                    mapView.push(
+                                                      formData.form
+                                                        .map((dd: any) => {
+                                                          return `<div class="d-flex flex-wrap w-100">
                                                                                 <span class="me-2 fw-normal fs-6">${Language.getLanguageCustomText(dd.title)}:</span>
                                                                                 <div class="fw-normal fs-6" style="white-space: normal;word-break: break-all;">
                                                                                     ${Language.getLanguageCustomText(orderData.orderData.user_info.custom_form_delivery[dd.key])}
                                                                                 </div>
                                                                             </div>`;
-                                                      })
-                                                      .join('')) ;
+                                                        })
+                                                        .join('')
+                                                    );
                                                   } else {
-                                                    mapView.push(``)
+                                                    mapView.push(``);
                                                   }
                                                   return mapView.join('');
                                               }

@@ -29,4 +29,28 @@ export class Excel {
             XLSX.writeFile(workbook, fileName);
         });
     }
+    static parseExcelToJson(gvc, file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const XLSX = yield Excel.loadXLSX(gvc);
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = event => {
+                    var _a;
+                    try {
+                        const data = new Uint8Array((_a = event.target) === null || _a === void 0 ? void 0 : _a.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const sheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(sheet);
+                        resolve(jsonData);
+                    }
+                    catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = error => reject(error);
+                reader.readAsArrayBuffer(file);
+            });
+        });
+    }
 }

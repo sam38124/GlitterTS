@@ -1946,7 +1946,7 @@ export class BgRecommend {
                     </div>
                     <div>
                       ${BgWidget.title(vm.data.name || '新增推薦人')}${cf.data.id
-                        ? BgWidget.grayNote(`建立時間: ${Tool.convertDateTimeFormat(cf.data.created_time)}`)
+                        ? BgWidget.grayNote(`建立時間: ${Tool.formatDateTime(cf.data.created_time)}`)
                         : ''}
                     </div>
                   </div>

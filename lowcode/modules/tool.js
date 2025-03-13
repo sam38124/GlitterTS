@@ -42,6 +42,20 @@ export class Tool {
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         return text;
     }
+    static formatDateTime(dateTimeStr, includeSeconds = false) {
+        const date = dateTimeStr ? new Date(dateTimeStr) : new Date();
+        if (isNaN(date.getTime()))
+            return '';
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return includeSeconds
+            ? `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+            : `${year}-${month}-${day} ${hours}:${minutes}`;
+    }
     static ObjCompare(obj1, obj2) {
         const Obj1_keys = Object.keys(obj1);
         const Obj2_keys = Object.keys(obj2);
@@ -56,13 +70,3 @@ export class Tool {
         return true;
     }
 }
-Tool.convertDateTimeFormat = (dateTimeStr) => {
-    const dateTime = new Date(dateTimeStr);
-    const year = dateTime.getFullYear();
-    const month = ('0' + (dateTime.getMonth() + 1)).slice(-2);
-    const day = ('0' + dateTime.getDate()).slice(-2);
-    const hours = ('0' + dateTime.getHours()).slice(-2);
-    const minutes = ('0' + dateTime.getMinutes()).slice(-2);
-    const seconds = ('0' + dateTime.getSeconds()).slice(-2);
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-};

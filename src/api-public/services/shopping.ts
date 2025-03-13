@@ -1753,7 +1753,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
             form: dd.form,
             name: dd.name,
             value: dd.id,
-            system_form:dd.system_form
+            system_form: dd.system_form,
           })),
         ].filter(option => shipment_setting.support.includes(option.value)),
         use_wallet: 0,
@@ -3659,11 +3659,28 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
               `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.${query.searchType}')) LIKE ('%${query.search}%')))`
             );
             break;
-          default: {
+          default:
             querySql.push(
               `JSON_CONTAINS_PATH(orderData, 'one', '$.lineItems[*].title') AND JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.lineItems[*].${query.searchType}')) REGEXP '${query.search}'`
             );
-          }
+            break;
+        }
+      }
+
+      if (query.id_list) {
+        const id_list = [-99, ...query.id_list.split(',')].join(',');
+        console.log('id_list');
+        console.log(id_list);
+        switch (query.searchType) {
+          case 'cart_token':
+            querySql.push(`(cart_token IN (${id_list}))`);
+            break;
+          case 'shipment_number':
+            querySql.push(`(orderData->>'$.user_info.shipment_number' IN (${id_list}))`);
+            break;
+          default:
+            querySql.push(`(id IN (${id_list}))`);
+            break;
         }
       }
 
@@ -3782,7 +3799,6 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         querySql.push(`(${orderMath.join(' or ')})`);
       }
       query.id && querySql.push(`(content->>'$.id'=${query.id})`);
-      query.id_list && querySql.push(`(id in (${query.id_list}))`);
 
       if (query.filter_type === 'true' || query.archived) {
         if (query.archived === 'true') {

@@ -30,6 +30,7 @@ import { PaymentPage } from './pos-pages/payment-page.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 import { ListHeaderOption } from './list-header-option.js';
+import { Tool } from '../modules/tool.js';
 const html = String.raw;
 export class ShoppingOrderManager {
     static main(gvc, query) {
@@ -117,6 +118,11 @@ export class ShoppingOrderManager {
                     })())}
               <div class="flex-fill"></div>
               <div class="d-flex" style="gap: 14px;">
+                ${query.isShipment
+                        ? BgWidget.grayButton('匯入', gvc.event(() => {
+                            OrderExcel.importDialog(gvc, query, () => gvc.notifyDataChange(vm.id));
+                        }))
+                        : ''}
                 ${BgWidget.grayButton('匯出', gvc.event(() => {
                         OrderExcel.exportDialog(gvc, vm.apiJSON, vm.checkedData);
                     }))}
@@ -1034,15 +1040,6 @@ export class ShoppingOrderManager {
                         }
                         let userDataLoading = true;
                         const saasConfig = window.parent.saasConfig;
-                        function formatDateString(isoDate) {
-                            const date = isoDate ? new Date(isoDate) : new Date();
-                            const year = date.getFullYear();
-                            const month = String(date.getMonth() + 1).padStart(2, '0');
-                            const day = String(date.getDate()).padStart(2, '0');
-                            const hours = String(date.getHours()).padStart(2, '0');
-                            const minutes = String(date.getMinutes()).padStart(2, '0');
-                            return `${year}-${month}-${day} ${hours}:${minutes}`;
-                        }
                         const vt = OrderSetting.getAllStatusBadge(orderData);
                         ApiUser.getUsersDataWithEmailOrPhone(orderData.email).then(res => {
                             userData = res.response;
@@ -1093,7 +1090,7 @@ export class ShoppingOrderManager {
                                         '0': '修改為未付款',
                                     };
                                     editArray.push({
-                                        time: formatDateString(),
+                                        time: Tool.formatDateTime(),
                                         record: text[orderData.status],
                                     });
                                 }
@@ -1104,7 +1101,7 @@ export class ShoppingOrderManager {
                                         '-1': '訂單已取消',
                                     };
                                     editArray.push({
-                                        time: formatDateString(),
+                                        time: Tool.formatDateTime(),
                                         record: text[orderData.orderData.orderStatus],
                                     });
                                 }
@@ -1117,7 +1114,7 @@ export class ShoppingOrderManager {
                                         arrived: '商品已到貨',
                                     };
                                     editArray.push({
-                                        time: formatDateString(),
+                                        time: Tool.formatDateTime(),
                                         record: text[orderData.orderData.progress],
                                     });
                                 }
@@ -2505,19 +2502,21 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                 }
                                                 return gvc.map(orderData.orderData.editRecord
                                                     .sort((a, b) => {
-                                                    return formatDateString(a.time) < formatDateString(b.time) ? 1 : -1;
+                                                    return Tool.formatDateTime(a.time, true) < Tool.formatDateTime(b.time, true)
+                                                        ? 1
+                                                        : -1;
                                                 })
                                                     .map((record) => {
                                                     return html `
                                           <div class="d-flex" style="gap: 42px">
-                                            <div>${formatDateString(record.time)}</div>
+                                            <div>${Tool.formatDateTime(record.time)}</div>
                                             <div>${record.record}</div>
                                           </div>
                                         `;
                                                 }));
                                             })()}
                                 <div class="d-flex" style="gap: 42px">
-                                  <div>${formatDateString(orderData.created_time)}</div>
+                                  <div>${Tool.formatDateTime(orderData.created_time, true)}</div>
                                   <div>訂單成立</div>
                                 </div>
                               </div>
@@ -2663,13 +2662,18 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                                 default:
                                                                     const mapView = [];
                                                                     if (orderData.orderData.user_info.address) {
-                                                                        mapView.push(html `
-                                                      <div class="tx_700">配送地址</div>
-                                                      <div class="fw-normal fs-6" style="white-space: normal;">
-                                                      ${[orderData.orderData.user_info.city, orderData.orderData.user_info.area, orderData.orderData.user_info.address].filter((dd) => {
+                                                                        mapView.push(html ` <div class="tx_700">配送地址</div>
+                                                        <div class="fw-normal fs-6" style="white-space: normal;">
+                                                          ${[
+                                                                            orderData.orderData.user_info.city,
+                                                                            orderData.orderData.user_info.area,
+                                                                            orderData.orderData.user_info.address,
+                                                                        ]
+                                                                            .filter(dd => {
                                                                             return dd;
-                                                                        }).join('')}
-                                                    </div>`);
+                                                                        })
+                                                                            .join('')}
+                                                        </div>`);
                                                                     }
                                                                     const formData = (orderData.orderData.shipment_selector ||
                                                                         ShoppingOrderManager.supportShipmentMethod()).find(dd => {

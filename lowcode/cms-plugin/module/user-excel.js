@@ -215,34 +215,10 @@ export class UserExcel {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const dialog = new ShareDialog(gvc.glitter);
-            function parseExcelToJson(file) {
-                return __awaiter(this, void 0, void 0, function* () {
-                    const XLSX = yield Excel.loadXLSX(gvc);
-                    return new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = event => {
-                            var _a;
-                            try {
-                                const data = new Uint8Array((_a = event.target) === null || _a === void 0 ? void 0 : _a.result);
-                                const workbook = XLSX.read(data, { type: 'array' });
-                                const sheetName = workbook.SheetNames[0];
-                                const sheet = workbook.Sheets[sheetName];
-                                const jsonData = XLSX.utils.sheet_to_json(sheet);
-                                resolve(jsonData);
-                            }
-                            catch (error) {
-                                reject(error);
-                            }
-                        };
-                        reader.onerror = error => reject(error);
-                        reader.readAsArrayBuffer(file);
-                    });
-                });
-            }
             if ((_a = target.files) === null || _a === void 0 ? void 0 : _a.length) {
                 try {
                     dialog.dataLoading({ visible: true, text: '上傳檔案中' });
-                    const jsonData = yield parseExcelToJson(target.files[0]);
+                    const jsonData = yield Excel.parseExcelToJson(gvc, target.files[0]);
                     dialog.dataLoading({ visible: false });
                     const setUserEmails = [...new Set(jsonData.map(user => user['電子信箱']))];
                     if (jsonData.length > setUserEmails.length) {
@@ -307,7 +283,7 @@ export class UserExcel {
                     });
                 }
                 catch (error) {
-                    console.error('解析失敗:', error);
+                    console.error('User Excel 解析失敗:', error);
                 }
             }
         });

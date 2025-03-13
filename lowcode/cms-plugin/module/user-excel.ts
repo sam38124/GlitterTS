@@ -355,39 +355,10 @@ export class UserExcel {
   static async import(gvc: GVC, target: HTMLInputElement, callback: () => void) {
     const dialog = new ShareDialog(gvc.glitter);
 
-    async function parseExcelToJson(file: File): Promise<any[]> {
-      const XLSX = await Excel.loadXLSX(gvc);
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-
-        reader.onload = event => {
-          try {
-            const data = new Uint8Array(event.target?.result as ArrayBuffer);
-            const workbook = XLSX.read(data, { type: 'array' });
-
-            // 取得第一個工作表名稱
-            const sheetName = workbook.SheetNames[0];
-
-            // 取得工作表內容並轉換為 JSON
-            const sheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-            resolve(jsonData);
-          } catch (error) {
-            reject(error);
-          }
-        };
-
-        reader.onerror = error => reject(error);
-
-        reader.readAsArrayBuffer(file);
-      });
-    }
-
     if (target.files?.length) {
       try {
         dialog.dataLoading({ visible: true, text: '上傳檔案中' });
-        const jsonData = await parseExcelToJson(target.files[0]);
+        const jsonData = await Excel.parseExcelToJson(gvc, target.files[0]);
         dialog.dataLoading({ visible: false });
 
         const setUserEmails = [...new Set(jsonData.map(user => user['電子信箱']))];
@@ -459,7 +430,7 @@ export class UserExcel {
           }
         });
       } catch (error) {
-        console.error('解析失敗:', error);
+        console.error('User Excel 解析失敗:', error);
       }
     }
   }
