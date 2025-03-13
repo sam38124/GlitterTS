@@ -468,29 +468,39 @@ export class OrderExcel {
           return ApiShop.putOrder({ id: `${order.id}`, order_data: orderData });
         };
 
-        // 詢問是否要更改出貨狀態，並開始更新出貨單號碼
         dialog.dataLoading({ visible: false });
+
         dialog.checkYesOrNot({
           text: '匯入的出貨單資料，是否要將出貨狀態改成「已出貨」？',
           yesString: '是',
           notString: '否',
-          callback: bool => {
-            dialog.dataLoading({ visible: true });
-            Promise.all(
-              orders.map((order: any) => {
-                return saveEvent(order, bool);
-              })
-            ).then(response => {
+          callback: async (bool: boolean) => {
+            try {
+              dialog.dataLoading({ visible: true });
+
+              // 批次更新訂單
+              const responses = await Promise.all(
+                orders.map((order: any) => {
+                  return saveEvent(order, bool);
+                }) as { result: boolean; response: any }[]
+              );
+
+              const failedResponse = responses.find(res => !res.result);
+
               dialog.dataLoading({ visible: false });
-              const res = response.find(r => !r.result);
-              if (!res) {
+
+              if (failedResponse) {
+                console.error('匯入失敗:', failedResponse);
+                dialog.errorMessage({ text: '匯入失敗' });
+              } else {
                 dialog.successMessage({ text: '匯入成功' });
                 setTimeout(() => callback(), 300);
-              } else {
-                console.error(res);
-                dialog.errorMessage({ text: '匯入失敗' });
               }
-            });
+            } catch (error) {
+              dialog.dataLoading({ visible: false });
+              console.error('批次出貨更新錯誤:', error);
+              dialog.errorMessage({ text: '系統錯誤，請稍後再試' });
+            }
           },
         });
       } catch (error) {
