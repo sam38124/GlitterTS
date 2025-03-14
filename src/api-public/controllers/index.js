@@ -67,6 +67,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.ai_points, 'pub
 router.use(config_1.config.getRoute(config_1.config.public_route.sms_points, 'public'), require('./sms-points'));
 router.use(config_1.config.getRoute(config_1.config.public_route.track, 'public'), require('./track'));
 router.use(config_1.config.getRoute(config_1.config.public_route.voucher, 'public'), require('./voucher'));
+router.use(config_1.config.getRoute(config_1.config.public_route.voucher, 'public'), require('./reconciliation'));
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.shopee, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.shopee + '/listenMessage', 'public'), method: 'POST' },

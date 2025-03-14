@@ -139,7 +139,7 @@ export class BgWidget {
     }
     static grayButton(text, event, obj) {
         var _a;
-        return html ` <button class="btn btn-gray" style="" type="button" onclick="${event}">
+        return html ` <button class="btn btn-gray ${(obj === null || obj === void 0 ? void 0 : obj.class) || ''}" style="" type="button" onclick="${event}">
       <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
       ${text.length > 0 ? html `<span class="tx_700" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>` : ''}
     </button>`;
@@ -1908,7 +1908,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static container(htmlString, obj) {
         var _a;
         return html ` <div
-      class="mt-4 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0'}"
+      class=" mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0 mt-2'}"
       style="max-width: 100%; width: ${this.getContainerWidth()}px; ${(_a = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _a !== void 0 ? _a : ''}"
     >
       ${htmlString}

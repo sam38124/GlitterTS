@@ -231,8 +231,7 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
             query_page=query_page.substring(0,query_page.indexOf('#'))
         }
         //判斷是條款頁面或部落格列表頁面時
-        if(['privacy','term','refund','delivery','blogs','blog_tag_setting','blog_global_setting','checkout','fb_live','ig_live','line_plus','shipment_list','shipment_list_archive'].includes(query_page)){
-           console.log('isofficial-router')
+        if(['privacy','term','refund','delivery','blogs','blog_tag_setting','blog_global_setting','checkout','fb_live','ig_live','line_plus','shipment_list','shipment_list_archive','reconciliation_area'].includes(query_page)){
             return  'official-router'
         }
         //當判斷是Blog時

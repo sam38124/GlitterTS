@@ -67,6 +67,7 @@ router.use(config.getRoute(config.public_route.ai_points, 'public'), require('./
 router.use(config.getRoute(config.public_route.sms_points, 'public'), require('./sms-points'));
 router.use(config.getRoute(config.public_route.track, 'public'), require('./track'));
 router.use(config.getRoute(config.public_route.voucher, 'public'), require('./voucher'));
+router.use(config.getRoute(config.public_route.voucher, 'public'), require('./reconciliation'));
 /******************************/
 const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.shopee, 'public'), method: 'POST' },

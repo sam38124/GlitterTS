@@ -1188,6 +1188,15 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
+            page: 'reconciliation_area',
+            group: '數據分析',
+            title: '對帳專區',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
+            moduleName: 'dashboard_ec',
+        },
+        {
+            icon: '',
             page: 'hidden-shop',
             group: '行銷推廣',
             title: '隱形賣場',

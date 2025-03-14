@@ -85,6 +85,23 @@ ADD INDEX \`index11\` (\`shipment_number\` ASC) VISIBLE;`
                 })
             }
         });
+        //購物車1.5->1.6版本，新增沖賬紀錄
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_checkout',
+            last_version: ['V1.5'],
+            new_version: 'V1.6',
+            event:`ALTER TABLE \`${app_name}\`.\`t_checkout\` 
+ADD COLUMN \`total_received\` INT NULL DEFAULT NULL AFTER \`shipment_number\`,
+ADD COLUMN \`offset_amount\` INT NULL DEFAULT NULL AFTER \`total_received\`,
+ADD COLUMN \`offset_reason\` VARCHAR(45) NULL DEFAULT NULL AFTER \`offset_amount\`,
+ADD COLUMN \`offset_records\` JSON NULL AFTER \`offset_reason\`,
+ADD INDEX \`index12\` (\`total_received\` ASC) VISIBLE,
+ADD INDEX \`index13\` (\`offset_amount\` ASC) VISIBLE,
+ADD INDEX \`index14\` (\`offset_reason\` ASC) VISIBLE;
+;
+`
+        });
         //更新商品銷售紀錄
         await UpdatedTableChecked.update({
             app_name: app_name,
