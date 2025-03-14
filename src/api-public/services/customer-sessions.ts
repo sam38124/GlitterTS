@@ -69,7 +69,8 @@ export class CustomerSessions {
     async createScheduled(data: scheduled): Promise<{ result: boolean; message: string }> {
         try {
             const appName = this.app
-
+            //輸入: 產品資訊
+            //輸出: 根據輸出 產出對應的產品輪播卡
             function generateProductCarousel(products: {
                 id: string
                 name: string;
@@ -145,7 +146,7 @@ export class CustomerSessions {
                     }
                 };
             }
-
+            //將item轉為product的資料格式
             function convertToProductFormat(rawData: RawProduct[]): Product[] {
                 return rawData.map(item => {
                     const id = item.content.id
@@ -173,21 +174,22 @@ export class CustomerSessions {
                     };
                 });
             }
-
-
+            //從 data 物件中提取 type 和 name 屬性的值，並將剩下的屬性收集到content中。
             const {type, name, ...content} = data;
 
-
+            //團購開始時 發送的第一則訊息
             const message = [
                 {
                     "type": "text",
                     "text": `📢 團購開始囉！ 🎉\n團購名稱： ${name}\n團購日期： ${content.start_date} ${content.start_time} ~ ${content.end_date} ${content.end_time}\n\n📍 下方查看完整商品清單`
                 }
             ]
+            //把item_list裡的商品資訊轉為方便Product的資料樣式
             const transProducts: Product[] = convertToProductFormat(content.item_list);
+            //把上面的message 發送到對應的groupID 也就是群組內
             await this.sendMessageToGroup(data.lineGroup.groupId,message)
 
-
+            //建立團購單
             const queryData = await db.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
                                               SET ?;`, [{
                 type: data.type,
@@ -196,8 +198,9 @@ export class CustomerSessions {
                 content: JSON.stringify(content)
             }])
             const flexMessage = generateProductCarousel(transProducts, this.app, queryData.insertId);
-
+            //檢索所有商品
             for (const item of content.item_list) {
+                //todo 這裡可以最佳化 一次搜尋
                 const pdDqlData = (
                   await new Shopping(this.app , this.token).getProduct({
                       page: 0,
@@ -205,9 +208,9 @@ export class CustomerSessions {
                       id: item.id,
                       status: 'inRange',
                   })
-                ).data;
+                ).data[0];
                 const pd = pdDqlData.content;
-
+                //做倉儲扣除的動作
                 Promise.all(item.content.variants.map(async (variant: any,i:number) => {
                     const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, variant.live_model.available_Qty);
                     const updateVariant = pd.variants.find((dd: any) => dd.spec.join('-') === variant.spec.join('-'));
@@ -312,6 +315,9 @@ export class CustomerSessions {
                       )
                     );
                 }
+                // 搜尋status ==1 的scheduled 檢查所屬的購物車清單是否有過期並釋放庫存
+                const scheduledItems = data.filter((item: any) => item.status === 1);
+                //todo 釋放庫存
                 return data
             } catch (err: any) {
                 console.error('取得資料錯誤:', err.response?.data || err.message);
@@ -548,6 +554,7 @@ export class CustomerSessions {
     }
 
     async getRealOrder(cart_array: string[]) {
+        if (cart_array.length == 0) return [];
         return await db.query(`SELECT *
                                FROM \`${this.app}\`.\`t_checkout\`
                                WHERE JSON_EXTRACT(orderData, '$.temp_cart_id') IN (${cart_array.map((cart) => {
@@ -559,13 +566,14 @@ export class CustomerSessions {
         let cartDataArray:CartInfo[] =[]
         let cartIDArray:string[] =[]
         const appName = this.app;
+
         try {
             cartDataArray = await db.query(`
                             SELECT *
                             FROM ${this.app}.t_temporary_cart
                             WHERE cart_id in (?) 
-                            AND created_time < DATE_SUB(NOW(), INTERVAL ? DAY);
-                        `,[scheduledData.content.pending_order , scheduledData.content.stock.period]);
+                            AND created_time < DATE_SUB(NOW(), INTERVAL ${scheduledData.content.stock.period} DAY);
+                        `,[scheduledData.content.pending_order.join(',') ]);
             // console.log();
             //對已經過期的購物車做庫存釋放
             if (cartDataArray.length > 0){
@@ -608,8 +616,6 @@ export class CustomerSessions {
                         }
                     }
                     scheduledData.content.pending_order = scheduledData.content.pending_order.filter(item => !cartIDArray.includes(item));
-                    console.log("cartIDArray -- " , cartIDArray);
-                    console.log("scheduledData.content.pending_order -- " , scheduledData.content.pending_order);
                     await updateScheduled(scheduledData.content);
 
                 })

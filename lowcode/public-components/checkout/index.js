@@ -25,6 +25,7 @@ import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { Currency } from '../../glitter-base/global/currency.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { Animation } from '../../glitterBundle/module/Animation.js';
+import { ApiLiveInteraction } from "../../glitter-base/route/live-purchase-interactions.js";
 const html = String.raw;
 export class CheckoutIndex {
     static main(gvc, widget, subData) {
@@ -414,6 +415,9 @@ export class CheckoutIndex {
                             const cart = res;
                             ApiShop.getCheckout(cart).then(res => {
                                 if (res.result) {
+                                    if (gvc.glitter.getUrlParameter('source') == 'group_buy') {
+                                        res.response.data.voucherList = [];
+                                    }
                                     resolve(res.response.data);
                                 }
                                 else {
@@ -567,10 +571,28 @@ export class CheckoutIndex {
             };
             return dd;
         }
-        refreshCartData();
-        glitter.share.reloadCartData = () => {
+        if (gvc.glitter.getUrlParameter('source') == 'group_buy' && gvc.glitter.getUrlParameter('cart_id')) {
+            const cart_id = glitter.getUrlParameter('cart_id');
+            const online_cart = new ApiCart(cart_id);
+            online_cart.clearCart();
+            ApiLiveInteraction.getOnlineCart(cart_id).then(r => {
+                r.response.cartData.content.cart.forEach((item) => {
+                    online_cart.addToCart(item.id, item.spec.split(','), item.count);
+                });
+                onlineData = r.response;
+                apiCart = online_cart;
+                refreshCartData();
+                glitter.share.reloadCartData = () => {
+                    refreshCartData();
+                };
+            });
+        }
+        else {
             refreshCartData();
-        };
+            glitter.share.reloadCartData = () => {
+                refreshCartData();
+            };
+        }
         return (gvc.bindView((() => {
             return {
                 bind: ids.page,
@@ -2793,6 +2815,15 @@ flex:1;
                                             : `min-width:380px;`}"
                                               onclick="${gvc.event(() => {
                                             var _a;
+                                            console.log("onlineData -- ", onlineData);
+                                            onlineData.interaction.status;
+                                            if (onlineData && onlineData.interaction.status == 3) {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.infoMessage({
+                                                    text: `很抱歉，團購的結帳時間已截止，無法再進行訂單結算。感謝您的支持，期待下次再為您服務！`
+                                                });
+                                                return;
+                                            }
                                             if (window.login_config.login_in_to_order &&
                                                 !GlobalUser.token) {
                                                 GlobalUser.loginRedirect = location.href;

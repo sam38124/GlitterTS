@@ -495,7 +495,7 @@ export class LiveCapture {
                                                     viewBox="0 0 15 17"
                                                     fill="none"
                                                     onclick="${gvc.event(() => {
-                                                      navigator.clipboard.writeText(`Qdeqwe2`);
+                                                      navigator.clipboard.writeText(code);
                                                       dialog.successMessage({ text: '已複製至剪貼簿' });
                                                     })}"
                                                   >
@@ -3074,7 +3074,6 @@ export class LiveCapture {
               dialog.dataLoading({
                 visible: true,
               });
-              console.log('viewModel.formData -- ', viewModel.formData);
               ApiLiveInteraction.createScheduled(viewModel.formData).then(response => {
                 dialog.dataLoading({
                   visible: false,
@@ -3789,13 +3788,17 @@ export class LiveCapture {
 
                                 ${viewModel.formData.item_list
                                   .map((item: any) => {
+                                    //多規格
                                     if (item.content.specs.length > 0) {
                                       return html`
                                         <div class="d-flex flex-column">
                                           <div class="d-flex align-items-center w-100 " style="">
                                             <div class="d-flex flex-column w-100" style="gap: 8px;">
+                                              
                                               ${item.content.variants
                                                 .map((variant: any) => {
+                                                  //todo 這邊前端顯示和設計圖不一致
+                                                  console.log("variant -- ", variant);
                                                   return html`
                                                     <div class="d-flex align-items-center w-100">
                                                       <div
@@ -3812,7 +3815,7 @@ export class LiveCapture {
                                                           class="d-flex align-items-center"
                                                           style="font-size: 16px;font-style: normal;font-weight: 400;"
                                                         >
-                                                          ${item.content.title}
+                                                          ${Tool.truncateString(item.content.title,8)} / ${variant.specs.join(',')}
                                                         </div>
                                                       </div>
                                                       <div
@@ -3838,6 +3841,7 @@ export class LiveCapture {
                                           </div>
                                         </div>
                                       `;
+                                      //單一規格
                                     } else {
                                       return html`
                                         <div class="d-flex flex-column">

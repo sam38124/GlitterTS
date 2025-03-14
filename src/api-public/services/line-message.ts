@@ -419,7 +419,10 @@ export class LineMessage {
     async listenMessage(data: any): Promise<{ result: boolean; message: string }> {
         try {
             const events = data.events;
+            //todo 在env上有個line_destination 記得這邊有修改這個log出來的id 隨便發話給機器人就會收到了
+            // console.log("data.destination -- " , data.destination);
             if (data.destination == process.env.line_destination){
+
                 console.log("處理shopnex官方機器人事件")
                 for (const event of events) {
                     switch (event.type){

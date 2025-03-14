@@ -206,6 +206,7 @@ export class ShopnexLineMessage {
     public static async handlePostbackEvent(event: any, app: string) {
         const userId = event.source.userId;
         const data = event.postback.data;
+        console.log("data -- " , data);
         const userData = await this.getUserProfile(userId)
         // const brandAndMemberType = await App.checkBrandAndMemberType(app);
         console.log(`🔹 Postback 事件來自: ${userId}, data: ${data}`);
@@ -224,6 +225,7 @@ export class ShopnexLineMessage {
                 await this.sendPrivateMessage(userId, "📦 您的訂單正在處理中！");
                 break;
             case "selectSpec": {
+
                 function isNowWithinRange(
                     start_date: string,
                     start_time: string,
@@ -342,8 +344,19 @@ export class ShopnexLineMessage {
                             WHERE \`id\` = ?
                         `, [{content: JSON.stringify(content)}, scheduledID])
                     } catch (err: any) {
-                        console.log("UPDATE t_temporary_cart error : ", err.response?.data || err.message)
+                        console.log("UPDATE t_live_purchase_interactions error : ", err.response?.data || err.message)
                     }
+                }
+                function calcPrice(cartData:any){
+                    //初始化scheduled的pending_order_total
+                    scheduledData.content.pending_order_total = scheduledData.content.pending_order_total ?? 0;
+                    //這張購物車的總價增加
+                    cartData.total = parseInt(cartData.total , 10) + parseInt(price as string, 10);
+                    //scheduled裡的賣出總價增加
+                    scheduledData.content.pending_order_total = scheduledData.content.pending_order_total ?? 0;
+                    scheduledData.content.pending_order_total += parseInt(price as string, 10);
+                    //在scheduled這個表裡的這個商品售出量++
+                    variant.live_model.sold++;
                 }
 
 
@@ -357,16 +370,16 @@ export class ShopnexLineMessage {
                 const spec = queryParams.get('spec') === "單一規格" ? "" : queryParams.get('spec');
                 //點擊商品的價格
                 const price = queryParams.get('price');
+
                 //先取得團購單上的內容
-                const data:ScheduledInfo = await getScheduled(scheduledID as string);
-                await new CustomerSessions(appName).checkAndRestoreCart(data)
-                return
-                if (data.status!=1 || !isNowWithinRange(data.content.start_date,data.content.start_time,data.content.end_date,data.content.end_time)){
+                const scheduledData:ScheduledInfo = await getScheduled(scheduledID as string);
+                await new CustomerSessions(appName).checkAndRestoreCart(scheduledData)
+                if (scheduledData.status!=1 || !isNowWithinRange(scheduledData.content.start_date,scheduledData.content.start_time,scheduledData.content.end_date,scheduledData.content.end_time)){
                     await this.sendPrivateMessage(userId, `🚫【團購已結束】🚫\n感謝您的關注！此次團購已經結束，無法再下單。\n請稍後關注群組內的新活動通知，期待您下一次的參與！🎉`)
                     return
                 }
                 //比對商品資訊
-                const item_list = data.content.item_list;
+                const item_list = scheduledData.content.item_list;
                 //找到確切點到哪個商品 放到購物車 (但購物車內容比較簡單 或許這邊的過程可以省略 直接放在點擊事件上)
                 const item = item_list.find((item: any) => {
                     return item.id == productID
@@ -387,10 +400,10 @@ export class ShopnexLineMessage {
 
                 //確認現在的團購單 這個用戶是否已經有購物車了
                 let cartData = await checkTempCart(scheduledID ?? "", userId);
-
                 let cartID = ""
                 variant.live_model.sold = variant.live_model.sold ?? 0;
                 //todo 若是這項商品已經完售 要做怎樣通知
+
                 if (variant.live_model.sold == variant.live_model.available_Qty) {
                     await this.sendPrivateMessage(userId, `⚠️ 很抱歉，您選擇的商品已售完！😭\n\n請查看其他商品，或關注下一波補貨通知！🔔`)
                 //沒有購物車 做插入購物車的動作
@@ -407,21 +420,12 @@ export class ShopnexLineMessage {
                         cart: [cart],
                         total: price,
                     };
-
+                    calcPrice(content);
                     cartID = await insertUniqueCart(content, appName);
-
                     //取得購物車資訊之後 推進待定表中
-                    data.content.pending_order = data.content.pending_order ?? [];
-                    data.content.pending_order.push(cartID);
-                    //初始化scheduled的pending_order_total
-                    data.content.pending_order_total = data.content.pending_order_total ?? 0;
-                    //pending_order_total 總價增加這次的售價
-                    data.content.pending_order_total += parseInt(price as string, 10);
-                    //這張購物車的總價增加
-                    cartData[0].content.total = parseInt(cartData[0].content.total , 10) + parseInt(price as string, 10);
-                    //在scheduled裡的這個variant 賣出量+1
-                    variant.live_model.sold++;
-                    await updateScheduled(data.content);
+                    scheduledData.content.pending_order = scheduledData.content.pending_order ?? [];
+                    scheduledData.content.pending_order.push(cartID);
+                    await updateScheduled(scheduledData.content);
                     await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartID}\n\n請點擊上方連結查看您的購物車內容！`)
                 } else {
                     //若是已經有購物車了 就開始尋找購物車裡跟這次商品相同的
@@ -441,18 +445,9 @@ export class ShopnexLineMessage {
                         //若是沒找到商品就推進購物車
                         cartData[0].content.cart.push(cart);
                     }
-                    //全部可售數量-1
-                    variant.live_model.available_Qty--;
-                    //把亂數的cart_id獨立變數
-                    cartID = cartData[0].cart_id;
-                    //這張購物車的總價增加
-                    cartData[0].content.total = parseInt(cartData[0].content.total , 10) + parseInt(price as string, 10);
-                    //scheduled裡的賣出總價增加
-                    data.content.pending_order_total = data.content.pending_order_total ?? 0;
-                    data.content.pending_order_total += parseInt(price as string, 10);
-                    //在scheduled這個表裡的這個商品售出量++
-                    variant.live_model.sold++;
-                    await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartID}\n\n請點擊上方連結查看您的購物車內容！`)
+                    calcPrice(cartData[0].content);
+                    await updateScheduled(scheduledData.content);
+                    await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartData[0].cart_id}\n\n請點擊上方連結查看您的購物車內容！`)
                     try {
                         await db.query(`
                             UPDATE ${appName}.t_temporary_cart
@@ -487,7 +482,6 @@ export class ShopnexLineMessage {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${ShopnexLineMessage.token}`,
         };
-
         try {
             const response = await axios.get(url, {headers});
             return response.data;
@@ -678,8 +672,8 @@ export class ShopnexLineMessage {
         try {
             const response = await axios.get(url, { headers });
             return response.data; // 返回使用者資訊
-        } catch (error) {
-            console.error("無法獲取使用者資訊:", error);
+        } catch (error:any) {
+            console.error("無法獲取使用者資訊:", error.response?.data || error.message);
             return null;
         }
     }

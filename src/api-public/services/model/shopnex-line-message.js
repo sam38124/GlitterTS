@@ -128,9 +128,10 @@ class ShopnexLineMessage {
         }
     }
     static async handlePostbackEvent(event, app) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d;
         const userId = event.source.userId;
         const data = event.postback.data;
+        console.log("data -- ", data);
         const userData = await this.getUserProfile(userId);
         console.log(`🔹 Postback 事件來自: ${userId}, data: ${data}`);
         console.log("saasConfig.SAAS_NAME -- ", config_js_1.saasConfig.SAAS_NAME);
@@ -247,22 +248,29 @@ class ShopnexLineMessage {
                         `, [{ content: JSON.stringify(content) }, scheduledID]);
                     }
                     catch (err) {
-                        console.log("UPDATE t_temporary_cart error : ", ((_a = err.response) === null || _a === void 0 ? void 0 : _a.data) || err.message);
+                        console.log("UPDATE t_live_purchase_interactions error : ", ((_a = err.response) === null || _a === void 0 ? void 0 : _a.data) || err.message);
                     }
+                }
+                function calcPrice(cartData) {
+                    var _a, _b;
+                    scheduledData.content.pending_order_total = (_a = scheduledData.content.pending_order_total) !== null && _a !== void 0 ? _a : 0;
+                    cartData.total = parseInt(cartData.total, 10) + parseInt(price, 10);
+                    scheduledData.content.pending_order_total = (_b = scheduledData.content.pending_order_total) !== null && _b !== void 0 ? _b : 0;
+                    scheduledData.content.pending_order_total += parseInt(price, 10);
+                    variant.live_model.sold++;
                 }
                 const scheduledID = queryParams.get('scheduledID');
                 const appName = (_a = queryParams.get('g-app')) !== null && _a !== void 0 ? _a : "";
                 const productID = queryParams.get('productID');
                 const spec = queryParams.get('spec') === "單一規格" ? "" : queryParams.get('spec');
                 const price = queryParams.get('price');
-                const data = await getScheduled(scheduledID);
-                await new customer_sessions_1.CustomerSessions(appName).checkAndRestoreCart(data);
-                return;
-                if (data.status != 1 || !isNowWithinRange(data.content.start_date, data.content.start_time, data.content.end_date, data.content.end_time)) {
+                const scheduledData = await getScheduled(scheduledID);
+                await new customer_sessions_1.CustomerSessions(appName).checkAndRestoreCart(scheduledData);
+                if (scheduledData.status != 1 || !isNowWithinRange(scheduledData.content.start_date, scheduledData.content.start_time, scheduledData.content.end_date, scheduledData.content.end_time)) {
                     await this.sendPrivateMessage(userId, `🚫【團購已結束】🚫\n感謝您的關注！此次團購已經結束，無法再下單。\n請稍後關注群組內的新活動通知，期待您下一次的參與！🎉`);
                     return;
                 }
-                const item_list = data.content.item_list;
+                const item_list = scheduledData.content.item_list;
                 const item = item_list.find((item) => {
                     return item.id == productID;
                 });
@@ -294,14 +302,11 @@ class ShopnexLineMessage {
                         cart: [cart],
                         total: price,
                     };
+                    calcPrice(content);
                     cartID = await insertUniqueCart(content, appName);
-                    data.content.pending_order = (_c = data.content.pending_order) !== null && _c !== void 0 ? _c : [];
-                    data.content.pending_order.push(cartID);
-                    data.content.pending_order_total = (_d = data.content.pending_order_total) !== null && _d !== void 0 ? _d : 0;
-                    data.content.pending_order_total += parseInt(price, 10);
-                    cartData[0].content.total = parseInt(cartData[0].content.total, 10) + parseInt(price, 10);
-                    variant.live_model.sold++;
-                    await updateScheduled(data.content);
+                    scheduledData.content.pending_order = (_c = scheduledData.content.pending_order) !== null && _c !== void 0 ? _c : [];
+                    scheduledData.content.pending_order.push(cartID);
+                    await updateScheduled(scheduledData.content);
                     await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartID}\n\n請點擊上方連結查看您的購物車內容！`);
                 }
                 else {
@@ -320,13 +325,10 @@ class ShopnexLineMessage {
                     else {
                         cartData[0].content.cart.push(cart);
                     }
-                    variant.live_model.available_Qty--;
-                    cartID = cartData[0].cart_id;
-                    cartData[0].content.total = parseInt(cartData[0].content.total, 10) + parseInt(price, 10);
-                    data.content.pending_order_total = (_e = data.content.pending_order_total) !== null && _e !== void 0 ? _e : 0;
-                    data.content.pending_order_total += parseInt(price, 10);
-                    variant.live_model.sold++;
-                    await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartID}\n\n請點擊上方連結查看您的購物車內容！`);
+                    console.log("cartData[0].content -- ", cartData[0].content);
+                    calcPrice(cartData[0].content);
+                    await updateScheduled(scheduledData.content);
+                    await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartData[0].cart_id}\n\n請點擊上方連結查看您的購物車內容！`);
                     try {
                         await database_js_1.default.query(`
                             UPDATE ${appName}.t_temporary_cart
@@ -335,7 +337,7 @@ class ShopnexLineMessage {
                         `, [{ content: JSON.stringify(cartData[0].content) }, cartData[0].cart_id]);
                     }
                     catch (err) {
-                        console.log("UPDATE t_temporary_cart error : ", ((_f = err.response) === null || _f === void 0 ? void 0 : _f.data) || err.message);
+                        console.log("UPDATE t_temporary_cart error : ", ((_d = err.response) === null || _d === void 0 ? void 0 : _d.data) || err.message);
                     }
                 }
                 break;
@@ -528,6 +530,7 @@ class ShopnexLineMessage {
         }
     }
     static async getUserProfile(userId) {
+        var _a;
         const url = `https://api.line.me/v2/bot/profile/${userId}`;
         const headers = {
             "Authorization": `Bearer ${ShopnexLineMessage.token}`
@@ -537,7 +540,7 @@ class ShopnexLineMessage {
             return response.data;
         }
         catch (error) {
-            console.error("無法獲取使用者資訊:", error);
+            console.error("無法獲取使用者資訊:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
             return null;
         }
     }

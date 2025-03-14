@@ -145,7 +145,7 @@ class CustomerSessions {
                     limit: 50,
                     id: item.id,
                     status: 'inRange',
-                })).data;
+                })).data[0];
                 const pd = pdDqlData.content;
                 Promise.all(item.content.variants.map(async (variant, i) => {
                     const returnData = new stock_js_1.Stock(this.app, this.token).allocateStock(variant.stockList, variant.live_model.available_Qty);
@@ -234,6 +234,7 @@ class CustomerSessions {
                             `, [item.id]);
                     }));
                 }
+                const scheduledItems = data.filter((item) => item.status === 1);
                 return data;
             }
             catch (err) {
@@ -452,6 +453,8 @@ class CustomerSessions {
         return await getDataAndTotal();
     }
     async getRealOrder(cart_array) {
+        if (cart_array.length == 0)
+            return [];
         return await database_js_1.default.query(`SELECT *
                                FROM \`${this.app}\`.\`t_checkout\`
                                WHERE JSON_EXTRACT(orderData, '$.temp_cart_id') IN (${cart_array.map((cart) => {
@@ -468,8 +471,8 @@ class CustomerSessions {
                             SELECT *
                             FROM ${this.app}.t_temporary_cart
                             WHERE cart_id in (?) 
-                            AND created_time < DATE_SUB(NOW(), INTERVAL ? DAY);
-                        `, [scheduledData.content.pending_order, scheduledData.content.stock.period]);
+                            AND created_time < DATE_SUB(NOW(), INTERVAL ${scheduledData.content.stock.period} DAY);
+                        `, [scheduledData.content.pending_order.join(',')]);
             if (cartDataArray.length > 0) {
                 cartIDArray = cartDataArray.map((item) => item.cart_id);
                 await Promise.all(cartDataArray.map(async (cartData) => {
@@ -499,8 +502,6 @@ class CustomerSessions {
                         }
                     }
                     scheduledData.content.pending_order = scheduledData.content.pending_order.filter(item => !cartIDArray.includes(item));
-                    console.log("cartIDArray -- ", cartIDArray);
-                    console.log("scheduledData.content.pending_order -- ", scheduledData.content.pending_order);
                     await updateScheduled(scheduledData.content);
                 });
             }

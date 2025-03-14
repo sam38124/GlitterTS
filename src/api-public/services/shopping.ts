@@ -189,7 +189,7 @@ export type Cart = {
   custom_form_data?: any;
   distribution_id?: number;
   distribution_info?: any;
-  orderSource: '' | 'manual' | 'normal' | 'POS' | 'combine' | 'group_buy';;
+  orderSource: '' | 'manual' | 'normal' | 'POS' | 'combine' | 'group_buy';
   temp_cart_id?: string;
   code_array: string[];
   deliveryData?: DeliveryData;
@@ -1931,7 +1931,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 };
 
                 variant.shipment_weight = parseInt(variant.shipment_weight || '0', 10);
-                carData.lineItems.push(b as any);
+                carData.lineItems.push(item as any);
 
                 // Update total price if not manual or giveaway
                 // 要將sale_price修改成scheduled裡的price
@@ -1947,24 +1947,24 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     scheduledData = (await db.query(scheduledDataQuery, []))[0];
                     if (scheduledData) {
                       const { content } = scheduledData;
-                      const productData = content.item_list.find((pb: any) => pb.id === b.id);
+                      const productData = content.item_list.find((pb: any) => pb.id === item.id);
 
                       if (productData) {
                         const variantData = productData.content.variants.find(
-                          (dd: any) => dd.spec.join('-') === b.spec.join('-')
+                          (dd: any) => dd.spec.join('-') === item.spec.join('-')
                         );
 
                         if (variantData) {
-                          b.sale_price = variantData.live_model.live_price;
+                          item.sale_price = variantData.live_model.live_price;
 
-                          carData.total += b.sale_price * b.count;
+                          carData.total += item.sale_price * item.count;
                         }
                       }
                     }
                   }
                 }else if (type !== 'manual') {
-                  if (pd.productType.giveaway) {
-                    b.sale_price = 0;
+                  if (content.productType.giveaway) {
+                    variant.sale_price = 0;
                   } else {
                     carData.total += variant.sale_price * item.count;
                   }
@@ -2010,22 +2010,22 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
 
                           if (scheduledData) {
                             const { content } = scheduledData;
-                            const productData = content.item_list.find((pb: any) => pb.id === b.id);
+                            const productData = content.item_list.find((pb: any) => pb.id === item.id);
 
                             if (productData) {
                               const variantData = productData.content.variants.find(
-                                (dd: any) => dd.spec.join('-') === b.spec.join('-')
+                                (dd: any) => dd.spec.join('-') === item.spec.join('-')
                               );
 
                               if (variantData) {
                                 const stockService = new Stock(this.app, this.token);
                                 const { stockList, deductionLog } = stockService.allocateStock(
                                   variantData.stockList,
-                                  b.count
+                                  item.count
                                 );
 
                                 variantData.stockList = stockList;
-                                b.deduction_log = deductionLog;
+                                item.deduction_log = deductionLog;
                                 carData.scheduled_id = scheduledData.id;
 
                                 // Update variants for scheduled data
