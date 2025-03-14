@@ -1226,6 +1226,13 @@ export class ShoppingOrderManager {
                           DeliveryHTML.print(gvc, checkArray, 'shipment');
                         },
                       },
+                      {
+                        name: '列印地址貼條',
+                        option: true,
+                        event: (checkArray: any) => {
+                          DeliveryHTML.print(gvc, checkArray, 'address');
+                        },
+                      },
                     ];
 
                     return [...defaultArray, ...(query.isShipment ? shipmentArray : normalArray)];

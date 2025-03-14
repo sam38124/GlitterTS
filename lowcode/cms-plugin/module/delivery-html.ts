@@ -5,26 +5,37 @@ import { ApiUser } from '../../glitter-base/route/user.js';
 
 const html = String.raw;
 
+type PrintType = 'shipment' | 'pick' | 'address';
+
+type InfoObject = {
+  title: string;
+  subtitle: string;
+};
+
 export class DeliveryHTML {
-  static print(ogvc: GVC, dataArray: CartData[], type: 'shipment' | 'pick') {
-    const prefix = Tool.randomString(5);
-    const containerID = Tool.randomString(5);
+  static print(ogvc: GVC, dataArray: CartData[], type: PrintType) {
+    const prefix = Tool.randomString(3);
+    const containerID = Tool.randomString(3);
+
+    const infoMap: Record<PrintType, InfoObject> = {
+      shipment: {
+        title: '出貨明細',
+        subtitle: '出貨',
+      },
+      pick: {
+        title: '揀貨單',
+        subtitle: '揀貨',
+      },
+      address: {
+        title: '地址貼條',
+        subtitle: '地址貼條',
+      },
+    };
+
     const vm = {
       store: {} as any,
-      info: (() => {
-        switch (type) {
-          case 'shipment':
-            return {
-              title: '出貨明細',
-              subtitle: '出貨',
-            };
-          case 'pick':
-            return {
-              title: '揀貨單',
-              subtitle: '揀貨',
-            };
-        }
-      })(),
+      twZipcode: [] as any,
+      info: infoMap[type],
     };
 
     return BgWidget.fullDialog({
@@ -40,154 +51,36 @@ export class DeliveryHTML {
           bind: id,
           view: () => {
             if (loading) {
-              return '';
+              return '載入中';
             }
-            return html`<div class="container" id="${containerID}">
-              ${dataArray
-                .map(data => {
-                  const orderData = data.orderData;
-                  try {
-                    return html`
-                      <div class="page">
-                        <div class="header">
-                          <h1 class="subtitle">商店名稱：${vm.store.shop_name}</h1>
-                          <h1 class="title">${vm.info.title}</h1>
-                          <h1 class="subtitle">
-                            ${vm.info.subtitle}時間：${glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd hh:mm')}
-                          </h1>
-                        </div>
-                        ${type === 'shipment'
-                          ? html` <div class="details">
-                              <table>
-                                <tr>
-                                  <td>訂單編號：${data.cart_token}</td>
-                                  <td>送貨方式：${this.getShippingMethodText(orderData)}</td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    訂購日期：${glitter.ut.dateFormat(new Date(data.created_time), 'yyyy-MM-dd hh:mm')}
-                                  </td>
-                                  <td>
-                                    送貨地址：${[
-                                      orderData.user_info.city,
-                                      orderData.user_info.area,
-                                      orderData.user_info.address,
-                                    ]
-                                      .filter(Boolean)
-                                      .join('')}
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td>訂購人帳號：${orderData.email}</td>
-                                  <td>收件人姓名：${orderData.user_info.name}</td>
-                                </tr>
-                                <tr>
-                                  <td>付款方式：${this.getPaymentMethodText(orderData)}</td>
-                                  <td>收件人電話：${orderData.user_info.phone}</td>
-                                </tr>
-                                <tr>
-                                  <td>付款狀態：${this.paymentStatus(data)}</td>
-                                  <td>收件人信箱：${orderData.user_info.email}</td>
-                                </tr>
-                              </table>
-                            </div>`
-                          : ''}
-                        <div class="items">
-                          <table>
-                            <thead>
-                              <tr>
-                                <th class="text-left">項次</th>
-                                <th class="text-left">商品名稱</th>
-                                ${type === 'shipment'
-                                  ? html`<th class="text-right">單價</th>`
-                                  : html`<th class="text-right">貨號</th>`}
-                                <th class="text-right">數量</th>
-                                ${type === 'shipment' ? html`<th class="text-right">金額</th>` : ''}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              ${orderData.lineItems
-                                .map((item, index) => {
-                                  return html`
-                                    <tr>
-                                      <td class="text-left">${index + 1}</td>
-                                      <td class="text-left">
-                                        ${item.title} ${item.spec.length > 0 ? `(${item.spec.join('/')})` : ''}
-                                      </td>
-                                      ${type === 'shipment'
-                                        ? html`<td class="text-right">${item.sale_price.toLocaleString()}</td>`
-                                        : html`<td class="text-right">${item.sku ?? ''}</td>`}
-                                      <td class="text-right">${item.count}</td>
-                                      ${type === 'shipment'
-                                        ? html`<td class="text-right">
-                                            $ ${(item.sale_price * parseInt(item.count, 10)).toLocaleString()}
-                                          </td>`
-                                        : ''}
-                                    </tr>
-                                  `;
-                                })
-                                .join('')}
-                            </tbody>
-                          </table>
-                        </div>
-                        ${type === 'shipment'
-                          ? html`
-                              <div class="summary">
-                                <table>
-                                  <tr>
-                                    <td>小計：</td>
-                                    <td>
-                                      $
-                                      ${(
-                                        orderData.total +
-                                        orderData.discount -
-                                        orderData.shipment_fee +
-                                        orderData.use_rebate
-                                      ).toLocaleString()}
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td>運費：</td>
-                                    <td>${orderData.shipment_fee.toLocaleString()}</td>
-                                  </tr>
-                                  <tr>
-                                    <td>折扣：</td>
-                                    <td>-${orderData.discount.toLocaleString()}</td>
-                                  </tr>
-                                  <tr>
-                                    <td>購物金折抵：</td>
-                                    <td>-${orderData.use_rebate.toLocaleString()}</td>
-                                  </tr>
-                                  <tr>
-                                    <td>總計：</td>
-                                    <td>$ ${orderData.total.toLocaleString()}</td>
-                                  </tr>
-                                </table>
-                              </div>
-                              ${orderData.order_note && orderData.order_note.length > 0
-                                ? html` <div>【訂單備註】</div>
-                                    <p class="note">${orderData.order_note.replace(/\n/g, '<br />')}</p>`
-                                : ''}
-                            `
-                          : ''}
-                      </div>
-                    `;
-                  } catch (e: any) {
-                    return 'ERROR: ' + (e.message ?? '');
-                  }
-                })
-                .join('')}
-            </div>`;
+
+            const printMap: Record<PrintType, string> = {
+              shipment: this.shipmentHTML(vm, glitter, dataArray),
+              pick: this.pickHTML(vm, glitter, dataArray),
+              address: this.addressListHTML(vm, glitter, dataArray),
+            };
+
+            return html`<div class="container" id="${containerID}">${printMap[type]}</div>`;
           },
           divCreate: {
             style: 'min-height: calc(100vh - 70px); padding: 20px;',
           },
           onCreate: () => {
             if (loading) {
-              ApiUser.getPublicConfig('store-information', 'manager').then(r => {
-                if (r.result && r.response) {
-                  vm.store = r.response.value;
-                }
+              Promise.all([
+                // 讀取台灣郵遞區號
+                fetch(new URL('../../assets/json/twzipcode.json', import.meta.url))
+                  .then(response => response.text())
+                  .then(content => JSON.parse(content)),
+
+                // 讀取商家資料
+                ApiUser.getPublicConfig('store-information', 'manager').then(r => {
+                  return r.result && r.response ? r.response.value : {};
+                }),
+              ]).then(dataArray => {
+                vm.twZipcode = dataArray[0];
+                vm.store = dataArray[1];
+
                 loading = false;
                 gvc.notifyDataChange(id);
               });
@@ -206,7 +99,7 @@ export class DeliveryHTML {
           },
         });
       },
-      footer_html: (gvc: GVC) => {
+      footer_html: gvc => {
         return [
           BgWidget.cancel(
             gvc.event(() => {
@@ -288,7 +181,7 @@ export class DeliveryHTML {
               printWindow.print();
 
               // 選擇性：列印後關閉視窗
-              // printWindow.onafterprint = () => printWindow.close();
+              printWindow.onafterprint = () => printWindow.close();
             }),
             '列印'
           ),
@@ -307,114 +200,371 @@ export class DeliveryHTML {
         margin-bottom: 16px;
         height: 60px;
       }
+
       .${prefix}-text-left {
         text-align: left;
       }
+
       .${prefix}-text-right {
         text-align: right;
       }
+
       .${prefix}-container {
         width: 100%;
         margin: 0 auto;
         padding: 0 24px;
       }
+
       .${prefix}-title {
         text-align: center;
         font-size: 24px;
         font-weight: bold;
       }
+
       .${prefix}-subtitle {
         font-size: 14px;
       }
+
+      .${prefix}-recipient {
+        margin: 0 24px;
+      }
+
+      .${prefix}-recipient-text {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 2px;
+      }
+
+      .${prefix}-flex-wrap {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .${prefix}-post-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: calc(50% - 12px);
+        border: 0.5px solid #b0b0b0;
+        padding: 12px;
+        margin: 6px;
+      }
+
+      .${prefix}-send-text {
+        font-size: 14px;
+        font-weight: normal;
+      }
+
       .${prefix}-note {
         margin-bottom: 24px;
       }
+
       .${prefix}-summary {
         display: flex;
         justify-content: end;
       }
+
       .${prefix}-details table,
       .${prefix}-items table {
         width: 100%;
         margin-bottom: 20px;
       }
+
       .${prefix}-summary table {
         width: 50%;
         margin-bottom: 20px;
       }
+
       .${prefix}-details td {
         padding: 4px;
         text-align: left;
         width: 50%;
       }
+
       .${prefix}-items th,
       .${prefix}-items td {
         padding: 4px;
       }
+
       .${prefix}-items th {
         background-color: #f4f4f4;
       }
+
       .${prefix}-summary td {
         padding: 4px;
         text-align: right;
       }
+
       .${prefix}-summary tr:last-child td {
         font-weight: bold;
       }
     `);
   }
 
+  static shipmentHTML(vm: any, glitter: any, dataArray: CartData[]) {
+    const section = (data: CartData) => {
+      const orderData = data.orderData;
+      return html`
+        <div class="page">
+          <div class="header">
+            <h1 class="subtitle">商店名稱：${vm.store.shop_name}</h1>
+            <h1 class="title">${vm.info.title}</h1>
+            <h1 class="subtitle">${vm.info.subtitle}時間：${glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd hh:mm')}</h1>
+          </div>
+          <div class="details">
+            <table>
+              <tr>
+                <td>訂單編號：${data.cart_token}</td>
+                <td>送貨方式：${this.getShippingMethodText(orderData)}</td>
+              </tr>
+              <tr>
+                <td>訂購日期：${glitter.ut.dateFormat(new Date(data.created_time), 'yyyy-MM-dd hh:mm')}</td>
+                <td>
+                  送貨地址：${[orderData.user_info.city, orderData.user_info.area, orderData.user_info.address]
+                    .filter(Boolean)
+                    .join('')}
+                </td>
+              </tr>
+              <tr>
+                <td>訂購人帳號：${orderData.email}</td>
+                <td>收件人姓名：${orderData.user_info.name}</td>
+              </tr>
+              <tr>
+                <td>付款方式：${this.getPaymentMethodText(orderData)}</td>
+                <td>收件人電話：${orderData.user_info.phone}</td>
+              </tr>
+              <tr>
+                <td>付款狀態：${this.paymentStatus(data)}</td>
+                <td>收件人信箱：${orderData.user_info.email}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="items">
+            <table>
+              <thead>
+                <tr>
+                  <th class="text-left">項次</th>
+                  <th class="text-left">商品名稱</th>
+                  <th class="text-right">單價</th>
+                  <th class="text-right">數量</th>
+                  <th class="text-right">金額</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${orderData.lineItems
+                  .map((item, index) => {
+                    return html`
+                      <tr>
+                        <td class="text-left">${index + 1}</td>
+                        <td class="text-left">
+                          ${item.title} ${item.spec.length > 0 ? `(${item.spec.join('/')})` : ''}
+                        </td>
+                        <td class="text-right">${item.sale_price.toLocaleString()}</td>
+                        <td class="text-right">${item.count}</td>
+                        <td class="text-right">$ ${(item.sale_price * parseInt(item.count, 10)).toLocaleString()}</td>
+                      </tr>
+                    `;
+                  })
+                  .join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="summary">
+            <table>
+              <tr>
+                <td>小計：</td>
+                <td>
+                  $
+                  ${(
+                    orderData.total +
+                    orderData.discount -
+                    orderData.shipment_fee +
+                    orderData.use_rebate
+                  ).toLocaleString()}
+                </td>
+              </tr>
+              <tr>
+                <td>運費：</td>
+                <td>${orderData.shipment_fee.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td>折扣：</td>
+                <td>-${orderData.discount.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td>購物金折抵：</td>
+                <td>-${orderData.use_rebate.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td>總計：</td>
+                <td>$ ${orderData.total.toLocaleString()}</td>
+              </tr>
+            </table>
+          </div>
+          ${orderData.order_note && orderData.order_note.length > 0
+            ? html` <div>【訂單備註】</div>
+                <p class="note">${orderData.order_note.replace(/\n/g, '<br />')}</p>`
+            : ''}
+        </div>
+      `;
+    };
+
+    return dataArray
+      .map(data => {
+        try {
+          return section(data);
+        } catch (e) {
+          const text = `訂單 #${data.cart_token} 列印出貨發生錯誤`;
+          console.error(`${text}: ${e}`);
+          return text;
+        }
+      })
+      .join('');
+  }
+
+  static pickHTML(vm: any, glitter: any, dataArray: CartData[]) {
+    const section = (data: CartData) => {
+      const orderData = data.orderData;
+      return html`
+        <div class="page">
+          <div class="header">
+            <h1 class="subtitle">商店名稱：${vm.store.shop_name}</h1>
+            <h1 class="title">${vm.info.title}</h1>
+            <h1 class="subtitle">${vm.info.subtitle}時間：${glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd hh:mm')}</h1>
+          </div>
+          <div class="items">
+            <table>
+              <thead>
+                <tr>
+                  <th class="text-left">項次</th>
+                  <th class="text-left">商品名稱</th>
+                  <th class="text-right">貨號</th>
+                  <th class="text-right">數量</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${orderData.lineItems
+                  .map((item, index) => {
+                    return html`
+                      <tr>
+                        <td class="text-left">${index + 1}</td>
+                        <td class="text-left">
+                          ${item.title} ${item.spec.length > 0 ? `(${item.spec.join('/')})` : ''}
+                        </td>
+                        <td class="text-right">${item.sku ?? ''}</td>
+                        <td class="text-right">${item.count}</td>
+                      </tr>
+                    `;
+                  })
+                  .join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    };
+
+    return dataArray
+      .map(data => {
+        try {
+          return section(data);
+        } catch (e) {
+          const text = `訂單 #${data.cart_token} 列印揀貨發生錯誤`;
+          console.error(`${text}: ${e}`);
+          return text;
+        }
+      })
+      .join('');
+  }
+
+  static addressListHTML(vm: any, glitter: any, dataArray: CartData[]) {
+    const dataMap = dataArray.map(order => {
+      const orderData = order.orderData;
+
+      // 取得台灣郵遞區號
+      const zipcode = (() => {
+        try {
+          if (!(orderData.user_info.city && orderData.user_info.area)) return '';
+          const county = orderData.user_info.city.replace('臺', '台');
+          return vm.twZipcode[county][orderData.user_info.area];
+        } catch (error) {
+          return '';
+        }
+      })();
+
+      // 單張地址貼條
+      return html`<div class="post-card">
+        <div>
+          <h1 class="send-text">${vm.store.address}</h1>
+          <h1 class="send-text">${vm.store.shop_name}</h1>
+          <h1 class="send-text">${vm.store.phone}</h1>
+        </div>
+        <div class="recipient">
+          <h1 class="recipient-text">
+            ${[zipcode, orderData.user_info.city, orderData.user_info.area, orderData.user_info.address]
+              .filter(Boolean)
+              .join(' ')}
+          </h1>
+          <h1 class="recipient-text">${orderData.user_info.name}</h1>
+          <h1 class="recipient-text">${orderData.user_info.phone}</h1>
+        </div>
+        <div style="text-align: end">訂單編號： ${order.cart_token}</div>
+      </div>`;
+    });
+
+    const chunk = 10;
+    const chunksCount = Math.ceil(dataMap.length / chunk);
+    const dataList: string[][] = [];
+
+    for (let i = 0; i < chunksCount; i++) {
+      dataList.push(dataMap.slice(i * chunk, (i + 1) * chunk));
+    }
+
+    return dataList
+      .map(list => {
+        if (list.length === 0) {
+          return '';
+        }
+        return html`<div class="page flex-wrap">${list.join('')}</div>`;
+      })
+      .join('');
+  }
+
   static getPaymentMethodText(orderData: OrderData) {
-    if (orderData.orderSource === 'POS') {
-      return `門市POS付款`;
-    }
-    switch (orderData.customer_info.payment_select) {
-      case 'off_line':
-        return '線下付款';
-      case 'newWebPay':
-        return '藍新金流';
-      case 'ecPay':
-        return '綠界金流';
-      case 'line_pay':
-        return 'Line Pay';
-      case 'atm':
-        return '銀行轉帳';
-      case 'line':
-        return 'Line 轉帳';
-      case 'cash_on_delivery':
-        return '貨到付款';
-      default:
-        return '線下付款';
-    }
+    const paymentMethods: Record<string, string> = {
+      POS: '門市POS付款',
+      off_line: '線下付款',
+      newWebPay: '藍新金流',
+      ecPay: '綠界金流',
+      line_pay: 'Line Pay',
+      atm: '銀行轉帳',
+      line: 'Line 轉帳',
+      cash_on_delivery: '貨到付款',
+    };
+
+    return orderData.orderSource === 'POS'
+      ? paymentMethods['POS']
+      : paymentMethods[orderData.customer_info.payment_select] || '線下付款';
   }
 
   static getShippingMethodText(orderData: OrderData) {
-    switch (orderData.user_info.shipment) {
-      case 'UNIMARTC2C':
-        return '7-11店到店';
-      case 'FAMIC2C':
-        return '全家店到店';
-      case 'OKMARTC2C':
-        return 'OK店到店';
-      case 'HILIFEC2C':
-        return '萊爾富店到店';
-      default:
-        return '宅配';
-    }
+    const shippingMethods: Record<string, string> = {
+      UNIMARTC2C: '7-11店到店',
+      FAMIC2C: '全家店到店',
+      OKMARTC2C: 'OK店到店',
+      HILIFEC2C: '萊爾富店到店',
+    };
+
+    return shippingMethods[orderData.user_info.shipment] || '宅配';
   }
 
   static paymentStatus(cart: CartData) {
-    if (cart.status === 0) {
-      if (cart.orderData.proof_purchase) {
-        return '待核款';
-      }
-      return '未付款';
-    } else if (cart.status === 1) {
-      return '已付款';
-    } else if (cart.status === -2) {
-      return '已退款';
-    } else {
-      return '付款失敗';
-    }
+    const statusMessages: Record<string, string> = {
+      '0': cart.orderData.proof_purchase ? '待核款' : '未付款',
+      '1': '已付款',
+      '-2': '已退款',
+    };
+
+    return statusMessages[`${cart.status}`] || '付款失敗';
   }
 }
