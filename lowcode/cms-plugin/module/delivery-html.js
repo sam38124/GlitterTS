@@ -52,7 +52,7 @@ export class DeliveryHTML {
                     onCreate: () => {
                         if (loading) {
                             Promise.all([
-                                fetch(new URL('../../assets/json/twzipcode.json', import.meta.url))
+                                fetch(new URL('../../assets/json/twzipcode.json', import.meta.url).href)
                                     .then(response => response.text())
                                     .then(content => JSON.parse(content)),
                                 ApiUser.getPublicConfig('store-information', 'manager').then(r => {

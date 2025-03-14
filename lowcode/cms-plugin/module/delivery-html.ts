@@ -69,7 +69,7 @@ export class DeliveryHTML {
             if (loading) {
               Promise.all([
                 // 讀取台灣郵遞區號
-                fetch(new URL('../../assets/json/twzipcode.json', import.meta.url))
+                fetch(new URL('../../assets/json/twzipcode.json', import.meta.url).href)
                   .then(response => response.text())
                   .then(content => JSON.parse(content)),
 
