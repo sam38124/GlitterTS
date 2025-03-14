@@ -137,7 +137,8 @@ export const config = {
         stock: '/stock',
         shopee: '/shopee',
         customer_sessions: '/customer_sessions',
-        voucher: '/voucher'
+        voucher: '/voucher',
+        reconciliation: '/reconciliation',
     },
     route: {
         shopee: '/shopee',

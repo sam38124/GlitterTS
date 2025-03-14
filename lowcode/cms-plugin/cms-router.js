@@ -45,6 +45,11 @@ export class CmsRouter {
                                     }));
                                 });
                                 break;
+                            case 'reconciliation_area':
+                                gvc.glitter.getModule(new URL('./cms-plugin/reconciliation-area.js', gvc.glitter.root_path).href, (cl) => {
+                                    resolve(cl.main(gvc));
+                                });
+                                break;
                             default:
                                 resolve('no page');
                         }

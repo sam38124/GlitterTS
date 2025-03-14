@@ -49,7 +49,7 @@ export class TermsRelated {
                                 (document.querySelector(`.${id}`) as any).outerHTML=res.main(gvc)
                             });
                         })
-                    } else if(['blog_tag_setting','blog_global_setting','fb_live','ig_live','line_plus','shipment_list','shipment_list_archive'].includes(glitter.getUrlParameter('page'))){
+                    } else if(['blog_tag_setting','blog_global_setting','fb_live','ig_live','line_plus','shipment_list','shipment_list_archive','reconciliation_area'].includes(glitter.getUrlParameter('page'))){
                         return await new Promise((resolve, reject) => {
                             glitter.getModule(new URL('./cms-plugin/cms-router.js', gvc.glitter.root_path).href, (res) => {
                                 (document.querySelector(`.${id}`) as any).outerHTML=res.main(gvc);

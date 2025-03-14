@@ -398,11 +398,15 @@ class Shopping {
                         }
                         else {
                             const soldOldHistory = await database_js_1.default.query(`
-                 select \`${this.app}\`.t_products_sold_history.* from  \`${this.app}\`.t_products_sold_history
-where 
-product_id = ${database_js_1.default.escape(content.id)} and    
-order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql})
-                 `, []);
+                  SELECT * 
+                  FROM \`${this.app}\`.t_products_sold_history 
+                  WHERE product_id = ${database_js_1.default.escape(content.id)} 
+                    AND order_id IN (
+                      SELECT cart_token 
+                      FROM \`${this.app}\`.t_checkout 
+                      WHERE ${count_sql}
+                    )
+                  `, []);
                             (content.variants || []).forEach((variant) => {
                                 var _a, _b;
                                 variant.spec = variant.spec || [];
@@ -988,26 +992,24 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
-        const timer = {
-            count: 0,
-            history: [Date.now()],
-        };
-        let scheduledData;
-        const checkPoint = (name) => {
-            const t = Date.now();
-            timer.history.push(t);
-            const spendTime = t - timer.history[timer.count];
-            const totalTime = t - timer.history[0];
-            timer.count++;
-            const n = timer.count.toString().padStart(2, '0');
-            console.log(`TO-CHECKOUT-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
-                totalTime,
-                spendTime,
-            });
-        };
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6;
         try {
-            checkPoint('start');
+            const timer = {
+                count: 0,
+                history: [Date.now()],
+            };
+            const checkPoint = (name) => {
+                const t = Date.now();
+                timer.history.push(t);
+                const spendTime = t - timer.history[timer.count];
+                const totalTime = t - timer.history[0];
+                timer.count++;
+                const n = timer.count.toString().padStart(2, '0');
+                console.log(`TO-CHECKOUT-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
+                    totalTime,
+                    spendTime,
+                });
+            };
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
             data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
@@ -1016,7 +1018,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 const orderData = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ? AND status = 0;
             `, [replace_order_id]))[0];
                 if (!orderData) {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error: Cannot find this orderID.', null);
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
                 }
                 await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_checkout WHERE cart_token = ? AND status = 0;
           `, [replace_order_id]);
@@ -1032,7 +1034,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 const order = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?
             `, [data.order_id]))[0];
                 if (!order) {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error: Cannot find this POS order', null);
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this POS order', null);
                 }
                 for (const b of order.orderData.lineItems) {
                     const pdDqlData = (await this.getProduct({
@@ -1071,7 +1073,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     (data.user_info && data.user_info.phone));
             };
             if (type !== 'preview' && !hasAuthentication(data)) {
-                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error: No email and phone', null);
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error: No email and phone', null);
             }
             const checkOutType = (_d = data.checkOutType) !== null && _d !== void 0 ? _d : 'manual';
             const getUserDataAsync = async (type, token, data) => {
@@ -1086,6 +1088,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     (data.user_info.phone && (await userClass.getUserData(data.user_info.phone, 'email_or_phone'))) ||
                     {});
             };
+            checkPoint('dwihdi');
             checkPoint('check user auth');
             const userData = await getUserDataAsync(type, this.token, data);
             data.email = ((_e = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _e === void 0 ? void 0 : _e.email) || ((_f = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _f === void 0 ? void 0 : _f.phone) || '';
@@ -1358,31 +1361,9 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                             };
                             variant.shipment_weight = parseInt(variant.shipment_weight || '0', 10);
                             carData.lineItems.push(item);
-                            if (checkOutType == 'group_buy') {
-                                if (!scheduledData) {
-                                    const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
-                                    const scheduledDataQuery = `
-                        SELECT *
-                        FROM \`${this.app}\`.\`t_live_purchase_interactions\`
-                        ${sql});
-                    `;
-                                    scheduledData = (await database_js_1.default.query(scheduledDataQuery, []))[0];
-                                    if (scheduledData) {
-                                        const { content } = scheduledData;
-                                        const productData = content.item_list.find((pb) => pb.id === item.id);
-                                        if (productData) {
-                                            const variantData = productData.content.variants.find((dd) => dd.spec.join('-') === item.spec.join('-'));
-                                            if (variantData) {
-                                                item.sale_price = variantData.live_model.live_price;
-                                                carData.total += item.sale_price * item.count;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            else if (type !== 'manual') {
+                            if (type !== 'manual') {
                                 if (content.productType.giveaway) {
-                                    variant.sale_price = 0;
+                                    item.sale_price = 0;
                                 }
                                 else {
                                     carData.total += variant.sale_price * item.count;
@@ -1412,57 +1393,29 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                             saveStockArray.push(() => new Promise(async (resolve, reject) => {
                                 var _a;
                                 try {
-                                    if (data.checkOutType == 'group_buy') {
-                                        if (!scheduledData) {
-                                            const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
-                                            const scheduledDataQuery = `
-                              SELECT *
-                              FROM \`${this.app}\`.\`t_live_purchase_interactions\`
-                              ${sql});
-                          `;
-                                            scheduledData = (await database_js_1.default.query(scheduledDataQuery, []))[0];
-                                        }
-                                        if (scheduledData) {
-                                            const { content } = scheduledData;
-                                            const productData = content.item_list.find((pb) => pb.id === item.id);
-                                            if (productData) {
-                                                const variantData = productData.content.variants.find((dd) => dd.spec.join('-') === item.spec.join('-'));
-                                                if (variantData) {
-                                                    const stockService = new stock_1.Stock(this.app, this.token);
-                                                    const { stockList, deductionLog } = stockService.allocateStock(variantData.stockList, item.count);
-                                                    variantData.stockList = stockList;
-                                                    item.deduction_log = deductionLog;
-                                                    carData.scheduled_id = scheduledData.id;
-                                                    await this.updateVariantsForScheduled(content, scheduledData.id);
-                                                }
+                                    if (content.shopee_id) {
+                                        await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
+                                            product: getProductData,
+                                            callback: () => { },
+                                        });
+                                    }
+                                    if (content.product_category === 'kitchen' && ((_a = variant.spec) === null || _a === void 0 ? void 0 : _a.length)) {
+                                        variant.spec.forEach((d1, index) => {
+                                            const option = content.specs[index].option.find((d2) => d2.title === d1);
+                                            if ((option === null || option === void 0 ? void 0 : option.stock) !== undefined) {
+                                                option.stock = parseInt(option.stock, 10) - item.count;
                                             }
-                                        }
+                                        });
+                                        const store_config = await userClass.getConfigV2({
+                                            key: 'store_manager',
+                                            user_id: 'manager',
+                                        });
+                                        item.deduction_log = { [store_config.list[0].id]: item.count };
                                     }
                                     else {
-                                        if (content.shopee_id) {
-                                            await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
-                                                product: getProductData,
-                                                callback: () => { },
-                                            });
-                                        }
-                                        if (content.product_category === 'kitchen' && ((_a = variant.spec) === null || _a === void 0 ? void 0 : _a.length)) {
-                                            variant.spec.forEach((d1, index) => {
-                                                const option = content.specs[index].option.find((d2) => d2.title === d1);
-                                                if ((option === null || option === void 0 ? void 0 : option.stock) !== undefined) {
-                                                    option.stock = parseInt(option.stock, 10) - item.count;
-                                                }
-                                            });
-                                            const store_config = await userClass.getConfigV2({
-                                                key: 'store_manager',
-                                                user_id: 'manager',
-                                            });
-                                            item.deduction_log = { [store_config.list[0].id]: item.count };
-                                        }
-                                        else {
-                                            await this.updateVariantsWithSpec(variant, item.id, item.spec);
-                                        }
-                                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${getProductData.id}`, [{ content: JSON.stringify(content) }]);
+                                        await this.updateVariantsWithSpec(variant, item.id, item.spec);
                                     }
+                                    await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${getProductData.id}`, [{ content: JSON.stringify(content) }]);
                                     resolve(true);
                                 }
                                 catch (error) {
@@ -1494,14 +1447,25 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 }
             }
             if (hasMaxProduct && data.email !== 'no-email') {
-                const existOrders = await database_js_1.default.query(`SELECT id, orderData FROM \`${this.app}\`.t_checkout WHERE email = ? AND status <> -2;`, [data.email]);
+                const cartTokenSQL = `
+          SELECT cart_token 
+          FROM \`${this.app}\`.t_checkout 
+          WHERE email IN (${[-99, (_w = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _w === void 0 ? void 0 : _w.email, (_x = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _x === void 0 ? void 0 : _x.phone]
+                    .filter(Boolean)
+                    .map(item => database_js_1.default.escape(item))
+                    .join(',')}) 
+          AND order_status <> '-1'
+        `;
+                const soldHistory = await database_js_1.default.query(`
+            SELECT * 
+            FROM \`${this.app}\`.t_products_sold_history 
+            WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
+              AND order_id IN (${cartTokenSQL})
+          `, []);
                 const purchaseHistory = new Map();
-                for (const order of existOrders) {
-                    for (const item of order.orderData.lineItems) {
-                        if (maxProductMap.has(item.id) && !item.is_gift) {
-                            purchaseHistory.set(item.id, ((_w = purchaseHistory.get(item.id)) !== null && _w !== void 0 ? _w : 0) + item.count);
-                        }
-                    }
+                for (const history of soldHistory) {
+                    const pid = Number(history.product_id);
+                    purchaseHistory.set(pid, ((_y = purchaseHistory.get(pid)) !== null && _y !== void 0 ? _y : 0) + history.count);
                 }
                 for (const item of data.line_items) {
                     if (maxProductMap.has(item.id)) {
@@ -1578,7 +1542,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 await this.checkVoucher(carData);
                 checkPoint('check voucher');
                 let can_add_gift = [];
-                (_x = carData.voucherList) === null || _x === void 0 ? void 0 : _x.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
+                (_z = carData.voucherList) === null || _z === void 0 ? void 0 : _z.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
                 gift_product.forEach(dd => {
                     const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
                     if (dd.count <= max_count) {
@@ -1589,7 +1553,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     }
                 });
                 for (const giveawayData of carData.voucherList.filter(dd => dd.reBackType === 'giveaway')) {
-                    if (!((_y = giveawayData.add_on_products) === null || _y === void 0 ? void 0 : _y.length))
+                    if (!((_0 = giveawayData.add_on_products) === null || _0 === void 0 ? void 0 : _0.length))
                         continue;
                     const productPromises = giveawayData.add_on_products.map(async (id) => {
                         var _a;
@@ -1611,7 +1575,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 appName: this.app,
                 key: 'glitter_finance',
             });
-            const keyData = (_z = configData[0]) === null || _z === void 0 ? void 0 : _z.value;
+            const keyData = (_1 = configData[0]) === null || _1 === void 0 ? void 0 : _1.value;
             if (keyData) {
                 carData.payment_info_custom = keyData.payment_info_custom;
             }
@@ -1657,7 +1621,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     return dd.type !== 'pos';
                 }
             });
-            keyData.cash_on_delivery = (_0 = keyData.cash_on_delivery) !== null && _0 !== void 0 ? _0 : { support: [] };
+            keyData.cash_on_delivery = (_2 = keyData.cash_on_delivery) !== null && _2 !== void 0 ? _2 : { support: [] };
             const is_support_cash = keyData.cash_on_delivery.support.find((item, index) => {
                 return carData.shipment_selector.find(dd => {
                     return dd.value === item;
@@ -1770,7 +1734,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_1 = data.total) !== null && _1 !== void 0 ? _1 : 0;
+                carData.total = (_3 = data.total) !== null && _3 !== void 0 ? _3 : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1794,7 +1758,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     status: data.pay_status,
                     app: this.app,
                 });
-                checkPoint('manual ordeer done');
+                checkPoint('manual order done');
                 return {
                     data: carData,
                 };
@@ -1804,7 +1768,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 if (checkOutType === 'POS' && Array.isArray(data.voucherList)) {
                     const manualVoucher = data.voucherList.find((item) => item.id === 0);
                     if (manualVoucher) {
-                        manualVoucher.discount = (_2 = manualVoucher.discount_total) !== null && _2 !== void 0 ? _2 : 0;
+                        manualVoucher.discount = (_4 = manualVoucher.discount_total) !== null && _4 !== void 0 ? _4 : 0;
                         carData.total -= manualVoucher.discount;
                     }
                 }
@@ -1837,7 +1801,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                 await trans.commit();
                 await trans.release();
                 await Promise.all(saveStockArray.map(dd => dd()));
-                await this.releaseCheckout((_3 = data.pay_status) !== null && _3 !== void 0 ? _3 : 0, carData.orderID);
+                await this.releaseCheckout((_5 = data.pay_status) !== null && _5 !== void 0 ? _5 : 0, carData.orderID);
                 checkPoint('release pos checkout');
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
@@ -1878,7 +1842,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                let kd = (_4 = keyData[carData.customer_info.payment_select]) !== null && _4 !== void 0 ? _4 : {
+                let kd = (_6 = keyData[carData.customer_info.payment_select]) !== null && _6 !== void 0 ? _6 : {
                     ReturnURL: '',
                     NotifyURL: '',
                 };
@@ -1968,7 +1932,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         }
         catch (e) {
             console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 5 Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Func Error:' + e, null);
         }
     }
     async getReturnOrder(query) {
@@ -3090,28 +3054,12 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
            WHERE JSON_EXTRACT(content, '$.type') = 'voucher'
              AND id = ?;`, [orderVoucher.id]);
                 if (voucherRow[0]) {
-                    for (const item of orderVoucher.bind) {
-                        const useCheck = await rebateClass.canUseRebate(userData.userID, 'voucher', {
+                    const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
+                    if (orderVoucher.rebate_total && !usedVoucher) {
+                        await rebateClass.insertRebate(userData.userID, orderVoucher.rebate_total, `優惠券購物金：${voucherRow[0].content.title}`, {
                             voucher_id: orderVoucher.id,
                             order_id: order_id,
-                            sku: item.sku,
-                            quantity: item.count,
                         });
-                        const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
-                        if (item.rebate > 0 && (useCheck === null || useCheck === void 0 ? void 0 : useCheck.result) && !usedVoucher) {
-                            const content = voucherRow[0].content;
-                            if (item.rebate * item.count !== 0) {
-                                await rebateClass.insertRebate(userData.userID, item.rebate * item.count, `優惠券購物金：${content.title}`, {
-                                    voucher_id: orderVoucher.id,
-                                    order_id: order_id,
-                                    sku: item.sku,
-                                    quantity: item.count,
-                                    deadTime: content.rebateEndDay
-                                        ? (0, moment_1.default)().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss')
-                                        : undefined,
-                                });
-                            }
-                        }
                     }
                 }
             }
@@ -3296,21 +3244,6 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
                     content: JSON.stringify(data),
                 },
                 product_id,
-            ]);
-        }
-        catch (e) {
-            console.error('error -- ', e);
-        }
-    }
-    async updateVariantsForScheduled(data, scheduled_id) {
-        try {
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_live_purchase_interactions\`
-         SET ?
-         WHERE id = ${scheduled_id}
-        `, [
-                {
-                    content: JSON.stringify(data),
-                },
             ]);
         }
         catch (e) {

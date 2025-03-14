@@ -647,16 +647,21 @@ export class Shopping {
                   },
                 ];
               } else {
-                //尋找規格販售數量
+                // 尋找規格販售數量
                 const soldOldHistory = await db.query(
                   `
-                 select \`${this.app}\`.t_products_sold_history.* from  \`${this.app}\`.t_products_sold_history
-where 
-product_id = ${db.escape(content.id)} and    
-order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql})
-                 `,
+                  SELECT * 
+                  FROM \`${this.app}\`.t_products_sold_history 
+                  WHERE product_id = ${db.escape(content.id)} 
+                    AND order_id IN (
+                      SELECT cart_token 
+                      FROM \`${this.app}\`.t_checkout 
+                      WHERE ${count_sql}
+                    )
+                  `,
                   []
                 );
+
                 (content.variants || []).forEach((variant: any) => {
                   variant.spec = variant.spec || [];
                   variant.stock = 0;
@@ -1429,30 +1434,30 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
     type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
     replace_order_id?: string
   ) {
-    const timer = {
-      count: 0,
-      history: [Date.now()],
-    };
-    let scheduledData: any; // 不立刻查詢，只做占位宣告
-
-    const checkPoint = (name: string) => {
-      const t = Date.now();
-      timer.history.push(t);
-
-      const spendTime = t - timer.history[timer.count]; // 計算與上一個檢查點的時間差
-      const totalTime = t - timer.history[0]; // 計算從開始到現在的總時間
-
-      timer.count++;
-      const n = timer.count.toString().padStart(2, '0');
-
-      console.log(`TO-CHECKOUT-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
-        totalTime,
-        spendTime,
-      });
-    };
 
     try {
-      checkPoint('start');
+
+      const timer = {
+        count: 0,
+        history: [Date.now()],
+      };
+      let scheduledData: any; // 不立刻查詢，只做占位宣告
+      const checkPoint = (name: string) => {
+        const t = Date.now();
+        timer.history.push(t);
+
+        const spendTime = t - timer.history[timer.count]; // 計算與上一個檢查點的時間差
+        const totalTime = t - timer.history[0]; // 計算從開始到現在的總時間
+
+        timer.count++;
+        const n = timer.count.toString().padStart(2, '0');
+
+        console.log(`TO-CHECKOUT-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
+          totalTime,
+          spendTime,
+        });
+      };
+
       const userClass = new User(this.app);
       const rebateClass = new Rebate(this.app);
 
@@ -1471,7 +1476,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         )[0];
 
         if (!orderData) {
-          throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error: Cannot find this orderID.', null);
+          throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
         }
 
         // 刪除指定的訂單記錄
@@ -1503,7 +1508,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         )[0];
 
         if (!order) {
-          throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error: Cannot find this POS order', null);
+          throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this POS order', null);
         }
 
         for (const b of order.orderData.lineItems) {
@@ -1564,7 +1569,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
 
       // 電話信箱擇一
       if (type !== 'preview' && !hasAuthentication(data)) {
-        throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error: No email and phone', null);
+        throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: No email and phone', null);
       }
 
       const checkOutType = data.checkOutType ?? 'manual';
@@ -2110,21 +2115,33 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
       }
 
       if (hasMaxProduct && data.email !== 'no-email') {
-        // 查詢歷史訂單
-        const existOrders = await db.query(
-          `SELECT id, orderData FROM \`${this.app}\`.t_checkout WHERE email = ? AND status <> -2;`,
-          [data.email]
+        // 查詢歷史訂單 SQL
+        const cartTokenSQL = `
+          SELECT cart_token 
+          FROM \`${this.app}\`.t_checkout 
+          WHERE email IN (${[-99, userData?.userData?.email, userData?.userData?.phone]
+            .filter(Boolean)
+            .map(item => db.escape(item))
+            .join(',')}) 
+          AND order_status <> '-1'
+        `;
+
+        // 查詢商品購買紀錄
+        const soldHistory = await db.query(
+          `
+            SELECT * 
+            FROM \`${this.app}\`.t_products_sold_history 
+            WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
+              AND order_id IN (${cartTokenSQL})
+          `,
+          []
         );
 
         // 使用 Map 計算歷史購買數量
         const purchaseHistory = new Map();
-
-        for (const order of existOrders) {
-          for (const item of order.orderData.lineItems) {
-            if (maxProductMap.has(item.id) && !item.is_gift) {
-              purchaseHistory.set(item.id, (purchaseHistory.get(item.id) ?? 0) + item.count);
-            }
-          }
+        for (const history of soldHistory) {
+          const pid = Number(history.product_id);
+          purchaseHistory.set(pid, (purchaseHistory.get(pid) ?? 0) + history.count);
         }
 
         // 更新當前訂單項目的歷史購買數量
@@ -2489,7 +2506,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
           status: data.pay_status as any,
           app: this.app,
         });
-        checkPoint('manual ordeer done');
+        checkPoint('manual order done');
 
         return {
           data: carData,
@@ -2701,7 +2718,7 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
       }
     } catch (e) {
       console.error(e);
-      throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 5 Error:' + e, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Func Error:' + e, null);
     }
   }
 
@@ -3506,12 +3523,13 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         })
       );
 
-      //加入到索引欄位
+      // 加入到索引欄位
       await CheckoutService.updateAndMigrateToTableColumn({
         id: origin.id,
         orderData: update.orderData,
         app_name: this.app,
       });
+
       return {
         result: 'success',
         orderData: data.orderData,
@@ -4169,7 +4187,6 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
     const rebateClass = new Rebate(this.app);
     const userClass = new User(this.app);
     const userData = await userClass.getUserData(cartData.email, 'account');
-
     if (order_id && userData && cartData.orderData.rebate > 0) {
       for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
         const orderVoucher = cartData.orderData.voucherList[i];
@@ -4183,34 +4200,17 @@ order_id in (select cart_token from \`${this.app}\`.t_checkout where ${count_sql
         );
 
         if (voucherRow[0]) {
-          for (const item of orderVoucher.bind) {
-            const useCheck = await rebateClass.canUseRebate(userData.userID, 'voucher', {
-              voucher_id: orderVoucher.id,
-              order_id: order_id,
-              sku: item.sku,
-              quantity: item.count,
-            });
-            const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
-
-            if (item.rebate > 0 && useCheck?.result && !usedVoucher) {
-              const content = voucherRow[0].content;
-              if (item.rebate * item.count !== 0) {
-                await rebateClass.insertRebate(
-                  userData.userID,
-                  item.rebate * item.count,
-                  `優惠券購物金：${content.title}`,
-                  {
-                    voucher_id: orderVoucher.id,
-                    order_id: order_id,
-                    sku: item.sku,
-                    quantity: item.count,
-                    deadTime: content.rebateEndDay
-                      ? moment().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss')
-                      : undefined,
-                  }
-                );
+          const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
+          if (orderVoucher.rebate_total && !usedVoucher) {
+            await rebateClass.insertRebate(
+              userData.userID,
+              orderVoucher.rebate_total,
+              `優惠券購物金：${voucherRow[0].content.title}`,
+              {
+                voucher_id: orderVoucher.id,
+                order_id: order_id,
               }
-            }
+            );
           }
         }
       }

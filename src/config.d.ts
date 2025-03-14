@@ -69,6 +69,7 @@ export declare const config: {
         shopee: string;
         customer_sessions: string;
         voucher: string;
+        reconciliation: string;
     };
     route: {
         shopee: string;

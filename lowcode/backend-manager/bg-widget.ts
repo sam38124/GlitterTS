@@ -214,8 +214,8 @@ export class BgWidget {
     </button>`;
   }
 
-  static grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string }) {
-    return html` <button class="btn btn-gray" style="" type="button" onclick="${event}">
+  static grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string,class?:string }) {
+    return html` <button class="btn btn-gray ${obj?.class || ''}" style="" type="button" onclick="${event}">
       <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
       ${text.length > 0 ? html`<span class="tx_700" style="${obj?.textStyle ?? ''}">${text}</span>` : ''}
     </button>`;
@@ -2302,7 +2302,7 @@ ${obj.default ?? ''}</textarea
     }
   ) {
     return html` <div
-      class="mt-4 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0'}"
+      class=" mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0 mt-2'}"
       style="max-width: 100%; width: ${this.getContainerWidth()}px; ${obj?.style ?? ''}"
     >
       ${htmlString}
