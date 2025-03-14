@@ -31,9 +31,7 @@ export class PaymentConfig {
                 },
                 {
                     key: 'cash_on_delivery',
-                    name: `<div class="d-flex flex-wrap align-items-center" style="gap:5px;">
-貨到付款
-</div>`,
+                    name: '貨到付款',
                     img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/images.png',
                 },
                 ...keyData.payment_info_custom.map((dd) => {
