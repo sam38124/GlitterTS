@@ -289,9 +289,13 @@ class ApiPublic {
   \`order_status\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`payment_method\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`shipment_method\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  \`shipment_number\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`shipment_date\` datetime DEFAULT NULL,
   \`progress\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`shipment_number\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`total_received\` int DEFAULT NULL,
+  \`offset_amount\` int DEFAULT NULL,
+  \`offset_reason\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`offset_records\` json DEFAULT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`cart_token_UNIQUE\` (\`cart_token\`),
   KEY \`index3\` (\`email\`),
@@ -302,8 +306,11 @@ class ApiPublic {
   KEY \`index8\` (\`shipment_method\`),
   KEY \`index9\` (\`shipment_date\`),
   KEY \`index10\` (\`progress\`),
-    KEY \`index11\` (\`shipment_number\`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.5'`,
+  KEY \`index11\` (\`shipment_number\`),
+  KEY \`index12\` (\`total_received\`),
+  KEY \`index13\` (\`offset_amount\`),
+  KEY \`index14\` (\`offset_reason\`)
+) ENGINE=InnoDB AUTO_INCREMENT=32939 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.6'`,
                 },
                 {
                     scheme: appName,
