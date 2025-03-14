@@ -652,7 +652,7 @@ export class UserList {
                                 },
                               },
                               {
-                                name: '批量手動調整等級',
+                                name: '手動調整等級',
                                 option: true,
                                 event: (dataArray: any) => {
                                   const levelVM = {
@@ -664,7 +664,7 @@ export class UserList {
 
                                   BgWidget.settingDialog({
                                     gvc,
-                                    title: '批量手動調整等級',
+                                    title: '手動調整等級',
                                     innerHTML: gvc2 => {
                                       return gvc2.bindView({
                                         bind: levelVM.id,
@@ -752,7 +752,7 @@ export class UserList {
                                 },
                               },
                             ].filter(item => {
-                              if (item.name === '批量手動調整等級' && !(vm.plan > 1)) {
+                              if (item.name === '手動調整等級' && !(vm.plan > 1)) {
                                 return false;
                               }
                               return true;

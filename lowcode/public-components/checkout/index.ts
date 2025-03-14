@@ -3081,9 +3081,7 @@ flex:1;
                                                 ? `min-width:100px;`
                                                 : `min-width:380px;`}"
                                               onclick="${gvc.event(() => {
-                                                  console.log("onlineData -- " , onlineData);
-                                                  onlineData.interaction.status
-                                                  if (onlineData && onlineData.interaction.status == 3){
+                                                  if (onlineData?.interaction?.status == 3){
                                                       const dialog = new ShareDialog(gvc.glitter);
                                                       dialog.infoMessage({
                                                           text:`很抱歉，團購的結帳時間已截止，無法再進行訂單結算。感謝您的支持，期待下次再為您服務！`

@@ -87,16 +87,15 @@ ADD INDEX \`index11\` (\`shipment_number\` ASC) VISIBLE;`,
         });
       },
     });
-    <<<<<<< HEAD
-      //LINE資料表更新
-      await UpdatedTableChecked.update({
-        app_name: app_name,
-        table_name: 't_live_purchase_interactions',
-        last_version: [''],
-        new_version: 'V1.0',
-        event: `ALTER TABLE \`${app_name}\`.\`t_live_purchase_interactions\`
-            CHANGE COLUMN \`stream_name\` \`name\` VARCHAR (200) NOT NULL;`,
-      });
+    //LINE資料表更新
+    await UpdatedTableChecked.update({
+      app_name: app_name,
+      table_name: 't_live_purchase_interactions',
+      last_version: [''],
+      new_version: 'V1.0',
+      event: `ALTER TABLE \`${app_name}\`.\`t_live_purchase_interactions\`
+          CHANGE COLUMN \`stream_name\` \`name\` VARCHAR (200) NOT NULL;`,
+    });
     //LINE資料表更新
     await UpdatedTableChecked.update({
       app_name: app_name,

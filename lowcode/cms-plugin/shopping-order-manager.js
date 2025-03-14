@@ -453,7 +453,7 @@ export class ShoppingOrderManager {
                                         },
                                     },
                                     {
-                                        name: '批量自動取號',
+                                        name: '自動取號',
                                         option: true,
                                         event: (checkArray) => {
                                             const strArray = checkArray.map((dd) => {
@@ -482,7 +482,7 @@ export class ShoppingOrderManager {
                                         },
                                     },
                                     {
-                                        name: '批量手動取號',
+                                        name: '手動取號',
                                         option: true,
                                         event: (checkArray) => {
                                             if (checkArray.find((dd) => dd.orderData.user_info.shipment_number)) {
@@ -569,9 +569,9 @@ export class ShoppingOrderManager {
                                         },
                                     },
                                     {
-                                        name: '批量更改訂單狀態',
+                                        name: '更改訂單狀態',
                                         option: true,
-                                        event: (dataArray) => {
+                                        event: (checkArray) => {
                                             function showDialog(orders) {
                                                 let orderStatus = '';
                                                 BgWidget.settingDialog({
@@ -623,7 +623,7 @@ export class ShoppingOrderManager {
                                                 ApiShop.getOrder({
                                                     page: 0,
                                                     limit: 1000,
-                                                    id_list: dataArray.map((data) => data.id).join(','),
+                                                    id_list: checkArray.map((data) => data.id).join(','),
                                                 }).then(d => {
                                                     dialog.dataLoading({ visible: false });
                                                     if (d.result && Array.isArray(d.response.data)) {
@@ -638,9 +638,9 @@ export class ShoppingOrderManager {
                                         },
                                     },
                                     {
-                                        name: '批量更改付款狀態',
+                                        name: '更改付款狀態',
                                         option: true,
-                                        event: (dataArray) => {
+                                        event: (checkArray) => {
                                             function showDialog(orders) {
                                                 let status = '';
                                                 BgWidget.settingDialog({
@@ -696,7 +696,7 @@ export class ShoppingOrderManager {
                                                 ApiShop.getOrder({
                                                     page: 0,
                                                     limit: 1000,
-                                                    id_list: dataArray.map((data) => data.id).join(','),
+                                                    id_list: checkArray.map((data) => data.id).join(','),
                                                 }).then(d => {
                                                     dialog.dataLoading({ visible: false });
                                                     if (d.result && Array.isArray(d.response.data)) {
@@ -776,13 +776,13 @@ export class ShoppingOrderManager {
                                         name: '列印揀貨單',
                                         option: true,
                                         event: (checkArray) => {
-                                            return DeliveryHTML.print(gvc, checkArray, 'pick');
+                                            DeliveryHTML.print(gvc, checkArray, 'pick');
                                         },
                                     },
                                     {
-                                        name: '批量更改出貨狀態',
+                                        name: '更改出貨狀態',
                                         option: true,
-                                        event: (dataArray) => {
+                                        event: (checkArray) => {
                                             function showDialog(orders) {
                                                 let progress = '';
                                                 BgWidget.settingDialog({
@@ -839,7 +839,7 @@ export class ShoppingOrderManager {
                                                 ApiShop.getOrder({
                                                     page: 0,
                                                     limit: 1000,
-                                                    id_list: dataArray.map((data) => data.id).join(','),
+                                                    id_list: checkArray.map((data) => data.id).join(','),
                                                 }).then(d => {
                                                     dialog.dataLoading({ visible: false });
                                                     if (d.result && Array.isArray(d.response.data)) {
@@ -870,8 +870,7 @@ export class ShoppingOrderManager {
                                         },
                                     },
                                 ];
-                                return [
-                                    ...(query.isShipment ? shipmentArray : normalArray),
+                                const defaultArray = [
                                     {
                                         name: query.isArchived ? '解除封存' : '批量封存',
                                         event: (checkArray) => {
@@ -910,7 +909,15 @@ export class ShoppingOrderManager {
                                             });
                                         },
                                     },
+                                    {
+                                        name: '列印出貨明細',
+                                        option: true,
+                                        event: (checkArray) => {
+                                            DeliveryHTML.print(gvc, checkArray, 'shipment');
+                                        },
+                                    },
                                 ];
+                                return [...defaultArray, ...(query.isShipment ? shipmentArray : normalArray)];
                             })(),
                             filterCallback: (dataArray) => {
                                 vm.checkedData = dataArray;
@@ -1292,24 +1299,21 @@ export class ShoppingOrderManager {
                                                         }),
                                                     })}
                               </div>`,
-                                                    `<div class="tx_700 d-flex align-items-center" style="gap:5px;">出貨單號碼</div>
-${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於出貨單列表單中。')}
-                                                                        ${BgWidget.mbContainer(12)}
-                                                                        <div class="d-flex align-items-center" style="gap:10px;">
-                                                                        ${orderData.orderData.user_info.shipment_number || '尚未取號'}
-                                                                          ${ShipmentConfig.supportPrintList.includes(orderData.orderData.user_info.shipment) &&
-                                                        !(orderData.orderData.user_info
-                                                            .shipment_number &&
-                                                            orderData.orderData.user_info
-                                                                .shipment_refer !== 'paynow')
+                                                    html `<div class="tx_700 d-flex align-items-center" style="gap:5px;">出貨單號碼</div>
+                              ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於出貨單列表單中。')}
+                              ${BgWidget.mbContainer(12)}
+                              <div class="d-flex align-items-center" style="gap:10px;">
+                                ${orderData.orderData.user_info.shipment_number || '尚未取號'}
+                                ${ShipmentConfig.supportPrintList.includes(orderData.orderData.user_info.shipment) &&
+                                                        !(orderData.orderData.user_info.shipment_number &&
+                                                            orderData.orderData.user_info.shipment_refer !== 'paynow')
                                                         ? BgWidget.customButton({
                                                             button: {
                                                                 color: 'gray',
                                                                 size: 'sm',
                                                             },
                                                             text: {
-                                                                name: orderData.orderData.user_info
-                                                                    .shipment_number
+                                                                name: orderData.orderData.user_info.shipment_number
                                                                     ? '列印出貨單'
                                                                     : '出貨單取號',
                                                             },
@@ -1317,31 +1321,26 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                                 return this.printStoreOrderInfo({
                                                                     gvc,
                                                                     cart_token: orderData.cart_token,
-                                                                    print: !!orderData.orderData.user_info
-                                                                        .shipment_number,
+                                                                    print: !!orderData.orderData.user_info.shipment_number,
                                                                 });
                                                             }),
                                                         })
                                                         : ''}
-                                                                             ${BgWidget.customButton({
+                                ${BgWidget.customButton({
                                                         button: {
                                                             color: 'gray',
                                                             size: 'sm',
                                                         },
                                                         text: {
-                                                            name: orderData.orderData.user_info
-                                                                .shipment_number &&
-                                                                orderData.orderData.user_info
-                                                                    .shipment_refer === 'paynow'
+                                                            name: orderData.orderData.user_info.shipment_number &&
+                                                                orderData.orderData.user_info.shipment_refer === 'paynow'
                                                                 ? '取消配號'
                                                                 : '手動輸入',
                                                         },
                                                         event: gvc.event(() => {
                                                             var _a;
-                                                            if (orderData.orderData.user_info
-                                                                .shipment_number &&
-                                                                orderData.orderData.user_info
-                                                                    .shipment_refer === 'paynow') {
+                                                            if (orderData.orderData.user_info.shipment_number &&
+                                                                orderData.orderData.user_info.shipment_refer === 'paynow') {
                                                                 const dialog = new ShareDialog(gvc.glitter);
                                                                 dialog.checkYesOrNot({
                                                                     text: '是否確認取消配號?',
@@ -1353,17 +1352,13 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                                             });
                                                                             ApiDelivery.cancelOrder({
                                                                                 cart_token: orderData.cart_token,
-                                                                                logistic_number: orderData
-                                                                                    .orderData.user_info
-                                                                                    .shipment_number,
-                                                                                total_amount: orderData
-                                                                                    .orderData.total,
+                                                                                logistic_number: orderData.orderData.user_info.shipment_number,
+                                                                                total_amount: orderData.orderData.total,
                                                                             }).then(res => {
                                                                                 dialog.dataLoading({
                                                                                     visible: false,
                                                                                 });
-                                                                                if (res.result &&
-                                                                                    res.response.data.includes('F,')) {
+                                                                                if (res.result && res.response.data.includes('F,')) {
                                                                                     dialog.errorMessage({
                                                                                         text: res.response.data.replace('F,', ''),
                                                                                     });
@@ -1380,8 +1375,7 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                                 });
                                                             }
                                                             else {
-                                                                let shipnumber = (_a = orderData.orderData.user_info
-                                                                    .shipment_number) !== null && _a !== void 0 ? _a : '';
+                                                                let shipnumber = (_a = orderData.orderData.user_info.shipment_number) !== null && _a !== void 0 ? _a : '';
                                                                 BgWidget.settingDialog({
                                                                     gvc: gvc,
                                                                     title: '手動出貨',
@@ -1404,8 +1398,7 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                                                 gvc.closeDialog();
                                                                             }), '取消'),
                                                                             BgWidget.save(gvc.event(() => {
-                                                                                orderData.orderData.user_info.shipment_number =
-                                                                                    shipnumber;
+                                                                                orderData.orderData.user_info.shipment_number = shipnumber;
                                                                                 gvc.closeDialog();
                                                                                 saveEvent();
                                                                             }), '儲存'),
@@ -1416,30 +1409,23 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                             }
                                                         }),
                                                     })}
-</div>
+                              </div>
 
-                                                                         ${(() => {
+                              ${(() => {
                                                         var _a, _b;
                                                         try {
                                                             if (ShipmentConfig.supportPrintList.includes(orderData.orderData.user_info.shipment) &&
-                                                                orderData.orderData.user_info
-                                                                    .shipment_number &&
-                                                                orderData.orderData.user_info
-                                                                    .shipment_refer === 'paynow') {
+                                                                orderData.orderData.user_info.shipment_number &&
+                                                                orderData.orderData.user_info.shipment_refer === 'paynow') {
                                                                 return html `
-                                                                                 ${BgWidget.mbContainer(12)}
-                                                                                 <div
-                                                                                   class="tx_700 d-flex align-items-end"
-                                                                                   style="gap:5px;"
-                                                                                 >
-                                                                                   物流追蹤
-                                                                                 </div>
-                                                                                 ${BgWidget.mbContainer(12)}
-                                                                                 ${[
+                                      ${BgWidget.mbContainer(12)}
+                                      <div class="tx_700 d-flex align-items-end" style="gap:5px;">物流追蹤</div>
+                                      ${BgWidget.mbContainer(12)}
+                                      ${[
                                                                     `狀態: ${(_a = orderData.orderData.user_info.shipment_detail.Detail_Status_Description) !== null && _a !== void 0 ? _a : '追蹤異常'}`,
                                                                     `追蹤碼: ${(_b = orderData.orderData.user_info.shipment_detail.paymentno) !== null && _b !== void 0 ? _b : '尚未生成'}`,
                                                                 ].join(`<div class="w-100  my-1"></div>`)}
-                                                                               `;
+                                    `;
                                                             }
                                                             else {
                                                                 return ``;
@@ -1449,8 +1435,7 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                             console.error(e);
                                                             return `${e}`;
                                                         }
-                                                    })()}
-                                                                        `,
+                                                    })()} `,
                                                     orderData.orderData.user_info.shipment_number
                                                         ? `
                              <div class="tx_700 d-flex align-items-center" style="gap:5px;">出貨日期</div>
