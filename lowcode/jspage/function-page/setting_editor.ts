@@ -260,6 +260,15 @@ export class Setting_editor {
             },
             {
                 icon: '',
+                page: 'reconciliation_area',
+                group: '訂單管理',
+                title: '對帳單',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
+                moduleName: 'dashboard_ec',
+            },
+            {
+                icon: '',
                 page: 'invoice_list',
                 group: '訂單管理',
                 title: '發票列表',
@@ -270,7 +279,7 @@ export class Setting_editor {
                 icon: '',
                 page: 'allowance_list',
                 group: '訂單管理',
-                title: '折讓單列表',
+                title: '折讓列表',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/file-invoice-dollar-sharp-light.svg',
             },
@@ -382,15 +391,7 @@ export class Setting_editor {
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
                 moduleName: 'dashboard_ec',
             },
-            {
-                icon: '',
-                page: 'reconciliation_area',
-                group: '數據分析',
-                title: '對帳專區',
-                appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
-                moduleName: 'dashboard_ec',
-            },
+
             {
                 icon: '',
                 page: 'hidden-shop',

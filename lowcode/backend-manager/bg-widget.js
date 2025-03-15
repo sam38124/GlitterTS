@@ -20,6 +20,7 @@ import { FormCheck } from '../cms-plugin/module/form-check.js';
 import { Language } from '../glitter-base/global/language.js';
 import { ProductAi } from '../cms-plugin/ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
+import { Animation } from '../glitterBundle/module/Animation.js';
 const html = String.raw;
 const css = String.raw;
 export class BgWidget {
@@ -3521,7 +3522,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 onCreate: () => { },
             })}
       </div>`;
-        }, obj.gvc.glitter.getUUID());
+        }, obj.gvc.glitter.getUUID(), {
+            animation: Animation.fade
+        });
     }
     static dialog(obj) {
         if (obj.gvc.glitter.getUrlParameter('cms') === 'true') {
@@ -4317,7 +4320,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                 if (urlArray.length > 0) {
                                                     const imgHTML = urlArray
                                                         .map(url => {
-                                                        return html ` <img src="${url.data}" />`;
+                                                        return html `<img src="${url.data}" class="p-0 my-0" /></img>`;
                                                     })
                                                         .join('');
                                                     editor.html.set(editor.html

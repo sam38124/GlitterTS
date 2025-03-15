@@ -574,7 +574,15 @@ export class Shopping {
 
       // 判斷需要多國語言，或者蝦皮庫存同步
       await Promise.all(
-        products.data.map((product: any) => {
+        products.data.filter((dd:any)=>{
+          return dd.content
+        }).map((product: any) => {
+          //
+          product.content.collection = Array.from(new Set((()=>{
+            return (product.content.collection ?? []).map((dd:any)=>{
+              return dd.replace(' / ','/').replace(' /','/').replace('/ ','/').replace('/',' / ')
+            })
+          })()))
           return new Promise(async resolve => {
             if (product) {
               let totalSale = 0;
@@ -4964,6 +4972,9 @@ export class Shopping {
   }
 
   async updateCollectionFromUpdateProduct(collection: string[]) {
+    collection=Array.from(new Set(collection.map((dd)=>{
+      return dd.replace(/\s*\/\s*/g,'/');
+    })));
     //有新類別要處理
     let config =
       (

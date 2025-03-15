@@ -24,7 +24,7 @@ export class AiSearch {
             }
         `);
         const glitter = gvc.glitter;
-        glitter.addMtScript(['https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js'], () => { }, () => { });
+        glitter.addMtScript(['${ gvc.glitter.root_path}/jslib/lottie-player.js'], () => { }, () => { });
         AiSearch.settingDialog({
             gvc: gvc,
             title: html `<div class="fw-500">${Language.text('ai_choose')}</div>`,

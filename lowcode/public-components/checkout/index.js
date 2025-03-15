@@ -25,13 +25,13 @@ import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { Currency } from '../../glitter-base/global/currency.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { Animation } from '../../glitterBundle/module/Animation.js';
-import { ApiLiveInteraction } from "../../glitter-base/route/live-purchase-interactions.js";
 const html = String.raw;
 export class CheckoutIndex {
     static main(gvc, widget, subData) {
+        var _a;
+        console.log(`[CheckoutIndex]:`, gvc);
         const glitter = gvc.glitter;
-        let onlineData = {};
-        let apiCart = (() => {
+        const apiCart = (() => {
             if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
                 return new ApiCart(ApiCart.globalCart);
             }
@@ -39,6 +39,7 @@ export class CheckoutIndex {
                 return new ApiCart(ApiCart.checkoutCart);
             }
         })();
+        const check_out_sub = JSON.parse((_a = localStorage.getItem('checkout_sub_' + ApiCart.checkoutCart)) !== null && _a !== void 0 ? _a : '{}');
         const ids = {
             page: glitter.getUUID(),
             cart: glitter.getUUID(),
@@ -415,9 +416,6 @@ export class CheckoutIndex {
                             const cart = res;
                             ApiShop.getCheckout(cart).then(res => {
                                 if (res.result) {
-                                    if (gvc.glitter.getUrlParameter('source') == 'group_buy') {
-                                        res.response.data.voucherList = [];
-                                    }
                                     resolve(res.response.data);
                                 }
                                 else {
@@ -465,17 +463,6 @@ export class CheckoutIndex {
                     }));
                 })).then(data => {
                     vm.cartData = data;
-                    if (onlineData.interaction) {
-                        let newTotal = 0;
-                        data.lineItems.forEach((lineItem) => {
-                            let product = onlineData.interaction.content.item_list.find((item) => { return item.id == lineItem.id; });
-                            console.log("product -- ", product);
-                            let variant = product.content.variants.find((item) => { return item.spec.join(',') == lineItem.spec.join(','); });
-                            lineItem.sale_price = parseInt(variant.live_model.live_price);
-                            newTotal += lineItem.sale_price * lineItem.count;
-                        });
-                        data.total = newTotal + data.shipment_fee;
-                    }
                     ApiWallet.getRebateConfig({ type: 'me' }).then((res) => __awaiter(this, void 0, void 0, function* () {
                         if (res.result && res.response.data) {
                             vm.rebateConfig = res.response.data;
@@ -485,7 +472,7 @@ export class CheckoutIndex {
                             : vm.rebateConfig.title;
                         gvc.addMtScript([
                             {
-                                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                                src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                             },
                             {
                                 src: `https://js.paynow.com.tw/sdk/v2/index.js`,
@@ -500,7 +487,7 @@ export class CheckoutIndex {
             else {
                 gvc.addMtScript([
                     {
-                        src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                        src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                     },
                 ], () => { }, () => { });
                 vm.cartData = FakeOrder.data;
@@ -513,7 +500,7 @@ export class CheckoutIndex {
                         : vm.rebateConfig.title;
                     gvc.addMtScript([
                         {
-                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                            src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                         },
                         {
                             src: `https://js.paynow.com.tw/sdk/v1/index.js`,
@@ -571,28 +558,10 @@ export class CheckoutIndex {
             };
             return dd;
         }
-        if (gvc.glitter.getUrlParameter('source') == 'group_buy' && gvc.glitter.getUrlParameter('cart_id')) {
-            const cart_id = glitter.getUrlParameter('cart_id');
-            const online_cart = new ApiCart(cart_id);
-            online_cart.clearCart();
-            ApiLiveInteraction.getOnlineCart(cart_id).then(r => {
-                r.response.cartData.content.cart.forEach((item) => {
-                    online_cart.addToCart(item.id, item.spec.split(','), item.count);
-                });
-                onlineData = r.response;
-                apiCart = online_cart;
-                refreshCartData();
-                glitter.share.reloadCartData = () => {
-                    refreshCartData();
-                };
-            });
-        }
-        else {
+        refreshCartData();
+        glitter.share.reloadCartData = () => {
             refreshCartData();
-            glitter.share.reloadCartData = () => {
-                refreshCartData();
-            };
-        }
+        };
         return (gvc.bindView((() => {
             return {
                 bind: ids.page,
@@ -838,7 +807,7 @@ export class CheckoutIndex {
                                                     }
                                                     gvc.addMtScript([
                                                         {
-                                                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                                                            src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                                                         },
                                                     ], () => {
                                                         ApiShop.getVoucher({
@@ -1139,13 +1108,10 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                                     if (vm.cartData.lineItems.length === index + 1) {
                                                         gvc.notifyDataChange(ids.shipping);
                                                     }
-                                                    return html `
-                                              <div class="d-flex flex-column p-lg-3 px-2 py-3 gap-2">
+                                                    return html `<div class="d-flex flex-column p-lg-3 px-2 py-3 gap-2">
                                                 <div class="d-flex w-100 position-relative" style="gap:20px;">
                                                   <div class=" justify-content-start  ">
-                                                    <div
-                                                      style="width: 88px;height: 88px;border-radius: 10px;background: 50%/cover url('${item.preview_image}')"
-                                                    ></div>
+                                                    <div style="width: 88px;height: 88px;border-radius: 10px;background: 50%/cover url('${item.preview_image}')"></div>
                                                   </div>
                                                   <div
                                                     class="d-flex  flex-column  position-relative"
@@ -2814,14 +2780,7 @@ flex:1;
                                             ? `min-width:100px;`
                                             : `min-width:380px;`}"
                                               onclick="${gvc.event(() => {
-                                            var _a, _b;
-                                            if (((_a = onlineData === null || onlineData === void 0 ? void 0 : onlineData.interaction) === null || _a === void 0 ? void 0 : _a.status) == 3) {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.infoMessage({
-                                                    text: `很抱歉，團購的結帳時間已截止，無法再進行訂單結算。感謝您的支持，期待下次再為您服務！`
-                                                });
-                                                return;
-                                            }
+                                            var _a, _b, _c;
                                             if (window.login_config.login_in_to_order &&
                                                 !GlobalUser.token) {
                                                 GlobalUser.loginRedirect = location.href;
@@ -2890,6 +2849,7 @@ flex:1;
                                                 }
                                             });
                                             dialog.dataLoading({ visible: true });
+                                            vm.cartData.user_info.note = (((_a = vm.cartData.user_info.note) !== null && _a !== void 0 ? _a : '') + ((_b = check_out_sub.note) !== null && _b !== void 0 ? _b : ''));
                                             ApiShop.toCheckout({
                                                 line_items: vm.cartData.lineItems.map((dd) => {
                                                     return {
@@ -2912,10 +2872,8 @@ flex:1;
                                                 custom_form_format: vm.cartData.custom_form_format,
                                                 custom_form_data: vm.cartData.custom_form_data,
                                                 custom_receipt_form: vm.cartData.receipt_form,
-                                                distribution_code: (_b = localStorage.getItem('distributionCode')) !== null && _b !== void 0 ? _b : '',
+                                                distribution_code: (_c = localStorage.getItem('distributionCode')) !== null && _c !== void 0 ? _c : '',
                                                 give_away: apiCart.cart.give_away,
-                                                checkOutType: glitter.getUrlParameter('source'),
-                                                temp_cart_id: glitter.getUrlParameter('cart_id')
                                             }).then(res => {
                                                 var _a, _b, _c;
                                                 dialog.dataLoading({ visible: false });

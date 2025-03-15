@@ -12,7 +12,24 @@ router.get('/', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
             const reconciliation = new reconciliation_js_1.Reconciliation(req.get('g-app'));
-            return response_1.default.succ(resp, await reconciliation.summary());
+            return response_1.default.succ(resp, await reconciliation.summary(req.query.filter_date, req.query.start_date, req.query.end_date));
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.put('/', async (req, resp) => {
+    try {
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            const reconciliation = new reconciliation_js_1.Reconciliation(req.get('g-app'));
+            await reconciliation.putReconciliation(req.body);
+            return response_1.default.succ(resp, {
+                result: true
+            });
         }
         else {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));

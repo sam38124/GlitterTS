@@ -264,7 +264,7 @@ export class PdClass {
         obj.gvc.glitter.addStyleLink(['https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css']);
         obj.gvc.glitter.addMtScript([
             {
-                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                src: `${window.glitter.root_path}/jslib/lottie-player.js`,
             },
             {
                 src: `https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js`,

@@ -220,7 +220,7 @@ export class UMVoucher {
             },
             onCreate: () => {
                 if (loadings.view) {
-                    gvc.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }], () => {
+                    gvc.addMtScript([{ src: `${gvc.glitter.root_path}/jslib/lottie-player.js` }], () => {
                         ApiShop.getVoucher({
                             page: 0,
                             limit: 10000,

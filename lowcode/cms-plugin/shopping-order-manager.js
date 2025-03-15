@@ -453,7 +453,7 @@ export class ShoppingOrderManager {
                                         },
                                     },
                                     {
-                                        name: '自動取號',
+                                        name: '自動生成出貨單',
                                         option: true,
                                         event: (checkArray) => {
                                             const strArray = checkArray.map((dd) => {
@@ -482,7 +482,7 @@ export class ShoppingOrderManager {
                                         },
                                     },
                                     {
-                                        name: '手動取號',
+                                        name: '手動生成出貨單',
                                         option: true,
                                         event: (checkArray) => {
                                             if (checkArray.find((dd) => dd.orderData.user_info.shipment_number)) {
@@ -2227,7 +2227,7 @@ export class ShoppingOrderManager {
                                     >
                                       <div class="tx_700">付款方式</div>
                                       <div class="tx_normal">
-                                        ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData, gvc)}
+                                          ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData, gvc)}
                                       </div>
                                       ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
                                     </div>`,

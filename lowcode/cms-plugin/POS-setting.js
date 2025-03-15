@@ -1155,7 +1155,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
         `);
     }
     static emptyView(text) {
-        window.glitter.addMtScript([{ src: 'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js' }], () => { }, () => { });
+        window.glitter.addMtScript([{ src: '${ gvc.glitter.root_path}/jslib/lottie-player.js' }], () => { }, () => { });
         return ` <div class="d-flex align-items-center justify-content-center w-100  "
                      style="height: calc(100vh - 200px);">
                     <div class="d-flex flex-column align-items-center justify-content-center" style="gap:30px;">

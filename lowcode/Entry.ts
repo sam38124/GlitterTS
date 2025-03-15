@@ -18,7 +18,6 @@ export class Entry {
             try {
                 const lineItemIds = JSON.parse(localStorage.getItem('clear_cart_items') as string);
                 const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
-
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
                     if (key && cartKeys.some(cartKey => key?.includes(cartKey))) {
@@ -33,6 +32,8 @@ export class Entry {
             } catch (e) {
             }
         }
+        //設定API Cart
+        glitter.share.ApiCart = ApiCart;
 
         //判斷是否有hash則跳轉
         const clock = glitter.ut.clock();
@@ -131,7 +132,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? createClock();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_18.9.0';
+        glitter.share.editerVersion = 'V_18.9.6';
         glitter.share.start = new Date();
         const vm = { appConfig: [] };
         (window as any).saasConfig = {
@@ -360,7 +361,7 @@ export class Entry {
                         'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
                         'assets/vendor/swiper/swiper-bundle.min.js',
                         'assets/js/theme.min.js',
-                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
+                        '${ gvc.glitter.root_path}/jslib/lottie-player.js',
                     ],
                     () => resolve(true),
                     () => resolve(true),
@@ -536,7 +537,7 @@ export class Entry {
         glitter.addMtScript(
             [
                 {
-                    src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                    src: `${glitter.root_path}/jslib/lottie-player.js`,
                 },
             ],
             () => {

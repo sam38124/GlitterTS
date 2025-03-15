@@ -152,7 +152,7 @@ export class UMWishList {
             },
             onCreate: () => {
                 if (loadings.view) {
-                    gvc.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }], () => {
+                    gvc.addMtScript([{ src: `${gvc.glitter.root_path}/jslib/lottie-player.js` }], () => {
                         ApiShop.getWishList().then((res) => __awaiter(this, void 0, void 0, function* () {
                             console.log(res);
                             if (res.result && res.response.data) {

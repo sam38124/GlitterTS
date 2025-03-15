@@ -260,7 +260,7 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
             page = 'all-product';
         }
         //當判斷是商品頁時
-        if (query_page.split('/')[0] === 'products' && query_page.split('/')[1]) {
+        if ((query_page.split('/')[0] === 'products' && query_page.split('/')[1]) && appName!=='3131_shop') {
             page = 'official-router';
         }
         //當判斷是CMS頁面時

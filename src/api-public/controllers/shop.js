@@ -601,7 +601,6 @@ async function redirect_link(req, resp) {
             const check_id = await redis_js_1.default.getValue(`paynow` + req.query.orderID);
             const payNow = new financial_service_js_1.PayNow(req.query.appName, keyData);
             const data = await payNow.confirmAndCaptureOrder(check_id);
-            console.log(`paynow-response=>`, data);
             if (data.type == 'success' && data.result.status === 'success') {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }

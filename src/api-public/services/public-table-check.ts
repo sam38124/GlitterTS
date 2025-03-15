@@ -22,23 +22,31 @@ export class ApiPublic {
     ) {
       return;
     }
+
     //已經正在檢查中的話，等檢查結束
     if (
-      ApiPublic.checkedApp.find(dd => {
+      ApiPublic.checkingApp.find(dd => {
         return dd.app_name === appName;
       })
     ) {
-      await new Promise(resolve => {
+      const result=await new Promise(resolve => {
         const interval = setInterval(() => {
           if(ApiPublic.checkedApp.find(dd => {
             return dd.app_name === appName;
           })){
             resolve(true);
             clearInterval(interval);
+          }else if(!(ApiPublic.checkingApp.find(dd => {
+            return dd.app_name === appName;
+          }))){
+            resolve(false);
+            clearInterval(interval);
           }
         }, 500);
       });
-      return;
+      if(result){
+        return
+      }
     }
     ApiPublic.checkingApp.push({
       app_name: appName,
@@ -331,6 +339,7 @@ export class ApiPublic {
   \`offset_amount\` int DEFAULT NULL,
   \`offset_reason\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`offset_records\` json DEFAULT NULL,
+  \`reconciliation_date\` datetime DEFAULT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`cart_token_UNIQUE\` (\`cart_token\`),
   KEY \`index3\` (\`email\`),
@@ -344,8 +353,9 @@ export class ApiPublic {
   KEY \`index11\` (\`shipment_number\`),
   KEY \`index12\` (\`total_received\`),
   KEY \`index13\` (\`offset_amount\`),
-  KEY \`index14\` (\`offset_reason\`)
-) ENGINE=InnoDB AUTO_INCREMENT=32939 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.6'`,
+  KEY \`index14\` (\`offset_reason\`),
+  KEY \`index15\` (\`reconciliation_date\`)
+) ENGINE=InnoDB AUTO_INCREMENT=32946 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.7'`,
         },
         {
           scheme: appName,
@@ -737,10 +747,12 @@ export class ApiPublic {
           )
         )[0]['refer_app'],
       });
+
     } catch (e) {
       console.error(e);
-      ApiPublic.checkedApp = ApiPublic.checkedApp.filter(dd => {
-        return dd.app_name === appName;
+      //移除檢查中狀態
+      ApiPublic.checkingApp = ApiPublic.checkingApp.filter(dd => {
+        return dd.app_name !== appName;
       });
     }
   }

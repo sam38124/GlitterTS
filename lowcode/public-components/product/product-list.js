@@ -674,7 +674,7 @@ export class ProductList {
                 divCreate: {},
                 onCreate: () => {
                     if (loadings.product) {
-                        gvc.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }], () => {
+                        gvc.addMtScript([{ src: `${gvc.glitter.root_path}/jslib/lottie-player.js` }], () => {
                             Promise.all([
                                 getProductList(),
                                 new Promise((resolve) => {

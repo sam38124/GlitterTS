@@ -12,6 +12,7 @@ import { FormCheck } from '../cms-plugin/module/form-check.js';
 import { Language } from '../glitter-base/global/language.js';
 import { ProductAi } from '../cms-plugin/ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
+import { Animation, AnimationConfig } from '../glitterBundle/module/Animation.js';
 
 const html = String.raw;
 const css = String.raw;
@@ -4132,7 +4133,6 @@ ${obj.default ?? ''}</textarea
         id: obj.gvc.glitter.getUUID(),
         loading: false,
       };
-
       return html` <div
         class="bg-white shadow rounded-3"
         style="overflow-y: auto; ${document.body.clientWidth > 768
@@ -4178,7 +4178,9 @@ ${obj.default ?? ''}</textarea
           onCreate: () => {},
         })}
       </div>`;
-    }, obj.gvc.glitter.getUUID());
+    }, obj.gvc.glitter.getUUID(),{
+      animation:Animation.fade
+    });
   }
 
   static dialog(obj: {
@@ -5104,7 +5106,7 @@ ${obj.default ?? ''}</textarea
                                 if (urlArray.length > 0) {
                                   const imgHTML = urlArray
                                     .map(url => {
-                                      return html` <img src="${url.data}" />`;
+                                      return html`<img src="${url.data}" class="p-0 my-0" /></img>`;
                                     })
                                     .join('');
                                   editor.html.set(

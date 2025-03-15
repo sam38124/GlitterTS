@@ -217,7 +217,7 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
         if (query_page.split('/')[0] === 'collections' && query_page.split('/')[1]) {
             page = 'all-product';
         }
-        if (query_page.split('/')[0] === 'products' && query_page.split('/')[1]) {
+        if ((query_page.split('/')[0] === 'products' && query_page.split('/')[1]) && appName !== '3131_shop') {
             page = 'official-router';
         }
         if (query_page === 'cms') {

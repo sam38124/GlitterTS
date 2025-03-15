@@ -286,7 +286,7 @@ export class UMOrderList {
             onCreate: () => {
                 if (loadings.view) {
                     gvc.addMtScript(
-                        [{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }],
+                        [{ src: `${ gvc.glitter.root_path}/jslib/lottie-player.js` }],
                         () => {
                             ApiShop.getOrder({
                                 limit: 50,

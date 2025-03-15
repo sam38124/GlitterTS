@@ -1276,7 +1276,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
 
     public static emptyView(text: string) {
         (window as any).glitter.addMtScript(
-            [{ src: 'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js' }],
+            [{ src: '${ gvc.glitter.root_path}/jslib/lottie-player.js' }],
             () => {},
             () => {}
         );

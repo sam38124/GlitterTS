@@ -588,7 +588,7 @@ export class OrderExcel {
               : ''}
             <div class="d-flex flex-column w-100 align-items-start gap-3" style="padding: 20px">
               <div class="d-flex align-items-center gap-2">
-                <div class="tx_700">透過XLSX檔案匯入商品</div>
+                <div class="tx_700">透過XLSX檔案匯入${query.isShipment ? `出貨單`:``}</div>
                 ${BgWidget.blueNote('下載範例', gvc.event(viewData.example.event))}
               </div>
               <input

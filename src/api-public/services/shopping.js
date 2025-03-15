@@ -327,7 +327,15 @@ class Shopping {
                 })
                     .filter(dd => dd);
             }
-            await Promise.all(products.data.map((product) => {
+            await Promise.all(products.data.filter((dd) => {
+                return dd.content;
+            }).map((product) => {
+                product.content.collection = Array.from(new Set((() => {
+                    var _a;
+                    return ((_a = product.content.collection) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                        return dd.replace(' / ', '/').replace(' /', '/').replace('/ ', '/').replace('/', ' / ');
+                    });
+                })()));
                 return new Promise(async (resolve) => {
                     var _a, _b, _c;
                     if (product) {
@@ -3728,6 +3736,9 @@ class Shopping {
     }
     async updateCollectionFromUpdateProduct(collection) {
         var _a;
+        collection = Array.from(new Set(collection.map((dd) => {
+            return dd.replace(/\s*\/\s*/g, '/');
+        })));
         let config = (_a = (await database_js_1.default.query(`SELECT *
            FROM \`${this.app}\`.public_config
            WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};

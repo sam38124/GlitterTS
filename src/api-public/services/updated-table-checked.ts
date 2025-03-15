@@ -145,7 +145,39 @@ ADD INDEX \`index14\` (\`offset_reason\` ASC) VISIBLE;
         });
       },
     });
-  }
+
+        //購物車1.6->1.7版本，新增沖賬時間
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_checkout',
+            last_version: ['V1.6'],
+            new_version: 'V1.7',
+            event:`ALTER TABLE \`${app_name}\`.\`t_checkout\`
+                ADD COLUMN \`reconciliation_date\` DATETIME NULL DEFAULT NULL AFTER \`offset_records\`,
+ADD INDEX \`index15\` (\`reconciliation_date\` ASC) VISIBLE;
+;
+`
+        });
+        //更新商品銷售紀錄
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_products_sold_history',
+            last_version: [''],
+            new_version: 'V1.0',
+            event: ()=>{
+                return new Promise(async (resolve, reject) => {
+                    for (const b of (await db.query(`select * from \`${app_name}\`.t_checkout`,[]))){
+                        await CheckoutService.updateAndMigrateToTableColumn({
+                            id:b.id,
+                            orderData:b.orderData,
+                            app_name:app_name
+                        })
+                    }
+                    resolve(true);
+                })
+            }
+        });
+    }
 
   public static async update(obj: {
     app_name: string,

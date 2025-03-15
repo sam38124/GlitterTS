@@ -177,7 +177,7 @@ export class UMRebate {
             },
             onCreate: () => {
                 if (loadings.view) {
-                    gvc.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }], () => {
+                    gvc.addMtScript([{ src: `${gvc.glitter.root_path}/jslib/lottie-player.js` }], () => {
                         Promise.all([
                             UmClass.getRebateInfo(),
                             new Promise((resolve) => {

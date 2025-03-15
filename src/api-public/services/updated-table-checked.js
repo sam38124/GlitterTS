@@ -139,6 +139,35 @@ ADD INDEX \`index14\` (\`offset_reason\` ASC) VISIBLE;
                 });
             },
         });
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_checkout',
+            last_version: ['V1.6'],
+            new_version: 'V1.7',
+            event: `ALTER TABLE \`${app_name}\`.\`t_checkout\`
+                ADD COLUMN \`reconciliation_date\` DATETIME NULL DEFAULT NULL AFTER \`offset_records\`,
+ADD INDEX \`index15\` (\`reconciliation_date\` ASC) VISIBLE;
+;
+`
+        });
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_products_sold_history',
+            last_version: [''],
+            new_version: 'V1.0',
+            event: () => {
+                return new Promise(async (resolve, reject) => {
+                    for (const b of (await database_1.default.query(`select * from \`${app_name}\`.t_checkout`, []))) {
+                        await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
+                            id: b.id,
+                            orderData: b.orderData,
+                            app_name: app_name
+                        });
+                    }
+                    resolve(true);
+                });
+            }
+        });
     }
     static async update(obj) {
         var _a;

@@ -349,7 +349,7 @@ export async function createAPP(dd: any) {
                                                     { src: 'css/front-end.css', type: 'text/css' }
                                                 ]
                                                         .map((dd) => {
-                                                            return html` <link src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}" rel="stylesheet"></link>`;
+                                                            return html` <link href="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}" rel="stylesheet"></link>`;
                                                         })
                                                         .join('')}
                                                 `;

@@ -192,7 +192,7 @@ function toBackendEditor(glitter: Glitter) {
         await new Promise((resolve, reject) => {
             glitter.addMtScript(
                 [
-                    'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
+                    '${ gvc.glitter.root_path}/jslib/lottie-player.js',
                     'assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js',
                     'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
                     'assets/vendor/swiper/swiper-bundle.min.js',

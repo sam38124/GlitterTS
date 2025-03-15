@@ -1,6 +1,6 @@
 {
   "name": "ts-glitter",
-  "version": "18.9.0",
+  "version": "18.9.6",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -19,6 +19,7 @@
   "types": "index.d.ts",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.47.0",
+    "@lottiefiles/lottie-player": "^2.0.12",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@paypal/paypal-server-sdk": "^0.6.0",
     "@ssumo/quill-resize-module": "^1.0.1",

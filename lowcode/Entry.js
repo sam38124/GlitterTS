@@ -39,6 +39,7 @@ export class Entry {
             catch (e) {
             }
         }
+        glitter.share.ApiCart = ApiCart;
         const clock = glitter.ut.clock();
         const hashLoop = setInterval(() => {
             try {
@@ -131,7 +132,7 @@ export class Entry {
         }
         window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : createClock();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_18.9.0';
+        glitter.share.editerVersion = 'V_18.9.6';
         glitter.share.start = new Date();
         const vm = { appConfig: [] };
         window.saasConfig = {
@@ -349,7 +350,7 @@ export class Entry {
                         'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
                         'assets/vendor/swiper/swiper-bundle.min.js',
                         'assets/js/theme.min.js',
-                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
+                        '${ gvc.glitter.root_path}/jslib/lottie-player.js',
                     ], () => resolve(true), () => resolve(true));
                 });
                 return;
@@ -489,7 +490,7 @@ export class Entry {
         glitter.addStyleLink([`https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css`]);
         glitter.addMtScript([
             {
-                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                src: `${glitter.root_path}/jslib/lottie-player.js`,
             },
         ], () => {
         }, () => {
