@@ -162,6 +162,7 @@ export type Cart = {
     fbc: string;
     fbp: string;
     scheduled_id?: string;
+    shipmentSupport?: string[];
 };
 export type Order = {
     id: number;

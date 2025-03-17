@@ -31,7 +31,7 @@ interface Voucher extends OriginVoucher {
 
 export class CheckoutIndex {
   static main(gvc: GVC, widget: any, subData: any) {
-    console.log(`[CheckoutIndex]:`,gvc)
+    console.log(`[CheckoutIndex]:`, gvc);
     const glitter = gvc.glitter;
     //取得要顯示的購物車
     const apiCart = (() => {
@@ -41,7 +41,7 @@ export class CheckoutIndex {
         return new ApiCart(ApiCart.checkoutCart);
       }
     })();
-    const check_out_sub=JSON.parse(localStorage.getItem('checkout_sub_'+ApiCart.checkoutCart) ?? '{}')
+    const check_out_sub = JSON.parse(localStorage.getItem('checkout_sub_' + ApiCart.checkoutCart) ?? '{}');
     const ids = {
       page: glitter.getUUID(),
       cart: glitter.getUUID(),
@@ -450,6 +450,7 @@ export class CheckoutIndex {
             };
             if (res.line_items) {
               res.user_info = {
+                payment: localStorage.getItem('checkout-payment'),
                 shipment: localStorage.getItem('shipment-select') as string,
                 country: localStorage.getItem('country-select'),
               };
@@ -511,7 +512,7 @@ export class CheckoutIndex {
             gvc.addMtScript(
               [
                 {
-                  src: `${ gvc.glitter.root_path}/jslib/lottie-player.js`,
+                  src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                 },
                 {
                   src: `https://js.paynow.com.tw/sdk/v2/index.js`,
@@ -529,7 +530,7 @@ export class CheckoutIndex {
         gvc.addMtScript(
           [
             {
-              src: `${ gvc.glitter.root_path}/jslib/lottie-player.js`,
+              src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
             },
           ],
           () => {},
@@ -546,7 +547,7 @@ export class CheckoutIndex {
           gvc.addMtScript(
             [
               {
-                src: `${ gvc.glitter.root_path}/jslib/lottie-player.js`,
+                src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
               },
               {
                 src: `https://js.paynow.com.tw/sdk/v1/index.js`,
@@ -888,7 +889,7 @@ export class CheckoutIndex {
                                                           gvc.addMtScript(
                                                             [
                                                               {
-                                                                src: `${ gvc.glitter.root_path}/jslib/lottie-player.js`,
+                                                                src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                                                               },
                                                             ],
                                                             () => {
@@ -1160,6 +1161,24 @@ export class CheckoutIndex {
                         bind: ids.cart,
                         view: () => {
                           const padding = (document.body.clientWidth - 1200) / 2;
+
+                          const shipmentSupportSet = new Set(vm.cartData.shipmentSupport);
+
+                          const shipmentList = this.getShipmentMethod(vm.cartData).filter((dd: { value: string }) =>
+                            shipmentSupportSet.has(dd.value)
+                          );
+
+                          const localShip = shipmentSupportSet.has(localStorage.getItem('shipment-select'));
+                          if (shipmentList.length === 0) {
+                            vm.cartData.user_info.shipment = 'none';
+                            localStorage.setItem('shipment-select', 'none');
+                          } else if (localShip) {
+                            vm.cartData.user_info.shipment = localStorage.getItem('shipment-select');
+                          } else {
+                            vm.cartData.user_info.shipment = shipmentList[0].value;
+                            localStorage.setItem('shipment-select', shipmentList[0].value);
+                          }
+
                           return html`
                             <div
                               class="d-flex flex-column flex-md-row justify-content-between w-100"
@@ -1225,222 +1244,223 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                             }
 
                                             return html`<div class="d-flex flex-column p-lg-3 px-2 py-3 gap-2">
-                                                <div class="d-flex w-100 position-relative" style="gap:20px;">
-                                                  <div class=" justify-content-start  ">
-                                                    <div style="width: 88px;height: 88px;border-radius: 10px;background: 50%/cover url('${item.preview_image}')"></div>
-                                                  </div>
+                                              <div class="d-flex w-100 position-relative" style="gap:20px;">
+                                                <div class=" justify-content-start  ">
                                                   <div
-                                                    class="d-flex  flex-column  position-relative"
-                                                    style="gap: 2px; position: relative; width:calc(100% - 115px);"
-                                                  >
-                                                    <span
-                                                      class="fw-bold pe-4"
-                                                      style="gap:5px;font-size:${document.body.clientWidth > 800
-                                                        ? `16`
-                                                        : `14`}px;max-width:calc(100% - 10px); display: -webkit-box;
+                                                    style="width: 88px;height: 88px;border-radius: 10px;background: 50%/cover url('${item.preview_image}')"
+                                                  ></div>
+                                                </div>
+                                                <div
+                                                  class="d-flex  flex-column  position-relative"
+                                                  style="gap: 2px; position: relative; width:calc(100% - 115px);"
+                                                >
+                                                  <span
+                                                    class="fw-bold pe-4"
+                                                    style="gap:5px;font-size:${document.body.clientWidth > 800
+                                                      ? `16`
+                                                      : `14`}px;max-width:calc(100% - 10px); display: -webkit-box;
   -webkit-line-clamp: 2; 
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis; "
-                                                      >${title}</span
-                                                    >
-                                                    <div class="${gClass(['66text'])} fs-sm">
-                                                      ${spec ? spec.join(' / ') : ''}
-                                                    </div>
-                                                    <div>${getBadgeClass()}</div>
-                                                    <div class="d-flex flex-column align-items-start " style="gap:2px;">
-                                                      <div class="fw-bold fs-6 ${gClass('price-text')}">
-                                                        ${(() => {
-                                                          if (item.is_gift) {
-                                                            return Currency.convertCurrencyText(0);
-                                                          }
-                                                          return Currency.convertCurrencyText(
-                                                            parseFloat(item.sale_price)
-                                                          );
-                                                        })()}
-                                                      </div>
+                                                    >${title}</span
+                                                  >
+                                                  <div class="${gClass(['66text'])} fs-sm">
+                                                    ${spec ? spec.join(' / ') : ''}
+                                                  </div>
+                                                  <div>${getBadgeClass()}</div>
+                                                  <div class="d-flex flex-column align-items-start " style="gap:2px;">
+                                                    <div class="fw-bold fs-6 ${gClass('price-text')}">
                                                       ${(() => {
-                                                        if (item.is_gift || item.sale_price >= item.origin_price) {
-                                                          return '';
+                                                        if (item.is_gift) {
+                                                          return Currency.convertCurrencyText(0);
                                                         }
-                                                        return html` <div
-                                                          style="text-decoration: line-through; font-size: 12px;"
-                                                        >
-                                                          ${Currency.convertCurrencyText(parseFloat(item.origin_price))}
-                                                        </div>`;
+                                                        return Currency.convertCurrencyText(
+                                                          parseFloat(item.sale_price)
+                                                        );
                                                       })()}
                                                     </div>
-                                                    <div class="w-100 d-flex">
-                                                      <div class="flex-fill"></div>
-                                                      <div
-                                                        class="d-flex align-items-center border rounded-2"
-                                                        style="overflow: hidden;"
+                                                    ${(() => {
+                                                      if (item.is_gift || item.sale_price >= item.origin_price) {
+                                                        return '';
+                                                      }
+                                                      return html` <div
+                                                        style="text-decoration: line-through; font-size: 12px;"
                                                       >
-                                                        <div
-                                                          class="${item.is_gift
-                                                            ? `d-none`
-                                                            : `d-flex`} align-items-center justify-content-center"
-                                                          style="width:38px;height: 38px;cursor: pointer;"
-                                                          onclick="${gvc.event(() => {
-                                                            apiCart.setCart(cartItem => {
-                                                              const find = cartItem.line_items.find(dd => {
-                                                                return (
-                                                                  dd.id === item.id &&
-                                                                  item.spec.join('') === dd.spec.join('')
-                                                                );
-                                                              })!;
-                                                              if (find.count - 1 > 0) {
-                                                                find.count = find.count - 1;
-                                                                refreshCartData();
-                                                              }
-                                                            });
-                                                          })}"
-                                                        >
-                                                          <i class="fa-solid fa-minus" style="color:black;"></i>
-                                                        </div>
-                                                        <select
-                                                          class="form-select custom-select mx-0 p-0 "
-                                                          style="
-                                                            
-                                                            ${item.is_gift
-                                                            ? `border:none;`
-                                                            : `border-top:none;border-bottom: none;`}
-                                                            border-radius: 0px; color: #575757; width: 50px;height:38px;background-image:none;${parseInt(
-                                                            vm.quantity,
-                                                            10
-                                                          ) < 10
-                                                            ? `text-indent: 43%;`
-                                                            : `text-indent: 40%;`}"
-                                                          onchange="${gvc.event(e => {
-                                                            apiCart.setCart(cartItem => {
-                                                              cartItem.line_items.find(dd => {
-                                                                return (
-                                                                  dd.id === item.id &&
-                                                                  item.spec.join('') === dd.spec.join('')
-                                                                );
-                                                              })!.count = parseInt(e.value, 10);
-                                                              refreshCartData();
-                                                            });
-                                                          })}"
-                                                          ${item.is_gift ? `disabled` : ``}
-                                                        >
-                                                          ${[
-                                                            ...new Array(
-                                                              (() => {
-                                                                if (item.show_understocking === 'false') {
-                                                                  return 50;
-                                                                }
-                                                                return item.stock < 50 ? item.stock : 50;
-                                                              })()
-                                                            ),
-                                                          ]
-                                                            .map((_, index) => {
-                                                              return html` <option
-                                                                value="${index + 1}"
-                                                                ${index + 1 === item.count ? `selected` : ``}
-                                                              >
-                                                                ${index + 1}
-                                                              </option>`;
-                                                            })
-                                                            .join('')}
-                                                        </select>
-                                                        <div
-                                                          class=" align-items-center justify-content-center ${item.is_gift
-                                                            ? `d-none`
-                                                            : `d-flex`}"
-                                                          style="width:38px;height: 38px;cursor: pointer;"
-                                                          onclick="${gvc.event(() => {
-                                                            apiCart.setCart(cartItem => {
-                                                              const find = cartItem.line_items.find(dd => {
-                                                                return (
-                                                                  dd.id === item.id &&
-                                                                  item.spec.join('') === dd.spec.join('')
-                                                                );
-                                                              })!;
-                                                              if (
-                                                                item.show_understocking === 'false' ||
-                                                                find.count + 1 < item.stock
-                                                              ) {
-                                                                find.count = find.count + 1;
-                                                                refreshCartData();
-                                                              }
-                                                            });
-                                                          })}"
-                                                        >
-                                                          <i class="fa-solid fa-plus" style="color:black;"></i>
-                                                        </div>
-                                                      </div>
-                                                    </div>
+                                                        ${Currency.convertCurrencyText(parseFloat(item.origin_price))}
+                                                      </div>`;
+                                                    })()}
+                                                  </div>
+                                                  <div class="w-100 d-flex">
+                                                    <div class="flex-fill"></div>
                                                     <div
-                                                      class="d-block "
-                                                      style="position: absolute; right: 5px; top:0px;"
+                                                      class="d-flex align-items-center border rounded-2"
+                                                      style="overflow: hidden;"
                                                     >
-                                                      <i
-                                                        class="fa-solid fa-xmark-large"
-                                                        style="cursor: pointer;color:gray;"
+                                                      <div
+                                                        class="${item.is_gift
+                                                          ? `d-none`
+                                                          : `d-flex`} align-items-center justify-content-center"
+                                                        style="width:38px;height: 38px;cursor: pointer;"
                                                         onclick="${gvc.event(() => {
                                                           apiCart.setCart(cartItem => {
-                                                            cartItem.line_items = cartItem.line_items.filter(dd => {
-                                                              return !(
+                                                            const find = cartItem.line_items.find(dd => {
+                                                              return (
                                                                 dd.id === item.id &&
                                                                 item.spec.join('') === dd.spec.join('')
                                                               );
-                                                            });
+                                                            })!;
+                                                            if (find.count - 1 > 0) {
+                                                              find.count = find.count - 1;
+                                                              refreshCartData();
+                                                            }
+                                                          });
+                                                        })}"
+                                                      >
+                                                        <i class="fa-solid fa-minus" style="color:black;"></i>
+                                                      </div>
+                                                      <select
+                                                        class="form-select custom-select mx-0 p-0 "
+                                                        style="
+                                                            
+                                                            ${item.is_gift
+                                                          ? `border:none;`
+                                                          : `border-top:none;border-bottom: none;`}
+                                                            border-radius: 0px; color: #575757; width: 50px;height:38px;background-image:none;${parseInt(
+                                                          vm.quantity,
+                                                          10
+                                                        ) < 10
+                                                          ? `text-indent: 43%;`
+                                                          : `text-indent: 40%;`}"
+                                                        onchange="${gvc.event(e => {
+                                                          apiCart.setCart(cartItem => {
+                                                            cartItem.line_items.find(dd => {
+                                                              return (
+                                                                dd.id === item.id &&
+                                                                item.spec.join('') === dd.spec.join('')
+                                                              );
+                                                            })!.count = parseInt(e.value, 10);
                                                             refreshCartData();
                                                           });
                                                         })}"
-                                                      ></i>
+                                                        ${item.is_gift ? `disabled` : ``}
+                                                      >
+                                                        ${[
+                                                          ...new Array(
+                                                            (() => {
+                                                              if (item.show_understocking === 'false') {
+                                                                return 50;
+                                                              }
+                                                              return item.stock < 50 ? item.stock : 50;
+                                                            })()
+                                                          ),
+                                                        ]
+                                                          .map((_, index) => {
+                                                            return html` <option
+                                                              value="${index + 1}"
+                                                              ${index + 1 === item.count ? `selected` : ``}
+                                                            >
+                                                              ${index + 1}
+                                                            </option>`;
+                                                          })
+                                                          .join('')}
+                                                      </select>
+                                                      <div
+                                                        class=" align-items-center justify-content-center ${item.is_gift
+                                                          ? `d-none`
+                                                          : `d-flex`}"
+                                                        style="width:38px;height: 38px;cursor: pointer;"
+                                                        onclick="${gvc.event(() => {
+                                                          apiCart.setCart(cartItem => {
+                                                            const find = cartItem.line_items.find(dd => {
+                                                              return (
+                                                                dd.id === item.id &&
+                                                                item.spec.join('') === dd.spec.join('')
+                                                              );
+                                                            })!;
+                                                            if (
+                                                              item.show_understocking === 'false' ||
+                                                              find.count + 1 < item.stock
+                                                            ) {
+                                                              find.count = find.count + 1;
+                                                              refreshCartData();
+                                                            }
+                                                          });
+                                                        })}"
+                                                      >
+                                                        <i class="fa-solid fa-plus" style="color:black;"></i>
+                                                      </div>
                                                     </div>
                                                   </div>
-                                                </div>
-                                                <div>
-                                                  ${vm.cartData.voucherList
-                                                    .filter((dd: any) => {
-                                                      return (
-                                                        dd.bind.find((d2: any) => {
-                                                          return d2.id === item.id;
-                                                        }) &&
-                                                        dd.reBackType !== 'giveaway' &&
-                                                        dd.reBackType !== 'add_on_items'
-                                                      );
-                                                    })
-                                                    .map((dd: any) => {
-                                                      return `<div class=" w-100 " style="${document.body.clientWidth < 800 ? `font-size:12px;` : `font-size:14px;`}"><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
-                                                    })
-                                                    .join('<div class="my-1"></div>')}
-                                                  ${(() => {
-                                                    let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
-                                                    let count = 0;
-                                                    for (const b of vm.cartData.lineItems) {
-                                                      if (b.id === item.id) {
-                                                        count += b.count;
-                                                      }
-                                                    }
-                                                    if (count < min) {
-                                                      return `<div class="text-danger">${Language.text('min_p_count').replace('_c_', min)}</div>`;
-                                                    } else {
-                                                      return ``;
-                                                    }
-                                                  })()}
-                                                  ${(() => {
-                                                    let max_qty =
-                                                      (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
-                                                    let count = 0;
-                                                    for (const b of vm.cartData.lineItems) {
-                                                      if (b.id === item.id) {
-                                                        count += b.count;
-                                                      }
-                                                    }
-
-                                                    if (count > max_qty) {
-                                                      return `<div class="text-danger">${Language.text('max_p_count').replace('_c_', max_qty)}</div>`;
-                                                    } else {
-                                                      return ``;
-                                                    }
-                                                  })()}
+                                                  <div
+                                                    class="d-block "
+                                                    style="position: absolute; right: 5px; top:0px;"
+                                                  >
+                                                    <i
+                                                      class="fa-solid fa-xmark-large"
+                                                      style="cursor: pointer;color:gray;"
+                                                      onclick="${gvc.event(() => {
+                                                        apiCart.setCart(cartItem => {
+                                                          cartItem.line_items = cartItem.line_items.filter(dd => {
+                                                            return !(
+                                                              dd.id === item.id &&
+                                                              item.spec.join('') === dd.spec.join('')
+                                                            );
+                                                          });
+                                                          refreshCartData();
+                                                        });
+                                                      })}"
+                                                    ></i>
+                                                  </div>
                                                 </div>
                                               </div>
-                                            `;
+                                              <div>
+                                                ${vm.cartData.voucherList
+                                                  .filter((dd: any) => {
+                                                    return (
+                                                      dd.bind.find((d2: any) => {
+                                                        return d2.id === item.id;
+                                                      }) &&
+                                                      dd.reBackType !== 'giveaway' &&
+                                                      dd.reBackType !== 'add_on_items'
+                                                    );
+                                                  })
+                                                  .map((dd: any) => {
+                                                    return `<div class=" w-100 " style="${document.body.clientWidth < 800 ? `font-size:12px;` : `font-size:14px;`}"><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
+                                                  })
+                                                  .join('<div class="my-1"></div>')}
+                                                ${(() => {
+                                                  let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                                  let count = 0;
+                                                  for (const b of vm.cartData.lineItems) {
+                                                    if (b.id === item.id) {
+                                                      count += b.count;
+                                                    }
+                                                  }
+                                                  if (count < min) {
+                                                    return `<div class="text-danger">${Language.text('min_p_count').replace('_c_', min)}</div>`;
+                                                  } else {
+                                                    return ``;
+                                                  }
+                                                })()}
+                                                ${(() => {
+                                                  let max_qty =
+                                                    (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
+                                                  let count = 0;
+                                                  for (const b of vm.cartData.lineItems) {
+                                                    if (b.id === item.id) {
+                                                      count += b.count;
+                                                    }
+                                                  }
+
+                                                  if (count > max_qty) {
+                                                    return `<div class="text-danger">${Language.text('max_p_count').replace('_c_', max_qty)}</div>`;
+                                                  } else {
+                                                    return ``;
+                                                  }
+                                                })()}
+                                              </div>
+                                            </div> `;
                                           })
                                           .join(`<div class="border-bottom w-100"></div>`);
                                       } catch (e) {
@@ -1716,8 +1736,10 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                                                 768
                                                                   ? `rounded-3`
                                                                   : `h-100`}"
-                                                                style="
-                width: 100%;  position: relative;${document.body.clientWidth > 768 ? `` : `overflow-y: auto;`}"
+                                                                style="width: 100%;  position: relative;${document.body
+                                                                  .clientWidth > 768
+                                                                  ? ``
+                                                                  : `overflow-y: auto;`}"
                                                               >
                                                                 <div
                                                                   class="w-100 d-flex align-items-center p-3 border-bottom"
@@ -1840,464 +1862,471 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                 })()}
                                 <!--配送資訊-->
                                 <div class="rounded-3 bg-white w-100 p-1 mt-3">
-                                  ${` <section>
-                 <div class="${gClass('banner-text')} px-2 pt-3">${Language.text('payment_and_shipping_methods')}</div>
-                    ${
-                      vm.cartData.shipment_info
-                        ? html` <div class="pt-2 mx-2 mx-sm-3">${vm.cartData.shipment_info}</div>`
-                        : ''
-                    }
-                    <div class="row mt-3 mx-1 mx-sm-0 my-md-3">
-                      <div class="col-12 col-md-6 mb-2 mb-sm-0">
-                        <label class="${gClass('label')}">${Language.text('payment_method')}</label>
-                        <div>
-                          <select
-                            class="w-100 ${gClass('select')}"
-                            onchange="${gvc.event((e, event) => {
-                              vm.cartData.customer_info.payment_select = e.value;
-                              this.storeLocalData(vm.cartData);
-                              refreshCartData();
-                            })}"
-                          >
-                            ${(() => {
-                              return this.getPaymentMethod(vm.cartData)
-                                .map((dd: { name: string; value: string }) => {
-                                  return html` <option
-                                    value="${dd.value}"
-                                    ${localStorage.getItem('checkout-payment') === dd.value ? `selected` : ``}
-                                  >
-                                    ${Language.getLanguageCustomText(dd.name) || Language.text(dd.value)}
-                                  </option>`;
-                                })
-                                .join('');
-                            })()}
-                          </select>
-                        </div>
-                      </div>
-                      <div class="col-12 col-md-6 mb-2">
-                        <label class="${gClass('label')}">${Language.text('shipping_method')}</label>
-                        ${gvc.bindView({
-                          bind: ids.shipping,
-                          view: () => {
-                            if (
-                              vm.cartData.customer_info.payment_select === 'cash_on_delivery' &&
-                              !vm.cartData.cash_on_delivery_support.includes(vm.cartData.user_info.shipment)
-                            ) {
-                              const find = this.getShipmentMethod(vm.cartData).find((d1: any) => {
-                                return vm.cartData.cash_on_delivery_support.includes(d1.value);
-                              });
-                              vm.cartData.user_info.shipment = find && find.value;
-                              this.storeLocalData(vm.cartData);
-                              refreshCartData();
-                            }
-                            return html` <div>
-                              <select
-                                class="w-100 ${gClass('select')}"
-                                onchange="${gvc.event(e => {
-                                  [
-                                    'CVSStoreName',
-                                    'MerchantTradeNo',
-                                    'LogisticsSubType',
-                                    'CVSStoreID',
-                                    'CVSStoreName',
-                                    'CVSTelephone',
-                                    'CVSOutSide',
-                                    'ExtraData',
-                                    'CVSAddress',
-                                  ].map(dd => {
-                                    gvc.glitter.setUrlParameter(dd);
-                                  });
-                                  vm.cartData.user_info.shipment = e.value;
-                                  this.storeLocalData(vm.cartData);
-                                  refreshCartData();
-                                })}"
-                              >
-                                ${(() => {
-                                  return this.getShipmentMethod(vm.cartData)
-                                    .filter((dd: { name: string; value: string }) => {
-                                      return !(
-                                        vm.cartData.customer_info.payment_select === 'cash_on_delivery' &&
-                                        !vm.cartData.cash_on_delivery_support.includes(dd.value)
-                                      );
-                                    })
-                                    .map((dd: { name: string; value: string }) => {
-                                      return html` <option
-                                        value="${dd.value}"
-                                        ${vm.cartData.user_info.shipment === dd.value ? `selected` : ``}
-                                      >
-                                        ${Language.text(`ship_${dd.value}`) || Language.getLanguageCustomText(dd.name)}
-                                      </option>`;
-                                    })
-                                    .join('');
-                                })()}
-                              </select>
-                            </div>`;
-                          },
-                        })}
-                      </div>
-                      <div class="col-12">${gvc.bindView(() => {
-                        return {
-                          bind: gvc.glitter.getUUID(),
-                          view: async () => {
-                            const log_config = (
-                              await ApiUser.getPublicConfig(
-                                'shipment_config_' + vm.cartData.user_info.shipment,
-                                'manager'
-                              )
-                            ).response.value;
-                            if (log_config.content) {
-                              return `
-<label class="${gClass('label')}">${Language.text('shipping_instructions')}</label>
-<div class="border rounded-3 p-2">
-${log_config.content}
-</div>`;
-                            }
-                            return ``;
-                          },
-                        };
-                      })}</div>
-                      <!-- 配送地址 -->
-                      ${
-                        (() => {
-                          const ship_method = this.getShipmentMethod(vm.cartData).find((dd: any) => {
-                            return vm.cartData.user_info.shipment === dd.value;
-                          });
-                          if (ship_method && ship_method.system_form) {
-                            return (ship_method.system_form ?? []).includes('tw-address-selector');
-                          }
-                          // ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
-                          //   vm.cartData.user_info.shipment
-                          // )
-                          return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
-                            vm.cartData.user_info.shipment
-                          );
-                        })()
-                          ? gvc.bindView(() => {
-                              const id = gvc.glitter.getUUID();
-                              gvc.addStyle(`             
-  .city-selector select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border-width: 1px;
-    border-radius: 8px;
-    border-color: #ddd;
-    outline: none;
-    padding: .3em 1.25em;
-flex:1;
-  }
-                              `);
-                           let select_id=''
-                              return {
-                                bind: id,
-                                view: () => {
-                                  select_id=gvc.glitter.getUUID();
-                                  return html`<label class="${gClass('label')} w-100 d-flex align-items-center">${Language.text('shipping_address')}
-                                      <div class="flex-fill"></div>
-                                      <div
-                                        class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
-                                        style="cursor: pointer; color: #3366bb;"
-                                        onclick="${gvc.event(() => {
-                                          ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
-                                            vm.cartData.user_info.address = res.response.userData.consignee_address;
-                                            this.storeLocalData(vm.cartData);
-                                            gvc.notifyDataChange(id);
-                                          });
-                                        })}"
-                                      >
-                                        ${Language.text('quick_input')}
-                                      </div>
-                                    </label>
-                                    <div class="row">
-                                      <div class="col-12 mb-3">
-                                        <div role="tw-city-selector" id="select_id_${id}" class="w-100 city-selector d-flex d_${select_id}" style="gap:15px;"></div>
-                                      </div>
-                                      <div class="col-12">
-                                        <input
-                                          class="${gClass('input')}"
-                                          type="address"
-                                          placeholder="${Language.text('please_enter_street_location')}"
-                                          value="${vm.cartData.user_info.address || ''}"
-                                          onchange="${gvc.event(e => {
-                                            vm.cartData.user_info.address = e.value;
-                                            this.storeLocalData(vm.cartData);
-                                          })}"
-                                        />
-                                      </div>
-                                    </div> `;
-                                },
-                                divCreate: {
-                                  class: `col-12  mb-2`,
-                                },
-                                onCreate:()=>{
-                                  gvc.glitter.addMtScript(
-                                    [
-                                      {
-                                        src: 'https://cdn.jsdelivr.net/npm/tw-city-selector@2.1.1/dist/tw-city-selector.min.js',
-                                      },
-                                    ],
-                                    () => {
-                                      //@ts-ignore
-                                      const tw_selector=new TwCitySelector({
-                                        el:`.d_${select_id}`
-                                      });
-                                      const interVal = setInterval(() => {
-                                        if( (document.querySelector(`#select_id_${id} .county`) as any)){
-                                          clearInterval(interVal);
-                                          (document.querySelector(`#select_id_${id} .county`) as any).addEventListener("change", (event:any) => {
-                                            // 獲取當前選中的值
-                                            const selectedValue = event.target.value;
-                                            // 在控制台輸出當前選中的值
-                                            console.log(`選中的值是: ${selectedValue}`);
-                                            // 根據選中的值執行其他操作
-                                            vm.cartData.user_info.city=selectedValue
-                                            vm.cartData.user_info.area=undefined;
-                                            this.storeLocalData(vm.cartData);
-                                          });
-                                          (document.querySelector(`#select_id_${id} .district`) as any).addEventListener("change", (event:any) => {
-                                            // 獲取當前選中的值
-                                            const selectedValue = event.target.value;
-
-                                            // 在控制台輸出當前選中的值
-                                            console.log(`選中的值是: ${selectedValue}`);
-
-                                            // 根據選中的值執行其他操作
-                                            vm.cartData.user_info.area=selectedValue
-                                            this.storeLocalData(vm.cartData);
-                                          });
-
-                                          if((vm.cartData.user_info.city) && (vm.cartData.user_info.area)){
-                                            tw_selector.setValue(vm.cartData.user_info.city,vm.cartData.user_info.area);
-                                          }else if(vm.cartData.user_info.city){
-                                            tw_selector.setValue(vm.cartData.user_info.city);
-                                          }
-                                        }
-                                        glitter.share.tw_selector=tw_selector;
-                                      }, 100);
-                                    },
-                                    () => {}
-                                  )
-                                }
-                              };
-                            })
-                          : ``
-                      }
-                      <!-- 選取超商 -->
-                      ${
-                        ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment)
-                          ? html` <div class="col-12">
-                              <button
-                                class="${gClass('button-bgr')}"
-                                onclick="${gvc.event(() => {
-                                  // ApiDelivery.storeMaps({
-                                  //     returnURL: location.href,
-                                  //     logistics: vm.cartData.user_info.shipment,
-                                  // }).then(async (res) => {
-                                  //     console.log(res.response)
-                                  //     $('body').html(` <form  action="https://logistic.paynow.com.tw/Member/Order/Choselogistics" method="post" enctype="application/x-www-form-urlencoded"
-                                  // accept="text/html">
-                                  //      <input type="hidden" name="CheckMacValue" id="CheckMacValue"
-                                  //       value="${json.checkMacValue}"/>
-                                  // <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
-                                  // hidden></button>
-                                  // </form>`);
-                                  //     (document.querySelector('#submit') as any).click();
-                                  // });
-
-                                  ApiDelivery.storeMaps({
-                                    returnURL: location.href,
-                                    logistics: vm.cartData.user_info.shipment,
-                                  }).then(async res => {
-                                    $('body').html(res.response.form);
-                                    (document.querySelector('#submit') as any).click();
-                                  });
-                                })}"
-                              >
-                                <span class="${gClass('button-text')}"
-                                  >${(() => {
-                                    let cvs = glitter.getUrlParameter('CVSStoreName') || '';
-                                    if (decodeURIComponent(cvs)) {
-                                      return `${decodeURIComponent(cvs)} 『 ${Language.text('click_to_reselct_store')} 』`;
-                                    } else {
-                                      return Language.text('select_pickup_store');
-                                    }
-                                  })()}</span
-                                >
-                              </button>
-                            </div>`
-                          : ''
-                      }
-                      ${
-                                    (() => {
-                                      const ship_method = this.getShipmentMethod(vm.cartData).find((dd: any) => {
-                                        return vm.cartData.user_info.shipment === dd.value;
-                                      });
-                                      if (ship_method && ship_method.system_form) {
-                                        return (ship_method.system_form ?? []).includes('global-address-selector');
-                                      }
-                                      // ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
-                                      //   vm.cartData.user_info.shipment
-                                      // )
-                                      return  ['global_express'].includes(vm.cartData.user_info.shipment)
-                                    })()
-                      
-                          ? [
-                              html`<label class="${gClass('label')}">${Language.text('country')}</label> ${gvc.bindView(
-                                  () => {
-                                    const id = gvc.glitter.getUUID();
-                                    return {
-                                      bind: id,
-                                      view: async () => {
-                                        let country_select: any = [];
-                                        const support_country = (
-                                          await ApiUser.getPublicConfig('global_express_country', 'manager')
-                                        ).response.value.country;
-                                        await new Promise((resolve, reject) => {
-                                          glitter.getModule(
-                                            (() => {
-                                              switch (Language.getLanguage()) {
-                                                case 'en-US':
-                                                  return `${gvc.glitter.root_path}/modules/country-language/country-en.js`;
-                                                case 'zh-CN':
-                                                  return `${gvc.glitter.root_path}/modules/country-language/country-zh.js`;
-                                                default:
-                                                  return `${gvc.glitter.root_path}/modules/country-language/country-tw.js`;
-                                              }
-                                            })(),
-                                            response => {
-                                              country_select = response.filter((dd: any) => {
-                                                return support_country.includes(dd.countryCode);
-                                              });
-                                              resolve(true);
-                                            }
-                                          );
-                                        });
-                                        return html`<select
-                                          class="w-100 ${gClass('select')}"
-                                          onchange="${gvc.event((e, event) => {
-                                            vm.cartData.user_info.country = e.value;
-                                            this.storeLocalData(vm.cartData);
-                                            refreshCartData();
-                                          })}"
-                                        >
-                                          ${(() => {
-                                            let map = country_select.map(
-                                              (dd: { countryCode: string; countryName: string }) => {
-                                                return html`
-                                                  <option
-                                                    value="${dd.countryCode}"
-                                                    ${vm.cartData.user_info.country === dd.countryCode
+                                  ${html` <section>
+                                    <div class="${gClass('banner-text')} px-2 pt-3">
+                                      ${Language.text('payment_and_shipping_methods')}
+                                    </div>
+                                    ${vm.cartData.shipment_info
+                                      ? html` <div class="pt-2 mx-2 mx-sm-3">${vm.cartData.shipment_info}</div>`
+                                      : ''}
+                                    <div class="row mt-3 mx-1 mx-sm-0 my-md-3">
+                                      <div class="col-12 col-md-6 mb-2 mb-sm-0">
+                                        <label class="${gClass('label')}">${Language.text('payment_method')}</label>
+                                        <div>
+                                          <select
+                                            class="w-100 ${gClass('select')}"
+                                            onchange="${gvc.event(e => {
+                                              vm.cartData.customer_info.payment_select = e.value;
+                                              this.storeLocalData(vm.cartData);
+                                              refreshCartData();
+                                            })}"
+                                          >
+                                            ${(() => {
+                                              return this.getPaymentMethod(vm.cartData)
+                                                .map((dd: { name: string; value: string }) => {
+                                                  return html` <option
+                                                    value="${dd.value}"
+                                                    ${localStorage.getItem('checkout-payment') === dd.value
                                                       ? `selected`
                                                       : ``}
                                                   >
-                                                    ${dd.countryName}
-                                                  </option>
-                                                `;
+                                                    ${Language.getLanguageCustomText(dd.name) ||
+                                                    Language.text(dd.value)}
+                                                  </option>`;
+                                                })
+                                                .join('');
+                                            })()}
+                                          </select>
+                                        </div>
+                                      </div>
+                                      <div class="col-12 col-md-6 mb-2">
+                                        <label class="${gClass('label')}">${Language.text('shipping_method')}</label>
+                                        ${gvc.bindView({
+                                          bind: ids.shipping,
+                                          view: () => {
+                                            return html` <div>
+                                              <select
+                                                class="w-100 ${gClass('select')}"
+                                                onchange="${gvc.event(e => {
+                                                  [
+                                                    'CVSStoreName',
+                                                    'MerchantTradeNo',
+                                                    'LogisticsSubType',
+                                                    'CVSStoreID',
+                                                    'CVSTelephone',
+                                                    'CVSOutSide',
+                                                    'ExtraData',
+                                                    'CVSAddress',
+                                                  ].map(dd => {
+                                                    gvc.glitter.setUrlParameter(dd);
+                                                  });
+                                                  vm.cartData.user_info.shipment = e.value;
+                                                  this.storeLocalData(vm.cartData);
+                                                  refreshCartData();
+                                                })}"
+                                              >
+                                                ${shipmentList.length > 0
+                                                  ? shipmentList
+                                                      .map((dd: { name: string; value: string }) => {
+                                                        return html` <option
+                                                          value="${dd.value}"
+                                                          ${vm.cartData.user_info.shipment === dd.value
+                                                            ? `selected`
+                                                            : ``}
+                                                        >
+                                                          ${Language.text(`ship_${dd.value}`) ||
+                                                          Language.getLanguageCustomText(dd.name)}
+                                                        </option>`;
+                                                      })
+                                                      .join('')
+                                                  : html`<option selected>(${Language.text('disable_ship')})</option>`}
+                                              </select>
+                                            </div>`;
+                                          },
+                                        })}
+                                      </div>
+                                      <div class="col-12">
+                                        ${gvc.bindView(() => {
+                                          return {
+                                            bind: gvc.glitter.getUUID(),
+                                            view: async () => {
+                                              const log_config = (
+                                                await ApiUser.getPublicConfig(
+                                                  'shipment_config_' + vm.cartData.user_info.shipment,
+                                                  'manager'
+                                                )
+                                              ).response.value;
+                                              if (log_config.content) {
+                                                return html` <label class="${gClass('label')}"
+                                                    >${Language.text('shipping_instructions')}</label
+                                                  >
+                                                  <div class="border rounded-3 p-2">${log_config.content}</div>`;
                                               }
-                                            );
-                                            if (
-                                              !country_select.find((dd: any) => {
-                                                return dd.countryCode === vm.cartData.user_info.country;
-                                              })
-                                            ) {
-                                              delete vm.cartData.user_info.country;
-                                              map.push(
-                                                html` <option class="d-none" selected>
-                                                  ${Language.text('select_country')}
-                                                </option>`
-                                              );
-                                            }
-                                            return map.join('');
-                                          })()}
-                                        </select>`;
-                                      },
-                                      divCreate: {},
-                                    };
-                                  }
-                                )}`,
-                              html` <label class="${gClass('label')}">${Language.text('shipping_address')}</label>
-                                <input
-                                  class="${gClass('input')}"
-                                  type="address"
-                                  placeholder="${Language.text('please_enter_delivery_address')}"
-                                  value="${vm.cartData.user_info.address || ''}"
-                                  onchange="${gvc.event(e => {
-                                    vm.cartData.user_info.address = e.value;
-                                    this.storeLocalData(vm.cartData);
-                                  })}"
-                                />`,
-                              html` <label class="${gClass('label')}">${Language.text('city')}</label>
-                                <input
-                                  class="${gClass('input')}"
-                                  type="city"
-                                  placeholder="${Language.text('city')}"
-                                  value="${vm.cartData.user_info.city || ''}"
-                                  onchange="${gvc.event(e => {
-                                    vm.cartData.user_info.city = e.value;
-                                    this.storeLocalData(vm.cartData);
-                                  })}"
-                                />`,
-                              html` <label class="${gClass('label')}">${Language.text('state')}</label>
-                                <input
-                                  class="${gClass('input')}"
-                                  class="${gClass('input')}"
-                                  type="state"
-                                  placeholder="${Language.text('state')}"
-                                  value="${vm.cartData.user_info.state || ''}"
-                                  onchange="${gvc.event(e => {
-                                    vm.cartData.user_info.state = e.value;
-                                    this.storeLocalData(vm.cartData);
-                                  })}"
-                                />`,
-                              html` <label class="${gClass('label')}">${Language.text('postal_code')}</label>
-                                <input
-                                  class="${gClass('input')}"
-                                  type=""
-                                  placeholder="${Language.text('postal_code')}"
-                                  value="${vm.cartData.user_info.postal_code || ''}"
-                                  onchange="${gvc.event(e => {
-                                    vm.cartData.user_info.postal_code = e.value;
-                                    this.storeLocalData(vm.cartData);
-                                  })}"
-                                />`,
-                            ]
-                              .map(dd => {
-                                return html` <div class="col-12 col-md-6 mb-2">${dd}</div>`;
-                              })
-                              .join('')
-                          : ''
-                      }
-                      ${(() => {
-                        try {
-                          vm.cartData.user_info.custom_form_delivery = vm.cartData.user_info.custom_form_delivery ?? {};
-                          const formData = this.getShipmentMethod(vm.cartData).find((dd: any) => {
-                            return vm.cartData.user_info.shipment === dd.value;
-                          }).form;
+                                              return ``;
+                                            },
+                                          };
+                                        })}
+                                      </div>
+                                      <!-- 配送地址 -->
+                                      ${(() => {
+                                        if (vm.cartData.user_info.shipment === 'none') {
+                                          return false;
+                                        }
+                                        const ship_method = this.getShipmentMethod(vm.cartData).find((dd: any) => {
+                                          return vm.cartData.user_info.shipment === dd.value;
+                                        });
+                                        if (ship_method && ship_method.system_form) {
+                                          return (ship_method.system_form ?? []).includes('tw-address-selector');
+                                        }
+                                        // ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
+                                        //   vm.cartData.user_info.shipment
+                                        // )
+                                        return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
+                                          vm.cartData.user_info.shipment
+                                        );
+                                      })()
+                                        ? gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            gvc.addStyle(`
+                                              .city-selector select {
+                                                -webkit-appearance: none;
+                                                -moz-appearance: none;
+                                                appearance: none;
+                                                border-width: 1px;
+                                                border-radius: 8px;
+                                                border-color: #ddd;
+                                                outline: none;
+                                                padding: 0.3em 1.25em;
+                                                flex: 1;
+                                              }
+                                            `);
+                                            let select_id = '';
+                                            return {
+                                              bind: id,
+                                              view: () => {
+                                                select_id = gvc.glitter.getUUID();
+                                                return html`<label
+                                                    class="${gClass('label')} w-100 d-flex align-items-center"
+                                                    >${Language.text('shipping_address')}
+                                                    <div class="flex-fill"></div>
+                                                    <div
+                                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
+                                                      style="cursor: pointer; color: #3366bb;"
+                                                      onclick="${gvc.event(() => {
+                                                        ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
+                                                          vm.cartData.user_info.address =
+                                                            res.response.userData.consignee_address;
+                                                          this.storeLocalData(vm.cartData);
+                                                          gvc.notifyDataChange(id);
+                                                        });
+                                                      })}"
+                                                    >
+                                                      ${Language.text('quick_input')}
+                                                    </div>
+                                                  </label>
+                                                  <div class="row">
+                                                    <div class="col-12 mb-3">
+                                                      <div
+                                                        role="tw-city-selector"
+                                                        id="select_id_${id}"
+                                                        class="w-100 city-selector d-flex d_${select_id}"
+                                                        style="gap:15px;"
+                                                      ></div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                      <input
+                                                        class="${gClass('input')}"
+                                                        type="address"
+                                                        placeholder="${Language.text('please_enter_street_location')}"
+                                                        value="${vm.cartData.user_info.address || ''}"
+                                                        onchange="${gvc.event(e => {
+                                                          vm.cartData.user_info.address = e.value;
+                                                          this.storeLocalData(vm.cartData);
+                                                        })}"
+                                                      />
+                                                    </div>
+                                                  </div> `;
+                                              },
+                                              divCreate: {
+                                                class: `col-12  mb-2`,
+                                              },
+                                              onCreate: () => {
+                                                gvc.glitter.addMtScript(
+                                                  [
+                                                    {
+                                                      src: 'https://cdn.jsdelivr.net/npm/tw-city-selector@2.1.1/dist/tw-city-selector.min.js',
+                                                    },
+                                                  ],
+                                                  () => {
+                                                    //@ts-ignore
+                                                    const tw_selector = new TwCitySelector({
+                                                      el: `.d_${select_id}`,
+                                                    });
+                                                    const interVal = setInterval(() => {
+                                                      if (document.querySelector(`#select_id_${id} .county`) as any) {
+                                                        clearInterval(interVal);
+                                                        (
+                                                          document.querySelector(`#select_id_${id} .county`) as any
+                                                        ).addEventListener('change', (event: any) => {
+                                                          // 獲取當前選中的值
+                                                          const selectedValue = event.target.value;
+                                                          // 在控制台輸出當前選中的值
+                                                          console.log(`選中的值是: ${selectedValue}`);
+                                                          // 根據選中的值執行其他操作
+                                                          vm.cartData.user_info.city = selectedValue;
+                                                          vm.cartData.user_info.area = undefined;
+                                                          this.storeLocalData(vm.cartData);
+                                                        });
+                                                        (
+                                                          document.querySelector(`#select_id_${id} .district`) as any
+                                                        ).addEventListener('change', (event: any) => {
+                                                          // 獲取當前選中的值
+                                                          const selectedValue = event.target.value;
 
-                          if (!formData) {
-                            return '';
-                          }
-                          const form_array = JSON.parse(JSON.stringify(formData));
-                          form_array.map((dd: any) => {
-                            return formatterFormElement(dd);
-                          });
-                          return [
-                            FormWidget.editorView({
-                              gvc: gvc,
-                              array: form_array,
-                              refresh: () => {
-                                this.storeLocalData(vm.cartData);
-                              },
-                              formData: vm.cartData.user_info.custom_form_delivery,
-                            }),
-                          ].join('');
-                        } catch (e) {
-                          console.error(`error 3 =>`, e);
-                          return ``;
-                        }
-                      })()}
-                    </div>
-                  </section>`}
+                                                          // 在控制台輸出當前選中的值
+                                                          console.log(`選中的值是: ${selectedValue}`);
+
+                                                          // 根據選中的值執行其他操作
+                                                          vm.cartData.user_info.area = selectedValue;
+                                                          this.storeLocalData(vm.cartData);
+                                                        });
+
+                                                        if (vm.cartData.user_info.city && vm.cartData.user_info.area) {
+                                                          tw_selector.setValue(
+                                                            vm.cartData.user_info.city,
+                                                            vm.cartData.user_info.area
+                                                          );
+                                                        } else if (vm.cartData.user_info.city) {
+                                                          tw_selector.setValue(vm.cartData.user_info.city);
+                                                        }
+                                                      }
+                                                      glitter.share.tw_selector = tw_selector;
+                                                    }, 100);
+                                                  },
+                                                  () => {}
+                                                );
+                                              },
+                                            };
+                                          })
+                                        : ``}
+                                      <!-- 選取超商 -->
+                                      ${ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment)
+                                        ? html` <div class="col-12">
+                                            <button
+                                              class="${gClass('button-bgr')}"
+                                              onclick="${gvc.event(() => {
+                                                // ApiDelivery.storeMaps({
+                                                //     returnURL: location.href,
+                                                //     logistics: vm.cartData.user_info.shipment,
+                                                // }).then(async (res) => {
+                                                //     console.log(res.response)
+                                                //     $('body').html(` <form  action="https://logistic.paynow.com.tw/Member/Order/Choselogistics" method="post" enctype="application/x-www-form-urlencoded"
+                                                // accept="text/html">
+                                                //      <input type="hidden" name="CheckMacValue" id="CheckMacValue"
+                                                //       value="${json.checkMacValue}"/>
+                                                // <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
+                                                // hidden></button>
+                                                // </form>`);
+                                                //     (document.querySelector('#submit') as any).click();
+                                                // });
+
+                                                ApiDelivery.storeMaps({
+                                                  returnURL: location.href,
+                                                  logistics: vm.cartData.user_info.shipment,
+                                                }).then(async res => {
+                                                  $('body').html(res.response.form);
+                                                  (document.querySelector('#submit') as any).click();
+                                                });
+                                              })}"
+                                            >
+                                              <span class="${gClass('button-text')}"
+                                                >${(() => {
+                                                  let cvs = glitter.getUrlParameter('CVSStoreName') || '';
+                                                  if (decodeURIComponent(cvs)) {
+                                                    return `${decodeURIComponent(cvs)} 『 ${Language.text('click_to_reselct_store')} 』`;
+                                                  } else {
+                                                    return Language.text('select_pickup_store');
+                                                  }
+                                                })()}</span
+                                              >
+                                            </button>
+                                          </div>`
+                                        : ''}
+                                      ${(() => {
+                                        if (vm.cartData.user_info.shipment === 'none') {
+                                          return false;
+                                        }
+                                        const ship_method = this.getShipmentMethod(vm.cartData).find((dd: any) => {
+                                          return vm.cartData.user_info.shipment === dd.value;
+                                        });
+                                        if (ship_method && ship_method.system_form) {
+                                          return (ship_method.system_form ?? []).includes('global-address-selector');
+                                        }
+                                        // ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
+                                        //   vm.cartData.user_info.shipment
+                                        // )
+                                        return ['global_express'].includes(vm.cartData.user_info.shipment);
+                                      })()
+                                        ? [
+                                            html`<label class="${gClass('label')}">${Language.text('country')}</label>
+                                              ${gvc.bindView(() => {
+                                                const id = gvc.glitter.getUUID();
+                                                return {
+                                                  bind: id,
+                                                  view: async () => {
+                                                    let country_select: any = [];
+                                                    const support_country = (
+                                                      await ApiUser.getPublicConfig('global_express_country', 'manager')
+                                                    ).response.value.country;
+                                                    await new Promise((resolve, reject) => {
+                                                      glitter.getModule(
+                                                        (() => {
+                                                          switch (Language.getLanguage()) {
+                                                            case 'en-US':
+                                                              return `${gvc.glitter.root_path}/modules/country-language/country-en.js`;
+                                                            case 'zh-CN':
+                                                              return `${gvc.glitter.root_path}/modules/country-language/country-zh.js`;
+                                                            default:
+                                                              return `${gvc.glitter.root_path}/modules/country-language/country-tw.js`;
+                                                          }
+                                                        })(),
+                                                        response => {
+                                                          country_select = response.filter((dd: any) => {
+                                                            return support_country.includes(dd.countryCode);
+                                                          });
+                                                          resolve(true);
+                                                        }
+                                                      );
+                                                    });
+                                                    return html`<select
+                                                      class="w-100 ${gClass('select')}"
+                                                      onchange="${gvc.event((e, event) => {
+                                                        vm.cartData.user_info.country = e.value;
+                                                        this.storeLocalData(vm.cartData);
+                                                        refreshCartData();
+                                                      })}"
+                                                    >
+                                                      ${(() => {
+                                                        let map = country_select.map(
+                                                          (dd: { countryCode: string; countryName: string }) => {
+                                                            return html`
+                                                              <option
+                                                                value="${dd.countryCode}"
+                                                                ${vm.cartData.user_info.country === dd.countryCode
+                                                                  ? `selected`
+                                                                  : ``}
+                                                              >
+                                                                ${dd.countryName}
+                                                              </option>
+                                                            `;
+                                                          }
+                                                        );
+                                                        if (
+                                                          !country_select.find((dd: any) => {
+                                                            return dd.countryCode === vm.cartData.user_info.country;
+                                                          })
+                                                        ) {
+                                                          delete vm.cartData.user_info.country;
+                                                          map.push(
+                                                            html` <option class="d-none" selected>
+                                                              ${Language.text('select_country')}
+                                                            </option>`
+                                                          );
+                                                        }
+                                                        return map.join('');
+                                                      })()}
+                                                    </select>`;
+                                                  },
+                                                  divCreate: {},
+                                                };
+                                              })}`,
+                                            html` <label class="${gClass('label')}"
+                                                >${Language.text('shipping_address')}</label
+                                              >
+                                              <input
+                                                class="${gClass('input')}"
+                                                type="address"
+                                                placeholder="${Language.text('please_enter_delivery_address')}"
+                                                value="${vm.cartData.user_info.address || ''}"
+                                                onchange="${gvc.event(e => {
+                                                  vm.cartData.user_info.address = e.value;
+                                                  this.storeLocalData(vm.cartData);
+                                                })}"
+                                              />`,
+                                            html` <label class="${gClass('label')}">${Language.text('city')}</label>
+                                              <input
+                                                class="${gClass('input')}"
+                                                type="city"
+                                                placeholder="${Language.text('city')}"
+                                                value="${vm.cartData.user_info.city || ''}"
+                                                onchange="${gvc.event(e => {
+                                                  vm.cartData.user_info.city = e.value;
+                                                  this.storeLocalData(vm.cartData);
+                                                })}"
+                                              />`,
+                                            html` <label class="${gClass('label')}">${Language.text('state')}</label>
+                                              <input
+                                                class="${gClass('input')}"
+                                                class="${gClass('input')}"
+                                                type="state"
+                                                placeholder="${Language.text('state')}"
+                                                value="${vm.cartData.user_info.state || ''}"
+                                                onchange="${gvc.event(e => {
+                                                  vm.cartData.user_info.state = e.value;
+                                                  this.storeLocalData(vm.cartData);
+                                                })}"
+                                              />`,
+                                            html` <label class="${gClass('label')}"
+                                                >${Language.text('postal_code')}</label
+                                              >
+                                              <input
+                                                class="${gClass('input')}"
+                                                type=""
+                                                placeholder="${Language.text('postal_code')}"
+                                                value="${vm.cartData.user_info.postal_code || ''}"
+                                                onchange="${gvc.event(e => {
+                                                  vm.cartData.user_info.postal_code = e.value;
+                                                  this.storeLocalData(vm.cartData);
+                                                })}"
+                                              />`,
+                                          ]
+                                            .map(dd => {
+                                              return html` <div class="col-12 col-md-6 mb-2">${dd}</div>`;
+                                            })
+                                            .join('')
+                                        : ''}
+                                      ${(() => {
+                                        try {
+                                          vm.cartData.user_info.custom_form_delivery =
+                                            vm.cartData.user_info.custom_form_delivery ?? {};
+                                          const formData = this.getShipmentMethod(vm.cartData).find((dd: any) => {
+                                            return vm.cartData.user_info.shipment === dd.value;
+                                          }).form;
+
+                                          if (!formData) {
+                                            return '';
+                                          }
+                                          const form_array = JSON.parse(JSON.stringify(formData));
+                                          form_array.map((dd: any) => {
+                                            return formatterFormElement(dd);
+                                          });
+                                          return [
+                                            FormWidget.editorView({
+                                              gvc: gvc,
+                                              array: form_array,
+                                              refresh: () => {
+                                                this.storeLocalData(vm.cartData);
+                                              },
+                                              formData: vm.cartData.user_info.custom_form_delivery,
+                                            }),
+                                          ].join('');
+                                        } catch (e) {
+                                          console.error(`error 3 =>`, e);
+                                          return ``;
+                                        }
+                                      })()}
+                                    </div>
+                                  </section>`}
                                 </div>
                                 <!--顧客資訊-->
                                 <div class="rounded-3 bg-white w-100 p-1 mt-3">
@@ -3062,6 +3091,11 @@ flex:1;
                                                 if (verify.length > 0) {
                                                   return;
                                                 }
+
+                                                if (shipmentList.length === 0) {
+                                                  vm.cartData.user_info.shipment = 'none';
+                                                }
+
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 if (!this.checkFormData(gvc, vm.cartData, widget)) {
                                                   return;
@@ -3121,7 +3155,8 @@ flex:1;
                                                   }
                                                 });
                                                 dialog.dataLoading({ visible: true });
-                                                vm.cartData.user_info.note = ((vm.cartData.user_info.note ?? '')+(check_out_sub.note ?? '' ))
+                                                vm.cartData.user_info.note =
+                                                  (vm.cartData.user_info.note ?? '') + (check_out_sub.note ?? '');
                                                 ApiShop.toCheckout({
                                                   line_items: vm.cartData.lineItems.map((dd: any) => {
                                                     return {
@@ -3313,7 +3348,7 @@ flex:1;
                               <div
                                 style="${document.body.clientWidth > 800
                                   ? `width:calc(34% - 10px);position: sticky; top: 65px;`
-                                  : `width:calc(100% );`}"
+                                  : `width:calc(100%);`}"
                               >
                                 <!--明細-->
                                 <div style="" class="rounded-3 bg-white w-100 p-3">${detail_info}</div>
@@ -3374,21 +3409,6 @@ flex:1;
     const subData = cartData.user_info;
     const dialog = new ShareDialog(gvc.glitter);
 
-    function checkEmailPattern(input: any) {
-      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      return emailPattern.test(input);
-    }
-
-    function checkPhonePattern(input: any) {
-      const phonePattern = /^09\d{8}$/;
-      return phonePattern.test(input);
-    }
-
-    function checkReceiverPattern(input: any) {
-      const receiverPattern = /^[\u4e00-\u9fa5]{2,5}|[a-zA-Z]{4,10}$/;
-      return receiverPattern.test(input);
-    }
-
     function checkAddressPattern(input: any) {
       const addressPattern = /^.{6,60}$/;
       return addressPattern.test(input);
@@ -3396,34 +3416,12 @@ flex:1;
 
     let pass = true;
 
-    function checkString(text: any, errorMessage: any, type = '') {
-      if ((pass && !text) || text === '') {
-        pass = false;
-        dialog.errorMessage({
-          text: `${Language.text('please_enter')}「${errorMessage}」`,
-        });
-      }
-      if (pass && type === 'email' && !checkEmailPattern(text)) {
-        pass = false;
-        dialog.errorMessage({
-          text: `「${errorMessage}」${Language.text('format_error')}`,
-        });
-      }
-      if (pass && type === 'phone' && !checkPhonePattern(text)) {
-        pass = false;
-        dialog.errorMessage({
-          text: html` <div class="text-center">
-            「${errorMessage} 」${Language.text('format_error')}<br />${Language.text('please_enter')}
-            ${Language.text('phone_format_starting_with_09')}
-          </div>`,
-        });
-      }
-      if (pass && type === 'name' && !checkReceiverPattern(text)) {
-        pass = false;
-        dialog.errorMessage({
-          text: Language.text('name_length_restrictions'),
-        });
-      }
+    // 驗證有無配送方式
+    if (subData.shipment === 'none') {
+      dialog.errorMessage({
+        text: Language.text('select_shipping_method'),
+      });
+      return false;
     }
 
     // 填入預設資料
@@ -3447,50 +3445,39 @@ flex:1;
     }
 
     // 驗證配送地址是否填寫
-    if((() => {
-      const ship_method = this.getShipmentMethod(cartData).find((dd: any) => {
-        return subData['shipment'] === dd.value;
-      });
-      if (ship_method && ship_method.system_form) {
-        return (ship_method.system_form ?? []).includes('tw-address-selector');
-      }
-      // ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
-      //   vm.cartData.user_info.shipment
-      // )
-      return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
-        subData['shipment']
-      );
-    })()){
-      console.log(`subData===>`,subData)
-      if (
-        (!subData['address'] || subData['address'] === '')
-      ) {
+    if (
+      (() => {
+        const ship_method = this.getShipmentMethod(cartData).find((dd: any) => {
+          return subData['shipment'] === dd.value;
+        });
+        if (ship_method && ship_method.system_form) {
+          return (ship_method.system_form ?? []).includes('tw-address-selector');
+        }
+        return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(subData['shipment']);
+      })()
+    ) {
+      console.log(`subData===>`, subData);
+      if (!subData['address'] || subData['address'] === '') {
         dialog.errorMessage({
           text: `${Language.text('please_enter')}「${Language.text('shipping_address')}」`,
         });
         return false;
-      }else if (
-        (!subData['city'] || subData['city'] === '')
-      ) {
+      } else if (!subData['city'] || subData['city'] === '') {
         dialog.errorMessage({
           text: `${Language.text('please_enter')}「${Language.text('city')}」`,
         });
         return false;
-      }else if (
-        (!subData['area'] || subData['area'] === '')
-      ) {
+      } else if (!subData['area'] || subData['area'] === '') {
         dialog.errorMessage({
           text: `${Language.text('please_enter')}「${Language.text('area')}」`,
         });
         return false;
       }
-    }else{
-      delete subData['city']
-      delete subData['area']
-      delete subData['address']
+    } else {
+      delete subData['city'];
+      delete subData['area'];
+      delete subData['address'];
     }
-
-
 
     // 驗證配送地址內容
     if (subData['shipment'] === 'normal' && !checkAddressPattern(subData['address'])) {
@@ -3549,6 +3536,7 @@ flex:1;
       });
       return false;
     }
+
     // 驗證顧客表單
     const leakData_customer = FormWidget.checkLeakDataObj(widget.share.custom_form_checkout, {
       ...userData,
@@ -3571,6 +3559,7 @@ flex:1;
       });
       return false;
     }
+
     // 驗證配送表單
     const leakData_Receipt_form = FormWidget.checkLeakDataObj(widget.share.receipt_form, subData);
     if (leakData_Receipt_form) {
@@ -3740,6 +3729,7 @@ flex:1;
     ) {
       localStorage.setItem('checkout-payment', array[0].value);
     }
+
     cartData.customer_info.payment_select = localStorage.getItem('checkout-payment');
     return array;
   }

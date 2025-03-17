@@ -138,6 +138,18 @@ export class Language {
             { key: 'can_buy', tw: '可售數量', cn: '可售数量', en: `Available quantity` },
             { key: 'login_in_to_checkout', tw: '登入後結帳', cn: '登入后结帐', en: `Log in and checkout` },
             { key: 'birth', tw: '生日', cn: '生日', en: `Birth` },
+            {
+                key: 'disable_ship',
+                tw: '無配送方式',
+                cn: '无配送方式',
+                en: 'No shipping method available',
+            },
+            {
+                key: 'select_shipping_method',
+                tw: '請選擇一種配送方式',
+                cn: '请选择一种配送方式',
+                en: 'Please select a shipping method',
+            },
             { key: 'buy_it_now', tw: '立即購買', cn: '立即购买', en: `Buy it now` },
             { key: 'cart', tw: '購物車', cn: '购物车', en: `Cart` },
             {

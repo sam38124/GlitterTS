@@ -21,7 +21,7 @@ import { saasConfig } from '../../config.js';
 import { SMS } from './sms.js';
 import { LineMessage } from './line-message';
 import { EcInvoice } from './EcInvoice';
-import { onlinePayArray, paymentInterface } from '../models/glitter-finance.js';
+import { onlinePayArray } from '../models/glitter-finance.js';
 import { App } from '../../services/app.js';
 import { Stock } from './stock';
 import { OrderEvent } from './order-event.js';
@@ -201,6 +201,7 @@ export type Cart = {
   fbc: string;
   fbp: string;
   scheduled_id?: string;
+  shipmentSupport?: string[];
 };
 
 export type Order = {
@@ -574,90 +575,96 @@ export class Shopping {
 
       // 判斷需要多國語言，或者蝦皮庫存同步
       await Promise.all(
-        products.data.filter((dd:any)=>{
-          return dd.content
-        }).map((product: any) => {
-          //
-          product.content.collection = Array.from(new Set((()=>{
-            return (product.content.collection ?? []).map((dd:any)=>{
-              return dd.replace(' / ','/').replace(' /','/').replace('/ ','/').replace('/',' / ')
-            })
-          })()))
-          return new Promise(async resolve => {
-            if (product) {
-              let totalSale = 0;
-              const { language } = query;
-              const { content } = product;
-              content.preview_image = content.preview_image ?? [];
+        products.data
+          .filter((dd: any) => {
+            return dd.content;
+          })
+          .map((product: any) => {
+            //
+            product.content.collection = Array.from(
+              new Set(
+                (() => {
+                  return (product.content.collection ?? []).map((dd: any) => {
+                    return dd.replace(' / ', '/').replace(' /', '/').replace('/ ', '/').replace('/', ' / ');
+                  });
+                })()
+              )
+            );
+            return new Promise(async resolve => {
+              if (product) {
+                let totalSale = 0;
+                const { language } = query;
+                const { content } = product;
+                content.preview_image = content.preview_image ?? [];
 
-              if (language && content?.language_data?.[language]) {
-                const langData = content.language_data[language];
-                if ((langData.preview_image && langData.preview_image.length === 0) || !langData.preview_image) {
-                  if (content.preview_image.length) {
-                    langData.preview_image = content.preview_image;
-                  } else {
-                    langData.preview_image = [
-                      'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg',
-                    ];
+                if (language && content?.language_data?.[language]) {
+                  const langData = content.language_data[language];
+                  if ((langData.preview_image && langData.preview_image.length === 0) || !langData.preview_image) {
+                    if (content.preview_image.length) {
+                      langData.preview_image = content.preview_image;
+                    } else {
+                      langData.preview_image = [
+                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg',
+                      ];
+                    }
                   }
+                  Object.assign(content, {
+                    seo: langData.seo,
+                    title: langData.title || content.title,
+                    content: langData.content || content.content,
+                    content_array: langData.content_array || content.content_array,
+                    content_json: langData.content_json || content.content_json,
+                    preview_image: langData.preview_image || content.preview_image,
+                  });
                 }
-                Object.assign(content, {
-                  seo: langData.seo,
-                  title: langData.title || content.title,
-                  content: langData.content || content.content,
-                  content_array: langData.content_array || content.content_array,
-                  content_json: langData.content_json || content.content_json,
-                  preview_image: langData.preview_image || content.preview_image,
-                });
-              }
 
-              if ((content.preview_image && content.preview_image.length === 0) || !content.preview_image) {
-                content.preview_image = [
-                  'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg',
-                ];
-              }
+                if ((content.preview_image && content.preview_image.length === 0) || !content.preview_image) {
+                  content.preview_image = [
+                    'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg',
+                  ];
+                }
 
-              if (content.product_category === 'kitchen') {
-                if (content.specs.length) {
-                  content.min_price = content.specs
-                    .map((dd: any) => {
-                      return Math.min(
-                        ...dd.option.map((d1: any) => {
-                          return d1.price;
-                        })
-                      );
-                    })
-                    .reduce((a: any, b: any) => a + b, 0);
-                  content.max_price = content.specs
-                    .map((dd: any) => {
-                      return Math.max(
-                        ...dd.option.map((d1: any) => {
-                          return d1.price;
-                        })
-                      );
-                    })
-                    .reduce((a: any, b: any) => a + b, 0);
+                if (content.product_category === 'kitchen') {
+                  if (content.specs.length) {
+                    content.min_price = content.specs
+                      .map((dd: any) => {
+                        return Math.min(
+                          ...dd.option.map((d1: any) => {
+                            return d1.price;
+                          })
+                        );
+                      })
+                      .reduce((a: any, b: any) => a + b, 0);
+                    content.max_price = content.specs
+                      .map((dd: any) => {
+                        return Math.max(
+                          ...dd.option.map((d1: any) => {
+                            return d1.price;
+                          })
+                        );
+                      })
+                      .reduce((a: any, b: any) => a + b, 0);
+                  } else {
+                    content.min_price = content.price || 0;
+                    content.max_price = content.price || 0;
+                  }
+                  content.variants = [
+                    {
+                      sku: '',
+                      spec: [],
+                      type: 'variants',
+                      v_width: 0,
+                      product_id: content.id,
+                      sale_price: content.min_price,
+                      compare_price: 0,
+                      shipment_type: 'none',
+                      show_understocking: (content.stocke ?? '') === '' ? `false` : `true`,
+                    },
+                  ];
                 } else {
-                  content.min_price = content.price || 0;
-                  content.max_price = content.price || 0;
-                }
-                content.variants = [
-                  {
-                    sku: '',
-                    spec: [],
-                    type: 'variants',
-                    v_width: 0,
-                    product_id: content.id,
-                    sale_price: content.min_price,
-                    compare_price: 0,
-                    shipment_type: 'none',
-                    show_understocking: (content.stocke ?? '') === '' ? `false` : `true`,
-                  },
-                ];
-              } else {
-                // 尋找規格販售數量
-                const soldOldHistory = await db.query(
-                  `
+                  // 尋找規格販售數量
+                  const soldOldHistory = await db.query(
+                    `
                   SELECT * 
                   FROM \`${this.app}\`.t_products_sold_history 
                   WHERE product_id = ${db.escape(content.id)} 
@@ -667,85 +674,85 @@ export class Shopping {
                       WHERE ${count_sql}
                     )
                   `,
-                  []
-                );
+                    []
+                  );
 
-                (content.variants || []).forEach((variant: any) => {
-                  variant.spec = variant.spec || [];
-                  variant.stock = 0;
-                  variant.sold_out =
-                    soldOldHistory
-                      .filter((dd: any) => {
-                        return dd.spec === variant.spec.join('-') && `${dd.product_id}` === `${content.id}`;
-                      })
-                      .map((dd: any) => {
-                        return parseInt(dd.count, 10);
-                      })
-                      .reduce((a: number, b: number) => a + b, 0) || 0;
-                  variant.preview_image = variant.preview_image ?? '';
-                  if (!variant.preview_image.includes('https://')) {
-                    variant.preview_image = undefined;
-                  }
-                  variant.preview_image =
-                    variant[`preview_image_${language}`] ||
-                    variant.preview_image ||
-                    'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
-                  if (content.min_price > variant.sale_price) {
-                    content.min_price = variant.sale_price;
-                  }
-                  if (content.max_price < variant.sale_price) {
-                    content.max_price = variant.sale_price;
-                  }
-                  if (
-                    variant.preview_image ===
-                    'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'
-                  ) {
-                    variant.preview_image = content.preview_image?.[0];
-                  }
-
-                  // 過濾並計算庫存
-                  Object.entries(variant.stockList || {}).forEach(([storeId, stockData]: [string, any]) => {
-                    if (!store_config.list.some((store: any) => store.id === storeId) || !stockData?.count) {
-                      delete variant.stockList[storeId];
-                    } else {
-                      variant.stockList[storeId].count = parseInt(stockData.count, 10);
-                      variant.stock += variant.stockList[storeId].count;
-                    }
-                  });
-
-                  // 確保所有商店 ID 都存在
-                  store_config.list.forEach((store: any) => {
-                    variant.stockList[store.id] = variant.stockList[store.id] || { count: 0 };
-                  });
-
-                  totalSale += variant.sold_out;
-                });
-              }
-
-              if (content.shopee_id && !query.skip_shopee_check) {
-                const shopee_data = await new Shopee(this.app, this.token).getProductDetail(content.shopee_id, {
-                  skip_image_load: true,
-                });
-
-                if (shopee_data && shopee_data.variants) {
-                  console.log(`get-shopee_data-success`);
                   (content.variants || []).forEach((variant: any) => {
-                    const shopee_variants = shopee_data.variants.find(dd => {
-                      return dd.spec.join('') === variant.spec.join('');
-                    });
-                    if (shopee_variants) {
-                      variant.stock = shopee_variants.stock;
-                      variant.stockList = {};
-                      variant.stockList[store_config.list[0].id] = { count: variant.stock };
+                    variant.spec = variant.spec || [];
+                    variant.stock = 0;
+                    variant.sold_out =
+                      soldOldHistory
+                        .filter((dd: any) => {
+                          return dd.spec === variant.spec.join('-') && `${dd.product_id}` === `${content.id}`;
+                        })
+                        .map((dd: any) => {
+                          return parseInt(dd.count, 10);
+                        })
+                        .reduce((a: number, b: number) => a + b, 0) || 0;
+                    variant.preview_image = variant.preview_image ?? '';
+                    if (!variant.preview_image.includes('https://')) {
+                      variant.preview_image = undefined;
                     }
+                    variant.preview_image =
+                      variant[`preview_image_${language}`] ||
+                      variant.preview_image ||
+                      'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+                    if (content.min_price > variant.sale_price) {
+                      content.min_price = variant.sale_price;
+                    }
+                    if (content.max_price < variant.sale_price) {
+                      content.max_price = variant.sale_price;
+                    }
+                    if (
+                      variant.preview_image ===
+                      'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'
+                    ) {
+                      variant.preview_image = content.preview_image?.[0];
+                    }
+
+                    // 過濾並計算庫存
+                    Object.entries(variant.stockList || {}).forEach(([storeId, stockData]: [string, any]) => {
+                      if (!store_config.list.some((store: any) => store.id === storeId) || !stockData?.count) {
+                        delete variant.stockList[storeId];
+                      } else {
+                        variant.stockList[storeId].count = parseInt(stockData.count, 10);
+                        variant.stock += variant.stockList[storeId].count;
+                      }
+                    });
+
+                    // 確保所有商店 ID 都存在
+                    store_config.list.forEach((store: any) => {
+                      variant.stockList[store.id] = variant.stockList[store.id] || { count: 0 };
+                    });
+
+                    totalSale += variant.sold_out;
                   });
                 }
+
+                if (content.shopee_id && !query.skip_shopee_check) {
+                  const shopee_data = await new Shopee(this.app, this.token).getProductDetail(content.shopee_id, {
+                    skip_image_load: true,
+                  });
+
+                  if (shopee_data && shopee_data.variants) {
+                    console.log(`get-shopee_data-success`);
+                    (content.variants || []).forEach((variant: any) => {
+                      const shopee_variants = shopee_data.variants.find(dd => {
+                        return dd.spec.join('') === variant.spec.join('');
+                      });
+                      if (shopee_variants) {
+                        variant.stock = shopee_variants.stock;
+                        variant.stockList = {};
+                        variant.stockList[store_config.list[0].id] = { count: variant.stock };
+                      }
+                    });
+                  }
+                }
+                product.total_sales = totalSale;
               }
-              product.total_sales = totalSale;
-            }
-            resolve(true);
-          });
-        })
+              resolve(true);
+            });
+          })
       );
 
       if (query.domain && products.data.length > 0) {
@@ -1442,14 +1449,11 @@ export class Shopping {
     type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
     replace_order_id?: string
   ) {
-
     try {
-
       const timer = {
         count: 0,
         history: [Date.now()],
       };
-      let scheduledData: any; // 不立刻查詢，只做占位宣告
       const checkPoint = (name: string) => {
         const t = Date.now();
         timer.history.push(t);
@@ -1468,6 +1472,8 @@ export class Shopping {
 
       const userClass = new User(this.app);
       const rebateClass = new Rebate(this.app);
+      const checkoutPayment = data.user_info?.payment;
+      let scheduledData: any; // 不立刻查詢，只做占位宣告
 
       // 確認預設值
       data.line_items = (data.line_items || (data as any).lineItems) ?? [];
@@ -1667,33 +1673,33 @@ export class Shopping {
         const refer =
           data.user_info.shipment === 'global_express'
             ? (
-              (
-                await Private_config.getConfig({
-                  appName: this.app,
-                  key: 'glitter_shipment_global_' + data.user_info.country,
-                })
-              )[0] ?? {
-                value: {
-                  volume: [],
-                  weight: [],
-                  selectCalc: 'volume',
-                },
-              }
-            ).value
+                (
+                  await Private_config.getConfig({
+                    appName: this.app,
+                    key: 'glitter_shipment_global_' + data.user_info.country,
+                  })
+                )[0] ?? {
+                  value: {
+                    volume: [],
+                    weight: [],
+                    selectCalc: 'volume',
+                  },
+                }
+              ).value
             : (
-              (
-                await Private_config.getConfig({
-                  appName: this.app,
-                  key: 'glitter_shipment_' + data.user_info.shipment,
-                })
-              )[0] ?? {
-                value: {
-                  volume: [],
-                  weight: [],
-                  selectCalc: 'def',
-                },
-              }
-            ).value;
+                (
+                  await Private_config.getConfig({
+                    appName: this.app,
+                    key: 'glitter_shipment_' + data.user_info.shipment,
+                  })
+                )[0] ?? {
+                  value: {
+                    volume: [],
+                    weight: [],
+                    selectCalc: 'def',
+                  },
+                }
+              ).value;
 
         if (refer.selectCalc !== 'def') {
           def = refer;
@@ -1726,16 +1732,16 @@ export class Shopping {
       // 確保自訂配送表單的配置
       shipment_setting.custom_delivery = shipment_setting.custom_delivery
         ? await Promise.all(
-          shipment_setting.custom_delivery.map(async (form: any) => {
-            const config = await new User(this.app).getConfigV2({
-              user_id: 'manager',
-              key: `form_delivery_${form.id}`,
-            });
+            shipment_setting.custom_delivery.map(async (form: any) => {
+              const config = await new User(this.app).getConfigV2({
+                user_id: 'manager',
+                key: `form_delivery_${form.id}`,
+              });
 
-            form.form = config.list || [];
-            return form;
-          })
-        ).then(dataArray => dataArray)
+              form.form = config.list || [];
+              return form;
+            })
+          ).then(dataArray => dataArray)
         : [];
 
       // 確保 support 是一個陣列
@@ -1948,7 +1954,7 @@ export class Shopping {
 
                 // Update total price if not manual or giveaway
                 // 要將sale_price修改成scheduled裡的price
-                if(checkOutType == 'group_buy'){
+                if (checkOutType == 'group_buy') {
                   if (!scheduledData) {
                     // 如果之前沒查詢過，才執行查詢 不這樣寫的話 -> 再按自動縮排時會自己打開
                     const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
@@ -1975,7 +1981,7 @@ export class Shopping {
                       }
                     }
                   }
-                }else if (type !== 'manual') {
+                } else if (type !== 'manual') {
                   if (content.productType.giveaway) {
                     variant.sale_price = 0;
                   } else {
@@ -2046,7 +2052,7 @@ export class Shopping {
                               }
                             }
                           }
-                        }else {
+                        } else {
                           if (content.shopee_id) {
                             await new Shopee(this.app, this.token).asyncStockToShopee({
                               product: getProductData,
@@ -2080,7 +2086,6 @@ export class Shopping {
                           );
                         }
                         // 如果有 shopee_id，則同步庫存至蝦皮（Todo: 需要新增是否同步的選項）
-
 
                         resolve(true);
                       } catch (error) {
@@ -2188,8 +2193,8 @@ export class Shopping {
       checkPoint('set carData');
 
       if (userData && userData.account) {
-        const data = await rebateClass.getOneRebate({ user_id: userData.userID });
-        carData.user_rebate_sum = data?.point || 0;
+        const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
+        carData.user_rebate_sum = userRebate?.point || 0;
       }
 
       // 判斷是否有分銷連結
@@ -2294,7 +2299,7 @@ export class Shopping {
         appName: this.app,
         key: 'glitter_finance',
       });
-      const keyData: paymentInterface = configData[0]?.value;
+      const keyData: any = configData[0]?.value;
       if (keyData) {
         (carData as any).payment_info_custom = keyData.payment_info_custom;
       }
@@ -2302,7 +2307,7 @@ export class Shopping {
       await new Promise<void>(resolve => {
         let n = 0;
         (carData as any).payment_customer_form = (carData as any).payment_customer_form ?? [];
-        keyData.payment_info_custom.map((item, index) => {
+        keyData.payment_info_custom.map((item: any, index: number) => {
           userClass
             .getConfigV2({
               user_id: 'manager',
@@ -2342,22 +2347,30 @@ export class Shopping {
           }
         });
 
+      // 線下付款
       (keyData as any).cash_on_delivery = (keyData as any).cash_on_delivery ?? { support: [] };
-      const is_support_cash = (keyData as any).cash_on_delivery.support.find((item: any, index: number) => {
-        return carData.shipment_selector.find(dd => {
-          return dd.value === item;
-        });
-      });
       (carData as any).off_line_support = keyData.off_line_support;
       (carData as any).payment_info_line_pay = keyData.payment_info_line_pay;
       (carData as any).payment_info_atm = keyData.payment_info_atm;
 
-      // 當未找到支援的貨到付款選項把貨到付款功能關掉
-      if (!is_support_cash) {
-        (carData as any).off_line_support.cash_on_delivery = false;
-      } else {
-        (carData as any).cash_on_delivery_support = (keyData as any).cash_on_delivery.support;
-      }
+      const defaultPayArray = onlinePayArray.map(item => item.key);
+
+      // 透過特定金流，取得指定物流
+      carData.shipmentSupport = checkoutPayment
+        ? ((() => {
+            if (defaultPayArray.includes(checkoutPayment) || checkoutPayment === 'cash_on_delivery') {
+              return keyData[checkoutPayment];
+            } else if (checkoutPayment === 'atm') {
+              return keyData.payment_info_atm;
+            } else if (checkoutPayment === 'line') {
+              return keyData.payment_info_line_pay;
+            } else {
+              // 自訂線下付款
+              const customPay = keyData.payment_info_custom.find((c: { id: string }) => c.id === checkoutPayment);
+              return customPay ?? {};
+            }
+          })().shipmentSupport ?? [])
+        : [];
 
       // 防止帶入購物金時，總計小於0
       let subtotal = 0;
@@ -3772,8 +3785,6 @@ export class Shopping {
 
       if (query.id_list) {
         const id_list = [-99, ...query.id_list.split(',')].join(',');
-        console.log('id_list');
-        console.log(id_list);
         switch (query.searchType) {
           case 'cart_token':
             querySql.push(`(cart_token IN (${id_list}))`);
@@ -4470,10 +4481,10 @@ export class Shopping {
     const sql =
       spec.length > 0
         ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${spec
-          .map((data: string) => {
-            return `\"${data}\"`;
-          })
-          .join(',')}));`
+            .map((data: string) => {
+              return `\"${data}\"`;
+            })
+            .join(',')}));`
         : '';
 
     try {
@@ -5003,9 +5014,13 @@ export class Shopping {
   }
 
   async updateCollectionFromUpdateProduct(collection: string[]) {
-    collection=Array.from(new Set(collection.map((dd)=>{
-      return dd.replace(/\s*\/\s*/g,'/');
-    })));
+    collection = Array.from(
+      new Set(
+        collection.map(dd => {
+          return dd.replace(/\s*\/\s*/g, '/');
+        })
+      )
+    );
     //有新類別要處理
     let config =
       (
@@ -5414,25 +5429,25 @@ export class Shopping {
       query.id && querySql.push(`(v.id = ${query.id})`);
       query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
       query.collection &&
-      querySql.push(
-        `(${query.collection
-          .split(',')
-          .map(dd => {
-            return query.accurate_search_collection
-              ? `
+        querySql.push(
+          `(${query.collection
+            .split(',')
+            .map(dd => {
+              return query.accurate_search_collection
+                ? `
                         v.product_id in (select p.id
                                             from \`${this.app}\`.t_manager_post as p where (JSON_CONTAINS(p.content->'$.collection', '"${dd}"')))
                         
                         `
-              : `
+                : `
                          v.product_id in (select p.id
                                             from \`${this.app}\`.t_manager_post as p where (JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%'))
                         `;
-          })
-          .join(' or ')})`
-      );
+            })
+            .join(' or ')})`
+        );
       query.status &&
-      querySql.push(`
+        querySql.push(`
              v.product_id in (select p.id
                                             from \`${this.app}\`.t_manager_post as p where (JSON_EXTRACT(p.content, '$.status') = '${query.status}'))
             `);

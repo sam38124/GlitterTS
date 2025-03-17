@@ -3477,12 +3477,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 loading: false,
             };
             return html ` <div
-        class="bg-white shadow rounded-3"
-        style="overflow-y: auto; ${document.body.clientWidth > 768
+          class="bg-white shadow rounded-3"
+          style="overflow-y: auto; ${document.body.clientWidth > 768
                 ? `width: ${(_a = obj.width) !== null && _a !== void 0 ? _a : 600}px;max-width:calc(100vw - 20px);`
                 : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
-      >
-        ${gvc.bindView({
+        >
+          ${gvc.bindView({
                 bind: vm.id,
                 view: () => {
                     var _a, _b, _c;
@@ -3491,39 +3491,39 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         return html ` <div class="my-4">${this.spinner()}</div>`;
                     }
                     return html ` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
-              <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                <div class="tx_700">${(_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表'}</div>
-                <div class="flex-fill"></div>
-                <i
-                  class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
-                  onclick="${gvc.event(() => {
+                <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                  <div class="tx_700">${(_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表'}</div>
+                  <div class="flex-fill"></div>
+                  <i
+                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                    onclick="${gvc.event(() => {
                         if (obj.closeCallback) {
                             obj.closeCallback();
                         }
                         gvc.closeDialog();
                     })}"
-                ></i>
-              </div>
-              <div class="c_dialog">
-                <div class="c_dialog_body">
-                  <div
-                    class="c_dialog_main"
-                    style="${obj.d_main_style || ''};gap: 24px; ${obj.height
+                  ></i>
+                </div>
+                <div class="c_dialog">
+                  <div class="c_dialog_body">
+                    <div
+                      class="c_dialog_main"
+                      style="${obj.d_main_style || ''};gap: 24px; ${obj.height
                         ? `height:${obj.height}px;max-height: 100vh;`
                         : `height:auto;max-height: 500px;`} "
-                  >
-                    ${(_c = obj.innerHTML(gvc)) !== null && _c !== void 0 ? _c : ''}
+                    >
+                      ${(_c = obj.innerHTML(gvc)) !== null && _c !== void 0 ? _c : ''}
+                    </div>
+                    ${footer ? `<div class="c_dialog_bar">${footer}</div>` : ``}
                   </div>
-                  ${footer ? `<div class="c_dialog_bar">${footer}</div>` : ``}
                 </div>
-              </div>
-            </div>`;
+              </div>`;
                 },
                 onCreate: () => { },
             })}
-      </div>`;
+        </div>`;
         }, obj.gvc.glitter.getUUID(), {
-            animation: Animation.fade
+            animation: Animation.fade,
         });
     }
     static dialog(obj) {
@@ -3858,7 +3858,14 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 divCreate: {
                     class: 'h-100',
                 },
-                onCreate: () => { },
+                onCreate: () => {
+                    if (vm.loading) {
+                        setTimeout(() => {
+                            vm.loading = false;
+                            gvc.notifyDataChange(vm.id);
+                        }, 300);
+                    }
+                },
             })}
       </div>`;
         }, obj.gvc.glitter.getUUID());

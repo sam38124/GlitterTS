@@ -215,7 +215,7 @@ export class BgWidget {
     </button>`;
   }
 
-  static grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string,class?:string }) {
+  static grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string; class?: string }) {
     return html` <button class="btn btn-gray ${obj?.class || ''}" style="" type="button" onclick="${event}">
       <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
       ${text.length > 0 ? html`<span class="tx_700" style="${obj?.textStyle ?? ''}">${text}</span>` : ''}
@@ -4128,59 +4128,63 @@ ${obj.default ?? ''}</textarea
       }
       return glitter;
     })();
-    return (glitter as any).innerDialog((gvc: GVC) => {
-      const vm = {
-        id: obj.gvc.glitter.getUUID(),
-        loading: false,
-      };
-      return html` <div
-        class="bg-white shadow rounded-3"
-        style="overflow-y: auto; ${document.body.clientWidth > 768
-          ? `width: ${obj.width ?? 600}px;max-width:calc(100vw - 20px);`
-          : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
-      >
-        ${gvc.bindView({
-          bind: vm.id,
-          view: () => {
-            const footer = obj.footer_html(gvc) ?? '';
-            if (vm.loading) {
-              return html` <div class="my-4">${this.spinner()}</div>`;
-            }
-            return html` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
-              <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                <div class="tx_700">${obj.title ?? '產品列表'}</div>
-                <div class="flex-fill"></div>
-                <i
-                  class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
-                  onclick="${gvc.event(() => {
-                    if (obj.closeCallback) {
-                      obj.closeCallback();
-                    }
-                    gvc.closeDialog();
-                  })}"
-                ></i>
-              </div>
-              <div class="c_dialog">
-                <div class="c_dialog_body">
-                  <div
-                    class="c_dialog_main"
-                    style="${obj.d_main_style || ''};gap: 24px; ${obj.height
-                      ? `height:${obj.height}px;max-height: 100vh;`
-                      : `height:auto;max-height: 500px;`} "
-                  >
-                    ${obj.innerHTML(gvc) ?? ''}
-                  </div>
-                  ${footer ? `<div class="c_dialog_bar">${footer}</div>` : ``}
+    return (glitter as any).innerDialog(
+      (gvc: GVC) => {
+        const vm = {
+          id: obj.gvc.glitter.getUUID(),
+          loading: false,
+        };
+        return html` <div
+          class="bg-white shadow rounded-3"
+          style="overflow-y: auto; ${document.body.clientWidth > 768
+            ? `width: ${obj.width ?? 600}px;max-width:calc(100vw - 20px);`
+            : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
+        >
+          ${gvc.bindView({
+            bind: vm.id,
+            view: () => {
+              const footer = obj.footer_html(gvc) ?? '';
+              if (vm.loading) {
+                return html` <div class="my-4">${this.spinner()}</div>`;
+              }
+              return html` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
+                <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                  <div class="tx_700">${obj.title ?? '產品列表'}</div>
+                  <div class="flex-fill"></div>
+                  <i
+                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                    onclick="${gvc.event(() => {
+                      if (obj.closeCallback) {
+                        obj.closeCallback();
+                      }
+                      gvc.closeDialog();
+                    })}"
+                  ></i>
                 </div>
-              </div>
-            </div>`;
-          },
-          onCreate: () => {},
-        })}
-      </div>`;
-    }, obj.gvc.glitter.getUUID(),{
-      animation:Animation.fade
-    });
+                <div class="c_dialog">
+                  <div class="c_dialog_body">
+                    <div
+                      class="c_dialog_main"
+                      style="${obj.d_main_style || ''};gap: 24px; ${obj.height
+                        ? `height:${obj.height}px;max-height: 100vh;`
+                        : `height:auto;max-height: 500px;`} "
+                    >
+                      ${obj.innerHTML(gvc) ?? ''}
+                    </div>
+                    ${footer ? `<div class="c_dialog_bar">${footer}</div>` : ``}
+                  </div>
+                </div>
+              </div>`;
+            },
+            onCreate: () => {},
+          })}
+        </div>`;
+      },
+      obj.gvc.glitter.getUUID(),
+      {
+        animation: Animation.fade,
+      }
+    );
   }
 
   static dialog(obj: {
@@ -4581,7 +4585,14 @@ ${obj.default ?? ''}</textarea
           divCreate: {
             class: 'h-100',
           },
-          onCreate: () => {},
+          onCreate: () => {
+            if (vm.loading) {
+              setTimeout(() => {
+                vm.loading = false;
+                gvc.notifyDataChange(vm.id);
+              }, 300);
+            }
+          },
         })}
       </div>`;
     }, obj.gvc.glitter.getUUID());
@@ -5203,8 +5214,8 @@ ${obj.default ?? ''}</textarea
                   FormCheck.initialRecipientForm(form_formats[b.key].list);
                 } else if (b.key === 'customer_form_user_setting') {
                   FormCheck.initialUserForm(form_formats[b.key].list);
-                }else if(b.key.includes('form_delivery_')){
-                  FormCheck.initial_shipment_form(form_formats[b.key].list)
+                } else if (b.key.includes('form_delivery_')) {
+                  FormCheck.initial_shipment_form(form_formats[b.key].list);
                 }
                 form_formats[b.key].list.map((dd: any) => {
                   dd.toggle = false;
