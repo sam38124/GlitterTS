@@ -32,7 +32,7 @@ class Reconciliation {
         })();
         (await database_1.default.query(`select total, total_received, offset_amount
          from \`${this.app_name}\`.t_checkout
-         WHERE ${dayOffset}
+         WHERE ((status in (1,-2)) or ((payment_method='cash_on_delivery' and progress='finish') )) and (${dayOffset})
         `, [])).map((item) => {
             if (item.total) {
                 result.total += item.total;

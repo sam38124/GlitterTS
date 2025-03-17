@@ -132,7 +132,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? createClock();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_18.9.6';
+        glitter.share.editerVersion = 'V_18.9.9';
         glitter.share.start = new Date();
         const vm = { appConfig: [] };
         (window as any).saasConfig = {
@@ -361,7 +361,7 @@ export class Entry {
                         'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
                         'assets/vendor/swiper/swiper-bundle.min.js',
                         'assets/js/theme.min.js',
-                        '${ gvc.glitter.root_path}/jslib/lottie-player.js',
+                        `${ glitter.root_path}/jslib/lottie-player.js`,
                     ],
                     () => resolve(true),
                     () => resolve(true),

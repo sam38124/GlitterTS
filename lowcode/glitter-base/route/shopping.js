@@ -442,6 +442,7 @@ export class ApiShop {
     static orderListFilterString(obj) {
         if (!obj)
             return [];
+        console.log(`obj===>`, obj);
         let list = [];
         if (obj) {
             if (obj.created_time &&
@@ -449,6 +450,9 @@ export class ApiShop {
                 (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 &&
                 (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
+            }
+            if (obj.reconciliation_status) {
+                list.push(`reconciliation_status=${obj.reconciliation_status.join(',')}`);
             }
             if (obj.shipment_time &&
                 obj.shipment_time.length > 1 &&
@@ -548,6 +552,7 @@ export class ApiShop {
                     json.distribution_code && par.push(`distribution_code=${json.distribution_code}`);
                     json.returnSearch && par.push(`returnSearch=${(_a = json.returnSearch) !== null && _a !== void 0 ? _a : 'false'}`);
                     json.is_shipment && par.push(`is_shipment=${json.is_shipment}`);
+                    json.is_reconciliation && par.push(`is_reconciliation=${json.is_reconciliation}`);
                     if (json.is_pos === true || json.is_pos === false) {
                         par.push(`is_pos=${json.is_pos}`);
                     }

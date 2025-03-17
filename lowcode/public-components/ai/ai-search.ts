@@ -29,7 +29,7 @@ export class AiSearch {
 
         const glitter = gvc.glitter;
         glitter.addMtScript(
-            ['${ gvc.glitter.root_path}/jslib/lottie-player.js'],
+            [`${gvc.glitter.root_path}/jslib/lottie-player.js`],
             () => {},
             () => {}
         );

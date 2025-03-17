@@ -2782,13 +2782,39 @@ class Shopping {
                         break;
                 }
             }
+            if (query.reconciliation_status) {
+                let search = [];
+                query.reconciliation_status.map((status) => {
+                    if (status === 'pending_entry') {
+                        search.push(`total_received is NULL`);
+                    }
+                    else if (status === 'completed_entry') {
+                        search.push(`total_received = total`);
+                    }
+                    else if (status === 'refunded') {
+                        search.push(`(total_received > total) && ((total_received + offset_amount) = total)`);
+                    }
+                    else if (status === 'completed_offset') {
+                        search.push(`(total_received < total) && ((total_received + offset_amount) = total)`);
+                    }
+                    else if (status === 'pending_offset') {
+                        search.push(`(total_received < total)  &&  (offset_amount is null)`);
+                    }
+                    else if (status === 'pending_refund') {
+                        search.push(`(total_received > total)   &&  (offset_amount is null)`);
+                    }
+                });
+                querySql.push(`(${search.map((dd) => {
+                    return `(${dd})`;
+                }).join(' or ')})`);
+            }
             if (query.orderStatus) {
                 let orderArray = query.orderStatus.split(',');
                 let temp = '';
                 if (orderArray.includes('0')) {
-                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IS NULL OR ";
+                    temp += "order_status IS NULL OR ";
                 }
-                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IN (${query.orderStatus})`;
+                temp += `order_status IN (${query.orderStatus})`;
                 querySql.push(`(${temp})`);
             }
             if (query.valid) {
@@ -2796,10 +2822,13 @@ class Shopping {
                 querySql.push(countingSQL);
             }
             if (query.is_shipment) {
-                querySql.push(`(orderData->>'$.user_info.shipment_number' IS NOT NULL) and (orderData->>'$.user_info.shipment_number' != '')`);
+                querySql.push(`(shipment_number IS NOT NULL) and (shipment_number != '')`);
+            }
+            if (query.is_reconciliation) {
+                querySql.push(`((status in (1,-2)) or ((payment_method='cash_on_delivery' and progress='finish') ))`);
             }
             if (query.payment_select) {
-                querySql.push(`(orderData->>'$.customer_info.payment_select') in (${query.payment_select
+                querySql.push(`payment_method in (${query.payment_select
                     .split(',')
                     .map(d => `'${d}'`)
                     .join(',')})`);
@@ -2815,9 +2844,9 @@ class Shopping {
                 let newArray = query.progress.split(',');
                 let temp = '';
                 if (newArray.includes('wait')) {
-                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IS NULL OR ";
+                    temp += "progress IS NULL OR ";
                 }
-                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IN (${newArray.map(status => `"${status}"`).join(',')})`;
+                temp += `progress IN (${newArray.map(status => `"${status}"`).join(',')})`;
                 querySql.push(`(${temp})`);
             }
             if (query.distribution_code) {

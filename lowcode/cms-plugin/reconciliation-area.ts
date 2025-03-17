@@ -19,6 +19,7 @@ import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 import { POSSetting } from './POS-setting.js';
 import { PosFunction } from './pos-pages/pos-function.js';
 import { GlobalUser } from '../glitter-base/global/global-user.js';
+import { OrderInfo } from '../public-models/order-info.js';
 
 const html = String.raw;
 
@@ -98,6 +99,7 @@ export class ReconciliationArea {
       end_date: string;
       loading: boolean;
       view_type:'order' | 'list'
+      checkedData:any;
       order_id: string;
       summary: {
         total: number;
@@ -114,6 +116,7 @@ export class ReconciliationArea {
       end_date: '',
       loading: true,
       view_type:'list',
+      checkedData:[],
       order_id:'',
       summary: {
         total: 0,
@@ -124,6 +127,26 @@ export class ReconciliationArea {
         short_total_amount: 0,
         over_total_amount: 0,
       },
+    };
+    const vm: ViewModel = {
+      id: gvc.glitter.getUUID(),
+      loading: true,
+      type: 'list',
+      data: {},
+      invoiceData: {},
+      dataList: undefined,
+      query: '',
+      queryType: '',
+      orderData: undefined,
+      orderString: '',
+      distributionData: {},
+      filter_type: 'normal',
+      filter: {},
+      filterId: gvc.glitter.getUUID(),
+      return_order: false,
+      apiJSON: {},
+      checkedData: [],
+      headerConfig: [],
     };
     return gvc.bindView(() => {
       const id = gvc.glitter.getUUID();
@@ -153,22 +176,32 @@ export class ReconciliationArea {
           }else{
             return BgWidget.container(
               [
-                html` <div class="title-container">
+                html` <div class="title-container mb-2">
                 ${BgWidget.title(`對帳專區`)}
                 <div class="flex-fill"></div>
-                <div class="d-none" style="gap: 14px;">
+                <div class="d-flex" style="gap: 14px;">
                   ${[
                   BgWidget.grayButton(
                     '匯出',
-                    gvc.event(() => {})
+                    gvc.event(() => {
+                      OrderExcel.exportDialog(gvc, vm.apiJSON, vm_o.checkedData);
+                    })
                   ),
                   BgWidget.grayButton(
                     '匯入',
-                    gvc.event(() => {})
+                    gvc.event(() => {
+                      OrderExcel.importDialog(gvc,{is_reconciliation:true},()=>{
+                        loadData();
+                      })
+                    })
                   ),
                 ].join('')}
                 </div>
-              </div>`,
+              </div>
+              <div class="px-3 px-lg-0">
+                ${BgWidget.warningInsignia(`對帳單的數據來源為已付款、已退款或已取貨的訂單。`)}
+              </div>
+                `,
                 BgWidget.card(
                   gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
@@ -343,28 +376,6 @@ export class ReconciliationArea {
               </div>`,
                 (() => {
                   const glitter = gvc.glitter;
-                  const dialog = new ShareDialog(gvc.glitter);
-
-                  const vm: ViewModel = {
-                    id: glitter.getUUID(),
-                    loading: true,
-                    type: 'list',
-                    data: {},
-                    invoiceData: {},
-                    dataList: undefined,
-                    query: '',
-                    queryType: '',
-                    orderData: undefined,
-                    orderString: '',
-                    distributionData: {},
-                    filter_type: 'normal',
-                    filter: {},
-                    filterId: glitter.getUUID(),
-                    return_order: false,
-                    apiJSON: {},
-                    checkedData: [],
-                    headerConfig: [],
-                  };
                   const ListComp = new BgListComponent(gvc, vm, FilterOptions.orderFilterFrame);
                   vm.filter = ListComp.getFilterObject();
 
@@ -390,6 +401,7 @@ export class ReconciliationArea {
                     date.setDate(date.getDate() - [7, 30, 365][['week', '1m', 'year'].indexOf(vm_o.filter_date)]);
                     return date.toISOString();
                   })();
+
                   let end_time = (() => {
                     if (vm_o.filter_date === 'custom') {
                       return new Date(vm_o.end_date).toISOString();
@@ -410,7 +422,7 @@ export class ReconciliationArea {
                             return gvc.bindView({
                               bind: id,
                               view: async () => {
-                                const orderFunnel = await FilterOptions.getOrderFunnel();
+                                const orderFunnel = await FilterOptions.getReconciliationFunnel();
 
                                 const filterList = [
                                   BgWidget.selectFilter({
@@ -446,8 +458,7 @@ export class ReconciliationArea {
                                     options: FilterOptions.orderOrderBy,
                                   }),
                                 ];
-
-                                const filterTags = ListComp.getFilterTags(await FilterOptions.getOrderFunnel());
+                                const filterTags = ListComp.getFilterTags(await FilterOptions.getReconciliationFunnel());
                                 return BgListComponent.listBarRWD(filterList, filterTags);
                               },
                             });
@@ -465,10 +476,12 @@ export class ReconciliationArea {
                                 searchType: vm.queryType || 'cart_token',
                                 orderString: vm.orderString,
                                 filter: {
+                                  ...vm.filter,
                                   created_time: [created_time, end_time],
                                 },
                                 is_pos: vm.filter_type === 'pos',
-                                status: '1,-2',
+                                is_reconciliation: true,
+
                               };
 
                               ApiShop.getOrder(vm.apiJSON).then(async data => {
@@ -516,7 +529,7 @@ export class ReconciliationArea {
                                         key: '付款方式',
                                         value:
                                           support.find(d1 => {
-                                            return dd.key === dd.orderData.method;
+                                            return d1.key === dd.payment_method;
                                           })?.name || '線下付款',
                                       },
                                       {
@@ -549,45 +562,11 @@ export class ReconciliationArea {
                                       },
                                       {
                                         key: '付款狀態',
-                                        value: (() => {
-                                          switch (dd.status) {
-                                            case 0:
-                                              if (dd.orderData.proof_purchase) {
-                                                return BgWidget.warningInsignia('待核款');
-                                              }
-                                              if (dd.orderData.customer_info.payment_select == 'cash_on_delivery') {
-                                                return BgWidget.warningInsignia('貨到付款');
-                                              }
-                                              return BgWidget.notifyInsignia('未付款');
-                                            case 3:
-                                              return BgWidget.warningInsignia('部分付款');
-                                            case 1:
-                                              return BgWidget.infoInsignia('已付款');
-                                            case -1:
-                                              return BgWidget.notifyInsignia('付款失敗');
-                                            case -2:
-                                              return BgWidget.notifyInsignia('已退款');
-                                          }
-                                        })(),
+                                        value: OrderInfo.paymentStatus(dd),
                                       },
                                       {
                                         key: '對帳狀態',
-                                        value: (() => {
-                                          const received_c = (dd.total_received ?? 0) + dd.offset_amount;
-                                          if (dd.total_received === null || dd.total_received === undefined) {
-                                            return BgWidget.warningInsignia('待入帳');
-                                          } else if (dd.total_received === dd.total) {
-                                            return BgWidget.successInsignia('已入帳');
-                                          } else if (dd.total_received > dd.total && received_c === dd.total) {
-                                            return BgWidget.secondaryInsignia('已退款');
-                                          } else if (dd.total_received < dd.total && received_c === dd.total) {
-                                            return BgWidget.primaryInsignia('已沖帳');
-                                          } else if (received_c < dd.total) {
-                                            return BgWidget.dangerInsignia('待沖帳');
-                                          } else if (received_c > dd.total) {
-                                            return BgWidget.dangerInsignia('待退款');
-                                          }
-                                        })(),
+                                        value: OrderInfo.reconciliationStatus(dd),
                                       },
                                       {
                                         key: '沖帳原因',
@@ -892,7 +871,7 @@ ${[
                                 BgWidget.settingDialog({
                                   gvc: gvc,
                                   d_main_style: 'padding-left:0px;padding-right:0px;',
-                                  title: '清點金額',
+                                  title: '清點入帳金額',
                                   innerHTML: gvc => {
                                     return `<div class="mt-n2">
 ${[
@@ -921,7 +900,7 @@ ${[
                                     <div class=" " style="">實收金額</div>
                                     <div class="text-black fw-500 fs-6 ">
                                       ${BgWidget.grayNote(
-                                        '請確實填寫沖帳金額，若留白自動填0，點擊下一步將無法修改金額'
+                                        '請確實填寫入帳金額，點擊下一步將無法修改金額'
                                       )}
                                     </div>
                                     ${BgWidget.editeInput({
@@ -986,7 +965,7 @@ ${[
                             },
                             filter: [],
                             filterCallback: (dataArray: any) => {
-                              vm.checkedData = dataArray;
+                              vm_o.checkedData = dataArray;
                             },
                           }),
                         ].join('')

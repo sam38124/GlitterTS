@@ -283,7 +283,9 @@ router.get('/order', async (req, resp) => {
                 valid: req.query.valid === 'true',
                 shipment_time: req.query.shipment_time,
                 is_shipment: req.query.is_shipment === 'true',
+                is_reconciliation: req.query.is_reconciliation === 'true',
                 payment_select: req.query.payment_select,
+                reconciliation_status: (req.query.reconciliation_status) && req.query.reconciliation_status.split(',')
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {

@@ -138,6 +138,7 @@ export class FilterOptions {
 
   static orderFilterFrame = {
     orderStatus: [],
+    reconciliation_status:[],
     payload: [],
     progress: [],
     payment_select:[],
@@ -173,6 +174,16 @@ export class FilterOptions {
     { key: '0', name: '處理中' },
     { key: '-1', name: '已取消' },
   ];
+
+  static reconciliationOptions = [
+    { key: 'pending_entry', name: '待入帳' },     // 待入帳 (Pending Entry)
+    { key: 'completed_entry', name: '已入帳' },   // 已入帳 (Completed Entry)
+    { key: 'refunded', name: '已退款' },          // 已退款 (Refunded)
+    { key: 'completed_offset', name: '已沖帳' },  // 已沖帳 (Completed Offset)
+    { key: 'pending_offset', name: '待沖帳' },    // 待沖帳 (Pending Offset)
+    { key: 'pending_refund', name: '待退款' }     // 待退款 (Pending Refund)
+  ]
+  ;
 
   static payloadStatusOptions = [
     { key: '1', name: '已付款' },
@@ -222,6 +233,7 @@ export class FilterOptions {
     return [
       { key: 'orderStatus', type: 'multi_checkbox', name: '訂單狀態', data: this.orderStatusOptions },
       { key: 'payload', type: 'multi_checkbox', name: '付款狀態', data: this.payloadStatusOptions },
+      { key: 'reconciliation_status', type: 'multi_checkbox', name: '對帳狀態', data: this.reconciliationOptions },
       { key: 'payment_select', type: 'multi_checkbox', name: '付款方式', data:( await  PaymentConfig.getSupportPayment()).map((dd)=>{
         if(dd.type==='pos' && !(dd.name.includes('POS'))){
           const name=dd.name;
@@ -243,6 +255,60 @@ dd.name=`<div class="d-flex">${[BgWidget.warningInsignia('POS'),name].join(`<div
           ],
         },
       },
+      {
+        key: 'shipment_time',
+        type: 'during',
+        name: '出貨日期',
+        data: {
+          centerText: '至',
+          list: [
+            { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
+            { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
+          ],
+        },
+      },
+    ];
+  }
+
+  static async getReconciliationFunnel() {
+    const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
+    const response: { response: any; result: boolean } = await saasConfig.api.getPrivateConfig(
+      saasConfig.config.appName,
+      'logistics_setting'
+    );
+
+    let configData: any = response.response.result[0]?.value || {};
+    if (!configData.language_data) {
+      configData.language_data = {
+        'en-US': { info: '' },
+        'zh-CN': { info: '' },
+        'zh-TW': { info: configData.info || '' },
+      };
+    }
+
+    const shipmentOptions = ShipmentConfig.list
+      .map(dd => {
+        return { key: dd.value, name: dd.title };
+      })
+      .concat(
+        (configData.custom_delivery ?? []).map((dd: any) => {
+          return { key: dd.id, name: dd.name };
+        })
+      );
+
+
+    return [
+      { key: 'orderStatus', type: 'multi_checkbox', name: '訂單狀態', data: this.orderStatusOptions },
+      { key: 'reconciliation_status', type: 'multi_checkbox', name: '對帳狀態', data: this.reconciliationOptions },
+      { key: 'payment_select', type: 'multi_checkbox', name: '付款方式', data:( await  PaymentConfig.getSupportPayment()).map((dd)=>{
+          if(dd.type==='pos' && !(dd.name.includes('POS'))){
+            const name=dd.name;
+            dd.name=`<div class="d-flex">${[BgWidget.warningInsignia('POS'),name].join(`<div class="mx-1"></div>`)}</div>`
+          }
+          return dd
+        }) },
+      { key: 'progress', type: 'multi_checkbox', name: '出貨狀況', data: this.progressOptions },
+      { key: 'shipment', type: 'multi_checkbox', name: '運送方式', data: shipmentOptions },
       {
         key: 'shipment_time',
         type: 'during',

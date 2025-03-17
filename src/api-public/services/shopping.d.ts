@@ -420,6 +420,8 @@ export declare class Shopping {
         valid?: boolean;
         is_shipment?: boolean;
         payment_select?: string;
+        is_reconciliation?: boolean;
+        reconciliation_status?: string[];
     }): Promise<any>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
     shareVoucherRebate(cartData: any): Promise<void>;

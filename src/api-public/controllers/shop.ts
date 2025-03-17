@@ -330,7 +330,9 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
           valid: req.query.valid === 'true',
           shipment_time: req.query.shipment_time as string,
           is_shipment: req.query.is_shipment === 'true',
+          is_reconciliation:req.query.is_reconciliation === 'true',
           payment_select: req.query.payment_select as string,
+          reconciliation_status:(req.query.reconciliation_status) && (req.query.reconciliation_status as string).split(',') as any
         })
       );
     } else if (await UtPermission.isAppUser(req)) {
