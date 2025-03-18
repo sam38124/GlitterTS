@@ -889,24 +889,24 @@ class Shopping {
     }
     async getShippingMethod() {
         var _a;
-        const shipment_setting = await new Promise(async (resolve, reject) => {
-            var _a;
+        const shipment_setting = await (async () => {
             try {
-                resolve(((_a = (await private_config_js_1.Private_config.getConfig({
+                const config = await private_config_js_1.Private_config.getConfig({
                     appName: this.app,
                     key: 'logistics_setting',
-                }))) !== null && _a !== void 0 ? _a : [
-                    {
-                        value: {
-                            support: [],
-                        },
-                    },
-                ])[0].value);
+                });
+                if (!config) {
+                    return {
+                        support: [],
+                        shipmentSupport: [],
+                    };
+                }
+                return config[0].value;
             }
             catch (e) {
-                resolve([]);
+                return [];
             }
-        });
+        })();
         return [
             {
                 name: '中華郵政',
@@ -1163,24 +1163,24 @@ class Shopping {
                 }
                 return def;
             })();
-            const shipment_setting = await new Promise(async (resolve, reject) => {
-                var _a;
+            const shipment_setting = await (async () => {
                 try {
-                    resolve(((_a = (await private_config_js_1.Private_config.getConfig({
+                    const config = await private_config_js_1.Private_config.getConfig({
                         appName: this.app,
                         key: 'logistics_setting',
-                    }))) !== null && _a !== void 0 ? _a : [
-                        {
-                            value: {
-                                support: [],
-                            },
-                        },
-                    ])[0].value);
+                    });
+                    if (!config) {
+                        return {
+                            support: [],
+                            shipmentSupport: [],
+                        };
+                    }
+                    return config[0].value;
                 }
                 catch (e) {
-                    resolve([]);
+                    return [];
                 }
-            });
+            })();
             checkPoint('set shipment');
             shipment_setting.custom_delivery = shipment_setting.custom_delivery
                 ? await Promise.all(shipment_setting.custom_delivery.map(async (form) => {
@@ -2792,7 +2792,7 @@ class Shopping {
             }
             if (query.reconciliation_status) {
                 let search = [];
-                query.reconciliation_status.map((status) => {
+                query.reconciliation_status.map(status => {
                     if (status === 'pending_entry') {
                         search.push(`total_received is NULL`);
                     }
@@ -2812,15 +2812,17 @@ class Shopping {
                         search.push(`(total_received > total)   &&  (offset_amount is null)`);
                     }
                 });
-                querySql.push(`(${search.map((dd) => {
+                querySql.push(`(${search
+                    .map(dd => {
                     return `(${dd})`;
-                }).join(' or ')})`);
+                })
+                    .join(' or ')})`);
             }
             if (query.orderStatus) {
                 let orderArray = query.orderStatus.split(',');
                 let temp = '';
                 if (orderArray.includes('0')) {
-                    temp += "order_status IS NULL OR ";
+                    temp += 'order_status IS NULL OR ';
                 }
                 temp += `order_status IN (${query.orderStatus})`;
                 querySql.push(`(${temp})`);
@@ -2852,7 +2854,7 @@ class Shopping {
                 let newArray = query.progress.split(',');
                 let temp = '';
                 if (newArray.includes('wait')) {
-                    temp += "progress IS NULL OR ";
+                    temp += 'progress IS NULL OR ';
                 }
                 temp += `progress IN (${newArray.map(status => `"${status}"`).join(',')})`;
                 querySql.push(`(${temp})`);

@@ -106,7 +106,10 @@ export class ShoppingFinanceSetting {
                             const shipment = {
                                 key: 'shipment',
                                 title: '指定物流',
-                                html: ShoppingFinanceSetting.setShipmentSupport(gvc, custom_finance),
+                                html: gvc.bindView({
+                                    bind: gvc.glitter.getUUID(),
+                                    view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, custom_finance); }),
+                                }),
                             };
                             return ShoppingFinanceSetting.tabView(gvc, [setting, note, shipment]);
                         },
@@ -525,7 +528,10 @@ export class ShoppingFinanceSetting {
                                                     const shipment = {
                                                         key: 'shipment',
                                                         title: '指定物流',
-                                                        html: this.setShipmentSupport(gvc, key_d),
+                                                        html: gvc.bindView({
+                                                            bind: gvc.glitter.getUUID(),
+                                                            view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, key_d); }),
+                                                        }),
                                                     };
                                                     return ShoppingFinanceSetting.tabView(gvc, [setting, shipment]);
                                                 }
@@ -875,43 +881,79 @@ export class ShoppingFinanceSetting {
         });
     }
     static setShipmentSupport(gvc, data) {
-        const id = gvc.glitter.getUUID();
-        return html `<div class="w-100">
-      <div class="mx-0 mb-0 w-100">
-        ${BgWidget.normalInsignia('設定此金流支援的物流選項，當選擇該金流時，僅能選擇下方有開啟的物流配送方式')}
+        return __awaiter(this, void 0, void 0, function* () {
+            const id = gvc.glitter.getUUID();
+            const saasConfig = window.parent.saasConfig;
+            const logiData = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting');
+            const custom_delivery = (() => {
+                var _a, _b, _c;
+                try {
+                    return ((_c = (_b = (_a = logiData === null || logiData === void 0 ? void 0 : logiData.response) === null || _a === void 0 ? void 0 : _a.result[0]) === null || _b === void 0 ? void 0 : _b.value) === null || _c === void 0 ? void 0 : _c.custom_delivery) || [];
+                }
+                catch (error) {
+                    console.error(error);
+                    return [];
+                }
+            })();
+            const allDelivery = ShipmentConfig.list.concat(custom_delivery.map((dd) => {
+                return {
+                    title: Language.getLanguageCustomText(dd.name),
+                    value: dd.id,
+                    custom: true,
+                    type: 'font_awesome',
+                    src: html `<i class="fa-regular fa-puzzle-piece-simple fs-4"></i>`,
+                };
+            }));
+            return html `<div class="w-100">
+      <div class="d-flex align-items-center mt-2 gap-2">
+        ${BgWidget.customButton({
+                button: {
+                    color: 'snow',
+                    size: 'sm',
+                },
+                text: {
+                    name: '全部開啟',
+                },
+                event: gvc.event(() => {
+                    data.shipmentSupport = allDelivery.map(d => d.value);
+                    gvc.notifyDataChange(id);
+                }),
+            })}
+        ${BgWidget.customButton({
+                button: {
+                    color: 'snow',
+                    size: 'sm',
+                },
+                text: {
+                    name: '全部關閉',
+                },
+                event: gvc.event(() => {
+                    data.shipmentSupport = [];
+                    gvc.notifyDataChange(id);
+                }),
+            })}
+        ${BgWidget.questionButton(gvc.event(() => {
+                BgWidget.quesDialog({
+                    gvc,
+                    innerHTML: () => {
+                        return html `<div class="tx_normal text-wrap text-white">
+                  此設定將於顧客結帳頁面，選擇該金流後，限制選擇已開啟的物流配送選項
+                </div>`;
+                    },
+                });
+            }))}
       </div>
       ${gvc.bindView({
-            bind: id,
-            view: () => __awaiter(this, void 0, void 0, function* () {
-                try {
-                    if (!(data && Array.isArray(data.shipmentSupport))) {
-                        data.shipmentSupport = [];
-                    }
-                    const saasConfig = window.parent.saasConfig;
-                    const logiData = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting');
-                    const custom_delivery = (() => {
-                        var _a, _b, _c;
-                        try {
-                            return ((_c = (_b = (_a = logiData === null || logiData === void 0 ? void 0 : logiData.response) === null || _a === void 0 ? void 0 : _a.result[0]) === null || _b === void 0 ? void 0 : _b.value) === null || _c === void 0 ? void 0 : _c.custom_delivery) || [];
+                bind: id,
+                view: () => __awaiter(this, void 0, void 0, function* () {
+                    try {
+                        if (!(data && Array.isArray(data.shipmentSupport))) {
+                            data.shipmentSupport = [];
                         }
-                        catch (error) {
-                            console.error(error);
-                            return [];
-                        }
-                    })();
-                    return ShipmentConfig.list
-                        .concat(custom_delivery.map((dd) => {
-                        return {
-                            title: Language.getLanguageCustomText(dd.name),
-                            value: dd.id,
-                            custom: true,
-                            type: 'font_awesome',
-                            src: html `<i class="fa-regular fa-puzzle-piece-simple fs-4"></i>`,
-                        };
-                    }))
-                        .map(dd => {
-                        const trigger = data.shipmentSupport.find((d1) => dd.value === d1);
-                        return html `
+                        return allDelivery
+                            .map(dd => {
+                            const trigger = data.shipmentSupport.find((d1) => dd.value === d1);
+                            return html `
                   <div class="col-lg-6 col-12 p-0 p-md-2">
                     <div
                       class="w-100 position-relative main-card shadow"
@@ -934,14 +976,14 @@ export class ShoppingFinanceSetting {
                                 class="form-check-input"
                                 type="checkbox"
                                 onchange="${gvc.event(() => {
-                            if (trigger) {
-                                data.shipmentSupport = data.shipmentSupport.filter((d1) => dd.value !== d1);
-                            }
-                            else {
-                                data.shipmentSupport.push(dd.value);
-                            }
-                            gvc.notifyDataChange(id);
-                        })}"
+                                if (trigger) {
+                                    data.shipmentSupport = data.shipmentSupport.filter((d1) => dd.value !== d1);
+                                }
+                                else {
+                                    data.shipmentSupport.push(dd.value);
+                                }
+                                gvc.notifyDataChange(id);
+                            })}"
                                 ${trigger ? 'checked' : ''}
                               />
                             </div>
@@ -952,19 +994,20 @@ export class ShoppingFinanceSetting {
                   </div>
                   ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(8)}
                 `;
-                    })
-                        .join('');
-                }
-                catch (error) {
-                    console.error('cashSupport error' + error);
-                    return '支援物流選項發生錯誤';
-                }
-            }),
-            divCreate: {
-                class: 'row guide3-3 mt-3 px-1',
-            },
-        })}
+                        })
+                            .join('');
+                    }
+                    catch (error) {
+                        console.error('cashSupport error' + error);
+                        return '支援物流選項發生錯誤';
+                    }
+                }),
+                divCreate: {
+                    class: 'row guide3-3 mt-3 px-1',
+                },
+            })}
     </div>`;
+        });
     }
     static cashOnDelivery(gvc, keyData) {
         var _a;
@@ -972,7 +1015,10 @@ export class ShoppingFinanceSetting {
         const shipment = {
             key: 'shipment',
             title: '指定物流',
-            html: this.setShipmentSupport(gvc, keyData.cash_on_delivery),
+            html: gvc.bindView({
+                bind: gvc.glitter.getUUID(),
+                view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, keyData.cash_on_delivery); }),
+            }),
         };
         return shipment.html;
     }
@@ -1030,7 +1076,10 @@ export class ShoppingFinanceSetting {
         const shipment = {
             key: 'shipment',
             title: '指定物流',
-            html: this.setShipmentSupport(gvc, keyData.payment_info_line_pay),
+            html: gvc.bindView({
+                bind: gvc.glitter.getUUID(),
+                view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, keyData.payment_info_line_pay); }),
+            }),
         };
         return this.tabView(gvc, [cashflow, shipment]);
     }
@@ -1124,7 +1173,10 @@ export class ShoppingFinanceSetting {
         const shipment = {
             key: 'shipment',
             title: '指定物流',
-            html: this.setShipmentSupport(gvc, keyData.payment_info_atm),
+            html: gvc.bindView({
+                bind: gvc.glitter.getUUID(),
+                view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, keyData.payment_info_atm); }),
+            }),
         };
         return this.tabView(gvc, [cashflow, shipment]);
     }
@@ -1174,7 +1226,10 @@ export class ShoppingFinanceSetting {
         const shipment = {
             key: 'shipment',
             title: '指定物流',
-            html: this.setShipmentSupport(gvc, data),
+            html: gvc.bindView({
+                bind: gvc.glitter.getUUID(),
+                view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, data); }),
+            }),
         };
         return this.tabView(gvc, [cashflow, shipment]);
     }
@@ -1195,7 +1250,10 @@ export class ShoppingFinanceSetting {
         const shipment = {
             key: 'shipment',
             title: '指定物流',
-            html: this.setShipmentSupport(gvc, data),
+            html: gvc.bindView({
+                bind: gvc.glitter.getUUID(),
+                view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, data); }),
+            }),
         };
         return this.tabView(gvc, [cashflow, shipment]);
     }

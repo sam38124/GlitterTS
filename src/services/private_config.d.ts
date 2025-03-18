@@ -16,5 +16,5 @@ export declare class Private_config {
     }): Promise<any>;
     verifyPermission(appName: string): Promise<boolean>;
     constructor(token: IToken);
-    static checkConfigUpdate(keyData: any, key: string): void;
+    static checkConfigUpdate(appName: string, keyData: any, key: string): Promise<void>;
 }

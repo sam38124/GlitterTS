@@ -1292,24 +1292,29 @@ export class Shopping {
   }
 
   async getShippingMethod() {
-    const shipment_setting: any = await new Promise(async (resolve, reject) => {
+    const shipment_setting: any = await (async () => {
       try {
-        resolve(
-          ((await Private_config.getConfig({
-            appName: this.app,
-            key: 'logistics_setting',
-          })) ?? [
-            {
-              value: {
-                support: [],
-              },
-            },
-          ])[0].value
-        );
+        const config = await Private_config.getConfig({
+          appName: this.app,
+          key: 'logistics_setting',
+        });
+
+        // 如果 config 為空，則返回預設值
+        if (!config) {
+          return {
+            support: [],
+            shipmentSupport: [],
+          };
+        }
+
+        // 返回第一個元素的 value 屬性
+        return config[0].value;
       } catch (e) {
-        resolve([]);
+        // 發生錯誤時返回空陣列
+        return [];
       }
-    });
+    })();
+
     return [
       {
         name: '中華郵政',
@@ -1708,24 +1713,28 @@ export class Shopping {
       })();
 
       // 物流設定
-      const shipment_setting: any = await new Promise(async (resolve, reject) => {
+      const shipment_setting: any = await (async () => {
         try {
-          resolve(
-            ((await Private_config.getConfig({
-              appName: this.app,
-              key: 'logistics_setting',
-            })) ?? [
-              {
-                value: {
-                  support: [],
-                },
-              },
-            ])[0].value
-          );
+          const config = await Private_config.getConfig({
+            appName: this.app,
+            key: 'logistics_setting',
+          });
+
+          // 如果 config 為空，則返回預設值
+          if (!config) {
+            return {
+              support: [],
+              shipmentSupport: [],
+            };
+          }
+
+          // 返回第一個元素的 value 屬性
+          return config[0].value;
         } catch (e) {
-          resolve([]);
+          // 發生錯誤時返回空陣列
+          return [];
         }
-      });
+      })();
 
       checkPoint('set shipment');
 
@@ -3752,8 +3761,8 @@ export class Shopping {
     valid?: boolean;
     is_shipment?: boolean;
     payment_select?: string;
-    is_reconciliation?:boolean
-    reconciliation_status?:string[]
+    is_reconciliation?: boolean;
+    reconciliation_status?: string[];
   }) {
     try {
       let querySql = ['1=1'];
@@ -3782,7 +3791,6 @@ export class Shopping {
         }
       }
 
-
       if (query.id_list) {
         const id_list = [-99, ...query.id_list.split(',')].join(',');
         switch (query.searchType) {
@@ -3798,34 +3806,37 @@ export class Shopping {
         }
       }
 
-      if(query.reconciliation_status){
+      if (query.reconciliation_status) {
         //'pending_entry'|'completed_entry'|'refunded'|'completed_offset'|'pending_offset'|'pending_refund'
-        let search:string[]=[]
-        query.reconciliation_status!!.map((status)=>{
-          if(status==='pending_entry'){
+        let search: string[] = [];
+        query.reconciliation_status!!.map(status => {
+          if (status === 'pending_entry') {
             search.push(`total_received is NULL`);
-          }else if(status==='completed_entry'){
+          } else if (status === 'completed_entry') {
             search.push(`total_received = total`);
-          }else if(status==='refunded'){
+          } else if (status === 'refunded') {
             search.push(`(total_received > total) && ((total_received + offset_amount) = total)`);
-          }else if(status==='completed_offset'){
+          } else if (status === 'completed_offset') {
             search.push(`(total_received < total) && ((total_received + offset_amount) = total)`);
-          }else if(status==='pending_offset')
-          {
+          } else if (status === 'pending_offset') {
             search.push(`(total_received < total)  &&  (offset_amount is null)`);
-          }else if(status==='pending_refund'){
+          } else if (status === 'pending_refund') {
             search.push(`(total_received > total)   &&  (offset_amount is null)`);
           }
-        })
-        querySql.push(`(${search.map((dd)=>{
-          return `(${dd})`
-        }).join(' or ')})`);
+        });
+        querySql.push(
+          `(${search
+            .map(dd => {
+              return `(${dd})`;
+            })
+            .join(' or ')})`
+        );
       }
       if (query.orderStatus) {
         let orderArray = query.orderStatus.split(',');
         let temp = '';
         if (orderArray.includes('0')) {
-          temp += "order_status IS NULL OR ";
+          temp += 'order_status IS NULL OR ';
         }
         temp += `order_status IN (${query.orderStatus})`;
         querySql.push(`(${temp})`);
@@ -3837,14 +3848,10 @@ export class Shopping {
       }
 
       if (query.is_shipment) {
-        querySql.push(
-          `(shipment_number IS NOT NULL) and (shipment_number != '')`
-        );
+        querySql.push(`(shipment_number IS NOT NULL) and (shipment_number != '')`);
       }
-      if(query.is_reconciliation){
-        querySql.push(
-          `((status in (1,-2)) or ((payment_method='cash_on_delivery' and progress='finish') ))`
-        );
+      if (query.is_reconciliation) {
+        querySql.push(`((status in (1,-2)) or ((payment_method='cash_on_delivery' and progress='finish') ))`);
       }
       if (query.payment_select) {
         querySql.push(
@@ -3866,7 +3873,7 @@ export class Shopping {
         let newArray = query.progress.split(',');
         let temp = '';
         if (newArray.includes('wait')) {
-          temp += "progress IS NULL OR ";
+          temp += 'progress IS NULL OR ';
         }
         temp += `progress IN (${newArray.map(status => `"${status}"`).join(',')})`;
         querySql.push(`(${temp})`);
