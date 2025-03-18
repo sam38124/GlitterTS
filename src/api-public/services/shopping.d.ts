@@ -79,6 +79,7 @@ type Collection = {
         'zh-CN': seo;
         'zh-TW': seo;
     };
+    hidden?: boolean;
 };
 type CartItem = {
     id: string;

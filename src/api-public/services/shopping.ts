@@ -121,6 +121,7 @@ type Collection = {
     'zh-CN': seo;
     'zh-TW': seo;
   };
+  hidden?: boolean;
 };
 
 type CartItem = {
@@ -4051,7 +4052,6 @@ export class Shopping {
               if (order.orderData.user_info.shipment_refer === 'paynow') {
                 const pay_now = new PayNowLogistics(this.app);
                 order.orderData.user_info.shipment_detail = await pay_now.getOrderInfo(order.cart_token);
-                console.log(`PayNowLogisticCode=>`, order.orderData.user_info.shipment_detail.PayNowLogisticCode);
                 const status = (() => {
                   switch (order.orderData.user_info.shipment_detail.PayNowLogisticCode) {
                     case '0000':
@@ -4761,6 +4761,7 @@ export class Shopping {
         seo_content: replace.seo_content,
         seo_image: replace.seo_image,
         language_data: replace.language_data,
+        hidden: Boolean(replace.hidden),
       };
 
       if (original.title.length === 0) {
@@ -4776,16 +4777,20 @@ export class Shopping {
         }
       } else if (replace.parentTitles.length === 0) {
         // 編輯父層類別
-        const parentIndex = config.value.findIndex((col: { title: string }) => {
-          return col.title === original.title;
-        });
+        const parentIndex = config.value.findIndex((col: { title: string }) => col.title === original.title);
+
         config.value[parentIndex] = {
           ...formatData,
           array: replace.subCollections.map(col => {
-            const sub = config.value[parentIndex].array.find((item: { title: string }) => {
-              return item.title === col;
-            });
-            return { array: [], title: col, code: sub ? sub.code : '' };
+            const sub = config.value[parentIndex].array.find((item: { title: string }) => item.title === col);
+
+            return {
+              ...sub,
+              array: [],
+              title: col,
+              code: sub ? sub.code : '',
+              hidden: formatData.hidden ? true : Boolean(sub.hidden),
+            };
           }),
         };
       } else {
@@ -4796,6 +4801,7 @@ export class Shopping {
         const childrenIndex = config.value[originParentIndex].array.findIndex((chi: { title: string }) => {
           return chi.title === original.title;
         });
+
         if (originParentIndex === replaceParentIndex) {
           // 編輯子層類別，沒有調整父層
           config.value[originParentIndex].array[childrenIndex] = formatData;
@@ -4838,11 +4844,13 @@ export class Shopping {
       }
 
       // 更新類別下商品
-      const get_product_sql = `SELECT *
-                               FROM \`${this.app}\`.t_manager_post
-                               WHERE id = ?`;
       for (const id of replace.product_id ?? []) {
-        const get_product = await db.query(get_product_sql, [id]);
+        const get_product = await db.query(
+          `SELECT * FROM \`${this.app}\`.t_manager_post WHERE id = ?
+          `,
+          [id]
+        );
+
         if (get_product[0]) {
           const product = get_product[0];
           const originalParentTitles = original.parentTitles[0] ?? '';
@@ -4893,10 +4901,11 @@ export class Shopping {
       }
 
       // 更新商品類別 config
-      const update_col_sql = `UPDATE \`${this.app}\`.public_config
-                              SET value = ?
-                              WHERE \`key\` = 'collection';`;
-      await db.execute(update_col_sql, [config.value]);
+      await db.execute(
+        `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+        `,
+        [config.value]
+      );
 
       return { result: true };
     } catch (e) {
@@ -5108,7 +5117,7 @@ export class Shopping {
       let productArray: any = content.data;
       await Promise.all(
         productArray.map((product: any, index: number) => {
-          return new Promise(async (resolve, reject) => {
+          return new Promise(async resolve => {
             product.type = 'product';
             //判斷是更新時
             if (product.id) {
@@ -5137,10 +5146,10 @@ export class Shopping {
                 product.preview_image = og_data['content'].preview_image || [];
                 productArray[index] = product;
               } else {
-                console.log(`product-not-in==>`, product);
+                console.log(`Product-not-in ==>`, product);
               }
             } else {
-              console.log(`no-product-id==>`, product);
+              console.log(`No-exist-product-id ==>`, product);
             }
             resolve(true);
           });

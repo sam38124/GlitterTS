@@ -3549,6 +3549,7 @@ class Shopping {
                 seo_content: replace.seo_content,
                 seo_image: replace.seo_image,
                 language_data: replace.language_data,
+                hidden: Boolean(replace.hidden),
             };
             if (original.title.length === 0) {
                 const parentIndex = config.value.findIndex((col) => {
@@ -3569,7 +3570,8 @@ class Shopping {
                         const sub = config.value[parentIndex].array.find((item) => {
                             return item.title === col;
                         });
-                        return { array: [], title: col, code: sub ? sub.code : '' };
+                        console.log(sub.title, formatData.hidden === false ? false : Boolean(sub.hidden));
+                        return Object.assign(Object.assign({}, sub), { array: [], title: col, code: sub ? sub.code : '', hidden: formatData.hidden ? true : Boolean(sub.hidden) });
                     }) });
             }
             else {
@@ -3617,11 +3619,9 @@ class Shopping {
                     }
                 }
             }
-            const get_product_sql = `SELECT *
-                               FROM \`${this.app}\`.t_manager_post
-                               WHERE id = ?`;
             for (const id of (_e = replace.product_id) !== null && _e !== void 0 ? _e : []) {
-                const get_product = await database_js_1.default.query(get_product_sql, [id]);
+                const get_product = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_manager_post WHERE id = ?
+          `, [id]);
                 if (get_product[0]) {
                     const product = get_product[0];
                     const originalParentTitles = (_f = original.parentTitles[0]) !== null && _f !== void 0 ? _f : '';
@@ -3669,10 +3669,8 @@ class Shopping {
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            const update_col_sql = `UPDATE \`${this.app}\`.public_config
-                              SET value = ?
-                              WHERE \`key\` = 'collection';`;
-            await database_js_1.default.execute(update_col_sql, [config.value]);
+            await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+        `, [config.value]);
             return { result: true };
         }
         catch (e) {

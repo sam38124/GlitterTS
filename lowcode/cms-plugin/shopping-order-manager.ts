@@ -2618,11 +2618,11 @@ export class ShoppingOrderManager {
                                     >
                                       <div class="tx_700">付款方式</div>
                                       <div class="tx_normal">
-                                          ${ShoppingOrderManager.getPaymentMethodText(
-                                            orderData.orderData.method,
-                                            orderData.orderData,
-                                            gvc
-                                          )}
+                                        ${ShoppingOrderManager.getPaymentMethodText(
+                                          orderData.orderData.method,
+                                          orderData.orderData,
+                                          gvc
+                                        )}
                                       </div>
                                       ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
                                     </div>`,
@@ -2910,26 +2910,24 @@ export class ShoppingOrderManager {
                                           ? 1
                                           : -1;
                                       })
-                                      .map((record: any) => {
+                                      .map((r: any) => {
                                         return html`
                                           <div class="d-flex" style="gap: 42px">
-                                            <div>${Tool.formatDateTime(record.time)}</div>
-                                            <div>${record.record}</div>
+                                            <div>${Tool.formatDateTime(r.time)}</div>
+                                            <div>${r.record}</div>
                                           </div>
                                         `;
                                       })
                                   );
                                 })()}
                                 <div class="d-flex" style="gap: 42px">
-                                  <div>${Tool.formatDateTime(orderData.created_time, true)}</div>
+                                  <div>${Tool.formatDateTime(orderData.created_time)}</div>
                                   <div>訂單成立</div>
                                 </div>
                               </div>
                             `),
                           ]
-                            .filter(dd => {
-                              return dd;
-                            })
+                            .filter(Boolean)
                             .join(BgWidget.mbContainer(24)),
                           ratio: 75,
                         },
