@@ -9,14 +9,13 @@ import { Language } from '../../glitter-base/global/language.js';
  * Page: sy01_pd_collection
  */
 
-const html = String.raw;
-
 type Product = {
   id: number;
   content: {
     collection: string[];
   };
 };
+
 interface LanguageData {
   title: string;
   seo: {
@@ -25,6 +24,7 @@ interface LanguageData {
     content: string;
   };
 }
+
 type Collection = {
   title: string;
   code: string;
@@ -39,6 +39,8 @@ type Collection = {
   checked: boolean;
   language_data: LanguageData;
 };
+
+const html = String.raw;
 
 export class ProductList {
   static arrowDownDataImage(color: string): string {
@@ -198,44 +200,44 @@ export class ProductList {
     };
 
     gvc.addStyle(`
-            .page-link-v2 {
-                display: inline-flex;
-                height: 32px;
-                padding: 10px;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                gap: 10px;
-                cursor: pointer;
-                background: #fff;
-                border:1px solid #393939;
-                color: #393939;
-            }
+      .page-link-v2 {
+        display: inline-flex;
+        height: 32px;
+        padding: 10px;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        background: #fff;
+        border: 1px solid #393939;
+        color: #393939;
+      }
 
-            .page-link-prev {
-                border-radius: 7px 0px 0px 7px;
-                border: 1px solid #d8d8d8;
-                background: #fff;
-                color: #393939;
-            }
+      .page-link-prev {
+        border-radius: 7px 0px 0px 7px;
+        border: 1px solid #d8d8d8;
+        background: #fff;
+        color: #393939;
+      }
 
-            .page-link-next {
-                border-radius: 0px 7px 7px 0px;
-                border: 1px solid #d8d8d8;
-                background: #fff;
-                color: #393939;
-            }
+      .page-link-next {
+        border-radius: 0px 7px 7px 0px;
+        border: 1px solid #d8d8d8;
+        background: #fff;
+        color: #393939;
+      }
 
-            .page-link-active {
-                background: #393939;
-                color: #fff;
-            }
+      .page-link-active {
+        background: #393939;
+        color: #fff;
+      }
 
-            .angle-style {
-                font-size: 12px;
-                color: #d8d8d8;
-            }
-        `);
+      .angle-style {
+        font-size: 12px;
+        color: #d8d8d8;
+      }
+    `);
 
     return gvc.bindView({
       bind: vm.id,
@@ -334,21 +336,21 @@ export class ProductList {
     const fontColor = glitter.share.globalValue['theme_color.0.title'] ?? '#333333';
 
     gvc.addStyle(`
-            .filter-btn {
-                white-space: nowrap;
-                font-weight: 500;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                padding: 8px 12px;
-                border-radius: none !important;
-                background-color: black;
-                border-radius: 5px;
-                background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
-                color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
-                font-size: 16px;
-            }
-        `);
+      .filter-btn {
+        white-space: nowrap;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 8px 12px;
+        border-radius: none !important;
+        background-color: black;
+        border-radius: 5px;
+        background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
+        color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
+        font-size: 16px;
+      }
+    `);
 
     let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
     gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, cl => {
@@ -358,29 +360,7 @@ export class ProductList {
       };
     });
 
-    function updateCollections(data: { products: Product[]; collections: Collection[] }): Collection[] {
-      const findCollection = (collections: Collection[], path: string[]): Collection | undefined => {
-        let currentCollections = collections;
-        let currentCollection: Collection | undefined;
-
-        for (const title of path) {
-          currentCollection = currentCollections.find(col => col.title === title);
-          if (!currentCollection) return undefined;
-          currentCollections = currentCollection.array;
-        }
-
-        return currentCollection;
-      };
-
-      const addProductToCollection = (collection: Collection, productId: number) => {
-        if (!collection.product_id) {
-          collection.product_id = [];
-        }
-        if (!collection.product_id.includes(productId)) {
-          collection.product_id.push(productId);
-        }
-      };
-
+    function updateCollections(data: { collections: Collection[] }): Collection[] {
       const flattenCollections = (
         collections: Collection[],
         parentTitles: string[] = [],
@@ -470,21 +450,6 @@ export class ProductList {
         return flattened;
       };
 
-      data.products.forEach(product => {
-        product.content.collection.forEach(category => {
-          const path = category.split('/').map(item => {
-            return item.replace(/\s/g, '');
-          });
-          for (let i = 0; i < path.length; i++) {
-            const subPath = path.slice(0, i + 1);
-            const collection = findCollection(data.collections, subPath);
-            if (collection) {
-              addProductToCollection(collection, product.id);
-            }
-          }
-        });
-      });
-
       const topLevelCollections = data.collections.map(col =>
         (() => {
           const language_data = col.language_data;
@@ -499,25 +464,16 @@ export class ProductList {
           }
         })()
       );
+
       return flattenCollections(data.collections, [], topLevelCollections);
-    }
-
-    function extractCategoryTitleFromUrl(url: string) {
-      const urlParts = url.split('/');
-      const collectionIndex = urlParts.indexOf('collections');
-
-      if (collectionIndex !== -1 && collectionIndex < urlParts.length - 1) {
-        return urlParts[collectionIndex + 1].split('/')[0].split('?')[0];
-      } else {
-        return '';
-      }
     }
 
     async function getProductList() {
       const orderByParam = glitter.getUrlParameter('order_by');
       const page = parseInt(`${vm.pageIndex}`, 10) - 1;
       const limit = vm.limit;
-      const collection = extractCategoryTitleFromUrl(location.href);
+      const collection = encodeURIComponent(getURICollectionName());
+
       if (collection) {
         gvc.glitter.setUrlParameter('search', undefined);
       }
@@ -674,10 +630,9 @@ export class ProductList {
               if (loading) {
                 ApiShop.getCollection().then((data: any) => {
                   if (data.result && data.response.value.length > 0) {
-                    setAdTag(data.response.value);
+                    setAdTag();
                     vm.allParents = ['(無)'].concat(data.response.value.map((item: { title: string }) => item.title));
                     vm.collections = updateCollections({
-                      products: [],
                       collections: data.response.value,
                     });
                     updatePageTitle();
@@ -692,8 +647,33 @@ export class ProductList {
       );
     }
 
+    function collectionTitle(titleText: string) {
+      if (!vm.collections?.length) return titleText;
+
+      try {
+        const collectionName = getURICollectionName();
+        const collectionHidden = getCollectionShowMap();
+
+        if (!collectionHidden.get(collectionName)) {
+          return titleText;
+        }
+
+        const hasCollection = vm.collections.find((item: any) => {
+          const languageData = item.language_data?.[Language.getLanguage()];
+          const possibleNames = [languageData?.seo?.domain, item.code, languageData?.title, item.title];
+
+          return possibleNames.find(name => name === collectionName);
+        });
+
+        return hasCollection?.language_data?.[Language.getLanguage()]?.title || hasCollection?.title || titleText;
+      } catch (error) {
+        console.error('collectionTitle Error:', error);
+        return titleText;
+      }
+    }
+
     function updatePageTitle() {
-      const all_text = (() => {
+      const titleText = (() => {
         if (gvc.glitter.getUrlParameter('ai-search')) {
           return Language.text('ai_choose');
         } else if (gvc.glitter.getUrlParameter('search')) {
@@ -702,67 +682,24 @@ export class ProductList {
           return Language.text('all_products');
         }
       })();
-      if (!vm.collections || vm.collections.length === 0) {
-        vm.title = all_text;
-      } else {
-        let collectionObj = vm.collections.find((item: any) => {
-          const language_data = item.language_data && item.language_data[Language.getLanguage()];
-          const code =
-            (language_data && language_data.seo && language_data.seo.domain) ||
-            item.code ||
-            (language_data && language_data.title) ||
-            item.title;
-          return code === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
-        });
-        try {
-          if (!collectionObj) {
-            collectionObj = vm.collections.find((item: { code: string; title: string }) => {
-              return item.title === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
-            });
-          }
-        } catch (e) {}
-        if (collectionObj) {
-          const language_data = collectionObj.language_data;
-          vm.title =
-            (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title) ||
-            collectionObj.title;
-        } else {
-          vm.title = all_text;
-        }
-      }
+
+      vm.title = collectionTitle(titleText);
       gvc.notifyDataChange(ids.pageTitle);
     }
 
-    function setAdTag(data: any) {
-      try {
-        const path = location.pathname;
-        const pathParts = path.split('/');
-        const collectionIndex = pathParts.indexOf('collections');
-        const index = collectionIndex + 1;
-        const collection = pathParts[index];
-        const collectionName = decodeURIComponent(collection);
+    function getURICollectionName() {
+      const path = location.pathname;
+      const pathParts = path.split('/');
+      const collectionIndex = pathParts.indexOf('collections');
+      const index = collectionIndex + 1;
+      const collection = pathParts[index];
+      const collectionName = decodeURIComponent(collection);
+      return collectionName;
+    }
 
-        function findObjectByValue(arr: any, value: string): any {
-          for (const item of arr) {
-            const language_data = item.language_data;
-            const code =
-              (language_data &&
-                language_data[Language.getLanguage()] &&
-                language_data[Language.getLanguage()].seo &&
-                language_data[Language.getLanguage()].seo.domain) ||
-              item.code;
-            if (code === value) {
-              return item;
-            }
-            if (item.array.length > 0) {
-              const found = findObjectByValue(item.array, value);
-              if (found) {
-                return found;
-              }
-            }
-          }
-          return null;
-        }
+    function setAdTag() {
+      try {
+        const collectionName = getURICollectionName();
 
         if ((window as any).gtag) {
           if (collectionName) {
@@ -798,16 +735,32 @@ export class ProductList {
       }
     }
 
+    function getCollectionShowMap(): Map<string, Boolean> {
+      const getLanguage = Language.getLanguage();
+      return new Map(
+        vm.collections.map((item: any) => {
+          const domain = (() => {
+            const defaultName = item.code ?? item.title;
+            try {
+              if (item.language_data && item.language_data[getLanguage].seo.domain) {
+                return item.language_data[getLanguage].seo.domain;
+              }
+              return defaultName;
+            } catch (error) {
+              return defaultName;
+            }
+          })();
+
+          return [domain, !Boolean(item.hidden)];
+        })
+      );
+    }
+
     return html`
       <div class="container d-flex mt-2" style="min-height: 1000px;">
         <div
           class="d-none d-sm-block mt-4"
-          style="${(() => {
-            if (PdClass.isPad()) {
-              return `width: 180px; min-width: 180px;`;
-            }
-            return `width: 282px; min-width: 282px;`;
-          })()}"
+          style="${PdClass.isPad() ? 'width: 180px; min-width: 180px;' : 'width: 282px; min-width: 282px;'}"
         >
           ${getCollectionHTML()}
         </div>
@@ -931,6 +884,17 @@ export class ProductList {
                           }),
                         ]).then(dataList => {
                           vm.dataList = dataList[0];
+
+                          const collectionName = getURICollectionName();
+
+                          if (collectionName) {
+                            const collectionHidden = getCollectionShowMap();
+
+                            if (!collectionHidden.get(collectionName)) {
+                              vm.dataList = [];
+                            }
+                          }
+
                           (window as any).glitter.share.wishList = dataList[1];
                           loadings.product = false;
                           gvc.notifyDataChange(ids.product);
