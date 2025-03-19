@@ -247,11 +247,13 @@ export class ShoppingOrderManager {
                                                 return [
                                                     {
                                                         key: '訂單編號',
-                                                        value: html ` <div class="d-flex align-items-center gap-2">
+                                                        value: html ` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
                                   ${dd.cart_token}${(() => {
                                                             switch (dd.orderData.orderSource) {
                                                                 case 'manual':
-                                                                    return BgWidget.primaryInsignia('手動');
+                                                                    return BgWidget.primaryInsignia('手動', 'border');
+                                                                case 'combine':
+                                                                    return BgWidget.warningInsignia('合併', 'border');
                                                                 default:
                                                                     return '';
                                                             }
@@ -306,11 +308,13 @@ export class ShoppingOrderManager {
                                                 return [
                                                     {
                                                         key: '訂單編號',
-                                                        value: html ` <div class="d-flex align-items-center gap-2">
+                                                        value: html ` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
                                   ${dd.cart_token}${(() => {
                                                             switch (dd.orderData.orderSource) {
                                                                 case 'manual':
-                                                                    return BgWidget.primaryInsignia('手動');
+                                                                    return BgWidget.primaryInsignia('手動', 'border');
+                                                                case 'combine':
+                                                                    return BgWidget.warningInsignia('合併', 'border');
                                                                 default:
                                                                     return '';
                                                             }
@@ -979,6 +983,26 @@ export class ShoppingOrderManager {
             };
         });
     }
+    static formatRecord(gvc, vm, orderID, record) {
+        const orderNumbers = record.match(/{{order=(\d+)}}/g) || [];
+        orderNumbers.map((order) => {
+            const pureOrder = order.replace(/{{order=|}}/g, '');
+            record = record.replace(order, BgWidget.blueNote(`#${pureOrder}`, gvc.event(() => {
+                vm.data.cart_token = pureOrder;
+                vm.type = 'replace';
+            })));
+        });
+        const shipmentNumbers = record.match(/{{shipment=(\d+)}}/g) || [];
+        shipmentNumbers.map((order) => {
+            const pureOrder = order.replace(/{{shipment=|}}/g, '');
+            record = record.replace(order, BgWidget.blueNote(`#${pureOrder}`, gvc.event(() => {
+                window.glitter.setUrlParameter('page', 'shipment_list');
+                window.glitter.setUrlParameter('orderID', orderID);
+                gvc.recreateView();
+            })));
+        });
+        return record;
+    }
     static replaceOrder(gvc, vm, passOrderData, backCallback) {
         let is_shipment = ['shipment_list_archive', 'shipment_list'].includes(window.glitter.getUrlParameter('page'));
         return gvc.bindView(() => {
@@ -1184,14 +1208,14 @@ export class ShoppingOrderManager {
                                   <div class="tx_700 d-flex align-items-center" style="gap:5px;">訂單號碼</div>
                                   ${BgWidget.mbContainer(12)}
                                   <div
-                                    class=""
-                                    style="color: #4D86DB;cursor:pointer;"
+                                    style="color: #4D86DB; cursor: pointer;"
                                     onclick="${gvc.event(() => {
                                                             is_shipment = false;
                                                             gvc.notifyDataChange('orderDetailRefresh');
                                                         })}"
                                   >
-                                    ${orderData.orderData.orderID}
+                                    ${orderData.orderData.combineOrderID ||
+                                                            orderData.orderData.orderID}
                                   </div>
                                 `
                                                         : ``,
@@ -1209,7 +1233,7 @@ export class ShoppingOrderManager {
                                                         gvc: gvc,
                                                         def: `${orderData.orderData.progress}`,
                                                         array: ApiShop.getProgressArray(orderData.orderData.user_info.shipment_number),
-                                                        readonly: orderData.orderData.user_info.shipment_refer === 'paynow',
+                                                        readonly: orderData.orderData.user_info.shipment_refer === 'paynow' || is_archive,
                                                         callback: text => {
                                                             function next() {
                                                                 if (text && text !== `${orderData.orderData.progress}`) {
@@ -1397,12 +1421,14 @@ export class ShoppingOrderManager {
                                                         }
                                                     })()} `,
                                                     orderData.orderData.user_info.shipment_number
-                                                        ? `
-                             <div class="tx_700 d-flex align-items-center" style="gap:5px;">出貨日期</div>
-                              ${BgWidget.mbContainer(12)}
-                              <div class="d-flex" style="gap:5px;">
-                                ${orderData.orderData.user_info.shipment_date ? gvc.glitter.ut.dateFormat(new Date(orderData.orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm') : '尚未設定'}
-                                ${BgWidget.customButton({
+                                                        ? html `
+                                  <div class="tx_700 d-flex align-items-center" style="gap:5px;">出貨日期</div>
+                                  ${BgWidget.mbContainer(12)}
+                                  <div class="d-flex" style="gap:5px;">
+                                    ${orderData.orderData.user_info.shipment_date
+                                                            ? gvc.glitter.ut.dateFormat(new Date(orderData.orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm')
+                                                            : '尚未設定'}
+                                    ${BgWidget.customButton({
                                                             button: {
                                                                 color: 'gray',
                                                                 size: 'sm',
@@ -1458,10 +1484,10 @@ export class ShoppingOrderManager {
                                                                 });
                                                             }),
                                                         })}
-</div>
-                            `
+                                  </div>
+                                `
                                                         : ``,
-                                                    html ` ${[
+                                                    html `${[
                                                         'UNIMARTC2C',
                                                         'FAMIC2C',
                                                         'OKMARTC2C',
@@ -1765,6 +1791,7 @@ export class ShoppingOrderManager {
                                             },
                                         });
                                     })());
+                                    const is_archive = orderData.orderData.archived === 'true';
                                     return BgWidget.container(html ` <div class="title-container">
                         ${BgWidget.goBack(gvc.event(() => {
                                         if (!is_shipment && window.glitter.getUrlParameter('page') === 'shipment_list') {
@@ -1829,7 +1856,7 @@ export class ShoppingOrderManager {
                                                             orderData.orderData.orderStatus = text;
                                                         }
                                                     },
-                                                    readonly: is_shipment,
+                                                    readonly: is_shipment || is_archive,
                                                 })}
                                 </div>
                               </div>
@@ -2134,7 +2161,7 @@ export class ShoppingOrderManager {
                                     >
                                       <div class="tx_700">付款狀態</div>
                                       <div class="ms-auto w-100">
-                                        ${is_shipment
+                                        ${is_shipment || is_archive
                                                         ? (_c = [
                                                             {
                                                                 title: '變更付款狀態',
@@ -2448,10 +2475,11 @@ export class ShoppingOrderManager {
                                                         : -1;
                                                 })
                                                     .map((r) => {
+                                                    const record = this.formatRecord(gvc, vm, orderData.orderData.orderID, structuredClone(r.record));
                                                     return html `
                                             <div class="d-flex" style="gap: 42px">
                                               <div>${Tool.formatDateTime(r.time, true)}</div>
-                                              <div>${r.record}</div>
+                                              <div>${record.replace(/\\n/g, '<br/>')}</div>
                                             </div>
                                           `;
                                                 }))
@@ -2863,6 +2891,7 @@ export class ShoppingOrderManager {
                       </div>`);
                                 }
                                 catch (e) {
+                                    console.error(e);
                                     return BgWidget.maintenance();
                                 }
                             },

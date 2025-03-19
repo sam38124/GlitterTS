@@ -203,6 +203,8 @@ export type Cart = {
   fbp: string;
   scheduled_id?: string;
   shipmentSupport?: string[];
+  editRecord: { time: string; record: string }[];
+  combineOrderID?: number;
 };
 
 export type Order = {
@@ -581,7 +583,7 @@ export class Shopping {
             return dd.content;
           })
           .map((product: any) => {
-            //
+            console.log(product.content);
             product.content.collection = Array.from(
               new Set(
                 (() => {
@@ -1805,6 +1807,7 @@ export class Shopping {
         client_ip_address: data.client_ip_address as string,
         fbc: data.fbc as string,
         fbp: data.fbp as string,
+        editRecord: [],
       };
 
       if (!data.user_info.name && userData && userData.userData) {
@@ -2932,6 +2935,7 @@ export class Shopping {
   async combineOrder(dataMap: Record<string, { status: 'success'; note: ''; orders: Order[]; targetID: string }>) {
     try {
       delete dataMap.token;
+      const currentTime = new Date().toISOString();
 
       for (const data of Object.values(dataMap)) {
         if (data.orders.length === 0) continue;
@@ -2953,6 +2957,12 @@ export class Shopping {
         const formatTargetOrder = JSON.parse(JSON.stringify(targetOrder));
         const base = formatTargetOrder.orderData;
         base.orderSource = 'combine';
+        base.editRecord = [
+          {
+            time: currentTime,
+            record: `合併自${data.orders.length}筆訂單\\n${cartTokens.map(token => `{{order=${token}}}`).join('\\n')}`,
+          },
+        ];
 
         const accumulateValues = (
           feed: Cart,
@@ -3001,17 +3011,28 @@ export class Shopping {
           app: this.app,
         });
 
+        // 舊訂單新增歷史紀錄
+        const newRecord = {
+          time: currentTime,
+          record: `與其他訂單合併至\\n{{order=${base.orderID}}}`,
+        };
+
         // 批次封存原始訂單
         await Promise.all(
           orders.map(async order => {
-            order.orderData.orderStatus = '-1';
-            order.orderData.archived = 'true';
-            return db.query(
-              `UPDATE \`${this.app}\`.t_checkout
-               SET orderData = ?
-               WHERE cart_token = ?`,
-              [JSON.stringify(order.orderData), order.cart_token]
-            );
+            order.orderData = {
+              ...order.orderData,
+              orderStatus: '-1',
+              archived: 'true',
+              combineOrderID: base.orderID,
+              editRecord: [...(order.orderData.editRecord ?? []), newRecord],
+            };
+
+            await this.putOrder({
+              id: `${order.id}`,
+              orderData: order.orderData,
+              status: order.status,
+            });
           })
         );
       }
@@ -3645,7 +3666,15 @@ export class Shopping {
 
       editArray.push({
         time: currentTime,
-        record: `${type}出貨單號碼 #${updateNumber}`,
+        record: `${type}出貨單號碼\\n{{shipment=${updateNumber}}}`,
+      });
+    }
+
+    // 封存訂單
+    if (update.orderData.archived === 'true' && origin.orderData.archived !== 'true') {
+      editArray.push({
+        time: currentTime,
+        record: '訂單已封存',
       });
     }
 

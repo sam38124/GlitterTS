@@ -33,27 +33,27 @@ export class BgShopping {
                     var _a, _b;
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="title-container ">
-                                ${BgWidget.title(' 訂單管理')}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn btn-primary-c d-none"
-                                    style="height:45px;font-size: 14px;"
-                                    onclick="${gvc.event(() => {
+              <div class="title-container ">
+                ${BgWidget.title(' 訂單管理')}
+                <div class="flex-fill"></div>
+                <button
+                  class="btn btn-primary-c d-none"
+                  style="height:45px;font-size: 14px;"
+                  onclick="${gvc.event(() => {
                             vm.type = 'add';
                         })}"
-                                >
-                                    新增訂單
-                                </button>
-                            </div>
-                            ${BgWidget.table({
+                >
+                  新增訂單
+                </button>
+              </div>
+              ${BgWidget.table({
                             gvc: gvc,
-                            getData: (vmi) => {
+                            getData: vmi => {
                                 ApiShop.getOrder({
                                     page: vmi.page - 1,
                                     limit: 20,
                                     search: vm.query || undefined,
-                                }).then((data) => {
+                                }).then(data => {
                                     vmi.pageSize = Math.ceil(data.response.total / 20);
                                     vm.dataList = data.response.data;
                                     function getDatalist() {
@@ -65,7 +65,7 @@ export class BgShopping {
                                                         def: !data.response.data.find((dd) => {
                                                             return !dd.checked;
                                                         }),
-                                                        callback: (result) => {
+                                                        callback: result => {
                                                             data.response.data.map((dd) => {
                                                                 dd.checked = result;
                                                             });
@@ -77,7 +77,7 @@ export class BgShopping {
                                                     value: EditorElem.checkBoxOnly({
                                                         gvc: gvc,
                                                         def: dd.checked,
-                                                        callback: (result) => {
+                                                        callback: result => {
                                                             dd.checked = result;
                                                             vmi.data = getDatalist();
                                                             vmi.callback();
@@ -154,7 +154,7 @@ export class BgShopping {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有訂單')}
-                                ${gvc.bindView(() => {
+                ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -173,7 +173,7 @@ export class BgShopping {
                                                     BgWidget.selEventButton('批量移除', gvc.event(() => {
                                                         dialog.checkYesOrNot({
                                                             text: '是否確認刪除所選項目？',
-                                                            callback: (response) => {
+                                                            callback: response => {
                                                                 if (response) {
                                                                     dialog.dataLoading({ visible: true });
                                                                     ApiShop.deleteOrders({
@@ -185,7 +185,7 @@ export class BgShopping {
                                                                             return dd.id;
                                                                         })
                                                                             .join(`,`),
-                                                                    }).then((res) => {
+                                                                    }).then(res => {
                                                                         dialog.dataLoading({ visible: false });
                                                                         if (res.result) {
                                                                             vm.dataList = undefined;
@@ -217,7 +217,7 @@ export class BgShopping {
                                 };
                             })}`,
                         })}
-                        `);
+            `);
                     }
                     else if (vm.type == 'replace') {
                         const orderData = (_a = vm.data) !== null && _a !== void 0 ? _a : {
@@ -282,30 +282,32 @@ export class BgShopping {
                             },
                         };
                         return BgWidget.container(html `
-                                <div class="d-flex">
-                                    ${BgWidget.container(html `<div class="title-container">
-                                                ${BgWidget.goBack(gvc.event(() => {
+              <div class="d-flex">
+                ${BgWidget.container(html `<div class="title-container">
+                      ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                         }))}
-                                                ${BgWidget.title(html `<div class="d-flex align-items-center">
-                                                    <div class="d-flex flex-column">
-                                                        <div class="fs-5 text-black fw-bold d-flex align-items-center" style="gap:10px;">
-                                                            ${orderData.cart_token}${vt.paymentBadge()}${vt.outShipBadge()}
-                                                        </div>
-                                                        <div class="fs-6 fw-500">${glitter.ut.dateFormat(new Date(orderData.created_time), 'yyyy-MM-dd hh:mm')}</div>
-                                                    </div>
-                                                </div>`)}
-                                                <div class="flex-fill"></div>
-                                                <button
-                                                    class="btn btn-primary-c"
-                                                    style="height:38px;font-size: 14px;"
-                                                    onclick="${gvc.event(() => {
+                      ${BgWidget.title(html `<div class="d-flex align-items-center">
+                          <div class="d-flex flex-column">
+                            <div class="fs-5 text-black fw-bold d-flex align-items-center" style="gap:10px;">
+                              ${orderData.cart_token}${vt.paymentBadge()}${vt.outShipBadge()}
+                            </div>
+                            <div class="fs-6 fw-500">
+                              ${glitter.ut.dateFormat(new Date(orderData.created_time), 'yyyy-MM-dd hh:mm')}
+                            </div>
+                          </div>
+                        </div>`)}
+                      <div class="flex-fill"></div>
+                      <button
+                        class="btn btn-primary-c"
+                        style="height:38px;font-size: 14px;"
+                        onclick="${gvc.event(() => {
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.dataLoading({ text: '上傳中', visible: true });
                             ApiShop.putOrder({
                                 id: `${orderData.id}`,
                                 order_data: orderData.orderData,
-                            }).then((response) => {
+                            }).then(response => {
                                 dialog.dataLoading({ text: '上傳中', visible: false });
                                 if (response.result) {
                                     dialog.successMessage({ text: '更新成功' });
@@ -316,22 +318,22 @@ export class BgShopping {
                                 }
                             });
                         })}"
-                                                >
-                                                    儲存並更改
-                                                </button>
-                                            </div>
-                                            <div class="d-flex flex-column flex-column-reverse  flex-md-row" style="gap:10px;">
-                                                <div style="width:900px;max-width:100%;gap:10px;" class="d-flex flex-column">
-                                                    ${BgWidget.card([
+                      >
+                        儲存並更改
+                      </button>
+                    </div>
+                    <div class="d-flex flex-column flex-column-reverse  flex-md-row" style="gap:10px;">
+                      <div style="width:900px;max-width:100%;gap:10px;" class="d-flex flex-column">
+                        ${BgWidget.card([
                             html `<div class="d-flex mb-2 align-items-center">
-                                                                    ${vt.outShipBadge()}
-                                                                    <div class="ms-auto" style="width:150px;">
-                                                                        ${EditorElem.select({
+                                ${vt.outShipBadge()}
+                                <div class="ms-auto" style="width:150px;">
+                                  ${EditorElem.select({
                                 title: ``,
                                 gvc: gvc,
                                 def: '',
                                 array: [{ title: '變更訂單狀態', value: '' }].concat(ApiShop.getOrderStatusArray()),
-                                callback: (text) => {
+                                callback: text => {
                                     orderData.orderData.orderStatus = orderData.orderData.orderStatus || '0';
                                     if (text && text !== orderData.orderData.orderStatus) {
                                         const copy = JSON.parse(JSON.stringify(orderData.orderData));
@@ -339,10 +341,10 @@ export class BgShopping {
                                     }
                                 },
                             })}
-                                                                    </div>
-                                                                </div>
-                                                                <div class="border rounded">
-                                                                    ${orderData.orderData.lineItems
+                                </div>
+                              </div>
+                              <div class="border rounded">
+                                ${orderData.orderData.lineItems
                                 .map((dd) => {
                                 return `${gvc.bindView(() => {
                                     return {
@@ -351,24 +353,28 @@ export class BgShopping {
                                             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                                 var _a;
                                                 resolve(html `<img
-                                                                                                    src="${dd.preview_image || BgWidget.noImageURL}"
-                                                                                                    class="border rounded"
-                                                                                                    style="width:60px;height:60px;"
-                                                                                                />
-                                                                                                <div class="d-flex flex-column" style="gap:5px;">
-                                                                                                    <a class="fw-bold" style="color:#005bd3;">${dd.title}</a>
-                                                                                                    <div class="d-flex">
-                                                                                                        ${dd.spec
+                                                  src="${dd.preview_image || BgWidget.noImageURL}"
+                                                  class="border rounded"
+                                                  style="width:60px;height:60px;"
+                                                />
+                                                <div class="d-flex flex-column" style="gap:5px;">
+                                                  <a class="fw-bold" style="color:#005bd3;">${dd.title}</a>
+                                                  <div class="d-flex">
+                                                    ${dd.spec
                                                     .map((dd) => {
                                                     return `<div class="bg-secondary badge fs-6">${dd}</div>`;
                                                 })
                                                     .join('<div class="mx-1"></div>')}
-                                                                                                    </div>
-                                                                                                    <p class="text-dark fs-6">存貨單位 (SKU)：${(_a = dd.sku) !== null && _a !== void 0 ? _a : '--'}</p>
-                                                                                                </div>
-                                                                                                <div class="flex-fill"></div>
-                                                                                                <p class="text-dark fs-6">$${dd.sale_price.toLocaleString()} × ${dd.count}</p>
-                                                                                                <p class="text-dark fs-6">$${(dd.sale_price * parseInt(dd.count, 10)).toLocaleString()}</p>`);
+                                                  </div>
+                                                  <p class="text-dark fs-6">存貨單位 (SKU)：${(_a = dd.sku) !== null && _a !== void 0 ? _a : '--'}</p>
+                                                </div>
+                                                <div class="flex-fill"></div>
+                                                <p class="text-dark fs-6">
+                                                  $${dd.sale_price.toLocaleString()} × ${dd.count}
+                                                </p>
+                                                <p class="text-dark fs-6">
+                                                  $${(dd.sale_price * parseInt(dd.count, 10)).toLocaleString()}
+                                                </p>`);
                                             }));
                                         },
                                         divCreate: {
@@ -380,13 +386,13 @@ export class BgShopping {
 `;
                             })
                                 .join('<div class="w-100 bgf6" style="height:1px;"></div>')}
-                                                                </div> `,
+                              </div> `,
                         ].join('<div class="my-2"></div>'))}
-                                                    ${BgWidget.card(html `
-                                                        <div class="d-flex mb-2 align-items-center">
-                                                            ${vt.paymentBadge()}
-                                                            <div class="ms-auto" style="width:150px;">
-                                                                ${EditorElem.select({
+                        ${BgWidget.card(html `
+                          <div class="d-flex mb-2 align-items-center">
+                            ${vt.paymentBadge()}
+                            <div class="ms-auto" style="width:150px;">
+                              ${EditorElem.select({
                             title: ``,
                             gvc: gvc,
                             def: '',
@@ -396,20 +402,20 @@ export class BgShopping {
                                 { title: '未付款', value: '0' },
                                 { title: '已退款', value: '-2' },
                             ],
-                            callback: (text) => {
+                            callback: text => {
                                 if (text && text !== `${orderData.status}`) {
                                     orderData.status = parseInt(text, 10);
                                 }
                             },
                         })}
-                                                            </div>
-                                                        </div>
-                                                        <div class="border rounded p-3 d-flex flex-column" style="gap:10px;">
-                                                            ${[
+                            </div>
+                          </div>
+                          <div class="border rounded p-3 d-flex flex-column" style="gap:10px;">
+                            ${[
                             {
                                 title: '小計',
                                 description: `${orderData.orderData.lineItems
-                                    .map((dd) => {
+                                    .map(dd => {
                                     return parseInt(dd.count, 10);
                                 })
                                     .reduce((accumulator, currentValue) => accumulator + currentValue, 0)} 件商品`,
@@ -463,21 +469,21 @@ export class BgShopping {
                                 description: '',
                                 total: `<span class="fw-bold">$${orderData.orderData.total.toLocaleString()}</span>`,
                             },
-                        ].map((dd) => {
+                        ].map(dd => {
                             return html ` <div class="d-flex align-items-center ">
-                                                                    <div class="fs-6 fw-bold">${dd.title}</div>
-                                                                    <div class="ms-5 fs-6">${dd.description}</div>
-                                                                    <div class="flex-fill"></div>
-                                                                    <div class="ms-5 fs-6">${dd.total}</div>
-                                                                </div>`;
+                                <div class="fs-6 fw-bold">${dd.title}</div>
+                                <div class="ms-5 fs-6">${dd.description}</div>
+                                <div class="flex-fill"></div>
+                                <div class="ms-5 fs-6">${dd.total}</div>
+                              </div>`;
                         }).join(`
                                 
                                 `)}
-                                                        </div>
-                                                    `)}
-                                                </div>
-                                                <div style="width:380px;max-width:100%;">
-                                                    ${BgWidget.card(gvc.bindView(() => {
+                          </div>
+                        `)}
+                      </div>
+                      <div style="width:380px;max-width:100%;">
+                        ${BgWidget.card(gvc.bindView(() => {
                             const id = glitter.getUUID();
                             const vm = {
                                 mode: 'read',
@@ -487,42 +493,45 @@ export class BgShopping {
                                 view: () => {
                                     var _a;
                                     return html `
-                                                                        <div class="d-flex align-items-center ">
-                                                                            <div class="fw-bold fs-6">用戶備註</div>
-                                                                            <div class="flex-fill"></div>
-                                                                            <i
-                                                                                class="fa-solid fa-pencil"
-                                                                                style="cursor:pointer;"
-                                                                                onclick="${gvc.event(() => {
+                                  <div class="d-flex align-items-center ">
+                                    <div class="fw-bold fs-6">用戶備註</div>
+                                    <div class="flex-fill"></div>
+                                    <i
+                                      class="fa-solid fa-pencil"
+                                      style="cursor:pointer;"
+                                      onclick="${gvc.event(() => {
                                         vm.mode = vm.mode === 'edit' ? 'read' : 'edit';
                                         gvc.notifyDataChange(id);
                                     })}"
-                                                                            ></i>
-                                                                        </div>
-                                                                        ${vm.mode == 'read'
+                                    ></i>
+                                  </div>
+                                  ${vm.mode == 'read'
                                         ? html `
-                                                                                  <div class="fs-6 w-100 mt-2  lh-lg fw-normal" style="word-break: break-all;white-space:normal;">
-                                                                                      ${((_a = orderData.orderData.user_info.note) !== null && _a !== void 0 ? _a : '尚未填寫').replace(/\n/g, `<br>`)}
-                                                                                  </div>
-                                                                              `
+                                        <div
+                                          class="fs-6 w-100 mt-2  lh-lg fw-normal"
+                                          style="word-break: break-all;white-space:normal;"
+                                        >
+                                          ${((_a = orderData.orderData.user_info.note) !== null && _a !== void 0 ? _a : '尚未填寫').replace(/\n/g, `<br>`)}
+                                        </div>
+                                      `
                                         : EditorElem.editeText({
                                             gvc: gvc,
                                             title: '',
                                             default: orderData.orderData.user_info.note,
                                             placeHolder: '',
-                                            callback: (text) => {
+                                            callback: text => {
                                                 orderData.orderData.user_info.note = text;
                                             },
                                         })}
-                                                                    `;
+                                `;
                                 },
                                 divCreate: {
                                     class: `p-2 fw-normal`,
                                 },
                             };
                         }))}
-                                                    <div class="mt-2"></div>
-                                                    ${BgWidget.card(gvc.bindView(() => {
+                        <div class="mt-2"></div>
+                        ${BgWidget.card(gvc.bindView(() => {
                             const id = glitter.getUUID();
                             const vm = {
                                 mode: 'read',
@@ -532,72 +541,75 @@ export class BgShopping {
                                 view: () => {
                                     var _a;
                                     return html `
-                                                                        <div class="d-flex align-items-center ">
-                                                                            <div class="fw-bold fs-6">訂單備註</div>
-                                                                            <div class="flex-fill"></div>
-                                                                            <i
-                                                                                class="fa-solid fa-pencil"
-                                                                                style="cursor:pointer;"
-                                                                                onclick="${gvc.event(() => {
+                                  <div class="d-flex align-items-center ">
+                                    <div class="fw-bold fs-6">訂單備註</div>
+                                    <div class="flex-fill"></div>
+                                    <i
+                                      class="fa-solid fa-pencil"
+                                      style="cursor:pointer;"
+                                      onclick="${gvc.event(() => {
                                         vm.mode = vm.mode === 'edit' ? 'read' : 'edit';
                                         gvc.notifyDataChange(id);
                                     })}"
-                                                                            ></i>
-                                                                        </div>
-                                                                        ${vm.mode == 'read'
+                                    ></i>
+                                  </div>
+                                  ${vm.mode == 'read'
                                         ? html `
-                                                                                  <div class="fs-6 w-100 mt-2  lh-lg fw-normal" style="word-break: break-all;white-space:normal;">
-                                                                                      ${((_a = orderData.orderData.order_note) !== null && _a !== void 0 ? _a : '尚未填寫').replace(/\n/g, `<br>`)}
-                                                                                  </div>
-                                                                              `
+                                        <div
+                                          class="fs-6 w-100 mt-2  lh-lg fw-normal"
+                                          style="word-break: break-all;white-space:normal;"
+                                        >
+                                          ${((_a = orderData.orderData.order_note) !== null && _a !== void 0 ? _a : '尚未填寫').replace(/\n/g, `<br>`)}
+                                        </div>
+                                      `
                                         : EditorElem.editeText({
                                             gvc: gvc,
                                             title: '',
                                             default: orderData.orderData.order_note,
                                             placeHolder: '',
-                                            callback: (text) => {
+                                            callback: text => {
                                                 orderData.orderData.order_note = text;
                                             },
                                         })}
-                                                                    `;
+                                `;
                                 },
                                 divCreate: {
                                     class: `p-2 fw-normal`,
                                 },
                             };
                         }))}
-                                                    <div class="mt-2"></div>
-                                                    ${BgWidget.card(html `
-                                                        <div class="p-2">
-                                                            <div class="d-flex align-items-center">
-                                                                <div class="fw-bold fs-6">預計送達日期</div>
-                                                                <div class="flex-fill"></div>
-                                                            </div>
-                                                            <div class="w-100 d-flex flex-column mt-2" style="gap:5px;">
-                                                                ${[
+                        <div class="mt-2"></div>
+                        ${BgWidget.card(html `
+                          <div class="p-2">
+                            <div class="d-flex align-items-center">
+                              <div class="fw-bold fs-6">預計送達日期</div>
+                              <div class="flex-fill"></div>
+                            </div>
+                            <div class="w-100 d-flex flex-column mt-2" style="gap:5px;">
+                              ${[
                             EditorElem.editeInput({
                                 gvc: gvc,
                                 title: '',
                                 default: orderData.orderData.expectDate,
                                 placeHolder: '',
-                                callback: (text) => {
+                                callback: text => {
                                     orderData.orderData.expectDate = text;
                                 },
                                 type: 'date',
                             }),
                         ].join('')}
-                                                            </div>
-                                                        </div>
-                                                    `)}
-                                                    <div class="mt-2"></div>
-                                                    ${BgWidget.card(html `
-                                                        <div class="p-2">
-                                                            <div class="d-flex align-items-center">
-                                                                <div class="fw-bold fs-6">客戶</div>
-                                                                <div class="flex-fill"></div>
-                                                            </div>
-                                                            <div class="w-100 d-flex flex-column mt-2" style="gap:5px;">
-                                                                ${[
+                            </div>
+                          </div>
+                        `)}
+                        <div class="mt-2"></div>
+                        ${BgWidget.card(html `
+                          <div class="p-2">
+                            <div class="d-flex align-items-center">
+                              <div class="fw-bold fs-6">客戶</div>
+                              <div class="flex-fill"></div>
+                            </div>
+                            <div class="w-100 d-flex flex-column mt-2" style="gap:5px;">
+                              ${[
                             `<div class="fw-500 fs-6 text-primary">${orderData.orderData.user_info.name}</div>`,
                             `<div class="my-2 bgf6" style="height: 1px;"></div>`,
                             `<div class="fw-bold fs-6">聯絡資訊</div>`,
@@ -645,13 +657,13 @@ export class BgShopping {
                                 }
                             })(),
                         ].join('')}
-                                                            </div>
-                                                        </div>
-                                                    `)}
-                                                </div>
-                                            </div> `)}
-                                </div>
-                            `);
+                            </div>
+                          </div>
+                        `)}
+                      </div>
+                    </div> `)}
+              </div>
+            `);
                     }
                     else {
                         return ``;
@@ -677,28 +689,28 @@ export class BgShopping {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="title-container ">
-                                ${BgWidget.title('折扣管理')}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn btn-primary-c "
-                                    style="height:45px;font-size: 14px;"
-                                    onclick="${gvc.event(() => {
+              <div class="title-container ">
+                ${BgWidget.title('折扣管理')}
+                <div class="flex-fill"></div>
+                <button
+                  class="btn btn-primary-c "
+                  style="height:45px;font-size: 14px;"
+                  onclick="${gvc.event(() => {
                             vm.data = undefined;
                             vm.type = 'add';
                         })}"
-                                >
-                                    新增折扣
-                                </button>
-                            </div>
-                            ${BgWidget.table({
+                >
+                  新增折扣
+                </button>
+              </div>
+              ${BgWidget.table({
                             gvc: gvc,
-                            getData: (vmi) => {
+                            getData: vmi => {
                                 ApiShop.getVoucher({
                                     page: vmi.page - 1,
                                     limit: 20,
                                     search: vm.query || undefined,
-                                }).then((data) => {
+                                }).then(data => {
                                     vmi.pageSize = Math.ceil(data.response.total / 20);
                                     vm.dataList = data.response.data;
                                     function getDatalist() {
@@ -710,7 +722,7 @@ export class BgShopping {
                                                         def: !data.response.data.find((dd) => {
                                                             return !dd.checked;
                                                         }),
-                                                        callback: (result) => {
+                                                        callback: result => {
                                                             data.response.data.map((dd) => {
                                                                 dd.checked = result;
                                                             });
@@ -722,7 +734,7 @@ export class BgShopping {
                                                     value: EditorElem.checkBoxOnly({
                                                         gvc: gvc,
                                                         def: dd.checked,
-                                                        callback: (result) => {
+                                                        callback: result => {
                                                             dd.checked = result;
                                                             vmi.data = getDatalist();
                                                             vmi.callback();
@@ -737,7 +749,9 @@ export class BgShopping {
                                                 },
                                                 {
                                                     key: '狀態',
-                                                    value: dd.content.status ? `<div class="badge badge-success fs-7" >啟用中</div>` : `<div class="badge bg-secondary fs-7">已停用</div>`,
+                                                    value: dd.content.status
+                                                        ? `<div class="badge badge-success fs-7" >啟用中</div>`
+                                                        : `<div class="badge bg-secondary fs-7">已停用</div>`,
                                                 },
                                                 {
                                                     key: '觸發方式',
@@ -767,7 +781,7 @@ export class BgShopping {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有折扣')}
-                                ${gvc.bindView(() => {
+                ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -786,7 +800,7 @@ export class BgShopping {
                                                     BgWidget.selEventButton('批量移除', gvc.event(() => {
                                                         dialog.checkYesOrNot({
                                                             text: '是否確認刪除所選項目？',
-                                                            callback: (response) => {
+                                                            callback: response => {
                                                                 if (response) {
                                                                     dialog.dataLoading({ visible: true });
                                                                     ApiShop.deleteVoucher({
@@ -798,7 +812,7 @@ export class BgShopping {
                                                                             return dd.id;
                                                                         })
                                                                             .join(`,`),
-                                                                    }).then((res) => {
+                                                                    }).then(res => {
                                                                         dialog.dataLoading({ visible: false });
                                                                         if (res.result) {
                                                                             vm.dataList = undefined;
@@ -830,7 +844,7 @@ export class BgShopping {
                                 };
                             })}`,
                         })}
-                        `);
+            `);
                     }
                     else if (vm.type == 'replace') {
                         return this.voucherEditor({
@@ -882,16 +896,16 @@ export class BgShopping {
                         }
                         `);
         return BgWidget.container(html `
-                <div class="title-container">
-                    ${BgWidget.goBack(gvc.event(() => {
+      <div class="title-container">
+        ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
         }))}
-                    ${BgWidget.title(`編輯優惠券`)}
-                    <div class="flex-fill"></div>
-                    <button
-                        class="btn btn-primary-c"
-                        style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
+        ${BgWidget.title(`編輯優惠券`)}
+        <div class="flex-fill"></div>
+        <button
+          class="btn btn-primary-c"
+          style="height:38px;font-size: 14px;"
+          onclick="${gvc.event(() => {
             voucherData.start_ISO_Date = '';
             voucherData.end_ISO_Date = '';
             glitter.ut.tryMethod([
@@ -909,7 +923,7 @@ export class BgShopping {
                     postData: voucherData,
                     token: GlobalUser.token,
                     type: 'manager',
-                }).then((re) => {
+                }).then(re => {
                     dialog.dataLoading({ visible: false });
                     if (re.result) {
                         vm.status = 'list';
@@ -926,7 +940,7 @@ export class BgShopping {
                     postData: voucherData,
                     token: GlobalUser.token,
                     type: 'manager',
-                }).then((re) => {
+                }).then(re => {
                     dialog.dataLoading({ visible: false });
                     if (re.result) {
                         vm.type = 'list';
@@ -938,13 +952,13 @@ export class BgShopping {
                 });
             }
         })}"
-                    >
-                        儲存並新增
-                    </button>
-                </div>
-                <div class="d-flex" style="gap:10px;">
-                    <div class="" style="width:700px;">
-                        ${[
+        >
+          儲存並新增
+        </button>
+      </div>
+      <div class="d-flex" style="gap:10px;">
+        <div class="" style="width:700px;">
+          ${[
             BgWidget.card(`
                             <h3 class="fs-7 mb-2">折扣券名稱</h3>
                               ${[
@@ -953,7 +967,7 @@ export class BgShopping {
                     title: '',
                     default: voucherData.title,
                     placeHolder: '',
-                    callback: (text) => {
+                    callback: text => {
                         voucherData.title = text;
                     },
                 }),
@@ -974,13 +988,13 @@ export class BgShopping {
                             title: '',
                             default: (_b = voucherData.code) !== null && _b !== void 0 ? _b : '',
                             placeHolder: '請輸入優惠券代碼',
-                            callback: (text) => {
+                            callback: text => {
                                 voucherData.code = text;
                             },
                         }),
                     },
                 ],
-                callback: (text) => {
+                callback: text => {
                     if (text === 'auto') {
                         voucherData.code = undefined;
                     }
@@ -1001,8 +1015,8 @@ export class BgShopping {
                     ],
                     view: () => {
                         return html `
-                                                <h6 class="fs-7 mb-2">折抵方式</h6>
-                                                ${EditorElem.checkBox({
+                      <h6 class="fs-7 mb-2">折抵方式</h6>
+                      ${EditorElem.checkBox({
                             gvc: gvc,
                             title: '',
                             def: voucherData.reBackType,
@@ -1011,11 +1025,11 @@ export class BgShopping {
                                 { title: '購物金', value: 'rebate' },
                                 { title: '滿額免運', value: 'shipment_free' },
                             ],
-                            callback: (text) => {
+                            callback: text => {
                                 voucherData.reBackType = text;
                             },
                         })}
-                                                ${[
+                      ${[
                             (() => {
                                 if (voucherData.reBackType === 'shipment_free') {
                                     return ``;
@@ -1031,21 +1045,21 @@ export class BgShopping {
                                                 { title: '固定金額', value: 'fixed' },
                                                 { title: '百分比', value: 'percent' },
                                             ],
-                                            callback: (text) => {
+                                            callback: text => {
                                                 voucherData.value = '';
                                                 voucherData.method = text;
                                             },
                                         }),
                                         html ` <h3 class="fs-7 mb-2">值</h3>
-                                                                    <div class="d-flex align-items-center">
-                                                                        ${EditorElem.editeInput({
+                                <div class="d-flex align-items-center">
+                                  ${EditorElem.editeInput({
                                             gvc: gvc,
                                             type: 'number',
                                             style: `width:125px;`,
                                             title: '',
                                             default: voucherData.value,
                                             placeHolder: '',
-                                            callback: (text) => {
+                                            callback: text => {
                                                 if (voucherData.method === 'percent' && parseInt(text, 10) >= 100) {
                                                     const dialog = new ShareDialog(gvc.glitter);
                                                     dialog.infoMessage({ text: '數值不得大於100%' });
@@ -1056,16 +1070,16 @@ export class BgShopping {
                                                 }
                                             },
                                         })}
-                                                                        <div style="width:40px;" class="d-flex align-items-center justify-content-center">
-                                                                            ${voucherData.method === 'fixed' ? `$` : `%`}
-                                                                        </div>
-                                                                    </div>`,
+                                  <div style="width:40px;" class="d-flex align-items-center justify-content-center">
+                                    ${voucherData.method === 'fixed' ? `$` : `%`}
+                                  </div>
+                                </div>`,
                                     ].join('');
                                 }
                             })(),
                             html `
-                                                        <h3 class="fs-7 mb-2">套用至</h3>
-                                                        ${EditorElem.checkBox({
+                          <h3 class="fs-7 mb-2">套用至</h3>
+                          ${EditorElem.checkBox({
                                 gvc: gvc,
                                 title: '',
                                 def: voucherData.for,
@@ -1077,13 +1091,13 @@ export class BgShopping {
                                     { title: '單一商品', value: 'product' },
                                     { title: '所有商品', value: 'all' },
                                 ],
-                                callback: (text) => {
+                                callback: text => {
                                     voucherData.forKey = [];
                                     voucherData.for = text;
                                     gvc.notifyDataChange(id);
                                 },
                             })}
-                                                    `,
+                        `,
                             voucherData.for === 'collection'
                                 ? gvc.bindView(() => {
                                     let interval = 0;
@@ -1107,7 +1121,7 @@ export class BgShopping {
                                                                     search: (text, callback) => {
                                                                         clearInterval(interval);
                                                                         interval = setTimeout(() => {
-                                                                            ApiShop.getCollection().then((data) => {
+                                                                            ApiShop.getCollection().then(data => {
                                                                                 if (data.result && data.response.value) {
                                                                                     let keyIndex = [];
                                                                                     function loopCValue(data, ind) {
@@ -1131,7 +1145,7 @@ export class BgShopping {
                                                                             });
                                                                         }, 100);
                                                                     },
-                                                                    callback: (text) => {
+                                                                    callback: text => {
                                                                         voucherData.forKey[index] = text;
                                                                     },
                                                                     placeHolder: '請輸入商品名稱',
@@ -1198,7 +1212,7 @@ export class BgShopping {
                                                                                             page: 0,
                                                                                             limit: 50,
                                                                                             id: dd,
-                                                                                        }).then((data) => {
+                                                                                        }).then(data => {
                                                                                             if (data.result && data.response.result) {
                                                                                                 mapPdName[dd] = data.response.data.content.title;
                                                                                                 resolve(data.response.data.content.title);
@@ -1220,19 +1234,19 @@ export class BgShopping {
                                                                                                     page: 0,
                                                                                                     limit: 50,
                                                                                                     search: '',
-                                                                                                }).then((data) => {
+                                                                                                }).then(data => {
                                                                                                     callback(data.response.data.map((dd) => {
                                                                                                         return dd.content.title;
                                                                                                     }));
                                                                                                 });
                                                                                             }, 100);
                                                                                         },
-                                                                                        callback: (text) => {
+                                                                                        callback: text => {
                                                                                             ApiShop.getProduct({
                                                                                                 page: 0,
                                                                                                 limit: 50,
                                                                                                 search: text,
-                                                                                            }).then((data) => {
+                                                                                            }).then(data => {
                                                                                                 voucherData.forKey[index] = data.response.data.find((dd) => {
                                                                                                     return dd.content.title === text;
                                                                                                 }).id;
@@ -1270,7 +1284,7 @@ export class BgShopping {
                                     };
                                 }),
                         ].join('<div class="my-2"></div>')}
-                                            `;
+                    `;
                     },
                     divCreate: {},
                 };
@@ -1298,7 +1312,7 @@ ${EditorElem.editeInput({
                                             style: `font-size:0.85rem;height:40px;width:150px;`,
                                             default: `${voucherData.ruleValue}`,
                                             placeHolder: '',
-                                            callback: (text) => {
+                                            callback: text => {
                                                 voucherData.ruleValue = parseInt(text, 10);
                                             },
                                         })}
@@ -1316,7 +1330,7 @@ ${EditorElem.editeInput({
                                             style: `font-size:0.85rem;height:40px;width:150px;`,
                                             default: `${voucherData.ruleValue}`,
                                             placeHolder: '',
-                                            callback: (text) => {
+                                            callback: text => {
                                                 voucherData.ruleValue = parseInt(text, 10);
                                             },
                                         })}
@@ -1324,7 +1338,7 @@ ${EditorElem.editeInput({
 </div>`,
                                     },
                                 ],
-                                callback: (text) => {
+                                callback: text => {
                                     voucherData.ruleValue = 0;
                                     voucherData.rule = text;
                                     gvc.notifyDataChange(id);
@@ -1355,7 +1369,7 @@ ${EditorElem.editeInput({
                                         value: 'false',
                                     },
                                 ],
-                                callback: (text) => {
+                                callback: text => {
                                     voucherData.overlay = text === 'true';
                                     gvc.notifyDataChange(id);
                                 },
@@ -1373,33 +1387,33 @@ ${EditorElem.editeInput({
                         return [
                             html ` <h6 class="fs-7 mb-2">有效日期</h6>`,
                             html `<div class="d-flex align-items-center mb-2">
-                                                    <div>
-                                                        ${EditorElem.editeInput({
+                        <div>
+                          ${EditorElem.editeInput({
                                 gvc: gvc,
                                 title: '<span class="me-2 fs-7">開始日期</span>',
                                 type: 'date',
                                 style: `font-size:0.85rem;height:40px;width:200px;`,
                                 default: `${voucherData.startDate}`,
                                 placeHolder: '',
-                                callback: (text) => {
+                                callback: text => {
                                     voucherData.startDate = text;
                                 },
                             })}
-                                                    </div>
-                                                    <div class="ms-3">
-                                                        ${EditorElem.editeInput({
+                        </div>
+                        <div class="ms-3">
+                          ${EditorElem.editeInput({
                                 gvc: gvc,
                                 title: '<span class="me-2 fs-7 ms-2">開始時間</span>',
                                 type: 'time',
                                 style: `font-size:0.85rem;height:40px;width:200px;`,
                                 default: `${voucherData.startTime}`,
                                 placeHolder: '',
-                                callback: (text) => {
+                                callback: text => {
                                     voucherData.startTime = text;
                                 },
                             })}
-                                                    </div>
-                                                </div>`,
+                        </div>
+                      </div>`,
                             (() => {
                                 const endDate = voucherData.endDate ? `withEnd` : `noEnd`;
                                 return EditorElem.checkBox({
@@ -1415,36 +1429,36 @@ ${EditorElem.editeInput({
                                             title: '有效期限',
                                             value: 'withEnd',
                                             innerHtml: html `<div class="d-flex align-items-center mb-2">
-                                                                    <div>
-                                                                        ${EditorElem.editeInput({
+                                <div>
+                                  ${EditorElem.editeInput({
                                                 gvc: gvc,
                                                 title: '<span class="me-2 fs-7">結束日期</span>',
                                                 type: 'date',
                                                 style: `font-size:0.85rem;height:40px;width:200px;`,
                                                 default: `${voucherData.endDate}`,
                                                 placeHolder: '',
-                                                callback: (text) => {
+                                                callback: text => {
                                                     voucherData.endDate = text;
                                                 },
                                             })}
-                                                                    </div>
-                                                                    <div class="ms-3">
-                                                                        ${EditorElem.editeInput({
+                                </div>
+                                <div class="ms-3">
+                                  ${EditorElem.editeInput({
                                                 gvc: gvc,
                                                 title: '<span class="me-2 fs-7 ms-2">結束時間</span>',
                                                 type: 'time',
                                                 style: `font-size:0.85rem;height:40px;width:200px;`,
                                                 default: `${voucherData.endTime}`,
                                                 placeHolder: '',
-                                                callback: (text) => {
+                                                callback: text => {
                                                     voucherData.endTime = text;
                                                 },
                                             })}
-                                                                    </div>
-                                                                </div>`,
+                                </div>
+                              </div>`,
                                         },
                                     ],
-                                    callback: (text) => {
+                                    callback: text => {
                                         if (text === 'noEnd') {
                                             voucherData.endDate = undefined;
                                             voucherData.endTime = undefined;
@@ -1457,30 +1471,30 @@ ${EditorElem.editeInput({
                 };
             })),
         ].join(`<div class="my-2"></div>`)}
-                    </div>
-                    <div class="flex-fill d-none">
-                        ${BgWidget.card(`
+        </div>
+        <div class="flex-fill d-none">
+          ${BgWidget.card(`
                             <h3 class="fs-7">折扣券名稱</h3>
                             `)}
-                    </div>
-                </div>
-                ${obj.type === 'replace'
+        </div>
+      </div>
+      ${obj.type === 'replace'
             ? html `
-                          <div class="d-flex w-100">
-                              <div class="flex-fill"></div>
-                              <button
-                                  class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
-                                  style="height:30px;width:100px;"
-                                  onclick="${obj.gvc.event(() => {
+            <div class="d-flex w-100">
+              <div class="flex-fill"></div>
+              <button
+                class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
+                style="height:30px;width:100px;"
+                onclick="${obj.gvc.event(() => {
                 const dialog = new ShareDialog(obj.gvc.glitter);
                 dialog.checkYesOrNot({
                     text: '是否確認刪除優惠券?',
-                    callback: (response) => {
+                    callback: response => {
                         if (response) {
                             dialog.dataLoading({ visible: true });
                             ApiShop.deleteVoucher({
                                 id: voucherData.id,
-                            }).then((res) => {
+                            }).then(res => {
                                 dialog.dataLoading({ visible: false });
                                 if (res.result) {
                                     vm.type = 'list';
@@ -1493,13 +1507,13 @@ ${EditorElem.editeInput({
                     },
                 });
             })}"
-                              >
-                                  刪除優惠券
-                              </button>
-                          </div>
-                      `
+              >
+                刪除優惠券
+              </button>
+            </div>
+          `
             : ``}
-            `);
+    `);
     }
     static productManager(gvc) {
         const glitter = gvc.glitter;
@@ -1530,27 +1544,27 @@ ${EditorElem.editeInput({
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
                             return BgWidget.container(html `
-                                <div class="title-container">
-                                    ${BgWidget.title('商品管理')}
-                                    <div class="flex-fill"></div>
-                                    <button
-                                        class="btn btn-primary-c"
-                                        style="height:45px;font-size: 14px;"
-                                        onclick="${gvc.event(() => {
+                <div class="title-container">
+                  ${BgWidget.title('商品管理')}
+                  <div class="flex-fill"></div>
+                  <button
+                    class="btn btn-primary-c"
+                    style="height:45px;font-size: 14px;"
+                    onclick="${gvc.event(() => {
                                 vm.status = 'add';
                             })}"
-                                    >
-                                        新增商品
-                                    </button>
-                                </div>
-                                ${BgWidget.table({
+                  >
+                    新增商品
+                  </button>
+                </div>
+                ${BgWidget.table({
                                 gvc: gvc,
-                                getData: (vmi) => {
+                                getData: vmi => {
                                     ApiShop.getProduct({
                                         page: vmi.page - 1,
                                         limit: 50,
                                         search: vm.query || undefined,
-                                    }).then((data) => {
+                                    }).then(data => {
                                         vmi.pageSize = Math.ceil(data.response.total / 50);
                                         vm.dataList = data.response.data;
                                         function getDatalist() {
@@ -1562,7 +1576,7 @@ ${EditorElem.editeInput({
                                                             def: !data.response.data.find((dd) => {
                                                                 return !dd.checked;
                                                             }),
-                                                            callback: (result) => {
+                                                            callback: result => {
                                                                 data.response.data.map((dd) => {
                                                                     dd.checked = result;
                                                                 });
@@ -1574,7 +1588,7 @@ ${EditorElem.editeInput({
                                                         value: EditorElem.checkBoxOnly({
                                                             gvc: gvc,
                                                             def: dd.checked,
-                                                            callback: (result) => {
+                                                            callback: result => {
                                                                 dd.checked = result;
                                                                 vmi.data = getDatalist();
                                                                 vmi.callback();
@@ -1585,7 +1599,7 @@ ${EditorElem.editeInput({
                                                     },
                                                     {
                                                         key: '商品',
-                                                        value: `<img class="rounded border me-4 ${dd.content.preview_image[0] ? `` : `d-none`}" alt="" src="${dd.content.preview_image[0] || BgWidget.noImageURL}" style="width:40px;height:40px;">` + dd.content.title,
+                                                        value: `<img class="rounded border me-2 ${dd.content.preview_image[0] ? `` : `d-none`}" alt="" src="${dd.content.preview_image[0] || BgWidget.noImageURL}" style="width:40px;height:40px;">` + dd.content.title,
                                                     },
                                                     {
                                                         key: '狀態',
@@ -1613,7 +1627,7 @@ ${EditorElem.editeInput({
                                                         })
                                                             .join(`<div class="mx-1"></div>`)}</div>`,
                                                     },
-                                                ].map((dd) => {
+                                                ].map(dd => {
                                                     dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
                                                     return dd;
                                                 });
@@ -1629,11 +1643,11 @@ ${EditorElem.editeInput({
                                     vm.status = 'replace';
                                 },
                                 filter: html `
-                                        ${BgWidget.searchPlace(gvc.event((e, event) => {
+                    ${BgWidget.searchPlace(gvc.event((e, event) => {
                                     vm.query = e.value;
                                     gvc.notifyDataChange(id);
                                 }), vm.query || '', '搜尋所有商品')}
-                                        ${gvc.bindView(() => {
+                    ${gvc.bindView(() => {
                                     return {
                                         bind: filterID,
                                         view: () => {
@@ -1652,7 +1666,7 @@ ${EditorElem.editeInput({
                                                         BgWidget.selEventButton('批量移除', gvc.event(() => {
                                                             dialog.checkYesOrNot({
                                                                 text: '是否確認刪除所選項目？',
-                                                                callback: (response) => {
+                                                                callback: response => {
                                                                     if (response) {
                                                                         dialog.dataLoading({ visible: true });
                                                                         ApiShop.delete({
@@ -1664,7 +1678,7 @@ ${EditorElem.editeInput({
                                                                                 return dd.id;
                                                                             })
                                                                                 .join(`,`),
-                                                                        }).then((res) => {
+                                                                        }).then(res => {
                                                                             dialog.dataLoading({ visible: false });
                                                                             if (res.result) {
                                                                                 vm.dataList = undefined;
@@ -1695,9 +1709,9 @@ ${EditorElem.editeInput({
                                         },
                                     };
                                 })}
-                                    `,
+                  `,
                             })}
-                            `);
+              `);
                         case 'replace':
                             return BgShopping.editProduct({
                                 vm: vm,
@@ -1720,7 +1734,7 @@ ${EditorElem.editeInput({
             const dialog = new ShareDialog(glitter);
             const id = glitter.getUUID();
             dialog.dataLoading({ text: '', visible: true });
-            ApiShop.getCollection().then((res) => {
+            ApiShop.getCollection().then(res => {
                 array = res.response.value || [];
                 setTimeout(() => {
                     dialog.dataLoading({ visible: false });
@@ -1731,14 +1745,14 @@ ${EditorElem.editeInput({
                 bind: id,
                 view: () => {
                     return html ` <div class="title-container ">
-                                ${BgWidget.title('商品系列管理')}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn btn-primary-c"
-                                    style="height:38px;font-size: 14px;"
-                                    onclick="${obj.gvc.event(() => {
+                ${BgWidget.title('商品系列管理')}
+                <div class="flex-fill"></div>
+                <button
+                  class="btn btn-primary-c"
+                  style="height:38px;font-size: 14px;"
+                  onclick="${obj.gvc.event(() => {
                         dialog.dataLoading({ text: '商品上傳中...', visible: true });
-                        ApiShop.setCollection(array).then((response) => {
+                        ApiShop.setCollection(array).then(response => {
                             dialog.dataLoading({ text: '上傳中...', visible: false });
                             if (response.result) {
                                 dialog.successMessage({ text: '上傳成功...' });
@@ -1748,11 +1762,11 @@ ${EditorElem.editeInput({
                             }
                         });
                     })}"
-                                >
-                                    儲存
-                                </button>
-                            </div>
-                            ${BgWidget.card((() => {
+                >
+                  儲存
+                </button>
+              </div>
+              ${BgWidget.card((() => {
                         function renderArray(title, array, notify) {
                             return EditorElem.arrayItem({
                                 gvc: obj.gvc,
@@ -1776,7 +1790,7 @@ ${EditorElem.editeInput({
                                                                     title: '商品系列標題',
                                                                     default: (_a = dd.title) !== null && _a !== void 0 ? _a : '',
                                                                     placeHolder: '商品系列標題',
-                                                                    callback: (text) => {
+                                                                    callback: text => {
                                                                         dd.title = text;
                                                                         obj.gvc.notifyDataChange(id);
                                                                     },
@@ -1785,7 +1799,7 @@ ${EditorElem.editeInput({
                                                                     title: '商品系列圖片',
                                                                     gvc: gvc,
                                                                     def: (_b = dd.img) !== null && _b !== void 0 ? _b : '',
-                                                                    callback: (text) => {
+                                                                    callback: text => {
                                                                         dd.img = text;
                                                                         obj.gvc.notifyDataChange(id);
                                                                     },
@@ -1831,7 +1845,7 @@ ${EditorElem.editeInput({
             const dialog = new ShareDialog(glitter);
             const id = glitter.getUUID();
             dialog.dataLoading({ text: '', visible: true });
-            ApiShop.getShowList().then((res) => {
+            ApiShop.getShowList().then(res => {
                 array = res.response.value || [];
                 setTimeout(() => {
                     dialog.dataLoading({ visible: false });
@@ -1842,14 +1856,14 @@ ${EditorElem.editeInput({
                 bind: id,
                 view: () => {
                     return html ` <div class="title-container ">
-                                ${BgWidget.title('商品顯示區塊')}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn btn-primary-c"
-                                    style="height:38px;font-size: 14px;"
-                                    onclick="${obj.gvc.event(() => {
+                ${BgWidget.title('商品顯示區塊')}
+                <div class="flex-fill"></div>
+                <button
+                  class="btn btn-primary-c"
+                  style="height:38px;font-size: 14px;"
+                  onclick="${obj.gvc.event(() => {
                         dialog.dataLoading({ text: '商品上傳中...', visible: true });
-                        ApiShop.setShowList(array).then((response) => {
+                        ApiShop.setShowList(array).then(response => {
                             dialog.dataLoading({ text: '上傳中...', visible: false });
                             if (response.result) {
                                 dialog.successMessage({ text: '上傳成功...' });
@@ -1859,11 +1873,11 @@ ${EditorElem.editeInput({
                             }
                         });
                     })}"
-                                >
-                                    儲存
-                                </button>
-                            </div>
-                            ${BgWidget.card((() => {
+                >
+                  儲存
+                </button>
+              </div>
+              ${BgWidget.card((() => {
                         function renderArray(title, array, notify) {
                             return EditorElem.arrayItem({
                                 gvc: obj.gvc,
@@ -1890,7 +1904,7 @@ ${EditorElem.editeInput({
                                                                     title: '區塊標籤',
                                                                     default: (_a = dd.tag) !== null && _a !== void 0 ? _a : '',
                                                                     placeHolder: '商品區塊標籤',
-                                                                    callback: (text) => {
+                                                                    callback: text => {
                                                                         dd.tag = text;
                                                                         obj.gvc.notifyDataChange(id);
                                                                     },
@@ -1900,7 +1914,7 @@ ${EditorElem.editeInput({
                                                                     title: '區塊標題',
                                                                     default: (_b = dd.title) !== null && _b !== void 0 ? _b : '',
                                                                     placeHolder: '商品區塊標題',
-                                                                    callback: (text) => {
+                                                                    callback: text => {
                                                                         dd.title = text;
                                                                         obj.gvc.notifyDataChange(id);
                                                                     },
@@ -1909,13 +1923,13 @@ ${EditorElem.editeInput({
                                                                     title: '區塊圖片',
                                                                     gvc: gvc,
                                                                     def: (_c = dd.img) !== null && _c !== void 0 ? _c : '',
-                                                                    callback: (text) => {
+                                                                    callback: text => {
                                                                         dd.img = text;
                                                                         obj.gvc.notifyDataChange(id);
                                                                     },
                                                                 }),
                                                                 html `<div class="mx-n2">
-                                                                                ${EditorElem.arrayItem({
+                                        ${EditorElem.arrayItem({
                                                                     gvc: gvc,
                                                                     title: '商品項目',
                                                                     array: () => {
@@ -1935,7 +1949,7 @@ ${EditorElem.editeInput({
                                                                                                             page: 0,
                                                                                                             limit: 50,
                                                                                                             id: dd.id,
-                                                                                                        }).then((data) => {
+                                                                                                        }).then(data => {
                                                                                                             if (data.result && data.response.result) {
                                                                                                                 resolve(data.response.data.content.title);
                                                                                                             }
@@ -1955,19 +1969,19 @@ ${EditorElem.editeInput({
                                                                                                                     page: 0,
                                                                                                                     limit: 50,
                                                                                                                     search: '',
-                                                                                                                }).then((data) => {
+                                                                                                                }).then(data => {
                                                                                                                     callback(data.response.data.map((dd) => {
                                                                                                                         return dd.content.title;
                                                                                                                     }));
                                                                                                                 });
                                                                                                             }, 100);
                                                                                                         },
-                                                                                                        callback: (text) => {
+                                                                                                        callback: text => {
                                                                                                             ApiShop.getProduct({
                                                                                                                 page: 0,
                                                                                                                 limit: 50,
                                                                                                                 search: text,
-                                                                                                            }).then((data) => {
+                                                                                                            }).then(data => {
                                                                                                                 dd.id = data.response.data.find((dd) => {
                                                                                                                     return dd.content.title === text;
                                                                                                                 }).id;
@@ -2006,7 +2020,7 @@ ${EditorElem.editeInput({
                                                                         gvc.recreateView();
                                                                     },
                                                                 })}
-                                                                            </div>`,
+                                      </div>`,
                                                             ]);
                                                         },
                                                     };
@@ -2060,16 +2074,16 @@ ${EditorElem.editeInput({
         const gvc = obj.gvc;
         const seoID = gvc.glitter.getUUID();
         return html ` <div class="d-flex">
-            ${BgWidget.container(html `<div class="title-container">
-                        ${BgWidget.goBack(obj.gvc.event(() => {
+      ${BgWidget.container(html `<div class="title-container">
+            ${BgWidget.goBack(obj.gvc.event(() => {
             obj.vm.status = 'list';
         }))}
-                        ${BgWidget.title(obj.type === 'replace' ? `編輯商品` : `新增商品`)}
-                        <div class="flex-fill"></div>
-                        <button
-                            class="btn btn-primary-c"
-                            style="height:38px;font-size: 14px;"
-                            onclick="${obj.gvc.event(() => {
+            ${BgWidget.title(obj.type === 'replace' ? `編輯商品` : `新增商品`)}
+            <div class="flex-fill"></div>
+            <button
+              class="btn btn-primary-c"
+              style="height:38px;font-size: 14px;"
+              onclick="${obj.gvc.event(() => {
             setTimeout(() => {
                 if (obj.type === 'replace') {
                     BgShopping.putEvent(postMD, obj.gvc, obj.vm);
@@ -2079,19 +2093,19 @@ ${EditorElem.editeInput({
                 }
             }, 500);
         })}"
-                        >
-                            ${obj.type === 'replace' ? `儲存並更改` : `儲存並新增`}
-                        </button>
-                    </div>
-                    <div class="d-flex flex-column flex-column-reverse  flex-md-row" style="gap:10px;">
-                        <div style="width:800px;max-width:100%;">
-                            ${BgWidget.card([
+            >
+              ${obj.type === 'replace' ? `儲存並更改` : `儲存並新增`}
+            </button>
+          </div>
+          <div class="d-flex flex-column flex-column-reverse  flex-md-row" style="gap:10px;">
+            <div style="width:800px;max-width:100%;">
+              ${BgWidget.card([
             EditorElem.editeInput({
                 gvc: obj.gvc,
                 title: '商品標題',
                 default: postMD.title,
                 placeHolder: `請輸入標題`,
-                callback: (text) => {
+                callback: text => {
                     postMD.title = text;
                 },
             }),
@@ -2105,7 +2119,7 @@ ${EditorElem.editeInput({
                             EditorElem.richText({
                                 gvc: obj.gvc,
                                 def: postMD.content,
-                                callback: (text) => {
+                                callback: text => {
                                     postMD.content = text;
                                 },
                             }),
@@ -2115,37 +2129,37 @@ ${EditorElem.editeInput({
                 };
             }),
         ].join('<div class="my-2"></div>'))}
-                            <div class="my-2"></div>
-                            ${BgWidget.card(obj.gvc.bindView(() => {
+              <div class="my-2"></div>
+              ${BgWidget.card(obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
             return {
                 bind: id,
                 view: () => {
                     return (EditorElem.h3(html ` <div class="d-flex align-items-center" style="gap:10px;">
-                                                    多媒體檔案
-                                                    <div
-                                                        class="d-flex align-items-center justify-content-center rounded-3"
-                                                        style="height: 30px;width: 80px;
+                            多媒體檔案
+                            <div
+                              class="d-flex align-items-center justify-content-center rounded-3"
+                              style="height: 30px;width: 80px;
 "
-                                                    >
-                                                        <button
-                                                            class="btn ms-2 btn-primary-c ms-2"
-                                                            style="height: 30px;width: 80px;"
-                                                            onclick="${obj.gvc.event(() => {
+                            >
+                              <button
+                                class="btn ms-2 btn-primary-c ms-2"
+                                style="height: 30px;width: 80px;"
+                                onclick="${obj.gvc.event(() => {
                         EditorElem.uploadFileFunction({
                             gvc: obj.gvc,
-                            callback: (text) => {
+                            callback: text => {
                                 postMD.preview_image.push(text);
                                 obj.gvc.notifyDataChange(id);
                             },
                             type: `image/*, video/*`,
                         });
                     })}"
-                                                        >
-                                                            添加檔案
-                                                        </button>
-                                                    </div>
-                                                </div>`) +
+                              >
+                                添加檔案
+                              </button>
+                            </div>
+                          </div>`) +
                         html ` <div class="my-2"></div>` +
                         EditorElem.flexMediaManager({
                             gvc: obj.gvc,
@@ -2155,8 +2169,8 @@ ${EditorElem.editeInput({
                 divCreate: {},
             };
         }))}
-                            <div class="my-2"></div>
-                            ${BgWidget.card(obj.gvc.bindView(() => {
+              <div class="my-2"></div>
+              ${BgWidget.card(obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
             function refresh() {
                 obj.gvc.notifyDataChange(id);
@@ -2170,20 +2184,20 @@ ${EditorElem.editeInput({
                             gvc: obj.gvc,
                             title: '',
                             array: () => {
-                                return postMD.specs.map((dd) => {
+                                return postMD.specs.map(dd => {
                                     var _a;
                                     dd.option = (_a = dd.option) !== null && _a !== void 0 ? _a : [];
                                     return {
                                         title: html `<div class="d-flex flex-column w-100 ps-2" style="gap:5px;">
-                                                                    <span>${dd.title || '尚未設定規格名稱'}</span>
-                                                                    <div class="d-flex">
-                                                                        ${dd.option
+                                  <span>${dd.title || '尚未設定規格名稱'}</span>
+                                  <div class="d-flex">
+                                    ${dd.option
                                             .map((d2) => {
                                             return `<div class="badge bg-secondary">${d2.title}</div>`;
                                         })
                                             .join('<div class="mx-1"></div>')}
-                                                                    </div>
-                                                                </div>`,
+                                  </div>
+                                </div>`,
                                         innerHtml: (gvc) => {
                                             var _a;
                                             refresh();
@@ -2199,7 +2213,7 @@ ${EditorElem.editeInput({
                                                     },
                                                 }),
                                                 html `<div class="mx-n2 mt-2">
-                                                                            ${EditorElem.arrayItem({
+                                      ${EditorElem.arrayItem({
                                                     gvc: obj.gvc,
                                                     title: '分類選項',
                                                     array: () => {
@@ -2207,7 +2221,7 @@ ${EditorElem.editeInput({
                                                             var _a;
                                                             return {
                                                                 title: html `<div class="px-2 w-100">
-                                                                                                ${EditorElem.editeInput({
+                                                ${EditorElem.editeInput({
                                                                     gvc: gvc,
                                                                     title: '',
                                                                     default: (_a = dd.title) !== null && _a !== void 0 ? _a : '',
@@ -2217,7 +2231,7 @@ ${EditorElem.editeInput({
                                                                         refresh();
                                                                     },
                                                                 })}
-                                                                                            </div>`,
+                                              </div>`,
                                                                 innerHtml: () => {
                                                                     return ``;
                                                                 },
@@ -2241,7 +2255,7 @@ ${EditorElem.editeInput({
                                                         gvc.recreateView();
                                                     },
                                                 })}
-                                                                        </div>`,
+                                    </div>`,
                                             ].join('');
                                         },
                                         editTitle: `編輯規格`,
@@ -2270,8 +2284,8 @@ ${EditorElem.editeInput({
                 divCreate: {},
             };
         }))}
-                            <div class="my-2"></div>
-                            ${BgWidget.card(EditorElem.h3('商品項目') +
+              <div class="my-2"></div>
+              ${BgWidget.card(EditorElem.h3('商品項目') +
             obj.gvc.bindView(() => {
                 const id = obj.gvc.glitter.getUUID();
                 function refresh() {
@@ -2293,37 +2307,44 @@ ${EditorElem.editeInput({
                             }
                             resolve([
                                 html `<div class="w-100 bgf6 d-flex">
-                                                                <div style=" width:calc(100% / 7 - 90px);"></div>
-                                                                <div style=" width:${wi};padding-left:10px; ">子類</div>
-                                                                <div style=" width:${wi}; ">售價</div>
-                                                                <div style=" width:${wi}; ">原價</div>
-                                                                <div style=" width:${wi}; ">存貨數量</div>
-                                                                <div style=" width:${wi};">存貨單位(SKU)</div>
-                                                                <div style=" width:${wi};margin-left: 20px;">運費權重</div>
-                                                                <div style=" width:${wi}; "></div>
-                                                            </div>`,
+                                <div style=" width:calc(100% / 7 - 90px);"></div>
+                                <div style=" width:${wi};padding-left:10px; ">子類</div>
+                                <div style=" width:${wi}; ">售價</div>
+                                <div style=" width:${wi}; ">原價</div>
+                                <div style=" width:${wi}; ">存貨數量</div>
+                                <div style=" width:${wi};">存貨單位(SKU)</div>
+                                <div style=" width:${wi};margin-left: 20px;">運費權重</div>
+                                <div style=" width:${wi}; "></div>
+                              </div>`,
                                 EditorElem.arrayItem({
                                     customEditor: true,
                                     gvc: obj.gvc,
                                     title: '',
                                     array: () => {
-                                        return postMD.variants.map((dd) => {
+                                        return postMD.variants.map(dd => {
                                             var _a, _b, _c, _d, _e;
                                             const wi = `calc(100% / 6 + 47px);`;
                                             return {
                                                 title: html `<div class="d-flex align-items-center p-0 px-2" style="gap:10px;">
-                                                                                ${[
+                                        ${[
                                                     dd.preview_image
-                                                        ? html `<img class="rounded border" alt="" src="${dd.preview_image}" style="width:40px;height:40px;" />`
+                                                        ? html `<img
+                                                class="rounded border"
+                                                alt=""
+                                                src="${dd.preview_image}"
+                                                style="width:40px;height:40px;"
+                                              />`
                                                         : '',
-                                                    html `<div style="width:calc(100% / 6.5);white-space:normal;">${dd.spec.join('-') || postMD.title}</div>`,
+                                                    html `<div style="width:calc(100% / 6.5);white-space:normal;">
+                                            ${dd.spec.join('-') || postMD.title}
+                                          </div>`,
                                                     EditorElem.editeInput({
                                                         gvc: obj.gvc,
                                                         title: '',
                                                         default: `${(_a = dd.sale_price) !== null && _a !== void 0 ? _a : 0}`,
                                                         placeHolder: '',
                                                         type: 'number',
-                                                        callback: (text) => {
+                                                        callback: text => {
                                                             dd.sale_price = parseInt(text, 10);
                                                         },
                                                         style: ` width:${wi};`,
@@ -2334,7 +2355,7 @@ ${EditorElem.editeInput({
                                                         default: `${(_b = dd.compare_price) !== null && _b !== void 0 ? _b : 0}`,
                                                         placeHolder: '',
                                                         type: 'number',
-                                                        callback: (text) => {
+                                                        callback: text => {
                                                             dd.compare_price = parseInt(text, 10);
                                                         },
                                                         style: ` width:${wi};`,
@@ -2345,7 +2366,7 @@ ${EditorElem.editeInput({
                                                         default: `${(_c = dd.stock) !== null && _c !== void 0 ? _c : 0}`,
                                                         placeHolder: '',
                                                         type: 'number',
-                                                        callback: (text) => {
+                                                        callback: text => {
                                                             dd.stock = parseInt(text, 10);
                                                         },
                                                         style: ` width:${wi};`,
@@ -2356,7 +2377,7 @@ ${EditorElem.editeInput({
                                                         default: `${(_d = dd.sku) !== null && _d !== void 0 ? _d : 0}`,
                                                         placeHolder: '',
                                                         type: 'text',
-                                                        callback: (text) => {
+                                                        callback: text => {
                                                             dd.sku = text;
                                                         },
                                                         style: ` width:${wi};;`,
@@ -2367,50 +2388,58 @@ ${EditorElem.editeInput({
                                                         default: `${(_e = dd.shipment_weight) !== null && _e !== void 0 ? _e : 0}`,
                                                         placeHolder: '',
                                                         type: 'number',
-                                                        callback: (text) => {
+                                                        callback: text => {
                                                             dd.shipment_weight = parseInt(text, 10);
                                                         },
                                                         style: ` width:${wi};;`,
                                                     }),
                                                 ].join('')}
-                                                                                <button
-                                                                                    class="btn ms-2 btn-primary-c ms-2"
-                                                                                    style="height: 38px; "
-                                                                                    onclick="${obj.gvc.event(() => {
+                                        <button
+                                          class="btn ms-2 btn-primary-c ms-2"
+                                          style="height: 38px; "
+                                          onclick="${obj.gvc.event(() => {
                                                     obj.gvc.glitter.innerDialog((gvc) => {
                                                         var _a, _b, _c, _d, _e;
                                                         return html ` <div
-                                                                                                class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
-                                                                                                style="z-index:999999;400px;"
-                                                                                                onclick="${gvc.event((e, event) => {
+                                                class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
+                                                style="z-index:999999;400px;"
+                                                onclick="${gvc.event((e, event) => {
                                                             event.preventDefault();
                                                             event.stopPropagation();
                                                         })}"
-                                                                                            >
-                                                                                                <div class="d-flex align-items-center px-2 border-bottom" style="height:50px;min-width:400px;">
-                                                                                                    <h3 style="font-size:15px;font-weight:500;" class="m-0">${`編輯內容`}</h3>
-                                                                                                    <div class="flex-fill"></div>
-                                                                                                    <div
-                                                                                                        class="hoverBtn p-2"
-                                                                                                        data-bs-toggle="dropdown"
-                                                                                                        aria-haspopup="true"
-                                                                                                        aria-expanded="false"
-                                                                                                        style="color:black;font-size:20px;"
-                                                                                                        onclick="${gvc.event((e, event) => {
+                                              >
+                                                <div
+                                                  class="d-flex align-items-center px-2 border-bottom"
+                                                  style="height:50px;min-width:400px;"
+                                                >
+                                                  <h3 style="font-size:15px;font-weight:500;" class="m-0">
+                                                    ${`編輯內容`}
+                                                  </h3>
+                                                  <div class="flex-fill"></div>
+                                                  <div
+                                                    class="hoverBtn p-2"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-haspopup="true"
+                                                    aria-expanded="false"
+                                                    style="color:black;font-size:20px;"
+                                                    onclick="${gvc.event((e, event) => {
                                                             gvc.closeDialog();
                                                             refresh();
                                                         })}"
-                                                                                                    >
-                                                                                                        <i class="fa-sharp fa-regular fa-circle-xmark"></i>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div class="px-2 pb-2 pt-2" style="max-height:calc(100vh - 150px);overflow-y:auto;">
-                                                                                                    ${[
+                                                  >
+                                                    <i class="fa-sharp fa-regular fa-circle-xmark"></i>
+                                                  </div>
+                                                </div>
+                                                <div
+                                                  class="px-2 pb-2 pt-2"
+                                                  style="max-height:calc(100vh - 150px);overflow-y:auto;"
+                                                >
+                                                  ${[
                                                             EditorElem.uploadImage({
                                                                 title: '商品圖片',
                                                                 gvc: obj.gvc,
                                                                 def: (_a = dd.preview_image) !== null && _a !== void 0 ? _a : '',
-                                                                callback: (text) => {
+                                                                callback: text => {
                                                                     dd.preview_image = text;
                                                                     gvc.recreateView();
                                                                 },
@@ -2421,7 +2450,7 @@ ${EditorElem.editeInput({
                                                                 default: `${(_b = dd.sale_price) !== null && _b !== void 0 ? _b : 0}`,
                                                                 placeHolder: '',
                                                                 type: 'number',
-                                                                callback: (text) => {
+                                                                callback: text => {
                                                                     dd.sale_price = parseInt(text, 10);
                                                                 },
                                                             }),
@@ -2431,7 +2460,7 @@ ${EditorElem.editeInput({
                                                                 default: `${(_c = dd.compare_price) !== null && _c !== void 0 ? _c : 0}`,
                                                                 placeHolder: '',
                                                                 type: 'number',
-                                                                callback: (text) => {
+                                                                callback: text => {
                                                                     dd.compare_price = parseInt(text, 10);
                                                                 },
                                                             }),
@@ -2441,7 +2470,7 @@ ${EditorElem.editeInput({
                                                                 default: `${(_d = dd.stock) !== null && _d !== void 0 ? _d : 0}`,
                                                                 placeHolder: '',
                                                                 type: 'number',
-                                                                callback: (text) => {
+                                                                callback: text => {
                                                                     dd.stock = parseInt(text, 10);
                                                                 },
                                                             }),
@@ -2451,7 +2480,7 @@ ${EditorElem.editeInput({
                                                                 default: `${(_e = dd.sku) !== null && _e !== void 0 ? _e : 0}`,
                                                                 placeHolder: '',
                                                                 type: 'text',
-                                                                callback: (text) => {
+                                                                callback: text => {
                                                                     dd.sku = text;
                                                                 },
                                                             }),
@@ -2460,34 +2489,34 @@ ${EditorElem.editeInput({
                                                                 return EditorElem.editeInput({
                                                                     gvc: obj.gvc,
                                                                     title: html ` <div class="d-flex flex-column">
-                                                                                                                    <span>運費權重</span>
-                                                                                                                    <div class="alert-info alert mt-2 mb-0">
-                                                                                                                        <span>( 每單位金額*權重 ) + 基本運費 = 總運費</span><br />
-                                                                                                                        <span style=""
-                                                                                                                            >試算 : ( ${shipmentSetting.weight} * ${dd.shipment_weight} ) +
-                                                                                                                            ${shipmentSetting.basic_fee} =
-                                                                                                                            ${shipmentSetting.weight * dd.shipment_weight +
+                                                          <span>運費權重</span>
+                                                          <div class="alert-info alert mt-2 mb-0">
+                                                            <span>( 每單位金額*權重 ) + 基本運費 = 總運費</span><br />
+                                                            <span style=""
+                                                              >試算 : ( ${shipmentSetting.weight} *
+                                                              ${dd.shipment_weight} ) + ${shipmentSetting.basic_fee} =
+                                                              ${shipmentSetting.weight * dd.shipment_weight +
                                                                         shipmentSetting.basic_fee}</span
-                                                                                                                        >
-                                                                                                                    </div>
-                                                                                                                </div>`,
+                                                            >
+                                                          </div>
+                                                        </div>`,
                                                                     default: `${(_a = dd.shipment_weight) !== null && _a !== void 0 ? _a : 0}`,
                                                                     placeHolder: '',
                                                                     type: 'number',
-                                                                    callback: (text) => {
+                                                                    callback: text => {
                                                                         dd.shipment_weight = parseInt(text);
                                                                     },
                                                                 });
                                                             })(),
                                                         ].join('')}
-                                                                                                </div>
-                                                                                            </div>`;
+                                                </div>
+                                              </div>`;
                                                     }, obj.gvc.glitter.getUUID());
                                                 })}"
-                                                                                >
-                                                                                    編輯商品
-                                                                                </button>
-                                                                            </div>`,
+                                        >
+                                          編輯商品
+                                        </button>
+                                      </div>`,
                                                 innerHtml: (gvc) => {
                                                     return [].join('');
                                                 },
@@ -2517,13 +2546,13 @@ ${EditorElem.editeInput({
                                                 }
                                             }
                                             let currentCombination = [];
-                                            generateCombinations(postMD.specs.map((dd) => {
+                                            generateCombinations(postMD.specs.map(dd => {
                                                 return dd.option.map((dd) => {
                                                     return dd.title;
                                                 });
                                             }), currentCombination);
                                             const waitAdd = cType.find((dd) => {
-                                                return !postMD.variants.find((d2) => {
+                                                return !postMD.variants.find(d2 => {
                                                     return JSON.stringify(d2.spec) === JSON.stringify(dd);
                                                 });
                                             });
@@ -2557,8 +2586,8 @@ ${EditorElem.editeInput({
                     },
                 };
             }))}
-                            <div class="my-2"></div>
-                            ${BgWidget.card(obj.gvc.bindView(() => {
+              <div class="my-2"></div>
+              ${BgWidget.card(obj.gvc.bindView(() => {
             var _a;
             postMD.seo = (_a = postMD.seo) !== null && _a !== void 0 ? _a : {
                 title: '',
@@ -2571,22 +2600,24 @@ ${EditorElem.editeInput({
                 view: () => {
                     let view = [
                         html `<div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">
-                                                    搜尋引擎列表
-                                                    <div
-                                                        class="fw-500 fs-sm ${toggle ? `d-none` : ``}"
-                                                        style="cursor: pointer;color:rgba(0, 91, 211, 1);"
-                                                        onclick="${obj.gvc.event(() => {
+                          搜尋引擎列表
+                          <div
+                            class="fw-500 fs-sm ${toggle ? `d-none` : ``}"
+                            style="cursor: pointer;color:rgba(0, 91, 211, 1);"
+                            onclick="${obj.gvc.event(() => {
                             toggle = !toggle;
                             obj.gvc.notifyDataChange(id);
                         })}"
-                                                    >
-                                                        編輯
-                                                    </div>
-                                                </div>`,
+                          >
+                            編輯
+                          </div>
+                        </div>`,
                         html `<div class="fs-6 fw-500" style="color:#1a0dab;">${postMD.seo.title || '尚未設定'}</div>`,
                         (() => {
                             const href = (() => {
-                                const url = new URL('', gvc.glitter.share.editorViewModel.domain ? `https://${gvc.glitter.share.editorViewModel.domain}/` : location.href);
+                                const url = new URL('', gvc.glitter.share.editorViewModel.domain
+                                    ? `https://${gvc.glitter.share.editorViewModel.domain}/`
+                                    : location.href);
                                 url.search = '';
                                 url.searchParams.set('page', postMD.template);
                                 url.searchParams.set('product_id', postMD.id || '');
@@ -2599,7 +2630,9 @@ ${EditorElem.editeInput({
                                 gvc.glitter.openNewTab(href);
                             }));
                         })(),
-                        html `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`,
+                        html `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">
+                          ${postMD.seo.content || '尚未設定'}
+                        </div>`,
                     ];
                     if (toggle) {
                         view = view.concat([
@@ -2608,7 +2641,7 @@ ${EditorElem.editeInput({
                                 title: '頁面標題',
                                 default: postMD.seo.title,
                                 placeHolder: `請輸入頁面標題`,
-                                callback: (text) => {
+                                callback: text => {
                                     postMD.seo.title = text;
                                 },
                             }),
@@ -2617,7 +2650,7 @@ ${EditorElem.editeInput({
                                 title: '中繼描述',
                                 default: postMD.seo.content,
                                 placeHolder: `請輸入中繼描述`,
-                                callback: (text) => {
+                                callback: text => {
                                     postMD.seo.content = text;
                                 },
                             }),
@@ -2627,9 +2660,9 @@ ${EditorElem.editeInput({
                 },
             };
         }))}
-                        </div>
-                        <div style="width:300px;max-width:100%;">
-                            ${BgWidget.card(`  ${postMD.id ? html ` ${EditorElem.h3('商品ID')} ${postMD.id} ` : ``}` +
+            </div>
+            <div style="width:300px;max-width:100%;">
+              ${BgWidget.card(`  ${postMD.id ? html ` ${EditorElem.h3('商品ID')} ${postMD.id} ` : ``}` +
             EditorElem.select({
                 gvc: obj.gvc,
                 title: '商品狀態',
@@ -2642,49 +2675,55 @@ ${EditorElem.editeInput({
                     postMD.status = text;
                 },
             }))}
-                            <div class="mt-2"></div>
-                            ${BgWidget.card(obj.gvc.bindView(() => {
+              <div class="mt-2"></div>
+              ${BgWidget.card(obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
             function refresh() {
                 obj.gvc.notifyDataChange(id);
             }
             function selectCollection(callback) {
-                ApiShop.getCollection().then((res) => {
+                ApiShop.getCollection().then(res => {
                     EditorElem.openEditorDialog(obj.gvc, (gvc) => {
                         function convertF(x, ind) {
                             return x
                                 .map((dd) => {
                                 const indt = ind ? `${ind} / ${dd.title}` : dd.title;
                                 if (dd.array && dd.array.length > 0) {
-                                    return html ` <li class="btn-group d-flex flex-column" style="margin-top:1px;margin-bottom:1px;">
-                                                                        <div
-                                                                            class="editor_item d-flex   pe-2 my-0 hi me-n1 "
-                                                                            style=""
-                                                                            onclick="${gvc.event(() => {
+                                    return html ` <li
+                                    class="btn-group d-flex flex-column"
+                                    style="margin-top:1px;margin-bottom:1px;"
+                                  >
+                                    <div
+                                      class="editor_item d-flex   pe-2 my-0 hi me-n1 "
+                                      style=""
+                                      onclick="${gvc.event(() => {
                                         dd.toogle = !dd.toogle;
                                         gvc.recreateView();
                                     })}"
-                                                                        >
-                                                                            <div class="subBt ps-0 ms-n2">
-                                                                                ${dd.toogle
+                                    >
+                                      <div class="subBt ps-0 ms-n2">
+                                        ${dd.toogle
                                         ? `<i class="fa-sharp fa-regular fa-chevron-down"></i>`
                                         : `  <i class="fa-regular fa-angle-right hoverBtn "></i>`}
-                                                                            </div>
-                                                                            ${dd.title}
-                                                                            <div class="flex-fill"></div>
-                                                                        </div>
-                                                                        <ul class="ps-2 ${dd.toogle ? `` : `d-none`}">
-                                                                            ${convertF(dd.array, indt)}
-                                                                        </ul>
-                                                                    </li>`;
+                                      </div>
+                                      ${dd.title}
+                                      <div class="flex-fill"></div>
+                                    </div>
+                                    <ul class="ps-2 ${dd.toogle ? `` : `d-none`}">
+                                      ${convertF(dd.array, indt)}
+                                    </ul>
+                                  </li>`;
                                 }
                                 else {
-                                    return html ` <li class="btn-group d-flex flex-column" style="margin-top:1px;margin-bottom:1px;">
-                                                                        <div
-                                                                            class="editor_item d-flex   pe-2 my-0 hi  "
-                                                                            style=""
-                                                                            onclick="${gvc.event(() => {
-                                        if (postMD.collection.find((dd) => {
+                                    return html ` <li
+                                    class="btn-group d-flex flex-column"
+                                    style="margin-top:1px;margin-bottom:1px;"
+                                  >
+                                    <div
+                                      class="editor_item d-flex   pe-2 my-0 hi  "
+                                      style=""
+                                      onclick="${gvc.event(() => {
+                                        if (postMD.collection.find(dd => {
                                             return dd === indt;
                                         })) {
                                             const dialog = new ShareDialog(gvc.glitter);
@@ -2696,18 +2735,18 @@ ${EditorElem.editeInput({
                                             gvc: gvc,
                                         });
                                     })}"
-                                                                        >
-                                                                            ${dd.title}
-                                                                            <div class="flex-fill"></div>
+                                    >
+                                      ${dd.title}
+                                      <div class="flex-fill"></div>
 
-                                                                            <div class="subBt ">
-                                                                                <i
-                                                                                    class="fa-duotone fa-check d-flex align-items-center justify-content-center subBt "
-                                                                                    style="width:15px;height:15px;"
-                                                                                ></i>
-                                                                            </div>
-                                                                        </div>
-                                                                    </li>`;
+                                      <div class="subBt ">
+                                        <i
+                                          class="fa-duotone fa-check d-flex align-items-center justify-content-center subBt "
+                                          style="width:15px;height:15px;"
+                                        ></i>
+                                      </div>
+                                    </div>
+                                  </li>`;
                                 }
                             })
                                 .join('');
@@ -2740,7 +2779,7 @@ ${EditorElem.editeInput({
                                     return {
                                         title: dd || '尚未設定分類名稱',
                                         innerHtml: (gvc) => {
-                                            selectCollection((cf) => {
+                                            selectCollection(cf => {
                                                 postMD.collection[index] = cf.select;
                                                 refresh();
                                                 cf.gvc.closeDialog();
@@ -2759,7 +2798,7 @@ ${EditorElem.editeInput({
                             plus: {
                                 title: '添加商品分類',
                                 event: obj.gvc.event(() => {
-                                    selectCollection((cb) => {
+                                    selectCollection(cb => {
                                         postMD.collection.push(cb.select);
                                         obj.gvc.notifyDataChange(id);
                                         cb.gvc.closeDialog();
@@ -2775,20 +2814,20 @@ ${EditorElem.editeInput({
                 divCreate: {},
             };
         }))}
-                            <div class="d-flex align-items-center justify-content-end">
-                                <button
-                                    class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
-                                    style="height:30px;width:100px;"
-                                    onclick="${obj.gvc.event(() => {
+              <div class="d-flex align-items-center justify-content-end">
+                <button
+                  class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
+                  style="height:30px;width:100px;"
+                  onclick="${obj.gvc.event(() => {
             const dialog = new ShareDialog(obj.gvc.glitter);
             dialog.checkYesOrNot({
                 text: '是否確認刪除商品?',
-                callback: (response) => {
+                callback: response => {
                     if (response) {
                         dialog.dataLoading({ visible: true });
                         ApiShop.delete({
                             id: postMD.id,
-                        }).then((res) => {
+                        }).then(res => {
                             dialog.dataLoading({ visible: false });
                             if (res.result) {
                                 obj.vm.status = 'list';
@@ -2801,14 +2840,14 @@ ${EditorElem.editeInput({
                 },
             });
         })}"
-                                >
-                                    刪除商品
-                                </button>
-                            </div>
-                        </div>
-                        <div></div>
-                    </div> `)}
-        </div>`;
+                >
+                  刪除商品
+                </button>
+              </div>
+            </div>
+            <div></div>
+          </div> `)}
+    </div>`;
     }
     static postEvent(postMD, gvc, vm) {
         const dialog = new ShareDialog(gvc.glitter);
@@ -2818,7 +2857,7 @@ ${EditorElem.editeInput({
             postData: postMD,
             token: GlobalUser.token,
             type: 'manager',
-        }).then((re) => {
+        }).then(re => {
             dialog.dataLoading({ visible: false });
             if (re.result) {
                 vm.status = 'list';
@@ -2837,7 +2876,7 @@ ${EditorElem.editeInput({
             postData: postMD,
             token: GlobalUser.token,
             type: 'manager',
-        }).then((re) => {
+        }).then(re => {
             dialog.dataLoading({ visible: false });
             if (re.result) {
                 dialog.successMessage({ text: `更改成功...` });
@@ -2861,7 +2900,9 @@ ${EditorElem.editeInput({
         function save(next) {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ text: '設定中', visible: true });
-            saasConfig.api.setPrivateConfig(saasConfig.config.appName, `glitter_finance`, keyData).then((r) => {
+            saasConfig.api
+                .setPrivateConfig(saasConfig.config.appName, `glitter_finance`, keyData)
+                .then((r) => {
                 dialog.dataLoading({ visible: false });
                 if (r.response) {
                     next();
@@ -2872,24 +2913,24 @@ ${EditorElem.editeInput({
             });
         }
         return BgWidget.container(html `
-                <div class="title-container ">
-                    ${BgWidget.title(`金流設定`)}
-                    <div class="flex-fill"></div>
-                    <button
-                        class="btn btn-primary-c"
-                        style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
+      <div class="title-container ">
+        ${BgWidget.title(`金流設定`)}
+        <div class="flex-fill"></div>
+        <button
+          class="btn btn-primary-c"
+          style="height:38px;font-size: 14px;"
+          onclick="${gvc.event(() => {
             save(() => {
                 dialog.successMessage({
                     text: '設定成功',
                 });
             });
         })}"
-                    >
-                        儲存金流設定
-                    </button>
-                </div>
-                ${gvc.bindView(() => {
+        >
+          儲存金流設定
+        </button>
+      </div>
+      ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
                 bind: id,
@@ -2970,7 +3011,7 @@ ${EditorElem.editeInput({
                                                         gvc: gvc,
                                                         title: '特店編號',
                                                         default: keyData.MERCHANT_ID,
-                                                        callback: (text) => {
+                                                        callback: text => {
                                                             keyData.MERCHANT_ID = text;
                                                         },
                                                         placeHolder: '請輸入特店編號',
@@ -2979,7 +3020,7 @@ ${EditorElem.editeInput({
                                                         gvc: gvc,
                                                         title: 'HASH_KEY',
                                                         default: keyData.HASH_KEY,
-                                                        callback: (text) => {
+                                                        callback: text => {
                                                             keyData.HASH_KEY = text;
                                                         },
                                                         placeHolder: '請輸入HASH_KEY',
@@ -2988,7 +3029,7 @@ ${EditorElem.editeInput({
                                                         gvc: gvc,
                                                         title: 'HASH_IV',
                                                         default: keyData.HASH_IV,
-                                                        callback: (text) => {
+                                                        callback: text => {
                                                             keyData.HASH_IV = text;
                                                         },
                                                         placeHolder: '請輸入HASH_IV',
@@ -3008,7 +3049,7 @@ ${EditorElem.editeInput({
                 divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
             };
         })}
-            `);
+    `);
     }
     static invoice_setting(gvc) {
         const saasConfig = window.saasConfig;
@@ -3017,7 +3058,9 @@ ${EditorElem.editeInput({
             loading: true,
             data: {},
         };
-        saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'invoice_setting').then((r) => {
+        saasConfig.api
+            .getPrivateConfig(saasConfig.config.appName, 'invoice_setting')
+            .then((r) => {
             if (r.response.result[0]) {
                 vm.data = r.response.result[0].value;
             }
@@ -3032,19 +3075,21 @@ ${EditorElem.editeInput({
                 view: () => {
                     if (vm.loading) {
                         return html ` <div class="w-100 d-flex align-items-center justify-content-center">
-                            <div class="spinner-border"></div>
-                        </div>`;
+              <div class="spinner-border"></div>
+            </div>`;
                     }
                     return BgWidget.container(html `
-                            <div class="title-container ">
-                                ${BgWidget.title(`電子發票設定`)}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn btn-primary-c"
-                                    style="height:38px;font-size: 14px;"
-                                    onclick="${gvc.event(() => {
+            <div class="title-container ">
+              ${BgWidget.title(`電子發票設定`)}
+              <div class="flex-fill"></div>
+              <button
+                class="btn btn-primary-c"
+                style="height:38px;font-size: 14px;"
+                onclick="${gvc.event(() => {
                         dialog.dataLoading({ text: '設定中', visible: true });
-                        saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'invoice_setting', vm.data).then((r) => {
+                        saasConfig.api
+                            .setPrivateConfig(saasConfig.config.appName, 'invoice_setting', vm.data)
+                            .then((r) => {
                             setTimeout(() => {
                                 dialog.dataLoading({ visible: false });
                                 if (r.response) {
@@ -3056,11 +3101,11 @@ ${EditorElem.editeInput({
                             }, 1000);
                         });
                     })}"
-                                >
-                                    儲存發票設定
-                                </button>
-                            </div>
-                            ${BgWidget.card(`
+              >
+                儲存發票設定
+              </button>
+            </div>
+            ${BgWidget.card(`
             ${(() => {
                         var _a, _b;
                         vm.data.fincial = (_a = vm.data.fincial) !== null && _a !== void 0 ? _a : 'ezpay';
@@ -3075,7 +3120,7 @@ ${EditorElem.editeInput({
                                     { title: '綠界發票', value: 'ecpay' },
                                     { title: '不開立電子發票', value: 'nouse' },
                                 ],
-                                callback: (text) => {
+                                callback: text => {
                                     vm.data.fincial = text;
                                 },
                             }),
@@ -3087,7 +3132,7 @@ ${EditorElem.editeInput({
                                     { title: '測試區', value: 'beta' },
                                     { title: '正式區', value: 'official' },
                                 ],
-                                callback: (text) => {
+                                callback: text => {
                                     vm.data.point = text;
                                     if (vm.data.point == 'beta') {
                                         vm.data.hashkey = vm.data.bhashkey;
@@ -3114,7 +3159,7 @@ ${EditorElem.editeInput({
                                         default: (_c = vm.data.merchNO) !== null && _c !== void 0 ? _c : '',
                                         type: 'text',
                                         placeHolder: '請輸入特店編號',
-                                        callback: (text) => {
+                                        callback: text => {
                                             vm.data.merchNO = text;
                                         },
                                     }),
@@ -3124,7 +3169,7 @@ ${EditorElem.editeInput({
                                         default: (_d = vm.data.hashkey) !== null && _d !== void 0 ? _d : '',
                                         type: 'text',
                                         placeHolder: '請輸入HashKey',
-                                        callback: (text) => {
+                                        callback: text => {
                                             vm.data.hashkey = text;
                                             if (vm.data.point == 'beta') {
                                                 vm.data.bhashkey = text;
@@ -3140,7 +3185,7 @@ ${EditorElem.editeInput({
                                         default: (_e = vm.data.hashiv) !== null && _e !== void 0 ? _e : '',
                                         type: 'text',
                                         placeHolder: '請輸入HashIV',
-                                        callback: (text) => {
+                                        callback: text => {
                                             vm.data.hashiv = text;
                                             if (vm.data.point == 'beta') {
                                                 vm.data.bhashiv = text;
@@ -3155,7 +3200,7 @@ ${EditorElem.editeInput({
                             })(),
                         ]);
                     })()}`)}
-                        `);
+          `);
                 },
                 divCreate: {
                     class: `d-flex justify-content-center w-100 flex-column align-items-center `,
@@ -3170,7 +3215,9 @@ ${EditorElem.editeInput({
             loading: true,
             data: {},
         };
-        saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting').then((r) => {
+        saasConfig.api
+            .getPrivateConfig(saasConfig.config.appName, 'logistics_setting')
+            .then((r) => {
             if (r.response.result[0]) {
                 vm.data = r.response.result[0].value;
             }
@@ -3185,19 +3232,21 @@ ${EditorElem.editeInput({
                 view: () => {
                     if (vm.loading) {
                         return html ` <div class="w-100 d-flex align-items-center justify-content-center">
-                            <div class="spinner-border"></div>
-                        </div>`;
+              <div class="spinner-border"></div>
+            </div>`;
                     }
                     return BgWidget.container(html `
-                            <div class="title-container ">
-                                ${BgWidget.title(`物流設定`)}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn btn-primary-c"
-                                    style="height:38px;font-size: 14px;"
-                                    onclick="${gvc.event(() => {
+            <div class="title-container ">
+              ${BgWidget.title(`物流設定`)}
+              <div class="flex-fill"></div>
+              <button
+                class="btn btn-primary-c"
+                style="height:38px;font-size: 14px;"
+                onclick="${gvc.event(() => {
                         dialog.dataLoading({ text: '設定中', visible: true });
-                        saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'logistics_setting', vm.data).then((r) => {
+                        saasConfig.api
+                            .setPrivateConfig(saasConfig.config.appName, 'logistics_setting', vm.data)
+                            .then((r) => {
                             setTimeout(() => {
                                 dialog.dataLoading({ visible: false });
                                 if (r.response) {
@@ -3209,11 +3258,11 @@ ${EditorElem.editeInput({
                             }, 1000);
                         });
                     })}"
-                                >
-                                    儲存物流設定
-                                </button>
-                            </div>
-                            ${BgWidget.card(`
+              >
+                儲存物流設定
+              </button>
+            </div>
+            ${BgWidget.card(`
             ${(() => {
                         return gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
@@ -3247,7 +3296,7 @@ ${EditorElem.editeInput({
                                                 value: 'UNIMARTC2C',
                                             },
                                         ],
-                                        callback: (text) => {
+                                        callback: text => {
                                             vm.data.support = text;
                                         },
                                         type: 'multiple',
@@ -3257,7 +3306,7 @@ ${EditorElem.editeInput({
                             };
                         });
                     })()}`)}
-                        `);
+          `);
                 },
                 divCreate: {
                     class: `d-flex justify-content-center w-100 flex-column align-items-center `,
@@ -3276,7 +3325,9 @@ ${EditorElem.editeInput({
         function save(next) {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ text: '設定中', visible: true });
-            saasConfig.api.setPrivateConfig(saasConfig.config.appName, `glitter_shipment`, keyData).then((r) => {
+            saasConfig.api
+                .setPrivateConfig(saasConfig.config.appName, `glitter_shipment`, keyData)
+                .then((r) => {
                 dialog.dataLoading({ visible: false });
                 if (r.response) {
                     next();
@@ -3287,24 +3338,24 @@ ${EditorElem.editeInput({
             });
         }
         return BgWidget.container(html `
-                <div class="title-container ">
-                    ${BgWidget.title(`運費設定`)}
-                    <div class="flex-fill"></div>
-                    <button
-                        class="btn btn-primary-c"
-                        style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
+      <div class="title-container ">
+        ${BgWidget.title(`運費設定`)}
+        <div class="flex-fill"></div>
+        <button
+          class="btn btn-primary-c"
+          style="height:38px;font-size: 14px;"
+          onclick="${gvc.event(() => {
             save(() => {
                 dialog.successMessage({
                     text: '設定成功',
                 });
             });
         })}"
-                    >
-                        儲存並更改
-                    </button>
-                </div>
-                ${gvc.bindView(() => {
+        >
+          儲存並更改
+        </button>
+      </div>
+      ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
                 bind: id,
@@ -3315,13 +3366,13 @@ ${EditorElem.editeInput({
                             keyData = data.response.result[0].value;
                         }
                         resolve(html ` <div style="width:900px;max-width:100%;">
-                                    ${BgWidget.card([
+                  ${BgWidget.card([
                             html `<div class="alert alert-info">總運費金額為 = 基本運費 + ( 商品運費權重*每單位費用 )</div>`,
                             EditorElem.editeInput({
                                 gvc: gvc,
                                 title: '基本運費',
                                 default: `${keyData.basic_fee || 0}`,
-                                callback: (text) => {
+                                callback: text => {
                                     keyData.basic_fee = parseInt(text);
                                 },
                                 placeHolder: '請輸入基本運費',
@@ -3330,19 +3381,19 @@ ${EditorElem.editeInput({
                                 gvc: gvc,
                                 title: '每單位費用',
                                 default: `${keyData.weight || 0}`,
-                                callback: (text) => {
+                                callback: text => {
                                     keyData.weight = parseInt(text);
                                 },
                                 placeHolder: '請輸入每單位費用',
                             }),
                         ].join('<div class="my-2"></div>'))}
-                                </div>`);
+                </div>`);
                     }));
                 },
                 divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
             };
         })}
-            `);
+    `);
     }
 }
 window.glitter.setModule(import.meta.url, BgShopping);

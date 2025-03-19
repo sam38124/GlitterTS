@@ -164,6 +164,11 @@ export type Cart = {
     fbp: string;
     scheduled_id?: string;
     shipmentSupport?: string[];
+    editRecord: {
+        time: string;
+        record: string;
+    }[];
+    combineOrderID?: number;
 };
 export type Order = {
     id: number;
@@ -384,6 +389,7 @@ export declare class Shopping {
         orderData: any;
         message?: undefined;
     }>;
+    private writeRecord;
     private restoreStock;
     private sendNotifications;
     private adjustStock;

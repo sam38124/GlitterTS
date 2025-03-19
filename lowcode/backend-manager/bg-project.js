@@ -39,7 +39,9 @@ export class BgProject {
         function save(next) {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ text: '設定中', visible: true });
-            saasConfig.api.setPrivateConfig(saasConfig.config.appName, `glitter_loginConfig`, keyData).then((r) => {
+            saasConfig.api
+                .setPrivateConfig(saasConfig.config.appName, `glitter_loginConfig`, keyData)
+                .then((r) => {
                 dialog.dataLoading({ visible: false });
                 if (r.response) {
                     next();
@@ -50,24 +52,24 @@ export class BgProject {
             });
         }
         return BgWidget.container(html `
-                <div class="title-container ">
-                    ${BgWidget.title(`登入認證`)}
-                    <div class="flex-fill"></div>
-                    <button
-                        class="btn btn-primary-c"
-                        style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
+      <div class="title-container ">
+        ${BgWidget.title(`登入認證`)}
+        <div class="flex-fill"></div>
+        <button
+          class="btn btn-primary-c"
+          style="height:38px;font-size: 14px;"
+          onclick="${gvc.event(() => {
             save(() => {
                 dialog.successMessage({
                     text: '設定成功',
                 });
             });
         })}"
-                    >
-                        儲存並更改
-                    </button>
-                </div>
-                ${gvc.bindView(() => {
+        >
+          儲存並更改
+        </button>
+      </div>
+      ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitter_loginConfig`).then((data) => {
                 var _a;
@@ -82,7 +84,7 @@ export class BgProject {
                 view: () => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         resolve(html ` <div style="width: 100%;">
-                                    ${BgWidget.card([
+                  ${BgWidget.card([
                             EditorElem.select({
                                 title: '登入認證',
                                 gvc: gvc,
@@ -109,7 +111,7 @@ export class BgProject {
                                             gvc: gvc,
                                             title: '寄件者名稱',
                                             default: keyData.name,
-                                            callback: (text) => {
+                                            callback: text => {
                                                 keyData.name = text;
                                                 gvc.notifyDataChange(id);
                                             },
@@ -119,7 +121,7 @@ export class BgProject {
                                             gvc: gvc,
                                             title: '信件標題',
                                             default: keyData.title,
-                                            callback: (text) => {
+                                            callback: text => {
                                                 keyData.title = text;
                                                 gvc.notifyDataChange(id);
                                             },
@@ -129,7 +131,7 @@ export class BgProject {
                                         EditorElem.richText({
                                             gvc: gvc,
                                             def: keyData.content,
-                                            callback: (text) => {
+                                            callback: text => {
                                                 keyData.content = text;
                                             },
                                         }),
@@ -140,180 +142,189 @@ export class BgProject {
                                 }
                             })(),
                         ].join('<div class="my-2"></div>'))}
-                                    <div class="my-4">${BgWidget.title(`註冊成功信件`)}</div>
-                                    ${BgWidget.card([
+                  <div class="my-4">${BgWidget.title(`註冊成功信件`)}</div>
+                  ${BgWidget.card([
                             (() => {
                                 keyData.will_come_content =
                                     keyData.will_come_content ||
-                                        html `<table style="height:100%!important;width:100%!important;border-spacing:0;border-collapse:collapse">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td
-                                                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                >
-                                                                    <table class="m_-6935525929279934079header" style="width:100%;border-spacing:0;border-collapse:collapse;margin:40px 0 20px">
-                                                                        <tbody>
-                                                                            <tr>
-                                                                                <td
-                                                                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                                >
-                                                                                    <center>
-                                                                                        <table
-                                                                                            class="m_-6935525929279934079container"
-                                                                                            style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
-                                                                                        >
-                                                                                            <tbody>
-                                                                                                <tr>
-                                                                                                    <td
-                                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                                                    >
-                                                                                                        <table style="width:100%;border-spacing:0;border-collapse:collapse">
-                                                                                                            <tbody>
-                                                                                                                <tr>
-                                                                                                                    <td
-                                                                                                                        class="m_-6935525929279934079shop-name__cell"
-                                                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                                                                    >
-                                                                                                                        <h1 style="font-weight:normal;font-size:30px;color:#333;margin:0">
-                                                                                                                            <a href="https://glitter-ai.com/?page=index"
-                                                                                                                                ><span class="il">Glitter</span>.AI</a
-                                                                                                                            >
-                                                                                                                        </h1>
-                                                                                                                    </td>
-                                                                                                                </tr>
-                                                                                                            </tbody>
-                                                                                                        </table>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                            </tbody>
-                                                                                        </table>
-                                                                                    </center>
-                                                                                </td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
+                                        html `<table
+                            style="height:100%!important;width:100%!important;border-spacing:0;border-collapse:collapse"
+                          >
+                            <tbody>
+                              <tr>
+                                <td
+                                  style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                >
+                                  <table
+                                    class="m_-6935525929279934079header"
+                                    style="width:100%;border-spacing:0;border-collapse:collapse;margin:40px 0 20px"
+                                  >
+                                    <tbody>
+                                      <tr>
+                                        <td
+                                          style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                        >
+                                          <center>
+                                            <table
+                                              class="m_-6935525929279934079container"
+                                              style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
+                                            >
+                                              <tbody>
+                                                <tr>
+                                                  <td
+                                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                  >
+                                                    <table style="width:100%;border-spacing:0;border-collapse:collapse">
+                                                      <tbody>
+                                                        <tr>
+                                                          <td
+                                                            class="m_-6935525929279934079shop-name__cell"
+                                                            style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                          >
+                                                            <h1
+                                                              style="font-weight:normal;font-size:30px;color:#333;margin:0"
+                                                            >
+                                                              <a href="https://glitter-ai.com/?page=index"
+                                                                ><span class="il">Glitter</span>.AI</a
+                                                              >
+                                                            </h1>
+                                                          </td>
+                                                        </tr>
+                                                      </tbody>
+                                                    </table>
+                                                  </td>
+                                                </tr>
+                                              </tbody>
+                                            </table>
+                                          </center>
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
 
-                                                                    <table style="width:100%;border-spacing:0;border-collapse:collapse">
-                                                                        <tbody>
-                                                                            <tr>
-                                                                                <td
-                                                                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;padding-bottom:40px;border-width:0'
-                                                                                >
-                                                                                    <center>
-                                                                                        <table
-                                                                                            class="m_-6935525929279934079container"
-                                                                                            style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
-                                                                                        >
-                                                                                            <tbody>
-                                                                                                <tr>
-                                                                                                    <td
-                                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                                                    >
-                                                                                                        <h2 style="font-weight:normal;font-size:24px;margin:0 0 10px">
-                                                                                                            歡迎造訪 <span class="il">Glitter</span>.AI
-                                                                                                        </h2>
-                                                                                                        <p style="color:#777;line-height:150%;font-size:16px;margin:0">
-                                                                                                            你已啟用顧客帳號。下次向我們購買商品時可登入以加快結帳程序。
-                                                                                                        </p>
+                                  <table style="width:100%;border-spacing:0;border-collapse:collapse">
+                                    <tbody>
+                                      <tr>
+                                        <td
+                                          style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;padding-bottom:40px;border-width:0'
+                                        >
+                                          <center>
+                                            <table
+                                              class="m_-6935525929279934079container"
+                                              style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
+                                            >
+                                              <tbody>
+                                                <tr>
+                                                  <td
+                                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                  >
+                                                    <h2 style="font-weight:normal;font-size:24px;margin:0 0 10px">
+                                                      歡迎造訪 <span class="il">Glitter</span>.AI
+                                                    </h2>
+                                                    <p style="color:#777;line-height:150%;font-size:16px;margin:0">
+                                                      你已啟用顧客帳號。下次向我們購買商品時可登入以加快結帳程序。
+                                                    </p>
 
-                                                                                                        <table style="width:100%;border-spacing:0;border-collapse:collapse;margin-top:20px">
-                                                                                                            <tbody>
-                                                                                                                <tr>
-                                                                                                                    <td
-                                                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                                                                    >
-                                                                                                                        <table
-                                                                                                                            class="m_-6935525929279934079button m_-6935525929279934079main-action-cell"
-                                                                                                                            style="border-spacing:0;border-collapse:collapse;float:left;margin-right:15px"
-                                                                                                                        >
-                                                                                                                            <tbody>
-                                                                                                                                <tr>
-                                                                                                                                    <td
-                                                                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;border-radius:4px'
-                                                                                                                                        align="center"
-                                                                                                                                        bgcolor="#FD6A58"
-                                                                                                                                    >
-                                                                                                                                        <a
-                                                                                                                                            href="https://glitter-ai.com/?page=index"
-                                                                                                                                            class="m_-6935525929279934079button__text"
-                                                                                                                                            style="font-size:16px;text-decoration:none;display:block;color:#fff;padding:20px 25px"
-                                                                                                                                            target="_blank"
-                                                                                                                                            data-saferedirecturl="https://www.google.com/url?q=https://homee.cc/_t/c/A1030004-178DF593BC260730-3276808C?l%3DAAC31U1HQyLV6yRc418Ol6ZTVtd35pqHBs7MfVIFQDr5cyyO2sIEDkhWHwZOWThosKbnlo0vxspUzXz95nAfGCAefk7ZV5q%252F4OcvJNHMWdazV7L3oV%252FeYRwJeFSZL8IjeY9FoC4%252FftsbMqiOvv3N3fuybzH6h87aaIKXJB3xQLvRDdoUEc%252Bls9WXIWwMVLjXOm2TaM0mO0WY2bk%253D%26c%3DAABphhQuF%252Fv1oMua9CSFTngouEXUusFfuKKA%252B2VsQyoM2b7GLOICMbafbOHbq9R6gAbjuFK%252BvnPtv5UjwCIQGNQ92Tn4ZBbwZKMj8Z3tN3K1GfGK8g4OdJMbcjXvYu33KJPpHD8FHNoIR1E9%252BxLb67yVIoHfOsdRfTFnkGTlPXqCushhfwL9%252BLJjZhI0vabSZ0edxj1olnSwMe32VLib6ljdCUeFYftICVKoS%252FoQwo5BfFKozF64R1mOrnNPoMop1Jxl7XGbxVIJegWLjoR01AgtwLRdehnioWNe%252FQS2efaSSVfSFbKA%252BgjAgwB7EChxgqD1T2Df4aecH%252F5PN7dZ1Ljh9MOxgxAxYNE%253D&amp;source=gmail&amp;ust=1704369669126000&amp;usg=AOvVaw2lf2J55g8YoRh8zhgbNpwz"
-                                                                                                                                            >造訪我們的商店</a
-                                                                                                                                        >
-                                                                                                                                    </td>
-                                                                                                                                </tr>
-                                                                                                                            </tbody>
-                                                                                                                        </table>
-                                                                                                                    </td>
-                                                                                                                </tr>
-                                                                                                            </tbody>
-                                                                                                        </table>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                            </tbody>
-                                                                                        </table>
-                                                                                    </center>
-                                                                                </td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
-                                                                    <table
-                                                                        style="width:100%;border-spacing:0;border-collapse:collapse;border-top-width:1px;border-top-color:#e5e5e5;border-top-style:solid"
+                                                    <table
+                                                      style="width:100%;border-spacing:0;border-collapse:collapse;margin-top:20px"
+                                                    >
+                                                      <tbody>
+                                                        <tr>
+                                                          <td
+                                                            style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                          >
+                                                            <table
+                                                              class="m_-6935525929279934079button m_-6935525929279934079main-action-cell"
+                                                              style="border-spacing:0;border-collapse:collapse;float:left;margin-right:15px"
+                                                            >
+                                                              <tbody>
+                                                                <tr>
+                                                                  <td
+                                                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;border-radius:4px'
+                                                                    align="center"
+                                                                    bgcolor="#FD6A58"
+                                                                  >
+                                                                    <a
+                                                                      href="https://glitter-ai.com/?page=index"
+                                                                      class="m_-6935525929279934079button__text"
+                                                                      style="font-size:16px;text-decoration:none;display:block;color:#fff;padding:20px 25px"
+                                                                      target="_blank"
+                                                                      data-saferedirecturl="https://www.google.com/url?q=https://homee.cc/_t/c/A1030004-178DF593BC260730-3276808C?l%3DAAC31U1HQyLV6yRc418Ol6ZTVtd35pqHBs7MfVIFQDr5cyyO2sIEDkhWHwZOWThosKbnlo0vxspUzXz95nAfGCAefk7ZV5q%252F4OcvJNHMWdazV7L3oV%252FeYRwJeFSZL8IjeY9FoC4%252FftsbMqiOvv3N3fuybzH6h87aaIKXJB3xQLvRDdoUEc%252Bls9WXIWwMVLjXOm2TaM0mO0WY2bk%253D%26c%3DAABphhQuF%252Fv1oMua9CSFTngouEXUusFfuKKA%252B2VsQyoM2b7GLOICMbafbOHbq9R6gAbjuFK%252BvnPtv5UjwCIQGNQ92Tn4ZBbwZKMj8Z3tN3K1GfGK8g4OdJMbcjXvYu33KJPpHD8FHNoIR1E9%252BxLb67yVIoHfOsdRfTFnkGTlPXqCushhfwL9%252BLJjZhI0vabSZ0edxj1olnSwMe32VLib6ljdCUeFYftICVKoS%252FoQwo5BfFKozF64R1mOrnNPoMop1Jxl7XGbxVIJegWLjoR01AgtwLRdehnioWNe%252FQS2efaSSVfSFbKA%252BgjAgwB7EChxgqD1T2Df4aecH%252F5PN7dZ1Ljh9MOxgxAxYNE%253D&amp;source=gmail&amp;ust=1704369669126000&amp;usg=AOvVaw2lf2J55g8YoRh8zhgbNpwz"
+                                                                      >造訪我們的商店</a
                                                                     >
-                                                                        <tbody>
-                                                                            <tr>
-                                                                                <td
-                                                                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;padding:35px 0'
-                                                                                >
-                                                                                    <center>
-                                                                                        <table
-                                                                                            class="m_-6935525929279934079container"
-                                                                                            style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
-                                                                                        >
-                                                                                            <tbody>
-                                                                                                <tr>
-                                                                                                    <td
-                                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                                                    >
-                                                                                                        <p style="color:#999;line-height:150%;font-size:14px;margin:0">
-                                                                                                            如有任何疑問，請回覆本電子郵件或透過
-                                                                                                            <a
-                                                                                                                href="mailto:service@ncdesign.info"
-                                                                                                                style="font-size:14px;text-decoration:none;color:#fd6a58"
-                                                                                                                target="_blank"
-                                                                                                                >service@<span class="il">ncdesign</span>.info</a
-                                                                                                            >
-                                                                                                            聯絡我們
-                                                                                                        </p>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                            </tbody>
-                                                                                        </table>
-                                                                                    </center>
-                                                                                </td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
+                                                                  </td>
+                                                                </tr>
+                                                              </tbody>
+                                                            </table>
+                                                          </td>
+                                                        </tr>
+                                                      </tbody>
+                                                    </table>
+                                                  </td>
+                                                </tr>
+                                              </tbody>
+                                            </table>
+                                          </center>
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                  <table
+                                    style="width:100%;border-spacing:0;border-collapse:collapse;border-top-width:1px;border-top-color:#e5e5e5;border-top-style:solid"
+                                  >
+                                    <tbody>
+                                      <tr>
+                                        <td
+                                          style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;padding:35px 0'
+                                        >
+                                          <center>
+                                            <table
+                                              class="m_-6935525929279934079container"
+                                              style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
+                                            >
+                                              <tbody>
+                                                <tr>
+                                                  <td
+                                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                  >
+                                                    <p style="color:#999;line-height:150%;font-size:14px;margin:0">
+                                                      如有任何疑問，請回覆本電子郵件或透過
+                                                      <a
+                                                        href="mailto:service@ncdesign.info"
+                                                        style="font-size:14px;text-decoration:none;color:#fd6a58"
+                                                        target="_blank"
+                                                        >service@<span class="il">ncdesign</span>.info</a
+                                                      >
+                                                      聯絡我們
+                                                    </p>
+                                                  </td>
+                                                </tr>
+                                              </tbody>
+                                            </table>
+                                          </center>
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
 
-                                                                    <img
-                                                                        src="https://ci3.googleusercontent.com/meips/ADKq_NbTVurv9Myfyz9PhnR6e2VliLt0CFlSGZQ-llBSyYXgCJk484f6C9PtRc3NQ--UqTVQLrUbxo9QnW7Jeol11m54Ffyk3C_-YGtSYbBtM-pocpNiNcD8mIkv3bNN3eh5HpLh1tiKiOpQakyoPqKg8tioAtjIe3HfGjshqtJap0HP0qao4Rdp96g8T6NDAFRUjXK3PAB6N0Hki6PwEBf3ccdaPkQ3EqMHTw-WD8MjTbiKIoAM=s0-d-e1-ft#https://cdn.shopify.com/shopifycloud/shopify/assets/themes_support/notifications/spacer-1a26dfd5c56b21ac888f9f1610ef81191b571603cb207c6c0f564148473cab3c.png"
-                                                                        class="m_-6935525929279934079spacer CToWUd"
-                                                                        height="1"
-                                                                        style="min-width:600px;height:0"
-                                                                        data-bit="iit"
-                                                                    />
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>`;
+                                  <img
+                                    src="https://ci3.googleusercontent.com/meips/ADKq_NbTVurv9Myfyz9PhnR6e2VliLt0CFlSGZQ-llBSyYXgCJk484f6C9PtRc3NQ--UqTVQLrUbxo9QnW7Jeol11m54Ffyk3C_-YGtSYbBtM-pocpNiNcD8mIkv3bNN3eh5HpLh1tiKiOpQakyoPqKg8tioAtjIe3HfGjshqtJap0HP0qao4Rdp96g8T6NDAFRUjXK3PAB6N0Hki6PwEBf3ccdaPkQ3EqMHTw-WD8MjTbiKIoAM=s0-d-e1-ft#https://cdn.shopify.com/shopifycloud/shopify/assets/themes_support/notifications/spacer-1a26dfd5c56b21ac888f9f1610ef81191b571603cb207c6c0f564148473cab3c.png"
+                                    class="m_-6935525929279934079spacer CToWUd"
+                                    height="1"
+                                    style="min-width:600px;height:0"
+                                    data-bit="iit"
+                                  />
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>`;
                                 keyData.will_come_title = keyData.will_come_title || '嗨！歡迎加入 Glitter.AI。';
                                 return [
                                     EditorElem.editeInput({
                                         gvc: gvc,
                                         title: '寄件者名稱',
                                         default: keyData.name,
-                                        callback: (text) => {
+                                        callback: text => {
                                             keyData.name = text;
                                             gvc.notifyDataChange(id);
                                         },
@@ -323,7 +334,7 @@ export class BgProject {
                                         gvc: gvc,
                                         title: '信件標題',
                                         default: keyData.will_come_title,
-                                        callback: (text) => {
+                                        callback: text => {
                                             keyData.will_come_title = text;
                                             gvc.notifyDataChange(id);
                                         },
@@ -333,15 +344,15 @@ export class BgProject {
                                     EditorElem.richText({
                                         gvc: gvc,
                                         def: keyData.will_come_content,
-                                        callback: (text) => {
+                                        callback: text => {
                                             keyData.will_come_content = text;
                                         },
                                     }),
                                 ].join('');
                             })(),
                         ].join('<div class="my-2"></div>'))}
-                                    <div class="my-4">${BgWidget.title(`忘記密碼設定`)}</div>
-                                    ${BgWidget.card([
+                  <div class="my-4">${BgWidget.title(`忘記密碼設定`)}</div>
+                  ${BgWidget.card([
                             EditorElem.select({
                                 title: '忘記密碼',
                                 gvc: gvc,
@@ -357,162 +368,175 @@ export class BgProject {
                                 keyData.forget_content = keyData.forget_content || '';
                                 if (keyData.forget_content.indexOf('@{{code}}') === -1) {
                                     keyData.forget_content = html ` <div style="margin:0">
-                                                        <table style="height:100%!important;width:100%!important;border-spacing:0;border-collapse:collapse">
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td
-                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                    >
-                                                                        <table class="m_-7325585852261570963header" style="width:100%;border-spacing:0;border-collapse:collapse;margin:40px 0 20px">
-                                                                            <tbody>
-                                                                                <tr>
-                                                                                    <td
-                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                                    >
-                                                                                        <center>
-                                                                                            <table
-                                                                                                class="m_-7325585852261570963container"
-                                                                                                style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
-                                                                                            >
-                                                                                                <tbody>
-                                                                                                    <tr>
-                                                                                                        <td
-                                                                                                            style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                                                        >
-                                                                                                            <table style="width:100%;border-spacing:0;border-collapse:collapse">
-                                                                                                                <tbody>
-                                                                                                                    <tr>
-                                                                                                                        <td
-                                                                                                                            class="m_-7325585852261570963shop-name__cell"
-                                                                                                                            style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                                                                        >
-                                                                                                                            <h1 style="font-weight:normal;font-size:30px;color:#333;margin:0">
-                                                                                                                                <a href="">GLITTER.AI</a>
-                                                                                                                            </h1>
-                                                                                                                        </td>
-                                                                                                                    </tr>
-                                                                                                                </tbody>
-                                                                                                            </table>
-                                                                                                        </td>
-                                                                                                    </tr>
-                                                                                                </tbody>
-                                                                                            </table>
-                                                                                        </center>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            </tbody>
-                                                                        </table>
+                            <table
+                              style="height:100%!important;width:100%!important;border-spacing:0;border-collapse:collapse"
+                            >
+                              <tbody>
+                                <tr>
+                                  <td
+                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                  >
+                                    <table
+                                      class="m_-7325585852261570963header"
+                                      style="width:100%;border-spacing:0;border-collapse:collapse;margin:40px 0 20px"
+                                    >
+                                      <tbody>
+                                        <tr>
+                                          <td
+                                            style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                          >
+                                            <center>
+                                              <table
+                                                class="m_-7325585852261570963container"
+                                                style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
+                                              >
+                                                <tbody>
+                                                  <tr>
+                                                    <td
+                                                      style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                    >
+                                                      <table
+                                                        style="width:100%;border-spacing:0;border-collapse:collapse"
+                                                      >
+                                                        <tbody>
+                                                          <tr>
+                                                            <td
+                                                              class="m_-7325585852261570963shop-name__cell"
+                                                              style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                            >
+                                                              <h1
+                                                                style="font-weight:normal;font-size:30px;color:#333;margin:0"
+                                                              >
+                                                                <a href="">GLITTER.AI</a>
+                                                              </h1>
+                                                            </td>
+                                                          </tr>
+                                                        </tbody>
+                                                      </table>
+                                                    </td>
+                                                  </tr>
+                                                </tbody>
+                                              </table>
+                                            </center>
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
 
-                                                                        <table style="width:100%;border-spacing:0;border-collapse:collapse">
-                                                                            <tbody>
-                                                                                <tr>
-                                                                                    <td
-                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;padding-bottom:40px;border-width:0'
-                                                                                    >
-                                                                                        <center>
-                                                                                            <table
-                                                                                                class="m_-7325585852261570963container"
-                                                                                                style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
-                                                                                            >
-                                                                                                <tbody>
-                                                                                                    <tr>
-                                                                                                        <td
-                                                                                                            style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                                                        >
-                                                                                                            <h2 style="font-weight:normal;font-size:24px;margin:0 0 10px">重設密碼</h2>
-                                                                                                            <p style="color:#777;line-height:150%;font-size:16px;margin:0">
-                                                                                                                利用此連結前往 <a>GLITTER.AI</a>
-                                                                                                                重設你的顧客帳號密碼。如果你沒有申請新密碼，
-                                                                                                                <wbr />
-                                                                                                                可以安心刪除這封電子郵件。
-                                                                                                            </p>
-                                                                                                            <table style="width:100%;border-spacing:0;border-collapse:collapse;margin-top:20px">
-                                                                                                                <tbody>
-                                                                                                                    <tr>
-                                                                                                                        <td
-                                                                                                                            style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;line-height:0em'
-                                                                                                                        >
-                                                                                                                            &nbsp;
-                                                                                                                        </td>
-                                                                                                                    </tr>
-                                                                                                                    <tr>
-                                                                                                                        <td
-                                                                                                                            style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
-                                                                                                                        >
-                                                                                                                            <table
-                                                                                                                                class="m_-7325585852261570963button m_-7325585852261570963main-action-cell"
-                                                                                                                                style="border-spacing:0;border-collapse:collapse;float:left;margin-right:15px"
-                                                                                                                            >
-                                                                                                                                <tbody>
-                                                                                                                                    <tr>
-                                                                                                                                        <td
-                                                                                                                                            style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;border-radius:4px'
-                                                                                                                                            align="center"
-                                                                                                                                            bgcolor="black"
-                                                                                                                                        >
-                                                                                                                                            <a
-                                                                                                                                                href="@{{code}}"
-                                                                                                                                                class="m_-7325585852261570963button__text"
-                                                                                                                                                style="font-size:16px;text-decoration:none;display:block;color:#fff;padding:20px 25px"
-                                                                                                                                                >重設密碼</a
-                                                                                                                                            >
-                                                                                                                                        </td>
-                                                                                                                                    </tr>
-                                                                                                                                </tbody>
-                                                                                                                            </table>
-                                                                                                                        </td>
-                                                                                                                    </tr>
-                                                                                                                </tbody>
-                                                                                                            </table>
-                                                                                                        </td>
-                                                                                                    </tr>
-                                                                                                </tbody>
-                                                                                            </table>
-                                                                                        </center>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            </tbody>
-                                                                        </table>
+                                    <table style="width:100%;border-spacing:0;border-collapse:collapse">
+                                      <tbody>
+                                        <tr>
+                                          <td
+                                            style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;padding-bottom:40px;border-width:0'
+                                          >
+                                            <center>
+                                              <table
+                                                class="m_-7325585852261570963container"
+                                                style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
+                                              >
+                                                <tbody>
+                                                  <tr>
+                                                    <td
+                                                      style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                    >
+                                                      <h2 style="font-weight:normal;font-size:24px;margin:0 0 10px">
+                                                        重設密碼
+                                                      </h2>
+                                                      <p style="color:#777;line-height:150%;font-size:16px;margin:0">
+                                                        利用此連結前往 <a>GLITTER.AI</a>
+                                                        重設你的顧客帳號密碼。如果你沒有申請新密碼，
+                                                        <wbr />
+                                                        可以安心刪除這封電子郵件。
+                                                      </p>
+                                                      <table
+                                                        style="width:100%;border-spacing:0;border-collapse:collapse;margin-top:20px"
+                                                      >
+                                                        <tbody>
+                                                          <tr>
+                                                            <td
+                                                              style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;line-height:0em'
+                                                            >
+                                                              &nbsp;
+                                                            </td>
+                                                          </tr>
+                                                          <tr>
+                                                            <td
+                                                              style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                            >
+                                                              <table
+                                                                class="m_-7325585852261570963button m_-7325585852261570963main-action-cell"
+                                                                style="border-spacing:0;border-collapse:collapse;float:left;margin-right:15px"
+                                                              >
+                                                                <tbody>
+                                                                  <tr>
+                                                                    <td
+                                                                      style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;border-radius:4px'
+                                                                      align="center"
+                                                                      bgcolor="black"
+                                                                    >
+                                                                      <a
+                                                                        href="@{{code}}"
+                                                                        class="m_-7325585852261570963button__text"
+                                                                        style="font-size:16px;text-decoration:none;display:block;color:#fff;padding:20px 25px"
+                                                                        >重設密碼</a
+                                                                      >
                                                                     </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                        <div class="yj6qo"></div>
-                                                        <div class="adL"></div>
-                                                    </div>`;
+                                                                  </tr>
+                                                                </tbody>
+                                                              </table>
+                                                            </td>
+                                                          </tr>
+                                                        </tbody>
+                                                      </table>
+                                                    </td>
+                                                  </tr>
+                                                </tbody>
+                                              </table>
+                                            </center>
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                            <div class="yj6qo"></div>
+                            <div class="adL"></div>
+                          </div>`;
                                 }
                                 return [
                                     EditorElem.editeInput({
                                         gvc: gvc,
                                         title: '信件標題',
                                         default: keyData.forget_title,
-                                        callback: (text) => {
+                                        callback: text => {
                                             keyData.forget_title = text;
                                             gvc.notifyDataChange(id);
                                         },
                                         placeHolder: '請輸入信件標題',
                                     }),
-                                    EditorElem.pageSelect(gvc, '重設密碼頁面', keyData.forget_page, (data) => {
+                                    EditorElem.pageSelect(gvc, '重設密碼頁面', keyData.forget_page, data => {
                                         keyData.forget_page = data;
                                     }),
                                     EditorElem.h3('信件內容'),
                                     EditorElem.richText({
                                         gvc: gvc,
                                         def: keyData.forget_content,
-                                        callback: (text) => {
+                                        callback: text => {
                                             keyData.forget_content = text;
                                         },
                                     }),
                                 ].join('');
                             })(),
                         ].join('<div class="my-2"></div>'))}
-                                </div>`);
+                </div>`);
                     }));
                 },
                 divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
             };
         })}
-            `);
+    `);
     }
     static userManager(gvc, type = 'list', callback = () => { }) {
         const glitter = gvc.glitter;
@@ -570,36 +594,36 @@ export class BgProject {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="title-container ${type === 'select' ? `d-none` : ``}">
-                                ${type === 'select' ? BgWidget.title('選擇用戶') : BgWidget.title('用戶管理')}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn hoverBtn me-2 px-3"
-                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                    onclick="${gvc.event(() => {
+              <div class="title-container ${type === 'select' ? `d-none` : ``}">
+                ${type === 'select' ? BgWidget.title('選擇用戶') : BgWidget.title('用戶管理')}
+                <div class="flex-fill"></div>
+                <button
+                  class="btn hoverBtn me-2 px-3"
+                  style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                  onclick="${gvc.event(() => {
                             BgProject.setUserForm(gvc, () => {
                                 gvc.notifyDataChange(id);
                             });
                         })}"
-                                >
-                                    <i class="fa-regular fa-gear me-2 "></i>
-                                    自訂資料
-                                </button>
-                            </div>
-                            ${BgWidget.mainCard([
+                >
+                  <i class="fa-regular fa-gear me-2 "></i>
+                  自訂資料
+                </button>
+              </div>
+              ${BgWidget.mainCard([
                             BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有用戶'),
                             BgWidget.tableV3({
                                 gvc: gvc,
-                                getData: (vmi) => {
+                                getData: vmi => {
                                     const limit = 20;
                                     ApiUser.getUserList({
                                         page: vmi.page - 1,
                                         limit: limit,
                                         search: vm.query || undefined,
-                                    }).then((data) => {
+                                    }).then(data => {
                                         vm.dataList = data.response.data;
                                         vmi.pageSize = Math.ceil(data.response.total / limit);
                                         vmi.originalData = vm.dataList;
@@ -629,7 +653,7 @@ export class BgProject {
                                             const dialog = new ShareDialog(gvc.glitter);
                                             dialog.checkYesOrNot({
                                                 text: '是否確認刪除所選項目？',
-                                                callback: (response) => {
+                                                callback: response => {
                                                     if (response) {
                                                         dialog.dataLoading({ visible: true });
                                                         ApiUser.deleteUser({
@@ -641,7 +665,7 @@ export class BgProject {
                                                                 return dd.id;
                                                             })
                                                                 .join(`,`),
-                                                        }).then((res) => {
+                                                        }).then(res => {
                                                             dialog.dataLoading({ visible: false });
                                                             if (res.result) {
                                                                 vm.dataList = undefined;
@@ -659,7 +683,7 @@ export class BgProject {
                                 ],
                             }),
                         ].join(''))}
-                        `);
+            `);
                     }
                     else if (vm.type == 'replace') {
                         return this.userInformationDetail({
@@ -684,7 +708,7 @@ export class BgProject {
             data: undefined,
             loading: true,
         };
-        ApiUser.getPublicUserData(cf.userID).then((dd) => {
+        ApiUser.getPublicUserData(cf.userID).then(dd => {
             vm.data = dd.response;
             vm.loading = false;
             gvc.notifyDataChange(id);
@@ -700,30 +724,30 @@ export class BgProject {
                     vm.data.userData = (_a = vm.data.userData) !== null && _a !== void 0 ? _a : {};
                     return BgWidget.container([
                         html `<div class="title-container">
-                                ${BgWidget.goBack(gvc.event(() => {
+                ${BgWidget.goBack(gvc.event(() => {
                             cf.callback();
                         }))}
-                                ${BgWidget.title((_b = vm.data.userData.name) !== null && _b !== void 0 ? _b : '匿名用戶')}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn hoverBtn me-2 px-3 ${cf.type === 'readonly' ? `d-none` : ``}"
-                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                    onclick="${gvc.event(() => {
+                ${BgWidget.title((_b = vm.data.userData.name) !== null && _b !== void 0 ? _b : '匿名用戶')}
+                <div class="flex-fill"></div>
+                <button
+                  class="btn hoverBtn me-2 px-3 ${cf.type === 'readonly' ? `d-none` : ``}"
+                  style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                  onclick="${gvc.event(() => {
                             BgProject.setUserForm(gvc, () => {
                                 gvc.notifyDataChange(id);
                             });
                         })}"
-                                >
-                                    <i class="fa-regular fa-gear me-2 "></i>
-                                    自訂資料
-                                </button>
-                                <button
-                                    class="btn btn-primary-c ${cf.type === 'readonly' ? `d-none` : ``}"
-                                    style="height:35px;font-size: 14px;"
-                                    onclick="${gvc.event(() => {
+                >
+                  <i class="fa-regular fa-gear me-2 "></i>
+                  自訂資料
+                </button>
+                <button
+                  class="btn btn-primary-c ${cf.type === 'readonly' ? `d-none` : ``}"
+                  style="height:35px;font-size: 14px;"
+                  onclick="${gvc.event(() => {
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.dataLoading({ text: '更新中', visible: true });
-                            ApiUser.updateUserDataManager(vm.data, vm.data.userID).then((response) => {
+                            ApiUser.updateUserDataManager(vm.data, vm.data.userID).then(response => {
                                 dialog.dataLoading({ text: '', visible: false });
                                 if (response.result) {
                                     dialog.successMessage({ text: '更新成功' });
@@ -734,12 +758,12 @@ export class BgProject {
                                 }
                             });
                         })}"
-                                >
-                                    儲存
-                                </button>
-                            </div>`,
+                >
+                  儲存
+                </button>
+              </div>`,
                         html `<div class="d-flex" style="gap: 10px;">
-                                ${BgWidget.card([
+                ${BgWidget.card([
                             gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
                                 const vmi = {
@@ -751,25 +775,27 @@ export class BgProject {
                                         let map = [];
                                         vm.data.userID &&
                                             map.push(html `
-                                                            <div class="d-flex align-items-center border-bottom pb-2">
-                                                                <div class="fw-bold fs-7"></div>
-                                                                <div class="d-flex" style="gap: 10px;">
-                                                                    <div class="fw-bold fs-7">用戶ID</div>
-                                                                    <div class="fw-normal fs-7">${vm.data.userID}</div>
-                                                                    <div class="fw-bold fs-7">用戶建立時間</div>
-                                                                    <div class="fw-normal fs-7">${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}</div>
-                                                                </div>
-                                                                <div class="flex-fill"></div>
-                                                                <i
-                                                                    class="fa-solid fa-pencil ${cf.type === 'readonly' ? `d-none` : ``}"
-                                                                    style="cursor:pointer;"
-                                                                    onclick="${gvc.event(() => {
+                              <div class="d-flex align-items-center border-bottom pb-2">
+                                <div class="fw-bold fs-7"></div>
+                                <div class="d-flex" style="gap: 10px;">
+                                  <div class="fw-bold fs-7">用戶ID</div>
+                                  <div class="fw-normal fs-7">${vm.data.userID}</div>
+                                  <div class="fw-bold fs-7">用戶建立時間</div>
+                                  <div class="fw-normal fs-7">
+                                    ${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}
+                                  </div>
+                                </div>
+                                <div class="flex-fill"></div>
+                                <i
+                                  class="fa-solid fa-pencil ${cf.type === 'readonly' ? `d-none` : ``}"
+                                  style="cursor:pointer;"
+                                  onclick="${gvc.event(() => {
                                                 vmi.mode = vmi.mode === 'edit' ? 'read' : 'edit';
                                                 gvc.notifyDataChange(id);
                                             })}"
-                                                                ></i>
-                                                            </div>
-                                                        `);
+                                ></i>
+                              </div>
+                            `);
                                         map.push(gvc.bindView(() => {
                                             const saasConfig = window.parent.saasConfig;
                                             const id = gvc.glitter.getUUID();
@@ -778,8 +804,7 @@ export class BgProject {
                                                 view: () => {
                                                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                                         var _a;
-                                                        let data = ((_a = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0]) !== null && _a !== void 0 ? _a : {})
-                                                            .value;
+                                                        let data = ((_a = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0]) !== null && _a !== void 0 ? _a : {}).value;
                                                         if (!Array.isArray(data)) {
                                                             data = [];
                                                         }
@@ -799,10 +824,10 @@ export class BgProject {
                                 };
                             }),
                         ].join(html `<div class="my-2 bgf6 w-100" style="height:1px;"></div>`))}
-                                <div style="width:350px;">
-                                    ${BgWidget.card([
+                <div style="width:350px;">
+                  ${BgWidget.card([
                             html `<div class="fw-bold fs-7">電子錢包</div>
-                                                ${gvc.bindView(() => {
+                        ${gvc.bindView(() => {
                                 return {
                                     bind: gvc.glitter.getUUID(),
                                     view: () => {
@@ -817,9 +842,9 @@ export class BgProject {
                                 };
                             })} `,
                             html `
-                                                <div class="fw-bold fs-7">購物金</div>
-                                                <div class="fs-7">
-                                                    ${gvc.bindView(() => {
+                        <div class="fw-bold fs-7">購物金</div>
+                        <div class="fs-7">
+                          ${gvc.bindView(() => {
                                 return {
                                     bind: gvc.glitter.getUUID(),
                                     view: () => {
@@ -833,11 +858,11 @@ export class BgProject {
                                     },
                                 };
                             })}
-                                                </div>
-                                            `,
+                        </div>
+                      `,
                         ].join(html `<div class="w-100 border-bottom my-2"></div>`))}
-                                </div>
-                            </div>`,
+                </div>
+              </div>`,
                     ].join('<div class="my-2"></div>'));
                 },
             };
@@ -852,7 +877,7 @@ export class BgProject {
             if (!Array.isArray(data)) {
                 data = [];
             }
-            EditorElem.openEditorDialog(gvc, (gvc) => {
+            EditorElem.openEditorDialog(gvc, gvc => {
                 return [
                     gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
@@ -869,7 +894,7 @@ export class BgProject {
                                     },
                                     title: '',
                                     styleSetting: false,
-                                    concat: (dd) => {
+                                    concat: dd => {
                                         var _a;
                                         dd.auth = (_a = dd.auth) !== null && _a !== void 0 ? _a : 'all';
                                         return [
@@ -881,7 +906,7 @@ export class BgProject {
                                                     { title: '用戶與管理員', value: 'all' },
                                                     { title: '僅管理員', value: 'manager' },
                                                 ],
-                                                callback: (text) => {
+                                                callback: text => {
                                                     dd.auth = text;
                                                 },
                                             }),
@@ -892,13 +917,15 @@ export class BgProject {
                         };
                     }),
                     html `<div class="d-flex">
-                            <div class="flex-fill"></div>
-                            <div
-                                class=" btn-primary-c btn my-2 me-2"
-                                style="margin-left: 10px;height:35px;"
-                                onclick="${gvc.event(() => {
+              <div class="flex-fill"></div>
+              <div
+                class=" btn-primary-c btn my-2 me-2"
+                style="margin-left: 10px;height:35px;"
+                onclick="${gvc.event(() => {
                         dialog.dataLoading({ text: '設定中', visible: true });
-                        saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitterUserForm', data).then((r) => {
+                        saasConfig.api
+                            .setPrivateConfig(saasConfig.config.appName, 'glitterUserForm', data)
+                            .then((r) => {
                             setTimeout(() => {
                                 dialog.dataLoading({ visible: false });
                                 if (r.response) {
@@ -912,17 +939,17 @@ export class BgProject {
                         });
                         gvc.closeDialog();
                     })}"
-                            >
-                                儲存設定
-                            </div>
-                        </div>`,
+              >
+                儲存設定
+              </div>
+            </div>`,
                 ].join('');
             }, () => {
                 return new Promise((resolve, reject) => {
                     const dialog = new ShareDialog(gvc.glitter);
                     dialog.checkYesOrNot({
                         text: '是否取消除儲存?',
-                        callback: (response) => {
+                        callback: response => {
                             resolve(response);
                         },
                     });
@@ -955,11 +982,11 @@ export class BgProject {
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
                             return BgWidget.container(html `
-                                    <div class="d-flex w-100 align-items-sm-center flex-column flex-sm-row" style="gap:20px;">
-                                        ${BgWidget.title('應用上架審核')}
-                                        <div class="d-flex  w-100 justify-content-between">
-                                            <div class="ms-sm-3" style="max-width: 200px;">
-                                                ${EditorElem.select({
+                <div class="d-flex w-100 align-items-sm-center flex-column flex-sm-row" style="gap:20px;">
+                  ${BgWidget.title('應用上架審核')}
+                  <div class="d-flex  w-100 justify-content-between">
+                    <div class="ms-sm-3" style="max-width: 200px;">
+                      ${EditorElem.select({
                                 title: '',
                                 gvc: gvc,
                                 def: type,
@@ -972,48 +999,48 @@ export class BgProject {
                                     gvc.notifyDataChange(id);
                                 },
                             })}
-                                            </div>
-                                            <div class="flex-fill"></div>
-                                            ${BgWidget.darkButton('新增送審項目', gvc.event(() => {
+                    </div>
+                    <div class="flex-fill"></div>
+                    ${BgWidget.darkButton('新增送審項目', gvc.event(() => {
                                 vm.status = 'add';
                             }))}
-                                        </div>
-                                    </div>
-                                    <div class="my-3"></div>
-                                    ${BgWidget.alertInfo('請注意!', [
+                  </div>
+                </div>
+                <div class="my-3"></div>
+                ${BgWidget.alertInfo('請注意!', [
                                 '必須升級至電商+APP方案才能使用此功能',
                                 '審核通過的結果可能會因應用程式的完整性、商店條款、隱私權政策、以及平台政策等方面而有所不同，建議送審時，請再三進行確認',
                                 '審核時間預計落在 7 到 14 個工作天',
                             ])}
-                                    ${BgWidget.container(BgWidget.mainCard([
+                ${BgWidget.container(BgWidget.mainCard([
                                 BgWidget.searchPlace(gvc.event((e, event) => {
                                     vm.query = e.value;
                                     gvc.notifyDataChange(id);
                                 }), vm.query || '', '搜尋所有紀錄'),
                                 BgWidget.tableV3({
                                     gvc: gvc,
-                                    getData: (vmi) => {
+                                    getData: vmi => {
                                         const limit = 50;
                                         ApiApp.getAppRelease({
                                             page: vmi.page - 1,
                                             limit: limit,
                                             search: vm.query || undefined,
                                             type: type,
-                                        }).then((data) => {
+                                        }).then(data => {
                                             function getDatalist() {
                                                 return data.response.data.map((dd) => {
                                                     return [
                                                         {
                                                             key: 'APP資訊',
                                                             value: html `<div style="min-width: 150px;">
-                                                                                    <img
-                                                                                        class="rounded border me-4 ${dd.content.logo || 'd-none'}"
-                                                                                        alt=""
-                                                                                        src="${dd.content.logo}"
-                                                                                        style="width:40px;height:40px;"
-                                                                                    />
-                                                                                    <span>${dd.content.name}</span>
-                                                                                </div>`,
+                                        <img
+                                          class="rounded border me-2 ${dd.content.logo || 'd-none'}"
+                                          alt=""
+                                          src="${dd.content.logo}"
+                                          style="width:40px;height:40px;"
+                                        />
+                                        <span>${dd.content.name}</span>
+                                      </div>`,
                                                         },
                                                         {
                                                             key: '審核狀態',
@@ -1033,11 +1060,13 @@ export class BgProject {
                                                         {
                                                             key: '專案包',
                                                             value: html `<i
-                                                                                    class="fa-solid fa-download fs-6 ms-3"
-                                                                                    onclick="${gvc.event((e, event) => {
+                                        class="fa-solid fa-download fs-6 ms-3"
+                                        onclick="${gvc.event((e, event) => {
                                                                 const dialog = new ShareDialog(gvc.glitter);
                                                                 dialog.dataLoading({ visible: true });
-                                                                (type === 'android_release' ? ApiApp.downloadAndroidRelease : ApiApp.downloadIOSRelease)({
+                                                                (type === 'android_release'
+                                                                    ? ApiApp.downloadAndroidRelease
+                                                                    : ApiApp.downloadIOSRelease)({
                                                                     app_name: dd.content.name,
                                                                     bundle_id: dd.content.bundle_id,
                                                                 }).then((dd) => {
@@ -1054,9 +1083,9 @@ export class BgProject {
                                                                 });
                                                                 event.stopPropagation();
                                                             })}"
-                                                                                ></i>`,
+                                      ></i>`,
                                                         },
-                                                    ].map((dd) => {
+                                                    ].map(dd => {
                                                         dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
                                                         return dd;
                                                     });
@@ -1077,16 +1106,16 @@ export class BgProject {
                                     filter: [
                                         {
                                             name: '批量移除',
-                                            event: (checkedData) => {
+                                            event: checkedData => {
                                                 const dialog = new ShareDialog(glitter);
                                                 dialog.checkYesOrNot({
                                                     text: '是否確認刪除所選項目？',
-                                                    callback: (response) => {
+                                                    callback: response => {
                                                         if (response) {
                                                             dialog.dataLoading({ visible: true });
                                                             ApiShop.delete({
                                                                 id: checkedData.map((dd) => dd.id).join(`,`),
-                                                            }).then((res) => {
+                                                            }).then(res => {
                                                                 dialog.dataLoading({ visible: false });
                                                                 if (res.result) {
                                                                     vm.dataList = undefined;
@@ -1104,7 +1133,7 @@ export class BgProject {
                                     ],
                                 }),
                             ].join('')))}
-                                `);
+              `);
                         case 'replace':
                             return BgProject.appReleaseForm(vm, gvc, type, replaceData);
                     }
@@ -1130,7 +1159,8 @@ export class BgProject {
             version: '1.0',
             tag: [],
         };
-        if (window.parent.glitter.share.editorViewModel.appConfig.template_type === 2 || window.parent.glitter.share.editorViewModel.appConfig.template_type === 3) {
+        if (window.parent.glitter.share.editorViewModel.appConfig.template_type === 2 ||
+            window.parent.glitter.share.editorViewModel.appConfig.template_type === 3) {
             postMD.status = 'finish';
         }
         else if (window.parent.glitter.share.editorViewModel.appConfig.template_type === -1) {
@@ -1152,7 +1182,7 @@ export class BgProject {
                 postMD.status = 'finish';
             }
             dialog.dataLoading({ text: '提交審核中...', visible: true });
-            ApiPageConfig.createTemplate(window.parent.appName, postMD, saasConfig.config.token).then((response) => {
+            ApiPageConfig.createTemplate(window.parent.appName, postMD, saasConfig.config.token).then(response => {
                 dialog.dataLoading({ visible: false });
                 if (response.result) {
                     dialog.successMessage({ text: `上傳成功...` });
@@ -1161,9 +1191,9 @@ export class BgProject {
             });
         }
         return BgWidget.container(html `
-                <div class="title-container ">
-                    ${BgWidget.title(`模板發佈`)}
-                    ${(() => {
+      <div class="title-container ">
+        ${BgWidget.title(`模板發佈`)}
+        ${(() => {
             return (() => {
                 switch (postMD.status) {
                     case 'finish':
@@ -1177,30 +1207,30 @@ export class BgProject {
                 }
             })();
         })()}
-                    <div class="flex-fill"></div>
-                    ${BgWidget.darkButton('確認發佈', gvc.event(() => {
+        <div class="flex-fill"></div>
+        ${BgWidget.darkButton('確認發佈', gvc.event(() => {
             save();
         }))}
-                </div>
-                ${gvc.bindView(() => {
+      </div>
+      ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
                 bind: id,
                 view: () => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         resolve(html ` <div style="width: 100%;">
-                                    ${[
+                  ${[
                             BgWidget.alertInfo('請注意 !', ['模板發佈請注意上架規範守則，嚴禁發佈觸犯法律條款之內容']),
                             BgWidget.card([
                                 html `
-                                                    ${[
+                          ${[
                                     html ` <div class="row">
-                                                            ${[
+                              ${[
                                         EditorElem.editeInput({
                                             title: '模板名稱',
                                             gvc: gvc,
                                             default: postMD.name,
-                                            callback: (text) => {
+                                            callback: text => {
                                                 postMD.name = text;
                                             },
                                             placeHolder: '請輸入模板名稱',
@@ -1209,7 +1239,7 @@ export class BgProject {
                                             title: '作者名稱',
                                             gvc: gvc,
                                             default: postMD.created_by,
-                                            callback: (text) => {
+                                            callback: text => {
                                                 postMD.created_by = text;
                                             },
                                             placeHolder: '請輸入作者名稱',
@@ -1218,7 +1248,7 @@ export class BgProject {
                                             title: '版本號碼',
                                             gvc: gvc,
                                             default: postMD.version,
-                                            callback: (text) => {
+                                            callback: text => {
                                                 postMD.version = text;
                                             },
                                             placeHolder: '請輸入版本號碼',
@@ -1242,11 +1272,11 @@ export class BgProject {
                                             },
                                         }),
                                     ]
-                                        .map((dd) => {
+                                        .map(dd => {
                                         return `<div class="col-6 ">${dd}</div>`;
                                     })
                                         .join('')}
-                                                        </div>`,
+                            </div>`,
                                     `${EditorElem.h3('模板標籤')}
                                                     ${gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
@@ -1258,53 +1288,57 @@ export class BgProject {
                                             view: () => {
                                                 return html ` ${postMD.tag
                                                     .map((dd, index) => {
-                                                    return html ` <div class="badge bg-warning text-dark btn ">
-                                                                                <i
-                                                                                    class="fa-regular fa-circle-minus me-1 text-danger fw-bold"
-                                                                                    onclick="${gvc.event(() => {
+                                                    return html ` <div
+                                                                  class="badge bg-warning text-dark btn "
+                                                                >
+                                                                  <i
+                                                                    class="fa-regular fa-circle-minus me-1 text-danger fw-bold"
+                                                                    onclick="${gvc.event(() => {
                                                         postMD.tag.splice(index, 1);
                                                         refreshTag();
                                                     })}"
-                                                                                ></i
-                                                                                >${dd}
-                                                                            </div>`;
+                                                                  ></i
+                                                                  >${dd}
+                                                                </div>`;
                                                 })
                                                     .join('')}
-                                                                    <div
-                                                                        class="badge  btn "
-                                                                        style="background: #295ed1;"
-                                                                        onclick="${gvc.event(() => {
-                                                    EditorElem.openEditorDialog(gvc, (gvc) => {
+                                                            <div
+                                                              class="badge  btn "
+                                                              style="background: #295ed1;"
+                                                              onclick="${gvc.event(() => {
+                                                    EditorElem.openEditorDialog(gvc, gvc => {
                                                         let label = '';
                                                         return html `<div class="p-2">
-                                                                                            ${EditorElem.editeInput({
+                                                                        ${EditorElem.editeInput({
                                                             gvc: gvc,
                                                             title: '標籤名稱',
                                                             default: label,
                                                             placeHolder: '請輸入標籤名稱',
-                                                            callback: (text) => {
+                                                            callback: text => {
                                                                 label = text;
                                                             },
                                                         })}
-                                                                                        </div>
-                                                                                        <div class="w-100 border-top p-2 d-flex align-items-center justify-content-end">
-                                                                                            <button
-                                                                                                class="btn btn-primary"
-                                                                                                style="height:35px;width:80px;"
-                                                                                                onclick="${gvc.event(() => {
+                                                                      </div>
+                                                                      <div
+                                                                        class="w-100 border-top p-2 d-flex align-items-center justify-content-end"
+                                                                      >
+                                                                        <button
+                                                                          class="btn btn-primary"
+                                                                          style="height:35px;width:80px;"
+                                                                          onclick="${gvc.event(() => {
                                                             postMD.tag.push(label);
                                                             refreshTag();
                                                             gvc.closeDialog();
                                                         })}"
-                                                                                            >
-                                                                                                確認新增
-                                                                                            </button>
-                                                                                        </div> `;
+                                                                        >
+                                                                          確認新增
+                                                                        </button>
+                                                                      </div> `;
                                                     }, () => { }, 400, '新增標籤');
                                                 })}"
-                                                                    >
-                                                                        <i class="fa-regular fa-circle-plus me-1"></i>新增標籤
-                                                                    </div>`;
+                                                            >
+                                                              <i class="fa-regular fa-circle-plus me-1"></i>新增標籤
+                                                            </div>`;
                                             },
                                             divCreate: {
                                                 class: `w-100 d-flex flex-wrap bg-secondary p-3`,
@@ -1318,7 +1352,7 @@ export class BgProject {
                                         title: '模板描述',
                                         placeHolder: `請輸入模板描述`,
                                         default: postMD.desc,
-                                        callback: (text) => {
+                                        callback: text => {
                                             postMD.desc = text;
                                         },
                                     }),
@@ -1328,26 +1362,29 @@ export class BgProject {
                                             bind: id,
                                             view: () => {
                                                 return (EditorElem.h3(html ` <div class="d-flex align-items-center" style="gap: 10px;">
-                                                                            模板圖片（首張圖片為預覽圖）
-                                                                            <div class="d-flex align-items-center justify-content-center rounded-3" style="height: 30px;width: 80px;">
-                                                                                <button
-                                                                                    class="btn ms-2 btn-primary-c ms-2"
-                                                                                    style="height: 30px;width: 80px;"
-                                                                                    onclick="${gvc.event(() => {
+                                        模板圖片（首張圖片為預覽圖）
+                                        <div
+                                          class="d-flex align-items-center justify-content-center rounded-3"
+                                          style="height: 30px;width: 80px;"
+                                        >
+                                          <button
+                                            class="btn ms-2 btn-primary-c ms-2"
+                                            style="height: 30px;width: 80px;"
+                                            onclick="${gvc.event(() => {
                                                     EditorElem.uploadFileFunction({
                                                         gvc: gvc,
-                                                        callback: (text) => {
+                                                        callback: text => {
                                                             postMD.image.push(text);
                                                             gvc.notifyDataChange(id);
                                                         },
                                                         type: `image/*, video/*`,
                                                     });
                                                 })}"
-                                                                                >
-                                                                                    添加圖檔
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>`) +
+                                          >
+                                            添加圖檔
+                                          </button>
+                                        </div>
+                                      </div>`) +
                                                     html ` <div class="my-2"></div>` +
                                                     EditorElem.flexMediaManager({
                                                         gvc: gvc,
@@ -1358,22 +1395,24 @@ export class BgProject {
                                         };
                                     }),
                                 ].join('')}
-                                                `,
+                        `,
                             ].join('<div class="my-2"></div>')),
-                            html `<div class="${postMD.status === 'finish' ? `d-flex align-items-center justify-content-end` : `d-none`}">
-                                            ${BgWidget.redButton('取消發佈', gvc.event(() => {
+                            html `<div
+                      class="${postMD.status === 'finish' ? `d-flex align-items-center justify-content-end` : `d-none`}"
+                    >
+                      ${BgWidget.redButton('取消發佈', gvc.event(() => {
                                 postMD.post_to = 'cancel';
                                 save();
                             }), { icon: 'fa-regular fa-trash-can' })}
-                                        </div>`,
+                    </div>`,
                         ].join(`<div class="my-3"></div>`)}
-                                </div>`);
+                </div>`);
                     }));
                 },
                 divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
             };
         })}
-            `);
+    `);
     }
     static appReleaseForm(vm, gvc, type, editorData) {
         const saasConfig = window.saasConfig;
@@ -1407,9 +1446,10 @@ export class BgProject {
         function save() {
             const dialog = new ShareDialog(gvc.glitter);
             if (!(postMD.name && postMD.logo && postMD.bundle_id) ||
-                !((postMD.image['6.7'].length >= 3 && postMD.image['6.5'].length >= 3 && postMD.image['5.5'].length >= 3) || postMD.type === 'android_release') ||
+                !((postMD.image['6.7'].length >= 3 && postMD.image['6.5'].length >= 3 && postMD.image['5.5'].length >= 3) ||
+                    postMD.type === 'android_release') ||
                 !(postMD.image.android.length >= 3 || postMD.type === 'apple_release') ||
-                Object.keys(postMD.market_info).find((dd) => {
+                Object.keys(postMD.market_info).find(dd => {
                     return (!postMD.market_info)[dd];
                 })) {
                 dialog.infoMessage({ text: '請確實填寫所有內容' });
@@ -1432,12 +1472,12 @@ export class BgProject {
             });
         }
         return BgWidget.container(html `
-                <div class="title-container">
-                    ${BgWidget.goBack(gvc.event(() => {
+      <div class="title-container">
+        ${BgWidget.goBack(gvc.event(() => {
             vm.status = 'list';
         }))}
-                    ${BgWidget.title(`審核項目`)}
-                    ${(() => {
+        ${BgWidget.title(`審核項目`)}
+        ${(() => {
             return (() => {
                 switch (postMD.status) {
                     case 'finish':
@@ -1451,16 +1491,16 @@ export class BgProject {
                 }
             })();
         })()}
-                    <div class="flex-fill"></div>
-                </div>
-                ${gvc.bindView(() => {
+        <div class="flex-fill"></div>
+      </div>
+      ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
                 bind: id,
                 view: () => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         resolve(html ` <div style="width: 100%;">
-                                    ${[
+                  ${[
                             BgWidget.alertInfo('請注意!', [
                                 '審核通過的結果可能會因應用程式的完整性、商店條款、隱私權政策、以及平台政策等方面而有所不同',
                                 '建議送審時，請再三進行確認',
@@ -1468,13 +1508,13 @@ export class BgProject {
                             ]),
                             BgWidget.card([
                                 html ` ${BgWidget.title('APP資訊')}
-                                                    <div class="row">
-                                                        ${[
+                          <div class="row">
+                            ${[
                                     EditorElem.editeInput({
                                         title: 'APP名稱',
                                         gvc: gvc,
                                         default: postMD.name,
-                                        callback: (text) => {
+                                        callback: text => {
                                             postMD.name = text;
                                         },
                                         placeHolder: '請輸入APP名稱',
@@ -1483,7 +1523,7 @@ export class BgProject {
                                         title: `套件識別碼(${type === 'apple_release' ? `Bundle ID` : `Application Id`})`,
                                         gvc: gvc,
                                         default: postMD.bundle_id,
-                                        callback: (text) => {
+                                        callback: text => {
                                             postMD.bundle_id = text;
                                         },
                                         placeHolder: '請輸入套件識別碼',
@@ -1492,7 +1532,7 @@ export class BgProject {
                                         title: 'LOGO',
                                         gvc: gvc,
                                         def: postMD.logo,
-                                        callback: (text) => {
+                                        callback: text => {
                                             postMD.logo = text;
                                         },
                                     }),
@@ -1517,20 +1557,20 @@ export class BgProject {
                                                             value: 'wait',
                                                         },
                                                     ],
-                                                    callback: (text) => {
+                                                    callback: text => {
                                                         postMD.status = text;
                                                     },
                                                 });
                                         }
                                     })(),
                                 ]
-                                    .map((dd) => {
+                                    .map(dd => {
                                     return html `<div class="col-12 col-md-6">${dd}</div>`;
                                 })
                                     .join('')}
-                                                    </div>
-                                                    <div class="mx-n3 mt-3">
-                                                        ${(postMD.type === 'apple_release' ? ['6.7', '6.5', '5.5'] : ['android'])
+                          </div>
+                          <div class="mx-n3 mt-3">
+                            ${(postMD.type === 'apple_release' ? ['6.7', '6.5', '5.5'] : ['android'])
                                     .map((value, index) => {
                                     const key = value;
                                     return EditorElem.arrayItem({
@@ -1550,10 +1590,10 @@ export class BgProject {
                                                 }
                                             })()}) *至少三張*`,
                                         array: () => {
-                                            return postMD.image[key].map((dd) => {
+                                            return postMD.image[key].map(dd => {
                                                 return {
                                                     title: dd,
-                                                    innerHtml: (gvc) => {
+                                                    innerHtml: gvc => {
                                                         gvc.glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', dd);
                                                         return ``;
                                                     },
@@ -1569,7 +1609,7 @@ export class BgProject {
                                         plus: {
                                             title: '新增截圖',
                                             event: gvc.event(() => {
-                                                EditorElem.fileUploadEvent('image/*', (url) => {
+                                                EditorElem.fileUploadEvent('image/*', url => {
                                                     postMD.image[key].push(url);
                                                     gvc.notifyDataChange(id);
                                                 });
@@ -1579,14 +1619,25 @@ export class BgProject {
                                     });
                                 })
                                     .join('')}
-                                                    </div>`,
+                          </div>`,
                             ].join('<div class="my-2"></div>')),
                             BgWidget.card([
                                 html ` <div class="border-bottom pb-2">${BgWidget.title('商店資訊')}</div> `,
                                 html `<div class="row">
-                                                    ${(() => {
-                                    return ['title', 'sub_title', 'keywords', 'support_url', 'version', 'copy_right', 'market_url', 'privacy', 'promote_string', 'description']
-                                        .map((dd) => {
+                          ${(() => {
+                                    return [
+                                        'title',
+                                        'sub_title',
+                                        'keywords',
+                                        'support_url',
+                                        'version',
+                                        'copy_right',
+                                        'market_url',
+                                        'privacy',
+                                        'promote_string',
+                                        'description',
+                                    ]
+                                        .map(dd => {
                                         const key = dd;
                                         const title = (() => {
                                             switch (key) {
@@ -1614,47 +1665,47 @@ export class BgProject {
                                         })();
                                         if (['promote_string', 'description'].indexOf(dd) !== -1) {
                                             return html `<div class="col-12">
-                                                                        ${EditorElem.editeText({
+                                    ${EditorElem.editeText({
                                                 gvc: gvc,
                                                 title: title,
                                                 placeHolder: `請輸入${title}`,
                                                 default: postMD.market_info[key],
-                                                callback: (text) => {
+                                                callback: text => {
                                                     postMD.market_info[key] = text;
                                                 },
                                             })}
-                                                                    </div>`;
+                                  </div>`;
                                         }
                                         return html `<div class="col-12 col-md-6">
-                                                                    ${EditorElem.editeInput({
+                                  ${EditorElem.editeInput({
                                             gvc: gvc,
                                             title: title,
                                             placeHolder: `請輸入${title}`,
                                             default: postMD.market_info[key],
-                                            callback: (text) => {
+                                            callback: text => {
                                                 postMD.market_info[key] = text;
                                             },
                                         })}
-                                                                </div>`;
+                                </div>`;
                                     })
                                         .join('');
                                 })()}
-                                                </div>`,
+                        </div>`,
                             ].join('<div class="my-2"></div>')),
                         ].join('<div class="my-3"></div>')}
-                                </div>`);
+                </div>`);
                     }));
                 },
                 divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
             };
         })}
-                ${BgWidget.mbContainer(240)}
-                <div class="update-bar-container">
-                    ${BgWidget.save(gvc.event(() => {
+      ${BgWidget.mbContainer(240)}
+      <div class="update-bar-container">
+        ${BgWidget.save(gvc.event(() => {
             save();
         }), editorData ? `再次送審` : `確認送審`)}
-                </div>
-            `);
+      </div>
+    `);
     }
     static checkoutHook(gvc) {
         const saasConfig = window.saasConfig;
@@ -1662,13 +1713,15 @@ export class BgProject {
             value: '',
         };
         return BgWidget.container(html `
-                <div class="title-container">
-                    ${BgWidget.title('結帳事件')}
-                    <div class="flex-fill"></div>
-                    ${BgWidget.darkButton('儲存事件設定', gvc.event(() => {
+      <div class="title-container">
+        ${BgWidget.title('結帳事件')}
+        <div class="flex-fill"></div>
+        ${BgWidget.darkButton('儲存事件設定', gvc.event(() => {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ text: '設定中', visible: true });
-            saasConfig.api.setPrivateConfig(window.parent.appName, `glitter_finance_webhook`, keyData).then((r) => {
+            saasConfig.api
+                .setPrivateConfig(window.parent.appName, `glitter_finance_webhook`, keyData)
+                .then((r) => {
                 dialog.dataLoading({ visible: false });
                 if (r.response) {
                     dialog.successMessage({ text: '設定成功' });
@@ -1678,14 +1731,14 @@ export class BgProject {
                 }
             });
         }))}
-                </div>
-                ${BgWidget.container(html ` ${BgWidget.alertInfo('當會員完成購物時，所需執行的額外事件', [
+      </div>
+      ${BgWidget.container(html ` ${BgWidget.alertInfo('當會員完成購物時，所需執行的額外事件', [
             html `<strong>購物車資料</strong>:obj.cartData`,
             html `<strong>用戶資料</strong>:obj.userData`,
             html `<strong>資料庫</strong>:obj.sql`,
             html `<strong>Firebase推播</strong>:obj.fcm`,
         ])}
-                ${gvc.bindView(() => {
+        ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
                 bind: id,
@@ -1696,25 +1749,28 @@ export class BgProject {
                             keyData = data.response.result[0].value;
                         }
                         resolve(html ` <div style="width: 100%;">
-                                    ${BgWidget.card([
+                    ${BgWidget.card([
                             EditorElem.codeEditor({
                                 gvc: gvc,
                                 height: 600,
                                 initial: keyData.value,
                                 title: `區段代碼`,
-                                callback: (text) => {
+                                callback: text => {
                                     keyData.value = text;
                                 },
                             }),
                         ].join('<div class="my-2"></div>'))}
-                                </div>`);
+                  </div>`);
                     }));
                 },
-                divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px; margin-top: 18px;' },
+                divCreate: {
+                    class: 'd-flex flex-column flex-column-reverse flex-md-row p-0',
+                    style: 'gap: 10px; margin-top: 18px;',
+                },
             };
         })}`)}
-                ${BgWidget.mbContainer(120)}
-            `);
+      ${BgWidget.mbContainer(120)}
+    `);
     }
     static seoHook(gvc) {
         const saasConfig = window.parent.saasConfig;
@@ -1722,13 +1778,15 @@ export class BgProject {
             value: '',
         };
         return BgWidget.container(html `
-                <div class="title-container">
-                    ${BgWidget.title('SEO 自定義')}
-                    <div class="flex-fill"></div>
-                    ${BgWidget.darkButton('儲存事件設定', gvc.event(() => {
+      <div class="title-container">
+        ${BgWidget.title('SEO 自定義')}
+        <div class="flex-fill"></div>
+        ${BgWidget.darkButton('儲存事件設定', gvc.event(() => {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ text: '設定中', visible: true });
-            saasConfig.api.setPrivateConfig(window.parent.appName, `seo_webhook`, keyData).then((r) => {
+            saasConfig.api
+                .setPrivateConfig(window.parent.appName, `seo_webhook`, keyData)
+                .then((r) => {
                 dialog.dataLoading({ visible: false });
                 if (r.response) {
                     dialog.successMessage({ text: '設定成功' });
@@ -1738,8 +1796,8 @@ export class BgProject {
                 }
             });
         }))}
-                </div>
-                ${BgWidget.container([
+      </div>
+      ${BgWidget.container([
             BgWidget.alertInfo('自定義設定 SEO'),
             gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
@@ -1752,19 +1810,19 @@ export class BgProject {
                                 keyData = data.response.result[0].value;
                             }
                             resolve(html ` <div style="width: 100%;">
-                                            ${BgWidget.card([
+                      ${BgWidget.card([
                                 EditorElem.codeEditor({
                                     gvc: gvc,
                                     height: 600,
                                     structStart: `((db,req)=>{`,
                                     initial: keyData.value,
                                     title: `區段代碼`,
-                                    callback: (text) => {
+                                    callback: text => {
                                         keyData.value = text;
                                     },
                                 }),
                             ].join('<div class="my-2"></div>'))}
-                                        </div>`);
+                    </div>`);
                         }));
                     },
                     divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
@@ -1772,7 +1830,7 @@ export class BgProject {
             }),
             BgWidget.mbContainer(120),
         ].join(html `<div style="margin-top: 18px;"></div>`))}
-            `);
+    `);
     }
     static siteMapHook(gvc) {
         const saasConfig = window.parent.saasConfig;
@@ -1780,13 +1838,15 @@ export class BgProject {
             value: '',
         };
         return BgWidget.container(html `
-                <div class="title-container">
-                    ${BgWidget.title('SiteMap 自定義')}
-                    <div class="flex-fill"></div>
-                    ${BgWidget.darkButton('儲存事件設定', gvc.event(() => {
+      <div class="title-container">
+        ${BgWidget.title('SiteMap 自定義')}
+        <div class="flex-fill"></div>
+        ${BgWidget.darkButton('儲存事件設定', gvc.event(() => {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ text: '設定中', visible: true });
-            saasConfig.api.setPrivateConfig(window.parent.appName, `sitemap_webhook`, keyData).then((r) => {
+            saasConfig.api
+                .setPrivateConfig(window.parent.appName, `sitemap_webhook`, keyData)
+                .then((r) => {
                 dialog.dataLoading({ visible: false });
                 if (r.response) {
                     dialog.successMessage({ text: '設定成功' });
@@ -1796,8 +1856,8 @@ export class BgProject {
                 }
             });
         }))}
-                </div>
-                ${BgWidget.container([
+      </div>
+      ${BgWidget.container([
             BgWidget.alertInfo('自定義設定 SiteMap'),
             gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
@@ -1810,19 +1870,19 @@ export class BgProject {
                                 keyData = data.response.result[0].value;
                             }
                             resolve(html ` <div style="width: 100%;">
-                                            ${BgWidget.card([
+                      ${BgWidget.card([
                                 EditorElem.codeEditor({
                                     gvc: gvc,
                                     height: 600,
                                     structStart: `((db,req)=>{`,
                                     initial: keyData.value,
                                     title: `區段代碼`,
-                                    callback: (text) => {
+                                    callback: text => {
                                         keyData.value = text;
                                     },
                                 }),
                             ].join('<div class="my-2"></div>'))}
-                                        </div>`);
+                    </div>`);
                         }));
                     },
                     divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
@@ -1830,7 +1890,7 @@ export class BgProject {
             }),
             BgWidget.mbContainer(120),
         ].join(html `<div style="margin-top: 18px;"></div>`))}
-            `);
+    `);
     }
     static loginHook(gvc) {
         const saasConfig = window.saasConfig;
@@ -1838,16 +1898,18 @@ export class BgProject {
             value: '',
         };
         return BgWidget.container(html `
-                <div class="title-container ">
-                    ${BgWidget.title(`登入觸發事件`)}
-                    <div class="flex-fill"></div>
-                    <button
-                        class="btn btn-primary-c"
-                        style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
+      <div class="title-container ">
+        ${BgWidget.title(`登入觸發事件`)}
+        <div class="flex-fill"></div>
+        <button
+          class="btn btn-primary-c"
+          style="height:38px;font-size: 14px;"
+          onclick="${gvc.event(() => {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ text: '設定中', visible: true });
-            saasConfig.api.setPrivateConfig(saasConfig.config.appName, `glitter_login_webhook`, keyData).then((r) => {
+            saasConfig.api
+                .setPrivateConfig(saasConfig.config.appName, `glitter_login_webhook`, keyData)
+                .then((r) => {
                 dialog.dataLoading({ visible: false });
                 if (r.response) {
                     dialog.successMessage({ text: '設定成功' });
@@ -1857,13 +1919,16 @@ export class BgProject {
                 }
             });
         })}"
-                    >
-                        儲存事件設定
-                    </button>
-                </div>
+        >
+          儲存事件設定
+        </button>
+      </div>
 
-                ${BgWidget.alertInfo('當會員登入 / 註冊 / 初始化時，所需執行的額外事件', [html `<strong>用戶資料</strong>:obj.userData`, html `<strong>Firebase推播</strong>:obj.fcm`])}
-                ${gvc.bindView(() => {
+      ${BgWidget.alertInfo('當會員登入 / 註冊 / 初始化時，所需執行的額外事件', [
+            html `<strong>用戶資料</strong>:obj.userData`,
+            html `<strong>Firebase推播</strong>:obj.fcm`,
+        ])}
+      ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
                 bind: id,
@@ -1874,24 +1939,24 @@ export class BgProject {
                             keyData = data.response.result[0].value;
                         }
                         resolve(html ` <div style="width: 100%;">
-                                    ${BgWidget.card([
+                  ${BgWidget.card([
                             EditorElem.codeEditor({
                                 gvc: gvc,
                                 height: 600,
                                 initial: keyData.value,
                                 title: `區段代碼`,
-                                callback: (text) => {
+                                callback: text => {
                                     keyData.value = text;
                                 },
                             }),
                         ].join('<div class="my-2"></div>'))}
-                                </div>`);
+                </div>`);
                     }));
                 },
                 divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
             };
         })}
-            `);
+    `);
     }
 }
 window.glitter.setModule(import.meta.url, BgProject);

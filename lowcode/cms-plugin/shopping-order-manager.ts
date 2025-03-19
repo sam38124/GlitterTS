@@ -507,11 +507,13 @@ export class ShoppingOrderManager {
                             return [
                               {
                                 key: '訂單編號',
-                                value: html` <div class="d-flex align-items-center gap-2">
+                                value: html` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
                                   ${dd.cart_token}${(() => {
                                     switch (dd.orderData.orderSource) {
                                       case 'manual':
-                                        return BgWidget.primaryInsignia('手動');
+                                        return BgWidget.primaryInsignia('手動', 'border');
+                                      case 'combine':
+                                        return BgWidget.warningInsignia('合併', 'border');
                                       default:
                                         return '';
                                     }
@@ -566,11 +568,13 @@ export class ShoppingOrderManager {
                             return [
                               {
                                 key: '訂單編號',
-                                value: html` <div class="d-flex align-items-center gap-2">
+                                value: html` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
                                   ${dd.cart_token}${(() => {
                                     switch (dd.orderData.orderSource) {
                                       case 'manual':
-                                        return BgWidget.primaryInsignia('手動');
+                                        return BgWidget.primaryInsignia('手動', 'border');
+                                      case 'combine':
+                                        return BgWidget.warningInsignia('合併', 'border');
                                       default:
                                         return '';
                                     }
@@ -1288,10 +1292,48 @@ export class ShoppingOrderManager {
     });
   }
 
+  public static formatRecord(gvc: GVC, vm: any, orderID: string, record: string): string {
+    // 處理訂單連結
+    const orderNumbers = record.match(/{{order=(\d+)}}/g) || [];
+    orderNumbers.map((order: string) => {
+      const pureOrder = order.replace(/{{order=|}}/g, '');
+      record = record.replace(
+        order,
+        BgWidget.blueNote(
+          `#${pureOrder}`,
+          gvc.event(() => {
+            vm.data.cart_token = pureOrder;
+            vm.type = 'replace';
+          })
+        )
+      );
+    });
+
+    // 處理出貨單連結
+    const shipmentNumbers = record.match(/{{shipment=(\d+)}}/g) || [];
+    shipmentNumbers.map((order: string) => {
+      const pureOrder = order.replace(/{{shipment=|}}/g, '');
+      record = record.replace(
+        order,
+        BgWidget.blueNote(
+          `#${pureOrder}`,
+          gvc.event(() => {
+            (window as any).glitter.setUrlParameter('page', 'shipment_list');
+            (window as any).glitter.setUrlParameter('orderID', orderID);
+            gvc.recreateView();
+          })
+        )
+      );
+    });
+
+    return record;
+  }
+
   public static replaceOrder(gvc: GVC, vm: any, passOrderData?: any, backCallback?: () => any) {
     let is_shipment = ['shipment_list_archive', 'shipment_list'].includes(
       (window as any).glitter.getUrlParameter('page')
     );
+
     return gvc.bindView(() => {
       return {
         bind: 'orderDetailRefresh',
@@ -1462,6 +1504,7 @@ export class ShoppingOrderManager {
                 });
               });
             }
+
             return gvc.bindView({
               bind: mainViewID,
               dataList: [{ obj: child_vm, key: 'type' }],
@@ -1470,6 +1513,7 @@ export class ShoppingOrderManager {
                   if (userDataLoading || productLoading) {
                     return BgWidget.spinner();
                   }
+
                   if (child_vm.type === 'user') {
                     return UserList.userInformationDetail({
                       userID: child_vm.userID,
@@ -1509,14 +1553,14 @@ export class ShoppingOrderManager {
                                   <div class="tx_700 d-flex align-items-center" style="gap:5px;">訂單號碼</div>
                                   ${BgWidget.mbContainer(12)}
                                   <div
-                                    class=""
-                                    style="color: #4D86DB;cursor:pointer;"
+                                    style="color: #4D86DB; cursor: pointer;"
                                     onclick="${gvc.event(() => {
                                       is_shipment = false;
                                       gvc.notifyDataChange('orderDetailRefresh');
                                     })}"
                                   >
-                                    ${(orderData.orderData as any).orderID}
+                                    ${(orderData.orderData as any).combineOrderID ||
+                                    (orderData.orderData as any).orderID}
                                   </div>
                                 `
                               : ``,
@@ -1534,7 +1578,7 @@ export class ShoppingOrderManager {
                                   gvc: gvc,
                                   def: `${orderData.orderData.progress}`,
                                   array: ApiShop.getProgressArray(orderData.orderData.user_info.shipment_number),
-                                  readonly: orderData.orderData.user_info.shipment_refer === 'paynow',
+                                  readonly: orderData.orderData.user_info.shipment_refer === 'paynow' || is_archive,
                                   callback: text => {
                                     function next() {
                                       if (text && text !== `${orderData.orderData.progress}`) {
@@ -1735,86 +1779,90 @@ export class ShoppingOrderManager {
                                 }
                               })()} `,
                             orderData.orderData.user_info.shipment_number
-                              ? `
-                             <div class="tx_700 d-flex align-items-center" style="gap:5px;">出貨日期</div>
-                              ${BgWidget.mbContainer(12)}
-                              <div class="d-flex" style="gap:5px;">
-                                ${orderData.orderData.user_info.shipment_date ? gvc.glitter.ut.dateFormat(new Date(orderData.orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm') : '尚未設定'}
-                                ${BgWidget.customButton({
-                                  button: {
-                                    color: 'gray',
-                                    size: 'sm',
-                                  },
-                                  text: { name: '設定出貨日期' },
-                                  event: gvc.event(() => {
-                                    let shipment_date = orderData.orderData.user_info.shipment_date
+                              ? html`
+                                  <div class="tx_700 d-flex align-items-center" style="gap:5px;">出貨日期</div>
+                                  ${BgWidget.mbContainer(12)}
+                                  <div class="d-flex" style="gap:5px;">
+                                    ${orderData.orderData.user_info.shipment_date
                                       ? gvc.glitter.ut.dateFormat(
                                           new Date(orderData.orderData.user_info.shipment_date),
-                                          'yyyy-MM-dd'
+                                          'yyyy-MM-dd hh:mm'
                                         )
-                                      : gvc.glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd');
-                                    let shipment_time = orderData.orderData.user_info.shipment_date
-                                      ? gvc.glitter.ut.dateFormat(
-                                          new Date(orderData.orderData.user_info.shipment_date),
-                                          'hh:mm'
-                                        )
-                                      : gvc.glitter.ut.dateFormat(new Date(), 'hh:mm');
-                                    BgWidget.settingDialog({
-                                      gvc: gvc,
-                                      title: '設定出貨日期',
-                                      innerHTML: (gvc: GVC) => {
-                                        return [
-                                          BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '出貨日期',
-                                            default: shipment_date,
-                                            callback: text => {
-                                              shipment_date = text;
-                                            },
-                                            type: 'date',
-                                            placeHolder: '請輸入出貨日期',
-                                          }),
-                                          BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '出貨時間',
-                                            default: shipment_time,
-                                            callback: text => {
-                                              shipment_time = text;
-                                            },
-                                            type: 'time',
-                                            placeHolder: '請輸入出貨時間',
-                                          }),
-                                        ].join('');
+                                      : '尚未設定'}
+                                    ${BgWidget.customButton({
+                                      button: {
+                                        color: 'gray',
+                                        size: 'sm',
                                       },
-                                      footer_html: (gvc: GVC) => {
-                                        return [
-                                          BgWidget.cancel(
-                                            gvc.event(() => {
-                                              gvc.closeDialog();
-                                            }),
-                                            '取消'
-                                          ),
-                                          BgWidget.save(
-                                            gvc.event(() => {
-                                              orderData.orderData.user_info.shipment_date = new Date(
-                                                `${shipment_date} ${shipment_time}:00`
-                                              ).toISOString();
-                                              gvc.closeDialog();
-                                              saveEvent();
-                                            }),
-                                            '儲存'
-                                          ),
-                                        ].join('');
-                                      },
-                                      width: 350,
-                                    });
-                                  }),
-                                })}
-</div>
-                            `
+                                      text: { name: '設定出貨日期' },
+                                      event: gvc.event(() => {
+                                        let shipment_date = orderData.orderData.user_info.shipment_date
+                                          ? gvc.glitter.ut.dateFormat(
+                                              new Date(orderData.orderData.user_info.shipment_date),
+                                              'yyyy-MM-dd'
+                                            )
+                                          : gvc.glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd');
+                                        let shipment_time = orderData.orderData.user_info.shipment_date
+                                          ? gvc.glitter.ut.dateFormat(
+                                              new Date(orderData.orderData.user_info.shipment_date),
+                                              'hh:mm'
+                                            )
+                                          : gvc.glitter.ut.dateFormat(new Date(), 'hh:mm');
+                                        BgWidget.settingDialog({
+                                          gvc: gvc,
+                                          title: '設定出貨日期',
+                                          innerHTML: (gvc: GVC) => {
+                                            return [
+                                              BgWidget.editeInput({
+                                                gvc: gvc,
+                                                title: '出貨日期',
+                                                default: shipment_date,
+                                                callback: text => {
+                                                  shipment_date = text;
+                                                },
+                                                type: 'date',
+                                                placeHolder: '請輸入出貨日期',
+                                              }),
+                                              BgWidget.editeInput({
+                                                gvc: gvc,
+                                                title: '出貨時間',
+                                                default: shipment_time,
+                                                callback: text => {
+                                                  shipment_time = text;
+                                                },
+                                                type: 'time',
+                                                placeHolder: '請輸入出貨時間',
+                                              }),
+                                            ].join('');
+                                          },
+                                          footer_html: (gvc: GVC) => {
+                                            return [
+                                              BgWidget.cancel(
+                                                gvc.event(() => {
+                                                  gvc.closeDialog();
+                                                }),
+                                                '取消'
+                                              ),
+                                              BgWidget.save(
+                                                gvc.event(() => {
+                                                  orderData.orderData.user_info.shipment_date = new Date(
+                                                    `${shipment_date} ${shipment_time}:00`
+                                                  ).toISOString();
+                                                  gvc.closeDialog();
+                                                  saveEvent();
+                                                }),
+                                                '儲存'
+                                              ),
+                                            ].join('');
+                                          },
+                                          width: 350,
+                                        });
+                                      }),
+                                    })}
+                                  </div>
+                                `
                               : ``,
-
-                            html` ${[
+                            html`${[
                                 'UNIMARTC2C',
                                 'FAMIC2C',
                                 'OKMARTC2C',
@@ -2149,6 +2197,9 @@ export class ShoppingOrderManager {
                       });
                     })()
                   );
+
+                  const is_archive = orderData.orderData.archived === 'true';
+
                   return BgWidget.container(
                     html` <div class="title-container">
                         ${BgWidget.goBack(
@@ -2215,7 +2266,7 @@ export class ShoppingOrderManager {
                                             orderData.orderData.orderStatus = text;
                                           }
                                         },
-                                        readonly: is_shipment,
+                                        readonly: is_shipment || is_archive,
                                       })}
                                 </div>
                               </div>
@@ -2525,7 +2576,7 @@ export class ShoppingOrderManager {
                                     >
                                       <div class="tx_700">付款狀態</div>
                                       <div class="ms-auto w-100">
-                                        ${is_shipment
+                                        ${is_shipment || is_archive
                                           ? [
                                               {
                                                 title: '變更付款狀態',
@@ -2860,10 +2911,17 @@ export class ShoppingOrderManager {
                                             : -1;
                                         })
                                         .map((r: any) => {
+                                          const record = this.formatRecord(
+                                            gvc,
+                                            vm,
+                                            (orderData.orderData as any).orderID,
+                                            structuredClone(r.record)
+                                          );
+
                                           return html`
                                             <div class="d-flex" style="gap: 42px">
                                               <div>${Tool.formatDateTime(r.time, true)}</div>
-                                              <div>${r.record}</div>
+                                              <div>${record.replace(/\\n/g, '<br/>')}</div>
                                             </div>
                                           `;
                                         })
@@ -3327,6 +3385,7 @@ export class ShoppingOrderManager {
                       </div>`
                   );
                 } catch (e) {
+                  console.error(e);
                   return BgWidget.maintenance();
                 }
               },

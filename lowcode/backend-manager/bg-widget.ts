@@ -459,36 +459,45 @@ export class BgWidget {
   }
 
   // 標籤
-  static primaryInsignia(text: string) {
-    return html` <div class="insignia insignia-primary">${text}</div>`;
+  static insignia(className: string, text: string, type: 'fill' | 'border') {
+    const record = {
+      border: `insignia-border insignia-${className}-border`,
+      fill: `insignia-${className}`,
+    };
+
+    return html` <div class="insignia ${record[type] ?? record.fill}">${text}</div>`;
   }
 
-  static successInsignia(text: string) {
-    return html` <div class="insignia insignia-success">${text}</div>`;
+  static primaryInsignia(text: string, type: 'fill' | 'border' = 'fill') {
+    return this.insignia('primary', text, type);
   }
 
-  static dangerInsignia(text: string) {
-    return html` <div class="insignia insignia-danger">${text}</div>`;
+  static successInsignia(text: string, type: 'fill' | 'border' = 'fill') {
+    return this.insignia('success', text, type);
   }
 
-  static infoInsignia(text: string) {
-    return html` <div class="insignia insignia-info">${text}</div>`;
+  static dangerInsignia(text: string, type: 'fill' | 'border' = 'fill') {
+    return this.insignia('danger', text, type);
   }
 
-  static warningInsignia(text: string) {
-    return html` <div class="insignia insignia-warning">${text}</div>`;
+  static infoInsignia(text: string, type: 'fill' | 'border' = 'fill') {
+    return this.insignia('info', text, type);
   }
 
-  static normalInsignia(text: string) {
-    return html` <div class="insignia insignia-normal">${text}</div>`;
+  static warningInsignia(text: string, type: 'fill' | 'border' = 'fill') {
+    return this.insignia('warning', text, type);
   }
 
-  static notifyInsignia(text: string) {
-    return html` <div class="insignia insignia-notify">${text}</div>`;
+  static normalInsignia(text: string, type: 'fill' | 'border' = 'fill') {
+    return this.insignia('normal', text, type);
   }
 
-  static secondaryInsignia(text: string) {
-    return html` <div class="insignia insignia-secondary">${text}</div>`;
+  static notifyInsignia(text: string, type: 'fill' | 'border' = 'fill') {
+    return this.insignia('notify', text, type);
+  }
+
+  static secondaryInsignia(text: string, type: 'fill' | 'border' = 'fill') {
+    return this.insignia('secondary', text, type);
   }
 
   // 元素
@@ -1966,6 +1975,7 @@ ${obj.default ?? ''}</textarea
                 def: vm.originalData.every((item: any) => item.checked),
                 callback: result => renderRowCheckbox(result),
                 stopChangeView: changeView,
+                style: 'justify-content: end !important;',
               });
             }
 
@@ -2011,6 +2021,7 @@ ${obj.default ?? ''}</textarea
                           gvc: gvc,
                           def: checkedMap.get(`${vm.page}-${index}`)?.checked,
                           callback: result => checkEvent(index, result),
+                          style: 'justify-content: end !important;',
                         }),
                         stopClick: true,
                       },
@@ -2241,7 +2252,7 @@ ${obj.default ?? ''}</textarea
 
                   tr?.querySelectorAll('td').forEach((td: any, index: number) => {
                     if (checkbox && index === 0) {
-                      widthList[index] = 60;
+                      widthList[index] = 40;
                     } else {
                       widthList[index] = Math.ceil(
                         td.offsetWidth > widthList[index] ? td.offsetWidth : widthList[index]
@@ -2781,7 +2792,7 @@ ${obj.default ?? ''}</textarea
       height: 40px !important;
       border-radius: 10px;
       background: linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), #fff;
-      padding: 0 20px;
+      padding: 0 16.25px;
       ${document.body.clientWidth > 768 ? `width: 100%;` : `width: calc(100vw - 24px); `}
     `;
     return html`
@@ -2793,10 +2804,10 @@ ${obj.default ?? ''}</textarea
       >
         <div style="display: flex; align-items: center; font-size: 14px; color: #393939;">
           ${data.checkbox ?? ''}
-          <span style="margin-left: 24px; font-weight: 700;">已選取${data.count}項</span>
+          <span style="margin-left: 0.5rem; font-weight: 700;">已選取${data.count}項</span>
           ${data.cancelCallback
             ? html`<span
-                style="margin-left: 12px; cursor: pointer; color: #4D86DB;"
+                style="margin-left: 0.5rem; cursor: pointer; color: #4D86DB;"
                 onclick="${data.cancelCallback.gvc.event(() => data.cancelCallback?.event())}"
                 >全部取消選取</span
               >`

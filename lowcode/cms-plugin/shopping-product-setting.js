@@ -264,7 +264,7 @@ export class ShoppingProductSetting {
                                                                                         gvc: gvc,
                                                                                         image: dd.content.preview_image[0],
                                                                                         width: 40,
-                                                                                        class: 'rounded border me-4',
+                                                                                        class: 'rounded border me-2',
                                                                                     })}
                                                   <div class="d-flex flex-column" style="">
                                                     ${dd.content.shopee_id

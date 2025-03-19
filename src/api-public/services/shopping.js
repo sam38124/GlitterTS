@@ -332,6 +332,7 @@ class Shopping {
                 return dd.content;
             })
                 .map((product) => {
+                console.log(product.content);
                 product.content.collection = Array.from(new Set((() => {
                     var _a;
                     return ((_a = product.content.collection) !== null && _a !== void 0 ? _a : []).map((dd) => {
@@ -1236,6 +1237,7 @@ class Shopping {
                 client_ip_address: data.client_ip_address,
                 fbc: data.fbc,
                 fbp: data.fbp,
+                editRecord: [],
             };
             if (!data.user_info.name && userData && userData.userData) {
                 carData.user_info.name = userData.userData.name;
@@ -2130,6 +2132,7 @@ class Shopping {
     async combineOrder(dataMap) {
         try {
             delete dataMap.token;
+            const currentTime = new Date().toISOString();
             for (const data of Object.values(dataMap)) {
                 if (data.orders.length === 0)
                     continue;
@@ -2145,6 +2148,12 @@ class Shopping {
                 const formatTargetOrder = JSON.parse(JSON.stringify(targetOrder));
                 const base = formatTargetOrder.orderData;
                 base.orderSource = 'combine';
+                base.editRecord = [
+                    {
+                        time: currentTime,
+                        record: `合併自${data.orders.length}筆訂單\\n${cartTokens.map(token => `{{order=${token}}}`).join('\\n')}`,
+                    },
+                ];
                 const accumulateValues = (feed, keys, operation) => {
                     keys.forEach(key => {
                         var _a, _b;
@@ -2174,12 +2183,18 @@ class Shopping {
                     status: targetOrder.status,
                     app: this.app,
                 });
+                const newRecord = {
+                    time: currentTime,
+                    record: `與其他訂單合併至\\n{{order=${base.orderID}}}`,
+                };
                 await Promise.all(orders.map(async (order) => {
-                    order.orderData.orderStatus = '-1';
-                    order.orderData.archived = 'true';
-                    return database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-               SET orderData = ?
-               WHERE cart_token = ?`, [JSON.stringify(order.orderData), order.cart_token]);
+                    var _a;
+                    order.orderData = Object.assign(Object.assign({}, order.orderData), { orderStatus: '-1', archived: 'true', combineOrderID: base.orderID, editRecord: [...((_a = order.orderData.editRecord) !== null && _a !== void 0 ? _a : []), newRecord] });
+                    await this.putOrder({
+                        id: `${order.id}`,
+                        orderData: order.orderData,
+                        status: order.status,
+                    });
                 }));
             }
             return true;
@@ -2580,79 +2595,7 @@ class Shopping {
                     await this.releaseCheckout(update.status, data.orderData.orderID);
                 }
             }
-            function writeRecord(origin, update) {
-                var _a;
-                const editArray = [];
-                const currentTime = new Date().toISOString();
-                const { orderStatus, progress } = origin.orderData;
-                origin.orderData = Object.assign(Object.assign({}, origin.orderData), { orderStatus: orderStatus !== null && orderStatus !== void 0 ? orderStatus : '0', progress: progress !== null && progress !== void 0 ? progress : 'wait' });
-                if (update.status != origin.status) {
-                    const statusTexts = {
-                        '1': '付款成功',
-                        '-2': '退款成功',
-                        '0': '修改為未付款',
-                        '3': '修改為部分付款',
-                    };
-                    const statusText = statusTexts[update.status];
-                    if (statusText) {
-                        editArray.push({
-                            time: currentTime,
-                            record: statusText,
-                        });
-                    }
-                }
-                if (update.orderData.orderStatus != origin.orderData.orderStatus) {
-                    const orderStatusTexts = {
-                        '1': '訂單已完成',
-                        '0': '訂單改為處理中',
-                        '-1': '訂單已取消',
-                    };
-                    const orderStatusText = orderStatusTexts[update.orderData.orderStatus];
-                    if (orderStatusText) {
-                        editArray.push({
-                            time: currentTime,
-                            record: orderStatusText,
-                        });
-                    }
-                }
-                if (update.orderData.progress != origin.orderData.progress) {
-                    const progressTexts = {
-                        shipping: '商品已出貨',
-                        wait: '商品處理中',
-                        finish: '商品已取貨',
-                        returns: '商品已退貨',
-                        arrived: '商品已到貨',
-                    };
-                    const progressText = progressTexts[update.orderData.progress];
-                    if (progressText) {
-                        editArray.push({
-                            time: currentTime,
-                            record: progressText,
-                        });
-                    }
-                }
-                if (update.orderData.user_info.shipment_number &&
-                    update.orderData.user_info.shipment_number !== origin.orderData.user_info.shipment_number) {
-                    if (origin.orderData.user_info.shipment_number) {
-                        editArray.push({
-                            time: currentTime,
-                            record: `更新出貨單號碼 #${update.orderData.user_info.shipment_number}`,
-                        });
-                    }
-                    else {
-                        editArray.push({
-                            time: currentTime,
-                            record: `建立出貨單號碼 #${update.orderData.user_info.shipment_number}`,
-                        });
-                    }
-                }
-                if (editArray.length > 0) {
-                    update.orderData.editRecord = [...((_a = update.orderData.editRecord) !== null && _a !== void 0 ? _a : []), ...editArray];
-                }
-                console.log('====== editRecord ======');
-                console.log(update.orderData.editRecord);
-            }
-            writeRecord(origin, update);
+            this.writeRecord(origin, update);
             const updateData = Object.entries(update).reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: typeof value === 'object' ? JSON.stringify(value) : value })), {});
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
          SET ?
@@ -2696,6 +2639,75 @@ class Shopping {
         catch (e) {
             console.error(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
+        }
+    }
+    writeRecord(origin, update) {
+        var _a, _b;
+        const editArray = [];
+        const currentTime = new Date().toISOString();
+        const { orderStatus, progress } = origin.orderData;
+        origin.orderData = Object.assign(Object.assign({}, origin.orderData), { orderStatus: orderStatus !== null && orderStatus !== void 0 ? orderStatus : '0', progress: progress !== null && progress !== void 0 ? progress : 'wait' });
+        if (update.status != origin.status) {
+            const statusTexts = {
+                '1': '付款成功',
+                '-2': '退款成功',
+                '0': '修改為未付款',
+                '3': '修改為部分付款',
+            };
+            const statusText = statusTexts[update.status];
+            if (statusText) {
+                editArray.push({
+                    time: currentTime,
+                    record: statusText,
+                });
+            }
+        }
+        if (update.orderData.orderStatus != origin.orderData.orderStatus) {
+            const orderStatusTexts = {
+                '1': '訂單已完成',
+                '0': '訂單改為處理中',
+                '-1': '訂單已取消',
+            };
+            const orderStatusText = orderStatusTexts[update.orderData.orderStatus];
+            if (orderStatusText) {
+                editArray.push({
+                    time: currentTime,
+                    record: orderStatusText,
+                });
+            }
+        }
+        if (update.orderData.progress != origin.orderData.progress) {
+            const progressTexts = {
+                shipping: '商品已出貨',
+                wait: '商品處理中',
+                finish: '商品已取貨',
+                returns: '商品已退貨',
+                arrived: '商品已到貨',
+            };
+            const progressText = progressTexts[update.orderData.progress];
+            if (progressText) {
+                editArray.push({
+                    time: currentTime,
+                    record: progressText,
+                });
+            }
+        }
+        const updateNumber = (_a = update.orderData.user_info) === null || _a === void 0 ? void 0 : _a.shipment_number;
+        if (updateNumber && updateNumber !== origin.orderData.user_info.shipment_number) {
+            const type = origin.orderData.user_info.shipment_number ? '更新' : '建立';
+            editArray.push({
+                time: currentTime,
+                record: `${type}出貨單號碼\\n{{shipment=${updateNumber}}}`,
+            });
+        }
+        if (update.orderData.archived === 'true' && origin.orderData.archived !== 'true') {
+            editArray.push({
+                time: currentTime,
+                record: '訂單已封存',
+            });
+        }
+        if (editArray.length > 0) {
+            update.orderData.editRecord = [...((_b = update.orderData.editRecord) !== null && _b !== void 0 ? _b : []), ...editArray];
         }
     }
     async restoreStock(lineItems) {
