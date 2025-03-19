@@ -159,7 +159,7 @@ router.post('/checkout', async (req, resp) => {
             client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip),
             fbc: req.cookies._fbc,
             fbp: req.cookies._fbp,
-            temp_cart_id: req.body.temp_cart_id
+            temp_cart_id: req.body.temp_cart_id,
         });
         return response_1.default.succ(resp, result);
     }
@@ -285,7 +285,7 @@ router.get('/order', async (req, resp) => {
                 is_shipment: req.query.is_shipment === 'true',
                 is_reconciliation: req.query.is_reconciliation === 'true',
                 payment_select: req.query.payment_select,
-                reconciliation_status: (req.query.reconciliation_status) && req.query.reconciliation_status.split(',')
+                reconciliation_status: req.query.reconciliation_status && req.query.reconciliation_status.split(','),
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {
@@ -396,7 +396,7 @@ router.put('/order', async (req, resp) => {
 });
 router.put('/order/cancel', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).cancelOrder(req.body.id));
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).manualCancelOrder(req.body.id));
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -620,28 +620,28 @@ async function redirect_link(req, resp) {
         }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Title</title>
-      </head>
-      <body>
-      <script>
-        try {
-          window.webkit.messageHandlers.addJsInterFace.postMessage(
-            JSON.stringify({
-              functionName: 'check_out_finish',
-              callBackId: 0,
-              data: {
-                redirect: '${return_url.href}',
-              },
-            })
-          );
-        } catch (e) {}
-        location.href = '${return_url.href}';
-      </script>
-      </body>
-      </html> `);
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <title>Title</title>
+          </head>
+          <body>
+            <script>
+              try {
+                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                  JSON.stringify({
+                    functionName: 'check_out_finish',
+                    callBackId: 0,
+                    data: {
+                      redirect: '${return_url.href}',
+                    },
+                  })
+                );
+              } catch (e) {}
+              location.href = '${return_url.href}';
+            </script>
+          </body>
+        </html> `);
     }
     catch (err) {
         console.error(err);

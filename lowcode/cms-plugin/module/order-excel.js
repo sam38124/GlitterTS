@@ -160,46 +160,46 @@ export class OrderExcel {
                     備註: (_f = orderData.user_info.note) !== null && _f !== void 0 ? _f : '無備註',
                 });
             };
-            const getReconciliation = (dd, orderData) => {
+            const getReconciliationJSON = (order) => {
                 var _a;
                 return formatJSON({
-                    '對帳狀態': (() => {
+                    對帳狀態: (() => {
                         var _a;
-                        const received_c = ((_a = dd.total_received) !== null && _a !== void 0 ? _a : 0) + dd.offset_amount;
-                        if (dd.total_received === null || dd.total_received === undefined) {
+                        const received_c = ((_a = order.total_received) !== null && _a !== void 0 ? _a : 0) + order.offset_amount;
+                        if (order.total_received === null || order.total_received === undefined) {
                             return '待入帳';
                         }
-                        else if (dd.total_received === dd.total) {
+                        else if (order.total_received === order.total) {
                             return '已入帳';
                         }
-                        else if (dd.total_received > dd.total && received_c === dd.total) {
+                        else if (order.total_received > order.total && received_c === order.total) {
                             return '已退款';
                         }
-                        else if (dd.total_received < dd.total && received_c === dd.total) {
+                        else if (order.total_received < order.total && received_c === order.total) {
                             return '已沖帳';
                         }
-                        else if (received_c < dd.total) {
+                        else if (received_c < order.total) {
                             return '待沖帳';
                         }
-                        else if (received_c > dd.total) {
+                        else if (received_c > order.total) {
                             return '待退款';
                         }
                     })(),
-                    '入帳金額': `$${((dd.total_received || 0) + (dd.offset_amount || 0)).toLocaleString()}`,
-                    '入帳日期': dd.reconciliation_date
-                        ? gvc.glitter.ut.dateFormat(new Date(dd.reconciliation_date), 'yyyy-MM-dd')
+                    入帳金額: `$${((order.total_received || 0) + (order.offset_amount || 0)).toLocaleString()}`,
+                    入帳日期: order.reconciliation_date
+                        ? gvc.glitter.ut.dateFormat(new Date(order.reconciliation_date), 'yyyy-MM-dd')
                         : '-',
-                    '應沖金額': (() => {
-                        if (dd.total_received === dd.total ||
-                            dd.total_received === null ||
-                            dd.total_received === undefined) {
+                    應沖金額: (() => {
+                        if (order.total_received === order.total ||
+                            order.total_received === null ||
+                            order.total_received === undefined) {
                             return '-';
                         }
                         else {
-                            return `$${dd.orderData.total - (dd.total_received + (dd.offset_amount || 0))}`;
+                            return `$${order.orderData.total - (order.total_received + (order.offset_amount || 0))}`;
                         }
                     })(),
-                    '沖帳原因': (_a = dd.offset_reason) !== null && _a !== void 0 ? _a : '-'
+                    沖帳原因: (_a = order.offset_reason) !== null && _a !== void 0 ? _a : '-',
                 });
             };
             function exportOrdersToExcel(dataArray) {
@@ -210,8 +210,10 @@ export class OrderExcel {
                 const printArray = dataArray.flatMap(order => {
                     const orderData = order.orderData;
                     return showLineItems
-                        ? orderData.lineItems.map((item) => (Object.assign(Object.assign(Object.assign(Object.assign({}, getOrderJSON(order, orderData)), getProductJSON(item)), getUserJSON(order, orderData)), getReconciliation(order, orderData))))
-                        : [Object.assign(Object.assign(Object.assign({}, getOrderJSON(order, orderData)), getUserJSON(order, orderData)), getReconciliation(order, orderData))];
+                        ? orderData.lineItems.map((item) => (Object.assign(Object.assign(Object.assign(Object.assign({}, getOrderJSON(order, orderData)), getProductJSON(item)), getUserJSON(order, orderData)), getReconciliationJSON(order))))
+                        : [
+                            Object.assign(Object.assign(Object.assign({}, getOrderJSON(order, orderData)), getUserJSON(order, orderData)), getReconciliationJSON(order)),
+                        ];
                 });
                 const worksheet = XLSX.utils.json_to_sheet(printArray);
                 const workbook = XLSX.utils.book_new();
@@ -310,7 +312,7 @@ export class OrderExcel {
                                 is_reconciliation: apiJSON.is_reconciliation,
                                 is_shipment: apiJSON.is_shipment,
                                 archived: apiJSON.archived,
-                                is_pos: apiJSON.is_pos
+                                is_pos: apiJSON.is_pos,
                             },
                         };
                         this.export(gvc, dataMap[vm.select], vm.column);
@@ -375,22 +377,10 @@ export class OrderExcel {
                         }
                     }
                     const saveEvent = (order, setShipping) => {
-                        var _a;
                         const orderData = order.orderData;
-                        const temps = [
-                            {
-                                time: Tool.formatDateTime(),
-                                record: `建立出貨單號碼 #${orderData.user_info.shipment_number}`,
-                            },
-                        ];
                         if (setShipping) {
                             orderData.progress = 'shipping';
-                            temps.push({
-                                time: Tool.formatDateTime(),
-                                record: '訂單已出貨',
-                            });
                         }
-                        orderData.editRecord = [...((_a = orderData.editRecord) !== null && _a !== void 0 ? _a : []), ...temps];
                         return ApiShop.putOrder({ id: `${order.id}`, order_data: orderData });
                     };
                     dialog.dataLoading({ visible: false });
@@ -444,11 +434,11 @@ export class OrderExcel {
                     const importMap = new Map();
                     for (let i = 0; i < jsonData.length; i++) {
                         const order = jsonData[i];
-                        if ((!order['訂單編號']) || (!order['操作選項']) || (!order['入帳/沖帳日期']) || (!order['入帳/沖帳金額'])) {
-                            (!order['訂單編號']) && errorMsg('請輸入訂單編號');
-                            (!order['操作選項']) && errorMsg('請輸入操作選項');
-                            (!order['入帳/沖帳日期']) && errorMsg('請輸入入帳/沖帳日期');
-                            (!order['入帳/沖帳金額']) && errorMsg('請輸入入帳/沖帳金額');
+                        if (!order['訂單編號'] || !order['操作選項'] || !order['入帳/沖帳日期'] || !order['入帳/沖帳金額']) {
+                            !order['訂單編號'] && errorMsg('請輸入訂單編號');
+                            !order['操作選項'] && errorMsg('請輸入操作選項');
+                            !order['入帳/沖帳日期'] && errorMsg('請輸入入帳/沖帳日期');
+                            !order['入帳/沖帳金額'] && errorMsg('請輸入入帳/沖帳金額');
                             return;
                         }
                         importMap.set(`${order['訂單編號']}`, order);
@@ -474,7 +464,7 @@ export class OrderExcel {
                     for (const order of orders) {
                         try {
                             const compare = importMap.get(order.cart_token);
-                            if ((compare['操作選項'] === '入帳') && (order.reconciliation_date)) {
+                            if (compare['操作選項'] === '入帳' && order.reconciliation_date) {
                                 errorMsg(`已入帳訂單不可再次入帳<br/>（訂單編號: ${order.cart_token}）`);
                                 return;
                             }
@@ -487,8 +477,8 @@ export class OrderExcel {
                         page: 0,
                         limit: 100,
                     }).then(res => {
-                        return res.response.data.find((dd) => {
-                            return `${dd.user}` === `${GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID}`;
+                        return res.response.data.find((data) => {
+                            return `${data.user}` === `${GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID}`;
                         });
                     });
                     const saveEvent = (order) => {
@@ -517,7 +507,7 @@ export class OrderExcel {
                                             offset_reason: compare['沖帳原因'],
                                             offset_date: new Date(compare['入帳/沖帳日期']).toISOString(),
                                             offset_note: compare['沖帳備註'],
-                                            user: auth.config
+                                            user: auth.config,
                                         },
                                     ])),
                                 },
@@ -698,20 +688,20 @@ OrderExcel.importShipmentExample = [
 ];
 OrderExcel.importReconciliation = [
     {
-        "訂單編號": '1241770010001',
-        "操作選項": '入帳',
+        訂單編號: '1241770010001',
+        操作選項: '入帳',
         '入帳/沖帳日期': '2025-01-01',
         '入帳/沖帳金額': '2000',
-        "沖帳原因": '',
-        "沖帳備註": ''
+        沖帳原因: '',
+        沖帳備註: '',
     },
     {
-        "訂單編號": '1241770010002',
-        "操作選項": '沖帳',
+        訂單編號: '1241770010002',
+        操作選項: '沖帳',
         '入帳/沖帳日期': '2025-01-02',
         '入帳/沖帳金額': '-1000',
-        "沖帳原因": '支付金額異常',
-        "沖帳備註": '於玉山銀行進行查帳只有收到'
+        沖帳原因: '支付金額異常',
+        沖帳備註: '於玉山銀行進行查帳只有收到',
     },
 ];
 OrderExcel.headerColumn = {
@@ -749,11 +739,5 @@ OrderExcel.headerColumn = {
         '會員等級',
         '備註',
     ],
-    對帳資訊: [
-        '對帳狀態',
-        '入帳金額',
-        '入帳日期',
-        '應沖金額',
-        '沖帳原因'
-    ]
+    對帳資訊: ['對帳狀態', '入帳金額', '入帳日期', '應沖金額', '沖帳原因'],
 };

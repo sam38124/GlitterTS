@@ -3503,6 +3503,8 @@ export class Shopping {
         }
       }
 
+      this.writeRecord(origin, update);
+
       // ======= 更新訂單 =======
       const updateData: Record<string, unknown> = Object.entries(update).reduce(
         (acc, [key, value]) => ({
@@ -3568,6 +3570,88 @@ export class Shopping {
     } catch (e) {
       console.error(e);
       throw exception.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
+    }
+  }
+
+  private writeRecord(origin: any, update: any): void {
+    const editArray: Array<{ time: string; record: string }> = [];
+    const currentTime = new Date().toISOString();
+
+    const { orderStatus, progress } = origin.orderData;
+    origin.orderData = {
+      ...origin.orderData,
+      orderStatus: orderStatus ?? '0',
+      progress: progress ?? 'wait',
+    };
+
+    // 付款狀態變更記錄
+    if (update.status != origin.status) {
+      const statusTexts: Record<string, string> = {
+        '1': '付款成功',
+        '-2': '退款成功',
+        '0': '修改為未付款',
+        '3': '修改為部分付款',
+      };
+
+      const statusText = statusTexts[update.status];
+      if (statusText) {
+        editArray.push({
+          time: currentTime,
+          record: statusText,
+        });
+      }
+    }
+
+    // 訂單狀態變更記錄
+    if (update.orderData.orderStatus != origin.orderData.orderStatus) {
+      const orderStatusTexts: Record<string, string> = {
+        '1': '訂單已完成',
+        '0': '訂單改為處理中',
+        '-1': '訂單已取消',
+      };
+
+      const orderStatusText = orderStatusTexts[update.orderData.orderStatus];
+      if (orderStatusText) {
+        editArray.push({
+          time: currentTime,
+          record: orderStatusText,
+        });
+      }
+    }
+
+    // 出貨狀態變更記錄
+    if (update.orderData.progress != origin.orderData.progress) {
+      const progressTexts: Record<string, string> = {
+        shipping: '商品已出貨',
+        wait: '商品處理中',
+        finish: '商品已取貨',
+        returns: '商品已退貨',
+        arrived: '商品已到貨',
+      };
+
+      const progressText = progressTexts[update.orderData.progress];
+      if (progressText) {
+        editArray.push({
+          time: currentTime,
+          record: progressText,
+        });
+      }
+    }
+
+    // 新增出貨單號碼
+    const updateNumber = update.orderData.user_info?.shipment_number;
+    if (updateNumber && updateNumber !== origin.orderData.user_info.shipment_number) {
+      const type = origin.orderData.user_info.shipment_number ? '更新' : '建立';
+
+      editArray.push({
+        time: currentTime,
+        record: `${type}出貨單號碼 #${updateNumber}`,
+      });
+    }
+
+    // 將新的變更記錄添加到現有記錄中
+    if (editArray.length > 0) {
+      update.orderData.editRecord = [...(update.orderData.editRecord ?? []), ...editArray];
     }
   }
 
@@ -3640,21 +3724,31 @@ export class Shopping {
     await Promise.all(stockAdjustments);
   }
 
-  async cancelOrder(order_id: string) {
+  async manualCancelOrder(order_id: string) {
     try {
+      if (!this.token) {
+        return { result: false, message: 'The token is undefined' };
+      }
+
       const orderList = await db.query(
-        `SELECT *
-         FROM \`${this.app}\`.t_checkout
-         WHERE cart_token = ?;
+        `SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?;
         `,
         [order_id]
       );
 
-      if (orderList.length !== 1) {
-        return { data: false };
+      if (orderList.length === 0) {
+        return { result: false, message: `Order id #${order_id} is not exist` };
       }
 
+      const userClass = new User(this.app);
+      const user = await userClass.getUserData(`${this.token.userID}`, 'userID');
+      const { email, phone } = user.userData;
       const origin = orderList[0];
+
+      if (![email, phone].includes(origin.email)) {
+        return { result: false, message: 'The order does not match the token' };
+      }
+
       const orderData = origin.orderData;
       const proofPurchase = orderData.proof_purchase === undefined;
       const paymentStatus = origin.status === undefined || origin.status === 0 || origin.status === -1;
@@ -3663,12 +3757,11 @@ export class Shopping {
 
       if (proofPurchase && paymentStatus && progressStatus && orderStatus) {
         orderData.orderStatus = '-1';
-        const record = { time: this.formatDateString(), record: '顧客手動取消訂單' };
-        if (orderData.editRecord) {
-          orderData.editRecord.push(record);
-        } else {
-          orderData.editRecord = [record];
-        }
+        const newRecord = {
+          time: new Date().toISOString(),
+          record: '顧客手動取消訂單',
+        };
+        orderData.editRecord = [...(orderData.editRecord ?? []), newRecord];
       }
 
       await this.putOrder({
@@ -3677,7 +3770,7 @@ export class Shopping {
         status: undefined,
       });
 
-      return { data: true };
+      return { result: true };
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'cancelOrder Error:' + e, null);
     }

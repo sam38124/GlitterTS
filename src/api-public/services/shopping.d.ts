@@ -387,8 +387,12 @@ export declare class Shopping {
     private restoreStock;
     private sendNotifications;
     private adjustStock;
-    cancelOrder(order_id: string): Promise<{
-        data: boolean;
+    manualCancelOrder(order_id: string): Promise<{
+        result: boolean;
+        message: string;
+    } | {
+        result: boolean;
+        message?: undefined;
     }>;
     deleteOrder(req: {
         id: string;

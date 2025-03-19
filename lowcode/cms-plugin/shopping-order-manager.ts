@@ -1413,52 +1413,6 @@ export class ShoppingOrderManager {
             });
 
             function saveEvent() {
-              function writeEdit(origData: any, orderData: any) {
-                let editArray: any = [];
-                if (orderData.status != origData.status) {
-                  let text: any = {
-                    '1': '付款成功',
-                    '3': '部分付款',
-                    '-2': '退款成功',
-                    '0': '修改為未付款',
-                  };
-                  editArray.push({
-                    time: Tool.formatDateTime(),
-                    record: text[orderData.status],
-                  });
-                }
-                if (orderData.orderData.orderStatus != origData.orderData.orderStatus) {
-                  let text: any = {
-                    '1': '訂單完成',
-                    '0': '訂單改為處理中',
-                    '-1': '訂單已取消',
-                  };
-                  editArray.push({
-                    time: Tool.formatDateTime(),
-                    record: text[orderData.orderData.orderStatus],
-                  });
-                }
-                if (orderData.orderData.progress != origData.orderData.progress) {
-                  let text: any = {
-                    shipping: '訂單完成',
-                    wait: '訂單改為處理中',
-                    finish: '商品已取貨',
-                    returns: '商品已退貨',
-                    arrived: '商品已到貨',
-                  };
-                  editArray.push({
-                    time: Tool.formatDateTime(),
-                    record: text[orderData.orderData.progress],
-                  });
-                }
-                if (orderData.orderData?.editRecord) {
-                  editArray.length && orderData.orderData.editRecord.push(...editArray);
-                } else {
-                  editArray.length && (orderData.orderData.editRecord = editArray);
-                }
-              }
-
-              writeEdit(origData, orderData);
               const dialog = new ShareDialog(gvc.glitter);
               dialog.dataLoading({ text: '上傳中', visible: true });
               ApiShop.putOrder({
@@ -2218,9 +2172,7 @@ export class ShoppingOrderManager {
                           >
                             #${is_shipment ? orderData.orderData.user_info.shipment_number : orderData.cart_token}
                           </div>
-                          ${BgWidget.grayNote(
-                            `訂單成立時間 : ${glitter.ut.dateFormat(new Date(orderData.created_time), 'yyyy-MM-dd hh:mm')}`
-                          )}
+                          ${BgWidget.grayNote(`訂單成立時間 : ${Tool.formatDateTime(orderData.created_time)}`)}
                         </div>
                         <div class="flex-fill"></div>
                         ${document.body.clientWidth > 768 ? getBadgeList() : ''}
@@ -2899,29 +2851,26 @@ export class ShoppingOrderManager {
                               <div class="tx_700">訂單記錄</div>
                               ${BgWidget.mbContainer(18)}
                               <div class="d-flex flex-column" style="gap: 8px">
-                                ${(() => {
-                                  if (!orderData.orderData?.editRecord) {
-                                    return '';
-                                  }
-                                  return gvc.map(
-                                    orderData.orderData.editRecord
-                                      .sort((a: any, b: any) => {
-                                        return Tool.formatDateTime(a.time, true) < Tool.formatDateTime(b.time, true)
-                                          ? 1
-                                          : -1;
-                                      })
-                                      .map((r: any) => {
-                                        return html`
-                                          <div class="d-flex" style="gap: 42px">
-                                            <div>${Tool.formatDateTime(r.time)}</div>
-                                            <div>${r.record}</div>
-                                          </div>
-                                        `;
-                                      })
-                                  );
-                                })()}
+                                ${orderData.orderData?.editRecord
+                                  ? gvc.map(
+                                      orderData.orderData.editRecord
+                                        .sort((a: any, b: any) => {
+                                          return Tool.formatDateTime(a.time, true) < Tool.formatDateTime(b.time, true)
+                                            ? 1
+                                            : -1;
+                                        })
+                                        .map((r: any) => {
+                                          return html`
+                                            <div class="d-flex" style="gap: 42px">
+                                              <div>${Tool.formatDateTime(r.time, true)}</div>
+                                              <div>${r.record}</div>
+                                            </div>
+                                          `;
+                                        })
+                                    )
+                                  : ''}
                                 <div class="d-flex" style="gap: 42px">
-                                  <div>${Tool.formatDateTime(orderData.created_time)}</div>
+                                  <div>${Tool.formatDateTime(orderData.created_time, true)}</div>
                                   <div>訂單成立</div>
                                 </div>
                               </div>

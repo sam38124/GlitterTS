@@ -1093,53 +1093,6 @@ export class ShoppingOrderManager {
                             gvc.notifyDataChange(mainViewID);
                         });
                         function saveEvent() {
-                            function writeEdit(origData, orderData) {
-                                var _a;
-                                let editArray = [];
-                                if (orderData.status != origData.status) {
-                                    let text = {
-                                        '1': '付款成功',
-                                        '3': '部分付款',
-                                        '-2': '退款成功',
-                                        '0': '修改為未付款',
-                                    };
-                                    editArray.push({
-                                        time: Tool.formatDateTime(),
-                                        record: text[orderData.status],
-                                    });
-                                }
-                                if (orderData.orderData.orderStatus != origData.orderData.orderStatus) {
-                                    let text = {
-                                        '1': '訂單完成',
-                                        '0': '訂單改為處理中',
-                                        '-1': '訂單已取消',
-                                    };
-                                    editArray.push({
-                                        time: Tool.formatDateTime(),
-                                        record: text[orderData.orderData.orderStatus],
-                                    });
-                                }
-                                if (orderData.orderData.progress != origData.orderData.progress) {
-                                    let text = {
-                                        shipping: '訂單完成',
-                                        wait: '訂單改為處理中',
-                                        finish: '商品已取貨',
-                                        returns: '商品已退貨',
-                                        arrived: '商品已到貨',
-                                    };
-                                    editArray.push({
-                                        time: Tool.formatDateTime(),
-                                        record: text[orderData.orderData.progress],
-                                    });
-                                }
-                                if ((_a = orderData.orderData) === null || _a === void 0 ? void 0 : _a.editRecord) {
-                                    editArray.length && orderData.orderData.editRecord.push(...editArray);
-                                }
-                                else {
-                                    editArray.length && (orderData.orderData.editRecord = editArray);
-                                }
-                            }
-                            writeEdit(origData, orderData);
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.dataLoading({ text: '上傳中', visible: true });
                             ApiShop.putOrder({
@@ -1193,7 +1146,7 @@ export class ShoppingOrderManager {
                             bind: mainViewID,
                             dataList: [{ obj: child_vm, key: 'type' }],
                             view: () => {
-                                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
                                 try {
                                     if (userDataLoading || productLoading) {
                                         return BgWidget.spinner();
@@ -1833,7 +1786,7 @@ export class ShoppingOrderManager {
                           >
                             #${is_shipment ? orderData.orderData.user_info.shipment_number : orderData.cart_token}
                           </div>
-                          ${BgWidget.grayNote(`訂單成立時間 : ${glitter.ut.dateFormat(new Date(orderData.created_time), 'yyyy-MM-dd hh:mm')}`)}
+                          ${BgWidget.grayNote(`訂單成立時間 : ${Tool.formatDateTime(orderData.created_time)}`)}
                         </div>
                         <div class="flex-fill"></div>
                         ${document.body.clientWidth > 768 ? getBadgeList() : ''}
@@ -2487,12 +2440,8 @@ export class ShoppingOrderManager {
                               <div class="tx_700">訂單記錄</div>
                               ${BgWidget.mbContainer(18)}
                               <div class="d-flex flex-column" style="gap: 8px">
-                                ${(() => {
-                                                var _a;
-                                                if (!((_a = orderData.orderData) === null || _a === void 0 ? void 0 : _a.editRecord)) {
-                                                    return '';
-                                                }
-                                                return gvc.map(orderData.orderData.editRecord
+                                ${((_d = orderData.orderData) === null || _d === void 0 ? void 0 : _d.editRecord)
+                                                ? gvc.map(orderData.orderData.editRecord
                                                     .sort((a, b) => {
                                                     return Tool.formatDateTime(a.time, true) < Tool.formatDateTime(b.time, true)
                                                         ? 1
@@ -2500,15 +2449,15 @@ export class ShoppingOrderManager {
                                                 })
                                                     .map((r) => {
                                                     return html `
-                                          <div class="d-flex" style="gap: 42px">
-                                            <div>${Tool.formatDateTime(r.time)}</div>
-                                            <div>${r.record}</div>
-                                          </div>
-                                        `;
-                                                }));
-                                            })()}
+                                            <div class="d-flex" style="gap: 42px">
+                                              <div>${Tool.formatDateTime(r.time, true)}</div>
+                                              <div>${r.record}</div>
+                                            </div>
+                                          `;
+                                                }))
+                                                : ''}
                                 <div class="d-flex" style="gap: 42px">
-                                  <div>${Tool.formatDateTime(orderData.created_time)}</div>
+                                  <div>${Tool.formatDateTime(orderData.created_time, true)}</div>
                                   <div>訂單成立</div>
                                 </div>
                               </div>
@@ -2582,10 +2531,10 @@ export class ShoppingOrderManager {
                                                 })()}
                                         </div>
                                         <div style="color: #393939;font-weight: 400;">
-                                          ${(_f = (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _d === void 0 ? void 0 : _d.phone) !== null && _e !== void 0 ? _e : orderData.orderData.user_info.phone) !== null && _f !== void 0 ? _f : '此會員未填手機'}
+                                          ${(_g = (_f = (_e = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _e === void 0 ? void 0 : _e.phone) !== null && _f !== void 0 ? _f : orderData.orderData.user_info.phone) !== null && _g !== void 0 ? _g : '此會員未填手機'}
                                         </div>
                                         <div style="color: #393939;font-weight: 400;word-break:break-all;">
-                                          ${(_j = (_h = (_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.email) !== null && _h !== void 0 ? _h : orderData.orderData.user_info.email) !== null && _j !== void 0 ? _j : ''}
+                                          ${(_k = (_j = (_h = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _h === void 0 ? void 0 : _h.email) !== null && _j !== void 0 ? _j : orderData.orderData.user_info.email) !== null && _k !== void 0 ? _k : ''}
                                         </div>
                                       </div>`,
                                                 BgWidget.horizontalLine(),

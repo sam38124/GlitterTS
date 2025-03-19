@@ -14,11 +14,11 @@ import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { FilterOptions } from './filter-options.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { UserList } from './user-list.js';
-import { Tool } from '../modules/tool.js';
 const html = String.raw;
 export class ShoppingReturnOrderManager {
     static main(gvc) {
         const glitter = gvc.glitter;
+        const dialog = new ShareDialog(gvc.glitter);
         const vm = {
             id: glitter.getUUID(),
             type: 'list',
@@ -35,7 +35,6 @@ export class ShoppingReturnOrderManager {
         vm.filter = ListComp.getFilterObject();
         gvc.addMtScript([{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }], () => { }, () => { });
         return gvc.bindView(() => {
-            const id = glitter.getUUID();
             return {
                 bind: vm.id,
                 dataList: [{ obj: vm, key: 'type' }],
@@ -131,11 +130,26 @@ export class ShoppingReturnOrderManager {
                                                             var _a;
                                                             switch ((_a = dd.orderData.returnProgress) !== null && _a !== void 0 ? _a : '1') {
                                                                 case '0':
-                                                                    return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">退貨中</div>`;
+                                                                    return html `<div
+                                        class="badge"
+                                        style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;"
+                                      >
+                                        退貨中
+                                      </div>`;
                                                                 case '-1':
-                                                                    return `<div class="badge" style="font-size: 14px;border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;color:#393939;">已退貨</div>`;
+                                                                    return html `<div
+                                        class="badge"
+                                        style="font-size: 14px;border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;color:#393939;"
+                                      >
+                                        已退貨
+                                      </div>`;
                                                                 default:
-                                                                    return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">處理中</div>`;
+                                                                    return html `<div
+                                        class="badge"
+                                        style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;"
+                                      >
+                                        處理中
+                                      </div>`;
                                                             }
                                                         })(),
                                                     },
@@ -145,14 +159,24 @@ export class ShoppingReturnOrderManager {
                                                             var _a;
                                                             switch ((_a = dd.status) !== null && _a !== void 0 ? _a : 0) {
                                                                 case 1:
-                                                                    return `<div class="badge " style="font-size: 14px;color:#393939;border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;">已退款</div>`;
+                                                                    return html `<div
+                                        class="badge "
+                                        style="font-size: 14px;color:#393939;border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;"
+                                      >
+                                        已退款
+                                      </div>`;
                                                                 default:
-                                                                    return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">退款中</div>`;
+                                                                    return html `<div
+                                        class="badge"
+                                        style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;"
+                                      >
+                                        退款中
+                                      </div>`;
                                                             }
                                                         })(),
                                                     },
                                                 ].map((dd) => {
-                                                    dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
+                                                    dd.value = html `<div style="line-height:40px;">${dd.value}</div>`;
                                                     return dd;
                                                 });
                                             });
@@ -174,11 +198,9 @@ export class ShoppingReturnOrderManager {
                                         name: vm.filter_type === 'normal' ? `批量封存` : `解除封存`,
                                         option: true,
                                         event: () => {
-                                            const dialog = new ShareDialog(gvc.glitter);
                                             const action_text = vm.filter_type === 'normal' ? `封存` : `解除封存`;
                                             dialog.checkYesOrNot({
-                                                text: `是否確認${action_text}所選項目?
-                                                            `,
+                                                text: `是否確認${action_text}所選項目?`,
                                                 callback: (response) => __awaiter(this, void 0, void 0, function* () {
                                                     if (response) {
                                                         dialog.dataLoading({ visible: true });
@@ -205,7 +227,6 @@ export class ShoppingReturnOrderManager {
                                         name: vm.filter_type === 'void' ? `批量作廢` : `解除作廢`,
                                         option: true,
                                         event: () => {
-                                            const dialog = new ShareDialog(gvc.glitter);
                                             dialog.checkYesOrNot({
                                                 text: `是否確認${vm.filter_type === 'void' ? `解除作廢` : `作廢`}所選項目?`,
                                                 callback: (response) => __awaiter(this, void 0, void 0, function* () {
@@ -260,6 +281,7 @@ export class ShoppingReturnOrderManager {
             }
         `);
         let userDataLoading = true;
+        const dialog = new ShareDialog(gvc.glitter);
         function drawBadge(color, text) {
             switch (color) {
                 case 'green':
@@ -354,7 +376,7 @@ export class ShoppingReturnOrderManager {
                         });
                     }
                     return BgWidget.container(html `
-            <div class="d-flex flex-column" style="">
+            <div class="d-flex flex-column">
               ${BgWidget.container(html `
                 <div class="title-container">
                   ${BgWidget.goBack(gvc.event(() => {
@@ -382,54 +404,6 @@ export class ShoppingReturnOrderManager {
                     class="btn btn-primary-c d-none"
                     style="height:38px;font-size: 14px;"
                     onclick="${gvc.event(() => {
-                        const now = new Date();
-                        function writeEdit(origData, orderData) {
-                            var _a;
-                            let editArray = [];
-                            let temp = {};
-                            if (orderData.status != origData.status) {
-                                let text = {
-                                    '1': '付款成功',
-                                    '-2': '退款成功',
-                                    '0': '修改為未付款',
-                                };
-                                editArray.push({
-                                    time: Tool.formatDateTime(),
-                                    record: text[orderData.status],
-                                });
-                            }
-                            if (orderData.orderData.orderStatus != origData.orderData.orderStatus) {
-                                let text = {
-                                    '1': '訂單完成',
-                                    '0': '訂單改為處理中',
-                                    '-1': '訂單已取消',
-                                };
-                                editArray.push({
-                                    time: Tool.formatDateTime(),
-                                    record: text[orderData.orderData.orderStatus],
-                                });
-                            }
-                            if (orderData.orderData.progress != origData.orderData.progress) {
-                                let text = {
-                                    shipping: '訂單完成',
-                                    wait: '訂單改為處理中',
-                                    finish: '商品已取貨',
-                                    returns: '商品已退貨',
-                                    arrived: '商品已到貨',
-                                };
-                                editArray.push({
-                                    time: Tool.formatDateTime(),
-                                    record: text[orderData.orderData.progress],
-                                });
-                            }
-                            if ((_a = orderData.orderData) === null || _a === void 0 ? void 0 : _a.editRecord) {
-                                editArray.length && orderData.orderData.editRecord.push(...editArray);
-                            }
-                            else {
-                                editArray.length && (orderData.orderData.editRecord = editArray);
-                            }
-                        }
-                        const dialog = new ShareDialog(gvc.glitter);
                         dialog.dataLoading({ text: '上傳中', visible: true });
                         ApiShop.putOrder({
                             id: `${orderData.id}`,
@@ -690,10 +664,7 @@ export class ShoppingReturnOrderManager {
                                   </div>
                                 </div>
                               </div>
-                              <div
-                                class=""
-                                style="width: 872px;height:1px;background-color: #DDD;margin: 0 20px;"
-                              ></div>
+                              <div style="width: 872px;height:1px;background-color: #DDD;margin: 0 20px;"></div>
                               <div class="d-flex flex-column" style="width: 100%;padding: 17px 24px;gap:12px;">
                                 ${(() => {
                                         return lineItem
@@ -829,7 +800,7 @@ export class ShoppingReturnOrderManager {
                                     .join('');
                             })()}
                           <div class="d-flex" style="gap: 24px;color:#393939;font-size: 16px;font-weight: 700;">
-                            <div style="">退款總金額</div>
+                            <div>退款總金額</div>
                             <div style="width:158px;text-align: right;">${orderData.orderData.return_inf.subTotal}</div>
                           </div>
                         `;
@@ -917,7 +888,7 @@ export class ShoppingReturnOrderManager {
                               </select>
                             </div>
                             <div class="d-flex flex-column w-50" style="gap: 12px;">
-                              <div style="">退款時間</div>
+                              <div>退款時間</div>
                               <input
                                 type="date"
                                 id="datetime"
@@ -938,7 +909,7 @@ export class ShoppingReturnOrderManager {
                         view: () => {
                             var _a;
                             return html `
-                            <div style="">實際退款金額</div>
+                            <div>實際退款金額</div>
                             <input
                               style="width: 100%;height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                               value="${(_a = orderData.orderData.return_inf.subTotal) !== null && _a !== void 0 ? _a : 0}"
@@ -1053,6 +1024,7 @@ export class ShoppingReturnOrderManager {
         let rebateLoading = false;
         let detailShow = false;
         let detail2Show = false;
+        const dialog = new ShareDialog(gvc.glitter);
         return BgWidget.container(html `
       <div class="title-container">
         ${BgWidget.goBack(gvc.event(() => {
@@ -1116,9 +1088,7 @@ export class ShoppingReturnOrderManager {
                   </div>
                 `;
                 }
-                else {
-                    return ``;
-                }
+                return ``;
             },
             divCreate: { style: `width:100%` },
         })}
@@ -1197,17 +1167,17 @@ export class ShoppingReturnOrderManager {
                                 view: () => {
                                     var _a, _b, _c, _d;
                                     gvc.addStyle(`
-                                                        input[type=number]::-webkit-outer-spin-button,
-                                                        input[type=number]::-webkit-inner-spin-button {
-                                                            -webkit-appearance: none;
-                                                            margin: 0;
-                                                        }
-                                                        
-                                                        /* Firefox */
-                                                        input[type=number] {
-                                                            -moz-appearance: textfield;
-                                                        }
-                                                    `);
+                              input[type='number']::-webkit-outer-spin-button,
+                              input[type='number']::-webkit-inner-spin-button {
+                                -webkit-appearance: none;
+                                margin: 0;
+                              }
+
+                              /* Firefox */
+                              input[type='number'] {
+                                -moz-appearance: textfield;
+                              }
+                            `);
                                     data.select = (_a = data.select) !== null && _a !== void 0 ? _a : true;
                                     let select = html ` <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -1438,7 +1408,7 @@ export class ShoppingReturnOrderManager {
                                 </div>
                               </div>
                             </div>
-                            <div class="" style="width: 872px;height:1px;background-color: #DDD;margin: 0 20px;"></div>
+                            <div style="width: 872px;height:1px;background-color: #DDD;margin: 0 20px;"></div>
                             <div class="d-flex flex-column" style="width: 100%;padding: 17px 24px;gap:12px;">
                               ${(() => {
                                         return lineItem
@@ -1567,7 +1537,7 @@ export class ShoppingReturnOrderManager {
                                     .join('');
                             })()}
                         <div class="d-flex" style="gap: 24px;color:#393939;font-size: 16px;font-weight: 700;">
-                          <div style="">退款總金額</div>
+                          <div>退款總金額</div>
                           <div style="width:158px;text-align: right;">${orderData.return_inf.subTotal}</div>
                         </div>
                       `;
@@ -1618,114 +1588,101 @@ export class ShoppingReturnOrderManager {
                                 rebateOverflow = true;
                             }
                             return html `
-                                                    <div style="font-weight: 700;margin-bottom: 12px;">持有購物金
-                                                    </div>
-                                                    <div style="margin-bottom: 18px;">${rebate}</div>
-                                                    </div>
-                                                    <div style="font-weight: 700;margin-bottom: 4px;">退貨後購物金增減
-                                                    </div>
-                                                    <input class="w-100"
-                                                           style="height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                           value="${orderData.rebateChange}"
-                                                           max="${orderData.use_rebate}"
-                                                           min="${-rebate}"
-                                                           type="number"
-                                                           onchange="${gvc.event(e => {
+                          <div style="font-weight: 700;margin-bottom: 12px;">持有購物金</div>
+                          <div style="margin-bottom: 18px;">${rebate}</div>
+                          <div style="font-weight: 700;margin-bottom: 4px;">退貨後購物金增減</div>
+                          <input
+                            class="w-100"
+                            style="height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                            value="${orderData.rebateChange}"
+                            max="${orderData.use_rebate}"
+                            min="${-rebate}"
+                            type="number"
+                            onchange="${gvc.event(e => {
                                 orderData.rebateChange = e.value;
-                            })}">
-                                                    ${gvc.bindView({
+                            })}"
+                          />
+                          ${gvc.bindView({
                                 bind: 'rebateHint',
                                 view: () => {
                                     if (rebate + rebateDiff >= 0) {
                                         return ``;
                                     }
-                                    return html ` <div
-                                                          class="d-flex align-items-center"
-                                                          style="margin-top: 8px;"
-                                                        >
-                                                          <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width="16"
-                                                            height="17"
-                                                            viewBox="0 0 16 17"
-                                                            fill="none"
-                                                          >
-                                                            <path
-                                                              d="M8 2C9.72391 2 11.3772 2.68482 12.5962 3.90381C13.8152 5.12279 14.5 6.77609 14.5 8.5C14.5 10.2239 13.8152 11.8772 12.5962 13.0962C11.3772 14.3152 9.72391 15 8 15C6.27609 15 4.62279 14.3152 3.40381 13.0962C2.18482 11.8772 1.5 10.2239 1.5 8.5C1.5 6.77609 2.18482 5.12279 3.40381 3.90381C4.62279 2.68482 6.27609 2 8 2ZM8 16.5C10.1217 16.5 12.1566 15.6571 13.6569 14.1569C15.1571 12.6566 16 10.6217 16 8.5C16 6.37827 15.1571 4.34344 13.6569 2.84315C12.1566 1.34285 10.1217 0.5 8 0.5C5.87827 0.5 3.84344 1.34285 2.34315 2.84315C0.842855 4.34344 0 6.37827 0 8.5C0 10.6217 0.842855 12.6566 2.34315 14.1569C3.84344 15.6571 5.87827 16.5 8 16.5ZM8 4.5C7.58437 4.5 7.25 4.83437 7.25 5.25V8.75C7.25 9.16562 7.58437 9.5 8 9.5C8.41562 9.5 8.75 9.16562 8.75 8.75V5.25C8.75 4.83437 8.41562 4.5 8 4.5ZM9 11.5C9 11.2348 8.89464 10.9804 8.70711 10.7929C8.51957 10.6054 8.26522 10.5 8 10.5C7.73478 10.5 7.48043 10.6054 7.29289 10.7929C7.10536 10.9804 7 11.2348 7 11.5C7 11.7652 7.10536 12.0196 7.29289 12.2071C7.48043 12.3946 7.73478 12.5 8 12.5C8.26522 12.5 8.51957 12.3946 8.70711 12.2071C8.89464 12.0196 9 11.7652 9 11.5Z"
-                                                              fill="#393939"
-                                                            />
-                                                          </svg>
-                                                          <div
-                                                            style="font-size: 14px;font-weight: 400;margin-left: 4px;margin-right: 6px;"
-                                                          >
-                                                            減額不可超過顧客持有的購物金
-                                                          </div>
-                                                          <div
-                                                            style="font-size: 14px;font-style: normal;font-weight: 400;color: #4D86DB;text-decoration-line: underline;cursor: help;position: relative;"
-                                                            onmouseenter="${gvc.event(() => {
+                                    return html ` <div class="d-flex align-items-center" style="margin-top: 8px;">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="17"
+                                  viewBox="0 0 16 17"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M8 2C9.72391 2 11.3772 2.68482 12.5962 3.90381C13.8152 5.12279 14.5 6.77609 14.5 8.5C14.5 10.2239 13.8152 11.8772 12.5962 13.0962C11.3772 14.3152 9.72391 15 8 15C6.27609 15 4.62279 14.3152 3.40381 13.0962C2.18482 11.8772 1.5 10.2239 1.5 8.5C1.5 6.77609 2.18482 5.12279 3.40381 3.90381C4.62279 2.68482 6.27609 2 8 2ZM8 16.5C10.1217 16.5 12.1566 15.6571 13.6569 14.1569C15.1571 12.6566 16 10.6217 16 8.5C16 6.37827 15.1571 4.34344 13.6569 2.84315C12.1566 1.34285 10.1217 0.5 8 0.5C5.87827 0.5 3.84344 1.34285 2.34315 2.84315C0.842855 4.34344 0 6.37827 0 8.5C0 10.6217 0.842855 12.6566 2.34315 14.1569C3.84344 15.6571 5.87827 16.5 8 16.5ZM8 4.5C7.58437 4.5 7.25 4.83437 7.25 5.25V8.75C7.25 9.16562 7.58437 9.5 8 9.5C8.41562 9.5 8.75 9.16562 8.75 8.75V5.25C8.75 4.83437 8.41562 4.5 8 4.5ZM9 11.5C9 11.2348 8.89464 10.9804 8.70711 10.7929C8.51957 10.6054 8.26522 10.5 8 10.5C7.73478 10.5 7.48043 10.6054 7.29289 10.7929C7.10536 10.9804 7 11.2348 7 11.5C7 11.7652 7.10536 12.0196 7.29289 12.2071C7.48043 12.3946 7.73478 12.5 8 12.5C8.26522 12.5 8.51957 12.3946 8.70711 12.2071C8.89464 12.0196 9 11.7652 9 11.5Z"
+                                    fill="#393939"
+                                  />
+                                </svg>
+                                <div style="font-size: 14px;font-weight: 400;margin-left: 4px;margin-right: 6px;">
+                                  減額不可超過顧客持有的購物金
+                                </div>
+                                <div
+                                  style="font-size: 14px;font-style: normal;font-weight: 400;color: #4D86DB;text-decoration-line: underline;cursor: help;position: relative;"
+                                  onmouseenter="${gvc.event(() => {
                                         detailShow = true;
                                         gvc.notifyDataChange('rebateHintDetail');
                                     })}"
-                                                          >
-                                                            詳細說明
-                                                            ${gvc.bindView({
+                                >
+                                  詳細說明
+                                  ${gvc.bindView({
                                         bind: 'rebateHintDetail',
                                         view: () => {
                                             if (!detailShow) {
                                                 return ``;
                                             }
                                             return html `
-                                                                  <div
-                                                                    class="hintView"
-                                                                    style="cursor: default;"
-                                                                    onmouseleave="${gvc.event(() => {
+                                        <div
+                                          class="hintView"
+                                          style="cursor: default;"
+                                          onmouseleave="${gvc.event(() => {
                                                 detailShow = false;
                                                 gvc.notifyDataChange('rebateHintDetail');
                                             })}"
-                                                                  >
-                                                                    顧客使用的購物金 - 此筆訂單獲得的購物金 =
-                                                                    退貨後應增減的購物金
-                                                                    <br />
-                                                                    ${orderData.use_rebate} -
-                                                                    ${orderData.return_inf.rebate} =
-                                                                    ${orderData.use_rebate -
-                                                orderData.return_inf.rebate}
-                                                                    <br />
-                                                                    <br />
-                                                                    由於顧客購物金不足${orderData.use_rebate -
+                                        >
+                                          顧客使用的購物金 - 此筆訂單獲得的購物金 = 退貨後應增減的購物金
+                                          <br />
+                                          ${orderData.use_rebate} - ${orderData.return_inf.rebate} =
+                                          ${orderData.use_rebate - orderData.return_inf.rebate}
+                                          <br />
+                                          <br />
+                                          由於顧客購物金不足${orderData.use_rebate -
                                                 orderData.return_inf.rebate +
                                                 rebate}
-                                                                    ，建議手動調整退款金額來彌補，並說明退款金額變更的原因
-                                                                  </div>
-                                                                `;
+                                          ，建議手動調整退款金額來彌補，並說明退款金額變更的原因
+                                        </div>
+                                      `;
                                         },
-                                        divCreate: () => {
-                                            const css = String.raw;
-                                            return {
-                                                style: css `
-                                                                    width: 645px;
-                                                                    padding: 10px;
-                                                                    border-radius: 10px;
-                                                                    background: #393939;
-                                                                    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
-                                                                    position: absolute;
-                                                                    top: 28px;
-                                                                    left: -6px;
-                                                                    color: #fff;
-                                                                    font-size: 16px;
-                                                                    font-weight: 400;
-                                                                    ${!detailShow ? `display:none;` : ``}
-                                                                  `,
-                                                class: ``,
-                                            };
+                                        divCreate: {
+                                            style: `
+                                        width: 645px;
+                                        padding: 10px;
+                                        border-radius: 10px;
+                                        background: #393939;
+                                        box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
+                                        position: absolute;
+                                        top: 28px;
+                                        left: -6px;
+                                        color: #fff;
+                                        font-size: 16px;
+                                        font-weight: 400;
+                                        ${!detailShow ? `display:none;` : ``}
+                                      `,
                                         },
                                     })}
-                                                          </div>
-                                                        </div>`;
+                                </div>
+                              </div>`;
                                 },
                                 divCreate: {},
                             })}
-                                                `;
+                        `;
                         },
                         divCreate: { class: `d-flex flex-column w-100` },
                     })}
@@ -1750,7 +1707,7 @@ ${(_a = orderData === null || orderData === void 0 ? void 0 : orderData.return_o
                         view: () => {
                             var _a, _b;
                             return html `
-                        <div style="">實際退款金額</div>
+                        <div>實際退款金額</div>
                         <input
                           style="width: 100%;height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                           value="${(_b = (_a = orderData === null || orderData === void 0 ? void 0 : orderData.return_inf) === null || _a === void 0 ? void 0 : _a.subTotal) !== null && _b !== void 0 ? _b : 0}"
@@ -1806,7 +1763,7 @@ ${(_a = orderData === null || orderData === void 0 ? void 0 : orderData.return_o
                         },
                     })}
                   <div class="d-flex flex-column" style="color: #393939;font-size: 16px;font-weight: 700;gap: 18px;">
-                    <div style="">退款銀行帳號</div>
+                    <div>退款銀行帳號</div>
                     ${gvc.bindView({
                         bind: 'return_Info',
                         view: () => {
@@ -1828,17 +1785,17 @@ ${(_a = orderData === null || orderData === void 0 ? void 0 : orderData.return_o
                             return dateArray
                                 .map(data => {
                                 return html `
-                                                        <div class="d-flex flex-column"
-                                                             style="gap:8px;width: calc(50% - 9px)">
-                                                            <div style=text-align:left;">${data[0]}</div>
-                                                            <input class=""
-                                                                   value="${orderData.bank_info[data[1]]}"
-                                                                   style="display: flex;height: 44px;padding: 11px 12px;align-items: center;gap: 21px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
-                                                                   placeholder="" onchange="${gvc.event(e => {
+                              <div class="d-flex flex-column" style="gap:8px;width: calc(50% - 9px)">
+                                <div style="text-align:left;">${data[0]}</div>
+                                <input
+                                  value="${orderData.bank_info[data[1]]}"
+                                  style="display: flex;height: 44px;padding: 11px 12px;align-items: center;gap: 21px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
+                                  onchange="${gvc.event(e => {
                                     orderData.bank_info[data[1]] = e.value;
-                                })}">
-                                                        </div>
-                                                    `;
+                                })}"
+                                />
+                              </div>
+                            `;
                             })
                                 .join('');
                         },
@@ -1857,14 +1814,7 @@ ${(_a = orderData === null || orderData === void 0 ? void 0 : orderData.return_o
                   ${BgWidget.save(gvc.event(() => {
                         viewModel.searchData.orderData.returnProgress = '1';
                         viewModel.searchData.orderData.lineItems = checkList;
-                        function checkPass() {
-                            if (viewModel.searchData.orderData.return_inf.subTotal < 1) {
-                                return false;
-                            }
-                            return true;
-                        }
-                        if (checkPass()) {
-                            const dialog = new ShareDialog(gvc.glitter);
+                        if (viewModel.searchData.orderData.return_inf.subTotal >= 1) {
                             dialog.dataLoading({ visible: true });
                             ApiShop.postReturnOrder(viewModel.searchData).then(r => {
                                 dialog.dataLoading({ visible: false });

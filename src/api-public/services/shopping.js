@@ -2580,6 +2580,79 @@ class Shopping {
                     await this.releaseCheckout(update.status, data.orderData.orderID);
                 }
             }
+            function writeRecord(origin, update) {
+                var _a;
+                const editArray = [];
+                const currentTime = new Date().toISOString();
+                const { orderStatus, progress } = origin.orderData;
+                origin.orderData = Object.assign(Object.assign({}, origin.orderData), { orderStatus: orderStatus !== null && orderStatus !== void 0 ? orderStatus : '0', progress: progress !== null && progress !== void 0 ? progress : 'wait' });
+                if (update.status != origin.status) {
+                    const statusTexts = {
+                        '1': '付款成功',
+                        '-2': '退款成功',
+                        '0': '修改為未付款',
+                        '3': '修改為部分付款',
+                    };
+                    const statusText = statusTexts[update.status];
+                    if (statusText) {
+                        editArray.push({
+                            time: currentTime,
+                            record: statusText,
+                        });
+                    }
+                }
+                if (update.orderData.orderStatus != origin.orderData.orderStatus) {
+                    const orderStatusTexts = {
+                        '1': '訂單已完成',
+                        '0': '訂單改為處理中',
+                        '-1': '訂單已取消',
+                    };
+                    const orderStatusText = orderStatusTexts[update.orderData.orderStatus];
+                    if (orderStatusText) {
+                        editArray.push({
+                            time: currentTime,
+                            record: orderStatusText,
+                        });
+                    }
+                }
+                if (update.orderData.progress != origin.orderData.progress) {
+                    const progressTexts = {
+                        shipping: '商品已出貨',
+                        wait: '商品處理中',
+                        finish: '商品已取貨',
+                        returns: '商品已退貨',
+                        arrived: '商品已到貨',
+                    };
+                    const progressText = progressTexts[update.orderData.progress];
+                    if (progressText) {
+                        editArray.push({
+                            time: currentTime,
+                            record: progressText,
+                        });
+                    }
+                }
+                if (update.orderData.user_info.shipment_number &&
+                    update.orderData.user_info.shipment_number !== origin.orderData.user_info.shipment_number) {
+                    if (origin.orderData.user_info.shipment_number) {
+                        editArray.push({
+                            time: currentTime,
+                            record: `更新出貨單號碼 #${update.orderData.user_info.shipment_number}`,
+                        });
+                    }
+                    else {
+                        editArray.push({
+                            time: currentTime,
+                            record: `建立出貨單號碼 #${update.orderData.user_info.shipment_number}`,
+                        });
+                    }
+                }
+                if (editArray.length > 0) {
+                    update.orderData.editRecord = [...((_a = update.orderData.editRecord) !== null && _a !== void 0 ? _a : []), ...editArray];
+                }
+                console.log('====== editRecord ======');
+                console.log(update.orderData.editRecord);
+            }
+            writeRecord(origin, update);
             const updateData = Object.entries(update).reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: typeof value === 'object' ? JSON.stringify(value) : value })), {});
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
          SET ?
@@ -2674,16 +2747,24 @@ class Shopping {
         });
         await Promise.all(stockAdjustments);
     }
-    async cancelOrder(order_id) {
+    async manualCancelOrder(order_id) {
+        var _a;
         try {
-            const orderList = await database_js_1.default.query(`SELECT *
-         FROM \`${this.app}\`.t_checkout
-         WHERE cart_token = ?;
-        `, [order_id]);
-            if (orderList.length !== 1) {
-                return { data: false };
+            if (!this.token) {
+                return { result: false, message: 'The token is undefined' };
             }
+            const orderList = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?;
+        `, [order_id]);
+            if (orderList.length === 0) {
+                return { result: false, message: `Order id #${order_id} is not exist` };
+            }
+            const userClass = new user_js_1.User(this.app);
+            const user = await userClass.getUserData(`${this.token.userID}`, 'userID');
+            const { email, phone } = user.userData;
             const origin = orderList[0];
+            if (![email, phone].includes(origin.email)) {
+                return { result: false, message: 'The order does not match the token' };
+            }
             const orderData = origin.orderData;
             const proofPurchase = orderData.proof_purchase === undefined;
             const paymentStatus = origin.status === undefined || origin.status === 0 || origin.status === -1;
@@ -2691,20 +2772,18 @@ class Shopping {
             const orderStatus = orderData.orderStatus === undefined || `${orderData.orderStatus}` === '0';
             if (proofPurchase && paymentStatus && progressStatus && orderStatus) {
                 orderData.orderStatus = '-1';
-                const record = { time: this.formatDateString(), record: '顧客手動取消訂單' };
-                if (orderData.editRecord) {
-                    orderData.editRecord.push(record);
-                }
-                else {
-                    orderData.editRecord = [record];
-                }
+                const newRecord = {
+                    time: new Date().toISOString(),
+                    record: '顧客手動取消訂單',
+                };
+                orderData.editRecord = [...((_a = orderData.editRecord) !== null && _a !== void 0 ? _a : []), newRecord];
             }
             await this.putOrder({
                 cart_token: order_id,
                 orderData: orderData,
                 status: undefined,
             });
-            return { data: true };
+            return { result: true };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'cancelOrder Error:' + e, null);
@@ -3003,7 +3082,6 @@ class Shopping {
                     if (order.orderData.user_info.shipment_refer === 'paynow') {
                         const pay_now = new paynow_logistics_js_1.PayNowLogistics(this.app);
                         order.orderData.user_info.shipment_detail = await pay_now.getOrderInfo(order.cart_token);
-                        console.log(`PayNowLogisticCode=>`, order.orderData.user_info.shipment_detail.PayNowLogisticCode);
                         const status = (() => {
                             switch (order.orderData.user_info.shipment_detail.PayNowLogisticCode) {
                                 case '0000':
@@ -3563,14 +3641,9 @@ class Shopping {
                 }
             }
             else if (replace.parentTitles.length === 0) {
-                const parentIndex = config.value.findIndex((col) => {
-                    return col.title === original.title;
-                });
+                const parentIndex = config.value.findIndex((col) => col.title === original.title);
                 config.value[parentIndex] = Object.assign(Object.assign({}, formatData), { array: replace.subCollections.map(col => {
-                        const sub = config.value[parentIndex].array.find((item) => {
-                            return item.title === col;
-                        });
-                        console.log(sub.title, formatData.hidden === false ? false : Boolean(sub.hidden));
+                        const sub = config.value[parentIndex].array.find((item) => item.title === col);
                         return Object.assign(Object.assign({}, sub), { array: [], title: col, code: sub ? sub.code : '', hidden: formatData.hidden ? true : Boolean(sub.hidden) });
                     }) });
             }
@@ -3834,7 +3907,7 @@ class Shopping {
             }
             let productArray = content.data;
             await Promise.all(productArray.map((product, index) => {
-                return new Promise(async (resolve, reject) => {
+                return new Promise(async (resolve) => {
                     product.type = 'product';
                     if (product.id) {
                         const og_data = (await database_js_1.default.query(`select *
@@ -3853,11 +3926,11 @@ class Shopping {
                             productArray[index] = product;
                         }
                         else {
-                            console.log(`product-not-in==>`, product);
+                            console.log(`Product-not-in ==>`, product);
                         }
                     }
                     else {
-                        console.log(`no-product-id==>`, product);
+                        console.log(`No-exist-product-id ==>`, product);
                     }
                     resolve(true);
                 });

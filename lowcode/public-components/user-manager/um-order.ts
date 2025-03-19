@@ -442,7 +442,7 @@ export class UMOrder {
         if (bool) {
           dialog.dataLoading({ visible: true, text: Language.text('loading') });
           return new Promise(() => {
-            ApiShop.cancelOrder(id).then(res => {
+            ApiShop.cancelOrder(id).then(() => {
               dialog.dataLoading({ visible: false });
               dialog.successMessage({ text: Language.text('s_cancel_order') });
               gvc.recreateView();

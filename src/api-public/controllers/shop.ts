@@ -61,19 +61,19 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
       const oldest = await rebateClass.getOldestRebate(req.body.token.userID);
       const historyMaps = historyList
         ? historyList.data.map((item: any) => {
-          return {
-            id: item.id,
-            orderID: item.content.order_id ?? '',
-            userID: item.user_id,
-            money: item.origin,
-            remain: item.remain,
-            status: 1,
-            note: item.note,
-            created_time: item.created_at,
-            deadline: item.deadline,
-            userData: user.userData,
-          };
-        })
+            return {
+              id: item.id,
+              orderID: item.content.order_id ?? '',
+              userID: item.user_id,
+              money: item.origin,
+              remain: item.remain,
+              status: 1,
+              note: item.note,
+              created_time: item.created_at,
+              deadline: item.deadline,
+              userData: user.userData,
+            };
+          })
         : [];
       return response.succ(resp, { data: historyMaps, oldest: oldest?.data });
     }
@@ -161,7 +161,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
       client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip) as string,
       fbc: req.cookies._fbc,
       fbp: req.cookies._fbp,
-      temp_cart_id:req.body.temp_cart_id
+      temp_cart_id: req.body.temp_cart_id,
     });
 
     //
@@ -330,9 +330,10 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
           valid: req.query.valid === 'true',
           shipment_time: req.query.shipment_time as string,
           is_shipment: req.query.is_shipment === 'true',
-          is_reconciliation:req.query.is_reconciliation === 'true',
+          is_reconciliation: req.query.is_reconciliation === 'true',
           payment_select: req.query.payment_select as string,
-          reconciliation_status:(req.query.reconciliation_status) && (req.query.reconciliation_status as string).split(',') as any
+          reconciliation_status:
+            req.query.reconciliation_status && ((req.query.reconciliation_status as string).split(',') as any),
         })
       );
     } else if (await UtPermission.isAppUser(req)) {
@@ -458,7 +459,10 @@ router.put('/order', async (req: express.Request, resp: express.Response) => {
 });
 router.put('/order/cancel', async (req: express.Request, resp: express.Response) => {
   try {
-    return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).cancelOrder(req.body.id));
+    return response.succ(
+      resp,
+      await new Shopping(req.get('g-app') as string, req.body.token).manualCancelOrder(req.body.id)
+    );
   } catch (err) {
     return response.fail(resp, err);
   }
@@ -742,28 +746,28 @@ async function redirect_link(req: express.Request, resp: express.Response) {
     const html = String.raw;
     return resp.send(
       html`<!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Title</title>
-      </head>
-      <body>
-      <script>
-        try {
-          window.webkit.messageHandlers.addJsInterFace.postMessage(
-            JSON.stringify({
-              functionName: 'check_out_finish',
-              callBackId: 0,
-              data: {
-                redirect: '${return_url.href}',
-              },
-            })
-          );
-        } catch (e) {}
-        location.href = '${return_url.href}';
-      </script>
-      </body>
-      </html> `
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <title>Title</title>
+          </head>
+          <body>
+            <script>
+              try {
+                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                  JSON.stringify({
+                    functionName: 'check_out_finish',
+                    callBackId: 0,
+                    data: {
+                      redirect: '${return_url.href}',
+                    },
+                  })
+                );
+              } catch (e) {}
+              location.href = '${return_url.href}';
+            </script>
+          </body>
+        </html> `
     );
   } catch (err) {
     console.error(err);

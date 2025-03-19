@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toJSONSafeString = toJSONSafeString;
+exports.toJSONSafeString = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const underscore_1 = __importDefault(require("underscore"));
 const config_1 = __importDefault(require("../config"));
@@ -15,7 +15,10 @@ function isNull(...args) {
         return true;
     }
     for (let i = 0; i < args.length; i++) {
-        if (underscore_1.default.isNull(args[i]) || underscore_1.default.isUndefined(args[i]) || args[i].length == 0 || (underscore_1.default.isObject(args[i]) && underscore_1.default.isEmpty(args[i]))) {
+        if (underscore_1.default.isNull(args[i]) ||
+            underscore_1.default.isUndefined(args[i]) ||
+            args[i].length == 0 ||
+            (underscore_1.default.isObject(args[i]) && underscore_1.default.isEmpty(args[i]))) {
             return true;
         }
     }
@@ -40,6 +43,7 @@ function toJSONSafeString(val) {
         }
     });
 }
+exports.toJSONSafeString = toJSONSafeString;
 function getMaskObj(obj) {
     const maskObj = {};
     underscore_1.default.map(obj, (value, key) => {
@@ -96,6 +100,20 @@ const getCurrentDateTime = (json) => {
     const seconds = ('0' + currentDate.getSeconds()).slice(-2);
     return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
 };
+const formatDateTime = (dateTimeStr, includeSeconds = false) => {
+    const date = dateTimeStr ? new Date(dateTimeStr) : new Date();
+    if (isNaN(date.getTime()))
+        return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return includeSeconds
+        ? `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+        : `${year}-${month}-${day} ${hours}:${minutes}`;
+};
 exports.default = {
     isNull,
     replaceDatetime,
@@ -107,5 +125,6 @@ exports.default = {
     compareHash,
     randomNumber,
     getCurrentDateTime,
+    formatDateTime,
 };
 //# sourceMappingURL=tool.js.map
