@@ -37,7 +37,6 @@ router.post('/', async (req, resp) => {
 router.post('/print', async (req, resp) => {
     try {
         const config = await app_1.default.getAdConfig(req.get('g-app'), 'invoice_setting');
-        console.log(`req.body.order_id=>`, req.body.order_id);
         return response_1.default.succ(resp, await EcInvoice_js_1.EcInvoice.printInvoice({
             hashKey: config.hashkey,
             hash_IV: config.hashiv,
