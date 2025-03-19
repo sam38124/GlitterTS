@@ -390,7 +390,7 @@ export declare class Shopping {
         message?: undefined;
     }>;
     private writeRecord;
-    private restoreStock;
+    private resetStore;
     private sendNotifications;
     private adjustStock;
     manualCancelOrder(order_id: string): Promise<{

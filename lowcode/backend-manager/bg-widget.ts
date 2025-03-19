@@ -2289,12 +2289,13 @@ ${obj.default ?? ''}</textarea
   // 容器
   static getContainerWidth = (obj?: { rate?: { web?: number; pad?: number; phone?: number } }) => {
     const clientWidth = document.body.clientWidth;
-    const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.79;
+    const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.95;
     const rateForPad = obj && obj.rate && obj.rate.pad ? obj.rate.pad : 0.92;
     const rateForPhone = obj && obj.rate && obj.rate.phone ? obj.rate.phone : 0.95;
     const width = (() => {
+
       if (clientWidth >= 1440) {
-        return 1440 * rateForWeb;
+        return clientWidth * rateForWeb;
       }
       if (clientWidth >= 1200) {
         return 1200 * rateForWeb;

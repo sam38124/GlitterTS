@@ -7,6 +7,7 @@ import { FilterOptions } from './filter-options.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { Tool } from '../modules/tool.js';
 import { ShoppingAllowanceManager } from './shopping-allowance-manager.js';
+import { IminModule } from './pos-pages/imin-module.js';
 
 interface ViewModel {
   id: string;
@@ -1322,38 +1323,38 @@ ${invoiceData.invoice_data?.remark?.voidReason ?? ''}</textarea
                         if (invoiceData.status == 2) {
                           return '';
                         }
+                        let v_=[
+                          BgWidget.save(
+                            gvc.event(() => {}),
+                            '發票折讓'
+                          ),
+                          BgWidget.danger(
+                            gvc.event(() => {
+                              glitter.innerDialog((gvc: GVC) => {
+                                let step = 1;
+                                let reason = '';
 
-                        return html`${BgWidget.save(
-                          gvc.event(() => {}),
-                          '發票折讓'
-                        )}
-                        ${BgWidget.danger(
-                          gvc.event(() => {
-                            glitter.innerDialog((gvc: GVC) => {
-                              let step = 1;
-                              let reason = '';
-
-                              return gvc.bindView({
-                                bind: 'voidDialog',
-                                view: () => {
-                                  return html`
+                                return gvc.bindView({
+                                  bind: 'voidDialog',
+                                  view: () => {
+                                    return html`
                                     <div
                                       class="d-flex align-items-center justify-content-center"
                                       style="width: 100vw;height: 100vw;"
                                       onclick="${gvc.event(() => {
-                                        glitter.closeDiaLog();
-                                      })}"
+                                      glitter.closeDiaLog();
+                                    })}"
                                     >
                                       ${(() => {
-                                        switch (step) {
-                                          case 2:
-                                            return html`
+                                      switch (step) {
+                                        case 2:
+                                          return html`
                                               <div
                                                 class="d-flex flex-column"
                                                 style="width: 532px;height: 409px;flex-shrink: 0;border-radius: 10px;background: #FFF;position: relative;padding: 36px 64px;gap: 24px;"
                                                 onclick="${gvc.event(() => {
-                                                  event!.stopPropagation();
-                                                })}"
+                                            event!.stopPropagation();
+                                          })}"
                                               >
                                                 <div style="position: absolute;right: 20px;top: 17px;">
                                                   <svg
@@ -1433,9 +1434,9 @@ ${invoiceData.invoice_data?.remark?.voidReason ?? ''}</textarea
                                                     class="btn btn-white"
                                                     style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 700;color: #393939;"
                                                     onclick="${gvc.event(() => {
-                                                      step = 1;
-                                                      gvc.notifyDataChange(`voidDialog`);
-                                                    })}"
+                                            step = 1;
+                                            gvc.notifyDataChange(`voidDialog`);
+                                          })}"
                                                   >
                                                     上一步
                                                   </div>
@@ -1443,29 +1444,29 @@ ${invoiceData.invoice_data?.remark?.voidReason ?? ''}</textarea
                                                     class="btn btn-red"
                                                     style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-weight: 700;"
                                                     onclick="${gvc.event(() => {
-                                                      ApiShop.voidInvoice(
-                                                        invoiceData.invoice_no,
-                                                        reason,
-                                                        invoiceData.create_date
-                                                      ).then(r => {
-                                                        vm.type = 'list';
-                                                        glitter.closeDiaLog();
-                                                      });
-                                                    })}"
+                                            ApiShop.voidInvoice(
+                                              invoiceData.invoice_no,
+                                              reason,
+                                              invoiceData.create_date
+                                            ).then(r => {
+                                              vm.type = 'list';
+                                              glitter.closeDiaLog();
+                                            });
+                                          })}"
                                                   >
                                                     作廢
                                                   </div>
                                                 </div>
                                               </div>
                                             `;
-                                          default:
-                                            return html`
+                                        default:
+                                          return html`
                                               <div
                                                 class="d-flex flex-column"
                                                 style="width: 532px;height: 270px;flex-shrink: 0;border-radius: 10px;background: #FFF;position: relative;padding: 36px 64px;gap: 24px;"
                                                 onclick="${gvc.event(() => {
-                                                  event!.stopPropagation();
-                                                })}"
+                                            event!.stopPropagation();
+                                          })}"
                                               >
                                                 <div style="position: absolute;right: 20px;top: 17px;">
                                                   <svg
@@ -1487,8 +1488,8 @@ ${invoiceData.invoice_data?.remark?.voidReason ?? ''}</textarea
                                                   <textarea
                                                     style="display: flex;height: 100px;padding: 5px 18px;justify-content: center;align-items: center;gap: 10px;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;"
                                                     onchange="${gvc.event(e => {
-                                                      reason = e.value;
-                                                    })}"
+                                            reason = e.value;
+                                          })}"
                                                   >
 ${reason}</textarea
                                                   >
@@ -1501,8 +1502,8 @@ ${reason}</textarea
                                                     class="btn btn-white"
                                                     style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 700;color: #393939;"
                                                     onclick="${gvc.event(() => {
-                                                      glitter.closeDiaLog();
-                                                    })}"
+                                            glitter.closeDiaLog();
+                                          })}"
                                                   >
                                                     取消
                                                   </div>
@@ -1510,26 +1511,52 @@ ${reason}</textarea
                                                     class="btn btn-red"
                                                     style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-weight: 700;"
                                                     onclick="${gvc.event(() => {
-                                                      step = 2;
-                                                      gvc.notifyDataChange('voidDialog');
-                                                    })}"
+                                            step = 2;
+                                            gvc.notifyDataChange('voidDialog');
+                                          })}"
                                                   >
                                                     下一步
                                                   </div>
                                                 </div>
                                               </div>
                                             `;
-                                        }
-                                      })()}
+                                      }
+                                    })()}
                                     </div>
                                   `;
-                                },
-                                divCreate: {},
-                              });
-                            }, 'voidWarning');
-                          }),
-                          '發票作廢'
-                        )}`;
+                                  },
+                                  divCreate: {},
+                                });
+                              }, 'voidWarning');
+                            }),
+                            '發票作廢'
+                          )
+                        ]
+                     
+                        if(invoiceData.invoice_data.original_data.Print==='1' && (
+                          (window.parent as any).glitter.share.PayConfig.posType === 'SUNMI'
+                        )){
+                          v_=[
+                            BgWidget.cancel(
+                              gvc.event(() => {
+                                const dialog=new ShareDialog(gvc.glitter)
+                                dialog.dataLoading({visible:true});
+                                ApiShop.printInvoice({
+                                order_id:invoiceData.order_id
+                                }).then((res)=>{
+                                  dialog.dataLoading({visible:false});
+                                  if(res.result){
+                                    IminModule.printInvoice(res.response,invoiceData.order_id,glitter.share.staff_title)
+                                  }else{
+                                    dialog.errorMessage({text:'列印失敗'})
+                                  }
+                                })
+                              }),
+                              '發票列印'
+                            )
+                          ].concat(v_)
+                        }
+                        return  v_.join('')
                       })()}
                     </div>`,
                   ].join('');
@@ -1811,7 +1838,7 @@ ${reason}</textarea
                         callback: text => {
                           viewModel.invoiceData.getPaper = text;
                         },
-                        default: 'Y',
+                        default: (viewModel.invoiceData.original_data.Print==='1') ? 'Y':'N',
                         options: [
                           { key: 'Y', value: 'Y' },
                           { key: 'N', value: 'N' },

@@ -342,14 +342,26 @@ export class ApiUser {
     if (!obj) return [];
 
     return Object.entries(obj).flatMap(([key, value]) => {
+
       if (!value) return []; // 排除 null、undefined 或 false
 
       if (Array.isArray(value) && value.length > 0 && value.every(Boolean)) {
-        return `${key}=${value.join(',')}`;
+
+        return `${key}=${value.map((dd,index)=>{
+          if(['last_shipment_date','last_order_time'].includes(key)){
+            if(index===0){
+              return  new Date(`${dd} 00:00:00`).toISOString()
+            }else{
+              return  new Date(`${dd} 23:59:59`).toISOString()
+            }
+          }
+          return dd
+        }).join(',')}`;
       }
 
       if (typeof value === 'object' && value !== null) {
         const valObj = value as Record<string, any>; // 顯式轉換避免 TS 誤判
+
         if ('key' in valObj && 'value' in valObj && valObj.key && valObj.value) {
           return `${key}=${valObj.key},${valObj.value}`;
         }
@@ -434,8 +446,7 @@ export class ApiUser {
                 is_shipment: true,
               })
             ).response.data[0];
-
-            if (item.tag_name) {
+            if (!item.tag_name) {
               item.tag_name = '一般會員'; // 失敗時提供預設值
             }
             if (firstShipment) {

@@ -3,10 +3,24 @@ import { PayConfig } from './pay-config.js';
 import { PaymentPage } from './payment-page.js';
 
 export class IminModule {
+    public static  init() {
+       return new Promise((resolve, reject) => {
+           (window as any).glitter.addMtScript(
+             [
+                 'https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js',
+                 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js',
+                 (window as any).glitter.root_path + 'jslib/qrcode-d.js',
+             ],()=>{
+                 resolve(true)
+             },()=>{
+                 resolve(false)
+             })
+       })
+    }
     //列印發票
     public static async printInvoice(invoice: any, orderID: string, staff_title: string) {
-
-        if (PayConfig.posType === 'SUNMI') {
+        await IminModule.init()
+        if ( (window.parent as any).glitter.share.PayConfig.posType === 'SUNMI') {
             IminModule.printInvoiceSunMi(invoice, orderID, staff_title);
             return;
         }
@@ -184,30 +198,28 @@ ${tempDiv.querySelector('.invoice-detail-sum')!!.children[2].textContent!.replac
 
         function generateQRCode(text: string, size: number) {
             return new Promise((resolve) => {
-                const div = document.createElement('div');
-                //@ts-ignore
-                let qr = new QRCode(div, {
-                    text: text,
-                    width: size,
-                    height: size,
-                    correctLevel: 1,
-                    version:40
-                });
-
-                // 等待 QR Code 生成完畢
-                setTimeout(() => {
-                    resolve(div.querySelector('canvas')!!.toDataURL('image/png'));
-                }, 200); // 延遲等待 QRCode 完成渲染
+                try {
+                    const div = document.createElement('div');
+                    //@ts-ignore
+                    var qrcode_R = new QRCode(div, {
+                        text: text,
+                        width: 50,
+                        height: 50,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        //@ts-ignore
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                    // 等待 QR Code 生成完畢
+                    setTimeout(() => {
+                        resolve(div.querySelector('canvas')!!.toDataURL('image/png'));
+                    }, 200); // 延遲等待 QRCode 完成渲染
+                }catch (e) {
+                    console.log('qr生成失敗')
+                    console.log('qr生成失敗',e)
+                }
             });
         }
-
-        const ba = (new Blob([invoice.qrcode_0]).size - (new Blob([invoice.qrcode_1]).size)) * 1.1;
-        console.log(`ba=>`, invoice.qrcode_0);
-        console.log(`ba=>`, invoice.qrcode_1);
-        for (let a = 0; a <= ba; a++) {
-            invoice.qrcode_1 += '*';
-        }
-
         mergeQRCodes([invoice.qrcode_0, invoice.qrcode_1]).then((res) => {
             console.log(`two-qrcode=>`, res);
             glitter.runJsInterFace('start-print', {
@@ -511,35 +523,43 @@ ${tempDiv.querySelector('.invoice-detail-sum')!!.children[2].textContent!.replac
             [
                 'https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js',
                 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js',
-                glitter.root_path + 'jslib/qrcode.min.js',
+                glitter.root_path + 'jslib/qrcode-d.js',
             ],
             () => {
 
                 function generateQRCode(text: string, size: number) {
                     return new Promise((resolve) => {
-                        const div = document.createElement('div');
-                        //@ts-ignore
-                        let qr = new QRCode(div, {
-                            text: text,
-                            width: size,
-                            height: size,
-                            correctLevel: 1,
-                            version: 40,
-                        });
+                        try {
+                            const div = document.createElement('div');
+                            //@ts-ignore
+                            var qrcode_R = new QRCode(div, {
+                                text: text,
+                                width: 100,
+                                height: 100,
+                                colorDark: "#000000",
+                                colorLight: "#ffffff",
+                                //@ts-ignore
+                                correctLevel: QRCode.CorrectLevel.M
+                            });
+                            // 等待 QR Code 生成完畢
+                            setTimeout(() => {
 
-                        // 等待 QR Code 生成完畢
-                        setTimeout(() => {
-                            resolve(div.querySelector('canvas')!!.toDataURL('image/png').split('base64,')[1]);
-                        }, 200); // 延遲等待 QRCode 完成渲染
+                                resolve(div.querySelector('canvas')!!.toDataURL('image/png'));
+                            }, 200); // 延遲等待 QRCode 完成渲染
+                        }catch (e) {
+                            console.log('qr生成失敗')
+                            console.log('qr生成失敗',e)
+                        }
                     });
                 }
 
                 generateQRCode(code, 185).then((res: any) => {
+                    console.log(`two-qrcode=>`, res);
                     glitter.runJsInterFace('start-print', {
                         'command-list': [
                             {
                                 key: 'print-bitmap', data: {
-                                    base64: res,
+                                    base64: res.split('base64,')[1],
                                     height: 185,
                                     width: 185,
                                 },

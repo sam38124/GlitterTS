@@ -132,7 +132,7 @@ export class Entry {
         }
         window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : createClock();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_18.9.9';
+        glitter.share.editerVersion = 'V_19.1.3';
         glitter.share.start = new Date();
         const vm = { appConfig: [] };
         window.saasConfig = {
@@ -597,7 +597,7 @@ export class Entry {
                 glitter.addMtScript([
                     'https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js',
                     'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js',
-                    glitter.root_path + 'jslib/qrcode.min.js',
+                    glitter.root_path + 'jslib/qrcode-d.js',
                 ], () => {
                 }, () => {
                 });
@@ -609,7 +609,7 @@ export class Entry {
             if (res.deviceType === 'SUNMI') {
                 glitter.addMtScript([
                     'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js',
-                    glitter.root_path + 'jslib/qrcode.min.js',
+                    glitter.root_path + 'jslib/qrcode-d.js',
                 ], () => {
                 }, () => {
                 });

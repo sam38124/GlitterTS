@@ -27,6 +27,7 @@ import { UtPermission } from '../utils/ut-permission.js';
 import { SharePermission } from './share-permission.js';
 import { TermsCheck } from './terms-check.js';
 import { App as GeneralApp } from '../../services/app.js';
+import { UserUpdate } from './user-update.js';
 
 interface UserQuery {
   page?: number;
@@ -37,12 +38,14 @@ interface UserQuery {
   order_string?: string;
   created_time?: string;
   last_order_time?: string;
+  last_shipment_date?:string;
   birth?: string;
   level?: string;
   rebate?: string;
   last_order_total?: string;
   total_amount?: string;
   total_count?: string;
+  member_levels?:string;
   groupType?: string;
   groupTag?: string;
   filter_type?: string;
@@ -1337,8 +1340,19 @@ export class User {
         const last_time = query.last_order_time.split(',');
         if (last_time.length > 1) {
           querySql.push(`
-                        (lo.last_order_time BETWEEN ${db.escape(`${last_time[0]} 00:00:00`)} 
-                        AND ${db.escape(`${last_time[1]} 23:59:59`)})
+                        (lo.last_order_time BETWEEN ${db.escape(`${last_time[0]}`)} 
+                        AND ${db.escape(`${last_time[1]}`)})
+                    `);
+        }
+      }
+
+      if (query.last_shipment_date) {
+        const last_time = query.last_shipment_date.split(',');
+        if (last_time.length > 1) {
+          querySql.push(`
+((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.phone')  between ${db.escape(`${last_time[0]}`)} and ${db.escape(`${last_time[1]}`)})   
+or
+((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.email')  between ${db.escape(`${last_time[0]}`)} and ${db.escape(`${last_time[1]}`)})                    
                     `);
         }
       }
@@ -1395,6 +1409,12 @@ export class User {
             querySql.push(`(o.order_count > ${arr[1]})`);
           }
         }
+      }
+
+      if(query.member_levels){
+        querySql.push(`member_level in (${query.member_levels.split(',').map(level => {
+          return db.escape(level)
+        }).join(',')})`)
       }
 
       if (query.search) {
@@ -1477,23 +1497,35 @@ export class User {
 
       // 更新 userData
       for (const b of queryResult) {
-        const tagName = b?.value?.value?.[0]?.tag_name;
-        if (tagName) {
+        const tag =  levels.find((dd)=>{
+          return `${dd.id}`===`${b.user_id}`
+        });
+        if (tag && tag.data && tag.data.tag_name) {
           const user = userMap.get(String(b.user_id)) as any;
           if (user) {
-            user.tag_name = tagName; // 確保 user 不是 undefined，並設定 tag_name
+            user.tag_name = tag.data.tag_name; // 確保 user 不是 undefined，並設定 tag_name
           }
         }
       }
-
+      const orderCountingSQL = await this.getCheckoutCountingModeSQL();
       const processUserData = async (user: any) => {
+        const phone=user.userData.phone || 'asnhsauh';
+        const email=user.userData.email || 'asnhsauh';
         // 取得購物金餘額
         const _rebate = new Rebate(this.app);
         const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
         user.rebate = userRebate ? userRebate.point : 0;
-
         // 取得會員等級截止日
         user.member_deadline = levelMap.get(user.userID) ?? '';
+        user.latest_order_date=(await db.query(`select created_time from \`${this.app}\`.t_checkout where email in ('${email}','${phone}') and ${orderCountingSQL} order by created_time desc limit 0,1`,[]))[0];
+        user.latest_order_date=user.latest_order_date && user.latest_order_date.created_time;
+        user.latest_order_total=(await db.query(`select total from \`${this.app}\`.t_checkout where email in ('${email}','${phone}') and ${orderCountingSQL} order by created_time desc limit 0,1`,[]))[0];
+        user.latest_order_total=user.latest_order_total && user.latest_order_total.total;
+        user.checkout_total=(await db.query(`select sum(total) from \`${this.app}\`.t_checkout where email in ('${email}','${phone}') and ${orderCountingSQL} `,[]))[0];
+        user.checkout_total=user.checkout_total && user.checkout_total['sum(total)'];
+        user.checkout_count=(await db.query(`select count(1) from \`${this.app}\`.t_checkout where email in ('${email}','${phone}') and ${orderCountingSQL} `,[]))[0];
+        user.checkout_count=user.checkout_count && user.checkout_count['count(1)'];
+
       };
 
       // 批次處理會員資料
@@ -2051,15 +2083,18 @@ export class User {
       if (!par.account) {
         delete par.account;
       }
-
-      return {
-        data: (await db.query(
-          `update \`${this.app}\`.t_user
+      const data=(await db.query(
+        `update \`${this.app}\`.t_user
                      SET ?
                      WHERE 1 = 1
                        and userID = ?`,
-          [par, userID]
-        )) as any,
+        [par, userID]
+      )) as any
+
+      await UserUpdate.update(this.app,userID)
+
+      return {
+        data: data,
       };
     } catch (e: any) {
       throw exception.BadRequestError((e as any).code || 'BAD_REQUEST', (e as any).message, e.data);

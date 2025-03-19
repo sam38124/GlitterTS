@@ -578,15 +578,6 @@ export class PdClass {
                     }
                     return parseInt(dpe.price,10)
                 }).reduce((a:any, b:any) => a + b, 0);
-                // price=prod.specs
-                //   .map((dd: any) => {
-                //       return Math.min(
-                //         ...dd.option.map((d1:any) => {
-                //             return d1.price;
-                //         })
-                //       );
-                //   })
-                //   .reduce((a:any, b:any) => a + b, 0);
             }else{
                 price=parseInt((prod as any).price,10);
                 show_understocking=`${((prod as any).stock ?? '') !== ''}`

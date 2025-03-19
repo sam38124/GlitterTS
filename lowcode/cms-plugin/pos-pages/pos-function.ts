@@ -338,7 +338,7 @@ export class PosFunction {
                 },
                 divCreate: {
                     class: '',
-                    style: `width: 338px; max-height: 200px; overflow-y: auto; padding: 25px 20px; background: white; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15); border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;`,
+                    style: `width: 338px; max-height: 400px; overflow-y: auto; padding: 25px 20px; background: white; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15); border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;`,
                 },
             }));
         }, 'selectUserSwitch');

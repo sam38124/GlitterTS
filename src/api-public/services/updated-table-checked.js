@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdatedTableChecked = void 0;
 const database_1 = __importDefault(require("../../modules/database"));
 const checkout_js_1 = require("./checkout.js");
+const user_update_js_1 = require("./user-update.js");
 class UpdatedTableChecked {
     static async startCheck(app_name) {
         await UpdatedTableChecked.update({
@@ -44,8 +45,8 @@ ADD INDEX \`index5\` (\`store\` ASC) VISIBLE;`,
             new_version: 'V1.3',
             event: () => {
                 return new Promise(async (resolve, reject) => {
-                    for (const b of (await database_1.default.query(`select *
-                                           from \`${app_name}\`.t_checkout`, []))) {
+                    for (const b of await database_1.default.query(`select *
+             from \`${app_name}\`.t_checkout`, [])) {
                         await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
                             id: b.id,
                             orderData: b.orderData,
@@ -73,8 +74,8 @@ ADD INDEX \`index11\` (\`shipment_number\` ASC) VISIBLE;`,
             new_version: 'V1.5',
             event: () => {
                 return new Promise(async (resolve, reject) => {
-                    for (const b of (await database_1.default.query(`select *
-                                           from \`${app_name}\`.t_checkout`, []))) {
+                    for (const b of await database_1.default.query(`select *
+             from \`${app_name}\`.t_checkout`, [])) {
                         await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
                             id: b.id,
                             orderData: b.orderData,
@@ -127,8 +128,8 @@ ADD INDEX \`index14\` (\`offset_reason\` ASC) VISIBLE;
             new_version: 'V1.0',
             event: () => {
                 return new Promise(async (resolve, reject) => {
-                    for (const b of (await database_1.default.query(`select *
-                                           from \`${app_name}\`.t_checkout`, []))) {
+                    for (const b of await database_1.default.query(`select *
+             from \`${app_name}\`.t_checkout`, [])) {
                         await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
                             id: b.id,
                             orderData: b.orderData,
@@ -145,10 +146,10 @@ ADD INDEX \`index14\` (\`offset_reason\` ASC) VISIBLE;
             last_version: ['V1.6'],
             new_version: 'V1.7',
             event: `ALTER TABLE \`${app_name}\`.\`t_checkout\`
-                ADD COLUMN \`reconciliation_date\` DATETIME NULL DEFAULT NULL AFTER \`offset_records\`,
+          ADD COLUMN \`reconciliation_date\` DATETIME NULL DEFAULT NULL AFTER \`offset_records\`,
 ADD INDEX \`index15\` (\`reconciliation_date\` ASC) VISIBLE;
-;
-`
+      ;
+      `,
         });
         await UpdatedTableChecked.update({
             app_name: app_name,
@@ -157,24 +158,57 @@ ADD INDEX \`index15\` (\`reconciliation_date\` ASC) VISIBLE;
             new_version: 'V1.0',
             event: () => {
                 return new Promise(async (resolve, reject) => {
-                    for (const b of (await database_1.default.query(`select * from \`${app_name}\`.t_checkout`, []))) {
+                    for (const b of await database_1.default.query(`select *
+             from \`${app_name}\`.t_checkout`, [])) {
                         await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
                             id: b.id,
                             orderData: b.orderData,
-                            app_name: app_name
+                            app_name: app_name,
                         });
                     }
                     resolve(true);
                 });
-            }
+            },
+        });
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_user',
+            last_version: [''],
+            new_version: 'V1.0',
+            event: `ALTER TABLE \`${app_name}\`.\`t_user\`
+          ADD COLUMN \`member_level\` VARCHAR(45) NOT NULL AFTER \`static_info\`,
+ADD INDEX \`index7\` (\`member_level\` ASC) VISIBLE;
+      `,
+        });
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_user',
+            last_version: ['V1.0'],
+            new_version: 'V1.1',
+            event: () => {
+                return new Promise(async (resolve, reject) => {
+                    for (const b of await database_1.default.query(`select * from \`${app_name}\`.t_user`, [])) {
+                        await user_update_js_1.UserUpdate.update(app_name, b.userID);
+                    }
+                    resolve(true);
+                });
+            },
+        });
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_user',
+            last_version: ['V1.1'],
+            new_version: 'V1.2',
+            event: `ALTER TABLE \`${app_name}\`.\`t_user\`
+          CHANGE COLUMN \`member_level\` \`member_level\` VARCHAR (45) NULL DEFAULT NULL;`,
         });
     }
     static async update(obj) {
         var _a;
         const data_ = await database_1.default.query(`SELECT TABLE_NAME, TABLE_COMMENT
-                                  FROM information_schema.tables
-                                  WHERE TABLE_SCHEMA = ?
-                                    AND TABLE_NAME = ?;`, [obj.app_name, obj.table_name]);
+       FROM information_schema.tables
+       WHERE TABLE_SCHEMA = ?
+         AND TABLE_NAME = ?;`, [obj.app_name, obj.table_name]);
         if (obj.last_version.includes((_a = data_[0]['TABLE_COMMENT']) !== null && _a !== void 0 ? _a : '')) {
             console.log(`資料庫更新開始:${obj.app_name}-${obj.last_version}-to-${obj.new_version}`);
             if (typeof obj.event === 'string') {
@@ -183,8 +217,7 @@ ADD INDEX \`index15\` (\`reconciliation_date\` ASC) VISIBLE;
                `, []);
             }
             else {
-                while (!(await obj.event())) {
-                }
+                while (!(await obj.event())) { }
             }
             await database_1.default.query(`ALTER TABLE \`${obj.app_name}\`.\`${obj.table_name}\` COMMENT = '${obj.new_version}';`, []);
             console.log(`資料庫更新結束:${obj.app_name}-${obj.last_version}-to-${obj.new_version}`);

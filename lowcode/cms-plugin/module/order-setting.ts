@@ -153,6 +153,7 @@ export class OrderSetting {
       return gvc.bindView({
         bind: 'editDialog',
         view: () => {
+
           const titleLength = 250;
           const elementLength = 100;
           if (loading && productLoading) {
@@ -275,20 +276,22 @@ export class OrderSetting {
                   return gvc.bindView({
                     bind: id,
                     view: () => {
-                      return postMD
-                        .map((item: any) => {
-                          if (item.deduction_log && Object.keys(item.deduction_log).length === 0) {
-                            return;
-                          }
-                          return html`
-                            <div class="d-flex align-items-center" style="gap:44px;">
+                      console.log(`postMD==>`,postMD)
+                      try {
+                        return postMD
+                          .map((item: any) => {
+                            if (!item.deduction_log || Object.keys(item.deduction_log).length === 0) {
+                              return ``;
+                            }
+                            return html`
+                            <div class="d-inline-flex align-items-center" style="gap:44px;">
                               <div
                                 class="d-flex align-items-center flex-shrink-0"
                                 style="width: ${titleLength}px;gap: 12px"
                               >
                                 <img style="height: 54px;width: 54px;border-radius: 5px;" src="${item.preview_image}" />
                                 <div class="d-flex flex-column" style="font-size: 16px;">
-                                  <div>${item.title}</div>
+                                  <div style="max-width: calc(${titleLength} - 100px);white-space: normal;word-break: break-all;">${item.title}</div>
                                   <div style="color: #8D8D8D;font-size: 14px;">
                                     ${item.spec.length == 0 ? `單一規格` : item.spec.join(`,`)}
                                   </div>
@@ -302,16 +305,20 @@ export class OrderSetting {
                                 ${item.count}
                               </div>
                               ${stockList
-                                .flatMap((stock: any) => {
-                                  const limit = item.stockList?.[stock.id]?.count ?? 0;
-                                  return [
-                                    html` <div
+                              .flatMap((stock: any) => {
+                                if(!item.deduction_log){
+                                  return  ``
+                                }
+                                const limit = item.stockList?.[stock.id]?.count ?? 0;
+                              
+                                return [
+                                  html` <div
                                       class="d-flex align-items-center justify-content-end flex-shrink-0"
                                       style="width: ${elementLength}px;gap: 12px;"
                                     >
                                       ${parseInt(limit)}
                                     </div>`,
-                                    html` <div
+                                  html` <div
                                       class="d-flex align-items-center justify-content-end flex-shrink-0"
                                       style="width: ${elementLength}px;gap: 12px"
                                     >
@@ -323,40 +330,48 @@ export class OrderSetting {
                                         value="${item.deduction_log[stock.id] ?? 0}"
                                         type="number"
                                         onchange="${gvc.event((e: any) => {
-                                          const originalDeduction = item.deduction_log[stock.id] ?? 0;
-                                          item.deduction_log[stock.id] = 0;
+                                    const originalDeduction = item.deduction_log[stock.id] ?? 0;
+                                    item.deduction_log[stock.id] = 0;
 
-                                          /// 明確指定 item.deduction_log 的型別為 Record<string, number>
-                                          const totalDeducted = Object.values(
-                                            item.deduction_log as Record<string, number>
-                                          ).reduce((total, deduction) => total + deduction, 0);
-                                          const remainingStock = item.count - totalDeducted;
+                                    /// 明確指定 item.deduction_log 的型別為 Record<string, number>
+                                    const totalDeducted = Object.values(
+                                      item.deduction_log as Record<string, number>
+                                    ).reduce((total, deduction) => total + deduction, 0);
+                                    const remainingStock = item.count - totalDeducted;
 
-                                          // 限制輸入值不超過剩餘庫存
-                                          const newDeduction = Math.min(parseInt(e.value), remainingStock);
+                                    // 限制輸入值不超過剩餘庫存
+                                    const newDeduction = Math.min(parseInt(e.value), remainingStock);
 
-                                          // 更新扣除紀錄
-                                          item.deduction_log[stock.id] = newDeduction;
+                                    // 更新扣除紀錄
+                                    item.deduction_log[stock.id] = newDeduction;
 
-                                          // 如果有變更，更新庫存數量
-                                          if (originalDeduction !== newDeduction) {
-                                            const stockDiff = newDeduction - originalDeduction;
-                                            item.stockList[stock.id]!.count -= stockDiff;
-                                          }
+                                    // 如果有變更，更新庫存數量
+                                    if (originalDeduction !== newDeduction) {
+                                      const stockDiff = newDeduction - originalDeduction;
+                                      item.stockList[stock.id]!.count -= stockDiff;
+                                    }
 
-                                          gvc.notifyDataChange(id);
-                                        })}"
+                                    gvc.notifyDataChange(id);
+                                  })}"
                                       />
                                     </div>`,
-                                  ];
-                                })
-                                .join('')}
+                                ];
+                              })
+                              .join('')}
                             </div>
                           `;
-                        })
-                        .join('');
+                          }).filter((item:string) => {
+                            return item
+                          }).map((dd:any,index:number)=>{
+                            return `<div class="${index ? `border-top pt-2`:` pb-2`}">${dd}</div>`
+                          })
+                          .join(``);
+                      }catch (e) {
+                        console.log(e)
+                      }
+                 
                     },
-                    divCreate: { class: 'd-flex flex-column', style: 'margin-bottom:80px;gap:12px;' },
+                    divCreate: { class: 'd-inline-flex flex-column ', style: 'margin-bottom:80px;gap:12px;' },
                   });
                 })()}
               </div>
@@ -374,6 +389,9 @@ export class OrderSetting {
                   gvc.event(() => {
                     const errorProducts: string[] = [];
                     const hasError = postMD.some((product: any) => {
+                      if(!product.deduction_log){
+                        return false
+                      }
                       const totalDeduction = Object.values(product.deduction_log as Record<string, number>).reduce(
                         (sum, value) => sum + value,
                         0

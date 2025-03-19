@@ -31,6 +31,7 @@ import { Shopee } from './shopee';
 import { ShipmentConfig as Shipment_support_config } from '../config/shipment-config.js';
 import { PayNowLogistics } from './paynow-logistics.js';
 import { CheckoutService } from './checkout.js';
+import { ProductInitial } from './product-initial.js';
 
 type BindItem = {
   id: string;
@@ -263,7 +264,6 @@ export class Shopping {
       const store_info = await userClass.getConfigV2({ key: 'store-information', user_id: 'manager' });
       const store_config = await userClass.getConfigV2({ key: 'store_manager', user_id: 'manager' });
       const exh_config = await userClass.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
-
       const userID = query.setUserID ?? (this.token ? `${this.token.userID}` : '');
       const querySql = [`(content->>'$.type'='product')`];
       query.language = query.language ?? store_info.language_setting.def;
@@ -379,7 +379,9 @@ export class Shopping {
       if (query.collection) {
         const collection_cf = (
           await db.query(
-            `SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';
+            `SELECT *
+             FROM \`${this.app}\`.public_config
+             WHERE \`key\` = 'collection';
             `,
             []
           )
@@ -531,6 +533,7 @@ export class Shopping {
       // 取得產品查詢結果
       const products = await this.querySql(querySql, query);
 
+
       // 產品清單
       products.data = (Array.isArray(products.data) ? products.data : [products.data]).filter(product => product);
 
@@ -540,9 +543,9 @@ export class Shopping {
 
         // 一次性查詢所有 wishlist 商品
         const wishListData = await db.query(
-          `SELECT content->>'$.product_id' AS product_id
+          `SELECT content ->>'$.product_id' AS product_id
            FROM \`${this.app}\`.t_post
-           WHERE userID = ? 
+           WHERE userID = ?
              AND content->>'$.type' = 'wishlist'
              AND content->>'$.product_id' IN (${productIds.map(() => '?').join(',')})`,
           [userID, ...productIds]
@@ -599,7 +602,7 @@ export class Shopping {
                 const { language } = query;
                 const { content } = product;
                 content.preview_image = content.preview_image ?? [];
-
+                ProductInitial.initial(content);
                 if (language && content?.language_data?.[language]) {
                   const langData = content.language_data[language];
                   if ((langData.preview_image && langData.preview_image.length === 0) || !langData.preview_image) {
@@ -668,15 +671,13 @@ export class Shopping {
                   // 尋找規格販售數量
                   const soldOldHistory = await db.query(
                     `
-                  SELECT * 
-                  FROM \`${this.app}\`.t_products_sold_history 
-                  WHERE product_id = ${db.escape(content.id)} 
-                    AND order_id IN (
-                      SELECT cart_token 
-                      FROM \`${this.app}\`.t_checkout 
-                      WHERE ${count_sql}
-                    )
-                  `,
+                        SELECT *
+                        FROM \`${this.app}\`.t_products_sold_history
+                        WHERE product_id = ${db.escape(content.id)}
+                          AND order_id IN (SELECT cart_token
+                                           FROM \`${this.app}\`.t_checkout
+                                           WHERE ${count_sql})
+                    `,
                     []
                   );
 
@@ -731,7 +732,6 @@ export class Shopping {
                     totalSale += variant.sold_out;
                   });
                 }
-
                 if (content.shopee_id && !query.skip_shopee_check) {
                   const shopee_data = await new Shopee(this.app, this.token).getProductDetail(content.shopee_id, {
                     skip_image_load: true,
@@ -758,7 +758,7 @@ export class Shopping {
           })
       );
 
-      if (query.domain && products.data.length > 0) {
+      if ((query.domain && products.data.length > 0)) {
         const decodedDomain = decodeURIComponent(query.domain);
         const foundProduct = products.data.find((dd: any) => {
           if (!query.language) return false;
@@ -772,7 +772,9 @@ export class Shopping {
 
         products.data = foundProduct || products.data[0];
       }
-
+      if ((query.id && products.data.length > 0)) {
+        products.data = products.data[0]
+      }
       if ((query.domain || query.id) && products.data !== undefined) {
         products.data.json_ld = await SeoConfig.getProductJsonLd(this.app, products.data.content);
       }
@@ -950,6 +952,7 @@ export class Shopping {
         await processProduct(products.data);
       }
 
+
       return products;
     } catch (e) {
       console.error(e);
@@ -1083,13 +1086,15 @@ export class Shopping {
     const offset = query.page * query.limit;
 
     let sql = `
-      SELECT * 
-      FROM \`${this.app}\`.t_manager_post
-      ${whereClause} 
-      ${orderClause}
+        SELECT *
+        FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}
     `;
 
-    const data = await db.query(`SELECT * FROM (${sql}) AS subquery LIMIT ?, ?`, [offset, Number(query.limit)]);
+    const data = await db.query(
+      `SELECT *
+       FROM (${sql}) AS subquery LIMIT ?, ?`,
+      [offset, Number(query.limit)]
+    );
     if (query.id) {
       return {
         data: data[0] || {},
@@ -1097,7 +1102,11 @@ export class Shopping {
       };
     } else {
       const total = await db
-        .query(`SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}`, [])
+        .query(
+          `SELECT COUNT(*) as count
+           FROM \`${this.app}\`.t_manager_post ${whereClause}`,
+          []
+        )
         .then((res: any) => res[0]?.count || 0);
 
       return {
@@ -1491,7 +1500,10 @@ export class Shopping {
       if (replace_order_id) {
         const orderData = (
           await db.query(
-            `SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ? AND status = 0;
+            `SELECT *
+             FROM \`${this.app}\`.t_checkout
+             WHERE cart_token = ?
+               AND status = 0;
             `,
             [replace_order_id]
           )
@@ -1503,7 +1515,10 @@ export class Shopping {
 
         // 刪除指定的訂單記錄
         await db.query(
-          `DELETE FROM \`${this.app}\`.t_checkout WHERE cart_token = ? AND status = 0;
+          `DELETE
+           FROM \`${this.app}\`.t_checkout
+           WHERE cart_token = ?
+             AND status = 0;
           `,
           [replace_order_id]
         );
@@ -1519,47 +1534,50 @@ export class Shopping {
         data.use_rebate = use_rebate;
       }
 
+      console.log(`data.order_id==>`, data.order_id);
+
       // 判斷是 POS 重新支付<例如:預購單>，則把原先商品庫存加回去
       if (data.order_id && type === 'POS') {
         const order = (
           await db.query(
-            `SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?
+            `SELECT *
+             FROM \`${this.app}\`.t_checkout
+             WHERE cart_token = ?
             `,
             [data.order_id]
           )
         )[0];
+        if (order) {
+          for (const b of order.orderData.lineItems) {
+            const pdDqlData = (
+              await this.getProduct({
+                page: 0,
+                limit: 50,
+                id: b.id,
+                status: 'inRange',
+                channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
+                whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
+              })
+            ).data;
 
-        if (!order) {
-          throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this POS order', null);
-        }
+            const pd = pdDqlData.content;
+            const variant = pd.variants.find((dd: any) => dd.spec.join('-') === b.spec.join('-'));
 
-        for (const b of order.orderData.lineItems) {
-          const pdDqlData = (
-            await this.getProduct({
-              page: 0,
-              limit: 50,
-              id: b.id,
-              status: 'inRange',
-              channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-              whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
-            })
-          ).data;
+            // 更新庫存
+            await updateStock(variant, b.deduction_log);
 
-          const pd = pdDqlData.content;
-          const variant = pd.variants.find((dd: any) => dd.spec.join('-') === b.spec.join('-'));
+            // 更新變體資訊
+            await this.updateVariantsWithSpec(variant, b.id, b.spec);
 
-          // 更新庫存
-          await updateStock(variant, b.deduction_log);
-
-          // 更新變體資訊
-          await this.updateVariantsWithSpec(variant, b.id, b.spec);
-
-          // 更新資料庫中的商品內容
-          await db.query(
-            `UPDATE \`${this.app}\`.t_manager_post SET content = ? WHERE id = ?
-            `,
-            [JSON.stringify(pd), pdDqlData.id]
-          );
+            // 更新資料庫中的商品內容
+            await db.query(
+              `UPDATE \`${this.app}\`.t_manager_post
+               SET content = ?
+               WHERE id = ?
+              `,
+              [JSON.stringify(pd), pdDqlData.id]
+            );
+          }
         }
       }
 
@@ -1870,6 +1888,9 @@ export class Shopping {
             stock = Number(prod.stock) || 0;
           }
 
+          if (stock === Infinity) {
+            show_understocking = false;
+          }
           return {
             sku: '',
             spec: [],
@@ -1880,6 +1901,7 @@ export class Shopping {
             sale_price: price,
             origin_price: 0,
             compare_price: 0,
+            preview_image: prod.preview_image && prod.preview_image[0],
             shipment_type: 'none',
             show_understocking: String(show_understocking), // 保持原本的 string 格式
           };
@@ -1890,24 +1912,26 @@ export class Shopping {
 
       data.line_items = await Promise.all(
         data.line_items.map(async item => {
-          const getProductArray = (
+          const getProductData = (
             await this.getProduct({
               page: 0,
               limit: 1,
-              id: item.id,
+              id: `${item.id}`,
               status: 'inRange',
               channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
               whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
               setUserID: `${userData?.userID || ''}`,
             })
           ).data;
-
+          console.log(`data.line_items`, getProductData);
           // 搜尋此商品資料並存在
-          if (getProductArray[0]) {
-            const getProductData = getProductArray[0];
+          if (getProductData) {
             const content = getProductData.content;
             const variant = getVariant(content, item);
-
+            console.log(`variant=>`, variant);
+            console.log(`Number.isInteger.variant=>`, Number.isInteger(variant.stock));
+            console.log(`show_understocking=>`, variant.show_understocking);
+            console.log(`Number.isIntegeritem.=>`, item.count);
             if (
               (Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
               Number.isInteger(item.count)
@@ -1973,8 +1997,7 @@ export class Shopping {
                     const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
                     const scheduledDataQuery = `
                         SELECT *
-                        FROM \`${this.app}\`.\`t_live_purchase_interactions\`
-                        ${sql});
+                        FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
                     `;
                     scheduledData = (await db.query(scheduledDataQuery, []))[0];
                     if (scheduledData) {
@@ -2032,10 +2055,9 @@ export class Shopping {
                             // 如果之前沒查詢過，才執行查詢 ，不這樣寫的話 -> 再按自動縮排時會自己打開
                             const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
                             const scheduledDataQuery = `
-                              SELECT *
-                              FROM \`${this.app}\`.\`t_live_purchase_interactions\`
-                              ${sql});
-                          `;
+                                SELECT *
+                                FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
+                            `;
                             scheduledData = (await db.query(scheduledDataQuery, []))[0];
                           }
                           // const scheduledData = (await db.query(scheduledDataQuery, []))[0];
@@ -2094,7 +2116,9 @@ export class Shopping {
 
                           // 更新資料庫
                           await db.query(
-                            `UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${getProductData.id}`,
+                            `UPDATE \`${this.app}\`.\`t_manager_post\`
+                             SET ?
+                             WHERE id = ${getProductData.id}`,
                             [{ content: JSON.stringify(content) }]
                           );
                         }
@@ -2143,22 +2167,22 @@ export class Shopping {
       if (hasMaxProduct && data.email !== 'no-email') {
         // 查詢歷史訂單 SQL
         const cartTokenSQL = `
-          SELECT cart_token 
-          FROM \`${this.app}\`.t_checkout 
-          WHERE email IN (${[-99, userData?.userData?.email, userData?.userData?.phone]
-            .filter(Boolean)
-            .map(item => db.escape(item))
-            .join(',')}) 
-          AND order_status <> '-1'
+            SELECT cart_token
+            FROM \`${this.app}\`.t_checkout
+            WHERE email IN (${[-99, userData?.userData?.email, userData?.userData?.phone]
+              .filter(Boolean)
+              .map(item => db.escape(item))
+              .join(',')})
+              AND order_status <> '-1'
         `;
 
         // 查詢商品購買紀錄
         const soldHistory = await db.query(
           `
-            SELECT * 
-            FROM \`${this.app}\`.t_products_sold_history 
-            WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
-              AND order_id IN (${cartTokenSQL})
+              SELECT *
+              FROM \`${this.app}\`.t_products_sold_history
+              WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
+                AND order_id IN (${cartTokenSQL})
           `,
           []
         );
@@ -2285,18 +2309,16 @@ export class Shopping {
           if (!giveawayData.add_on_products?.length) continue;
 
           const productPromises = giveawayData.add_on_products.map(async id => {
-            const getGiveawayData = (
-              (
-                await this.getProduct({
-                  page: 0,
-                  limit: 1,
-                  id: `${id}`,
-                  status: 'inRange',
-                  channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-                  whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
-                })
-              ).data[0] ?? { content: {} }
-            ).content;
+            const getGiveawayData =  (
+              await this.getProduct({
+                page: 0,
+                limit: 1,
+                id: `${id}`,
+                status: 'inRange',
+                channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
+                whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
+              })
+            ).data.content;
 
             getGiveawayData.voucher_id = giveawayData.id;
             return getGiveawayData;
@@ -3488,8 +3510,10 @@ export class Shopping {
         const prevStatus = origin.orderData.orderStatus;
         const prevProgress = origin.orderData.progress;
 
+        //變成已取消加回庫存
         if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
-          await this.restoreStock(origin.orderData.lineItems);
+          console.log(`reset-orders==>`)
+          await this.resetStore(origin.orderData.lineItems);
           await AutoSendEmail.customerOrder(
             this.app,
             'auto-email-order-cancel-success',
@@ -3497,7 +3521,11 @@ export class Shopping {
             orderData.email,
             orderData.language
           );
+          //變成處理或已完成扣庫存
+        }else if(prevStatus === '-1' && orderData.orderStatus !== '-1'){
+          await this.resetStore(origin.orderData.lineItems,'minus');
         }
+
 
         //當訂單多了出貨單號碼，新增出貨日期，反之清空出貨日期。
         if (update.orderData.user_info.shipment_number && !update.orderData.user_info.shipment_date) {
@@ -3593,7 +3621,6 @@ export class Shopping {
       throw exception.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
     }
   }
-
   private writeRecord(origin: any, update: any): void {
     const editArray: Array<{ time: string; record: string }> = [];
     const currentTime = new Date().toISOString();
@@ -3684,14 +3711,18 @@ export class Shopping {
     }
   }
 
-  private async restoreStock(lineItems: any[]) {
+  private async resetStore(lineItems: any[],plus_or_minus:'plus'|'minus'='plus') {
+
     const stockUpdates = lineItems.map(async item => {
       if (item.product_category === 'kitchen' && item.spec?.length) {
         return new Shopping(this.app, this.token).calcVariantsStock(item.count, '', item.id, item.spec);
       }
       return Promise.all(
         Object.entries(item.deduction_log).map(([location, count]) => {
-          const intCount = parseInt(`${count || 0}`, 10);
+          let intCount = parseInt(`${count || 0}`, 10);
+          if(plus_or_minus==='minus'){
+            intCount = intCount * -1
+          }
           return new Shopping(this.app, this.token).calcVariantsStock(intCount, location, item.id, item.spec);
         })
       );
@@ -3740,15 +3771,12 @@ export class Shopping {
         return new Shopping(this.app, this.token).calcVariantsStock(newItem.count, '', newItem.id, newItem.spec);
       }
 
-      return Promise.all(
-        Object.entries(newItem.deduction_log).map(([location, newCount]) => {
-          const originalCount = originalItem.deduction_log[location] || 0;
-          const parsedNewCount = Number(newCount || 0);
-          const delta = (isNaN(parsedNewCount) ? 0 : parsedNewCount) - originalCount;
-
-          return new Shopping(this.app, this.token).calcVariantsStock(delta * -1, location, newItem.id, newItem.spec);
-        })
-      );
+      for (const [location, newCount] of Object.entries(newItem.deduction_log)) {
+        const originalCount = originalItem.deduction_log[location] || 0;
+        const parsedNewCount = Number(newCount || 0);
+        const delta = (isNaN(parsedNewCount) ? 0 : parsedNewCount) - originalCount;
+        await new Shopping(this.app, this.token).calcVariantsStock(delta * -1, location, newItem.id, newItem.spec);
+      }
     });
     await Promise.all(stockAdjustments);
   }
@@ -3897,7 +3925,7 @@ export class Shopping {
             querySql.push(`(cart_token like '%${query.search}%')`);
             break;
           case 'shipment_number':
-            querySql.push(`(orderData->>'$.user_info.shipment_number' like '%${query.search}%')`);
+            querySql.push(`(shipment_number like '%${query.search}%')`);
             break;
           case 'name':
           case 'invoice_number':
@@ -4633,6 +4661,7 @@ export class Shopping {
       console.error('error -- ', e);
     }
   }
+
   async updateVariantsForScheduled(data: any, scheduled_id: string) {
     try {
       await db.query(
@@ -4650,6 +4679,7 @@ export class Shopping {
       console.error('error -- ', e);
     }
   }
+
   //更新庫存數量
   async calcVariantsStock(calc: number, stock_id: string, product_id: string, spec: string[]) {
     try {
@@ -4658,6 +4688,7 @@ export class Shopping {
           id: product_id,
           page: 0,
           limit: 1,
+          is_manger:true
         })
       ).data.content;
       const variant_s: any = pd_data.variants.find((dd: any) => {
@@ -4968,7 +4999,9 @@ export class Shopping {
       // 更新類別下商品
       for (const id of replace.product_id ?? []) {
         const get_product = await db.query(
-          `SELECT * FROM \`${this.app}\`.t_manager_post WHERE id = ?
+          `SELECT *
+           FROM \`${this.app}\`.t_manager_post
+           WHERE id = ?
           `,
           [id]
         );
@@ -5024,7 +5057,9 @@ export class Shopping {
 
       // 更新商品類別 config
       await db.execute(
-        `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+        `UPDATE \`${this.app}\`.public_config
+         SET value = ?
+         WHERE \`key\` = 'collection';
         `,
         [config.value]
       );
@@ -5259,6 +5294,7 @@ export class Shopping {
                 if (og_content.language_data && og_content.language_data[store_info.language_setting.def]) {
                   og_content.language_data[store_info.language_setting.def].seo = product.seo;
                   og_content.language_data[store_info.language_setting.def].title = product.title;
+                  og_content.language_data[store_info.language_setting.def].sub_title=product.sub_title;
                 }
 
                 product = {

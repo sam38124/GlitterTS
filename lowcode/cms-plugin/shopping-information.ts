@@ -167,7 +167,7 @@ export class ShoppingInformation {
           return html`
             <div style="color: #393939; font-size: 16px;">${title}</div>
             ${description
-              ? html`<div style="color: #8D8D8D; font-size: 13px; padding-right: 10px;">${description}</div>`
+              ? html` <div style="color: #8D8D8D; font-size: 13px; padding-right: 10px;">${description}</div>`
               : ''}
           `;
         }
@@ -176,7 +176,7 @@ export class ShoppingInformation {
           return createRow(
             title,
             description,
-            html`<div class="cursor_pointer form-check form-switch m-0 p-0" style="min-width: 50px;">
+            html` <div class="cursor_pointer form-check form-switch m-0 p-0" style="min-width: 50px;">
               <input
                 class="form-check-input m-0"
                 type="checkbox"
@@ -191,7 +191,7 @@ export class ShoppingInformation {
           return createRow(
             title,
             description,
-            html`<div class="d-flex align-items-center justify-content-center" style="min-width: 150px;">
+            html` <div class="d-flex align-items-center justify-content-center" style="min-width: 150px;">
               ${BgWidget.select({
                 gvc,
                 callback: text => {
@@ -237,10 +237,10 @@ export class ShoppingInformation {
                         key: 'progress',
                         name: '出貨狀況',
                         data: FilterOptions.progressOptions,
-                      }
+                      },
                     ];
 
-                    return html` ${BgWidget.grayNote('提示：勾選項目後，該項目將會作為訂單累積與分析數據的篩選條件')}
+                    return html`${BgWidget.grayNote('提示：勾選項目後，該項目將會作為訂單累積與分析數據的篩選條件')}
                       <div class="d-flex flex-column gap-1">
                         ${arr
                           .map(obj => {
@@ -302,7 +302,7 @@ export class ShoppingInformation {
                 bind: 'basic',
                 view: () => {
                   const createInput = (title: string, key: keyof typeof vm.data, placeHolder: string) => {
-                    return html`<div class="col-12 col-md-6">
+                    return html` <div class="col-12 col-md-6">
                       ${BgWidget.editeInput({
                         gvc,
                         title,
@@ -426,6 +426,74 @@ export class ShoppingInformation {
                     ),
                 };
               })}
+              <div style="margin-top: 24px;"></div>
+              ${BgWidget.card(
+                [
+                  html`<div class="d-flex align-items-center">
+                    <div class="d-flex flex-column">
+                      <div class="tx_normal fw-bold">301轉址</div>
+                      <div style="color: #8D8D8D; font-size: 13px; padding-right: 10px;">
+                        設定301轉址，搬移舊有網站項目
+                      </div>
+                    </div>
+                    <div class="flex-fill"></div>
+                    ${
+                      BgWidget.customButton({
+                        button: { color: 'snow', size: 'md' },
+                        text: { name: '新增' },
+                        event: gvc.event(() => {
+                          const plus_data={
+                            legacy_url:'',
+                            new_url:''
+                          }
+                          BgWidget.settingDialog({
+                            gvc,
+                            title:'新增網址',
+                            width: 600,
+                            innerHTML: gvc => {
+                              return [
+                                BgWidget.editeInput({
+                                  gvc:gvc,
+                                  title:'舊網址',
+                                  default:plus_data.legacy_url || '',
+                                  placeHolder:'請輸入舊網址',
+                                  callback:text => {
+                                    plus_data.legacy_url=text
+                                  }
+                                }),
+                                BgWidget.editeInput({
+                                  gvc:gvc,
+                                  title:'新網址',
+                                  default:plus_data.new_url || '',
+                                  placeHolder:'請輸入新網址',
+                                  callback:text => {
+                                    plus_data.new_url=text
+                                  }
+                                })
+                              ].join('')
+                            },
+                            footer_html: gvc => {
+                              return [
+                                BgWidget.cancel(
+                                  gvc.event(() => {
+                                    gvc.closeDialog();
+                                  })
+                                ),
+                                BgWidget.save(
+                                  gvc.event(async () => {
+                                    dialog.dataLoading({ visible: true });
+                                    gvc.closeDialog();
+                                  })
+                                ),
+                              ].join('');
+                            },
+                          });
+                        }),
+                      })
+                    }
+                  </div>`
+                ].join(`<div class="mt-2"></div>`)
+              )}
             `;
           },
           function: () => {
@@ -615,7 +683,7 @@ export class ShoppingInformation {
                 return {
                   bind: id,
                   view: () => {
-                    return html`<div class="d-flex flex-column gap-2">
+                    return html` <div class="d-flex flex-column gap-2">
                       ${[
                         createMultiLanguage(),
                         createSelect('商店貨幣', '統一設定商品幣別，前台將依據商品幣別進行換算顯示', 'currency_code'),
@@ -640,7 +708,7 @@ export class ShoppingInformation {
                 };
               })}
             `);
-          },
+          }
         };
 
         return BgWidget.container(html`
@@ -649,7 +717,7 @@ export class ShoppingInformation {
             [
               { title: '商店訊息', key: 'basic' },
               { title: '功能管理', key: 'function' },
-              { title: '跨境電商', key: 'global' },
+              { title: '跨境電商', key: 'global' }
             ],
             gvc,
             vm.type,
@@ -706,7 +774,7 @@ export class ShoppingInformation {
                 overflow-wrap: break-word;
               }
             `);
-            return html`<div class="gddoc-container">
+            return html` <div class="gddoc-container">
               <div class="tx_title text-center mb-4 fs-3">GoDaddy DNS 設定指南</div>
               <h4 class="gddoc-h4" class="gddoc-h4">步驟 1：登錄 GoDaddy 帳戶</h4>
               <ol>
@@ -811,7 +879,7 @@ export class ShoppingInformation {
                   bind: gvc.glitter.getUUID(),
                   view: () => {
                     return BgWidget.mainCard(
-                      html`<div class="d-flex flex-column">
+                      html` <div class="d-flex flex-column">
                         ${[
                           ...[
                             {
@@ -864,7 +932,7 @@ export class ShoppingInformation {
                                   bind: vm.id,
                                   view: () => {
                                     if (vm.loading) {
-                                      return html`<div class="w-100 d-flex align-items-center justify-content-center">
+                                      return html` <div class="w-100 d-flex align-items-center justify-content-center">
                                         ${BgWidget.spinner()}
                                       </div>`;
                                     }
@@ -918,7 +986,7 @@ export class ShoppingInformation {
                   },
                 };
               }),
-              html`<div style="margin-top: 300px;"></div>`,
+              html` <div style="margin-top: 300px;"></div>`,
             ].join('');
           },
         };

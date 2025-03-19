@@ -54,6 +54,7 @@ const ut_permission_js_1 = require("../utils/ut-permission.js");
 const share_permission_js_1 = require("./share-permission.js");
 const terms_check_js_1 = require("./terms-check.js");
 const app_js_2 = require("../../services/app.js");
+const user_update_js_1 = require("./user-update.js");
 class User {
     constructor(app, token) {
         this.normalMember = {
@@ -1018,7 +1019,7 @@ class User {
         return orderByMap[orderBy] || 'u.id DESC';
     }
     async getUserList(query) {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d;
         try {
             const querySql = ['1=1'];
             const noRegisterUsers = [];
@@ -1118,8 +1119,18 @@ class User {
                 const last_time = query.last_order_time.split(',');
                 if (last_time.length > 1) {
                     querySql.push(`
-                        (lo.last_order_time BETWEEN ${database_1.default.escape(`${last_time[0]} 00:00:00`)} 
-                        AND ${database_1.default.escape(`${last_time[1]} 23:59:59`)})
+                        (lo.last_order_time BETWEEN ${database_1.default.escape(`${last_time[0]}`)} 
+                        AND ${database_1.default.escape(`${last_time[1]}`)})
+                    `);
+                }
+            }
+            if (query.last_shipment_date) {
+                const last_time = query.last_shipment_date.split(',');
+                if (last_time.length > 1) {
+                    querySql.push(`
+((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.phone')  between ${database_1.default.escape(`${last_time[0]}`)} and ${database_1.default.escape(`${last_time[1]}`)})   
+or
+((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.email')  between ${database_1.default.escape(`${last_time[0]}`)} and ${database_1.default.escape(`${last_time[1]}`)})                    
                     `);
                 }
             }
@@ -1171,6 +1182,11 @@ class User {
                         querySql.push(`(o.order_count > ${arr[1]})`);
                     }
                 }
+            }
+            if (query.member_levels) {
+                querySql.push(`member_level in (${query.member_levels.split(',').map(level => {
+                    return database_1.default.escape(level);
+                }).join(',')})`);
             }
             if (query.search) {
                 const searchValue = `%${query.search}%`;
@@ -1233,20 +1249,33 @@ class User {
                       AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
                 `, []);
             for (const b of queryResult) {
-                const tagName = (_g = (_f = (_e = b === null || b === void 0 ? void 0 : b.value) === null || _e === void 0 ? void 0 : _e.value) === null || _f === void 0 ? void 0 : _f[0]) === null || _g === void 0 ? void 0 : _g.tag_name;
-                if (tagName) {
+                const tag = levels.find((dd) => {
+                    return `${dd.id}` === `${b.user_id}`;
+                });
+                if (tag && tag.data && tag.data.tag_name) {
                     const user = userMap.get(String(b.user_id));
                     if (user) {
-                        user.tag_name = tagName;
+                        user.tag_name = tag.data.tag_name;
                     }
                 }
             }
+            const orderCountingSQL = await this.getCheckoutCountingModeSQL();
             const processUserData = async (user) => {
                 var _a;
+                const phone = user.userData.phone || 'asnhsauh';
+                const email = user.userData.email || 'asnhsauh';
                 const _rebate = new rebate_js_1.Rebate(this.app);
                 const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
                 user.rebate = userRebate ? userRebate.point : 0;
                 user.member_deadline = (_a = levelMap.get(user.userID)) !== null && _a !== void 0 ? _a : '';
+                user.latest_order_date = (await database_1.default.query(`select created_time from \`${this.app}\`.t_checkout where email in ('${email}','${phone}') and ${orderCountingSQL} order by created_time desc limit 0,1`, []))[0];
+                user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
+                user.latest_order_total = (await database_1.default.query(`select total from \`${this.app}\`.t_checkout where email in ('${email}','${phone}') and ${orderCountingSQL} order by created_time desc limit 0,1`, []))[0];
+                user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
+                user.checkout_total = (await database_1.default.query(`select sum(total) from \`${this.app}\`.t_checkout where email in ('${email}','${phone}') and ${orderCountingSQL} `, []))[0];
+                user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
+                user.checkout_count = (await database_1.default.query(`select count(1) from \`${this.app}\`.t_checkout where email in ('${email}','${phone}') and ${orderCountingSQL} `, []))[0];
+                user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
             };
             if (Array.isArray(userData) && userData.length > 0) {
                 const chunkSize = 20;
@@ -1660,11 +1689,13 @@ class User {
             if (!par.account) {
                 delete par.account;
             }
-            return {
-                data: (await database_1.default.query(`update \`${this.app}\`.t_user
+            const data = (await database_1.default.query(`update \`${this.app}\`.t_user
                      SET ?
                      WHERE 1 = 1
-                       and userID = ?`, [par, userID])),
+                       and userID = ?`, [par, userID]));
+            await user_update_js_1.UserUpdate.update(this.app, userID);
+            return {
+                data: data,
             };
         }
         catch (e) {

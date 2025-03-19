@@ -720,6 +720,12 @@ export class ShoppingOrderManager {
                                         name: '取消配號/出貨',
                                         option: true,
                                         event: (checkArray) => __awaiter(this, void 0, void 0, function* () {
+                                            if (checkArray.find((dd) => dd.progress !== 'wait')) {
+                                                dialog.errorMessage({
+                                                    text: '未出貨訂單才能取消配號與出貨'
+                                                });
+                                                return;
+                                            }
                                             dialog.dataLoading({ visible: true });
                                             yield Promise.all(checkArray.map((orderData) => {
                                                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -774,13 +780,6 @@ export class ShoppingOrderManager {
                                                 cart_token: checkArray.map((dd) => dd.cart_token).join(','),
                                                 print: true,
                                             });
-                                        },
-                                    },
-                                    {
-                                        name: '列印揀貨單',
-                                        option: true,
-                                        event: (checkArray) => {
-                                            DeliveryHTML.print(gvc, checkArray, 'pick');
                                         },
                                     },
                                     {

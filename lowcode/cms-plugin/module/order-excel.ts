@@ -427,11 +427,13 @@ export class OrderExcel {
                 return;
               }
 
+
               const dataMap: Record<Range, any> = {
                 search: apiJSON,
                 checked: {
                   ...apiJSON,
                   id_list: dataArray.map(data => data.id).join(','),
+                  searchType:'id'
                 },
                 all: {
                   is_reconciliation: apiJSON.is_reconciliation,

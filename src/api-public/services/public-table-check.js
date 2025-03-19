@@ -263,7 +263,7 @@ class ApiPublic {
                 {
                     scheme: appName,
                     table: 't_user',
-                    sql: ` (
+                    sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`userID\` int NOT NULL,
   \`account\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -275,13 +275,15 @@ class ApiPublic {
   \`status\` int NOT NULL DEFAULT '1',
   \`online_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`static_info\` json DEFAULT NULL,
+  \`member_level\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (\`id\`,\`userID\`,\`account\`),
   UNIQUE KEY \`account_UNIQUE\` (\`account\`),
   UNIQUE KEY \`userID_UNIQUE\` (\`userID\`),
   KEY \`index5\` (\`company\`),
   KEY \`index6\` (\`role\`),
-  KEY \`index4\` (\`status\`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  KEY \`index4\` (\`status\`),
+  KEY \`index7\` (\`member_level\`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.2'`,
                 },
                 {
                     scheme: appName,

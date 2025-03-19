@@ -357,7 +357,7 @@ export class ProductsPage {
                                                                 }
                                                                 return '非展會銷售規格';
                                                             }
-                                                            if (selectVariant.show_understocking && selectVariant.stock === 0) {
+                                                            if (selectVariant.show_understocking && selectVariant.stock <= 0) {
                                                                 return '預購商品';
                                                             }
                                                             return '加入購物車';
@@ -370,7 +370,7 @@ export class ProductsPage {
                                                                         !selectVariant.exhibition_type) {
                                                                         return 'gray';
                                                                     }
-                                                                    return selectVariant.show_understocking && selectVariant.stock === 0
+                                                                    return selectVariant.show_understocking && selectVariant.stock <= 0
                                                                         ? `#FF6C02`
                                                                         : `#393939`;
                                                                 })()};min-height: 58px;`,
@@ -565,11 +565,13 @@ export class ProductsPage {
                         .map((item, index) => {
                         return html `
                                                 ${index > 0 ? `<div style="background-color: #DDD;height:1px;width: 100%;"></div>` : ''}
-                                                <div class="d-flex align-items-center" style="height: 87px;">
+                                                <div class="d-flex align-items-center" style="min-height: 87px;">
                                                     <div
                                                         class="rounded-3"
                                                         style="background: 50%/cover url('${item.preview_image ||
-                            'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}');height: 67px;width: 66px;margin-right: 12px;"
+                            'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}');height: 67px;width: 66px;margin-right: 12px;
+min-height: 67px;min-width: 66px;
+"
                                                     ></div>
                                                     <div class="d-flex flex-column flex-fill">
                                                         <div>${item.title}</div>

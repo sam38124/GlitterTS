@@ -12,6 +12,7 @@ import { InitialFakeData } from './initial-fake-data.js';
 import { LineMessage } from './line-message';
 import { ApiPublic } from './public-table-check.js';
 import { App } from '../../services/app.js';
+import { UserUpdate } from './user-update.js';
 
 type ScheduleItem = {
     second: number;
@@ -118,6 +119,7 @@ export class Schedule {
                         const users = await db.query(`select * from \`${app}\`.t_user  `, []);
                         for (const user of users) {
                             await new User(app).checkMember(user, true);
+                            await UserUpdate.update(app,user.userID)
                         }
                     }
                     console.log(`renewMemberLevel-finish->`,app)

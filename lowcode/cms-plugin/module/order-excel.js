@@ -307,7 +307,7 @@ export class OrderExcel {
                         }
                         const dataMap = {
                             search: apiJSON,
-                            checked: Object.assign(Object.assign({}, apiJSON), { id_list: dataArray.map(data => data.id).join(',') }),
+                            checked: Object.assign(Object.assign({}, apiJSON), { id_list: dataArray.map(data => data.id).join(','), searchType: 'id' }),
                             all: {
                                 is_reconciliation: apiJSON.is_reconciliation,
                                 is_shipment: apiJSON.is_shipment,

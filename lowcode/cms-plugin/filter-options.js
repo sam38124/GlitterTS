@@ -25,6 +25,7 @@ export class FilterOptions {
                     }
                 });
             });
+            const levelData = (yield ApiUser.getPublicConfig('member_level_config', 'manager')).response.value.levels;
             return [
                 {
                     key: 'created_time',
@@ -62,6 +63,14 @@ export class FilterOptions {
                     type: 'multi_checkbox',
                     name: '顧客標籤',
                     data: generalTags,
+                },
+                {
+                    key: 'member_levels',
+                    type: 'multi_checkbox',
+                    name: '會員等級',
+                    data: levelData.map((dd) => {
+                        return { key: dd.id, name: dd.tag_name };
+                    }),
                 },
                 {
                     key: 'rebate',
@@ -110,6 +119,18 @@ export class FilterOptions {
                         { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
                         { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
                     ],
+                },
+                {
+                    key: 'last_shipment_date',
+                    type: 'during',
+                    name: '最後出貨日期',
+                    data: {
+                        centerText: '至',
+                        list: [
+                            { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
+                            { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
+                        ],
+                    },
                 },
             ];
         });
@@ -226,10 +247,12 @@ FilterOptions.userFilterFrame = {
     created_time: ['', ''],
     birth: [],
     tags: [],
+    member_levels: [],
     rebate: { key: '', value: '' },
     total_amount: { key: '', value: '' },
     total_count: { key: '', value: '' },
     last_order_time: ['', ''],
+    last_shipment_date: ['', ''],
     last_order_total: { key: '', value: '' },
 };
 FilterOptions.userOrderBy = [

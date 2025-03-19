@@ -1041,9 +1041,19 @@ export class ShoppingProductSetting {
                           ${(() => {
                     const ba = [];
                     if (window.parent.glitter.share.PayConfig.deviceType === 'pos') {
-                        ba.push(BgWidget.grayButton('條碼列印', gvc.event(() => {
-                            IminModule.printCode(`variants-` + variant.barcode);
-                        }), { icon: `fa-solid fa-rectangle-barcode` }));
+                        if (window.parent.glitter.share.PayConfig.posType === 'SUNMI') {
+                            ba.push(BgWidget.grayButton('ㄧ條碼列印', gvc.event(() => {
+                                IminModule.printCodeSumi(`variants-` + variant.barcode);
+                            }), { icon: `fa-solid fa-rectangle-barcode` }));
+                            ba.push(BgWidget.grayButton('QRCODE列印', gvc.event(() => {
+                                IminModule.printQrCodeSumi(`variants-` + variant.barcode);
+                            }), { icon: `fa-solid fa-qrcode` }));
+                        }
+                        else {
+                            ba.push(BgWidget.grayButton('條碼列印', gvc.event(() => {
+                                IminModule.printCode(`variants-` + variant.barcode);
+                            }), { icon: `fa-solid fa-rectangle-barcode` }));
+                        }
                     }
                     ba.push(BgWidget.grayButton('商品條碼', gvc.event(() => {
                         const dialog = new ShareDialog(gvc.glitter);

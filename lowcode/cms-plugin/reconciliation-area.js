@@ -790,7 +790,7 @@ ${[
                                                                         title: '',
                                                                         default: '',
                                                                         type: 'number',
-                                                                        placeHolder: '留白自動填0',
+                                                                        placeHolder: '',
                                                                         callback: text => {
                                                                             put_recon.total_received = parseInt(text, 10);
                                                                         },

@@ -4,6 +4,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { Variant } from '../../public-models/product.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
+import { Language } from '../../glitter-base/global/language.js';
 
 const html = String.raw;
 
@@ -42,6 +43,7 @@ export interface RowInitData {
   stock: string;
   save_stock: string;
   barcode: string;
+  sub_title:string;
 }
 
 export interface RowInitKitchen {
@@ -289,6 +291,7 @@ export class ProductExcel {
       '庫存數量',
       '安全庫存數量',
       '商品條碼',
+      '商品簡述'
     ];
   }
 
@@ -314,6 +317,7 @@ export class ProductExcel {
       '重量單位',
       '庫存政策',
       '庫存數量',
+      '商品簡述'
     ];
   }
 
@@ -702,6 +706,7 @@ export class ProductExcel {
           stock: expo.checkNumber(productData.content.variants[index]?.stock),
           save_stock: expo.checkNumber(productData.content.variants[index]?.save_stock),
           barcode: expo.checkString(productData.content.variants[index]?.barcode),
+          sub_title:expo.checkString(productData.content.language_data[Language.getLanguage()].sub_title as string),
         });
 
         const getShipmentType = (type: string) => {
@@ -1382,6 +1387,7 @@ export class ProductExcel {
               variantData.stock = this.checkNumber(row[26]);
               variantData.save_stock = this.checkNumber(row[27]);
               variantData.barcode = this.checkString(row[28]);
+              productData.sub_title = this.checkString(row[29]);
               productData.variants.push(JSON.parse(JSON.stringify(variantData)));
             }
           }

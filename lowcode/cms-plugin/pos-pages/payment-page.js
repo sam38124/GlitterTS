@@ -169,10 +169,12 @@ export class PaymentPage {
                                                                         <div class="d-flex flex-column align-items-center justify-content-center" style="gap:5px;width:75px;">
                                                                             <div style="height: 20px;"></div>
                                                                             <div
-                                                                                style="width: 54px;height: 54px;border-radius: 5px;background: 50%/cover url('${data.preview_image ||
+                                                                                style="width: 70px;height: 70px;
+                                                                                min-width: 70px;min-height: 70px;
+                                                                                border-radius: 5px;background: 50%/cover url('${data.preview_image ||
                                         'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}')"
                                                                             ></div>
-                                                                            <div style="font-size: 14px;height: 20px;" class="fw-500 ${data.pre_order ? `text-danger` : ``}">
+                                                                            <div style="font-size: 13px;height: 20px;" class="fw-500 ${data.pre_order ? `text-danger` : ``}">
                                                                                 庫存:${(() => {
                                         if (`${data.show_understocking}` === 'false') {
                                             return `不追蹤`;
@@ -184,18 +186,19 @@ export class PaymentPage {
                                                                             </div>
                                                                         </div>
                                                                         <div
-                                                                            class="d-flex flex-column"
+                                                                            class="d-flex flex-column py-2"
                                                                             style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;"
                                                                         >
-                                                                            <div class="d-flex align-items-center" style="gap:10px;">
-                                                                                ${data.title}${(() => {
+                                                                            <div class="d-flex justify-content-center flex-column" style="gap:5px;">
+                                                                                ${(() => {
                                         if (!data.pre_order) {
                                             return ``;
                                         }
                                         else {
-                                            return BgWidget.dangerInsignia('需預購');
+                                            return `<div>${BgWidget.dangerInsignia('需預購')}</div>`;
                                         }
                                     })()}
+                                                                                ${data.title}
                                                                             </div>
                                                                             <span
                                                                                 style="color: #949494;

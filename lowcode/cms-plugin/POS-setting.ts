@@ -763,7 +763,7 @@ cursor: pointer;
                                     } else {
                                         return {
                                             class: `d-flex nav-left flex-column`,
-                                            style: `height: 100%;gap:24px;padding-top:114px;position:fixed;left:0px;top:0px;background: #FFF;box-shadow: 1px 0px 10px 0px rgba(0, 0, 0, 0.05);z-index:10;`,
+                                            style: `height: 100%;gap:24px;padding-top:114px;position:fixed;left:0px;top:0px;background: #FFF;box-shadow: 1px 0px 10px 0px rgba(0, 0, 0, 0.05);z-index:15;`,
                                         };
                                     }
                                 },

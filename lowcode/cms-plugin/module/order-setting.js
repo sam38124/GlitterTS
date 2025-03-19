@@ -230,20 +230,22 @@ export class OrderSetting {
                         return gvc.bindView({
                             bind: id,
                             view: () => {
-                                return postMD
-                                    .map((item) => {
-                                    if (item.deduction_log && Object.keys(item.deduction_log).length === 0) {
-                                        return;
-                                    }
-                                    return html `
-                            <div class="d-flex align-items-center" style="gap:44px;">
+                                console.log(`postMD==>`, postMD);
+                                try {
+                                    return postMD
+                                        .map((item) => {
+                                        if (!item.deduction_log || Object.keys(item.deduction_log).length === 0) {
+                                            return ``;
+                                        }
+                                        return html `
+                            <div class="d-inline-flex align-items-center" style="gap:44px;">
                               <div
                                 class="d-flex align-items-center flex-shrink-0"
                                 style="width: ${titleLength}px;gap: 12px"
                               >
                                 <img style="height: 54px;width: 54px;border-radius: 5px;" src="${item.preview_image}" />
                                 <div class="d-flex flex-column" style="font-size: 16px;">
-                                  <div>${item.title}</div>
+                                  <div style="max-width: calc(${titleLength} - 100px);white-space: normal;word-break: break-all;">${item.title}</div>
                                   <div style="color: #8D8D8D;font-size: 14px;">
                                     ${item.spec.length == 0 ? `單一規格` : item.spec.join(`,`)}
                                   </div>
@@ -257,17 +259,20 @@ export class OrderSetting {
                                 ${item.count}
                               </div>
                               ${stockList
-                                        .flatMap((stock) => {
-                                        var _a, _b, _c, _d, _e;
-                                        const limit = (_c = (_b = (_a = item.stockList) === null || _a === void 0 ? void 0 : _a[stock.id]) === null || _b === void 0 ? void 0 : _b.count) !== null && _c !== void 0 ? _c : 0;
-                                        return [
-                                            html ` <div
+                                            .flatMap((stock) => {
+                                            var _a, _b, _c, _d, _e;
+                                            if (!item.deduction_log) {
+                                                return ``;
+                                            }
+                                            const limit = (_c = (_b = (_a = item.stockList) === null || _a === void 0 ? void 0 : _a[stock.id]) === null || _b === void 0 ? void 0 : _b.count) !== null && _c !== void 0 ? _c : 0;
+                                            return [
+                                                html ` <div
                                       class="d-flex align-items-center justify-content-end flex-shrink-0"
                                       style="width: ${elementLength}px;gap: 12px;"
                                     >
                                       ${parseInt(limit)}
                                     </div>`,
-                                            html ` <div
+                                                html ` <div
                                       class="d-flex align-items-center justify-content-end flex-shrink-0"
                                       style="width: ${elementLength}px;gap: 12px"
                                     >
@@ -279,30 +284,38 @@ export class OrderSetting {
                                         value="${(_e = item.deduction_log[stock.id]) !== null && _e !== void 0 ? _e : 0}"
                                         type="number"
                                         onchange="${gvc.event((e) => {
-                                                var _a;
-                                                const originalDeduction = (_a = item.deduction_log[stock.id]) !== null && _a !== void 0 ? _a : 0;
-                                                item.deduction_log[stock.id] = 0;
-                                                const totalDeducted = Object.values(item.deduction_log).reduce((total, deduction) => total + deduction, 0);
-                                                const remainingStock = item.count - totalDeducted;
-                                                const newDeduction = Math.min(parseInt(e.value), remainingStock);
-                                                item.deduction_log[stock.id] = newDeduction;
-                                                if (originalDeduction !== newDeduction) {
-                                                    const stockDiff = newDeduction - originalDeduction;
-                                                    item.stockList[stock.id].count -= stockDiff;
-                                                }
-                                                gvc.notifyDataChange(id);
-                                            })}"
+                                                    var _a;
+                                                    const originalDeduction = (_a = item.deduction_log[stock.id]) !== null && _a !== void 0 ? _a : 0;
+                                                    item.deduction_log[stock.id] = 0;
+                                                    const totalDeducted = Object.values(item.deduction_log).reduce((total, deduction) => total + deduction, 0);
+                                                    const remainingStock = item.count - totalDeducted;
+                                                    const newDeduction = Math.min(parseInt(e.value), remainingStock);
+                                                    item.deduction_log[stock.id] = newDeduction;
+                                                    if (originalDeduction !== newDeduction) {
+                                                        const stockDiff = newDeduction - originalDeduction;
+                                                        item.stockList[stock.id].count -= stockDiff;
+                                                    }
+                                                    gvc.notifyDataChange(id);
+                                                })}"
                                       />
                                     </div>`,
-                                        ];
-                                    })
-                                        .join('')}
+                                            ];
+                                        })
+                                            .join('')}
                             </div>
                           `;
-                                })
-                                    .join('');
+                                    }).filter((item) => {
+                                        return item;
+                                    }).map((dd, index) => {
+                                        return `<div class="${index ? `border-top pt-2` : ` pb-2`}">${dd}</div>`;
+                                    })
+                                        .join(``);
+                                }
+                                catch (e) {
+                                    console.log(e);
+                                }
                             },
-                            divCreate: { class: 'd-flex flex-column', style: 'margin-bottom:80px;gap:12px;' },
+                            divCreate: { class: 'd-inline-flex flex-column ', style: 'margin-bottom:80px;gap:12px;' },
                         });
                     })()}
               </div>
@@ -318,6 +331,9 @@ export class OrderSetting {
                         var _a;
                         const errorProducts = [];
                         const hasError = postMD.some((product) => {
+                            if (!product.deduction_log) {
+                                return false;
+                            }
                             const totalDeduction = Object.values(product.deduction_log).reduce((sum, value) => sum + value, 0);
                             if (Object.keys(product.deduction_log).length && totalDeduction !== product.count) {
                                 errorProducts.push(`${product.title} - ${product.spec.join(',')}`);

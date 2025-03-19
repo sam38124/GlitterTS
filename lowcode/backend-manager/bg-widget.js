@@ -4566,12 +4566,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
 BgWidget.dotlottieJS = 'https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs';
 BgWidget.getContainerWidth = (obj) => {
     const clientWidth = document.body.clientWidth;
-    const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.79;
+    const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.95;
     const rateForPad = obj && obj.rate && obj.rate.pad ? obj.rate.pad : 0.92;
     const rateForPhone = obj && obj.rate && obj.rate.phone ? obj.rate.phone : 0.95;
     const width = (() => {
         if (clientWidth >= 1440) {
-            return 1440 * rateForWeb;
+            return clientWidth * rateForWeb;
         }
         if (clientWidth >= 1200) {
             return 1200 * rateForWeb;

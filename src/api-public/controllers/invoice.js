@@ -8,6 +8,7 @@ const invoice_1 = require("../services/ezpay/invoice");
 const app_1 = __importDefault(require("../../app"));
 const invoice_js_1 = require("../services/invoice.js");
 const ut_permission_1 = require("../utils/ut-permission");
+const EcInvoice_js_1 = require("../services/EcInvoice.js");
 const router = express_1.default.Router();
 router.post('/', async (req, resp) => {
     try {
@@ -28,6 +29,23 @@ router.post('/', async (req, resp) => {
             case "green":
                 return response_1.default.succ(resp, { result: false, message: "尚未支援" });
         }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/print', async (req, resp) => {
+    try {
+        const config = await app_1.default.getAdConfig(req.get('g-app'), 'invoice_setting');
+        console.log(`req.body.order_id=>`, req.body.order_id);
+        return response_1.default.succ(resp, await EcInvoice_js_1.EcInvoice.printInvoice({
+            hashKey: config.hashkey,
+            hash_IV: config.hashiv,
+            merchNO: config.merchNO,
+            app_name: req.get('g-app'),
+            order_id: req.body.order_id,
+            beta: config.point === 'beta'
+        }));
     }
     catch (err) {
         return response_1.default.fail(resp, err);
