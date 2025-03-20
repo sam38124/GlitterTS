@@ -382,7 +382,7 @@ export class ShoppingInformation {
                                 event: gvc.event(() => {
                                     const plus_data = {
                                         legacy_url: '',
-                                        new_url: ''
+                                        new_url: '',
                                     };
                                     BgWidget.settingDialog({
                                         gvc,
@@ -397,7 +397,7 @@ export class ShoppingInformation {
                                                     placeHolder: '請輸入舊網址',
                                                     callback: text => {
                                                         plus_data.legacy_url = text;
-                                                    }
+                                                    },
                                                 }),
                                                 BgWidget.editeInput({
                                                     gvc: gvc,
@@ -406,8 +406,8 @@ export class ShoppingInformation {
                                                     placeHolder: '請輸入新網址',
                                                     callback: text => {
                                                         plus_data.new_url = text;
-                                                    }
-                                                })
+                                                    },
+                                                }),
                                             ].join('');
                                         },
                                         footer_html: gvc => {
@@ -424,7 +424,7 @@ export class ShoppingInformation {
                                     });
                                 }),
                             })}
-                  </div>`
+                  </div>`,
                         ].join(`<div class="mt-2"></div>`))}
             `;
                     },
@@ -454,6 +454,7 @@ export class ShoppingInformation {
                 ${createToggle('啟用心願單功能', '方便客戶收藏並管理喜愛的商品清單，隨時查看心儀商品，提升購物體驗與轉換率', 'wishlist')}
                 ${createToggle('啟用顧客評論功能', '顧客可以對您的商品進行評論', 'customer_comment')}
                 ${createToggle('啟用 Cookie 聲明', '如需使用廣告追蹤行為，必須啟用 Cookie 聲明，才可發送廣告', 'cookie_check')}
+                ${createToggle('顯示商品剩餘庫存', '啟用此功能，顧客會在商品頁面看到此商品剩餘的庫存數', 'stock_view')}
                 ${createCheckoutModeDialog('訂單結算模式', '設定訂單結算模式，可調整顧客累積消費金額、會員等級、數據分析的統計機制')}
               </div>
             `);
@@ -599,14 +600,14 @@ export class ShoppingInformation {
                             };
                         })}
             `);
-                    }
+                    },
                 };
                 return BgWidget.container(html `
           <div class="title-container">${BgWidget.title('全站設定')}</div>
           ${BgWidget.tab([
                     { title: '商店訊息', key: 'basic' },
                     { title: '功能管理', key: 'function' },
-                    { title: '跨境電商', key: 'global' }
+                    { title: '跨境電商', key: 'global' },
                 ], gvc, vm.type, text => {
                     vm.type = text;
                 })}

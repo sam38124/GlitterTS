@@ -2293,7 +2293,6 @@ ${obj.default ?? ''}</textarea
     const rateForPad = obj && obj.rate && obj.rate.pad ? obj.rate.pad : 0.92;
     const rateForPhone = obj && obj.rate && obj.rate.phone ? obj.rate.phone : 0.95;
     const width = (() => {
-
       if (clientWidth >= 1440) {
         return clientWidth * rateForWeb;
       }
@@ -4641,32 +4640,32 @@ ${obj.default ?? ''}</textarea
   static getCheckedClass(gvc: GVC, color?: string) {
     const className = 'checked-image';
     gvc.addStyle(`
-            .${className} {
-                min-width: 1.25rem;
-                min-height: 1.25rem;
-            }
-            .${className}:checked[type='checkbox'] {
-                border: 2px solid ${color ?? '#000'};
-                background-color: #fff;
-                background-image: url(${this.checkedDataImage(color ?? '#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.25rem;
+        min-height: 1.25rem;
+      }
+      .${className}:checked[type='checkbox'] {
+        border: 2px solid ${color ?? '#000'};
+        background-color: #fff;
+        background-image: url(${this.checkedDataImage(color ?? '#000')});
+        background-position: center center;
+      }
+    `);
     return className;
   }
 
   static getSquareClass(gvc: GVC, color?: string) {
     const className = 'square-image';
     gvc.addStyle(`
-            .${className} {
-                min-width: 1.25rem;
-                min-height: 1.25rem;
-                border: 0;
-                background-color: #fff;
-                background-image: url(${this.squareDataImage(color ?? '#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.25rem;
+        min-height: 1.25rem;
+        border: 0;
+        background-color: #fff;
+        background-image: url(${this.squareDataImage(color ?? '#000')});
+        background-position: center center;
+      }
+    `);
     return className;
   }
 
@@ -5095,8 +5094,8 @@ ${obj.default ?? ''}</textarea
                   BgWidget.fullDialog({
                     gvc: gvc,
                     title: gvc2 => {
-                      return `<div class="d-flex align-items-center" style="gap:10px;">${
-                        obj.title +
+                      return html`<div class="d-flex align-items-center" style="gap:10px;">
+                        ${obj.title +
                         BgWidget.aiChatButton({
                           gvc: gvc2,
                           select: 'writer',
@@ -5107,8 +5106,8 @@ ${obj.default ?? ''}</textarea
                               gvc2.recreateView();
                             });
                           },
-                        })
-                      }</div>`;
+                        })}
+                      </div>`;
                     },
                     innerHTML: gvc2 => {
                       return html` <div>
@@ -5129,7 +5128,7 @@ ${obj.default ?? ''}</textarea
                                 if (urlArray.length > 0) {
                                   const imgHTML = urlArray
                                     .map(url => {
-                                      return html`<img src="${url.data}" class="p-0 my-0" /></img>`;
+                                      return html`<img src="${url.data}" class="p-0 my-0" />`;
                                     })
                                     .join('');
                                   editor.html.set(

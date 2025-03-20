@@ -437,61 +437,59 @@ export class ShoppingInformation {
                       </div>
                     </div>
                     <div class="flex-fill"></div>
-                    ${
-                      BgWidget.customButton({
-                        button: { color: 'snow', size: 'md' },
-                        text: { name: '新增' },
-                        event: gvc.event(() => {
-                          const plus_data={
-                            legacy_url:'',
-                            new_url:''
-                          }
-                          BgWidget.settingDialog({
-                            gvc,
-                            title:'新增網址',
-                            width: 600,
-                            innerHTML: gvc => {
-                              return [
-                                BgWidget.editeInput({
-                                  gvc:gvc,
-                                  title:'舊網址',
-                                  default:plus_data.legacy_url || '',
-                                  placeHolder:'請輸入舊網址',
-                                  callback:text => {
-                                    plus_data.legacy_url=text
-                                  }
-                                }),
-                                BgWidget.editeInput({
-                                  gvc:gvc,
-                                  title:'新網址',
-                                  default:plus_data.new_url || '',
-                                  placeHolder:'請輸入新網址',
-                                  callback:text => {
-                                    plus_data.new_url=text
-                                  }
+                    ${BgWidget.customButton({
+                      button: { color: 'snow', size: 'md' },
+                      text: { name: '新增' },
+                      event: gvc.event(() => {
+                        const plus_data = {
+                          legacy_url: '',
+                          new_url: '',
+                        };
+                        BgWidget.settingDialog({
+                          gvc,
+                          title: '新增網址',
+                          width: 600,
+                          innerHTML: gvc => {
+                            return [
+                              BgWidget.editeInput({
+                                gvc: gvc,
+                                title: '舊網址',
+                                default: plus_data.legacy_url || '',
+                                placeHolder: '請輸入舊網址',
+                                callback: text => {
+                                  plus_data.legacy_url = text;
+                                },
+                              }),
+                              BgWidget.editeInput({
+                                gvc: gvc,
+                                title: '新網址',
+                                default: plus_data.new_url || '',
+                                placeHolder: '請輸入新網址',
+                                callback: text => {
+                                  plus_data.new_url = text;
+                                },
+                              }),
+                            ].join('');
+                          },
+                          footer_html: gvc => {
+                            return [
+                              BgWidget.cancel(
+                                gvc.event(() => {
+                                  gvc.closeDialog();
                                 })
-                              ].join('')
-                            },
-                            footer_html: gvc => {
-                              return [
-                                BgWidget.cancel(
-                                  gvc.event(() => {
-                                    gvc.closeDialog();
-                                  })
-                                ),
-                                BgWidget.save(
-                                  gvc.event(async () => {
-                                    dialog.dataLoading({ visible: true });
-                                    gvc.closeDialog();
-                                  })
-                                ),
-                              ].join('');
-                            },
-                          });
-                        }),
-                      })
-                    }
-                  </div>`
+                              ),
+                              BgWidget.save(
+                                gvc.event(async () => {
+                                  dialog.dataLoading({ visible: true });
+                                  gvc.closeDialog();
+                                })
+                              ),
+                            ].join('');
+                          },
+                        });
+                      }),
+                    })}
+                  </div>`,
                 ].join(`<div class="mt-2"></div>`)
               )}
             `;
@@ -534,6 +532,7 @@ export class ShoppingInformation {
                   '如需使用廣告追蹤行為，必須啟用 Cookie 聲明，才可發送廣告',
                   'cookie_check'
                 )}
+                ${createToggle('顯示商品剩餘庫存', '啟用此功能，顧客會在商品頁面看到此商品剩餘的庫存數', 'stock_view')}
                 ${createCheckoutModeDialog(
                   '訂單結算模式',
                   '設定訂單結算模式，可調整顧客累積消費金額、會員等級、數據分析的統計機制'
@@ -708,7 +707,7 @@ export class ShoppingInformation {
                 };
               })}
             `);
-          }
+          },
         };
 
         return BgWidget.container(html`
@@ -717,7 +716,7 @@ export class ShoppingInformation {
             [
               { title: '商店訊息', key: 'basic' },
               { title: '功能管理', key: 'function' },
-              { title: '跨境電商', key: 'global' }
+              { title: '跨境電商', key: 'global' },
             ],
             gvc,
             vm.type,
