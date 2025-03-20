@@ -142,30 +142,36 @@ export class DeliveryHTML {
                     ${styles}
                   </head>
                   <style>
-                    /* 設定列印樣式 */
                     @media print {
-                      /* 設定列印紙張大小 */
+                      /* 確保紙張與內容大小一致 */
                       @page {
-                        size: A4; /* 指定 A4 紙張大小 */
-                        margin: 10mm; /* 自訂邊距 */
+                        size: A4 portrait; /* 固定 A4 尺寸 */
+                        margin: 4mm; /* 避免邊距影響 */
                       }
 
-                      /* 確保內容分頁 */
+                      /* 讓 HTML 與 BODY 無任何邊距 */
                       html,
                       body {
                         width: 210mm; /* A4 寬度 */
                         height: 297mm; /* A4 高度 */
                         margin: 0;
                         padding: 0;
+                        border: 0;
                         font-family: Arial, sans-serif;
                       }
 
-                      .${prefix}-page {
-                        page-break-after: always; /* 每頁結尾強制換頁 */
+                      /* 確保內容從最左上角開始 */
+                      body {
+                        position: static !important; /* 避免元素偏移 */
+                        margin: 0 !important;
+                        padding: 0 !important;
                       }
 
-                      .${prefix}-page:last-child {
-                        page-break-after: auto; /* 最後一頁不強制換頁 */
+                      /* 確保每頁內容從新的一頁開始 */
+                      .${prefix}-page {
+                        page-break-after: always; /* 每頁結尾強制換頁 */
+                        page-break-before: auto;
+                        page-break-inside: avoid; /* 避免內容拆開 */
                       }
                     }
                   </style>
@@ -178,7 +184,7 @@ export class DeliveryHTML {
               printWindow.document.close();
 
               // 啟動列印功能
-              printWindow.print();
+              setTimeout(() => printWindow.print(), 200);
 
               // 選擇性：列印後關閉視窗
               printWindow.onafterprint = () => printWindow.close();
@@ -244,7 +250,7 @@ export class DeliveryHTML {
         display: flex;
         flex-direction: column;
         gap: 12px;
-        width: calc(50% - 12px);
+        width: 48%;
         border: 0.5px solid #b0b0b0;
         padding: 12px;
         margin: 6px;

@@ -1744,8 +1744,6 @@ class Shopping {
                 dd.isExcludedByWeight = isExcludedByWeight(dd);
                 return dd;
             });
-            console.log('carData.shipment_selector');
-            console.log(carData.shipment_selector);
             carData.code_array = (carData.code_array || []).filter(code => {
                 return (carData.voucherList || []).find(dd => dd.code === code);
             });
