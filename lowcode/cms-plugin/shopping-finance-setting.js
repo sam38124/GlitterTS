@@ -54,6 +54,7 @@ export class ShoppingFinanceSetting {
             BgWidget.settingDialog({
                 gvc: gvc,
                 title: obj.function === 'replace' ? '修改金流設定' : '新增自訂金流',
+                width: 800,
                 innerHTML: gvc => {
                     const id = gvc.glitter.getUUID();
                     form = BgWidget.customForm(gvc, [
@@ -108,10 +109,18 @@ export class ShoppingFinanceSetting {
                                 title: '指定物流',
                                 html: gvc.bindView({
                                     bind: gvc.glitter.getUUID(),
-                                    view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, custom_finance); }),
+                                    view: () => ShoppingFinanceSetting.setShipmentSupport(gvc, custom_finance),
                                 }),
                             };
-                            return ShoppingFinanceSetting.tabView(gvc, [setting, note, shipment]);
+                            const cartSetting = {
+                                key: 'cartSetting',
+                                title: '購物車設定',
+                                html: gvc.bindView({
+                                    bind: gvc.glitter.getUUID(),
+                                    view: () => ShoppingFinanceSetting.setCartSetting(gvc, custom_finance),
+                                }),
+                            };
+                            return ShoppingFinanceSetting.tabView(gvc, [setting, note, shipment, cartSetting]);
                         },
                     });
                 },
@@ -162,7 +171,7 @@ export class ShoppingFinanceSetting {
                         BgWidget.danger(gvc.event(() => {
                             dialog.checkYesOrNot({
                                 text: '是否確認刪除？',
-                                callback: (response) => __awaiter(this, void 0, void 0, function* () {
+                                callback: response => {
                                     if (response) {
                                         keyData.payment_info_custom = keyData.payment_info_custom.filter((d1) => {
                                             return obj.data.id !== d1.id;
@@ -173,7 +182,7 @@ export class ShoppingFinanceSetting {
                                         gvc.closeDialog();
                                         refresh();
                                     }
-                                }),
+                                },
                             });
                         })),
                         saveButton,
@@ -216,7 +225,7 @@ export class ShoppingFinanceSetting {
                                 .map(dd => {
                                 var _a;
                                 keyData[dd.key] = (_a = keyData[dd.key]) !== null && _a !== void 0 ? _a : {};
-                                return html ` <div class="col-12 col-md-4 p-0 p-md-2">
+                                return html ` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
                           <div
                             class="w-100 position-relative main-card"
                             style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
@@ -236,6 +245,7 @@ export class ShoppingFinanceSetting {
                                         BgWidget.settingDialog({
                                             gvc: gvc,
                                             title: '金流設定',
+                                            width: 800,
                                             innerHTML: (gvc) => {
                                                 try {
                                                     const setting = {
@@ -530,10 +540,18 @@ export class ShoppingFinanceSetting {
                                                         title: '指定物流',
                                                         html: gvc.bindView({
                                                             bind: gvc.glitter.getUUID(),
-                                                            view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, key_d); }),
+                                                            view: () => ShoppingFinanceSetting.setShipmentSupport(gvc, key_d),
                                                         }),
                                                     };
-                                                    return ShoppingFinanceSetting.tabView(gvc, [setting, shipment]);
+                                                    const cartSetting = {
+                                                        key: 'cartSetting',
+                                                        title: '購物車設定',
+                                                        html: gvc.bindView({
+                                                            bind: gvc.glitter.getUUID(),
+                                                            view: () => ShoppingFinanceSetting.setCartSetting(gvc, key_d),
+                                                        }),
+                                                    };
+                                                    return ShoppingFinanceSetting.tabView(gvc, [setting, shipment, cartSetting]);
                                                 }
                                                 catch (e) {
                                                     console.error(e);
@@ -609,7 +627,7 @@ export class ShoppingFinanceSetting {
                   <div class="row">
                     ${offlinePayArray
                                 .map((dd) => {
-                                return html ` <div class="col-12 col-md-4 p-0 p-md-2">
+                                return html ` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
                           <div
                             class="w-100 position-relative main-card"
                             style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
@@ -637,6 +655,7 @@ export class ShoppingFinanceSetting {
                                         BgWidget.settingDialog({
                                             gvc: gvc,
                                             title: '金流設定',
+                                            width: 800,
                                             innerHTML: gvc => {
                                                 const keyMap = {
                                                     atm: this.atm(gvc, keyData),
@@ -699,7 +718,7 @@ export class ShoppingFinanceSetting {
                             })
                                 .join('')}
                     <div
-                      class="col-12 col-md-4 p-0 p-md-2"
+                      class="col-12 col-lg-3 col-md-4 p-0 p-md-2"
                       style="cursor: pointer;"
                       onclick="${gvc.event(() => {
                                 updateCustomFinance({ function: 'plus' });
@@ -725,7 +744,7 @@ export class ShoppingFinanceSetting {
                   <div class="row">
                     ${this.posPayArray()
                                 .map(dd => {
-                                return html ` <div class="col-12 col-md-4 p-0 p-md-2">
+                                return html ` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
                           <div
                             class="w-100 position-relative main-card"
                             style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
@@ -745,6 +764,7 @@ export class ShoppingFinanceSetting {
                                         BgWidget.settingDialog({
                                             gvc: gvc,
                                             title: '金流設定',
+                                            width: 800,
                                             innerHTML: (gvc) => {
                                                 try {
                                                     return html `<div>
@@ -945,7 +965,7 @@ export class ShoppingFinanceSetting {
       </div>
       ${gvc.bindView({
                 bind: id,
-                view: () => __awaiter(this, void 0, void 0, function* () {
+                view: () => {
                     try {
                         if (!(data && Array.isArray(data.shipmentSupport))) {
                             data.shipmentSupport = [];
@@ -1001,12 +1021,118 @@ export class ShoppingFinanceSetting {
                         console.error('cashSupport error' + error);
                         return '支援物流選項發生錯誤';
                     }
-                }),
+                },
                 divCreate: {
                     class: 'row guide3-3 mt-3 px-1',
                 },
             })}
     </div>`;
+        });
+    }
+    static setCartSetting(gvc, data, type = 'cashflow') {
+        var _a;
+        const id = gvc.glitter.getUUID();
+        const dialog = new ShareDialog(gvc.glitter);
+        const t = type === 'cashflow' ? '金' : '物';
+        data.cartSetting = Object.assign({ minimumTotal: 0, maximumTotal: 0, orderFormula: [] }, ((_a = data.cartSetting) !== null && _a !== void 0 ? _a : {}));
+        function questionDialog(text) {
+            return BgWidget.questionButton(gvc.event(() => {
+                BgWidget.quesDialog({
+                    gvc,
+                    innerHTML: () => html `<div class="tx_normal text-wrap text-white">${text}</div>`,
+                });
+            }));
+        }
+        function checkTotalNumber(text, type) {
+            const n = parseInt(`${text}`, 10);
+            if (isNaN(n) || n < 0) {
+                dialog.errorMessage({ text: '請輸入正整數' });
+                gvc.notifyDataChange(id);
+            }
+            if (type === 'min') {
+                if (data.cartSetting.maximumTotal !== 0 && n > data.cartSetting.maximumTotal) {
+                    dialog.errorMessage({ text: '數值需小於最高消費金額' });
+                    gvc.notifyDataChange(id);
+                }
+                else {
+                    data.cartSetting.minimumTotal = n;
+                }
+            }
+            if (type === 'max') {
+                if (data.cartSetting.minimumTotal !== 0 && n < data.cartSetting.minimumTotal) {
+                    dialog.errorMessage({ text: '數值需大於最低消費金額' });
+                    gvc.notifyDataChange(id);
+                }
+                else {
+                    data.cartSetting.maximumTotal = n;
+                }
+            }
+        }
+        return gvc.bindView({
+            bind: id,
+            view: () => {
+                return [
+                    html `<div class="d-flex align-items-center mt-2 gap-2 mb-2">
+            <div class="tx_700">是否啟用此${t}流的計算公式包含</div>
+            ${questionDialog(html `<div style="white-space: normal;">
+                  訂單總金額的公式為：<br />
+                  「總金額(T) = 所有商品小計(A) - 購物金折抵(B) - 優惠券折抵(C) + 運費(D)」
+                </div>
+                ${BgWidget.mbContainer(12)}
+                <div style="white-space: normal;">勾選的項目會列為「限制使用此${t}流」的公式判斷</div>
+                ${BgWidget.mbContainer(12)}
+                <div style="white-space: normal;">
+                  範例：僅勾選「運費」，顧客購物車消費的總金額依然是 A-B-C+D<br />
+                  但此${t}流是否能使用的公式會是 A+D
+                </div>
+                ${BgWidget.mbContainer(12)}
+                <div style="white-space: normal;">
+                  若 A+D 有在最低和最高消費金額的區間內<br />
+                  則顧客可以使用此${t}流進行結帳
+                </div>`)}
+          </div>`,
+                    BgWidget.multiCheckboxContainer(gvc, [
+                        {
+                            key: 'use_rebate',
+                            name: '購物金折抵',
+                        },
+                        {
+                            key: 'discount',
+                            name: '優惠券折抵',
+                        },
+                        {
+                            key: 'shipment_fee',
+                            name: '運費',
+                        },
+                    ], data.cartSetting.orderFormula, result => {
+                        data.cartSetting.orderFormula = result;
+                    }, { single: false }),
+                    BgWidget.editeInput({
+                        gvc: gvc,
+                        title: html `<div class="d-flex align-items-center mt-2 gap-2">
+              最低消費金額（輸入0則沒有限制） ${questionDialog(`顧客的購物車必須要消費到這個金額，才能啟用此${t}流`)}
+            </div>`,
+                        default: `${data.cartSetting.minimumTotal}`,
+                        type: 'number',
+                        callback: text => {
+                            checkTotalNumber(text, 'min');
+                        },
+                        placeHolder: '請輸入金額',
+                    }),
+                    BgWidget.editeInput({
+                        gvc: gvc,
+                        title: html `<div class="d-flex align-items-center mt-2 gap-2">
+              最高消費金額（輸入0則沒有限制） ${questionDialog(`顧客的購物車不可超出這個金額，才能啟用此${t}流`)}
+            </div>`,
+                        default: `${data.cartSetting.maximumTotal}`,
+                        type: 'number',
+                        callback: text => {
+                            checkTotalNumber(text, 'max');
+                        },
+                        placeHolder: '請輸入金額',
+                    }),
+                ].join('');
+            },
         });
     }
     static cashOnDelivery(gvc, keyData) {
@@ -1017,10 +1143,18 @@ export class ShoppingFinanceSetting {
             title: '指定物流',
             html: gvc.bindView({
                 bind: gvc.glitter.getUUID(),
-                view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, keyData.cash_on_delivery); }),
+                view: () => ShoppingFinanceSetting.setShipmentSupport(gvc, keyData.cash_on_delivery),
             }),
         };
-        return shipment.html;
+        const cartSetting = {
+            key: 'cartSetting',
+            title: '購物車設定',
+            html: gvc.bindView({
+                bind: gvc.glitter.getUUID(),
+                view: () => ShoppingFinanceSetting.setCartSetting(gvc, keyData.cash_on_delivery),
+            }),
+        };
+        return this.tabView(gvc, [shipment, cartSetting]);
     }
     static lineIPassMoney(gvc, keyData) {
         var _a;
@@ -1078,10 +1212,18 @@ export class ShoppingFinanceSetting {
             title: '指定物流',
             html: gvc.bindView({
                 bind: gvc.glitter.getUUID(),
-                view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, keyData.payment_info_line_pay); }),
+                view: () => ShoppingFinanceSetting.setShipmentSupport(gvc, keyData.payment_info_line_pay),
             }),
         };
-        return this.tabView(gvc, [cashflow, shipment]);
+        const cartSetting = {
+            key: 'cartSetting',
+            title: '購物車設定',
+            html: gvc.bindView({
+                bind: gvc.glitter.getUUID(),
+                view: () => ShoppingFinanceSetting.setCartSetting(gvc, keyData.payment_info_line_pay),
+            }),
+        };
+        return this.tabView(gvc, [cashflow, shipment, cartSetting]);
     }
     static atm(gvc, keyData) {
         var _a;
@@ -1175,10 +1317,18 @@ export class ShoppingFinanceSetting {
             title: '指定物流',
             html: gvc.bindView({
                 bind: gvc.glitter.getUUID(),
-                view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, keyData.payment_info_atm); }),
+                view: () => ShoppingFinanceSetting.setShipmentSupport(gvc, keyData.payment_info_atm),
             }),
         };
-        return this.tabView(gvc, [cashflow, shipment]);
+        const cartSetting = {
+            key: 'cartSetting',
+            title: '購物車設定',
+            html: gvc.bindView({
+                bind: gvc.glitter.getUUID(),
+                view: () => ShoppingFinanceSetting.setCartSetting(gvc, keyData.payment_info_atm),
+            }),
+        };
+        return this.tabView(gvc, [cashflow, shipment, cartSetting]);
     }
     static linePayScan(gvc, data) {
         const cashflow = {
@@ -1228,10 +1378,18 @@ export class ShoppingFinanceSetting {
             title: '指定物流',
             html: gvc.bindView({
                 bind: gvc.glitter.getUUID(),
-                view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, data); }),
+                view: () => ShoppingFinanceSetting.setShipmentSupport(gvc, data),
             }),
         };
-        return this.tabView(gvc, [cashflow, shipment]);
+        const cartSetting = {
+            key: 'cartSetting',
+            title: '購物車設定',
+            html: gvc.bindView({
+                bind: gvc.glitter.getUUID(),
+                view: () => ShoppingFinanceSetting.setCartSetting(gvc, data),
+            }),
+        };
+        return this.tabView(gvc, [cashflow, shipment, cartSetting]);
     }
     static utCreditCard(gvc, data) {
         const cashflow = {
@@ -1252,10 +1410,18 @@ export class ShoppingFinanceSetting {
             title: '指定物流',
             html: gvc.bindView({
                 bind: gvc.glitter.getUUID(),
-                view: () => __awaiter(this, void 0, void 0, function* () { return ShoppingFinanceSetting.setShipmentSupport(gvc, data); }),
+                view: () => ShoppingFinanceSetting.setShipmentSupport(gvc, data),
             }),
         };
-        return this.tabView(gvc, [cashflow, shipment]);
+        const cartSetting = {
+            key: 'cartSetting',
+            title: '購物車設定',
+            html: gvc.bindView({
+                bind: gvc.glitter.getUUID(),
+                view: () => ShoppingFinanceSetting.setCartSetting(gvc, data),
+            }),
+        };
+        return this.tabView(gvc, [cashflow, shipment, cartSetting]);
     }
     static customerText(gvc, keyData, id) {
         const fi_ = keyData.payment_info_custom.find((id_) => id_ === id);
@@ -1346,7 +1512,7 @@ export class ShoppingFinanceSetting {
               <div class="flex-fill"></div>
             </div>`,
                         BgWidget.tab([
-                            { title: '配送設定', key: 'delivery_setting' },
+                            { title: '基本設定', key: 'delivery_setting' },
                             { title: '物流追蹤', key: 'delivery_track' },
                             { title: '配送備註', key: 'delivery_note' },
                         ], gvc, vm.page, text => {
@@ -1589,7 +1755,7 @@ export class ShoppingFinanceSetting {
                                                           <input
                                                             class="form-check-input"
                                                             type="checkbox"
-                                                            onchange="${gvc.event((e, event) => {
+                                                            onchange="${gvc.event(() => {
                                                                                 log_config.bulk = !log_config.bulk;
                                                                                 gvc.recreateView();
                                                                             })}"
@@ -1629,7 +1795,7 @@ export class ShoppingFinanceSetting {
                                                                                 user_id: 'manager',
                                                                                 key: 'shipment_config_' + dd.value,
                                                                                 value: log_config,
-                                                                            }).then(res => {
+                                                                            }).then(() => {
                                                                                 dialog.dataLoading({ visible: false });
                                                                                 dialog.successMessage({ text: '設定成功' });
                                                                                 gvc.closeDialog();
@@ -1637,6 +1803,67 @@ export class ShoppingFinanceSetting {
                                                                         })),
                                                                     ];
                                                                     return array.join('');
+                                                                },
+                                                            });
+                                                        })),
+                                                    }),
+                                                    BgWidget.customButton({
+                                                        button: {
+                                                            color: 'gray',
+                                                            size: 'sm',
+                                                        },
+                                                        text: {
+                                                            name: `購物車設定`,
+                                                        },
+                                                        event: gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                                            const vm = {
+                                                                id: gvc.glitter.getUUID(),
+                                                                loading: true,
+                                                                config: {},
+                                                            };
+                                                            BgWidget.settingDialog({
+                                                                gvc: gvc,
+                                                                title: '物流設定',
+                                                                innerHTML: gvc => {
+                                                                    return gvc.bindView({
+                                                                        bind: id,
+                                                                        view: () => {
+                                                                            if (vm.loading) {
+                                                                                return BgWidget.spinner();
+                                                                            }
+                                                                            else {
+                                                                                return ShoppingFinanceSetting.setCartSetting(gvc, vm.config, 'shipment');
+                                                                            }
+                                                                        },
+                                                                        divCreate: {},
+                                                                        onCreate: () => __awaiter(this, void 0, void 0, function* () {
+                                                                            if (vm.loading) {
+                                                                                const r = yield ApiUser.getPublicConfig('shipment_config_' + dd.value, 'manager', saasConfig.config.appName);
+                                                                                vm.config = r.response.value;
+                                                                                vm.loading = false;
+                                                                                gvc.notifyDataChange(id);
+                                                                            }
+                                                                        }),
+                                                                    });
+                                                                },
+                                                                footer_html: gvc => {
+                                                                    return [
+                                                                        BgWidget.cancel(gvc.event(() => {
+                                                                            gvc.closeDialog();
+                                                                        })),
+                                                                        BgWidget.save(gvc.event(() => {
+                                                                            dialog.dataLoading({ visible: true });
+                                                                            ApiUser.setPublicConfig({
+                                                                                user_id: 'manager',
+                                                                                key: 'shipment_config_' + dd.value,
+                                                                                value: vm.config,
+                                                                            }).then(() => {
+                                                                                dialog.dataLoading({ visible: false });
+                                                                                dialog.successMessage({ text: '設定成功' });
+                                                                                gvc.closeDialog();
+                                                                            });
+                                                                        })),
+                                                                    ].join('');
                                                                 },
                                                             });
                                                         })),
@@ -1655,9 +1882,7 @@ export class ShoppingFinanceSetting {
                                                             event: gvc.event(() => {
                                                                 updateCustomShipment({
                                                                     function: 'replace',
-                                                                    data: vm.data.custom_delivery.find((d1) => {
-                                                                        return dd.value === d1.id;
-                                                                    }),
+                                                                    data: vm.data.custom_delivery.find((d1) => dd.value === d1.id),
                                                                 });
                                                             }),
                                                         }),
@@ -1977,7 +2202,7 @@ export class ShoppingFinanceSetting {
                                         ]
                                             .map(dd => {
                                             return html `
-                          <div class="col-12 col-md-4 p-0 p-md-2">
+                          <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
                             <div
                               class="w-100 position-relative main-card"
                               style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
@@ -2096,7 +2321,7 @@ export class ShoppingFinanceSetting {
                                                                 save: {
                                                                     text: '儲存',
                                                                     event: () => {
-                                                                        return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                                                        return new Promise(resolve => {
                                                                             function checkSenderPattern(input) {
                                                                                 const senderPattern = /^[\u4e00-\u9fa5]{2,5}|[a-zA-Z]{4,10}$/;
                                                                                 return senderPattern.test(input);
@@ -2149,7 +2374,7 @@ export class ShoppingFinanceSetting {
                                                                                 }
                                                                                 resolve(true);
                                                                             });
-                                                                        }));
+                                                                        });
                                                                     },
                                                                 },
                                                                 cancel: {},
@@ -2294,7 +2519,7 @@ export class ShoppingFinanceSetting {
                                                                 save: {
                                                                     text: '儲存',
                                                                     event: () => {
-                                                                        return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                                                        return new Promise(resolve => {
                                                                             ApiPageConfig.setPrivateConfigV2({
                                                                                 key: 'glitter_delivery',
                                                                                 value: JSON.stringify(vm.delivery),
@@ -2309,7 +2534,7 @@ export class ShoppingFinanceSetting {
                                                                                 }
                                                                                 resolve(true);
                                                                             });
-                                                                        }));
+                                                                        });
                                                                     },
                                                                 },
                                                                 cancel: {},
@@ -2408,7 +2633,7 @@ export class ShoppingFinanceSetting {
                         return {
                             bind: id,
                             view: () => {
-                                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                                     var _a, _b;
                                     const data = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `invoice_setting`);
                                     if (data.response.result[0]) {

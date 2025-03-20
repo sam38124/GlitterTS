@@ -335,7 +335,6 @@ class Shopping {
                 return dd.content;
             })
                 .map((product) => {
-                console.log(product.content);
                 product.content.collection = Array.from(new Set((() => {
                     var _a;
                     return ((_a = product.content.collection) !== null && _a !== void 0 ? _a : []).map((dd) => {
@@ -471,7 +470,6 @@ class Shopping {
                                 skip_image_load: true,
                             });
                             if (shopee_data && shopee_data.variants) {
-                                console.log(`get-shopee_data-success`);
                                 (content.variants || []).forEach((variant) => {
                                     const shopee_variants = shopee_data.variants.find(dd => {
                                         return dd.spec.join('') === variant.spec.join('');
@@ -489,7 +487,7 @@ class Shopping {
                     resolve(true);
                 });
             }));
-            if ((query.domain && products.data.length > 0)) {
+            if (query.domain && products.data.length > 0) {
                 const decodedDomain = decodeURIComponent(query.domain);
                 const foundProduct = products.data.find((dd) => {
                     var _a, _b;
@@ -501,7 +499,7 @@ class Shopping {
                 });
                 products.data = foundProduct || products.data[0];
             }
-            if ((query.id && products.data.length > 0)) {
+            if (query.id && products.data.length > 0) {
                 products.data = products.data[0];
             }
             if ((query.domain || query.id) && products.data !== undefined) {
@@ -1008,7 +1006,7 @@ class Shopping {
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9;
         try {
             const timer = {
                 count: 0,
@@ -1054,7 +1052,6 @@ class Shopping {
                 data.customer_info = customer_info;
                 data.use_rebate = use_rebate;
             }
-            console.log(`data.order_id==>`, data.order_id);
             if (data.order_id && type === 'POS') {
                 const order = (await database_js_1.default.query(`SELECT *
              FROM \`${this.app}\`.t_checkout
@@ -1339,14 +1336,9 @@ class Shopping {
                     whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
                     setUserID: `${(userData === null || userData === void 0 ? void 0 : userData.userID) || ''}`,
                 })).data;
-                console.log(`data.line_items`, getProductData);
                 if (getProductData) {
                     const content = getProductData.content;
                     const variant = getVariant(content, item);
-                    console.log(`variant=>`, variant);
-                    console.log(`Number.isInteger.variant=>`, Number.isInteger(variant.stock));
-                    console.log(`show_understocking=>`, variant.show_understocking);
-                    console.log(`Number.isIntegeritem.=>`, item.count);
                     if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
                         Number.isInteger(item.count)) {
                         const isPOS = checkOutType === 'POS';
@@ -1690,24 +1682,7 @@ class Shopping {
                 }
             });
             checkPoint('set payment');
-            carData.payment_setting = glitter_finance_js_1.onlinePayArray
-                .filter(dd => {
-                return keyData[dd.key] && keyData[dd.key].toggle;
-            })
-                .filter((dd) => {
-                dd.custome_name = keyData[dd.key].custome_name;
-                if (carData.orderSource === 'POS') {
-                    if (dd.key === 'ut_credit_card') {
-                        dd.pwd = keyData[dd.key]['pwd'];
-                    }
-                    return dd.type === 'pos';
-                }
-                else {
-                    return dd.type !== 'pos';
-                }
-            });
             keyData.cash_on_delivery = (_3 = keyData.cash_on_delivery) !== null && _3 !== void 0 ? _3 : { support: [] };
-            carData.off_line_support = keyData.off_line_support;
             carData.payment_info_line_pay = keyData.payment_info_line_pay;
             carData.payment_info_atm = keyData.payment_info_atm;
             const defaultPayArray = glitter_finance_js_1.onlinePayArray.map(item => item.key);
@@ -1769,9 +1744,68 @@ class Shopping {
                 dd.isExcludedByWeight = isExcludedByWeight(dd);
                 return dd;
             });
+            console.log('carData.shipment_selector');
+            console.log(carData.shipment_selector);
             carData.code_array = (carData.code_array || []).filter(code => {
                 return (carData.voucherList || []).find(dd => dd.code === code);
             });
+            function getCartFormulaPass(keyData) {
+                const data = keyData.cartSetting;
+                if (!data || data.orderFormula === undefined)
+                    return true;
+                const formulaSet = new Set(data.orderFormula);
+                const total = carData.total -
+                    (formulaSet.has('shipment_fee') ? 0 : carData.shipment_fee) +
+                    (formulaSet.has('discount') || !carData.discount ? 0 : carData.discount) +
+                    (formulaSet.has('use_rebate') ? 0 : carData.use_rebate);
+                return (!data.minimumTotal || total >= data.minimumTotal) && (!data.maximumTotal || total <= data.maximumTotal);
+            }
+            carData.payment_setting = glitter_finance_js_1.onlinePayArray.filter((dd) => {
+                const k = keyData[dd.key];
+                if (!k || !k.toggle || !getCartFormulaPass(k))
+                    return false;
+                dd.custome_name = k.custome_name;
+                if (carData.orderSource === 'POS') {
+                    if (dd.key === 'ut_credit_card') {
+                        dd.pwd = k['pwd'];
+                    }
+                    return dd.type === 'pos';
+                }
+                return dd.type !== 'pos';
+            });
+            carData.off_line_support = (_5 = keyData.off_line_support) !== null && _5 !== void 0 ? _5 : {};
+            Object.entries(carData.off_line_support).map(([key, value]) => {
+                if (!value)
+                    return;
+                if (key === 'cash_on_delivery') {
+                    carData.off_line_support[key] = getCartFormulaPass(keyData[key]);
+                }
+                else if (key === 'atm') {
+                    carData.off_line_support[key] = getCartFormulaPass(keyData.payment_info_atm);
+                }
+                else if (key === 'line') {
+                    carData.off_line_support[key] = getCartFormulaPass(keyData.payment_info_line_pay);
+                }
+                else {
+                    const customPay = keyData.payment_info_custom.find((c) => c.id === key);
+                    carData.off_line_support[key] = getCartFormulaPass(customPay !== null && customPay !== void 0 ? customPay : {});
+                }
+            });
+            if (Array.isArray(carData.shipmentSupport)) {
+                await Promise.all(carData.shipmentSupport.map(async (sup) => {
+                    return await userClass
+                        .getConfigV2({ key: 'shipment_config_' + sup, user_id: 'manager' })
+                        .then(r => {
+                        return getCartFormulaPass(r);
+                    })
+                        .catch(() => {
+                        return true;
+                    });
+                })).then(dataArray => {
+                    var _a;
+                    carData.shipmentSupport = (_a = carData.shipmentSupport) === null || _a === void 0 ? void 0 : _a.filter((_, index) => dataArray[index]);
+                });
+            }
             checkPoint('return preview');
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
@@ -1826,7 +1860,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_5 = data.total) !== null && _5 !== void 0 ? _5 : 0;
+                carData.total = (_6 = data.total) !== null && _6 !== void 0 ? _6 : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1860,7 +1894,7 @@ class Shopping {
                 if (checkOutType === 'POS' && Array.isArray(data.voucherList)) {
                     const manualVoucher = data.voucherList.find((item) => item.id === 0);
                     if (manualVoucher) {
-                        manualVoucher.discount = (_6 = manualVoucher.discount_total) !== null && _6 !== void 0 ? _6 : 0;
+                        manualVoucher.discount = (_7 = manualVoucher.discount_total) !== null && _7 !== void 0 ? _7 : 0;
                         carData.total -= manualVoucher.discount;
                     }
                 }
@@ -1893,7 +1927,7 @@ class Shopping {
                 await trans.commit();
                 await trans.release();
                 await Promise.all(saveStockArray.map(dd => dd()));
-                await this.releaseCheckout((_7 = data.pay_status) !== null && _7 !== void 0 ? _7 : 0, carData.orderID);
+                await this.releaseCheckout((_8 = data.pay_status) !== null && _8 !== void 0 ? _8 : 0, carData.orderID);
                 checkPoint('release pos checkout');
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
@@ -1934,7 +1968,7 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                let kd = (_8 = keyData[carData.customer_info.payment_select]) !== null && _8 !== void 0 ? _8 : {
+                let kd = (_9 = keyData[carData.customer_info.payment_select]) !== null && _9 !== void 0 ? _9 : {
                     ReturnURL: '',
                     NotifyURL: '',
                 };
@@ -2593,7 +2627,6 @@ class Shopping {
                 const prevStatus = origin.orderData.orderStatus;
                 const prevProgress = origin.orderData.progress;
                 if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
-                    console.log(`reset-orders==>`);
                     await this.resetStore(origin.orderData.lineItems);
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', orderData.orderID, orderData.email, orderData.language);
                 }
@@ -3487,7 +3520,7 @@ class Shopping {
                 id: product_id,
                 page: 0,
                 limit: 1,
-                is_manger: true
+                is_manger: true,
             })).data.content;
             const variant_s = pd_data.variants.find((dd) => {
                 return dd.spec.join('-') === spec.join('-');
@@ -3993,7 +4026,6 @@ class Shopping {
                 this.checkVariantDataType(product.variants);
                 return [product.id || null, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
             });
-            console.log(`productArray==>`, productArray);
             if (productArray.length) {
                 const data = await database_js_1.default.query(`replace
           INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [

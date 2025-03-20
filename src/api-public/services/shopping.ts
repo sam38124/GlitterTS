@@ -533,7 +533,6 @@ export class Shopping {
       // 取得產品查詢結果
       const products = await this.querySql(querySql, query);
 
-
       // 產品清單
       products.data = (Array.isArray(products.data) ? products.data : [products.data]).filter(product => product);
 
@@ -586,7 +585,6 @@ export class Shopping {
             return dd.content;
           })
           .map((product: any) => {
-            console.log(product.content);
             product.content.collection = Array.from(
               new Set(
                 (() => {
@@ -738,7 +736,6 @@ export class Shopping {
                   });
 
                   if (shopee_data && shopee_data.variants) {
-                    console.log(`get-shopee_data-success`);
                     (content.variants || []).forEach((variant: any) => {
                       const shopee_variants = shopee_data.variants.find(dd => {
                         return dd.spec.join('') === variant.spec.join('');
@@ -758,7 +755,7 @@ export class Shopping {
           })
       );
 
-      if ((query.domain && products.data.length > 0)) {
+      if (query.domain && products.data.length > 0) {
         const decodedDomain = decodeURIComponent(query.domain);
         const foundProduct = products.data.find((dd: any) => {
           if (!query.language) return false;
@@ -772,9 +769,11 @@ export class Shopping {
 
         products.data = foundProduct || products.data[0];
       }
-      if ((query.id && products.data.length > 0)) {
-        products.data = products.data[0]
+
+      if (query.id && products.data.length > 0) {
+        products.data = products.data[0];
       }
+
       if ((query.domain || query.id) && products.data !== undefined) {
         products.data.json_ld = await SeoConfig.getProductJsonLd(this.app, products.data.content);
       }
@@ -951,7 +950,6 @@ export class Shopping {
       } else {
         await processProduct(products.data);
       }
-
 
       return products;
     } catch (e) {
@@ -1534,8 +1532,6 @@ export class Shopping {
         data.use_rebate = use_rebate;
       }
 
-      console.log(`data.order_id==>`, data.order_id);
-
       // 判斷是 POS 重新支付<例如:預購單>，則把原先商品庫存加回去
       if (data.order_id && type === 'POS') {
         const order = (
@@ -1923,15 +1919,11 @@ export class Shopping {
               setUserID: `${userData?.userID || ''}`,
             })
           ).data;
-          console.log(`data.line_items`, getProductData);
+
           // 搜尋此商品資料並存在
           if (getProductData) {
             const content = getProductData.content;
             const variant = getVariant(content, item);
-            console.log(`variant=>`, variant);
-            console.log(`Number.isInteger.variant=>`, Number.isInteger(variant.stock));
-            console.log(`show_understocking=>`, variant.show_understocking);
-            console.log(`Number.isIntegeritem.=>`, item.count);
             if (
               (Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
               Number.isInteger(item.count)
@@ -2309,7 +2301,7 @@ export class Shopping {
           if (!giveawayData.add_on_products?.length) continue;
 
           const productPromises = giveawayData.add_on_products.map(async id => {
-            const getGiveawayData =  (
+            const getGiveawayData = (
               await this.getProduct({
                 page: 0,
                 limit: 1,
@@ -2365,26 +2357,8 @@ export class Shopping {
       });
       checkPoint('set payment');
 
-      // 填入付款資訊與方式
-      (carData as any).payment_setting = onlinePayArray
-        .filter(dd => {
-          return (keyData as any)[dd.key] && (keyData as any)[dd.key].toggle;
-        })
-        .filter((dd: any) => {
-          dd.custome_name = (keyData as any)[dd.key].custome_name;
-          if (carData.orderSource === 'POS') {
-            if (dd.key === 'ut_credit_card') {
-              (dd as any).pwd = (keyData as any)[dd.key]['pwd'];
-            }
-            return dd.type === 'pos';
-          } else {
-            return dd.type !== 'pos';
-          }
-        });
-
       // 線下付款
       (keyData as any).cash_on_delivery = (keyData as any).cash_on_delivery ?? { support: [] };
-      (carData as any).off_line_support = keyData.off_line_support;
       (carData as any).payment_info_line_pay = keyData.payment_info_line_pay;
       (carData as any).payment_info_atm = keyData.payment_info_atm;
 
@@ -2417,11 +2391,13 @@ export class Shopping {
           subtotal += item.count * (item.sale_price - (item.discount_price ?? 0));
         }
       });
+
       if (carData.total < 0 || carData.use_rebate > subtotal) {
         carData.use_rebate = 0;
         carData.total = subtotal + carData.shipment_fee;
       }
 
+      // 商品材積重量與物流使用限制
       carData.lineItems.map(item => {
         carData.goodsWeight += item.weight * item.count;
       });
@@ -2444,6 +2420,7 @@ export class Shopping {
           );
         });
       };
+
       carData.shipment_selector = carData.shipment_selector
         .filter((dd: any) => {
           return isIncludedInDesignatedLogistics(dd);
@@ -2453,9 +2430,84 @@ export class Shopping {
           dd.isExcludedByWeight = isExcludedByWeight(dd);
           return dd;
         });
+
       carData.code_array = (carData.code_array || []).filter(code => {
         return (carData.voucherList || []).find(dd => dd.code === code);
       });
+
+      // 驗證消費金額能否使用此金物流
+      function getCartFormulaPass(keyData: {
+        cartSetting?: {
+          minimumTotal: number;
+          maximumTotal: number;
+          orderFormula?: string[];
+        };
+      }) {
+        const data = keyData.cartSetting;
+        if (!data || data.orderFormula === undefined) return true;
+
+        const formulaSet = new Set(data.orderFormula);
+        const total =
+          carData.total -
+          (formulaSet.has('shipment_fee') ? 0 : carData.shipment_fee) +
+          (formulaSet.has('discount') || !carData.discount ? 0 : carData.discount) +
+          (formulaSet.has('use_rebate') ? 0 : carData.use_rebate);
+
+        return (!data.minimumTotal || total >= data.minimumTotal) && (!data.maximumTotal || total <= data.maximumTotal);
+      }
+
+      // 線上金流是否可使用判斷，填入付款資訊與方式
+      (carData as any).payment_setting = onlinePayArray.filter((dd: any) => {
+        const k = (keyData as any)[dd.key];
+        if (!k || !k.toggle || !getCartFormulaPass(k)) return false;
+
+        dd.custome_name = k.custome_name;
+
+        if (carData.orderSource === 'POS') {
+          if (dd.key === 'ut_credit_card') {
+            dd.pwd = k['pwd'];
+          }
+          return dd.type === 'pos';
+        }
+        return dd.type !== 'pos';
+      });
+
+      // 線下金流是否可使用判斷
+      (carData as any).off_line_support = keyData.off_line_support ?? {};
+
+      Object.entries((carData as any).off_line_support).map(([key, value]) => {
+        if (!value) return;
+
+        if (key === 'cash_on_delivery') {
+          (carData as any).off_line_support[key] = getCartFormulaPass(keyData[key]);
+        } else if (key === 'atm') {
+          (carData as any).off_line_support[key] = getCartFormulaPass(keyData.payment_info_atm);
+        } else if (key === 'line') {
+          (carData as any).off_line_support[key] = getCartFormulaPass(keyData.payment_info_line_pay);
+        } else {
+          // 自訂線下付款
+          const customPay = keyData.payment_info_custom.find((c: { id: string }) => c.id === key);
+          (carData as any).off_line_support[key] = getCartFormulaPass(customPay ?? {});
+        }
+      });
+
+      // 物流是否可使用判斷
+      if (Array.isArray(carData.shipmentSupport)) {
+        await Promise.all(
+          carData.shipmentSupport.map(async sup => {
+            return await userClass
+              .getConfigV2({ key: 'shipment_config_' + sup, user_id: 'manager' })
+              .then(r => {
+                return getCartFormulaPass(r);
+              })
+              .catch(() => {
+                return true;
+              });
+          })
+        ).then(dataArray => {
+          carData.shipmentSupport = carData.shipmentSupport?.filter((_, index) => dataArray[index]);
+        });
+      }
 
       // ================================ Preview UP ================================
       checkPoint('return preview');
@@ -3512,7 +3564,6 @@ export class Shopping {
 
         //變成已取消加回庫存
         if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
-          console.log(`reset-orders==>`)
           await this.resetStore(origin.orderData.lineItems);
           await AutoSendEmail.customerOrder(
             this.app,
@@ -3522,10 +3573,9 @@ export class Shopping {
             orderData.language
           );
           //變成處理或已完成扣庫存
-        }else if(prevStatus === '-1' && orderData.orderStatus !== '-1'){
-          await this.resetStore(origin.orderData.lineItems,'minus');
+        } else if (prevStatus === '-1' && orderData.orderStatus !== '-1') {
+          await this.resetStore(origin.orderData.lineItems, 'minus');
         }
-
 
         //當訂單多了出貨單號碼，新增出貨日期，反之清空出貨日期。
         if (update.orderData.user_info.shipment_number && !update.orderData.user_info.shipment_date) {
@@ -3711,8 +3761,7 @@ export class Shopping {
     }
   }
 
-  private async resetStore(lineItems: any[],plus_or_minus:'plus'|'minus'='plus') {
-
+  private async resetStore(lineItems: any[], plus_or_minus: 'plus' | 'minus' = 'plus') {
     const stockUpdates = lineItems.map(async item => {
       if (item.product_category === 'kitchen' && item.spec?.length) {
         return new Shopping(this.app, this.token).calcVariantsStock(item.count, '', item.id, item.spec);
@@ -3720,8 +3769,8 @@ export class Shopping {
       return Promise.all(
         Object.entries(item.deduction_log).map(([location, count]) => {
           let intCount = parseInt(`${count || 0}`, 10);
-          if(plus_or_minus==='minus'){
-            intCount = intCount * -1
+          if (plus_or_minus === 'minus') {
+            intCount = intCount * -1;
           }
           return new Shopping(this.app, this.token).calcVariantsStock(intCount, location, item.id, item.spec);
         })
@@ -4688,7 +4737,7 @@ export class Shopping {
           id: product_id,
           page: 0,
           limit: 1,
-          is_manger:true
+          is_manger: true,
         })
       ).data.content;
       const variant_s: any = pd_data.variants.find((dd: any) => {
@@ -5294,7 +5343,7 @@ export class Shopping {
                 if (og_content.language_data && og_content.language_data[store_info.language_setting.def]) {
                   og_content.language_data[store_info.language_setting.def].seo = product.seo;
                   og_content.language_data[store_info.language_setting.def].title = product.title;
-                  og_content.language_data[store_info.language_setting.def].sub_title=product.sub_title;
+                  og_content.language_data[store_info.language_setting.def].sub_title = product.sub_title;
                 }
 
                 product = {
@@ -5331,7 +5380,6 @@ export class Shopping {
         this.checkVariantDataType(product.variants);
         return [product.id || null, this.token?.userID, JSON.stringify(product)];
       });
-      console.log(`productArray==>`, productArray);
 
       if (productArray.length) {
         const data = await db.query(

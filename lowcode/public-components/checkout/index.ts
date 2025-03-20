@@ -132,285 +132,286 @@ export class CheckoutIndex {
 
     function addStyle() {
       gvc.addStyle(`
-                .${classPrefix}-container {
-                    max-width: 1200px !important;
-                    margin: 2.5rem auto !important;
-                }
+        .${classPrefix}-container {
+          max-width: 1200px !important;
+          margin: 2.5rem auto !important;
+        }
 
-                .${classPrefix}-null-container {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    height: 100vh !important;
-                }
+        .${classPrefix}-null-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          height: 100vh !important;
+        }
 
-                .${classPrefix}-header {
-                    color: #393939;
-                    font-size: 24px;
-                    font-weight: 700;
-                    letter-spacing: 12px;
-                    text-align: center;
-                    margin-bottom: 24px;
-                }
+        .${classPrefix}-header {
+          color: #393939;
+          font-size: 24px;
+          font-weight: 700;
+          letter-spacing: 12px;
+          text-align: center;
+          margin-bottom: 24px;
+        }
 
-                .${classPrefix}-banner-bgr {
-                    padding: 1rem;
-                    border-radius: 10px;
-                    background: #f6f6f6;
-                }
+        .${classPrefix}-banner-bgr {
+          padding: 1rem;
+          border-radius: 10px;
+          background: #f6f6f6;
+        }
 
-                .${classPrefix}-banner-text {
-                    color: #393939;
-                    font-size: 18px;
-                    font-weight: 700;
-                    letter-spacing: 2px;
-                }
+        .${classPrefix}-banner-text {
+          color: #393939;
+          font-size: 18px;
+          font-weight: 700;
+          letter-spacing: 2px;
+        }
 
-                .${classPrefix}-text-1 {
-                    color: #393939;
-                    font-size: 20px;
-                }
+        .${classPrefix}-text-1 {
+          color: #393939;
+          font-size: 20px;
+        }
 
-                .${classPrefix}-text-2 {
-                    color: #393939;
-                    font-size: 16px;
-                }
+        .${classPrefix}-text-2 {
+          color: #393939;
+          font-size: 16px;
+        }
 
-                .${classPrefix}-text-3 {
-                    color: #393939;
-                    font-size: 14px;
-                }
+        .${classPrefix}-text-3 {
+          color: #393939;
+          font-size: 14px;
+        }
 
-                .${classPrefix}-label {
-                    color: #393939;
-                    font-size: 16px;
-                    margin-bottom: 8px;
-                }
+        .${classPrefix}-label {
+          color: #393939;
+          font-size: 16px;
+          margin-bottom: 8px;
+        }
 
-                .${classPrefix}-bold {
-                    font-weight: 700;
-                }
+        .${classPrefix}-bold {
+          font-weight: 700;
+        }
 
-                .${classPrefix}-button-bgr {
-                    width: 100%;
-                    border: 0;
-                    border-radius: 0.375rem;
-                    height: 40px;
-                    background: #393939;
-                    padding: 0 24px;
-                    margin: 18px 0;
-                }
+        .${classPrefix}-button-bgr {
+          width: 100%;
+          border: 0;
+          border-radius: 0.375rem;
+          height: 40px;
+          background: #393939;
+          padding: 0 24px;
+          margin: 18px 0;
+        }
 
-                .${classPrefix}-button-bgr-disable {
-                    width: 100%;
-                    border: 0;
-                    border-radius: 0.375rem;
-                    height: 40px;
-                    background: #dddddd;
-                    padding: 0 24px;
-                    margin: 18px 0;
-                    cursor: not-allowed !important;
-                }
+        .${classPrefix}-button-bgr-disable {
+          width: 100%;
+          border: 0;
+          border-radius: 0.375rem;
+          height: 40px;
+          background: #dddddd;
+          padding: 0 24px;
+          margin: 18px 0;
+          cursor: not-allowed !important;
+        }
 
-                .${classPrefix}-button-text {
-                    color: #fff;
-                    font-size: 16px;
-                }
+        .${classPrefix}-button-text {
+          color: #fff;
+          font-size: 16px;
+        }
 
-                .${classPrefix}-input {
-                    width: 100%;
-                    border-radius: 10px;
-                    border: 1px solid #ddd;
-                    height: 40px;
-                    padding: 0px 18px;
-                }
+        .${classPrefix}-input {
+          width: 100%;
+          border-radius: 10px;
+          border: 1px solid #ddd;
+          height: 40px;
+          padding: 0px 18px;
+        }
 
-                .${classPrefix}-select {
-                    display: flex;
-                    padding: 7px 30px 7px 18px;
-                    max-height: 40px;
-                    align-items: center;
-                    gap: 6px;
-                    border-radius: 10px;
-                    border: 1px solid #ddd;
-                    background: transparent url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png') no-repeat;
-                    background-position-x: calc(100% - 12px);
-                    background-position-y: 16px;
-                    appearance: none;
-                    -webkit-appearance: none;
-                    -moz-appearance: none;
-                    color:#393939;
-                    background-color: white;
-                }
+        .${classPrefix}-select {
+          display: flex;
+          padding: 7px 30px 7px 18px;
+          max-height: 40px;
+          align-items: center;
+          gap: 6px;
+          border-radius: 10px;
+          border: 1px solid #ddd;
+          background: transparent
+            url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png') no-repeat;
+          background-position-x: calc(100% - 12px);
+          background-position-y: 16px;
+          appearance: none;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          color: #393939;
+          background-color: white;
+        }
 
-                .${classPrefix}-select:focus {
-                    outline: 0;
-                }
+        .${classPrefix}-select:focus {
+          outline: 0;
+        }
 
-                .${classPrefix}-group-input {
-                    border: none;
-                    background: none;
-                    text-align: start;
-                    color: #393939;
-                    font-size: 16px;
-                    font-weight: 400;
-                    word-wrap: break-word;
-                    padding-left: 12px;
-                }
+        .${classPrefix}-group-input {
+          border: none;
+          background: none;
+          text-align: start;
+          color: #393939;
+          font-size: 16px;
+          font-weight: 400;
+          word-wrap: break-word;
+          padding-left: 12px;
+        }
 
-                .${classPrefix}-first-td {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 30%;
-                }
+        .${classPrefix}-first-td {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 30%;
+        }
 
-                .${classPrefix}-group-input:focus {
-                    outline: 0;
-                }
+        .${classPrefix}-group-input:focus {
+          outline: 0;
+        }
 
-                .${classPrefix}-group-button {
-                    padding: 9px 18px;
-                    background: #393939;
-                    align-items: center;
-                    gap: 5px;
-                    display: flex;
-                    font-size: 16px;
-                    justify-content: center;
-                    cursor: pointer;
-                }
+        .${classPrefix}-group-button {
+          padding: 9px 18px;
+          background: #393939;
+          align-items: center;
+          gap: 5px;
+          display: flex;
+          font-size: 16px;
+          justify-content: center;
+          cursor: pointer;
+        }
 
-                .${classPrefix}-td {
-                    display: flex;
-                    align-items: center;
-                    justify-content: start;
-                    width: 15%;
-                }
+        .${classPrefix}-td {
+          display: flex;
+          align-items: center;
+          justify-content: start;
+          width: 15%;
+        }
 
-                .${classPrefix}-first-td {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 40%;
-                }
+        .${classPrefix}-first-td {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40%;
+        }
 
-                .${classPrefix}-price-container {
-                    display: flex;
-                    flex-direction: column;
-                    width: 400px;
-                    align-items: center;
-                    padding: 0;
-                    gap: 12px;
-                    margin: 24px 0;
-                }
+        .${classPrefix}-price-container {
+          display: flex;
+          flex-direction: column;
+          width: 400px;
+          align-items: center;
+          padding: 0;
+          gap: 12px;
+          margin: 24px 0;
+        }
 
-                .${classPrefix}-price-row {
-                    display: flex;
-                    width: 100%;
-                    align-items: center;
-                    justify-content: space-between;
-                }
+        .${classPrefix}-price-row {
+          display: flex;
+          width: 100%;
+          align-items: center;
+          justify-content: space-between;
+        }
 
-                .${classPrefix}-origin-price {
-                    text-align: end;
-                    font-weight: 400;
-                    word-wrap: break-word;
-                    text-decoration: line-through;
-                    color: #636363;
-                    font-style: italic;
-                    margin-top: auto;
-                }
+        .${classPrefix}-origin-price {
+          text-align: end;
+          font-weight: 400;
+          word-wrap: break-word;
+          text-decoration: line-through;
+          color: #636363;
+          font-style: italic;
+          margin-top: auto;
+        }
 
-                .${classPrefix}-add-item-badge {
-                    height: 22px;
-                    padding-left: 6px;
-                    padding-right: 6px;
-                    padding-top: 4px;
-                    padding-bottom: 4px;
-                    background: #ffe9b2;
-                    border-radius: 7px;
-                    justify-content: center;
-                    align-items: center;
-                    gap: 10px;
-                    display: inline-flex;
-                }
+        .${classPrefix}-add-item-badge {
+          height: 22px;
+          padding-left: 6px;
+          padding-right: 6px;
+          padding-top: 4px;
+          padding-bottom: 4px;
+          background: #ffe9b2;
+          border-radius: 7px;
+          justify-content: center;
+          align-items: center;
+          gap: 10px;
+          display: inline-flex;
+        }
 
-                .${classPrefix}-add-item-text {
-                    color: #393939;
-                    font-size: 14px;
-                    font-weight: 400;
-                    word-wrap: break-word;
-                }
+        .${classPrefix}-add-item-text {
+          color: #393939;
+          font-size: 14px;
+          font-weight: 400;
+          word-wrap: break-word;
+        }
 
-                .${classPrefix}-shipping-hint {
-                    white-space: normal;
-                    word-break: break-all;
-                    color: #8d8d8d;
-                    font-size: 14px;
-                    font-weight: 400;
-                    margin: 4px 0;
-                }
-                
-                .${classPrefix}-price-text {
-                 color: #FF5353FF;
-                }
+        .${classPrefix}-shipping-hint {
+          white-space: normal;
+          word-break: break-all;
+          color: #8d8d8d;
+          font-size: 14px;
+          font-weight: 400;
+          margin: 4px 0;
+        }
 
-                .img-106px {
-                    width: 106px;
-                    min-width: 106px;
-                    height: 106px;
-                    border-radius: 3px;
-                    background-position: center;
-                    background-size: cover;
-                    background-repeat: no-repeat;
-                }
+        .${classPrefix}-price-text {
+          color: #ff5353ff;
+        }
 
-                .banner-font-15 {
-                    font-size: 15px;
-                    font-style: normal;
-                    font-weight: 400;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    max-width: 130px;
-                    text-overflow: ellipsis;
-                }
+        .img-106px {
+          width: 106px;
+          min-width: 106px;
+          height: 106px;
+          border-radius: 3px;
+          background-position: center;
+          background-size: cover;
+          background-repeat: no-repeat;
+        }
 
-                .ntd-font-14 {
-                    font-size: 14px;
-                    font-style: normal;
-                    font-weight: 700;
-                    line-height: 140%;
-                }
-            `);
+        .banner-font-15 {
+          font-size: 15px;
+          font-style: normal;
+          font-weight: 400;
+          white-space: nowrap;
+          overflow: hidden;
+          max-width: 130px;
+          text-overflow: ellipsis;
+        }
+
+        .ntd-font-14 {
+          font-size: 14px;
+          font-style: normal;
+          font-weight: 700;
+          line-height: 140%;
+        }
+      `);
       gvc.addStyle(`
-                @media (max-width: 768px) {
-                    .${classPrefix}-container {
-                        max-width: 100% !important;
-                        margin: 2.5rem auto !important;
-                    }
+        @media (max-width: 768px) {
+          .${classPrefix}-container {
+            max-width: 100% !important;
+            margin: 2.5rem auto !important;
+          }
 
-                    .${classPrefix}-td {
-                        display: flex;
-                        align-items: center;
-                        justify-content: start;
-                        width: 100%;
-                    }
-                    
-                    .${classPrefix}-66text {
-                        color:#666666;
-                    }
+          .${classPrefix}-td {
+            display: flex;
+            align-items: center;
+            justify-content: start;
+            width: 100%;
+          }
 
-                    .${classPrefix}-price-container {
-                        display: flex;
-                        flex-direction: column;
-                        width: 100% !important;
-                        align-items: center;
-                        padding: 0;
-                        gap: 12px;
-                        margin: 24px 0;
-                    }
-                }
-            `);
+          .${classPrefix}-66text {
+            color: #666666;
+          }
+
+          .${classPrefix}-price-container {
+            display: flex;
+            flex-direction: column;
+            width: 100% !important;
+            align-items: center;
+            padding: 0;
+            gap: 12px;
+            margin: 24px 0;
+          }
+        }
+      `);
     }
 
     function refreshCartData() {
@@ -626,497 +627,461 @@ export class CheckoutIndex {
                 if (loadings.page) {
                   return spinner();
                 }
-                const detail_info = ` <div class="d-flex flex-column gap-3">
-                                      <span class="${gClass('banner-text')}">${Language.text('shopping_details')}</span>
+                const detail_info = html` <div class="d-flex flex-column gap-3">
+                  <span class="${gClass('banner-text')}">${Language.text('shopping_details')}</span>
 
-                                      <div class="${gClass(['price-row', 'text-2'])}">
-                                        <div>${Language.text('total_products')}</div>
-                                        <div>
-                                          ${Currency.convertCurrencyText(
-                                            vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.discount
-                                          )}
-                                        </div>
-                                      </div>
-                                      <div class="${gClass(['price-row', 'text-2'])}">
-                                        <div>${Language.text('shipping_fee')}</div>
-                                        <div>${Currency.convertCurrencyText(vm.cartData.shipment_fee)}</div>
-                                      </div>
-                                      <div class="${gClass(['price-row', 'text-2'])}">
-                                        <div>${Language.text('discount_coupon')}</div>
-                                        <div>- ${Currency.convertCurrencyText(vm.cartData.discount)}</div>
-                                      </div>
-                                      <div class="${gClass(['price-row', 'text-2'])}">
-                                        <div>${Language.text('promo_code')}</div>
-                                        <div
-                                          style="cursor: pointer; color: #3564c0;"
-                                          onclick="${gvc.event(() => {
-                                            this.viewDialog({
-                                              gvc: gvc,
-                                              title: Language.text('available_coupons'),
-                                              tag: '',
-                                              innerHTML: (gvc: GVC) => {
-                                                return gvc.bindView(
-                                                  (() => {
-                                                    const id = glitter.getUUID();
-                                                    const vmi = {
-                                                      dataList: [] as Voucher[],
-                                                    };
-                                                    const isWebsite = document.body.clientWidth > 768;
-                                                    let loading = true;
-                                                    return {
-                                                      bind: id,
-                                                      view: () => {
-                                                        try {
-                                                          if (loading) {
-                                                            return html` <div style="height: 400px">${spinner()}</div>`;
-                                                          } else {
-                                                            const header = [
-                                                              {
-                                                                title: Language.text('coupon_name'),
-                                                              },
-                                                              {
-                                                                title: Language.text('coupon_code'),
-                                                              },
-                                                              {
-                                                                title: Language.text('expiration_date'),
-                                                              },
-                                                              {
-                                                                title: '',
-                                                              },
-                                                            ];
+                  <div class="${gClass(['price-row', 'text-2'])}">
+                    <div>${Language.text('total_products')}</div>
+                    <div>
+                      ${Currency.convertCurrencyText(
+                        vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.discount + vm.cartData.use_rebate
+                      )}
+                    </div>
+                  </div>
+                  <div class="${gClass(['price-row', 'text-2'])}">
+                    <div>${Language.text('shipping_fee')}</div>
+                    <div>${Currency.convertCurrencyText(vm.cartData.shipment_fee)}</div>
+                  </div>
+                  <div class="${gClass(['price-row', 'text-2'])}">
+                    <div>${Language.text('discount_coupon')}</div>
+                    <div>- ${Currency.convertCurrencyText(vm.cartData.discount)}</div>
+                  </div>
+                  <div class="${gClass(['price-row', 'text-2'])}">
+                    <div>${Language.text('promo_code')}</div>
+                    <div
+                      style="cursor: pointer; color: #3564c0;"
+                      onclick="${gvc.event(() => {
+                        this.viewDialog({
+                          gvc: gvc,
+                          title: Language.text('available_coupons'),
+                          tag: '',
+                          innerHTML: (gvc: GVC) => {
+                            return gvc.bindView(
+                              (() => {
+                                const id = glitter.getUUID();
+                                const vmi = {
+                                  dataList: [] as Voucher[],
+                                };
+                                const isWebsite = document.body.clientWidth > 768;
+                                let loading = true;
+                                return {
+                                  bind: id,
+                                  view: () => {
+                                    try {
+                                      if (loading) {
+                                        return html` <div style="height: 400px">${spinner()}</div>`;
+                                      } else {
+                                        const header = [
+                                          {
+                                            title: Language.text('coupon_name'),
+                                          },
+                                          {
+                                            title: Language.text('coupon_code'),
+                                          },
+                                          {
+                                            title: Language.text('expiration_date'),
+                                          },
+                                          {
+                                            title: '',
+                                          },
+                                        ];
 
-                                                            function formatText(item: UserVoucher) {
-                                                              return [
-                                                                item.title,
-                                                                item.code,
-                                                                (() => {
-                                                                  const endText = item.end_ISO_Date
-                                                                    ? glitter.ut.dateFormat(
-                                                                        new Date(item.end_ISO_Date),
-                                                                        'yyyy/MM/dd'
-                                                                      )
-                                                                    : Language.text('no_expiration');
-                                                                  return `${glitter.ut.dateFormat(
-                                                                    new Date(item.start_ISO_Date),
-                                                                    'yyyy/MM/dd'
-                                                                  )} ~ ${endText}`;
-                                                                })(),
-                                                                item.usePass
-                                                                  ? html` <button
-                                                                      class="${gClass('button-bgr')} my-2"
-                                                                      style="max-width: 150px;"
-                                                                      onclick="${gvc.event(() => {
-                                                                        apiCart.setCart(cartItem => {
-                                                                          cartItem.code = item.code;
-                                                                          refreshCartData();
-                                                                          gvc.closeDialog();
-                                                                        });
-                                                                      })}"
-                                                                    >
-                                                                      <span class="${gClass('button-text')}"
-                                                                        >${Language.text('select_to_use')}</span
-                                                                      >
-                                                                    </button>`
-                                                                  : html` <button
-                                                                      class="${gClass('button-bgr-disable')} my-2"
-                                                                      style="max-width: 150px; cursor: not-allowed"
-                                                                    >
-                                                                      <span class="${gClass('button-text')}"
-                                                                        >${Language.text(
-                                                                          'not_meet_usage_criteria'
-                                                                        )}</span
-                                                                      >
-                                                                    </button>`,
-                                                              ];
-                                                            }
-
-                                                            const dialog = new ShareDialog(gvc.glitter);
-
-                                                            const cloneCart = JSON.parse(JSON.stringify(vm.cartData));
-
-                                                            function checkCodeValue(code: string) {
-                                                              cloneCart.code = code;
-                                                              cloneCart.line_items = cloneCart.lineItems;
-                                                              dialog.dataLoading({ visible: true });
-                                                              ApiShop.getCheckout(cloneCart).then(r => {
-                                                                dialog.dataLoading({ visible: false });
-                                                                if (
-                                                                  r.result &&
-                                                                  r.response.data &&
-                                                                  r.response.data.voucherList.some((dd: any) => {
-                                                                    return dd.code === code;
-                                                                  })
-                                                                ) {
-                                                                  apiCart.setCart(cartItem => {
-                                                                    cartItem.code = code;
-                                                                    refreshCartData();
-                                                                    gvc.closeDialog();
-                                                                  });
-                                                                } else {
-                                                                  dialog.errorMessage({
-                                                                    text: Language.text('code_unusable'),
-                                                                  });
-                                                                }
-                                                              });
-                                                            }
-
-                                                            if (isWebsite) {
-                                                              const flexList = [1.2, 1, 1.5, 1.5];
-                                                              return html`
-                                                                <div>
-                                                                  <div class="d-flex align-items-center mb-2">
-                                                                    <label
-                                                                      class="${gClass('label')} mb-0 me-2"
-                                                                      style="min-width: 80px;"
-                                                                      >${Language.text('enter_code')}</label
-                                                                    >
-                                                                    <input
-                                                                      class="${gClass('input')}"
-                                                                      type="text"
-                                                                      onchange="${gvc.event(e => {
-                                                                        checkCodeValue(e.value);
-                                                                      })}"
-                                                                    />
-                                                                  </div>
-                                                                </div>
-                                                                <div class="w-100 d-sm-flex py-4 um-th-bar">
-                                                                  ${header
-                                                                    .map((item, index) => {
-                                                                      return html` <div
-                                                                        class="um-th"
-                                                                        style="flex: ${flexList[index]};"
-                                                                      >
-                                                                        ${item.title}
-                                                                      </div>`;
-                                                                    })
-                                                                    .join('')}
-                                                                </div>
-                                                                ${vmi.dataList
-                                                                  .map((item, t1) => {
-                                                                    const fText = formatText(item.content);
-                                                                    return html` <div
-                                                                      class="w-100 d-sm-flex py-1 align-items-center"
-                                                                    >
-                                                                      ${fText
-                                                                        .map((dd, t2) => {
-                                                                          return html` <div
-                                                                            class="um-td ${t2 === fText.length - 1
-                                                                              ? 'text-center'
-                                                                              : ''}"
-                                                                            style="flex: ${flexList[t2]}"
-                                                                          >
-                                                                            ${dd}
-                                                                          </div>`;
-                                                                        })
-                                                                        .join('')}
-                                                                    </div>`;
-                                                                  })
-                                                                  .join('')}
-                                                              `;
-                                                            }
-
-                                                            return html` <div>
-                                                              <div
-                                                                class="d-flex flex-column flex-sm-row align-items-center "
-                                                              >
-                                                                <div class="d-flex align-items-center">
-                                                                  <input
-                                                                    class="${gClass('input')}"
-                                                                    type="text"
-                                                                    style="border-top-right-radius: 0;border-bottom-right-radius: 0px;"
-                                                                    placeholder="${Language.text('enter_promo_code')}"
-                                                                  />
-                                                                  <button
-                                                                    class="${gClass('button-bgr')}"
-                                                                    style="width:100px;border-top-left-radius: 0;border-bottom-left-radius: 0px;"
-                                                                    onclick="${gvc.event(e => {
-                                                                      checkCodeValue(e.value);
-                                                                    })}"
-                                                                  >
-                                                                    <span class="${gClass('button-text')}"
-                                                                      >${Language.text('confirm')}</span
-                                                                    >
-                                                                  </button>
-                                                                </div>
-                                                              </div>
-                                                              <div class="w-100 d-sm-none mb-3 s162413">
-                                                                ${vmi.dataList
-                                                                  .map(item => {
-                                                                    return html` <div class="um-mobile-area">
-                                                                      ${formatText(item.content)
-                                                                        .map((dd, index) => {
-                                                                          if (header[index].title === '') {
-                                                                            return dd;
-                                                                          }
-                                                                          return html` <div class="um-mobile-text">
-                                                                            ${header[index].title} : ${dd}
-                                                                          </div>`;
-                                                                        })
-                                                                        .join('')}
-                                                                    </div>`;
-                                                                  })
-                                                                  .join('')}
-                                                              </div>
-                                                            </div>`;
-                                                          }
-                                                        } catch (e) {
-                                                          return ``;
-                                                        }
-                                                      },
-                                                      divCreate: {},
-                                                      onCreate: () => {
-                                                        if (loading) {
-                                                          function isNowBetweenDates(
-                                                            startIso: string,
-                                                            endIso: string
-                                                          ): boolean {
-                                                            const now = new Date();
-                                                            const startDate = new Date(startIso);
-                                                            const endDate = new Date(endIso);
-
-                                                            // 確保 `startIso` 和 `endIso` 是有效的日期
-                                                            if (
-                                                              isNaN(startDate.getTime()) ||
-                                                              isNaN(endDate.getTime())
-                                                            ) {
-                                                              return true;
-                                                            }
-
-                                                            // 判斷現在時間是否在範圍內
-                                                            return now >= startDate && now <= endDate;
-                                                          }
-
-                                                          gvc.addMtScript(
-                                                            [
-                                                              {
-                                                                src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
-                                                              },
-                                                            ],
-                                                            () => {
-                                                              ApiShop.getVoucher({
-                                                                page: 0,
-                                                                limit: 10000,
-                                                                data_from: 'user',
-                                                              }).then(async res => {
-                                                                if (res.result && res.response.data) {
-                                                                  vmi.dataList = res.response.data.filter(
-                                                                    (item: Voucher) => {
-                                                                      return (
-                                                                        item.content.trigger === 'code' &&
-                                                                        isNowBetweenDates(
-                                                                          item.content.start_ISO_Date,
-                                                                          item.content.end_ISO_Date
-                                                                        )
-                                                                      );
-                                                                    }
-                                                                  );
-                                                                } else {
-                                                                  vmi.dataList = [];
-                                                                }
-                                                                const cloneCart = JSON.parse(
-                                                                  JSON.stringify(vm.cartData)
-                                                                );
-                                                                Promise.all(
-                                                                  vmi.dataList.map((voucher, index) => {
-                                                                    return new Promise<{
-                                                                      code: string;
-                                                                      response: any;
-                                                                    }>(resolve => {
-                                                                      const code = voucher.content.code;
-                                                                      cloneCart.code = code;
-                                                                      cloneCart.line_items = cloneCart.lineItems;
-                                                                      ApiShop.getCheckout(cloneCart).then(response => {
-                                                                        resolve({
-                                                                          code,
-                                                                          response,
-                                                                        });
-                                                                      });
-                                                                    });
-                                                                  })
-                                                                ).then(
-                                                                  (
-                                                                    resolveArray: {
-                                                                      code: string;
-                                                                      response: any;
-                                                                    }[]
-                                                                  ) => {
-                                                                    vmi.dataList = vmi.dataList.map(item => {
-                                                                      const f = resolveArray.find(res => {
-                                                                        return item.content.code === res.code;
-                                                                      });
-                                                                      if (f) {
-                                                                        const r = f.response;
-                                                                        if (r.result && r.response.data) {
-                                                                          item.content.usePass =
-                                                                            r.response.data.voucherList.some(
-                                                                              (dd: any) => {
-                                                                                return dd.code === f.code;
-                                                                              }
-                                                                            );
-                                                                        }
-                                                                      }
-                                                                      return item;
-                                                                    });
-                                                                    loading = false;
-                                                                    gvc.notifyDataChange(id);
-                                                                  }
-                                                                );
-                                                              });
-                                                            },
-                                                            () => {}
-                                                          );
-                                                        }
-                                                      },
-                                                    };
-                                                  })()
-                                                );
-                                              },
-                                            });
-                                          })}"
-                                        >
-                                          ${
-                                            vm.cartData.code
-                                              ? html`${vm.cartData.code}<i
-                                                    class="fa-solid fa-xmark-large ms-2"
-                                                    style="cursor: pointer;"
-                                                    onclick="${gvc.event((e, event) => {
-                                                      event.stopPropagation();
-                                                      apiCart.setCart(cartItem => {
-                                                        cartItem.code = '';
-                                                        refreshCartData();
-                                                      });
-                                                    })}"
-                                                  ></i>`
-                                              : Language.text('add')
-                                          }
-                                        </div>
-                                      </div>
-                                      ${(() => {
-                                        if (!GlobalUser.token || !vm.cartData.useRebateInfo.status) {
-                                          return ``;
-                                        } else {
-                                          return html` ${(() => {
-                                              let tempRebate: number = 0;
-                                              const dialog = new ShareDialog(gvc.glitter);
-                                              return html` <div class="${gClass(['price-row', 'text-2'])}">
-                                                  <div>
-                                                    ${Language.text('special_discount')} : ${vm.rebateConfig.title}
-                                                  </div>
-                                                  <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
-                                                </div>
-
-                                                <div class="${gClass(['price-row', 'text-2'])}">
-                                                  <div
-                                                    style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
-                                                      .body.clientWidth > 768
-                                                      ? 'gap: 18px;'
-                                                      : 'gap: 0px;'}"
-                                                    class="w-100"
+                                        function formatText(item: UserVoucher) {
+                                          return [
+                                            item.title,
+                                            item.code,
+                                            (() => {
+                                              const endText = item.end_ISO_Date
+                                                ? glitter.ut.dateFormat(new Date(item.end_ISO_Date), 'yyyy/MM/dd')
+                                                : Language.text('no_expiration');
+                                              return `${glitter.ut.dateFormat(
+                                                new Date(item.start_ISO_Date),
+                                                'yyyy/MM/dd'
+                                              )} ~ ${endText}`;
+                                            })(),
+                                            item.usePass
+                                              ? html` <button
+                                                  class="${gClass('button-bgr')} my-2"
+                                                  style="max-width: 150px;"
+                                                  onclick="${gvc.event(() => {
+                                                    apiCart.setCart(cartItem => {
+                                                      cartItem.code = item.code;
+                                                      refreshCartData();
+                                                      gvc.closeDialog();
+                                                    });
+                                                  })}"
+                                                >
+                                                  <span class="${gClass('button-text')}"
+                                                    >${Language.text('select_to_use')}</span
                                                   >
-                                                    <input
-                                                      class="flex-fill ${gClass('group-input')}"
-                                                      placeholder="${Language.text('please_enter')}${vm.rebateConfig
-                                                        .title}"
-                                                      style="${document.body.clientWidth < 800
-                                                        ? `width:calc(100% - 150px) !important;`
-                                                        : ``}"
-                                                      value="${vm.cartData.use_rebate || ''}"
-                                                      onchange="${gvc.event((e, event) => {
-                                                        if (CheckInput.isNumberString(e.value)) {
-                                                          tempRebate = parseInt(e.value, 10);
-                                                        } else {
-                                                          dialog.errorMessage({ text: Language.text('enter_value') });
-                                                          gvc.notifyDataChange(ids.page);
-                                                        }
-                                                      })}"
-                                                    />
-                                                    <div class="${gClass('group-button')}">
-                                                      <div
-                                                        class="${gClass('button-text')}"
-                                                        onclick="${gvc.event(async () => {
-                                                          const sum: number = await new Promise((resolve, reject) => {
-                                                            ApiShop.getRebate({}).then(async res => {
-                                                              if (res.result && res.response.sum) {
-                                                                resolve(res.response.sum);
-                                                              } else {
-                                                                resolve(0);
-                                                              }
-                                                            });
-                                                          });
-                                                          const limit =
-                                                            vm.cartData.total -
-                                                            vm.cartData.shipment_fee +
-                                                            vm.cartData.use_rebate;
-                                                          if (sum === 0) {
-                                                            dialog.errorMessage({
-                                                              text: `您的 ${vm.rebateConfig.title} 為 0 點，無法折抵`,
-                                                            });
-                                                            return;
-                                                          }
-                                                          if (tempRebate > Math.min(sum, limit)) {
-                                                            dialog.errorMessage({
-                                                              text: `${Language.text('please_enter')} 0 到 ${Math.min(sum, limit)} 的數值`,
-                                                            });
-                                                            return;
-                                                          }
-
-                                                          apiCart.setCart(cartItem => {
-                                                            cartItem.use_rebate = tempRebate;
-                                                            refreshCartData();
-                                                          });
-                                                        })}"
-                                                      >
-                                                        ${Language.text('apply')}
-                                                      </div>
-                                                    </div>
-                                                  </div>
-                                                </div>`;
-                                            })()}
-                                            <div class="${gClass(['price-row', 'text-2'])}">
-                                              ${(() => {
-                                                return gvc.bindView(() => {
-                                                  return {
-                                                    bind: gvc.glitter.getUUID(),
-                                                    view: async () => {
-                                                      const sum = await new Promise((resolve, reject) => {
-                                                        ApiShop.getRebate({}).then(async res => {
-                                                          if (res.result && res.response.sum) {
-                                                            resolve(res.response.sum);
-                                                          } else {
-                                                            resolve(0);
-                                                          }
-                                                        });
-                                                      });
-                                                      if (!vm.cartData.useRebateInfo) {
-                                                        return '';
-                                                      }
-
-                                                      const info = vm.cartData.useRebateInfo;
-                                                      if (info.condition) {
-                                                        return html`${Language.text('distance_from_target_amount')}$
-                                                        ${info.condition.toLocaleString()}
-                                                        ${Language.text('can_use_now')} ${vm.rebateConfig.title}
-                                                        ${Language.text('discount')}`;
-                                                      }
-                                                      if (info.limit) {
-                                                        return html`${Language.text('remaining_balance')} ${sum || 0}
-                                                          ${Language.text('point')} ${vm.rebateConfig.title}
-                                                          <br />${Language.text('max_discount_order')}
-                                                          ${info.limit.toLocaleString()} ${Language.text('point')}
-                                                          ${vm.rebateConfig.title}`;
-                                                      } else {
-                                                        return `${Language.text('remaining_balance')} ${sum || 0} ${Language.text('point')} ${
-                                                          vm.rebateConfig.title
-                                                        }`;
-                                                      }
-                                                    },
-                                                  };
-                                                });
-                                              })()}
-                                            </div>`;
+                                                </button>`
+                                              : html` <button
+                                                  class="${gClass('button-bgr-disable')} my-2"
+                                                  style="max-width: 150px; cursor: not-allowed"
+                                                >
+                                                  <span class="${gClass('button-text')}"
+                                                    >${Language.text('not_meet_usage_criteria')}</span
+                                                  >
+                                                </button>`,
+                                          ];
                                         }
-                                      })()}
-                                    </div>`;
+
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        const cloneCart = JSON.parse(JSON.stringify(vm.cartData));
+
+                                        function checkCodeValue(code: string) {
+                                          cloneCart.code = code;
+                                          cloneCart.line_items = cloneCart.lineItems;
+                                          dialog.dataLoading({ visible: true });
+                                          ApiShop.getCheckout(cloneCart).then(r => {
+                                            dialog.dataLoading({ visible: false });
+                                            if (
+                                              r.result &&
+                                              r.response.data &&
+                                              r.response.data.voucherList.some((dd: any) => {
+                                                return dd.code === code;
+                                              })
+                                            ) {
+                                              apiCart.setCart(cartItem => {
+                                                cartItem.code = code;
+                                                refreshCartData();
+                                                gvc.closeDialog();
+                                              });
+                                            } else {
+                                              dialog.errorMessage({
+                                                text: Language.text('code_unusable'),
+                                              });
+                                            }
+                                          });
+                                        }
+
+                                        if (isWebsite) {
+                                          const flexList = [1.2, 1, 1.5, 1.5];
+                                          return html`
+                                            <div>
+                                              <div class="d-flex align-items-center mb-2">
+                                                <label class="${gClass('label')} mb-0 me-2" style="min-width: 80px;"
+                                                  >${Language.text('enter_code')}</label
+                                                >
+                                                <input
+                                                  class="${gClass('input')}"
+                                                  type="text"
+                                                  onchange="${gvc.event(e => {
+                                                    checkCodeValue(e.value);
+                                                  })}"
+                                                />
+                                              </div>
+                                            </div>
+                                            <div class="w-100 d-sm-flex py-4 um-th-bar">
+                                              ${header
+                                                .map((item, index) => {
+                                                  return html` <div class="um-th" style="flex: ${flexList[index]};">
+                                                    ${item.title}
+                                                  </div>`;
+                                                })
+                                                .join('')}
+                                            </div>
+                                            ${vmi.dataList
+                                              .map((item, t1) => {
+                                                const fText = formatText(item.content);
+                                                return html` <div class="w-100 d-sm-flex py-1 align-items-center">
+                                                  ${fText
+                                                    .map((dd, t2) => {
+                                                      return html` <div
+                                                        class="um-td ${t2 === fText.length - 1 ? 'text-center' : ''}"
+                                                        style="flex: ${flexList[t2]}"
+                                                      >
+                                                        ${dd}
+                                                      </div>`;
+                                                    })
+                                                    .join('')}
+                                                </div>`;
+                                              })
+                                              .join('')}
+                                          `;
+                                        }
+
+                                        return html` <div>
+                                          <div class="d-flex flex-column flex-sm-row align-items-center ">
+                                            <div class="d-flex align-items-center">
+                                              <input
+                                                class="${gClass('input')}"
+                                                type="text"
+                                                style="border-top-right-radius: 0;border-bottom-right-radius: 0px;"
+                                                placeholder="${Language.text('enter_promo_code')}"
+                                              />
+                                              <button
+                                                class="${gClass('button-bgr')}"
+                                                style="width:100px;border-top-left-radius: 0;border-bottom-left-radius: 0px;"
+                                                onclick="${gvc.event(e => {
+                                                  checkCodeValue(e.value);
+                                                })}"
+                                              >
+                                                <span class="${gClass('button-text')}"
+                                                  >${Language.text('confirm')}</span
+                                                >
+                                              </button>
+                                            </div>
+                                          </div>
+                                          <div class="w-100 d-sm-none mb-3 s162413">
+                                            ${vmi.dataList
+                                              .map(item => {
+                                                return html` <div class="um-mobile-area">
+                                                  ${formatText(item.content)
+                                                    .map((dd, index) => {
+                                                      if (header[index].title === '') {
+                                                        return dd;
+                                                      }
+                                                      return html` <div class="um-mobile-text">
+                                                        ${header[index].title} : ${dd}
+                                                      </div>`;
+                                                    })
+                                                    .join('')}
+                                                </div>`;
+                                              })
+                                              .join('')}
+                                          </div>
+                                        </div>`;
+                                      }
+                                    } catch (e) {
+                                      return ``;
+                                    }
+                                  },
+                                  divCreate: {},
+                                  onCreate: () => {
+                                    if (loading) {
+                                      function isNowBetweenDates(startIso: string, endIso: string): boolean {
+                                        const now = new Date();
+                                        const startDate = new Date(startIso);
+                                        const endDate = new Date(endIso);
+
+                                        // 確保 `startIso` 和 `endIso` 是有效的日期
+                                        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                                          return true;
+                                        }
+
+                                        // 判斷現在時間是否在範圍內
+                                        return now >= startDate && now <= endDate;
+                                      }
+
+                                      gvc.addMtScript(
+                                        [
+                                          {
+                                            src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
+                                          },
+                                        ],
+                                        () => {
+                                          ApiShop.getVoucher({
+                                            page: 0,
+                                            limit: 10000,
+                                            data_from: 'user',
+                                          }).then(async res => {
+                                            if (res.result && res.response.data) {
+                                              vmi.dataList = res.response.data.filter((item: Voucher) => {
+                                                return (
+                                                  item.content.trigger === 'code' &&
+                                                  isNowBetweenDates(
+                                                    item.content.start_ISO_Date,
+                                                    item.content.end_ISO_Date
+                                                  )
+                                                );
+                                              });
+                                            } else {
+                                              vmi.dataList = [];
+                                            }
+                                            const cloneCart = JSON.parse(JSON.stringify(vm.cartData));
+                                            Promise.all(
+                                              vmi.dataList.map((voucher, index) => {
+                                                return new Promise<{
+                                                  code: string;
+                                                  response: any;
+                                                }>(resolve => {
+                                                  const code = voucher.content.code;
+                                                  cloneCart.code = code;
+                                                  cloneCart.line_items = cloneCart.lineItems;
+                                                  ApiShop.getCheckout(cloneCart).then(response => {
+                                                    resolve({
+                                                      code,
+                                                      response,
+                                                    });
+                                                  });
+                                                });
+                                              })
+                                            ).then(
+                                              (
+                                                resolveArray: {
+                                                  code: string;
+                                                  response: any;
+                                                }[]
+                                              ) => {
+                                                vmi.dataList = vmi.dataList.map(item => {
+                                                  const f = resolveArray.find(res => {
+                                                    return item.content.code === res.code;
+                                                  });
+                                                  if (f) {
+                                                    const r = f.response;
+                                                    if (r.result && r.response.data) {
+                                                      item.content.usePass = r.response.data.voucherList.some(
+                                                        (dd: any) => {
+                                                          return dd.code === f.code;
+                                                        }
+                                                      );
+                                                    }
+                                                  }
+                                                  return item;
+                                                });
+                                                loading = false;
+                                                gvc.notifyDataChange(id);
+                                              }
+                                            );
+                                          });
+                                        },
+                                        () => {}
+                                      );
+                                    }
+                                  },
+                                };
+                              })()
+                            );
+                          },
+                        });
+                      })}"
+                    >
+                      ${vm.cartData.code
+                        ? html`${vm.cartData.code}<i
+                              class="fa-solid fa-xmark-large ms-2"
+                              style="cursor: pointer;"
+                              onclick="${gvc.event((e, event) => {
+                                event.stopPropagation();
+                                apiCart.setCart(cartItem => {
+                                  cartItem.code = '';
+                                  refreshCartData();
+                                });
+                              })}"
+                            ></i>`
+                        : Language.text('add')}
+                    </div>
+                  </div>
+                  ${(() => {
+                    if (!GlobalUser.token || !vm.cartData.useRebateInfo.status) {
+                      return ``;
+                    } else {
+                      return html` ${(() => {
+                          let tempRebate: number = 0;
+                          const dialog = new ShareDialog(gvc.glitter);
+                          return html` <div class="${gClass(['price-row', 'text-2'])}">
+                              <div>${Language.text('special_discount')} : ${vm.rebateConfig.title}</div>
+                              <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
+                            </div>
+
+                            <div class="${gClass(['price-row', 'text-2'])}">
+                              <div
+                                style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                                  .body.clientWidth > 768
+                                  ? 'gap: 18px;'
+                                  : 'gap: 0px;'}"
+                                class="w-100"
+                              >
+                                <input
+                                  class="flex-fill ${gClass('group-input')}"
+                                  placeholder="${Language.text('please_enter')}${vm.rebateConfig.title}"
+                                  style="${document.body.clientWidth < 800
+                                    ? `width:calc(100% - 150px) !important;`
+                                    : ``}"
+                                  value="${vm.cartData.use_rebate || ''}"
+                                  onchange="${gvc.event((e, event) => {
+                                    if (CheckInput.isNumberString(e.value)) {
+                                      tempRebate = parseInt(e.value, 10);
+                                    } else {
+                                      dialog.errorMessage({ text: Language.text('enter_value') });
+                                      gvc.notifyDataChange(ids.page);
+                                    }
+                                  })}"
+                                />
+                                <div class="${gClass('group-button')}">
+                                  <div
+                                    class="${gClass('button-text')}"
+                                    onclick="${gvc.event(async () => {
+                                      const sum: number = await new Promise((resolve, reject) => {
+                                        ApiShop.getRebate({}).then(async res => {
+                                          if (res.result && res.response.sum) {
+                                            resolve(res.response.sum);
+                                          } else {
+                                            resolve(0);
+                                          }
+                                        });
+                                      });
+                                      const limit =
+                                        vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
+                                      if (sum === 0) {
+                                        dialog.errorMessage({
+                                          text: `您的 ${vm.rebateConfig.title} 為 0 點，無法折抵`,
+                                        });
+                                        return;
+                                      }
+                                      if (tempRebate > Math.min(sum, limit)) {
+                                        dialog.errorMessage({
+                                          text: `${Language.text('please_enter')} 0 到 ${Math.min(sum, limit)} 的數值`,
+                                        });
+                                        return;
+                                      }
+
+                                      apiCart.setCart(cartItem => {
+                                        cartItem.use_rebate = tempRebate;
+                                        refreshCartData();
+                                      });
+                                    })}"
+                                  >
+                                    ${Language.text('apply')}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>`;
+                        })()}
+                        <div class="${gClass(['price-row', 'text-2'])}">
+                          ${(() => {
+                            return gvc.bindView(() => {
+                              return {
+                                bind: gvc.glitter.getUUID(),
+                                view: async () => {
+                                  const sum = await new Promise((resolve, reject) => {
+                                    ApiShop.getRebate({}).then(async res => {
+                                      if (res.result && res.response.sum) {
+                                        resolve(res.response.sum);
+                                      } else {
+                                        resolve(0);
+                                      }
+                                    });
+                                  });
+                                  if (!vm.cartData.useRebateInfo) {
+                                    return '';
+                                  }
+
+                                  const info = vm.cartData.useRebateInfo;
+                                  if (info.condition) {
+                                    return html`${Language.text('distance_from_target_amount')}$
+                                    ${info.condition.toLocaleString()} ${Language.text('can_use_now')}
+                                    ${vm.rebateConfig.title} ${Language.text('discount')}`;
+                                  }
+                                  if (info.limit) {
+                                    return html`${Language.text('remaining_balance')} ${sum || 0}
+                                      ${Language.text('point')} ${vm.rebateConfig.title} <br />${Language.text(
+                                        'max_discount_order'
+                                      )}
+                                      ${info.limit.toLocaleString()} ${Language.text('point')} ${vm.rebateConfig.title}`;
+                                  } else {
+                                    return `${Language.text('remaining_balance')} ${sum || 0} ${Language.text('point')} ${
+                                      vm.rebateConfig.title
+                                    }`;
+                                  }
+                                },
+                              };
+                            });
+                          })()}
+                        </div>`;
+                    }
+                  })()}
+                </div>`;
                 if (!widget.share.receipt_form) {
                   const res = await ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager');
                   widget.share.receipt_form = FormCheck.initialRecipientForm(res.response.value.list ?? []).filter(
@@ -1184,9 +1149,9 @@ export class CheckoutIndex {
                               class="d-flex flex-column flex-md-row justify-content-between w-100"
                               style="${document.body.clientWidth > 800
                                 ? `height:calc(100vh - 150px);overflow-y:auto;`
-                                : `gap:20px;`}
-padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? padding : 10}px;
-"
+                                : `gap:20px;`} padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0
+                                ? padding
+                                : 10}px;"
                             >
                               <div
                                 style="${document.body.clientWidth > 800
@@ -1258,11 +1223,7 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                                     class="fw-bold pe-4"
                                                     style="gap:5px;font-size:${document.body.clientWidth > 800
                                                       ? `16`
-                                                      : `14`}px;max-width:calc(100% - 10px); display: -webkit-box;
-  -webkit-line-clamp: 2; 
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis; "
+                                                      : `14`}px;max-width:calc(100% - 10px); display: -webkit-box; -webkit-line-clamp: 2;  -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; "
                                                     >${title}</span
                                                   >
                                                   <div class="${gClass(['66text'])} fs-sm">
@@ -1541,8 +1502,10 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                                                       .clientWidth > 768
                                                                       ? `rounded-3`
                                                                       : `h-100`}"
-                                                                    style="
-                width: 100%;  position: relative;${document.body.clientWidth > 768 ? `` : `overflow-y: auto;`}"
+                                                                    style="width: 100%;  position: relative;${document
+                                                                      .body.clientWidth > 768
+                                                                      ? ``
+                                                                      : `overflow-y: auto;`}"
                                                                   >
                                                                     <div
                                                                       class="w-100 d-flex align-items-center p-3 border-bottom"
@@ -3695,6 +3658,7 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
     });
 
     cartData.off_line_support = cartData.off_line_support ?? {};
+    console.log(cartData.off_line_support);
     cartData.off_line_support.atm &&
       array.push({
         name: '銀行轉帳',
@@ -3785,17 +3749,17 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
   static getCheckedClass(gvc: GVC, color?: string) {
     const className = Tool.randomString(6);
     gvc.addStyle(`
-            .${className} {
-                min-width: 1rem;
-                min-height: 1rem;
-            }
-            .${className}:checked[type='checkbox'] {
-                border: 2px solid ${color ?? '#000'};
-                background-color: #fff;
-                background-image: url(${this.checkedDataImage(color ?? '#000')}) !important;
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1rem;
+        min-height: 1rem;
+      }
+      .${className}:checked[type='checkbox'] {
+        border: 2px solid ${color ?? '#000'};
+        background-color: #fff;
+        background-image: url(${this.checkedDataImage(color ?? '#000')}) !important;
+        background-position: center center;
+      }
+    `);
     return className;
   }
 

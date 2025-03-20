@@ -43,7 +43,7 @@ export interface RowInitData {
   stock: string;
   save_stock: string;
   barcode: string;
-  sub_title:string;
+  sub_title: string;
 }
 
 export interface RowInitKitchen {
@@ -291,7 +291,7 @@ export class ProductExcel {
       '庫存數量',
       '安全庫存數量',
       '商品條碼',
-      '商品簡述'
+      '商品簡述',
     ];
   }
 
@@ -317,7 +317,7 @@ export class ProductExcel {
       '重量單位',
       '庫存政策',
       '庫存數量',
-      '商品簡述'
+      '商品簡述',
     ];
   }
 
@@ -652,6 +652,7 @@ export class ProductExcel {
       stock: '',
       save_stock: '',
       barcode: '',
+      sub_title: '',
     };
     const dialog = new ShareDialog(gvc.glitter);
     dialog.dataLoading({ visible: true });
@@ -706,7 +707,7 @@ export class ProductExcel {
           stock: expo.checkNumber(productData.content.variants[index]?.stock),
           save_stock: expo.checkNumber(productData.content.variants[index]?.save_stock),
           barcode: expo.checkString(productData.content.variants[index]?.barcode),
-          sub_title:expo.checkString(productData.content.language_data[Language.getLanguage()].sub_title as string),
+          sub_title: expo.checkString(productData.content.language_data[Language.getLanguage()].sub_title as string),
         });
 
         const getShipmentType = (type: string) => {

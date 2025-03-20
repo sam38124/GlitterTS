@@ -212,7 +212,7 @@ export class ProductExcel {
             '庫存數量',
             '安全庫存數量',
             '商品條碼',
-            '商品簡述'
+            '商品簡述',
         ];
     }
     static exampleKitchen() {
@@ -237,7 +237,7 @@ export class ProductExcel {
             '重量單位',
             '庫存政策',
             '庫存數量',
-            '商品簡述'
+            '商品簡述',
         ];
     }
     static exampleSheet() {
@@ -538,6 +538,7 @@ export class ProductExcel {
             stock: '',
             save_stock: '',
             barcode: '',
+            sub_title: '',
         };
         const dialog = new ShareDialog(gvc.glitter);
         dialog.dataLoading({ visible: true });
