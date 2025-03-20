@@ -167,7 +167,9 @@ export class OrderExcel {
 
     // 取得琣送與付款方式設定檔
     const [shipment_methods, payment_methods] = await Promise.all([
-      ShipmentConfig.allShipmentMethod(),
+      ShipmentConfig.shipmentMethod({
+        type:'all'
+      }),
       PaymentConfig.getSupportPayment(true),
     ]);
 

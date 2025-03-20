@@ -136,25 +136,7 @@ export class FilterOptions {
         });
     }
     static getOrderFunnel() {
-        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            const saasConfig = window.parent.saasConfig;
-            const response = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting');
-            let configData = ((_a = response.response.result[0]) === null || _a === void 0 ? void 0 : _a.value) || {};
-            if (!configData.language_data) {
-                configData.language_data = {
-                    'en-US': { info: '' },
-                    'zh-CN': { info: '' },
-                    'zh-TW': { info: configData.info || '' },
-                };
-            }
-            const shipmentOptions = ShipmentConfig.list
-                .map(dd => {
-                return { key: dd.value, name: dd.title };
-            })
-                .concat(((_b = configData.custom_delivery) !== null && _b !== void 0 ? _b : []).map((dd) => {
-                return { key: dd.id, name: dd.name };
-            }));
             return [
                 { key: 'orderStatus', type: 'multi_checkbox', name: '訂單狀態', data: this.orderStatusOptions },
                 { key: 'payload', type: 'multi_checkbox', name: '付款狀態', data: this.payloadStatusOptions },
@@ -167,7 +149,9 @@ export class FilterOptions {
                         return dd;
                     }) },
                 { key: 'progress', type: 'multi_checkbox', name: '出貨狀況', data: this.progressOptions },
-                { key: 'shipment', type: 'multi_checkbox', name: '運送方式', data: shipmentOptions },
+                { key: 'shipment', type: 'multi_checkbox', name: '運送方式', data: yield ShipmentConfig.shipmentMethod({
+                        type: 'support'
+                    }) },
                 {
                     key: 'created_time',
                     type: 'during',
@@ -455,6 +439,8 @@ FilterOptions.orderSelect = [
     { key: 'cart_token', value: '訂單編號' },
     { key: 'name', value: '訂購人' },
     { key: 'phone', value: '手機' },
+    { key: 'email', value: '電子信箱' },
+    { key: 'address', value: '宅配地址' },
     { key: 'title', value: '商品名稱' },
     { key: 'sku', value: '商品貨號(SKU)' },
     { key: 'shipment_number', value: '出貨單號碼' },

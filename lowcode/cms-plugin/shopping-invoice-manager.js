@@ -1486,28 +1486,32 @@ ${reason}</textarea
       ${gvc.bindView({
             bind: 'invoiceContent',
             view: () => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
-                if (viewModel.searchData) {
-                    function getNextPeriod15th(date) {
-                        const nextPeriodDate = new Date(date);
-                        const currentMonth = date.getMonth() + 1;
-                        if (currentMonth % 2 === 1) {
-                            nextPeriodDate.setMonth(currentMonth + 1);
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+                try {
+                    if (viewModel.searchData) {
+                        function getNextPeriod15th(date) {
+                            const nextPeriodDate = new Date(date);
+                            const currentMonth = date.getMonth() + 1;
+                            if (currentMonth % 2 === 1) {
+                                nextPeriodDate.setMonth(currentMonth + 1);
+                            }
+                            else {
+                                nextPeriodDate.setMonth(currentMonth + 2);
+                            }
+                            nextPeriodDate.setDate(15);
+                            return nextPeriodDate;
                         }
-                        else {
-                            nextPeriodDate.setMonth(currentMonth + 2);
-                        }
-                        nextPeriodDate.setDate(15);
-                        return nextPeriodDate;
-                    }
-                    let tax = Math.round(viewModel.searchData.orderData.total * 0.05);
-                    let sale = viewModel.searchData.orderData.total - tax;
-                    let gui_number = viewModel.searchData.orderData.user_info.gui_number;
-                    const dbDate = new Date(`${viewModel.searchData.created_time}`);
-                    const minDateStr = dbDate.toISOString().split('T')[0];
-                    const maxDateStr = getNextPeriod15th(dbDate).toISOString().split('T')[0];
-                    return [
-                        BgWidget.mainCard(html `
+                        viewModel.invoiceData.original_data = (_a = viewModel.invoiceData.original_data) !== null && _a !== void 0 ? _a : {
+                            Print: '0'
+                        };
+                        let tax = Math.round(viewModel.searchData.orderData.total * 0.05);
+                        let sale = viewModel.searchData.orderData.total - tax;
+                        let gui_number = viewModel.searchData.orderData.user_info.gui_number;
+                        const dbDate = new Date(`${viewModel.searchData.created_time}`);
+                        const minDateStr = dbDate.toISOString().split('T')[0];
+                        const maxDateStr = getNextPeriod15th(dbDate).toISOString().split('T')[0];
+                        return [
+                            BgWidget.mainCard(html `
                 <div
                   style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;color:#393939;font-size: 16px;font-weight: 400;"
                 >
@@ -1516,73 +1520,73 @@ ${reason}</textarea
                     <div>發票種類</div>
                     <div style="display: flex;align-items: flex-start;gap: 12px;">
                       ${(() => {
-                            viewModel.invoiceData.invoice_type = gui_number ? `B2B` : `B2C`;
-                            return ['B2C', 'B2B']
-                                .map(data => {
-                                return html `
+                                viewModel.invoiceData.invoice_type = gui_number ? `B2B` : `B2C`;
+                                return ['B2C', 'B2B']
+                                    .map(data => {
+                                    return html `
                               <div
                                 class="d-flex align-items-center"
                                 style="gap: 6px; cursor: pointer;"
                                 onclick="${gvc.event(() => { })}"
                               >
                                 ${viewModel.invoiceData.invoice_type == data
-                                    ? html ` <div
+                                        ? html ` <div
                                       style="width: 16px;height: 16px;border-radius: 20px;border:solid 4px #393939"
                                     ></div>`
-                                    : html ` <div
+                                        : html ` <div
                                       style="width: 16px;height: 16px;border-radius: 20px;border:solid 1px #DDD"
                                     ></div>`}
                                 <label class="m-0" style="" for="${data}">${data}</label>
                               </div>
                             `;
-                            })
-                                .join('');
-                        })()}
+                                })
+                                    .join('');
+                            })()}
                     </div>
                   </div>
                   <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
                     ${BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '買受人姓名',
-                            default: (_c = (_b = (_a = viewModel.searchData.orderData) === null || _a === void 0 ? void 0 : _a.user_info) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : '',
-                            placeHolder: '請輸入買受人姓名',
-                            callback: data => {
-                                viewModel.searchData.orderData.user_info.name = data;
-                            },
-                            divStyle: 'width:50%;',
-                        })}
+                                gvc: gvc,
+                                title: '買受人姓名',
+                                default: (_d = (_c = (_b = viewModel.searchData.orderData) === null || _b === void 0 ? void 0 : _b.user_info) === null || _c === void 0 ? void 0 : _c.name) !== null && _d !== void 0 ? _d : '',
+                                placeHolder: '請輸入買受人姓名',
+                                callback: data => {
+                                    viewModel.searchData.orderData.user_info.name = data;
+                                },
+                                divStyle: 'width:50%;',
+                            })}
                     ${BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '買受人電話',
-                            default: (_f = (_e = (_d = viewModel.searchData.orderData) === null || _d === void 0 ? void 0 : _d.user_info) === null || _e === void 0 ? void 0 : _e.phone) !== null && _f !== void 0 ? _f : '',
-                            placeHolder: '請輸入買受人電話',
-                            callback: data => {
-                                viewModel.searchData.orderData.user_info.phone = data;
-                            },
-                            divStyle: 'width:50%;',
-                        })}
+                                gvc: gvc,
+                                title: '買受人電話',
+                                default: (_g = (_f = (_e = viewModel.searchData.orderData) === null || _e === void 0 ? void 0 : _e.user_info) === null || _f === void 0 ? void 0 : _f.phone) !== null && _g !== void 0 ? _g : '',
+                                placeHolder: '請輸入買受人電話',
+                                callback: data => {
+                                    viewModel.searchData.orderData.user_info.phone = data;
+                                },
+                                divStyle: 'width:50%;',
+                            })}
                   </div>
                   <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
                     ${BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '買受人地址',
-                            default: (_j = (_h = (_g = viewModel.searchData.orderData) === null || _g === void 0 ? void 0 : _g.user_info) === null || _h === void 0 ? void 0 : _h.address) !== null && _j !== void 0 ? _j : '',
-                            placeHolder: '請輸入買受人地址',
-                            callback: data => {
-                                viewModel.searchData.orderData.user_info.address = data;
-                            },
-                            divStyle: 'width:50%;',
-                        })}
+                                gvc: gvc,
+                                title: '買受人地址',
+                                default: (_k = (_j = (_h = viewModel.searchData.orderData) === null || _h === void 0 ? void 0 : _h.user_info) === null || _j === void 0 ? void 0 : _j.address) !== null && _k !== void 0 ? _k : '',
+                                placeHolder: '請輸入買受人地址',
+                                callback: data => {
+                                    viewModel.searchData.orderData.user_info.address = data;
+                                },
+                                divStyle: 'width:50%;',
+                            })}
                     ${BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '買受人電子信箱',
-                            default: (_m = (_l = (_k = viewModel.searchData.orderData) === null || _k === void 0 ? void 0 : _k.user_info) === null || _l === void 0 ? void 0 : _l.email) !== null && _m !== void 0 ? _m : '',
-                            placeHolder: '請輸入買受人電子信箱',
-                            callback: data => {
-                                viewModel.searchData.orderData.user_info.email = data;
-                            },
-                            divStyle: 'width:50%;',
-                        })}
+                                gvc: gvc,
+                                title: '買受人電子信箱',
+                                default: (_o = (_m = (_l = viewModel.searchData.orderData) === null || _l === void 0 ? void 0 : _l.user_info) === null || _m === void 0 ? void 0 : _m.email) !== null && _o !== void 0 ? _o : '',
+                                placeHolder: '請輸入買受人電子信箱',
+                                callback: data => {
+                                    viewModel.searchData.orderData.user_info.email = data;
+                                },
+                                divStyle: 'width:50%;',
+                            })}
                   </div>
                   <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
                     <div class="d-flex flex-column w-50" style="gap:8px;">
@@ -1594,99 +1598,99 @@ ${reason}</textarea
                         min="${minDateStr}"
                         max="${maxDateStr}"
                         onchange="${gvc.event(e => {
-                            viewModel.invoiceData.date = e.value;
-                        })}"
+                                viewModel.invoiceData.date = e.value;
+                            })}"
                       />
                     </div>
                     ${BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '發票時間',
-                            default: '',
-                            placeHolder: '請輸入發票時間',
-                            type: 'time',
-                            callback: data => {
-                                viewModel.invoiceData.time = data;
-                            },
-                            divStyle: 'width:50%;',
-                        })}
+                                gvc: gvc,
+                                title: '發票時間',
+                                default: '',
+                                placeHolder: '請輸入發票時間',
+                                type: 'time',
+                                callback: data => {
+                                    viewModel.invoiceData.time = data;
+                                },
+                                divStyle: 'width:50%;',
+                            })}
                   </div>
 
                   <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
                     <div class="w-50">
                       <div>索取紙本發票</div>
                       ${BgWidget.select({
-                            gvc: gvc,
-                            callback: text => {
-                                viewModel.invoiceData.getPaper = text;
-                            },
-                            default: (viewModel.invoiceData.original_data.Print === '1') ? 'Y' : 'N',
-                            options: [
-                                { key: 'Y', value: 'Y' },
-                                { key: 'N', value: 'N' },
-                            ],
-                            style: `margin: 8px 0;`,
-                        })}
+                                gvc: gvc,
+                                callback: text => {
+                                    viewModel.invoiceData.getPaper = text;
+                                },
+                                default: (viewModel.invoiceData.original_data.Print === '1') ? 'Y' : 'N',
+                                options: [
+                                    { key: 'Y', value: 'Y' },
+                                    { key: 'N', value: 'N' },
+                                ],
+                                style: `margin: 8px 0;`,
+                            })}
                     </div>
                     <div class="w-50">
                       <div>課稅別</div>
                       ${BgWidget.select({
-                            gvc: gvc,
-                            callback: text => {
-                            },
-                            default: '應稅',
-                            options: [{ key: '應稅', value: '應稅' }],
-                            style: `margin: 8px 0;`,
-                        })}
+                                gvc: gvc,
+                                callback: text => {
+                                },
+                                default: '應稅',
+                                options: [{ key: '應稅', value: '應稅' }],
+                                style: `margin: 8px 0;`,
+                            })}
                     </div>
                   </div>
                   <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
                     ${BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '稅率(預設5)',
-                            default: '5',
-                            placeHolder: '請輸入稅率',
-                            readonly: true,
-                            callback: data => {
-                                viewModel.customerInfo.userData.name = data;
-                            },
-                            divStyle: 'width:50%;',
-                        })}
+                                gvc: gvc,
+                                title: '稅率(預設5)',
+                                default: '5',
+                                placeHolder: '請輸入稅率',
+                                readonly: true,
+                                callback: data => {
+                                    viewModel.customerInfo.userData.name = data;
+                                },
+                                divStyle: 'width:50%;',
+                            })}
                     ${BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '稅額',
-                            default: `${tax !== null && tax !== void 0 ? tax : 0}`,
-                            placeHolder: '請輸入稅額',
-                            readonly: true,
-                            callback: data => { },
-                            divStyle: 'width:50%;',
-                        })}
+                                gvc: gvc,
+                                title: '稅額',
+                                default: `${tax !== null && tax !== void 0 ? tax : 0}`,
+                                placeHolder: '請輸入稅額',
+                                readonly: true,
+                                callback: data => { },
+                                divStyle: 'width:50%;',
+                            })}
                   </div>
                   <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
                     ${BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '銷售額',
-                            default: `${sale !== null && sale !== void 0 ? sale : 0}`,
-                            placeHolder: '請輸入銷售額',
-                            readonly: true,
-                            callback: data => { },
-                            divStyle: 'width:50%;',
-                        })}
+                                gvc: gvc,
+                                title: '銷售額',
+                                default: `${sale !== null && sale !== void 0 ? sale : 0}`,
+                                placeHolder: '請輸入銷售額',
+                                readonly: true,
+                                callback: data => { },
+                                divStyle: 'width:50%;',
+                            })}
                     ${BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '總金額',
-                            default: (_o = viewModel.searchData.orderData.total) !== null && _o !== void 0 ? _o : '',
-                            placeHolder: '請輸入總金額',
-                            readonly: true,
-                            callback: data => {
-                                viewModel.customerInfo.userData.phone = data;
-                            },
-                            divStyle: 'width:50%;',
-                        })}
+                                gvc: gvc,
+                                title: '總金額',
+                                default: (_p = viewModel.searchData.orderData.total) !== null && _p !== void 0 ? _p : '',
+                                placeHolder: '請輸入總金額',
+                                readonly: true,
+                                callback: data => {
+                                    viewModel.customerInfo.userData.phone = data;
+                                },
+                                divStyle: 'width:50%;',
+                            })}
                   </div>
                 </div>
               `),
-                        html ` <div style="margin-top: 24px;"></div>`,
-                        BgWidget.mainCard(html ` <div style="font-size: 16px;font-weight: 700;margin-bottom:18px;">商品列表</div>
+                            html ` <div style="margin-top: 24px;"></div>`,
+                            BgWidget.mainCard(html ` <div style="font-size: 16px;font-weight: 700;margin-bottom:18px;">商品列表</div>
                   <div class="d-flex w-100 align-items-center">
                     <div class="col-7 ">商品名稱</div>
                     <div class="col-2 text-center">規格</div>
@@ -1698,11 +1702,11 @@ ${reason}</textarea
                     style="width: 100%;height: 1px;margin-top: 12px;margin-bottom: 18px;background-color: #DDD"
                   ></div>
                   ${(() => {
-                            let itemArray = viewModel.searchData.orderData.lineItems;
-                            return itemArray.map((item) => {
-                                var _a;
-                                let sale_price = Math.ceil(item.sale_price * 0.95);
-                                return html `
+                                let itemArray = viewModel.searchData.orderData.lineItems;
+                                return itemArray.map((item) => {
+                                    var _a;
+                                    let sale_price = Math.ceil(item.sale_price * 0.95);
+                                    return html `
                         <div class="d-flex w-100 align-items-center" style="">
                           <div class="col-7 d-flex align-items-center">
                             <img
@@ -1717,95 +1721,100 @@ ${reason}</textarea
                           <div class="col-1 text-end">${item.count * sale_price}</div>
                         </div>
                       `;
-                            });
-                        })()}
+                                });
+                            })()}
                   <div
                     style="width: 100%;height: 1px;margin-top: 18px;margin-bottom: 18px;background-color: #DDD"
                   ></div>
                   ${(() => {
-                            let itemArray = [
-                                { key: '銷售額', value: sale },
-                                { key: '稅額', value: tax },
-                            ];
-                            return itemArray
-                                .map(item => {
-                                return html `
+                                let itemArray = [
+                                    { key: '銷售額', value: sale },
+                                    { key: '稅額', value: tax },
+                                ];
+                                return itemArray
+                                    .map(item => {
+                                    return html `
                           <div class="d-flex flex-row-reverse" style="width: 100%;margin-bottom:18px;">
                             <div class="col-1 text-end">${item.value}</div>
                             <div class="col-1"></div>
                             <div class="col-1 text-end" style="">${item.key}</div>
                           </div>
                         `;
-                            })
-                                .join('');
-                        })()}
+                                })
+                                    .join('');
+                            })()}
                   <div class="d-flex flex-row-reverse" style="width: 100%;">
                     <div class="col-1 text-end" style="font-weight: 700;">${viewModel.searchData.orderData.total}</div>
                     <div class="col-1"></div>
                     <div class="col-1 text-end" style="font-weight: 700;">總金額</div>
                   </div>`),
-                        html ` <div class="w-100 " style="margin-top: 24px;"></div>`,
-                        BgWidget.mainCard(html `
+                            html ` <div class="w-100 " style="margin-top: 24px;"></div>`,
+                            BgWidget.mainCard(html `
                 <div style="margin-bottom: 12px;">發票備註</div>
                 <textarea
                   style="width: 100%; border-radius: 10px;border: 1px solid #DDD;padding: 5px;"
                   rows="3"
                   onchange="${gvc.event(e => {
-                            viewModel.invoiceData.invoice_mark = e.value;
-                        })}"
+                                viewModel.invoiceData.invoice_mark = e.value;
+                            })}"
                 ></textarea>
                 <div style="margin-top: 18px;margin-bottom: 12px;">財務備註</div>
                 <textarea
                   style="width: 100%; border-radius: 10px;border: 1px solid #DDD;padding: 5px;"
                   rows="3"
                   onchange="${gvc.event(e => {
-                            viewModel.invoiceData.financial_mark = e.value;
-                        })}"
+                                viewModel.invoiceData.financial_mark = e.value;
+                            })}"
                 ></textarea>
               `),
-                        html ` <div style="margin-top: 240px;"></div> `,
-                        html ` <div class="update-bar-container">
+                            html ` <div style="margin-top: 240px;"></div> `,
+                            html ` <div class="update-bar-container">
                 ${BgWidget.cancel(gvc.event(() => {
-                            vm.type = 'list';
-                        }))}
+                                vm.type = 'list';
+                            }))}
                 ${BgWidget.save(gvc.event(() => {
-                            viewModel.invoiceData.issueType = 'manual';
-                            let passData = {
-                                invoiceData: viewModel.invoiceData,
-                                orderID: viewModel.searchOrder,
-                                orderData: viewModel.searchData,
-                            };
-                            let pass = true;
-                            Object.values(viewModel.invoiceData).forEach(value => {
-                                if (value.length == 0) {
-                                    pass = false;
-                                }
-                            });
-                            if (pass) {
-                                dialog.dataLoading({
-                                    text: '發票開立中',
-                                    visible: true,
+                                viewModel.invoiceData.issueType = 'manual';
+                                let passData = {
+                                    invoiceData: viewModel.invoiceData,
+                                    orderID: viewModel.searchOrder,
+                                    orderData: viewModel.searchData,
+                                };
+                                let pass = true;
+                                Object.values(viewModel.invoiceData).forEach(value => {
+                                    if (value.length == 0) {
+                                        pass = false;
+                                    }
                                 });
-                                ApiShop.postInvoice(passData).then(r => {
+                                if (pass) {
                                     dialog.dataLoading({
-                                        visible: false,
+                                        text: '發票開立中',
+                                        visible: true,
                                     });
+                                    ApiShop.postInvoice(passData).then(r => {
+                                        dialog.dataLoading({
+                                            visible: false,
+                                        });
+                                        dialog.infoMessage({
+                                            text: '發票建立完成',
+                                        });
+                                        vm.type = 'list';
+                                    });
+                                }
+                                else {
                                     dialog.infoMessage({
-                                        text: '發票建立完成',
+                                        text: '必要欄位未填',
                                     });
-                                    vm.type = 'list';
-                                });
-                            }
-                            else {
-                                dialog.infoMessage({
-                                    text: '必要欄位未填',
-                                });
-                            }
-                        }), '開立')}
+                                }
+                            }), '開立')}
               </div>`,
-                    ].join('');
+                        ].join('');
+                    }
+                    return ``;
                 }
-                return ``;
+                catch (e) {
+                    console.log(e);
+                    return `${e}`;
+                }
             },
             divCreate: {},
         })}

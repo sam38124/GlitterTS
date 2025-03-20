@@ -227,30 +227,7 @@ export class FilterOptions {
   ];
 
   static async getOrderFunnel() {
-    const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
-    const response: { response: any; result: boolean } = await saasConfig.api.getPrivateConfig(
-      saasConfig.config.appName,
-      'logistics_setting'
-    );
 
-    let configData: any = response.response.result[0]?.value || {};
-    if (!configData.language_data) {
-      configData.language_data = {
-        'en-US': { info: '' },
-        'zh-CN': { info: '' },
-        'zh-TW': { info: configData.info || '' },
-      };
-    }
-
-    const shipmentOptions = ShipmentConfig.list
-      .map(dd => {
-        return { key: dd.value, name: dd.title };
-      })
-      .concat(
-        (configData.custom_delivery ?? []).map((dd: any) => {
-          return { key: dd.id, name: dd.name };
-        })
-      );
 
 
     return [
@@ -265,7 +242,9 @@ dd.name=`<div class="d-flex">${[BgWidget.warningInsignia('POS'),name].join(`<div
         return dd
         }) },
       { key: 'progress', type: 'multi_checkbox', name: '出貨狀況', data: this.progressOptions },
-      { key: 'shipment', type: 'multi_checkbox', name: '運送方式', data: shipmentOptions },
+      { key: 'shipment', type: 'multi_checkbox', name: '運送方式', data: await ShipmentConfig.shipmentMethod({
+          type:'support'
+        })},
       {
         key: 'created_time',
         type: 'during',
@@ -478,6 +457,8 @@ dd.name=`<div class="d-flex">${[BgWidget.warningInsignia('POS'),name].join(`<div
     { key: 'cart_token', value: '訂單編號' },
     { key: 'name', value: '訂購人' },
     { key: 'phone', value: '手機' },
+    { key: 'email', value: '電子信箱' },
+    { key: 'address', value: '宅配地址' },
     { key: 'title', value: '商品名稱' },
     { key: 'sku', value: '商品貨號(SKU)' },
     { key: 'shipment_number', value: '出貨單號碼' },

@@ -540,7 +540,7 @@ export class PaymentPage {
                                                                                 }
                                                                             })(),
                                                                             ...(() => {
-                                                                                if (vm.user_data.member_level.dead_line) {
+                                                                                if (vm.user_data.member_level.dead_line && vm.user_data.member_level.re_new_member) {
                                                                                     return [
                                                                                         {
                                                                                             title: (() => {

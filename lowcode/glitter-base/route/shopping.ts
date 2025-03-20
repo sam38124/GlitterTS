@@ -511,8 +511,8 @@ export class ApiShop {
         obj?.created_time[0].length > 0 &&
         obj?.created_time[1].length > 0
       ) {
-        list.push(`created_time=${new Date(`${obj.created_time[0]} 00:00:00`).toISOString()},${
-          new Date(`${obj.created_time[1]} 23:59:59`).toISOString()
+        list.push(`created_time=${new Date(`${obj.created_time[0]}`).toISOString()},${
+          new Date(`${obj.created_time[1]}`).toISOString()
         }`);
       }
       if(obj.reconciliation_status){
@@ -525,8 +525,8 @@ export class ApiShop {
         obj?.shipment_time[1].length > 0
       ) {
 
-        list.push(`shipment_time=${new Date(`${obj.shipment_time[0]} 00:00:00`).toISOString()},${
-          new Date(`${obj.shipment_time[1]} 23:59:59`).toISOString()
+        list.push(`shipment_time=${new Date(`${obj.shipment_time[0]}`).toISOString()},${
+          new Date(`${obj.shipment_time[1]}`).toISOString()
         }`);
       }
       if (obj.shipment && obj.shipment.length > 0) {

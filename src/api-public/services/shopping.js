@@ -421,6 +421,10 @@ class Shopping {
                     `, []);
                             (content.variants || []).forEach((variant) => {
                                 var _a, _b;
+                                if (content.variants.length === 1) {
+                                    variant.preview_image = undefined;
+                                    variant[`preview_image_${language}`] = undefined;
+                                }
                                 variant.spec = variant.spec || [];
                                 variant.stock = 0;
                                 variant.sold_out =
@@ -2104,10 +2108,10 @@ class Shopping {
                 }
             }
             if (query.archived === 'true') {
-                querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
+                querySql.push(`(archived="${query.archived}")`);
             }
             else if (query.archived === 'false') {
-                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
+                querySql.push(`((archived is null) or (archived!='true'))`);
             }
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
@@ -2637,6 +2641,7 @@ class Shopping {
                 else if (!update.orderData.user_info.shipment_number) {
                     delete update.orderData.user_info.shipment_date;
                 }
+                console.log(`update-progress==>`, updateProgress);
                 if (prevProgress !== updateProgress) {
                     if (updateProgress === 'shipping') {
                         await this.sendNotifications(orderData, 'shipment');
@@ -2784,21 +2789,25 @@ class Shopping {
         await Promise.all(stockUpdates);
     }
     async sendNotifications(orderData, type) {
-        const { phone, lineID } = orderData.customer_info;
+        const { lineID } = orderData.customer_info;
         const messages = [];
         const typeMap = {
             shipment: 'shipment',
             arrival: 'shipment-arrival',
         };
-        if (phone) {
-            const sns = new sms_js_1.SMS(this.app);
-            messages.push(sns.sendCustomerSns(`auto-sns-${typeMap[type]}`, orderData.orderID, phone));
-        }
         if (lineID) {
             const line = new line_message_1.LineMessage(this.app);
             messages.push(line.sendCustomerLine(`auto-line-${typeMap[type]}`, orderData.orderID, lineID));
         }
-        messages.push(auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, `auto-email-${typeMap[type]}`, orderData.orderID, orderData.email, orderData.language));
+        for (const data of [orderData.customer_info, orderData.user_info]) {
+            if (data.email) {
+                messages.push(auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, `auto-email-${typeMap[type]}`, orderData.orderID, data.email, orderData.language));
+            }
+        }
+        for (const data of [orderData.customer_info, orderData.user_info]) {
+            const sns = new sms_js_1.SMS(this.app);
+            messages.push(sns.sendCustomerSns(`auto-sns-${typeMap[type]}`, orderData.orderID, data.phone));
+        }
         await Promise.all(messages);
     }
     async adjustStock(origin, orderData) {
@@ -2825,7 +2834,9 @@ class Shopping {
             if (!this.token) {
                 return { result: false, message: 'The token is undefined' };
             }
-            const orderList = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?;
+            const orderList = await database_js_1.default.query(`SELECT *
+         FROM \`${this.app}\`.t_checkout
+         WHERE cart_token = ?;
         `, [order_id]);
             if (orderList.length === 0) {
                 return { result: false, message: `Order id #${order_id} is not exist` };
@@ -2918,9 +2929,15 @@ class Shopping {
                         querySql.push(`(shipment_number like '%${query.search}%')`);
                         break;
                     case 'name':
-                    case 'invoice_number':
                     case 'phone':
-                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.${query.searchType}')) LIKE ('%${query.search}%')))`);
+                    case 'email':
+                        querySql.push(`((UPPER(customer_${query.searchType}) LIKE '%${query.search.toUpperCase()}%') or (UPPER(shipment_${query.searchType}) LIKE '%${query.search.toUpperCase()}%'))`);
+                        break;
+                    case 'address':
+                        querySql.push(`((UPPER(shipment_${query.searchType}) LIKE '%${query.search.toUpperCase()}%'))`);
+                        break;
+                    case 'invoice_number':
+                        querySql.push(`(cart_token in (select order_id from \`${this.app}\`.t_invoice_memory where invoice_no like '%${query.search}%' ))`);
                         break;
                     default:
                         querySql.push(`JSON_CONTAINS_PATH(orderData, 'one', '$.lineItems[*].title') AND JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.lineItems[*].${query.searchType}')) REGEXP '${query.search}'`);
@@ -2934,7 +2951,7 @@ class Shopping {
                         querySql.push(`(cart_token IN (${id_list}))`);
                         break;
                     case 'shipment_number':
-                        querySql.push(`(orderData->>'$.user_info.shipment_number' IN (${id_list}))`);
+                        querySql.push(`(shipment_number IN (${id_list}))`);
                         break;
                     default:
                         querySql.push(`(id IN (${id_list}))`);
@@ -2986,7 +3003,7 @@ class Shopping {
                 querySql.push(`(shipment_number IS NOT NULL) and (shipment_number != '')`);
             }
             if (query.is_reconciliation) {
-                querySql.push(`((status in (1,-2)) or ((payment_method='cash_on_delivery' and progress='finish') ))`);
+                querySql.push(`((o.status in (1,-2)) or ((payment_method='cash_on_delivery' and progress='finish') ))`);
             }
             if (query.payment_select) {
                 querySql.push(`payment_method in (${query.payment_select
@@ -3017,18 +3034,18 @@ class Shopping {
                 querySql.push(`(${temp})`);
             }
             if (query.is_pos === 'true') {
-                querySql.push(`orderData->>'$.orderSource'='POS'`);
+                querySql.push(`order_source='POS'`);
             }
             else if (query.is_pos === 'false') {
-                querySql.push(`orderData->>'$.orderSource'<>'POS'`);
+                querySql.push(`(order_source!='POS' or order_source is null)`);
             }
             if (query.shipment) {
                 let shipment = query.shipment.split(',');
                 let temp = '';
                 if (shipment.includes('normal')) {
-                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.shipment')) IS NULL OR ";
+                    temp += '(shipment_method IS NULL) OR ';
                 }
-                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.shipment')) IN (${shipment.map(status => `"${status}"`).join(',')})`;
+                temp += `(shipment_method IN (${shipment.map(status => `"${status}"`).join(',')}))`;
                 querySql.push(`(${temp})`);
             }
             if (query.created_time) {
@@ -3044,8 +3061,8 @@ class Shopping {
                 const shipment_time = query.shipment_time.split(',');
                 if (shipment_time.length > 1) {
                     querySql.push(`
-                       (orderData->>'$.user_info.shipment_date' >= ${database_js_1.default.escape(`${shipment_time[0]} 00:00:00`)}) and
-                        (orderData->>'$.user_info.shipment_date' <= ${database_js_1.default.escape(`${shipment_time[1]} 23:59:59`)})
+                       (shipment_date >= ${database_js_1.default.escape(`${shipment_time[0]}`)}) and
+                        (shipment_date <= ${database_js_1.default.escape(`${shipment_time[1]}`)})
                     `);
                 }
             }
@@ -3058,39 +3075,41 @@ class Shopping {
                         orderString = 'order by created_time asc';
                         break;
                     case 'order_total_desc':
-                        orderString = "order by CAST(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.total')) AS SIGNED) desc";
+                        orderString = 'order by total desc';
                         break;
                     case 'order_total_asc':
-                        orderString = "order by CAST(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.total')) AS SIGNED) asc";
+                        orderString = 'order by total asc';
                         break;
                 }
             }
-            query.status && querySql.push(`status IN (${query.status})`);
+            query.status && querySql.push(`o.status IN (${query.status})`);
             const orderMath = [];
             query.email && orderMath.push(`(email=${database_js_1.default.escape(query.email)})`);
             query.phone && orderMath.push(`(email=${database_js_1.default.escape(query.phone)})`);
             if (orderMath.length) {
                 querySql.push(`(${orderMath.join(' or ')})`);
             }
-            query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             if (query.filter_type === 'true' || query.archived) {
                 if (query.archived === 'true') {
-                    querySql.push(`(orderData->>'$.archived'="${query.archived}") 
-                    AND (JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IS NULL 
-                    OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
+                    querySql.push(`(archived="${query.archived}") 
+                    AND (order_status IS NULL OR order_status NOT IN (-99))`);
                 }
                 else {
-                    querySql.push(`((orderData->>'$.archived'="${query.archived}") or (orderData->>'$.archived' is null))`);
+                    querySql.push(`((archived="${query.archived}") or (archived is null))`);
                 }
             }
             else if (query.filter_type === 'normal') {
-                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
+                querySql.push(`((archived is null) or (archived!='true'))`);
             }
             if (!(query.filter_type === 'true' || query.archived)) {
-                querySql.push(`((orderData->>'$.orderStatus' is null) or (orderData->>'$.orderStatus' NOT IN (-99)))`);
+                querySql.push(`((order_status is null) or (order_status NOT IN (-99)))`);
             }
-            let sql = `SELECT *
-                 FROM \`${this.app}\`.t_checkout
+            let sql = `SELECT i.invoice_no,
+                        i.invoice_data,
+                        i.\`status\` as invoice_status,
+                        o.*
+                 FROM \`${this.app}\`.t_checkout o
+                          LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id
                  WHERE ${querySql.join(' and ')} ${orderString}`;
             if (query.returnSearch == 'true') {
                 const data = await database_js_1.default.query(`SELECT *

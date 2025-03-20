@@ -41,50 +41,11 @@ ADD INDEX \`index5\` (\`store\` ASC) VISIBLE;`,
         await UpdatedTableChecked.update({
             app_name: app_name,
             table_name: 't_checkout',
-            last_version: ['V1.1', 'V1.2'],
-            new_version: 'V1.3',
-            event: () => {
-                return new Promise(async (resolve, reject) => {
-                    for (const b of await database_1.default.query(`select *
-             from \`${app_name}\`.t_checkout`, [])) {
-                        await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
-                            id: b.id,
-                            orderData: b.orderData,
-                            app_name: app_name,
-                            no_shipment_number: true,
-                        });
-                    }
-                    resolve(true);
-                });
-            },
-        });
-        await UpdatedTableChecked.update({
-            app_name: app_name,
-            table_name: 't_checkout',
-            last_version: ['V1.3'],
+            last_version: ['V1.1', 'V1.2', 'V1.3'],
             new_version: 'V1.4',
             event: `ALTER TABLE \`${app_name}\`.\`t_checkout\`
           ADD COLUMN \`shipment_number\` VARCHAR(45) NULL AFTER \`progress\`,
 ADD INDEX \`index11\` (\`shipment_number\` ASC) VISIBLE;`,
-        });
-        await UpdatedTableChecked.update({
-            app_name: app_name,
-            table_name: 't_checkout',
-            last_version: ['V1.4'],
-            new_version: 'V1.5',
-            event: () => {
-                return new Promise(async (resolve, reject) => {
-                    for (const b of await database_1.default.query(`select *
-             from \`${app_name}\`.t_checkout`, [])) {
-                        await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
-                            id: b.id,
-                            orderData: b.orderData,
-                            app_name: app_name,
-                        });
-                    }
-                    resolve(true);
-                });
-            },
         });
         await UpdatedTableChecked.update({
             app_name: app_name,
@@ -108,7 +69,7 @@ ADD INDEX \`index11\` (\`shipment_number\` ASC) VISIBLE;`,
         await UpdatedTableChecked.update({
             app_name: app_name,
             table_name: 't_checkout',
-            last_version: ['V1.5'],
+            last_version: ['V1.5', 'V1.4'],
             new_version: 'V1.6',
             event: `ALTER TABLE \`${app_name}\`.\`t_checkout\`
           ADD COLUMN \`total_received\` INT NULL DEFAULT NULL AFTER \`shipment_number\`,
@@ -123,25 +84,6 @@ ADD INDEX \`index14\` (\`offset_reason\` ASC) VISIBLE;
         });
         await UpdatedTableChecked.update({
             app_name: app_name,
-            table_name: 't_products_sold_history',
-            last_version: [''],
-            new_version: 'V1.0',
-            event: () => {
-                return new Promise(async (resolve, reject) => {
-                    for (const b of await database_1.default.query(`select *
-             from \`${app_name}\`.t_checkout`, [])) {
-                        await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
-                            id: b.id,
-                            orderData: b.orderData,
-                            app_name: app_name,
-                        });
-                    }
-                    resolve(true);
-                });
-            },
-        });
-        await UpdatedTableChecked.update({
-            app_name: app_name,
             table_name: 't_checkout',
             last_version: ['V1.6'],
             new_version: 'V1.7',
@@ -150,25 +92,6 @@ ADD INDEX \`index14\` (\`offset_reason\` ASC) VISIBLE;
 ADD INDEX \`index15\` (\`reconciliation_date\` ASC) VISIBLE;
       ;
       `,
-        });
-        await UpdatedTableChecked.update({
-            app_name: app_name,
-            table_name: 't_products_sold_history',
-            last_version: [''],
-            new_version: 'V1.0',
-            event: () => {
-                return new Promise(async (resolve, reject) => {
-                    for (const b of await database_1.default.query(`select *
-             from \`${app_name}\`.t_checkout`, [])) {
-                        await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
-                            id: b.id,
-                            orderData: b.orderData,
-                            app_name: app_name,
-                        });
-                    }
-                    resolve(true);
-                });
-            },
         });
         await UpdatedTableChecked.update({
             app_name: app_name,
@@ -201,6 +124,52 @@ ADD INDEX \`index7\` (\`member_level\` ASC) VISIBLE;
             new_version: 'V1.2',
             event: `ALTER TABLE \`${app_name}\`.\`t_user\`
           CHANGE COLUMN \`member_level\` \`member_level\` VARCHAR (45) NULL DEFAULT NULL;`,
+        });
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_checkout',
+            last_version: ['V1.7'],
+            new_version: 'V1.8',
+            event: `ALTER TABLE \`${app_name}\`.\`t_checkout\`
+          ADD COLUMN \`order_source\` VARCHAR(45) NULL DEFAULT NULL AFTER \`reconciliation_date\`,
+ADD COLUMN \`archived\` VARCHAR(45) NULL DEFAULT NULL AFTER \`order_source\`,
+ADD COLUMN \`customer_name\` VARCHAR(45) NULL AFTER \`archived\`,
+ADD COLUMN \`shipment_name\` VARCHAR(45) NULL AFTER \`customer_name\`,
+ADD COLUMN \`customer_email\` VARCHAR(45) NULL AFTER \`shipment_name\`,
+ADD COLUMN \`shipment_email\` VARCHAR(45) NULL AFTER \`customer_email\`,
+ADD COLUMN \`customer_phone\` VARCHAR(45) NULL AFTER \`shipment_email\`,
+ADD COLUMN \`shipment_phone\` VARCHAR(45) NULL AFTER \`customer_phone\`,
+ADD COLUMN \`shipment_address\` VARCHAR(200) NULL AFTER \`shipment_phone\`,
+ADD INDEX \`index16\` (\`order_source\` ASC) VISIBLE,
+ADD INDEX \`index17\` (\`customer_name\` ASC) VISIBLE,
+ADD INDEX \`index18\` (\`order_source\` ASC) VISIBLE,
+ADD INDEX \`index19\` (\`shipment_name\` ASC) VISIBLE,
+ADD INDEX \`index20\` (\`customer_email\` ASC) VISIBLE,
+ADD INDEX \`index21\` (\`shipment_email\` ASC) VISIBLE,
+ADD INDEX \`index22\` (\`customer_phone\` ASC) VISIBLE,
+ADD INDEX \`index23\` (\`shipment_phone\` ASC) VISIBLE,
+ADD INDEX \`index24\` (\`shipment_address\` ASC) VISIBLE;
+      ;
+      `,
+        });
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_checkout',
+            last_version: ['V1.8', 'V1.9'],
+            new_version: 'V2.0',
+            event: () => {
+                return new Promise(async (resolve, reject) => {
+                    for (const b of await database_1.default.query(`select *
+             from \`${app_name}\`.t_checkout`, [])) {
+                        await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
+                            id: b.id,
+                            orderData: b.orderData,
+                            app_name: app_name,
+                        });
+                    }
+                    resolve(true);
+                });
+            },
         });
     }
     static async update(obj) {
