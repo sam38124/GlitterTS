@@ -255,7 +255,7 @@ export class ProductCard02 {
       <div class="card-collapse-parent">
         <div class="d-flex card-title-container justify-content-between align-items-center">
           <div class="row gx-0 mb-1" style="max-width:calc(100% - 50px);">
-            <div class="col-12 mb-1 k2">
+            <div class="col-12 mb-1">
               <div class="w-100 d-flex ${PdClass.isPad() ? 'justify-content-center' : ''}">
                 <span class="card-title-text" style="white-space: normal;word-break: break-all;">${prod.title}</span>
               </div>

@@ -1157,7 +1157,7 @@ export class ShoppingProductSetting {
                           ${(() => {
                             const ba = [];
                             if ((window.parent as any).glitter.share.PayConfig.deviceType === 'pos') {
-                              if((window.parent as any).glitter.share.PayConfig.posType==='SUNMI'){
+                              if ((window.parent as any).glitter.share.PayConfig.posType === 'SUNMI') {
                                 ba.push(
                                   BgWidget.grayButton(
                                     'ㄧ條碼列印',
@@ -1176,7 +1176,7 @@ export class ShoppingProductSetting {
                                     { icon: `fa-solid fa-qrcode` }
                                   )
                                 );
-                              }else{
+                              } else {
                                 ba.push(
                                   BgWidget.grayButton(
                                     '條碼列印',
@@ -1187,7 +1187,6 @@ export class ShoppingProductSetting {
                                   )
                                 );
                               }
-                             
                             }
                             ba.push(
                               BgWidget.grayButton(

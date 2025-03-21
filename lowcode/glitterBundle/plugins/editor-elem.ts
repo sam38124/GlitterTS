@@ -3042,7 +3042,7 @@ ${obj.gvc.bindView(() => {
                     >
                       <div
                         class="h-auto align-items-center px-2 my-0 hi me-n1 ${dd.isSelect ? `bgf6 border` : ``}"
-                        style="cursor: pointer;min-height:36px;width: calc(100% - 10px);display: flex;font-size: 14px;line-height: 20px;font-weight: 500;text-rendering: optimizelegibility;user-select: none;margin: 5px 10px;"
+                        style="min-height:36px;width: calc(100% - 10px);display: flex;font-size: 14px;line-height: 20px;font-weight: 500;text-rendering: optimizelegibility;user-select: none;margin: 5px 10px;"
                         onclick="${gvc.event(() => {
                           if (!dd.innerHtml) {
                             return;

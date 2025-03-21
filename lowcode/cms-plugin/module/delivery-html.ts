@@ -210,7 +210,7 @@ export class DeliveryHTML {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         height: 60px;
       }
 
@@ -246,6 +246,7 @@ export class DeliveryHTML {
         font-size: 16px;
         font-weight: bold;
         margin-bottom: 2px;
+        min-height: 12px;
       }
 
       .${prefix}-flex-wrap {
@@ -256,7 +257,7 @@ export class DeliveryHTML {
       .${prefix}-post-card {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 8px;
         width: 48%;
         border: 0.5px solid #b0b0b0;
         padding: 12px;
@@ -279,6 +280,12 @@ export class DeliveryHTML {
       .${prefix}-send-text {
         font-size: 14px;
         font-weight: normal;
+        min-height: 18px;
+      }
+
+      .${prefix}-order-text {
+        min-height: 24px;
+        text-align: end;
       }
 
       .${prefix}-note {
@@ -293,7 +300,7 @@ export class DeliveryHTML {
       .${prefix}-details table,
       .${prefix}-items table {
         width: 100%;
-        margin-bottom: 20px;
+        margin-bottom: 12px;
       }
 
       .${prefix}-summary table {
@@ -532,12 +539,12 @@ export class DeliveryHTML {
           <h1 class="recipient-text">
             ${[zipcode, orderData.user_info.city, orderData.user_info.area, orderData.user_info.address]
               .filter(Boolean)
-              .join(' ')}
+              .join('')}
           </h1>
-          <h1 class="recipient-text">${orderData.user_info.name}</h1>
+          <h1 class="recipient-text"></h1>
           <h1 class="recipient-text">${orderData.user_info.phone}</h1>
         </div>
-        <div style="text-align: end">訂單編號： ${order.cart_token}</div>
+        <div class="order-text">訂單編號： ${order.cart_token}</div>
       </div>`;
     });
 

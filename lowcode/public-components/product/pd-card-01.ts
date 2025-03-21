@@ -288,7 +288,7 @@ export class ProductCard01 {
       <div class="card-collapse-parent cursor_pointer">
         <div>
           <div class="row gx-0 card-title-container mb-1">
-            <div class="col-12 mb-1 k1">
+            <div class="col-12 mb-1">
               <div class="w-100 d-flex ${PdClass.isPad() ? 'justify-content-center' : ''}">
                 <span class="card-title-text ellipsis">${prod.title}</span>
               </div>

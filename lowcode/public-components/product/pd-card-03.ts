@@ -266,7 +266,7 @@ export class ProductCard03 {
       <div class="card-collapse-parent">
         <div class="card-title-container">
           <div class="row gx-0 mb-2">
-            <div class="col-12 mb-1 k3">
+            <div class="col-12 mb-1">
               <div class="w-100 d-flex ${PdClass.isPad() ? 'justify-content-center' : ''}">
                 <span title="${prod.title}" class="card-title-text">${Tool.truncateString(prod.title, 22)}</span>
               </div>
