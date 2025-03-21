@@ -3568,7 +3568,6 @@ export class Shopping {
 
         //變成已取消加回庫存
         if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
-
           await this.resetStore(origin.orderData.lineItems);
           await AutoSendEmail.customerOrder(
             this.app,
@@ -5738,9 +5737,9 @@ export class Shopping {
             break;
           case 'lessSafe':
             querySql.push(`(
-                            JSON_EXTRACT(v.content, '$.save_stock') is not null AND
-                            (cast(JSON_EXTRACT(v.content, '$.stock') AS SIGNED) - cast(JSON_EXTRACT(v.content, '$.save_stock') AS SIGNED) < ${stockCount[1]})
-                        )`);
+              JSON_EXTRACT(v.content, '$.save_stock') is not null AND
+              (cast(JSON_EXTRACT(v.content, '$.stock') AS SIGNED) - cast(JSON_EXTRACT(v.content, '$.save_stock') AS SIGNED) < ${stockCount[1]})
+            )`);
             break;
         }
       }

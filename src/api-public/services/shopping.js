@@ -4328,6 +4328,7 @@ class Shopping {
                 }
             }
             query.order_by = (() => {
+                console.log(`query.order_by: ${query.order_by}`);
                 switch (query.order_by) {
                     case 'max_price':
                         return `order by v->>'$.content.sale_price' desc`;

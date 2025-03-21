@@ -1055,6 +1055,14 @@ h6 {
   vertical-align: baseline;
 }
 
+.insignia-sm {
+  border-radius: 0.25rem;
+  min-height: 20px;
+  padding: 3px 4px;
+  font-size: 12px;
+  font-weight: normal;
+}
+
 .insignia-primary {
   background: var(--item-primary);
   color: var(--main-white);

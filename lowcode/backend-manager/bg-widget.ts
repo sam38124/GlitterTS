@@ -461,45 +461,74 @@ export class BgWidget {
   }
 
   // 標籤
-  static insignia(className: string, text: string, type: 'fill' | 'border') {
-    const record = {
+  static insignia(className: string, text: string, args: { type: 'fill' | 'border'; size: 'sm' | 'md' }) {
+    const typeMap = {
       border: `insignia-border insignia-${className}-border`,
       fill: `insignia-${className}`,
     };
 
-    return html` <div class="insignia ${record[type] ?? record.fill}">${text}</div>`;
+    const sizeMap = {
+      sm: 'insignia insignia-sm',
+      md: 'insignia',
+    };
+
+    return html` <div class="${sizeMap[args.size] ?? sizeMap.md} ${typeMap[args.type] ?? typeMap.fill}">${text}</div>`;
   }
 
-  static primaryInsignia(text: string, type: 'fill' | 'border' = 'fill') {
-    return this.insignia('primary', text, type);
+  static primaryInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('primary', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static successInsignia(text: string, type: 'fill' | 'border' = 'fill') {
-    return this.insignia('success', text, type);
+  static successInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('success', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static dangerInsignia(text: string, type: 'fill' | 'border' = 'fill') {
-    return this.insignia('danger', text, type);
+  static dangerInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('danger', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static infoInsignia(text: string, type: 'fill' | 'border' = 'fill') {
-    return this.insignia('info', text, type);
+  static infoInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('info', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static warningInsignia(text: string, type: 'fill' | 'border' = 'fill') {
-    return this.insignia('warning', text, type);
+  static warningInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('warning', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static normalInsignia(text: string, type: 'fill' | 'border' = 'fill') {
-    return this.insignia('normal', text, type);
+  static normalInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('normal', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static notifyInsignia(text: string, type: 'fill' | 'border' = 'fill') {
-    return this.insignia('notify', text, type);
+  static notifyInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('notify', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static secondaryInsignia(text: string, type: 'fill' | 'border' = 'fill') {
-    return this.insignia('secondary', text, type);
+  static secondaryInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('secondary', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
   // 元素
@@ -4734,16 +4763,16 @@ ${obj.default ?? ''}</textarea
       url: this.noImageURL,
     };
     const wh = `
-            display: flex;
-            min-width: ${obj.width}px;
-            min-height: ${obj.height ?? obj.width}px;
-            max-width: ${obj.width}px;
-            max-height: ${obj.height ?? obj.width}px;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-        `;
+      display: flex;
+      min-width: ${obj.width}px;
+      min-height: ${obj.height ?? obj.width}px;
+      max-width: ${obj.width}px;
+      max-height: ${obj.height ?? obj.width}px;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    `;
     return obj.gvc.bindView({
       bind: imageVM.id,
       view: () => {

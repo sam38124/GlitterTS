@@ -335,37 +335,73 @@ export class BgWidget {
       />${text}
     </div>`;
     }
-    static insignia(className, text, type) {
-        var _a;
-        const record = {
+    static insignia(className, text, args) {
+        var _a, _b;
+        const typeMap = {
             border: `insignia-border insignia-${className}-border`,
             fill: `insignia-${className}`,
         };
-        return html ` <div class="insignia ${(_a = record[type]) !== null && _a !== void 0 ? _a : record.fill}">${text}</div>`;
+        const sizeMap = {
+            sm: 'insignia insignia-sm',
+            md: 'insignia',
+        };
+        return html ` <div class="${(_a = sizeMap[args.size]) !== null && _a !== void 0 ? _a : sizeMap.md} ${(_b = typeMap[args.type]) !== null && _b !== void 0 ? _b : typeMap.fill}">${text}</div>`;
     }
-    static primaryInsignia(text, type = 'fill') {
-        return this.insignia('primary', text, type);
+    static primaryInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('primary', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static successInsignia(text, type = 'fill') {
-        return this.insignia('success', text, type);
+    static successInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('success', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static dangerInsignia(text, type = 'fill') {
-        return this.insignia('danger', text, type);
+    static dangerInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('danger', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static infoInsignia(text, type = 'fill') {
-        return this.insignia('info', text, type);
+    static infoInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('info', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static warningInsignia(text, type = 'fill') {
-        return this.insignia('warning', text, type);
+    static warningInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('warning', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static normalInsignia(text, type = 'fill') {
-        return this.insignia('normal', text, type);
+    static normalInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('normal', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static notifyInsignia(text, type = 'fill') {
-        return this.insignia('notify', text, type);
+    static notifyInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('notify', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static secondaryInsignia(text, type = 'fill') {
-        return this.insignia('secondary', text, type);
+    static secondaryInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('secondary', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
     static leftLineBar() {
         return html ` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
@@ -3980,16 +4016,16 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             url: this.noImageURL,
         };
         const wh = `
-            display: flex;
-            min-width: ${obj.width}px;
-            min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
-            max-width: ${obj.width}px;
-            max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-        `;
+      display: flex;
+      min-width: ${obj.width}px;
+      min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
+      max-width: ${obj.width}px;
+      max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    `;
         return obj.gvc.bindView({
             bind: imageVM.id,
             view: () => {

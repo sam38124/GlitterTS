@@ -258,11 +258,11 @@ export class ShoppingOrderManager {
                                   ${dd.cart_token}${(() => {
                                                             switch (dd.order_source) {
                                                                 case 'manual':
-                                                                    return BgWidget.primaryInsignia('手動', 'border');
+                                                                    return BgWidget.primaryInsignia('手動', { type: 'border' });
                                                                 case 'combine':
-                                                                    return BgWidget.warningInsignia('合併', 'border');
+                                                                    return BgWidget.warningInsignia('合併', { type: 'border' });
                                                                 case 'POS':
-                                                                    return BgWidget.primaryInsignia('POS', 'border');
+                                                                    return BgWidget.primaryInsignia('POS', { type: 'border' });
                                                                 default:
                                                                     return '';
                                                             }
@@ -321,14 +321,14 @@ export class ShoppingOrderManager {
                                   ${dd.cart_token}${(() => {
                                                             switch (dd.orderData.orderSource) {
                                                                 case 'manual':
-                                                                    return BgWidget.primaryInsignia('手動', 'border');
+                                                                    return BgWidget.primaryInsignia('手動', { type: 'border' });
                                                                 case 'combine':
-                                                                    return BgWidget.warningInsignia('合併', 'border');
+                                                                    return BgWidget.warningInsignia('合併', { type: 'border' });
                                                                 case 'POS':
                                                                     if (vm.filter_type === 'pos') {
                                                                         return ``;
                                                                     }
-                                                                    return BgWidget.primaryInsignia('POS', 'border');
+                                                                    return BgWidget.primaryInsignia('POS', { type: 'border' });
                                                                 default:
                                                                     return '';
                                                             }

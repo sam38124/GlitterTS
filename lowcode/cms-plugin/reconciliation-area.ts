@@ -508,7 +508,7 @@ export class ReconciliationArea {
                                           ${dd.cart_token}${(() => {
                                             switch (dd.orderData.orderSource) {
                                               case 'manual':
-                                                return BgWidget.primaryInsignia('手動', 'border');
+                                                return BgWidget.primaryInsignia('手動', { type: 'border' });
                                               default:
                                                 return '';
                                             }
