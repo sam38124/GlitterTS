@@ -4321,14 +4321,13 @@ class Shopping {
                         break;
                     case 'lessSafe':
                         querySql.push(`(
-                            JSON_EXTRACT(v.content, '$.save_stock') is not null AND
-                            (cast(JSON_EXTRACT(v.content, '$.stock') AS SIGNED) - cast(JSON_EXTRACT(v.content, '$.save_stock') AS SIGNED) < ${stockCount[1]})
-                        )`);
+              JSON_EXTRACT(v.content, '$.save_stock') is not null AND
+              (cast(JSON_EXTRACT(v.content, '$.stock') AS SIGNED) - cast(JSON_EXTRACT(v.content, '$.save_stock') AS SIGNED) < ${stockCount[1]})
+            )`);
                         break;
                 }
             }
             query.order_by = (() => {
-                console.log(`query.order_by: ${query.order_by}`);
                 switch (query.order_by) {
                     case 'max_price':
                         return `order by v->>'$.content.sale_price' desc`;
