@@ -1,4 +1,14 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { BgWidget } from '../backend-manager/bg-widget.js';
+import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 const html = String.raw;
 export class OrderInfo {
     static reconciliationStatus(dd, text_only = false) {
@@ -58,6 +68,36 @@ export class OrderInfo {
         else {
             return res_;
         }
+    }
+    static shipmetSelector(order, shipmentSelector) {
+        const shipment = (order.orderData.shipment_selector || shipmentSelector).find((d) => d.value === order.orderData.user_info.shipment);
+        return (shipment === null || shipment === void 0 ? void 0 : shipment.name) || '門市取貨';
+    }
+    static paymentSelector(gvc, order) {
+        const vm = {
+            id: gvc.glitter.getUUID(),
+            loading: true,
+            dataList: [],
+        };
+        return gvc.bindView({
+            bind: vm.id,
+            view: () => {
+                if (vm.loading)
+                    return '載入中';
+                const pay = vm.dataList.find((d) => d.key === order.orderData.customer_info.payment_select);
+                return (pay === null || pay === void 0 ? void 0 : pay.name) || '線下付款';
+            },
+            divCreate: {
+                style: 'width: 150px',
+            },
+            onCreate: () => __awaiter(this, void 0, void 0, function* () {
+                if (vm.loading) {
+                    vm.dataList = yield PaymentConfig.getSupportPayment();
+                    vm.loading = false;
+                    gvc.notifyDataChange(vm.id);
+                }
+            }),
+        });
     }
 }
 function stripHtmlTags(input) {

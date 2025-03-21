@@ -31,16 +31,18 @@ type CollecrtionItem = {
   code: string;
 };
 
+type TData = {
+  key: string;
+  title?: string;
+  value: string;
+  stopClick?: boolean;
+};
+
 type TableV3 = {
   loading: boolean;
   page: number;
   pageSize: number;
-  tableData: {
-    key: string;
-    title?: string;
-    value: string;
-    stopClick?: boolean;
-  }[][];
+  tableData: TData[][];
   originalData: any;
   callback: () => void;
   checkedArray: any[];

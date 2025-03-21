@@ -78,7 +78,7 @@ interface ViewModel {
   return_order?: boolean;
   filter?: any;
   tempOrder?: string;
-  filter_type: 'normal' | 'block' | 'pos' | 'all'
+  filter_type: 'normal' | 'block' | 'pos' | 'all';
   apiJSON: any;
   checkedData: any[];
   headerConfig: string[];
@@ -110,9 +110,9 @@ interface Order {
   email: string;
   orderData: OrderData;
   created_time: string;
-  total_received:string;
-  reconciliation_date:string;
-  offset_records:any[]
+  total_received: string;
+  reconciliation_date: string;
+  offset_records: any[];
 }
 
 interface OrderData {
@@ -504,8 +504,8 @@ export class ShoppingOrderManager {
                       archived: `${query.isArchived}`,
                       is_shipment: query.isShipment,
                     };
-                    if(vm.filter_type!=='all'){
-                      vm.apiJSON.is_pos= (vm.filter_type === 'pos')
+                    if (vm.filter_type !== 'all') {
+                      vm.apiJSON.is_pos = vm.filter_type === 'pos';
                     }
 
                     ApiShop.getOrder(vm.apiJSON).then(data => {
@@ -588,8 +588,8 @@ export class ShoppingOrderManager {
                                       case 'combine':
                                         return BgWidget.warningInsignia('合併', 'border');
                                       case 'POS':
-                                        if(vm.filter_type==='pos'){
-                                          return  ``
+                                        if (vm.filter_type === 'pos') {
+                                          return ``;
                                         }
                                         return BgWidget.primaryInsignia('POS', 'border');
                                       default:
@@ -600,7 +600,9 @@ export class ShoppingOrderManager {
                               },
                               {
                                 key: '訂單日期',
-                                value: glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm'),
+                                value: html`<div style="width: 120px;">
+                                  ${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd')}
+                                </div>`,
                               },
                               {
                                 key: '訂購人',
@@ -608,7 +610,7 @@ export class ShoppingOrderManager {
                               },
                               {
                                 key: '訂單金額',
-                                value: dd.orderData.total.toLocaleString(),
+                                value: `$ ${dd.orderData.total.toLocaleString()}`,
                               },
                               {
                                 key: '付款狀態',
@@ -670,15 +672,37 @@ export class ShoppingOrderManager {
                                 })(),
                               },
                               {
+                                key: '運送方式',
+                                value: html`<div style="width: 120px;">
+                                  ${OrderInfo.shipmetSelector(dd, ShoppingOrderManager.supportShipmentMethod())}
+                                </div>`,
+                              },
+                              {
+                                key: '付款方式',
+                                value: OrderInfo.paymentSelector(gvc, dd),
+                              },
+                              {
+                                key: '付款時間',
+                                value: html`<div style="width: 160px;">
+                                  ${(() => {
+                                    if (!dd.orderData.editRecord) {
+                                      return '-';
+                                    }
+                                    const record = dd.orderData.editRecord.find(
+                                      (item: { record: string }) => item.record === '付款成功'
+                                    );
+                                    return record ? Tool.formatDateTime(record.time) : '-';
+                                  })()}
+                                </div>`,
+                              },
+                              {
                                 key: '對帳狀態',
                                 value: OrderInfo.reconciliationStatus(dd),
                               },
                               {
                                 key: '發票號碼',
-                                value: (() => {
-                                 return dd.invoice_no || '-';
-                                })(),
-                              }
+                                value: dd.invoice_no || '-',
+                              },
                             ]
                               .filter(item => {
                                 return vm.headerConfig.includes(item.key);
@@ -1552,7 +1576,10 @@ export class ShoppingOrderManager {
 
                   function getBadgeList() {
                     return html` <div style="display:flex; gap:10px; justify-content:flex-end;">
-                      ${vt.archivedBadge()} ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}${OrderInfo.reconciliationStatus(orderData)}
+                      ${vt.archivedBadge()}
+                      ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}${OrderInfo.reconciliationStatus(
+                        orderData
+                      )}
                     </div>`;
                   }
 
@@ -2962,69 +2989,75 @@ export class ShoppingOrderManager {
                                 </div>
                               </div>
                             `),
-                            BgWidget.mainCard((()=>{
-                              let records = orderData['offset_records'] ?? [];
-                              return html`
-                              <div class="tx_700">對帳記錄</div>
-                              ${BgWidget.mbContainer(18)}
-                              <div class="mt-n2">
-                                ${[
-                                ...(()=>{
-                                  if(!orderData.reconciliation_date){
-                                    return [`<div class="">尚未入帳</div>`]
-                                  }else{
-                                    return  [`
+                            BgWidget.mainCard(
+                              (() => {
+                                let records = orderData['offset_records'] ?? [];
+                                return html`
+                                  <div class="tx_700">對帳記錄</div>
+                                  ${BgWidget.mbContainer(18)}
+                                  <div class="mt-n2">
+                                    ${[
+                                      ...(() => {
+                                        if (!orderData.reconciliation_date) {
+                                          return [`<div class="">尚未入帳</div>`];
+                                        } else {
+                                          return [
+                                            `
                                     <div class="rounded-3 w-100 border p-2 " style="background: whitesmoke;">
                                             ${[
-                                      `<div class="col-12 d-flex flex-column" style="gap:5px;">
+                                              `<div class="col-12 d-flex flex-column" style="gap:5px;">
                                                 <div class="">入帳日期</div>
                                                 <div class=" fw-500 fs-6">${gvc.glitter.ut.dateFormat(new Date(orderData.reconciliation_date), 'yyyy-MM-dd hh:mm')}</div>
                                               </div>`,
-                                      `<div class="col-12 d-flex flex-column" style="gap:5px;">
+                                              `<div class="col-12 d-flex flex-column" style="gap:5px;">
                                                 <div class="">入帳金額</div>
                                                 <div class=" fw-500 fs-6">$ ${parseInt(orderData.total_received, 10).toLocaleString()}</div>
                                               </div>`,
-                                    ].join(`<div class="my-2 border-top w-100"></div>`)}
+                                            ].join(`<div class="my-2 border-top w-100"></div>`)}
                                           </div>
-                                    `]
-                                  }
-                                })(),
-                                ...(() => {
-                                  return JSON.parse(JSON.stringify(records)).reverse().map((dd: any) => {
-                                    return `<div class="rounded-3 w-100 border p-2 " style="background: whitesmoke;">
+                                    `,
+                                          ];
+                                        }
+                                      })(),
+                                      ...(() => {
+                                        return JSON.parse(JSON.stringify(records))
+                                          .reverse()
+                                          .map((dd: any) => {
+                                            return `<div class="rounded-3 w-100 border p-2 " style="background: whitesmoke;">
 ${[
-                                      `<div class="col-12 d-flex flex-column" style="gap:5px;">
+  `<div class="col-12 d-flex flex-column" style="gap:5px;">
                                                 <div class="">沖帳日期</div>
-                                                <div class=" fw-500 fs-6">${gvc.glitter.ut.dateFormat(new Date(dd.offset_date),'yyyy-MM-dd hh:mm:ss')}</div>
+                                                <div class=" fw-500 fs-6">${gvc.glitter.ut.dateFormat(new Date(dd.offset_date), 'yyyy-MM-dd hh:mm:ss')}</div>
                                               </div>`,
-                                      `<div class="col-12 d-flex flex-column" style="gap:5px;">
+  `<div class="col-12 d-flex flex-column" style="gap:5px;">
                                                 <div class="">沖帳人員</div>
                                                 <div class=" fw-500 fs-6">${(dd.user && dd.user.name) || '未知'}</div>
                                               </div>`,
-                                      `<div class="col-12 d-flex flex-column" style="gap:5px;">
+  `<div class="col-12 d-flex flex-column" style="gap:5px;">
                                                 <div class="">沖帳金額</div>
                                                 <div class=" fw-500 fs-6">$ ${parseInt(dd.offset_amount, 10).toLocaleString()}</div>
                                               </div>`,
-                                      `<div class="col-12 d-flex flex-column" style="gap:5px;">
+  `<div class="col-12 d-flex flex-column" style="gap:5px;">
                                                 <div class="">沖帳原因</div>
                                                 <div class=" fw-500 fs-6">${dd.offset_reason}</div>
                                               </div>`,
-                                      `<div class="col-12 d-flex flex-column" style="gap:5px;">
+  `<div class="col-12 d-flex flex-column" style="gap:5px;">
                                                 <div class="">沖帳備註</div>
                                                 <div class=" fw-500 fs-6">${dd.offset_note || '未填寫'}</div>
-                                              </div>`
-                                    ].join(`<div class="my-2 border-top w-100"></div>`)}
+                                              </div>`,
+].join(`<div class="my-2 border-top w-100"></div>`)}
 </div>`;
-                                  });
-                                })(),
-                              ]
-                                .map(dd => {
-                                  return `<div class="w-100">${dd}</div>`;
-                                })
-                                .join('<div class="w-100 border-top my-2"></div>')}
-                              </div>
-                            `
-                            })())
+                                          });
+                                      })(),
+                                    ]
+                                      .map(dd => {
+                                        return `<div class="w-100">${dd}</div>`;
+                                      })
+                                      .join('<div class="w-100 border-top my-2"></div>')}
+                                  </div>
+                                `;
+                              })()
+                            ),
                           ]
                             .filter(Boolean)
                             .join(BgWidget.mbContainer(24)),

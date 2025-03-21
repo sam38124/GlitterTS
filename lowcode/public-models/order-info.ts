@@ -1,7 +1,6 @@
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { PaymentPage } from '../cms-plugin/pos-pages/payment-page.js';
-import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 import { GVC } from '../glitterBundle/GVController.js';
+import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 
 const html = String.raw;
 
@@ -10,7 +9,7 @@ export class OrderInfo {
   public static reconciliationStatus(dd: any, text_only: boolean = false) {
     const received_c = (dd.total_received ?? 0) + dd.offset_amount;
     const res_ = (() => {
-      if (dd.total_received === null ) {
+      if (dd.total_received === null) {
         return BgWidget.warningInsignia('待入帳');
       } else if (dd.total_received === dd.total) {
         return BgWidget.successInsignia('已入帳');
@@ -58,6 +57,48 @@ export class OrderInfo {
     } else {
       return res_;
     }
+  }
+
+  // 運送方式
+  public static shipmetSelector(
+    order: any,
+    shipmentSelector: {
+      name: string;
+      value: string;
+    }[]
+  ) {
+    const shipment = (order.orderData.shipment_selector || shipmentSelector).find(
+      (d: any) => d.value === order.orderData.user_info.shipment
+    );
+    return shipment?.name || '門市取貨';
+  }
+
+  // 付款方式
+  public static paymentSelector(gvc: GVC, order: any) {
+    const vm = {
+      id: gvc.glitter.getUUID(),
+      loading: true,
+      dataList: [] as any,
+    };
+
+    return gvc.bindView({
+      bind: vm.id,
+      view: () => {
+        if (vm.loading) return '載入中';
+        const pay = vm.dataList.find((d: any) => d.key === order.orderData.customer_info.payment_select);
+        return pay?.name || '線下付款';
+      },
+      divCreate: {
+        style: 'width: 150px',
+      },
+      onCreate: async () => {
+        if (vm.loading) {
+          vm.dataList = await PaymentConfig.getSupportPayment();
+          vm.loading = false;
+          gvc.notifyDataChange(vm.id);
+        }
+      },
+    });
   }
 }
 
