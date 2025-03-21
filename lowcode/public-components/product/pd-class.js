@@ -20,7 +20,6 @@ import { ApiTrack } from '../../glitter-base/route/api-track.js';
 import { Animation } from '../../glitterBundle/module/Animation.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 const html = String.raw;
-const css = String.raw;
 export class PdClass {
     static jumpAlert(obj) {
         var _a, _b;
@@ -115,7 +114,7 @@ export class PdClass {
         const borderButtonText = (_c = glitter.share.globalValue['theme_color.0.border-button-text']) !== null && _c !== void 0 ? _c : '#333333';
         const solidButtonBgr = (_d = glitter.share.globalValue['theme_color.0.solid-button-bg']) !== null && _d !== void 0 ? _d : '#dddddd';
         const solidButtonText = (_e = glitter.share.globalValue['theme_color.0.solid-button-text']) !== null && _e !== void 0 ? _e : '#000000';
-        gvc.glitter.addStyle(css `
+        gvc.glitter.addStyle(`
       .add-wish-container {
         align-items: center;
         justify-content: center;
@@ -347,7 +346,6 @@ export class PdClass {
           `;
                 },
                 divCreate: {
-                    class: ``,
                     option: [{ key: 'id', value: id }],
                     style: `overflow:hidden;position:relative;${document.body.clientWidth > 800 ? `width:500px;` : `width:100%:`}`,
                 },
@@ -816,7 +814,7 @@ export class PdClass {
                         let viewMap = [];
                         if (document.body.clientWidth < 800 && window.store_info.chat_toggle) {
                             viewMap.push(html `<div
-                    class="rounded-3  d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold "
+                    class="rounded-3 d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold "
                     style="height:44px;width:44px;"
                     onclick="${gvc.event(() => {
                                 const userID = (() => {
@@ -844,7 +842,7 @@ export class PdClass {
                   </div>`);
                         }
                         viewMap.push(html `<div
-                  class="rounded-3  d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold "
+                  class="rounded-3 d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold "
                   style="height:44px;width:44px;cursor: pointer;"
                   onclick="${gvc.event(() => {
                             navigator.clipboard.writeText(`${window.location.href}`);
@@ -937,7 +935,7 @@ export class PdClass {
                                                     }),
                                                 },
                                             ],
-                                            class: `rounded-3  d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold`,
+                                            class: `rounded-3 d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold`,
                                             style: `height:44px;width:44px;cursor:pointer; ${vm.wishStatus ? `background: #ff5353;border:1px solid white;` : ``}`,
                                         };
                                     },
@@ -1017,7 +1015,7 @@ export class PdClass {
                     },
                     divCreate: {
                         style: `${document.body.clientWidth > 800 ? `width:100%;height: 38px;` : `width:100%;z-index:10;`}gap:6px;`,
-                        class: `d-flex  ${document.body.clientWidth < 800 ? `position-fixed bottom-0 start-0 px-2 py-2 pb-4 bg-white shadow border-top` : `mt-3`}`,
+                        class: `d-flex ${document.body.clientWidth < 800 ? `position-fixed bottom-0 start-0 px-2 py-2 pb-4 bg-white shadow border-top` : `mt-3`}`,
                     },
                 }),
                 aboutVoucherHTML
@@ -1130,9 +1128,6 @@ export class PdClass {
                         : ''}
                       </div>
                     `;
-                },
-                divCreate: {
-                    style: '',
                 },
             })}
               </div>
@@ -1423,7 +1418,7 @@ export class PdClass {
                     },
                     divCreate: {
                         style: `${document.body.clientWidth > 800 ? `width:100%;height: 38px;` : `width:100%;z-index:10;`}gap:6px;`,
-                        class: `d-flex  ${document.body.clientWidth < 800 ? `position-fixed bottom-0 start-0 px-2 py-2 pb-4 bg-white shadow border-top` : `mt-3`}  align-items-center`,
+                        class: `d-flex ${document.body.clientWidth < 800 ? `position-fixed bottom-0 start-0 px-2 py-2 pb-4 bg-white shadow border-top` : `mt-3`}  align-items-center`,
                     },
                 }),
             ].join('')}
@@ -1444,6 +1439,43 @@ export class PdClass {
                 close_event();
             },
         });
+    }
+    static getSpecPriceRange(variants) {
+        const specPriceMap = new Map();
+        let minVariant = null;
+        let maxVariant = null;
+        for (const variant of variants) {
+            const { sale_price, origin_price } = variant;
+            specPriceMap.set(sale_price, { sale_price, origin_price });
+            if (!minVariant || sale_price < minVariant.sale_price) {
+                minVariant = { sale_price, origin_price };
+            }
+            if (!maxVariant || sale_price > maxVariant.sale_price) {
+                maxVariant = { sale_price, origin_price };
+            }
+        }
+        return { minVariant, maxVariant };
+    }
+    static priceViewer(minVariant, maxVariant) {
+        const { interval_price_card: isInterval, independent_special_price: isIndependent } = window.store_info;
+        const isLower = minVariant.sale_price < minVariant.origin_price;
+        const formatPrice = (price) => Currency.convertCurrencyText(price).toLocaleString();
+        const formatPriceRange = (minPrice, maxPrice) => {
+            const min = formatPrice(minPrice);
+            const max = formatPrice(maxPrice);
+            return isInterval && minPrice < maxPrice ? `${min} ~ ${max}` : min;
+        };
+        const basePrice = html `
+      <div class="fs-6 fw-500 card-sale-price" style="color: ${isIndependent && isLower ? '#DA1313' : '#393939'}">
+        ${formatPriceRange(minVariant.sale_price, maxVariant.sale_price)}
+      </div>
+    `;
+        const lineThroughPrice = !isIndependent && isLower
+            ? html `<div class="text-decoration-line-through card-cost-price">
+            ${formatPriceRange(minVariant.origin_price, maxVariant.origin_price)}
+          </div>`
+            : '';
+        return basePrice + lineThroughPrice;
     }
     static isPhone() {
         return document.body.clientWidth < 768;

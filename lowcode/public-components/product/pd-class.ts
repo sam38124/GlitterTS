@@ -13,7 +13,6 @@ import { Animation } from '../../glitterBundle/module/Animation.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 
 const html = String.raw;
-const css = String.raw;
 
 export type Seo = {
   title: string;
@@ -239,7 +238,8 @@ export class PdClass {
     const borderButtonText = glitter.share.globalValue['theme_color.0.border-button-text'] ?? '#333333';
     const solidButtonBgr = glitter.share.globalValue['theme_color.0.solid-button-bg'] ?? '#dddddd';
     const solidButtonText = glitter.share.globalValue['theme_color.0.solid-button-text'] ?? '#000000';
-    gvc.glitter.addStyle(css`
+
+    gvc.glitter.addStyle(`
       .add-wish-container {
         align-items: center;
         justify-content: center;
@@ -430,6 +430,7 @@ export class PdClass {
       }
     });
     PdClass.addSpecStyle(obj.gvc);
+
     // 更新規格
     if (obj.vm.specs.length === 0) {
       obj.vm.specs = obj.vm.specs.map((spec: any) => spec.option[0].title);
@@ -486,7 +487,6 @@ export class PdClass {
           `;
         },
         divCreate: {
-          class: ``,
           option: [{ key: 'id', value: id }],
           style: `overflow:hidden;position:relative;${document.body.clientWidth > 800 ? `width:500px;` : `width:100%:`}`,
         },
@@ -625,6 +625,7 @@ export class PdClass {
       return prod.variants.find(item => PdClass.ObjCompare(item.spec, vm.specs, true)) as any as any;
     }
   }
+
   static selectSpec(obj: {
     gvc: GVC;
     titleFontColor: string;
@@ -1013,7 +1014,7 @@ export class PdClass {
               if (document.body.clientWidth < 800 && (window as any).store_info.chat_toggle) {
                 viewMap.push(
                   html`<div
-                    class="rounded-3  d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold "
+                    class="rounded-3 d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold "
                     style="height:44px;width:44px;"
                     onclick="${gvc.event(() => {
                       const userID = (() => {
@@ -1046,7 +1047,7 @@ export class PdClass {
               }
               viewMap.push(
                 html`<div
-                  class="rounded-3  d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold "
+                  class="rounded-3 d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold "
                   style="height:44px;width:44px;cursor: pointer;"
                   onclick="${gvc.event(() => {
                     navigator.clipboard.writeText(`${window.location.href}`);
@@ -1141,7 +1142,7 @@ export class PdClass {
                               }),
                             },
                           ],
-                          class: `rounded-3  d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold`,
+                          class: `rounded-3 d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold`,
                           style: `height:44px;width:44px;cursor:pointer; ${vm.wishStatus ? `background: #ff5353;border:1px solid white;` : ``}`,
                         };
                       },
@@ -1225,7 +1226,7 @@ export class PdClass {
             },
             divCreate: {
               style: `${document.body.clientWidth > 800 ? `width:100%;height: 38px;` : `width:100%;z-index:10;`}gap:6px;`,
-              class: `d-flex  ${document.body.clientWidth < 800 ? `position-fixed bottom-0 start-0 px-2 py-2 pb-4 bg-white shadow border-top` : `mt-3`}`,
+              class: `d-flex ${document.body.clientWidth < 800 ? `position-fixed bottom-0 start-0 px-2 py-2 pb-4 bg-white shadow border-top` : `mt-3`}`,
             },
           }),
           aboutVoucherHTML
@@ -1363,9 +1364,6 @@ export class PdClass {
                           : ''}
                       </div>
                     `;
-                  },
-                  divCreate: {
-                    style: '',
                   },
                 })}
               </div>
@@ -1691,7 +1689,7 @@ export class PdClass {
                 },
                 divCreate: {
                   style: `${document.body.clientWidth > 800 ? `width:100%;height: 38px;` : `width:100%;z-index:10;`}gap:6px;`,
-                  class: `d-flex  ${document.body.clientWidth < 800 ? `position-fixed bottom-0 start-0 px-2 py-2 pb-4 bg-white shadow border-top` : `mt-3`}  align-items-center`,
+                  class: `d-flex ${document.body.clientWidth < 800 ? `position-fixed bottom-0 start-0 px-2 py-2 pb-4 bg-white shadow border-top` : `mt-3`}  align-items-center`,
                 },
               }),
             ].join('')}
@@ -1715,6 +1713,62 @@ export class PdClass {
         },
       }
     );
+  }
+
+  static getSpecPriceRange(variants: any) {
+    const specPriceMap = new Map<number, { sale_price: number; origin_price: number }>();
+
+    let minVariant: { sale_price: number; origin_price: number } | null = null;
+    let maxVariant: { sale_price: number; origin_price: number } | null = null;
+
+    for (const variant of variants) {
+      const { sale_price, origin_price } = variant;
+
+      // 建立 specPriceMap
+      specPriceMap.set(sale_price, { sale_price, origin_price });
+
+      // 計算最低價 & 最高價
+      if (!minVariant || sale_price < minVariant.sale_price) {
+        minVariant = { sale_price, origin_price };
+      }
+      if (!maxVariant || sale_price > maxVariant.sale_price) {
+        maxVariant = { sale_price, origin_price };
+      }
+    }
+
+    return { minVariant, maxVariant };
+  }
+
+  static priceViewer(minVariant: any, maxVariant: any) {
+    const { interval_price_card: isInterval, independent_special_price: isIndependent } = (window as any).store_info;
+    const isLower = minVariant.sale_price < minVariant.origin_price;
+
+    // 格式化貨幣
+    const formatPrice = (price: number) => Currency.convertCurrencyText(price).toLocaleString();
+
+    // 顯示價格區間
+    const formatPriceRange = (minPrice: number, maxPrice: number) => {
+      const min = formatPrice(minPrice);
+      const max = formatPrice(maxPrice);
+      return isInterval && minPrice < maxPrice ? `${min} ~ ${max}` : min;
+    };
+
+    // 售價樣式
+    const basePrice = html`
+      <div class="fs-6 fw-500 card-sale-price" style="color: ${isIndependent && isLower ? '#DA1313' : '#393939'}">
+        ${formatPriceRange(minVariant.sale_price, maxVariant.sale_price)}
+      </div>
+    `;
+
+    // 原價劃線樣式
+    const lineThroughPrice =
+      !isIndependent && isLower
+        ? html`<div class="text-decoration-line-through card-cost-price">
+            ${formatPriceRange(minVariant.origin_price, maxVariant.origin_price)}
+          </div>`
+        : '';
+
+    return basePrice + lineThroughPrice;
   }
 
   static isPhone() {

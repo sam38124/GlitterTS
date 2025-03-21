@@ -455,6 +455,8 @@ export class ShoppingInformation {
                 ${createToggle('啟用顧客評論功能', '顧客可以對您的商品進行評論', 'customer_comment')}
                 ${createToggle('啟用 Cookie 聲明', '如需使用廣告追蹤行為，必須啟用 Cookie 聲明，才可發送廣告', 'cookie_check')}
                 ${createToggle('顯示商品剩餘庫存', '啟用此功能，顧客會在商品頁面看到此商品剩餘的庫存數', 'stock_view')}
+                ${createToggle('商品卡片顯示區間價格', '啟用後，若商品有多個規格、不同價位，前台商品卡片將會使用價格區間來顯示，關閉則顯示該商品規格中最低價者', 'interval_price_card')}
+                ${createToggle('單獨顯示商品特價', '啟用此功能，會將含有特價的商品價格或區間，單獨使用紅字顯示，關閉則採用刪改線的方式呈現特價', 'independent_special_price')}
                 ${createCheckoutModeDialog('訂單結算模式', '設定訂單結算模式，可調整顧客累積消費金額、會員等級、數據分析的統計機制')}
               </div>
             `);
