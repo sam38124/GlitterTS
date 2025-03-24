@@ -300,7 +300,17 @@ export class Shopping {
               querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`);
             }
             break;
+          case 'customize_tag':
+            querySql.push(`JSON_EXTRACT(content, '$.product_customize_tag') LIKE '%${query.search}%'`);
+            break;
           case 'title':
+            querySql.push(
+              `(${[
+                `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
+                `(UPPER(content->>'$.language_data."${query.language}".title') LIKE UPPER('%${query.search}%'))`,
+              ].join(' OR ')})`
+            );
+            break;
           default:
             querySql.push(
               `(${[
@@ -309,7 +319,8 @@ export class Shopping {
                 `UPPER(content->>'$.product_tag.language."${query.language}"') like '%${query.search}%'`,
                 `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
                 `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`,
-              ].join(' or ')})`
+                `JSON_EXTRACT(content, '$.product_customize_tag') LIKE '%${query.search}%'`,
+              ].join(' OR ')})`
             );
             break;
         }
@@ -5826,6 +5837,7 @@ export class Shopping {
             `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
             `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
             `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`,
+            `JSON_EXTRACT(content, '$.product_customize_tag') LIKE '%${query.search}%'`,
           ].join(' or ')})`
         );
       }

@@ -12,10 +12,9 @@ import { FormCheck } from '../cms-plugin/module/form-check.js';
 import { Language } from '../glitter-base/global/language.js';
 import { ProductAi } from '../cms-plugin/ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
-import { Animation, AnimationConfig } from '../glitterBundle/module/Animation.js';
+import { Animation } from '../glitterBundle/module/Animation.js';
 
 const html = String.raw;
-const css = String.raw;
 
 type MenuItem = {
   name: string;
@@ -531,30 +530,35 @@ export class BgWidget {
     });
   }
 
-  // 元素
-  static leftLineBar() {
-    return html` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
-  }
-
-  //
   static languageInsignia(language: 'en-US' | 'zh-CN' | 'zh-TW', style?: string) {
     switch (language) {
       case 'zh-TW':
-        return `  <div class="insignia " style="background: #ffe9b2;${style || ''};">${Language.getLanguageText({
-          local: true,
-          compare: language,
-        })}</div>`;
+        return html` <div class="insignia insignia-sm" style="background: #ffe9b2; ${style || ''};">
+          ${Language.getLanguageText({
+            local: true,
+            compare: language,
+          })}
+        </div>`;
       case 'en-US':
-        return `  <div class="insignia " style="background: #D8E7EC;${style || ''};">${Language.getLanguageText({
-          local: true,
-          compare: language,
-        })}</div>`;
+        return html` <div class="insignia insignia-sm" style="background: #D8E7EC; ${style || ''};">
+          ${Language.getLanguageText({
+            local: true,
+            compare: language,
+          })}
+        </div>`;
       case 'zh-CN':
-        return `  <div class="insignia " style="background: #FFD5D0;${style || ''};">${Language.getLanguageText({
-          local: true,
-          compare: language,
-        })}</div>`;
+        return html` <div class="insignia insignia-sm" style="background: #FFD5D0; ${style || ''};">
+          ${Language.getLanguageText({
+            local: true,
+            compare: language,
+          })}
+        </div>`;
     }
+  }
+
+  // 元素
+  static leftLineBar() {
+    return html` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
   }
 
   static horizontalLine(css: { color?: string; size?: number; margin?: number | string } = {}) {
@@ -610,11 +614,7 @@ export class BgWidget {
     let save = () => {
       let stack_list: any = [];
       for (const b of vm.language_list.label) {
-        if (
-          stack_list.find((dd: any) => {
-            return dd.tag === b.tag;
-          })
-        ) {
+        if (stack_list.find((dd: any) => dd.tag === b.tag)) {
           return dialog.errorMessage({ text: `偵測到重複代號『${b.tag}』` });
         } else if (!b.tag) {
           return dialog.errorMessage({ text: `請輸入標籤` });

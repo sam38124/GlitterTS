@@ -22,7 +22,6 @@ import { ProductAi } from '../cms-plugin/ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
 import { Animation } from '../glitterBundle/module/Animation.js';
 const html = String.raw;
-const css = String.raw;
 export class BgWidget {
     static title(title, style = '') {
         return html ` <h3 class="tx_title" style="white-space: nowrap; ${style}">${title}</h3>`;
@@ -403,27 +402,33 @@ export class BgWidget {
             size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
         });
     }
-    static leftLineBar() {
-        return html ` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
-    }
     static languageInsignia(language, style) {
         switch (language) {
             case 'zh-TW':
-                return `  <div class="insignia " style="background: #ffe9b2;${style || ''};">${Language.getLanguageText({
+                return html ` <div class="insignia insignia-sm" style="background: #ffe9b2; ${style || ''};">
+          ${Language.getLanguageText({
                     local: true,
                     compare: language,
-                })}</div>`;
+                })}
+        </div>`;
             case 'en-US':
-                return `  <div class="insignia " style="background: #D8E7EC;${style || ''};">${Language.getLanguageText({
+                return html ` <div class="insignia insignia-sm" style="background: #D8E7EC; ${style || ''};">
+          ${Language.getLanguageText({
                     local: true,
                     compare: language,
-                })}</div>`;
+                })}
+        </div>`;
             case 'zh-CN':
-                return `  <div class="insignia " style="background: #FFD5D0;${style || ''};">${Language.getLanguageText({
+                return html ` <div class="insignia insignia-sm" style="background: #FFD5D0; ${style || ''};">
+          ${Language.getLanguageText({
                     local: true,
                     compare: language,
-                })}</div>`;
+                })}
+        </div>`;
         }
+    }
+    static leftLineBar() {
+        return html ` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
     }
     static horizontalLine(css = {}) {
         const { color = '#DDD', size = 1, margin = '1rem 0' } = css;
@@ -467,9 +472,7 @@ export class BgWidget {
         let save = () => {
             let stack_list = [];
             for (const b of vm.language_list.label) {
-                if (stack_list.find((dd) => {
-                    return dd.tag === b.tag;
-                })) {
+                if (stack_list.find((dd) => dd.tag === b.tag)) {
                     return dialog.errorMessage({ text: `偵測到重複代號『${b.tag}』` });
                 }
                 else if (!b.tag) {

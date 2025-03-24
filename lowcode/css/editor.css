@@ -1060,7 +1060,6 @@ h6 {
   min-height: 20px;
   padding: 3px 4px;
   font-size: 12px;
-  font-weight: normal;
 }
 
 .insignia-primary {
@@ -1222,6 +1221,10 @@ h6 {
   .insignia {
     padding: 7.5px 10px;
     font-size: 12px;
+  }
+
+  .insignia-sm {
+    padding: 5px 7px;
   }
 }
 

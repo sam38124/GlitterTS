@@ -85,13 +85,14 @@ export class BgProduct {
         def: JSON.parse(JSON.stringify(obj.default)),
         options: [] as OptionsItem[],
         query: '',
+        queryType: 'title',
         orderString: '',
       };
 
       return html` <div
         class="bg-white shadow rounded-3"
-        style="overflow-y: auto;${document.body.clientWidth > 768
-          ? 'min-width: 400px; width: 600px;'
+        style="overflow-y: auto; ${document.body.clientWidth > 768
+          ? 'min-width: 500px; width: 700px;'
           : 'min-width: 90vw; max-width: 92.5vw;'}"
       >
         ${gvc.bindView({
@@ -114,8 +115,18 @@ export class BgProduct {
               </div>
               <div class="c_dialog">
                 <div class="c_dialog_body">
-                  <div class="c_dialog_main" style="gap: 12px; max-height: 500px;">
-                    <div class="d-flex" style="gap: 12px;">
+                  <div class="c_dialog_main p-3" style="gap: 12px; min-height: 480px; max-height: 480px;">
+                    <div class="d-flex mb-2" style="gap: 6px;">
+                      ${BgWidget.selectFilter({
+                        gvc,
+                        callback: (value: any) => {
+                          vm.queryType = value;
+                          gvc.notifyDataChange(vm.id);
+                        },
+                        default: vm.queryType || 'title',
+                        options: FilterOptions.productSelect,
+                        style: 'min-width: 120px;',
+                      })}
                       ${BgWidget.searchFilter(
                         gvc.event(e => {
                           vm.query = e.value;
@@ -191,7 +202,7 @@ export class BgProduct {
                                         <div>
                                           <div
                                             class="d-flex align-items-center form-check-label c_updown_label gap-3"
-                                            style="max-width: ${document.body.clientWidth > 768 ? 400 : 220}px;"
+                                            style="max-width: ${document.body.clientWidth > 768 ? 500 : 220}px;"
                                           >
                                             ${BgWidget.validImageBox({
                                               gvc: gvc,
@@ -250,7 +261,7 @@ export class BgProduct {
                       )
                       .trim() ||
                     html`<div class="w-100 d-flex align-items-center justify-content-center">
-                      尚未加入任何商品，請前往管理中心加入商品。
+                      尚未加入任何商品，請前往「商品管理」加入商品
                     </div>`}
                   </div>
                   <div class="c_dialog_bar">
@@ -289,6 +300,7 @@ export class BgProduct {
                 page: 0,
                 limit: 99999,
                 search: vm.query,
+                searchType: vm.queryType || undefined,
                 orderBy: (() => {
                   switch (vm.orderString) {
                     case 'max_price':
