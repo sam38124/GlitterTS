@@ -1918,6 +1918,7 @@ ${obj.default ?? ''}</textarea
     itemSelect?: () => void;
     tabClick?: (vm: TableV3) => void;
     filterCallback?: (data: any) => void; // 批量點擊回傳資料陣列
+    windowTarget?: Window;
   }) {
     const gvc = obj.gvc;
     const glitter = gvc.glitter;
@@ -2012,7 +2013,8 @@ ${obj.default ?? ''}</textarea
 
             // 表頭位置設定
             function changeHeaderStyle() {
-              const target = document.querySelector(`[gvc-id="${gvc.id(ids.header)}"]`) as HTMLElement;
+              const key = `[gvc-id="${gvc.id(ids.header)}"]`;
+              const target = (obj.windowTarget ?? window).document.querySelector(key) as HTMLElement;
               if (!target) return;
 
               const checked = vm.originalData.find((dd: any) => dd.checked);

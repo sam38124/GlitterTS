@@ -564,8 +564,10 @@ export class Shopping {
         const wishListSet = new Set(wishListData.map((row: any) => row.product_id));
 
         products.data = products.data.map((product: any) => {
-          product.content.in_wish_list = wishListSet.has(String(product.id));
-          product.content.id = product.id;
+          if (product.content) {
+            product.content.in_wish_list = wishListSet.has(String(product.id));
+            product.content.id = product.id;
+          }
           return product;
         });
       }
@@ -829,6 +831,10 @@ export class Shopping {
           );
         };
 
+        if (!product || !product.content) {
+          return product;
+        }
+
         product.content.about_vouchers = await this.aboutProductVoucher({
           product,
           userID,
@@ -1034,7 +1040,13 @@ export class Shopping {
     viewSource: string;
   }) {
     const id = `${json.product.id}`;
-    const collection = json.product.content.collection || [];
+    const collection = (() => {
+      try {
+        return json.product.content.collection || [];
+      } catch (error) {
+        return [];
+      }
+    })();
     const userData = json.userData;
     const recommendData = json.recommendData;
 
@@ -4034,7 +4046,7 @@ export class Shopping {
             querySql.push(`(shipment_number IN (${id_list}))`);
             break;
           default:
-            querySql.push(`(id IN (${id_list}))`);
+            querySql.push(`(o.id IN (${id_list}))`);
             break;
         }
       }

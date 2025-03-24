@@ -319,8 +319,10 @@ class Shopping {
              AND content->>'$.product_id' IN (${productIds.map(() => '?').join(',')})`, [userID, ...productIds]);
                 const wishListSet = new Set(wishListData.map((row) => row.product_id));
                 products.data = products.data.map((product) => {
-                    product.content.in_wish_list = wishListSet.has(String(product.id));
-                    product.content.id = product.id;
+                    if (product.content) {
+                        product.content.in_wish_list = wishListSet.has(String(product.id));
+                        product.content.id = product.id;
+                    }
                     return product;
                 });
             }
@@ -541,6 +543,9 @@ class Shopping {
                         .filter((item) => item.type === type)
                         .map((item) => [item.key, new Map(item.variants.map((v) => [v.spec.join('-'), v.price]))]));
                 };
+                if (!product || !product.content) {
+                    return product;
+                }
                 product.content.about_vouchers = await this.aboutProductVoucher({
                     product,
                     userID,
@@ -703,7 +708,14 @@ class Shopping {
     }
     async aboutProductVoucher(json) {
         const id = `${json.product.id}`;
-        const collection = json.product.content.collection || [];
+        const collection = (() => {
+            try {
+                return json.product.content.collection || [];
+            }
+            catch (error) {
+                return [];
+            }
+        })();
         const userData = json.userData;
         const recommendData = json.recommendData;
         function checkValidProduct(caseName, caseList) {
@@ -2963,7 +2975,7 @@ class Shopping {
                         querySql.push(`(shipment_number IN (${id_list}))`);
                         break;
                     default:
-                        querySql.push(`(id IN (${id_list}))`);
+                        querySql.push(`(o.id IN (${id_list}))`);
                         break;
                 }
             }

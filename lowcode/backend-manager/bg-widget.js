@@ -1688,7 +1688,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             });
                         }
                         function changeHeaderStyle() {
-                            const target = document.querySelector(`[gvc-id="${gvc.id(ids.header)}"]`);
+                            var _a;
+                            const key = `[gvc-id="${gvc.id(ids.header)}"]`;
+                            const target = ((_a = obj.windowTarget) !== null && _a !== void 0 ? _a : window).document.querySelector(key);
                             if (!target)
                                 return;
                             const checked = vm.originalData.find((dd) => dd.checked);

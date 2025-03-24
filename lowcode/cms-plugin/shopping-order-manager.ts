@@ -1,29 +1,29 @@
 import { GVC } from '../glitterBundle/GVController.js';
-import { BgWidget } from '../backend-manager/bg-widget.js';
-import { ApiShop } from '../glitter-base/route/shopping.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
-import { FilterOptions } from './filter-options.js';
-import { ApiUser } from '../glitter-base/route/user.js';
-import { UserList } from './user-list.js';
-import { CheckInput } from '../modules/checkInput.js';
-import { ApiDelivery } from '../glitter-base/route/delivery.js';
-import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
 import { BgRecommend } from '../backend-manager/bg-recommend.js';
-import { ApiRecommend } from '../glitter-base/route/recommend.js';
-import { DeliveryHTML } from './module/delivery-html.js';
-import { ApiPageConfig } from '../api/pageConfig.js';
 import { Language } from '../glitter-base/global/language.js';
-import { OrderSetting } from './module/order-setting.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { ApiShop } from '../glitter-base/route/shopping.js';
+import { ApiDelivery } from '../glitter-base/route/delivery.js';
+import { ApiRecommend } from '../glitter-base/route/recommend.js';
+import { PaymentConfig } from '../glitter-base/global/payment-config.js';
+import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
+import { OrderInfo } from '../public-models/order-info.js';
+import { ApiPageConfig } from '../api/pageConfig.js';
+import { Tool } from '../modules/tool.js';
+import { CheckInput } from '../modules/checkInput.js';
 import { CountryTw } from '../modules/country-language/country-tw.js';
 import { OrderExcel } from './module/order-excel.js';
+import { DeliveryHTML } from './module/delivery-html.js';
+import { OrderSetting } from './module/order-setting.js';
 import { PaymentPage } from './pos-pages/payment-page.js';
-import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
-import { PaymentConfig } from '../glitter-base/global/payment-config.js';
+import { UserList } from './user-list.js';
+import { FilterOptions } from './filter-options.js';
 import { ListHeaderOption } from './list-header-option.js';
-import { Tool } from '../modules/tool.js';
-import { OrderInfo } from '../public-models/order-info.js';
+import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
 
 interface VoucherData {
   id: number;
@@ -767,6 +767,19 @@ export class ShoppingOrderManager {
                         },
                       },
                       {
+                        name: '批改訂單各項狀態',
+                        option: true,
+                        event: (checkArray: any) => {
+                          OrderSetting.batchEditOrders({
+                            gvc,
+                            orders: checkArray,
+                            callback: (orders: any) => {
+                              setTimeout(() => updateOrders(orders), 150);
+                            },
+                          });
+                        },
+                      },
+                      {
                         name: '自動生成出貨單',
                         option: true,
                         event: (checkArray: any) => {
@@ -894,162 +907,6 @@ export class ShoppingOrderManager {
                               }
                             },
                           });
-                        },
-                      },
-                      {
-                        name: '更改訂單狀態',
-                        option: true,
-                        event: (checkArray: any) => {
-                          function showDialog(orders: Order[]) {
-                            let orderStatus = '';
-                            BgWidget.settingDialog({
-                              gvc: gvc,
-                              title: '批量更改訂單狀態',
-                              innerHTML: (gvc: GVC) => {
-                                return html` <div>
-                                  <div class="tx_700 mb-2">更改為</div>
-                                  ${BgWidget.select({
-                                    gvc,
-                                    callback: (value: any) => {
-                                      orderStatus = value;
-                                    },
-                                    default: orderStatus,
-                                    options: [{ title: '變更訂單狀態', value: '' }]
-                                      .concat(ApiShop.getOrderStatusArray())
-                                      .map(item => {
-                                        return {
-                                          key: item.value,
-                                          value: item.title,
-                                        };
-                                      }),
-                                  })}
-                                </div>`;
-                              },
-                              footer_html: (gvc: GVC) => {
-                                return [
-                                  BgWidget.cancel(
-                                    gvc.event(() => {
-                                      gvc.closeDialog();
-                                    }),
-                                    '取消'
-                                  ),
-                                  BgWidget.save(
-                                    gvc.event(() => {
-                                      if (orderStatus === '') {
-                                        dialog.infoMessage({ text: '請選擇欲更改的訂單狀態' });
-                                        return;
-                                      }
-                                      gvc.closeDialog();
-                                      orders.forEach(order => {
-                                        order.orderData.orderStatus = orderStatus;
-                                      });
-                                      updateOrders(orders);
-                                    }),
-                                    '儲存'
-                                  ),
-                                ].join('');
-                              },
-                              width: 350,
-                            });
-                          }
-
-                          function main() {
-                            dialog.dataLoading({ visible: true });
-                            ApiShop.getOrder({
-                              page: 0,
-                              limit: 1000,
-                              id_list: checkArray.map((data: any) => data.id).join(','),
-                            }).then(d => {
-                              dialog.dataLoading({ visible: false });
-                              if (d.result && Array.isArray(d.response.data)) {
-                                showDialog(d.response.data);
-                              } else {
-                                dialog.errorMessage({ text: '取得訂單資料錯誤' });
-                              }
-                            });
-                          }
-
-                          main();
-                        },
-                      },
-                      {
-                        name: '更改付款狀態',
-                        option: true,
-                        event: (checkArray: any) => {
-                          function showDialog(orders: Order[]) {
-                            let status = '';
-                            BgWidget.settingDialog({
-                              gvc: gvc,
-                              title: '批量更改付款狀態',
-                              innerHTML: (gvc: GVC) => {
-                                return html` <div>
-                                  <div class="tx_700 mb-2">更改為</div>
-                                  ${BgWidget.select({
-                                    gvc,
-                                    callback: (value: any) => {
-                                      status = value;
-                                    },
-                                    default: status,
-                                    options: [
-                                      { title: '變更付款狀態', value: '' },
-                                      { title: '已付款', value: '1' },
-                                      { title: '部分付款', value: '3' },
-                                      { title: '待核款 / 貨到付款 / 未付款', value: '0' },
-                                      { title: '已退款', value: '-2' },
-                                    ].map(item => {
-                                      return {
-                                        key: item.value,
-                                        value: item.title,
-                                      };
-                                    }),
-                                  })}
-                                </div>`;
-                              },
-                              footer_html: (gvc: GVC) => {
-                                return [
-                                  BgWidget.cancel(
-                                    gvc.event(() => {
-                                      gvc.closeDialog();
-                                    }),
-                                    '取消'
-                                  ),
-                                  BgWidget.save(
-                                    gvc.event(() => {
-                                      if (status === '') {
-                                        dialog.infoMessage({ text: '請選擇欲更改的付款狀態' });
-                                        return;
-                                      }
-                                      gvc.closeDialog();
-                                      orders.forEach(order => {
-                                        order.status = Number(status);
-                                      });
-                                      updateOrders(orders);
-                                    }),
-                                    '儲存'
-                                  ),
-                                ].join('');
-                              },
-                              width: 350,
-                            });
-                          }
-
-                          function main() {
-                            dialog.dataLoading({ visible: true });
-                            ApiShop.getOrder({
-                              page: 0,
-                              limit: 1000,
-                              id_list: checkArray.map((data: any) => data.id).join(','),
-                            }).then(d => {
-                              dialog.dataLoading({ visible: false });
-                              if (d.result && Array.isArray(d.response.data)) {
-                                showDialog(d.response.data);
-                              } else {
-                                dialog.errorMessage({ text: '取得訂單資料錯誤' });
-                              }
-                            });
-                          }
-
-                          main();
                         },
                       },
                     ];
@@ -4992,7 +4849,7 @@ ${[
                                                 </div>`;
                                             }
                                           } catch (e) {
-                                            console.log(e);
+                                            console.error(e);
                                             return `${e}`;
                                           }
                                         },
