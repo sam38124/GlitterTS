@@ -7,32 +7,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
-import { ProductAi } from './ai-generator/product-ai.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { BgProduct } from '../backend-manager/bg-product.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { Language } from '../glitter-base/global/language.js';
 import { Tool } from '../modules/tool.js';
 import { imageLibrary } from '../modules/image-library.js';
-import { ApiUser } from '../glitter-base/route/user.js';
-import { ProductSetting } from './module/product-setting.js';
-import { BgProduct } from '../backend-manager/bg-product.js';
-import { Language } from '../glitter-base/global/language.js';
 import { CheckInput } from '../modules/checkInput.js';
+import { ProductSetting } from './module/product-setting.js';
 import { QuestionInfo } from './module/question-info.js';
+import { ProductAi } from './ai-generator/product-ai.js';
 import { ShoppingProductSetting } from './shopping-product-setting.js';
 const html = String.raw;
 export class ShoppingSettingBasic {
     static updateVariants(gvc, postMD, shipment_config, variantsViewID, obj) {
         if (postMD.product_category === 'kitchen') {
-            postMD.specs = postMD.specs.filter(dd => {
-                return dd.option && dd.option.length;
-            });
+            postMD.specs = postMD.specs.filter(dd => Array.isArray(dd.option) && dd.option.length);
             obj.gvc.notifyDataChange(variantsViewID);
             return;
         }
-        postMD.specs = postMD.specs.filter(dd => {
-            return dd.option && dd.option.length;
-        });
+        postMD.specs = postMD.specs.filter(dd => Array.isArray(dd.option) && dd.option.length);
         const specs = {};
         function getCombinations(specs) {
             const keys = Object.keys(specs);
@@ -58,9 +54,7 @@ export class ShoppingSettingBasic {
         });
         const combinations = getCombinations(specs);
         combinations.map((d1) => {
-            const spec = postMD.specs.map(dd => {
-                return d1[dd.title];
-            });
+            const spec = postMD.specs.map(dd => d1[dd.title]);
             if (!postMD.variants.find(d2 => {
                 return d2.spec.join('') === spec.join('');
             })) {
@@ -150,11 +144,9 @@ export class ShoppingSettingBasic {
         const vm = obj.vm2;
         const shipment_config = obj.shipment_config;
         const variantsViewID = gvc.glitter.getUUID();
+        const dialog = new ShareDialog(gvc.glitter);
+        const sel_lan = () => vm.language;
         let selectFunRow = false;
-        function sel_lan() {
-            return vm.language;
-        }
-        const start = gvc.glitter.ut.clock();
         function checkSpecSingle() {
             if (postMD.specs.length > 0) {
                 const uniqueTitlesMap = new Map();
@@ -217,7 +209,6 @@ export class ShoppingSettingBasic {
                 BgWidget.mainCard([
                     obj.gvc.bindView(() => {
                         var _a, _b;
-                        const dialog = new ShareDialog(gvc.glitter);
                         const vm = {
                             id: obj.gvc.glitter.getUUID(),
                             type: 'product-detail',
@@ -253,7 +244,8 @@ export class ShoppingSettingBasic {
                                                 BgWidget.fullDialog({
                                                     gvc: gvc,
                                                     title: gvc2 => {
-                                                        return `<div class="d-flex align-items-center" style="gap:10px;">${`${cat_title}簡述` +
+                                                        return html `<div class="d-flex align-items-center" style="gap:10px;">
+                                          ${`${cat_title}簡述` +
                                                             BgWidget.aiChatButton({
                                                                 gvc: gvc2,
                                                                 select: 'writer',
@@ -264,7 +256,8 @@ export class ShoppingSettingBasic {
                                                                         gvc2.recreateView();
                                                                     });
                                                                 },
-                                                            })}</div>`;
+                                                            })}
+                                        </div>`;
                                                     },
                                                     innerHTML: gvc2 => {
                                                         return html ` <div>
@@ -291,7 +284,6 @@ export class ShoppingSettingBasic {
                                                                         editor.undo.saveStep();
                                                                     }
                                                                     else {
-                                                                        const dialog = new ShareDialog(gvc.glitter);
                                                                         dialog.errorMessage({ text: '請選擇至少一張圖片' });
                                                                     }
                                                                 }, html ` <div
@@ -342,14 +334,11 @@ export class ShoppingSettingBasic {
                                 })())}
                       </div>`;
                             }),
-                            divCreate: {},
-                            onCreate: () => { },
                         };
                     }),
                 ].join(BgWidget.mbContainer(12))),
                 BgWidget.mainCard([
                     obj.gvc.bindView(() => {
-                        const dialog = new ShareDialog(gvc.glitter);
                         const vm_this = vm;
                         return (() => {
                             var _a, _b;
@@ -485,11 +474,11 @@ export class ShoppingSettingBasic {
                                                                     if (window.Sortable) {
                                                                         try {
                                                                             gvc.addStyle(`
-                                                                                                                        ul {
-                                                                                                                            list-style: none;
-                                                                                                                            padding: 0;
-                                                                                                                        }
-                                                                                                                    `);
+                                                  ul {
+                                                    list-style: none;
+                                                    padding: 0;
+                                                  }
+                                                `);
                                                                             function swapArr(arr, t1, t2) {
                                                                                 const data = arr[t1];
                                                                                 arr.splice(t1, 1);
@@ -546,7 +535,8 @@ export class ShoppingSettingBasic {
                                                     BgWidget.fullDialog({
                                                         gvc: gvc,
                                                         title: gvc2 => {
-                                                            return `<div class="d-flex align-items-center" style="gap:10px;">${`${cat_title}描述` +
+                                                            return html `<div class="d-flex align-items-center" style="gap:10px;">
+                                            ${`${cat_title}描述` +
                                                                 BgWidget.aiChatButton({
                                                                     gvc: gvc2,
                                                                     select: 'writer',
@@ -557,7 +547,8 @@ export class ShoppingSettingBasic {
                                                                             gvc2.recreateView();
                                                                         });
                                                                     },
-                                                                })}</div>`;
+                                                                })}
+                                          </div>`;
                                                         },
                                                         innerHTML: gvc2 => {
                                                             return html ` <div>
@@ -584,7 +575,6 @@ export class ShoppingSettingBasic {
                                                                             editor.undo.saveStep();
                                                                         }
                                                                         else {
-                                                                            const dialog = new ShareDialog(gvc.glitter);
                                                                             dialog.errorMessage({ text: '請選擇至少一張圖片' });
                                                                         }
                                                                     }, html ` <div
@@ -763,7 +753,6 @@ export class ShoppingSettingBasic {
                                     })
                                         .join(BgWidget.mbContainer(8))}`;
                                 }),
-                                divCreate: {},
                             };
                         })();
                     }),
@@ -795,7 +784,6 @@ export class ShoppingSettingBasic {
                                         obj.gvc.notifyDataChange('image_view');
                                     }
                                     else {
-                                        const dialog = new ShareDialog(gvc.glitter);
                                         dialog.errorMessage({ text: '請選擇至少一張圖片' });
                                     }
                                 };
@@ -824,7 +812,6 @@ export class ShoppingSettingBasic {
                                 obj.gvc.notifyDataChange('image_view');
                             }
                             else {
-                                const dialog = new ShareDialog(gvc.glitter);
                                 dialog.errorMessage({ text: '請選擇至少一張圖片' });
                             }
                         }, html ` <div
@@ -1025,7 +1012,7 @@ export class ShoppingSettingBasic {
                                                                 },
                                                                 onCreate: () => {
                                                                     const list = document.querySelector(`.sortable-list-${specIndex}`);
-                                                                    if (list && false) {
+                                                                    if (list) {
                                                                         let draggingItem = null;
                                                                         let sortableItems = null;
                                                                         list.addEventListener('dragstart', e => {
@@ -1033,18 +1020,13 @@ export class ShoppingSettingBasic {
                                                                             draggingItem.classList.add('dragging');
                                                                             sortableItems = list.querySelectorAll(`.sortable-item-${specIndex}`);
                                                                         });
-                                                                        list.addEventListener('dragend', e => {
-                                                                            e.target.classList.remove('dragging');
+                                                                        list.addEventListener('dragend', () => {
+                                                                            if (!draggingItem)
+                                                                                return;
+                                                                            draggingItem.classList.remove('dragging');
                                                                             sortableItems === null || sortableItems === void 0 ? void 0 : sortableItems.forEach(item => item.classList.remove('over'));
                                                                             draggingItem = null;
-                                                                            const indexSet = [...list.children]
-                                                                                .filter(item => {
-                                                                                return item.classList.contains('option');
-                                                                            })
-                                                                                .map(item => {
-                                                                                return item.dataset.index;
-                                                                            });
-                                                                            postMD.specs = indexSet.map(item => dd.option[item]);
+                                                                            updateSpecOrder();
                                                                         });
                                                                         list.addEventListener('dragover', e => {
                                                                             e.preventDefault();
@@ -1063,17 +1045,22 @@ export class ShoppingSettingBasic {
                                                                             const draggableElements = Array.from(container.querySelectorAll(`.sortable-item-${specIndex}:not(.dragging)`));
                                                                             let closestElement = null;
                                                                             let closestOffset = Number.NEGATIVE_INFINITY;
-                                                                            const elementsWithOffsets = draggableElements.map(child => {
+                                                                            for (const child of draggableElements) {
                                                                                 const box = child.getBoundingClientRect();
-                                                                                return { offset: x - box.left - box.height / 2, element: child };
-                                                                            });
-                                                                            for (const { offset, element } of elementsWithOffsets) {
+                                                                                const offset = x - box.left - box.height / 2;
                                                                                 if (offset < 0 && offset > closestOffset) {
                                                                                     closestOffset = offset;
-                                                                                    closestElement = element;
+                                                                                    closestElement = child;
                                                                                 }
                                                                             }
                                                                             return closestElement;
+                                                                        }
+                                                                        function updateSpecOrder() {
+                                                                            const indexSet = [...list.children]
+                                                                                .filter(item => item.classList.contains('option'))
+                                                                                .map(item => item.dataset.index);
+                                                                            postMD.specs[specIndex].option = indexSet.map(item => dd.option[item]);
+                                                                            gvc.notifyDataChange(specid);
                                                                         }
                                                                     }
                                                                 },
@@ -1081,77 +1068,74 @@ export class ShoppingSettingBasic {
                                                         }
                                                         temp = JSON.parse(JSON.stringify(dd));
                                                         if (sel_lan() !== window.parent.store_info.language_setting.def) {
-                                                            return obj.gvc.bindView(() => {
-                                                                let editIndex = -1;
-                                                                return {
-                                                                    bind: 'spec_text_show',
-                                                                    dataList: [
-                                                                        {
-                                                                            obj: createPage,
-                                                                            key: 'page',
-                                                                        },
-                                                                    ],
-                                                                    view: () => {
+                                                            return obj.gvc.bindView({
+                                                                bind: 'spec_text_show',
+                                                                dataList: [
+                                                                    {
+                                                                        obj: createPage,
+                                                                        key: 'page',
+                                                                    },
+                                                                ],
+                                                                view: () => {
+                                                                    var _a;
+                                                                    let returnHTML = html ``;
+                                                                    let specs_in_line = [];
+                                                                    temp.option = (_a = temp.option) !== null && _a !== void 0 ? _a : [];
+                                                                    specs_in_line.push(html ` <div class="d-flex flex-column w-100">
+                                            <div class="d-flex  flex-column" style="gap:10px;">
+                                              <div class="fw-500">規格種類 - ${temp.title}</div>
+                                              <input
+                                                class="form-control w-100"
+                                                placeholder="${temp.title}"
+                                                style="width:100px;height: 35px;"
+                                                value="${temp.language_title[vm.language] || ''}"
+                                                onchange="${gvc.event((e, event) => {
+                                                                        temp.language_title[vm.language] = e.value;
+                                                                    })}"
+                                              />
+                                            </div>
+                                            <div class="d-flex flex-column w-100" style="gap:5px;">
+                                              ${temp.option
+                                                                        .map((d, index) => {
                                                                         var _a;
-                                                                        let returnHTML = html ``;
-                                                                        let specs_in_line = [];
-                                                                        temp.option = (_a = temp.option) !== null && _a !== void 0 ? _a : [];
-                                                                        specs_in_line.push(html ` <div class="d-flex flex-column w-100">
-                                              <div class="d-flex  flex-column" style="gap:10px;">
-                                                <div class="fw-500">規格種類 - ${temp.title}</div>
-                                                <input
-                                                  class="form-control w-100"
-                                                  placeholder="${temp.title}"
-                                                  style="width:100px;height: 35px;"
-                                                  value="${temp.language_title[vm.language] || ''}"
-                                                  onchange="${gvc.event((e, event) => {
-                                                                            temp.language_title[vm.language] = e.value;
+                                                                        d.language_title = (_a = d.language_title) !== null && _a !== void 0 ? _a : {};
+                                                                        return html ` <div class="d-flex flex-column mt-2" style="gap:10px;">
+                                                    <div class="fw-500">選項${index + 1} - ${d.title}</div>
+                                                    <input
+                                                      class="form-control w-100"
+                                                      placeholder="${d.title}"
+                                                      style="width:100px;height: 35px;"
+                                                      value="${d.language_title[vm.language] || ''}"
+                                                      onchange="${gvc.event((e, event) => {
+                                                                            d.language_title[vm.language] = e.value;
                                                                         })}"
-                                                />
-                                              </div>
-                                              <div class="d-flex flex-column w-100" style="gap:5px;">
-                                                ${temp.option
-                                                                            .map((d, index) => {
-                                                                            var _a;
-                                                                            d.language_title = (_a = d.language_title) !== null && _a !== void 0 ? _a : {};
-                                                                            return html ` <div class="d-flex flex-column mt-2" style="gap:10px;">
-                                                      <div class="fw-500">選項${index + 1} - ${d.title}</div>
-                                                      <input
-                                                        class="form-control w-100"
-                                                        placeholder="${d.title}"
-                                                        style="width:100px;height: 35px;"
-                                                        value="${d.language_title[vm.language] || ''}"
-                                                        onchange="${gvc.event((e, event) => {
-                                                                                d.language_title[vm.language] = e.value;
-                                                                            })}"
-                                                      />
-                                                    </div>`;
-                                                                        })
-                                                                            .join('<div class="mx-1"></div>')}
-                                              </div>
-                                            </div>`);
-                                                                        returnHTML += specs_in_line.join(`<div class="w-100 border-top"></div>`);
-                                                                        returnHTML += html ` <div
-                                            class="d-flex w-100 justify-content-end align-items-center w-100 bg-white"
-                                            style="gap:14px; margin-top: 12px;"
-                                          >
-                                            ${BgWidget.cancel(obj.gvc.event(() => {
-                                                                            editIndex = -1;
-                                                                            gvc.notifyDataChange(vm.id);
-                                                                        }))}
-                                            ${BgWidget.save(obj.gvc.event(() => {
-                                                                            postMD.specs[specIndex] = temp;
-                                                                            ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
-                                                                            gvc.notifyDataChange(vm.id);
-                                                                        }), '完成')}
-                                          </div>`;
-                                                                        return returnHTML;
-                                                                    },
-                                                                    divCreate: {
-                                                                        class: `d-flex flex-column p-3 my-2 border rounded-3`,
-                                                                        style: `gap:18px;background:white;`,
-                                                                    },
-                                                                };
+                                                    />
+                                                  </div>`;
+                                                                    })
+                                                                        .join('<div class="mx-1"></div>')}
+                                            </div>
+                                          </div>`);
+                                                                    returnHTML += specs_in_line.join(`<div class="w-100 border-top"></div>`);
+                                                                    returnHTML += html ` <div
+                                          class="d-flex w-100 justify-content-end align-items-center w-100 bg-white"
+                                          style="gap:14px; margin-top: 12px;"
+                                        >
+                                          ${BgWidget.cancel(obj.gvc.event(() => {
+                                                                        editIndex = -1;
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                    }))}
+                                          ${BgWidget.save(obj.gvc.event(() => {
+                                                                        postMD.specs[specIndex] = temp;
+                                                                        ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                    }), '完成')}
+                                        </div>`;
+                                                                    return returnHTML;
+                                                                },
+                                                                divCreate: {
+                                                                    class: `d-flex flex-column p-3 my-2 border rounded-3`,
+                                                                    style: `gap:18px;background:white;`,
+                                                                },
                                                             });
                                                         }
                                                         else {
@@ -1404,9 +1388,10 @@ export class ShoppingSettingBasic {
                                                         .map((d1) => {
                                                         var _a;
                                                         d1.price = (_a = d1.price) !== null && _a !== void 0 ? _a : 0;
-                                                        return `<div class="w-100 d-flex align-items-center py-2">
-                                                    <div class="fw-500" style="flex:1;">${dd.title} / ${d1.title}</div>
-                                                    <div class="fw-50 pe-3" style="flex:1;">${BgWidget.editeInput({
+                                                        return html `<div class="w-100 d-flex align-items-center py-2">
+                                          <div class="fw-500" style="flex:1;">${dd.title} / ${d1.title}</div>
+                                          <div class="fw-50 pe-3" style="flex:1;">
+                                            ${BgWidget.editeInput({
                                                             gvc: gvc,
                                                             title: '',
                                                             default: `${d1.price}`,
@@ -1416,8 +1401,10 @@ export class ShoppingSettingBasic {
                                                             },
                                                             placeHolder: '價格',
                                                             type: 'number',
-                                                        })}</div>
-                                                        <div class="fw-50 " style="flex:1;">${BgWidget.editeInput({
+                                                        })}
+                                          </div>
+                                          <div class="fw-50" style="flex:1;">
+                                            ${BgWidget.editeInput({
                                                             gvc: gvc,
                                                             title: '',
                                                             default: `${d1.stock}`,
@@ -1426,14 +1413,14 @@ export class ShoppingSettingBasic {
                                                             },
                                                             placeHolder: '不追蹤庫存',
                                                             type: 'number',
-                                                        })}</div>
-                                                </div>`;
+                                                        })}
+                                          </div>
+                                        </div>`;
                                                     })
                                                         .join('');
                                                 })
                                                     .join(''));
                                         },
-                                        divCreate: {},
                                     };
                                 }),
                             ].join('')));
@@ -1495,7 +1482,6 @@ export class ShoppingSettingBasic {
                               </div>`,
                                         ].join('');
                                     },
-                                    divCreate: {},
                                 };
                             })));
                         }
@@ -1507,14 +1493,19 @@ export class ShoppingSettingBasic {
                         var _a;
                         return BgWidget.mainCard(html `
                     <div
-                      style="font-size: 16px;font-weight: 700;color:#393939;${postMD.shopee_id ? `` : `margin-bottom: 18px;`}">
-                                            <span class="me-2">規格設定<span>
-                                            ${((_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.some(m => m.variants.length > 0))
+                      style="font-size: 16px;font-weight: 700;color:#393939;${postMD.shopee_id
+                            ? ``
+                            : `margin-bottom: 18px;`}"
+                    >
+                      <span class="me-2">規格設定</span>
+                      ${((_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.some(m => m.variants.length > 0))
                             ? html ` ${BgWidget.infoInsignia('已啟用專屬價格')}`
                             : ''}
                     </div>
-                    <div class="w-100 ${postMD.shopee_id ? `` : `d-none`}"
-                         style="font-size: 14px;font-weight: 400;color: #8D8D8D;margin-bottom: 18px;">
+                    <div
+                      class="w-100 ${postMD.shopee_id ? `` : `d-none`}"
+                      style="font-size: 14px;font-weight: 400;color: #8D8D8D;margin-bottom: 18px;"
+                    >
                       此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
                     </div>
                   ` +
@@ -2021,7 +2012,6 @@ export class ShoppingSettingBasic {
                                                 >
                                                   編輯庫存政策
                                                 </div>
-
                                                 ${gvc.bindView({
                                                                                     bind: windowsid,
                                                                                     view: () => {
@@ -2320,7 +2310,6 @@ export class ShoppingSettingBasic {
                                         </div>
                                       `;
                                                             },
-                                                            divCreate: { style: `` },
                                                         }),
                                                         gvc.bindView(() => {
                                                             const vm = {
@@ -2392,8 +2381,7 @@ export class ShoppingSettingBasic {
                                                                             })}"
                                                   ></i>
                                                   <div
-                                                    style="flex:1 0 0;font-size: 16px;font-weight: 400;display: flex;align-items: center;
-                                                                                                                              gap:${document
+                                                    style="flex:1 0 0;font-size: 16px;font-weight: 400;display: flex;align-items: center; gap:${document
                                                                                 .body.clientWidth < 800
                                                                                 ? 10
                                                                                 : 24}px;"
@@ -2606,9 +2594,7 @@ export class ShoppingSettingBasic {
                                                                             })
                                                                                 .filter(item => item !== undefined);
                                                                             viewList.push(postMD.variants
-                                                                                .filter(dd => {
-                                                                                return dd.spec[0] === spec.title;
-                                                                            })
+                                                                                .filter(dd => dd.spec[0] === spec.title)
                                                                                 .map((data, index) => {
                                                                                 const viewID = gvc.glitter.getUUID();
                                                                                 return gvc.bindView({
@@ -2747,13 +2733,12 @@ export class ShoppingSettingBasic {
                                                                                     },
                                                                                 });
                                                                             })
-                                                                                .join('<div class="border-bottom my-1 w-100"></div>'));
+                                                                                .join(html `<div class="border-bottom my-1 w-100"></div>`));
                                                                         }
                                                                         return viewList.join('');
                                                                     })
-                                                                        .join('<div class="border-bottom mx-n2 my-1 w-100"></div>');
+                                                                        .join(html `<div class="border-bottom mx-n2 my-1 w-100"></div>`);
                                                                 },
-                                                                divCreate: {},
                                                             };
                                                         }),
                                                     ].join('');
@@ -2762,11 +2747,9 @@ export class ShoppingSettingBasic {
                                                     return `${e}`;
                                                 }
                                             },
-                                            divCreate: {},
                                         });
                                     },
                                     divCreate: {
-                                        class: '',
                                         style: 'overflow: visible;',
                                     },
                                 };
@@ -2792,7 +2775,7 @@ export class ShoppingSettingBasic {
                       ${[
                                     html ` <div class="tx_normal fw-normal mb-2" style="">${cat_title}網址</div>`,
                                     html ` <div
-                          style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                          style="justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
                                         .body.clientWidth > 768
                                         ? 'gap: 18px; '
                                         : 'flex-direction: column; gap: 0px; '}"
@@ -2821,7 +2804,6 @@ export class ShoppingSettingBasic {
                             onchange="${gvc.event(e => {
                                         let text = e.value;
                                         if (!CheckInput.isChineseEnglishNumberHyphen(text)) {
-                                            const dialog = new ShareDialog(gvc.glitter);
                                             dialog.infoMessage({ text: '連結僅限使用中英文數字與連接號' });
                                         }
                                         else {
@@ -2905,7 +2887,7 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                             innerHTML: gvc => {
                                 var _a, _b;
                                 return html ` <div class="d-flex flex-column gap-3">
-                            ${BgWidget.grayNote('若系統時間大於設定的開始時間，${cat_title}狀態將會從「待上架」自動變成「上架」')}
+                            ${BgWidget.grayNote(html `若系統時間大於設定的開始時間，${cat_title}狀態將會從「待上架」自動變成「上架」`)}
                             <div
                               class="d-flex mb-1 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
                               style="gap: 12px"
@@ -3141,36 +3123,32 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                                     })
                                     : '',
                             ]
-                                .filter(str => str.length > 0)
+                                .filter(Boolean)
                                 .join(BgWidget.mbContainer(12));
                         },
                     };
                 })())}`),
                 BgWidget.mainCard(html `
-                  <div class="mb-2" style="font-weight: 700;">銷售管道</div>
-                  ${BgWidget.multiCheckboxContainer(gvc, [
+              <div class="mb-2" style="font-weight: 700;">銷售管道</div>
+              ${BgWidget.multiCheckboxContainer(gvc, [
                     { key: 'normal', name: 'APP & 官網' },
                     { key: 'pos', name: 'POS' },
                 ], (_b = postMD.channel) !== null && _b !== void 0 ? _b : [], text => {
                     postMD.channel = text;
                 }, { single: false })}
-                  <div class="${postMD.shopee_id ? `d-flex` : `d-none`} align-items-center mt-1"
-                       style="gap:6px;">
-                    <img
-                      src="https://deo.shopeemobile.com/shopee/shopee-mobilemall-live-sg/assets/icon_favicon_1_32.0Wecxv.png"
-                      style="width:20px;height:20px;"></img>
-                    蝦皮賣場
-                  </div>
-                `),
+              <div class="${postMD.shopee_id ? `d-flex` : `d-none`} align-items-center mt-1" style="gap:6px;">
+                <img
+                  src="https://deo.shopeemobile.com/shopee/shopee-mobilemall-live-sg/assets/icon_favicon_1_32.0Wecxv.png"
+                  style="width:20px;height:20px;"
+                />
+                蝦皮賣場
+              </div>
+            `),
                 BgWidget.mainCard(html ` <div class="mb-2 position-relative" style="font-weight: 700;">
-                  ${cat_title}促銷標籤
-                  ${BgWidget.questionButton(gvc.event(() => {
-                    QuestionInfo.promoteLabel(gvc);
-                }))}
+                  ${cat_title}促銷標籤 ${BgWidget.questionButton(gvc.event(() => QuestionInfo.promoteLabel(gvc)))}
                 </div>
                 ${gvc.bindView((() => {
                     const id = gvc.glitter.getUUID();
-                    const inputStyle = 'display: block; width: 200px;';
                     let options = [];
                     ApiUser.getPublicConfig('promo-label', 'manager').then(data => {
                         if (data.result && Array.isArray(data.response.value)) {
@@ -3213,17 +3191,13 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                             return [
                                 html ` <div class="mb-2" style="font-weight: 700;">${cat_title}分類</div>`,
                                 postMD.collection
-                                    .map(dd => {
-                                    return html `<span style="font-size: 14px;">${dd}</span>`;
-                                })
+                                    .map(dd => html `<span style="font-size: 14px;">${dd}</span>`)
                                     .join(html ` <div class="my-1"></div>`),
                                 html ` <div class="w-100 mt-3">
                         ${BgWidget.grayButton(`設定${cat_title}分類`, gvc.event(() => {
                                     BgProduct.collectionsDialog({
                                         gvc: gvc,
-                                        default: postMD.collection.map(dd => {
-                                            return dd;
-                                        }),
+                                        default: postMD.collection,
                                         callback: (value) => __awaiter(this, void 0, void 0, function* () {
                                             postMD.collection = value;
                                             gvc.notifyDataChange(id);
@@ -3235,11 +3209,10 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                       </div>`,
                             ].join('');
                         },
-                        divCreate: {},
                     };
                 })),
             ]
-                .filter(str => str.length > 0)
+                .filter(Boolean)
                 .join(BgWidget.mbContainer(18))}
         </div>`,
             ratio: 23,
