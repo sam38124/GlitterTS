@@ -28,6 +28,7 @@ import { OrderExcel } from './module/order-excel.js';
 import { DeliveryHTML } from './module/delivery-html.js';
 import { OrderSetting } from './module/order-setting.js';
 import { PaymentPage } from './pos-pages/payment-page.js';
+import { PosFunction } from './pos-pages/pos-function.js';
 import { UserList } from './user-list.js';
 import { FilterOptions } from './filter-options.js';
 import { ListHeaderOption } from './list-header-option.js';
@@ -830,6 +831,13 @@ export class ShoppingOrderManager {
                                         },
                                     },
                                     {
+                                        name: '列印揀貨單',
+                                        option: true,
+                                        event: (checkArray) => {
+                                            DeliveryHTML.print(gvc, checkArray, 'pick');
+                                        },
+                                    },
+                                    {
                                         name: '列印出貨明細',
                                         option: true,
                                         event: (checkArray) => {
@@ -1093,7 +1101,7 @@ export class ShoppingOrderManager {
                             bind: mainViewID,
                             dataList: [{ obj: child_vm, key: 'type' }],
                             view: () => {
-                                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+                                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
                                 try {
                                     if (userDataLoading || productLoading) {
                                         return BgWidget.spinner();
@@ -1822,11 +1830,9 @@ export class ShoppingOrderManager {
                                                             : ``}
                                             <div class="tx_700 d-flex align-items-center" style="gap:4px;">
                                               <div>${dd.title}</div>
-                                              ${dd.is_gift ? `<div class="">${showTag('#FFE9B2', '贈品')}</div>` : ``}
-                                              ${dd.is_add_on_items
-                                                            ? `<div class="">${showTag('#D8E7EC', '加購品')}</div>`
-                                                            : ``}
-                                              ${dd.pre_order ? `<div class="">${showTag('#D8E7EC', '預購')}</div>` : ``}
+                                              ${dd.is_gift ? `<div >${showTag('#FFE9B2', '贈品')}</div>` : ``}
+                                              ${dd.is_add_on_items ? `<div >${showTag('#D8E7EC', '加購品')}</div>` : ``}
+                                              ${dd.pre_order ? `<div >${showTag('#D8E7EC', '預購')}</div>` : ``}
                                             </div>
                                             ${dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : ''}
                                             ${BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`)}
@@ -1942,9 +1948,14 @@ export class ShoppingOrderManager {
                                                             total: `${localString} 點`,
                                                         },
                                                         default: {
-                                                            title: '折扣',
+                                                            title: dd.id == 0 ? '手動調整' : '折扣',
                                                             description: descHTML,
-                                                            total: `- $${localString}`,
+                                                            total: (() => {
+                                                                const status = dd.discount_total > 0;
+                                                                const isMinus = status ? '-' : '';
+                                                                const isNegative = status ? 1 : -1;
+                                                                return `${isMinus} $${(dd.discount_total * isNegative).toLocaleString()}`;
+                                                            })(),
                                                         },
                                                     };
                                                     return (_a = rebackMaps[dd.reBackType]) !== null && _a !== void 0 ? _a : rebackMaps.default;
@@ -1969,17 +1980,39 @@ export class ShoppingOrderManager {
                                     </div>`;
                                             })
                                                 .join(BgWidget.mbContainer(18))}
+                                ${`${(_c = orderData.orderData.orderStatus) !== null && _c !== void 0 ? _c : 0}` === '0'
+                                                ? html `<div class="d-flex justify-content-end mt-3">
+                                      ${BgWidget.blueNote('手動調整訂單價格', gvc.event(() => {
+                                                    const cloneData = orderData.orderData;
+                                                    PosFunction.manualDiscount({
+                                                        gvc,
+                                                        orderDetail: cloneData,
+                                                        reload: voucher => {
+                                                            cloneData.total -= voucher.discount_total;
+                                                            cloneData.discount += voucher.discount_total;
+                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                            dialog.dataLoading({ visible: true });
+                                                            ApiShop.putOrder({
+                                                                id: `${orderData.id}`,
+                                                                order_data: cloneData,
+                                                            }).then(() => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                gvc.notifyDataChange(vm.id);
+                                                            });
+                                                        },
+                                                    });
+                                                }))}
+                                    </div>`
+                                                : ''}
                               </div>
                             `),
-                                            orderData.orderData.lineItems.find((dd) => {
-                                                return dd.deduction_log;
-                                            })
+                                            orderData.orderData.lineItems.find((dd) => dd.deduction_log)
                                                 ? BgWidget.mainCard(html `
                                   <div
                                     style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
                                   >
                                     <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
-                                      <div class="">分倉出貨</div>
+                                      <div>分倉出貨</div>
                                       <div
                                         class="${is_shipment ? `d-none` : ``}"
                                         style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
@@ -2089,7 +2122,7 @@ export class ShoppingOrderManager {
                                       <div class="tx_700">付款狀態</div>
                                       <div class="ms-auto w-100">
                                         ${is_shipment || is_archive
-                                                        ? (_c = [
+                                                        ? (_d = [
                                                             {
                                                                 title: '變更付款狀態',
                                                                 value: '',
@@ -2098,7 +2131,7 @@ export class ShoppingOrderManager {
                                                             .concat(ApiShop.getStatusArray(orderData.orderData.proof_purchase))
                                                             .find(dd => {
                                                             return dd.value === `${orderData.status}`;
-                                                        })) === null || _c === void 0 ? void 0 : _c.title
+                                                        })) === null || _d === void 0 ? void 0 : _d.title
                                                         : EditorElem.select({
                                                             title: ``,
                                                             gvc: gvc,
@@ -2267,9 +2300,8 @@ export class ShoppingOrderManager {
                                                     view: () => {
                                                         return html `
                                       <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
-                                        <div class="">顧客備註</div>
+                                        <div>顧客備註</div>
                                         <div
-                                          class=""
                                           style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
                                           onclick="${gvc.event(() => {
                                                             vm.edit_mode = !vm.edit_mode;
@@ -2307,9 +2339,8 @@ export class ShoppingOrderManager {
                                                     view: () => {
                                                         return html `
                                       <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
-                                        <div class="">商家備註</div>
+                                        <div>商家備註</div>
                                         <div
-                                          class=""
                                           style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
                                           onclick="${gvc.event(() => {
                                                             vm.edit_mode = !vm.edit_mode;
@@ -2374,8 +2405,8 @@ export class ShoppingOrderManager {
                                     </div>
                                     <div class="col-2 text-center d-flex align-items-center justify-content-center">
                                       ${invoiceData.status == 1
-                                                        ? html ` <div class="" style="color:#10931D">已完成</div>`
-                                                        : html ` <div class="" style="color:#DA1313">已作廢</div>`}
+                                                        ? html ` <div style="color:#10931D">已完成</div>`
+                                                        : html ` <div style="color:#DA1313">已作廢</div>`}
                                     </div>
                                     <div class="flex-fill d-flex justify-content-end align-items-center">
                                       <div style="margin-right: 14px;">
@@ -2394,7 +2425,7 @@ export class ShoppingOrderManager {
                               <div class="tx_700">訂單記錄</div>
                               ${BgWidget.mbContainer(18)}
                               <div class="d-flex flex-column" style="gap: 8px">
-                                ${((_d = orderData.orderData) === null || _d === void 0 ? void 0 : _d.editRecord)
+                                ${((_e = orderData.orderData) === null || _e === void 0 ? void 0 : _e.editRecord)
                                                 ? gvc.map(orderData.orderData.editRecord
                                                     .sort((a, b) => {
                                                     return Tool.formatDateTime(a.time, true) < Tool.formatDateTime(b.time, true)
@@ -2427,7 +2458,7 @@ export class ShoppingOrderManager {
                                     ${[
                                                     ...(() => {
                                                         if (!orderData.reconciliation_date) {
-                                                            return [`<div class="">尚未入帳</div>`];
+                                                            return [`<div >尚未入帳</div>`];
                                                         }
                                                         else {
                                                             return [
@@ -2435,11 +2466,11 @@ export class ShoppingOrderManager {
                                     <div class="rounded-3 w-100 border p-2 " style="background: whitesmoke;">
                                             ${[
                                                                     `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">入帳日期</div>
+                                                <div >入帳日期</div>
                                                 <div class=" fw-500 fs-6">${gvc.glitter.ut.dateFormat(new Date(orderData.reconciliation_date), 'yyyy-MM-dd hh:mm')}</div>
                                               </div>`,
                                                                     `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">入帳金額</div>
+                                                <div >入帳金額</div>
                                                 <div class=" fw-500 fs-6">$ ${parseInt(orderData.total_received, 10).toLocaleString()}</div>
                                               </div>`,
                                                                 ].join(`<div class="my-2 border-top w-100"></div>`)}
@@ -2455,23 +2486,23 @@ export class ShoppingOrderManager {
                                                             return `<div class="rounded-3 w-100 border p-2 " style="background: whitesmoke;">
 ${[
                                                                 `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">沖帳日期</div>
+                                                <div >沖帳日期</div>
                                                 <div class=" fw-500 fs-6">${gvc.glitter.ut.dateFormat(new Date(dd.offset_date), 'yyyy-MM-dd hh:mm:ss')}</div>
                                               </div>`,
                                                                 `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">沖帳人員</div>
+                                                <div >沖帳人員</div>
                                                 <div class=" fw-500 fs-6">${(dd.user && dd.user.name) || '未知'}</div>
                                               </div>`,
                                                                 `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">沖帳金額</div>
+                                                <div >沖帳金額</div>
                                                 <div class=" fw-500 fs-6">$ ${parseInt(dd.offset_amount, 10).toLocaleString()}</div>
                                               </div>`,
                                                                 `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">沖帳原因</div>
+                                                <div >沖帳原因</div>
                                                 <div class=" fw-500 fs-6">${dd.offset_reason}</div>
                                               </div>`,
                                                                 `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">沖帳備註</div>
+                                                <div >沖帳備註</div>
                                                 <div class=" fw-500 fs-6">${dd.offset_note || '未填寫'}</div>
                                               </div>`,
                                                             ].join(`<div class="my-2 border-top w-100"></div>`)}
@@ -2494,7 +2525,7 @@ ${[
                                         html: html ` <div class="summary-card">
                             ${[
                                             BgWidget.mainCard(html `
-                                <div class="" style="font-size: 16px;font-weight: 700;">訂單來源</div>
+                                <div style="font-size: 16px;font-weight: 700;">訂單來源</div>
                                 <div>
                                   ${(() => {
                                                 var _a;
@@ -2555,10 +2586,10 @@ ${[
                                                 })()}
                                         </div>
                                         <div style="color: #393939;font-weight: 400;">
-                                          ${(_g = (_f = (_e = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _e === void 0 ? void 0 : _e.phone) !== null && _f !== void 0 ? _f : orderData.orderData.user_info.phone) !== null && _g !== void 0 ? _g : '此會員未填手機'}
+                                          ${(_h = (_g = (_f = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _f === void 0 ? void 0 : _f.phone) !== null && _g !== void 0 ? _g : orderData.orderData.user_info.phone) !== null && _h !== void 0 ? _h : '此會員未填手機'}
                                         </div>
                                         <div style="color: #393939;font-weight: 400;word-break:break-all;">
-                                          ${(_k = (_j = (_h = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _h === void 0 ? void 0 : _h.email) !== null && _j !== void 0 ? _j : orderData.orderData.user_info.email) !== null && _k !== void 0 ? _k : ''}
+                                          ${(_l = (_k = (_j = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _j === void 0 ? void 0 : _j.email) !== null && _k !== void 0 ? _k : orderData.orderData.user_info.email) !== null && _l !== void 0 ? _l : ''}
                                         </div>
                                       </div>`,
                                                 BgWidget.horizontalLine(),
@@ -2795,7 +2826,7 @@ ${[
                                     })}
                       ${BgWidget.mbContainer(240)}
                       <div class="update-bar-container">
-                        <div class="">
+                        <div>
                           ${gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
                                         const vc = {

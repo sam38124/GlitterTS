@@ -2654,6 +2654,8 @@ export class Shopping {
           if (manualVoucher) {
             manualVoucher.discount = manualVoucher.discount_total ?? 0;
             carData.total -= manualVoucher.discount;
+            carData.discount += manualVoucher.discount;
+            carData.voucherList.push(manualVoucher);
           }
         }
 
@@ -3530,6 +3532,7 @@ export class Shopping {
       const update: any = {};
       const storeConfig = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
       let origin = undefined;
+
       if (data.id) {
         origin = (
           await db.query(
@@ -3540,6 +3543,7 @@ export class Shopping {
           )
         )[0];
       }
+
       if (data.cart_token) {
         origin = (
           await db.query(

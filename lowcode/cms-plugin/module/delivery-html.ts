@@ -458,58 +458,59 @@ export class DeliveryHTML {
 
   // 揀貨單 HTML
   static pickHTML(vm: any, glitter: any, dataArray: CartData[]) {
-    const section = (data: CartData) => {
-      const orderData = data.orderData;
-      return html`
-        <div class="page">
-          <div class="header">
-            <h1 class="subtitle">商店名稱：${vm.store.shop_name}</h1>
-            <h1 class="title">${vm.info.title}</h1>
-            <h1 class="subtitle">${vm.info.subtitle}時間：${glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd hh:mm')}</h1>
-          </div>
-          <div class="items">
-            <table>
-              <thead>
-                <tr>
-                  <th class="text-left">項次</th>
-                  <th class="text-left">商品名稱</th>
-                  <th class="text-right">貨號</th>
-                  <th class="text-right">數量</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${orderData.lineItems
-                  .map((item, index) => {
-                    return html`
-                      <tr>
-                        <td class="text-left">${index + 1}</td>
-                        <td class="text-left">
-                          ${item.title} ${item.spec.length > 0 ? `(${item.spec.join('/')})` : ''}
-                        </td>
-                        <td class="text-right">${item.sku ?? ''}</td>
-                        <td class="text-right">${item.count}</td>
-                      </tr>
-                    `;
-                  })
-                  .join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
+    const formulaLineItems = () => {
+      const mergedItems = dataArray
+        .flatMap(data => data.orderData.lineItems)
+        .reduce(
+          (acc, item) => {
+            const key = `${item.id}-${item.spec.join('/')}`; // 唯一識別鍵
+            if (!acc[key]) {
+              acc[key] = { ...item, count: 0 }; // 初始化 count
+            }
+            acc[key].count += item.count; // 數量累加
+            return acc;
+          },
+          {} as Record<string, any>
+        );
+
+      const resultHtml = Object.values(mergedItems).map((item, index) => {
+        return html`
+          <tr>
+            <td class="text-left">${index + 1}</td>
+            <td class="text-left">${item.title} ${item.spec.length > 0 ? `(${item.spec.join('/')})` : ''}</td>
+            <td class="text-right">${item.sku || '-'}</td>
+            <td class="text-right">${item.count}</td>
+          </tr>
+        `;
+      });
+
+      return resultHtml;
     };
 
-    return dataArray
-      .map(data => {
-        try {
-          return section(data);
-        } catch (e) {
-          const text = `訂單 #${data.cart_token} 列印揀貨發生錯誤`;
-          console.error(`${text}: ${e}`);
-          return text;
-        }
-      })
-      .join('');
+    return html`
+      <div class="page">
+        <div class="header">
+          <h1 class="subtitle">商店名稱：${vm.store.shop_name}</h1>
+          <h1 class="title">${vm.info.title}</h1>
+          <h1 class="subtitle">${vm.info.subtitle}時間：${glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd hh:mm')}</h1>
+        </div>
+        <div class="items">
+          <table>
+            <thead>
+              <tr>
+                <th class="text-left">項次</th>
+                <th class="text-left">商品名稱</th>
+                <th class="text-right">貨號</th>
+                <th class="text-right">數量</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${formulaLineItems().join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
   }
 
   // 地址貼條 HTML

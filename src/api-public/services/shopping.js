@@ -1919,6 +1919,8 @@ class Shopping {
                     if (manualVoucher) {
                         manualVoucher.discount = (_7 = manualVoucher.discount_total) !== null && _7 !== void 0 ? _7 : 0;
                         carData.total -= manualVoucher.discount;
+                        carData.discount += manualVoucher.discount;
+                        carData.voucherList.push(manualVoucher);
                     }
                 }
                 const trans = await database_js_1.default.Transaction.build();
