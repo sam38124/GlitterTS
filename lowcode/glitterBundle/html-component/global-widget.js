@@ -77,7 +77,7 @@ export class GlobalWidget {
                         </div>`;
                 },
                 divCreate: {
-                    class: `${(gvc.glitter.getUrlParameter('device') === 'mobile') ? `d-none` : `d-flex`} align-items-center border-bottom mx-n2 mt-n2 p-2 guide-user-editor-4`,
+                    class: `${(gvc.glitter.getUrlParameter('device') === 'mobile') ? `d-none ` : `d-flex`} align-items-center border-bottom mx-n2 mt-n2 p-2 guide-user-editor-4`,
                     style: ``
                 },
                 onCreate: () => {

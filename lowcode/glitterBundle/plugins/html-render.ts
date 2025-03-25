@@ -280,7 +280,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
             if ((localStorage.getItem('cookie_accept') != 'true') && ((window as any).store_info.cookie_check) && !glitter.htmlGenerate.isEditMode()) {
                 map.push(`
-            <div class="position-fixed  rounded-3 d-flex align-items-center flex-column flex-sm-row p-3 privacy-notice" style="width:852px;max-width:calc(100vw - 30px);background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
+            <div class="position-fixed  rounded-3 d-flex align-items-center flex-column flex-sm-row p-3 privacy-notice shadow" style="width:852px;max-width:calc(100vw - 30px);background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
            color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
             z-index: 99999;bottom: 30px;transform: translateX(-50%);left: 50%;">
             <div style="font-size: 14px;
@@ -299,7 +299,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
 
             // const userID = ((subData && subData.userID) || gvc.glitter.macAddress);
-            if ((window as any).store_info.chat_toggle) {
+
+            if ((window as any).store_info.chat_toggle && !glitter.share.is_application && !((document.body.clientWidth<800) &&
+              ['account_userinfo','account_edit','order_list','voucher-list','rebate'
+                  ,'wishlist'].includes(gvc.glitter.getUrlParameter('page'))
+            )) {
                 map.push(gvc.bindView(() => {
                     return {
                         bind: gvc.glitter.getUUID(),

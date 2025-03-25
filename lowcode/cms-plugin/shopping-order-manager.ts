@@ -384,7 +384,7 @@ export class ShoppingOrderManager {
               </div>
             </div>
             <div class="${query.isShipment ? `` : 'd-none'} mb-3"></div>
-            <div class="title-container ${query.isShipment ? `d-none` : ''}">
+            <div class=" ${query.isShipment ? `d-none` : ''}">
               ${BgWidget.tab(
                 query.isPOS
                   ? [
@@ -493,7 +493,6 @@ export class ShoppingOrderManager {
                   defPage: ShoppingOrderManager.vm.page,
                   getData: vmi => {
                     ShoppingOrderManager.vm.page = vmi.page;
-
                     const limit = 20;
                     vm.apiJSON = {
                       page: vmi.page - 1,
@@ -508,7 +507,7 @@ export class ShoppingOrderManager {
                     if (vm.filter_type !== 'all') {
                       vm.apiJSON.is_pos = vm.filter_type === 'pos';
                     }
-
+                    
                     ApiShop.getOrder(vm.apiJSON).then(data => {
                       function getDatalist() {
                         return data.response.data.map((dd: any) => {

@@ -298,6 +298,7 @@ router.get('/order', async (req, resp) => {
                 email: user_data.userData.email,
                 phone: user_data.userData.phone,
                 status: req.query.status,
+                progress: req.query.progress,
                 searchType: req.query.searchType,
             }));
         }
@@ -309,6 +310,7 @@ router.get('/order', async (req, resp) => {
                 id: req.query.id,
                 status: req.query.status,
                 searchType: req.query.searchType,
+                progress: req.query.progress,
             }));
         }
         else {

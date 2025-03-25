@@ -1,6 +1,5 @@
-/// <reference types="node" />
 import { Encoding } from 'crypto';
-import axios from "axios";
+import axios from 'axios';
 interface KeyData {
     MERCHANT_ID: string;
     HASH_KEY: string;
@@ -186,6 +185,7 @@ export declare class LinePay {
         use_wallet: number;
         user_email: string;
         method: string;
+        discount?: any;
     }): Promise<any>;
 }
 export declare class PayNow {

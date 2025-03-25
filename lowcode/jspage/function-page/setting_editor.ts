@@ -700,20 +700,20 @@ export class Setting_editor {
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/blog-solid (3).svg',
                 moduleName: '網誌管理',
             },
-            {
-                icon: '',
-                page: 'app-design',
-                group: 'APP',
-                title: 'APP設計',
-                appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
-                moduleName: 'IOS應用上架',
-            },
+            // {
+            //     icon: '',
+            //     page: 'app-design',
+            //     group: 'APP',
+            //     title: 'APP佈景主題',
+            //     appName: 'cms_system',
+            //     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
+            //     moduleName: 'IOS應用上架',
+            // },
             {
                 icon: '',
                 page: 'app-upload',
-                group: 'APP',
-                title: 'APP發佈',
+                group: '品牌APP',
+                title: 'APP發布上架',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
                 moduleName: 'IOS應用上架',
@@ -721,7 +721,7 @@ export class Setting_editor {
             {
                 icon: '',
                 page: 'cloud_subscrible',
-                group: 'APP',
+                group: '品牌APP',
                 title: '推播訂閱裝置',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
@@ -730,7 +730,7 @@ export class Setting_editor {
             {
                 icon: '',
                 page: 'notify_message_list',
-                group: 'APP',
+                group: '品牌APP',
                 title: '推播訊息管理',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
@@ -1198,12 +1198,12 @@ export class Setting_editor {
                                                                                 dd.toggle = !dd.toggle;
                                                                                 gvc.notifyDataChange(id);
                                                                             } else {
-                                                                                if (items[parseInt(dd.index)].page === 'app-design') {
-                                                                                    localStorage.setItem('lastSelect', '');
-                                                                                    localStorage.setItem('ViewType', 'mobile');
-                                                                                    glitter.share.switch_to_web_builder('index-mobile', 'mobile');
-                                                                                    return;
-                                                                                }
+                                                                                // if (items[parseInt(dd.index)].page === 'app-design') {
+                                                                                //     localStorage.setItem('lastSelect', '');
+                                                                                //     localStorage.setItem('ViewType', 'mobile');
+                                                                                //     glitter.share.switch_to_web_builder('index-mobile', 'mobile');
+                                                                                //     return;
+                                                                                // }
 
                                                                                 const url = new URL(location.href);
                                                                                 url.searchParams.forEach((_, key) => {

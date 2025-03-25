@@ -352,6 +352,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
           email: user_data.userData.email,
           phone: user_data.userData.phone,
           status: req.query.status as string,
+          progress: req.query.progress as string,
           searchType: req.query.searchType as string,
         })
       );
@@ -366,6 +367,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
           id: req.query.id as string,
           status: req.query.status as string,
           searchType: req.query.searchType as string,
+          progress: req.query.progress as string,
         })
       );
     } else {

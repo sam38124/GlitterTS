@@ -31,6 +31,9 @@ export class ApiCart {
     static get checkoutCart() {
         return localStorage.getItem('checkoutCart') || ApiCart.globalCart;
     }
+    static set checkoutCart(value) {
+        localStorage.setItem('checkoutCart', value);
+    }
     //前往購物車
     static toCheckOutPage(cartID: string = ApiCart.globalCart) {
         localStorage.setItem('checkoutCart', cartID);

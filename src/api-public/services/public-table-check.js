@@ -14,6 +14,7 @@ const shopping_js_1 = require("./shopping.js");
 const updated_table_checked_js_1 = require("./updated-table-checked.js");
 class ApiPublic {
     static async createScheme(appName) {
+        var _a;
         if (ApiPublic.checkedApp.find(dd => {
             return dd.app_name === appName;
         })) {
@@ -694,9 +695,16 @@ class ApiPublic {
                     }
                 });
             }
-            await ai_robot_js_1.AiRobot.syncAiRobot(appName);
+            ai_robot_js_1.AiRobot.syncAiRobot(appName);
             await ApiPublic.migrateVariants(appName);
             await updated_table_checked_js_1.UpdatedTableChecked.startCheck(appName);
+            ApiPublic.app301.push({
+                app_name: appName,
+                router: (_a = (await new user_js_1.User(appName).getConfigV2({
+                    key: 'domain_301',
+                    user_id: 'manager'
+                })).list) !== null && _a !== void 0 ? _a : []
+            });
             ApiPublic.checkedApp.push({
                 app_name: appName,
                 refer_app: (await database_1.default.query(`select refer_app
@@ -771,6 +779,7 @@ class ApiPublic {
 exports.ApiPublic = ApiPublic;
 ApiPublic.checkedApp = [];
 ApiPublic.checkingApp = [];
+ApiPublic.app301 = [];
 function chunkArray(array, groupSize) {
     const result = [];
     for (let i = 0; i < array.length; i += groupSize) {

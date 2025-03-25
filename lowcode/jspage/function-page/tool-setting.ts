@@ -313,18 +313,6 @@ ${module_list.map((dd: any, index: number) => {
                                                                                                                                         share: {},
                                                                                                                                         "gCount": "single"
                                                                                                                                     };
-                                                                                                                                    if (['c_header', 'footer'].includes(widget.tag)) {
-                                                                                                                                        widget.config[0].arrayData = {
-                                                                                                                                            "clickEvent": [{
-                                                                                                                                                "clickEvent": {
-                                                                                                                                                    "src": "./official_event/event.js",
-                                                                                                                                                    "route": "code"
-                                                                                                                                                },
-                                                                                                                                                "codeVersion": "v2",
-                                                                                                                                                "code": "//判斷不是APP在顯示\n    if ((!glitter.share.is_application) && (glitter.getUrlParameter('device') !== 'mobile')) {\n        return [subData]\n    } else {\n        return []\n    }"
-                                                                                                                                            }]
-                                                                                                                                        }
-                                                                                                                                    }
                                                                                                                                     ApiPageConfig.setPage({
                                                                                                                                         id: widget.id,
                                                                                                                                         appName: widget.appName,

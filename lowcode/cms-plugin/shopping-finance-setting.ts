@@ -515,25 +515,7 @@ export class ShoppingFinanceSetting {
                                                           key_d.STORE_ID = text;
                                                         },
                                                         placeHolder: '請輸入STORE_ID',
-                                                      }),
-                                                      BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: 'API_KEY',
-                                                        default: key_d.API_KEY,
-                                                        callback: text => {
-                                                          key_d.API_KEY = text;
-                                                        },
-                                                        placeHolder: '請輸入API_KEY',
-                                                      }),
-                                                      BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: 'SECRET',
-                                                        default: key_d.SECRET_KEY,
-                                                        callback: text => {
-                                                          key_d.SECRET_KEY = text;
-                                                        },
-                                                        placeHolder: '請輸入SECRET_KEY',
-                                                      }),
+                                                      })
                                                     ].join('');
                                                   case 'paynow':
                                                     return [

@@ -199,7 +199,7 @@ export class ReconciliationArea {
                       ].join('')}
                     </div>
                   </div>
-                  <div class="px-3 px-lg-0">
+                  <div class="px-1 px-lg-0">
                     ${BgWidget.warningInsignia(`對帳單的數據來源為已付款、已退款或已取貨的訂單。`)}
                   </div>
                 `,

@@ -44,10 +44,8 @@ export class PosHomePage {
                                     style="align-self: stretch; flex: 1 1 0; justify-content: flex-start; align-items: center; gap: 20px; display: inline-flex;"
                                 >
                                     <div class="" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; display: inline-flex;">
-                                        <div class="" style="align-self: stretch; color: #393939; font-size: 20px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;">營運狀況總覽</div>
-                                        <div class="" style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;">
-                                            查看目前的業務情形
-                                        </div>
+                                        <div class="" style="align-self: stretch; color: #393939; font-size: 20px; font-weight: 700; word-wrap: break-word;">營運狀況總覽</div>
+                                        <div class="" style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-weight: 400; word-wrap: break-word;">查看目前的業務情形</div>
                                     </div>
                                     <div
                                         class="d-flex flex-column flex-sm-row"

@@ -28,6 +28,7 @@ import { SharePermission } from './share-permission.js';
 import { TermsCheck } from './terms-check.js';
 import { App as GeneralApp } from '../../services/app.js';
 import { UserUpdate } from './user-update.js';
+import { ApiPublic } from './public-table-check.js';
 
 interface UserQuery {
   page?: number;
@@ -38,14 +39,14 @@ interface UserQuery {
   order_string?: string;
   created_time?: string;
   last_order_time?: string;
-  last_shipment_date?:string;
+  last_shipment_date?: string;
   birth?: string;
   level?: string;
   rebate?: string;
   last_order_total?: string;
   total_amount?: string;
   total_count?: string;
-  member_levels?:string;
+  member_levels?: string;
   groupType?: string;
   groupTag?: string;
   filter_type?: string;
@@ -122,9 +123,9 @@ export class User {
       const authData = (
         await db.query(
           `SELECT *
-                     FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
-                     WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
-                    `,
+           FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+           WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
+          `,
           [email || '-21']
         )
       )[0];
@@ -246,7 +247,7 @@ export class User {
       userData.verify_code_phone = undefined;
       await db.execute(
         `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                 VALUES (?, ?, ?, ?, ?);`,
+         VALUES (?, ?, ?, ?, ?);`,
         [
           userID,
           account,
@@ -283,8 +284,8 @@ export class User {
     usData.userData.repeatPwd = undefined;
     await db.query(
       `update \`${this.app}\`.t_user
-             set userData=?
-             where userID = ?`,
+       set userData=?
+       where userID = ?`,
       [
         JSON.stringify(
           await this.checkUpdate({
@@ -347,9 +348,9 @@ export class User {
       const data: any = (
         (await db.execute(
           `select *
-                     from \`${this.app}\`.t_user
-                     where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
-                       and status = 1`,
+           from \`${this.app}\`.t_user
+           where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
+             and status = 1`,
           [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]
         )) as any
       )[0];
@@ -395,8 +396,8 @@ export class User {
       (
         await db.query(
           `select count(1)
-                     from \`${this.app}\`.t_user
-                     where userData ->>'$.email' = ?`,
+           from \`${this.app}\`.t_user
+           where userData ->>'$.email' = ?`,
           [fbResponse.email]
         )
       )[0]['count(1)'] == 0
@@ -405,7 +406,7 @@ export class User {
       const userID = findAuth ? findAuth.user : User.generateUserID();
       await db.execute(
         `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                 VALUES (?, ?, ?, ?, ?);`,
+         VALUES (?, ?, ?, ?, ?);`,
         [
           userID,
           fbResponse.email,
@@ -423,18 +424,18 @@ export class User {
     const data: any = (
       (await db.execute(
         `select *
-                 from \`${this.app}\`.t_user
-                 where userData ->>'$.email' = ?
-                   and status = 1`,
+         from \`${this.app}\`.t_user
+         where userData ->>'$.email' = ?
+           and status = 1`,
         [fbResponse.email]
       )) as any
     )[0];
     data.userData['fb-id'] = fbResponse.id;
     await db.execute(
       `update \`${this.app}\`.t_user
-             set userData=?
-             where userID = ?
-               and id > 0`,
+       set userData=?
+       where userID = ?
+         and id > 0`,
       [JSON.stringify(data.userData), data.userID]
     );
     const usData: any = await this.getUserData(data.userID, 'userID');
@@ -518,14 +519,14 @@ export class User {
       async function getUsData() {
         return (await db.execute(
           `select *
-                     from \`${app}\`.t_user
-                     where (userData ->>'$.email' = ?)
-                        or (userData ->>'$.lineID' = ?)
-                     ORDER BY CASE
-                                  WHEN (userData ->>'$.lineID' = ?) THEN 1
-                                  ELSE 3
-                                  END
-                    `,
+           from \`${app}\`.t_user
+           where (userData ->>'$.email' = ?)
+              or (userData ->>'$.lineID' = ?)
+           ORDER BY CASE
+                        WHEN (userData ->>'$.lineID' = ?) THEN 1
+                        ELSE 3
+                        END
+          `,
           [line_profile.email, (userData as any).sub, (userData as any).sub]
         )) as any;
       }
@@ -536,7 +537,7 @@ export class User {
         const userID = findAuth ? findAuth.user : User.generateUserID();
         await db.execute(
           `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                     VALUES (?, ?, ?, ?, ?);`,
+           VALUES (?, ?, ?, ?, ?);`,
           [
             userID,
             line_profile.email,
@@ -557,9 +558,9 @@ export class User {
       data.userData.lineID = (userData as any).sub;
       await db.execute(
         `update \`${this.app}\`.t_user
-                 set userData=?
-                 where userID = ?
-                   and id > 0`,
+         set userData=?
+         where userID = ?
+           and id > 0`,
         [JSON.stringify(data.userData), data.userID]
       );
       usData.pwd = undefined;
@@ -618,8 +619,8 @@ export class User {
         (
           await db.query(
             `select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.email' = ?`,
+             from \`${this.app}\`.t_user
+             where userData ->>'$.email' = ?`,
             [payload?.email]
           )
         )[0]['count(1)'] == 0
@@ -628,7 +629,7 @@ export class User {
         const userID = findAuth ? findAuth.user : User.generateUserID();
         await db.execute(
           `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                     VALUES (?, ?, ?, ?, ?);`,
+           VALUES (?, ?, ?, ?, ?);`,
           [
             userID,
             payload?.email,
@@ -645,18 +646,18 @@ export class User {
       const data: any = (
         (await db.execute(
           `select *
-                     from \`${this.app}\`.t_user
-                     where userData ->>'$.email' = ?
-                       and status = 1`,
+           from \`${this.app}\`.t_user
+           where userData ->>'$.email' = ?
+             and status = 1`,
           [payload?.email]
         )) as any
       )[0];
       data.userData['google-id'] = payload?.sub;
       await db.execute(
         `update \`${this.app}\`.t_user
-                 set userData=?
-                 where userID = ?
-                   and id > 0`,
+         set userData=?
+         where userID = ?
+           and id > 0`,
         [JSON.stringify(data.userData), data.userID]
       );
       const usData: any = await this.getUserData(data.userID, 'userID');
@@ -753,8 +754,8 @@ export class User {
         (
           await db.query(
             `select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.email' = ?`,
+             from \`${this.app}\`.t_user
+             where userData ->>'$.email' = ?`,
             [decoded.payload.email]
           )
         )[0]['count(1)'] == 0
@@ -763,7 +764,7 @@ export class User {
 
         await db.execute(
           `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                     VALUES (?, ?, ?, ?, ?);`,
+           VALUES (?, ?, ?, ?, ?);`,
           [
             userID,
             decoded.payload.email,
@@ -783,18 +784,18 @@ export class User {
       const data: any = (
         (await db.execute(
           `select *
-                     from \`${this.app}\`.t_user
-                     where userData ->>'$.email' = ?
-                       and status = 1`,
+           from \`${this.app}\`.t_user
+           where userData ->>'$.email' = ?
+             and status = 1`,
           [decoded.payload.email]
         )) as any
       )[0];
       data.userData['apple-id'] = uid;
       await db.execute(
         `update \`${this.app}\`.t_user
-                 set userData=?
-                 where userID = ?
-                   and id > 0`,
+         set userData=?
+         where userID = ?
+           and id > 0`,
         [JSON.stringify(data.userData), data.userID]
       );
       const usData: any = await this.getUserData(data.userID, 'userID');
@@ -813,20 +814,20 @@ export class User {
   public async getUserData(query: string, type: 'userID' | 'account' | 'email_or_phone' = 'userID') {
     try {
       const sql = `select *
-                         from \`${this.app}\`.t_user
-                         where ${(() => {
-                           let query2 = [`1=1`];
-                           if (type === 'userID') {
-                             query2.push(`userID=${db.escape(query)}`);
-                           } else if (type === 'email_or_phone') {
-                             query2.push(
-                               `((userData->>'$.email'=${db.escape(query)}) or (userData->>'$.phone'=${db.escape(query)}))`
-                             );
-                           } else {
-                             query2.push(`userData->>'$.email'=${db.escape(query)}`);
-                           }
-                           return query2.join(` and `);
-                         })()}`;
+                   from \`${this.app}\`.t_user
+                   where ${(() => {
+                     let query2 = [`1=1`];
+                     if (type === 'userID') {
+                       query2.push(`userID=${db.escape(query)}`);
+                     } else if (type === 'email_or_phone') {
+                       query2.push(
+                         `((userData->>'$.email'=${db.escape(query)}) or (userData->>'$.phone'=${db.escape(query)}))`
+                       );
+                     } else {
+                       query2.push(`userData->>'$.email'=${db.escape(query)}`);
+                     }
+                     return query2.join(` and `);
+                   })()}`;
       const data: any = ((await db.execute(sql, [])) as any)[0];
       let cf = {
         userData: data,
@@ -896,7 +897,7 @@ export class User {
              .filter(Boolean) // 過濾掉 falsy 值
              .map(db.escape) // 轉義輸入以防止 SQL 注入
              .join(',')})
-           AND ${orderCountingSQL}
+             AND ${orderCountingSQL}
            ORDER BY id DESC`,
           []
         )
@@ -1189,25 +1190,19 @@ export class User {
     //o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time
     const sql = `
         SELECT ${obj.select}
-        FROM (
-            SELECT 
-                email,
-                COUNT(*) AS order_count,
-                SUM(total) AS total_amount
-            FROM \`${this.app}\`.t_checkout
-            WHERE ${orderCountingSQL}
-            GROUP BY email
-        ) AS o
-        RIGHT JOIN \`${this.app}\`.t_user u ON o.email = u.account
-        LEFT JOIN (
-            SELECT 
-                email,
-                total AS last_order_total,
-                created_time AS last_order_time,
-                ROW_NUMBER() OVER(PARTITION BY email ORDER BY created_time DESC) AS rn
-            FROM \`${this.app}\`.t_checkout
-            WHERE ${orderCountingSQL}
-        ) AS lo ON o.email = lo.email AND lo.rn = 1
+        FROM (SELECT email,
+                     COUNT(*)   AS order_count,
+                     SUM(total) AS total_amount
+              FROM \`${this.app}\`.t_checkout
+              WHERE ${orderCountingSQL}
+              GROUP BY email) AS o
+                 RIGHT JOIN \`${this.app}\`.t_user u ON o.email = u.account
+                 LEFT JOIN (SELECT email,
+                                   total        AS last_order_total,
+                                   created_time AS last_order_time,
+                                   ROW_NUMBER()    OVER(PARTITION BY email ORDER BY created_time DESC) AS rn
+                            FROM \`${this.app}\`.t_checkout
+                            WHERE ${orderCountingSQL}) AS lo ON o.email = lo.email AND lo.rn = 1
         WHERE (${whereClause})
         ORDER BY ${orderByClause} ${limitClause}
     `;
@@ -1411,10 +1406,15 @@ or
         }
       }
 
-      if(query.member_levels){
-        querySql.push(`member_level in (${query.member_levels.split(',').map(level => {
-          return db.escape(level)
-        }).join(',')})`)
+      if (query.member_levels) {
+        querySql.push(
+          `member_level in (${query.member_levels
+            .split(',')
+            .map(level => {
+              return db.escape(level);
+            })
+            .join(',')})`
+        );
       }
 
       if (query.search) {
@@ -1487,18 +1487,18 @@ or
 
       const queryResult = await db.query(
         `
-                    SELECT *
-                    FROM \`${this.app}\`.t_user_public_config
-                    WHERE \`key\` = 'member_update'
-                      AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
-                `,
+            SELECT *
+            FROM \`${this.app}\`.t_user_public_config
+            WHERE \`key\` = 'member_update'
+              AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
+        `,
         []
       );
 
       // 更新 userData
       for (const b of queryResult) {
-        const tag =  levels.find((dd)=>{
-          return `${dd.id}`===`${b.user_id}`
+        const tag = levels.find(dd => {
+          return `${dd.id}` === `${b.user_id}`;
         });
         if (tag && tag.data && tag.data.tag_name) {
           const user = userMap.get(String(b.user_id)) as any;
@@ -1509,23 +1509,56 @@ or
       }
       const orderCountingSQL = await this.getCheckoutCountingModeSQL();
       const processUserData = async (user: any) => {
-        const phone=user.userData.phone || 'asnhsauh';
-        const email=user.userData.email || 'asnhsauh';
+        const phone = user.userData.phone || 'asnhsauh';
+        const email = user.userData.email || 'asnhsauh';
         // 取得購物金餘額
         const _rebate = new Rebate(this.app);
         const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
         user.rebate = userRebate ? userRebate.point : 0;
         // 取得會員等級截止日
         user.member_deadline = levelMap.get(user.userID) ?? '';
-        user.latest_order_date=(await db.query(`select created_time from \`${this.app}\`.t_checkout where email in ('${email}','${phone}') and ${orderCountingSQL} order by created_time desc limit 0,1`,[]))[0];
-        user.latest_order_date=user.latest_order_date && user.latest_order_date.created_time;
-        user.latest_order_total=(await db.query(`select total from \`${this.app}\`.t_checkout where email in ('${email}','${phone}') and ${orderCountingSQL} order by created_time desc limit 0,1`,[]))[0];
-        user.latest_order_total=user.latest_order_total && user.latest_order_total.total;
-        user.checkout_total=(await db.query(`select sum(total) from \`${this.app}\`.t_checkout where email in ('${email}','${phone}') and ${orderCountingSQL} `,[]))[0];
-        user.checkout_total=user.checkout_total && user.checkout_total['sum(total)'];
-        user.checkout_count=(await db.query(`select count(1) from \`${this.app}\`.t_checkout where email in ('${email}','${phone}') and ${orderCountingSQL} `,[]))[0];
-        user.checkout_count=user.checkout_count && user.checkout_count['count(1)'];
-
+        user.latest_order_date = (
+          await db.query(
+            `select created_time
+                                                  from \`${this.app}\`.t_checkout
+                                                  where email in ('${email}', '${phone}')
+                                                    and ${orderCountingSQL}
+                                                  order by created_time desc limit 0,1`,
+            []
+          )
+        )[0];
+        user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
+        user.latest_order_total = (
+          await db.query(
+            `select total
+                                                   from \`${this.app}\`.t_checkout
+                                                   where email in ('${email}', '${phone}')
+                                                     and ${orderCountingSQL}
+                                                   order by created_time desc limit 0,1`,
+            []
+          )
+        )[0];
+        user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
+        user.checkout_total = (
+          await db.query(
+            `select sum(total)
+                                               from \`${this.app}\`.t_checkout
+                                               where email in ('${email}', '${phone}')
+                                                 and ${orderCountingSQL} `,
+            []
+          )
+        )[0];
+        user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
+        user.checkout_count = (
+          await db.query(
+            `select count(1)
+                                               from \`${this.app}\`.t_checkout
+                                               where email in ('${email}', '${phone}')
+                                                 and ${orderCountingSQL} `,
+            []
+          )
+        )[0];
+        user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
       };
 
       // 批次處理會員資料
@@ -1585,9 +1618,9 @@ or
       if (pass('subscriber')) {
         const subscriberList = await db.query(
           `SELECT DISTINCT u.userID, s.email
-                     FROM \`${this.app}\`.t_subscribe AS s
-                              LEFT JOIN
-                          \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`,
+           FROM \`${this.app}\`.t_subscribe AS s
+                    LEFT JOIN
+                \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`,
           []
         );
         dataList.push({ type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList });
@@ -1598,10 +1631,10 @@ or
         const buyingList = [] as GroupUserItem[];
         const buyingData = await db.query(
           `SELECT u.userID, c.email, JSON_UNQUOTE(JSON_EXTRACT(c.orderData, '$.email')) AS order_email
-                     FROM \`${this.app}\`.t_checkout AS c
-                              JOIN
-                          \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
-                     WHERE c.status = 1;`,
+           FROM \`${this.app}\`.t_checkout AS c
+                    JOIN
+                \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
+           WHERE c.status = 1;`,
           []
         );
         buyingData.map((item1: { userID: number; email: string }) => {
@@ -1618,11 +1651,11 @@ or
         const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
         const neverBuyingData = await db.query(
           `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
-                     FROM \`${this.app}\`.t_user
-                     WHERE userID not in (${buyingList
-                       .map(item => item.userID)
-                       .concat([-1312])
-                       .join(',')})`,
+           FROM \`${this.app}\`.t_user
+           WHERE userID not in (${buyingList
+             .map(item => item.userID)
+             .concat([-1312])
+             .join(',')})`,
           []
         );
 
@@ -1654,7 +1687,7 @@ or
 
         const users = await db.query(
           `SELECT userID
-                     FROM \`${this.app}\`.t_user;`,
+           FROM \`${this.app}\`.t_user;`,
           []
         );
 
@@ -1729,10 +1762,10 @@ or
 
     const users = await db.query(
       `SELECT *
-             FROM \`${this.app}\`.t_user
-             WHERE userID in (${idSQL})
-                OR JSON_EXTRACT(userData, '$.email') in (${emailSQL})
-            `,
+       FROM \`${this.app}\`.t_user
+       WHERE userID in (${idSQL})
+          OR JSON_EXTRACT(userData, '$.email') in (${emailSQL})
+      `,
       []
     );
 
@@ -1748,9 +1781,9 @@ or
     if (users.length > 0) {
       const memberUpdates = await db.query(
         `SELECT *
-                 FROM \`${this.app}\`.t_user_public_config
-                 WHERE \`key\` = 'member_update'
-                   AND user_id in (${idSQL});`,
+         FROM \`${this.app}\`.t_user_public_config
+         WHERE \`key\` = 'member_update'
+           AND user_id in (${idSQL});`,
         []
       );
       for (const user of users) {
@@ -1804,7 +1837,7 @@ or
         async sql => {
           await sql.query(
             `replace
-                        into t_subscribe (email,tag) values (?,?)`,
+            into t_subscribe (email,tag) values (?,?)`,
             [email, tag]
           );
         }
@@ -1823,7 +1856,7 @@ or
         async sql => {
           await sql.query(
             `replace
-                        into t_fcm (userID,deviceToken) values (?,?)`,
+            into t_fcm (userID,deviceToken) values (?,?)`,
             [userID, deviceToken]
           );
         }
@@ -1837,8 +1870,8 @@ or
     try {
       await db.query(
         `delete
-                 FROM \`${this.app}\`.t_subscribe
-                 where email in (?)`,
+         FROM \`${this.app}\`.t_subscribe
+         where email in (?)`,
         [email.split(',')]
       );
       return {
@@ -1875,23 +1908,23 @@ or
       }
       const subData = await db.query(
         `SELECT s.*, u.account
-                 FROM \`${this.app}\`.t_subscribe AS s
-                          LEFT JOIN \`${this.app}\`.t_user AS u
-                                    ON s.email = u.account
-                 WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'} LIMIT ${query.page * query.limit}
-                     , ${query.limit}
+         FROM \`${this.app}\`.t_subscribe AS s
+                  LEFT JOIN \`${this.app}\`.t_user AS u
+                            ON s.email = u.account
+         WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'} LIMIT ${query.page * query.limit}
+             , ${query.limit}
 
-                `,
+        `,
         []
       );
       const subTotal = await db.query(
         `SELECT count(*) as c
-                 FROM \`${this.app}\`.t_subscribe AS s
-                          LEFT JOIN \`${this.app}\`.t_user AS u
-                                    ON s.email = u.account
-                 WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
+         FROM \`${this.app}\`.t_subscribe AS s
+                  LEFT JOIN \`${this.app}\`.t_user AS u
+                            ON s.email = u.account
+         WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
 
-                `,
+        `,
         []
       );
       return {
@@ -1919,8 +1952,8 @@ or
         let userData = (
           await db.query(
             `select userData
-                         from \`${this.app}\`.t_user
-                         where userID = ?`,
+             from \`${this.app}\`.t_user
+             where userID = ?`,
             [b.userID]
           )
         )[0];
@@ -1938,15 +1971,15 @@ or
       if (query.id) {
         await db.query(
           `delete
-                     FROM \`${this.app}\`.t_user
-                     where id in (?)`,
+           FROM \`${this.app}\`.t_user
+           where id in (?)`,
           [query.id.split(',')]
         );
       } else if (query.email) {
         await db.query(
           `delete
-                     FROM \`${this.app}\`.t_user
-                     where userData ->>'$.email'=?`,
+           FROM \`${this.app}\`.t_user
+           where userData ->>'$.email'=?`,
           [query.email]
         );
       }
@@ -1963,8 +1996,8 @@ or
       const userData = (
         await db.query(
           `select *
-                     from \`${this.app}\`.\`t_user\`
-                     where userID = ${db.escape(userID)}`,
+           from \`${this.app}\`.\`t_user\`
+           where userID = ${db.escape(userID)}`,
           []
         )
       )[0];
@@ -1983,8 +2016,8 @@ or
         if ((await redis.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
           await db.query(
             `update \`${this.app}\`.\`t_user\`
-                         set pwd=?
-                         where userID = ${db.escape(userID)}`,
+             set pwd=?
+             where userID = ${db.escape(userID)}`,
             [await tool.hashPwd(par.userData.pwd)]
           );
         } else {
@@ -1997,9 +2030,9 @@ or
         const count = (
           await db.query(
             `select count(1)
-                         from \`${this.app}\`.\`t_user\`
-                         where (userData ->>'$.email' = ${db.escape(par.userData.email)})
-                           and (userID != ${db.escape(userID)}) `,
+             from \`${this.app}\`.\`t_user\`
+             where (userData ->>'$.email' = ${db.escape(par.userData.email)})
+               and (userID != ${db.escape(userID)}) `,
             []
           )
         )[0]['count(1)'];
@@ -2024,9 +2057,9 @@ or
         const count = (
           await db.query(
             `select count(1)
-                         from \`${this.app}\`.\`t_user\`
-                         where (userData ->>'$.phone' = ${db.escape(par.userData.phone)})
-                           and (userID != ${db.escape(userID)}) `,
+             from \`${this.app}\`.\`t_user\`
+             where (userData ->>'$.phone' = ${db.escape(par.userData.phone)})
+               and (userID != ${db.escape(userID)}) `,
             []
           )
         )[0]['count(1)'];
@@ -2052,9 +2085,9 @@ or
       if (par.userData.phone) {
         await db.query(
           `update \`${this.app}\`.t_checkout
-                     set email=?
-                     where id > 0
-                       and email = ?`,
+           set email=?
+           where id > 0
+             and email = ?`,
           [par.userData.phone, `${userData.userData.phone}`]
         );
         userData.account = par.userData.phone;
@@ -2062,9 +2095,9 @@ or
       if (par.userData.email) {
         await db.query(
           `update \`${this.app}\`.t_checkout
-                     set email=?
-                     where id > 0
-                       and email = ?`,
+           set email=?
+           where id > 0
+             and email = ?`,
           [par.userData.email, `${userData.userData.email}`]
         );
         userData.account = par.userData.email;
@@ -2083,15 +2116,15 @@ or
       if (!par.account) {
         delete par.account;
       }
-      const data=(await db.query(
+      const data = (await db.query(
         `update \`${this.app}\`.t_user
-                     SET ?
-                     WHERE 1 = 1
-                       and userID = ?`,
+         SET ?
+         WHERE 1 = 1
+           and userID = ?`,
         [par, userID]
-      )) as any
+      )) as any;
 
-      await UserUpdate.update(this.app,userID)
+      await UserUpdate.update(this.app, userID);
 
       return {
         data: data,
@@ -2138,8 +2171,8 @@ or
     let originUserData = (
       await db.query(
         `select userData
-                 from \`${this.app}\`.\`t_user\`
-                 where userID = ${db.escape(cf.userID)}`,
+         from \`${this.app}\`.\`t_user\`
+         where userID = ${db.escape(cf.userID)}`,
         []
       )
     )[0]['userData'];
@@ -2164,9 +2197,9 @@ or
     try {
       const result = (await db.query(
         `update \`${this.app}\`.t_user
-                 SET ?
-                 WHERE 1 = 1
-                   and ((userData ->>'$.email' = ?))`,
+         SET ?
+         WHERE 1 = 1
+           and ((userData ->>'$.email' = ?))`,
         [
           {
             pwd: await tool.hashPwd(newPwd),
@@ -2187,18 +2220,18 @@ or
       const data: any = (
         (await db.execute(
           `select *
-                     from \`${this.app}\`.t_user
-                     where userID = ?
-                       and status = 1`,
+           from \`${this.app}\`.t_user
+           where userID = ?
+             and status = 1`,
           [userID]
         )) as any
       )[0];
       if (await tool.compareHash(pwd, data.pwd)) {
         const result = (await db.query(
           `update \`${this.app}\`.t_user
-                     SET ?
-                     WHERE 1 = 1
-                       and userID = ?`,
+           SET ?
+           WHERE 1 = 1
+             and userID = ?`,
           [
             {
               pwd: await tool.hashPwd(newPwd),
@@ -2220,13 +2253,13 @@ or
   public async updateAccountBack(token: string) {
     try {
       const sql = `select userData
-                         from \`${this.app}\`.t_user
-                         where JSON_EXTRACT(userData, '$.mailVerify') = ${db.escape(token)}`;
+                   from \`${this.app}\`.t_user
+                   where JSON_EXTRACT(userData, '$.mailVerify') = ${db.escape(token)}`;
       const userData = (await db.query(sql, []))[0]['userData'];
       await db.execute(
         `update \`${this.app}\`.t_user
-                 set account=${db.escape(userData.updateAccount)}
-                 where JSON_EXTRACT(userData, '$.mailVerify') = ?`,
+         set account=${db.escape(userData.updateAccount)}
+         where JSON_EXTRACT(userData, '$.mailVerify') = ?`,
         [token]
       );
     } catch (e) {
@@ -2241,9 +2274,9 @@ or
       };
       return (await db.query(
         `update \`${this.app}\`.t_user
-                 SET ?
-                 WHERE 1 = 1
-                   and JSON_EXTRACT(userData, '$.mailVerify') = ?`,
+         SET ?
+         WHERE 1 = 1
+           and JSON_EXTRACT(userData, '$.mailVerify') = ?`,
         [par, token]
       )) as any;
     } catch (e) {
@@ -2257,9 +2290,9 @@ or
         (
           (await db.execute(
             `select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.email'
-                           and status!=0`,
+             from \`${this.app}\`.t_user
+             where userData ->>'$.email'
+               and status!=0`,
             [account]
           )) as any
         )[0]['count(1)'] == 1
@@ -2286,9 +2319,9 @@ or
       if (email) {
         const emailResult = await db.execute(
           `SELECT COUNT(1) AS count
-                     FROM \`${this.app}\`.t_user
-                     WHERE userData ->>'$.email' = ?
-                    `,
+           FROM \`${this.app}\`.t_user
+           WHERE userData ->>'$.email' = ?
+          `,
           [email]
         );
         emailExists = (emailResult as any)[0]?.count > 0;
@@ -2297,9 +2330,9 @@ or
       if (phone) {
         const phoneResult = await db.execute(
           `SELECT COUNT(1) AS count
-                     FROM \`${this.app}\`.t_user
-                     WHERE userData ->>'$.phone' = ?
-                    `,
+           FROM \`${this.app}\`.t_user
+           WHERE userData ->>'$.phone' = ?
+          `,
           [phone]
         );
         phoneExists = (phoneResult as any)[0]?.count > 0;
@@ -2322,8 +2355,8 @@ or
       const count = (
         await db.query(
           `select count(1)
-                     from \`${this.app}\`.t_user
-                     where userID = ?`,
+           from \`${this.app}\`.t_user
+           where userID = ?`,
           [id]
         )
       )[0]['count(1)'];
@@ -2342,29 +2375,38 @@ or
         (
           await db.query(
             `select count(1)
-                         from \`${this.app}\`.t_user_public_config
-                         where \`key\` = ?
-                           and user_id = ? `,
+             from \`${this.app}\`.t_user_public_config
+             where \`key\` = ?
+               and user_id = ? `,
             [config.key, config.user_id ?? this.token!.userID]
           )
         )[0]['count(1)'] === 1
       ) {
         await db.query(
           `update \`${this.app}\`.t_user_public_config
-                     set value=?,
-                         updated_at=?
-                     where \`key\` = ?
-                       and user_id = ?`,
+           set value=?,
+               updated_at=?
+           where \`key\` = ?
+             and user_id = ?`,
           [config.value, new Date(), config.key, config.user_id ?? this.token!.userID]
         );
       } else {
         await db.query(
           `insert
-                     into \`${this.app}\`.t_user_public_config (\`user_id\`, \`key\`, \`value\`, updated_at)
-                     values (?, ?, ?, ?)
-                    `,
+           into \`${this.app}\`.t_user_public_config (\`user_id\`, \`key\`, \`value\`, updated_at)
+           values (?, ?, ?, ?)
+          `,
           [config.user_id ?? this.token!.userID, config.key, config.value, new Date()]
         );
+      }
+      //如果重新設定301轉址的話會需要將ApiPublic.app301重新清理過
+      if (config.key === 'domain_301') {
+        const find_app_301 = ApiPublic.app301.find(dd => {
+          return dd.app_name === this.app;
+        });
+        if (find_app_301) {
+          find_app_301.router = JSON.parse(config.value).list;
+        }
       }
     } catch (e) {
       console.error(e);
@@ -2376,10 +2418,10 @@ or
     try {
       return await db.execute(
         `select *
-                 from \`${this.app}\`.t_user_public_config
-                 where \`key\` = ${db.escape(config.key)}
-                   and user_id = ${db.escape(config.user_id)}
-                `,
+         from \`${this.app}\`.t_user_public_config
+         where \`key\` = ${db.escape(config.key)}
+           and user_id = ${db.escape(config.user_id)}
+        `,
         []
       );
     } catch (e) {
@@ -2403,7 +2445,7 @@ or
                  .join(',')})`
              : `\`key\` = ${db.escape(config.key)}`
          }
-         AND user_id = ${db.escape(config.user_id)}`,
+           AND user_id = ${db.escape(config.user_id)}`,
         []
       );
 
@@ -2523,8 +2565,8 @@ or
       const count = (
         await db.query(
           `select count(1)
-                     from \`${this.app}\`.t_user
-                     where userData ->>'$.email' = ?`,
+           from \`${this.app}\`.t_user
+           where userData ->>'$.email' = ?`,
           [email]
         )
       )[0]['count(1)'];
@@ -2539,8 +2581,8 @@ or
       const count = (
         await db.query(
           `select count(1)
-                     from \`${this.app}\`.t_user
-                     where userData ->>'$.phone' = ?`,
+           from \`${this.app}\`.t_user
+           where userData ->>'$.phone' = ?`,
           [phone]
         )
       )[0]['count(1)'];
@@ -2554,18 +2596,18 @@ or
     try {
       const last_read_time = await db.query(
         `SELECT value
-                 FROM \`${this.app}\`.t_user_public_config
-                 where \`key\` = 'notice_last_read'
-                   and user_id = ?;`,
+         FROM \`${this.app}\`.t_user_public_config
+         where \`key\` = 'notice_last_read'
+           and user_id = ?;`,
         [this.token?.userID]
       );
       const date = !last_read_time[0] ? new Date('2022-01-29') : new Date(last_read_time[0].value.time);
       const count = (
         await db.query(
           `select count(1)
-                     from \`${this.app}\`.t_notice
-                     where user_id = ?
-                       and created_time > ?`,
+           from \`${this.app}\`.t_notice
+           where user_id = ?
+             and created_time > ?`,
           [this.token?.userID, date]
         )
       )[0]['count(1)'];
@@ -2581,16 +2623,16 @@ or
     try {
       const result = await db.query(
         `select count(1)
-                 from ${process.env.GLITTER_DB}.app_config
-                 where (appName = ?
-                     and user = ?)
-                    OR appName in (
-                     (SELECT appName
-                      FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
-                      WHERE user = ?
-                        AND status = 1
-                        AND invited = 1
-                        AND appName = ?));`,
+         from ${process.env.GLITTER_DB}.app_config
+         where (appName = ?
+             and user = ?)
+            OR appName in (
+             (SELECT appName
+              FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+              WHERE user = ?
+                AND status = 1
+                AND invited = 1
+                AND appName = ?));`,
         [this.app, this.token?.userID, this.token?.userID, this.app]
       );
       return {
@@ -2605,24 +2647,24 @@ or
       let last_time_read = 0;
       const last_read_time = await db.query(
         `SELECT value
-                 FROM \`${this.app}\`.t_user_public_config
-                 where \`key\` = 'notice_last_read'
-                   and user_id = ?;`,
+         FROM \`${this.app}\`.t_user_public_config
+         where \`key\` = 'notice_last_read'
+           and user_id = ?;`,
         [this.token?.userID]
       );
       if (!last_read_time[0]) {
         await db.query(
           `insert into \`${this.app}\`.t_user_public_config (user_id, \`key\`, value, updated_at)
-                     values (?, ?, ?, ?)`,
+           values (?, ?, ?, ?)`,
           [this.token?.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]
         );
       } else {
         last_time_read = new Date(last_read_time[0].value.time).getTime();
         await db.query(
           `update \`${this.app}\`.t_user_public_config
-                     set \`value\`=?
-                     where user_id = ?
-                       and \`key\` = ?`,
+           set \`value\`=?
+           where user_id = ?
+             and \`key\` = ?`,
           [JSON.stringify({ time: new Date() }), `${this.token?.userID}`, 'notice_last_read']
         );
       }
@@ -2655,8 +2697,8 @@ or
       const db_data = (
         await db.query(
           `select *
-                     from ${saasConfig.SAAS_NAME}.t_ip_info
-                     where ip = ?`,
+           from ${saasConfig.SAAS_NAME}.t_ip_info
+           where ip = ?`,
           [ip]
         )
       )[0];
@@ -2665,7 +2707,7 @@ or
         ip_data = (await axios.request(config)).data;
         await db.query(
           `insert into ${saasConfig.SAAS_NAME}.t_ip_info (ip, data)
-                     values (?, ?)`,
+           values (?, ?)`,
           [ip, JSON.stringify(ip_data)]
         );
       }

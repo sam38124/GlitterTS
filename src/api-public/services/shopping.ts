@@ -278,10 +278,12 @@ export class Shopping {
         updated_time_desc: `ORDER BY updated_time DESC`,
         updated_time_asc: `ORDER BY updated_time ASC`,
         sales_desc: `ORDER BY content->>'$.total_sales' DESC`,
-        default: `ORDER BY id DESC`,
+        default: `ORDER BY content->>'$.sort_weight' DESC`,
         stock_desc: '',
         stock_asc: '',
       };
+
+
       query.order_by = orderMapping[query.order_by as keyof typeof orderMapping] || orderMapping.default;
 
       if (query.search) {
@@ -449,7 +451,7 @@ export class Shopping {
       }
 
       if (query.id_list) {
-        query.order_by = ` ORDER BY id IN (${query.id_list})`;
+        query.order_by = ` ORDER BY FIELD (${query.id_list})`;
       }
 
       if (!query.is_manger && !query.status) {
@@ -582,7 +584,7 @@ export class Shopping {
         products.data = products.data.filter((product: { id: number }) => idSet.has(`${product.id}`));
       }
 
-      if (query.id_list && query.order_by === 'order by id desc') {
+      if (query.id_list) {
         products.data = query.id_list
           .split(',')
           .map(id => {
@@ -823,6 +825,9 @@ export class Shopping {
       };
 
       const processProduct = async (product: any) => {
+        if(!product || !product.content){
+          return
+        }
         const createPriceMap = (type: MultiSaleType): Record<string, Map<string, number>> => {
           return Object.fromEntries(
             product.content.multi_sale_price
@@ -967,8 +972,14 @@ export class Shopping {
       };
 
       if (Array.isArray(products.data)) {
+        products.data=products.data.filter((dd)=>{
+          return dd && dd.content
+        })
         await Promise.all(products.data.map(processProduct));
       } else {
+        if((products.data) && !products.data.content){
+          products.data=undefined
+        }
         await processProduct(products.data);
       }
 
@@ -1039,6 +1050,9 @@ export class Shopping {
     userID: string;
     viewSource: string;
   }) {
+    if(!json.product.content){
+      return  []
+    }
     const id = `${json.product.id}`;
     const collection = (() => {
       try {
@@ -1890,7 +1904,6 @@ export class Shopping {
           let price = 0;
           let show_understocking = false;
           let stock = Infinity;
-
           if (prod.specs.length) {
             price = item.spec.reduce((total: number, spec: any, index: number) => {
               const dpe = prod.specs[index].option.find((dd: any) => dd.title === spec);
@@ -2787,6 +2800,7 @@ export class Shopping {
               })
             );
             checkPoint('select linepay');
+
             return await new LinePay(this.app, kd).createOrder(carData);
           case 'paynow': {
             kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
@@ -2837,14 +2851,20 @@ export class Shopping {
             //     await fb.sendCustomerFB('auto-fb-order-create', carData.orderID, carData.customer_info.fb_id);
             //     console.log('訂單FB訊息寄送成功');
             // }
+              for (const email of new Set([carData.customer_info, carData.user_info].map((dd)=>{
+                return dd && dd.email
+              }))) {
+              if (email) {
+                AutoSendEmail.customerOrder(
+                  this.app,
+                  'auto-email-order-create',
+                  carData.orderID,
+                  email,
+                  carData.language!!
+                );
+              }
+            }
 
-            AutoSendEmail.customerOrder(
-              this.app,
-              'auto-email-order-create',
-              carData.orderID,
-              carData.email,
-              carData.language!!
-            );
             await this.releaseVoucherHistory(carData.orderID, 1);
             checkPoint('default release checkout');
             return {
@@ -3596,13 +3616,20 @@ export class Shopping {
         //變成已取消加回庫存
         if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
           await this.resetStore(origin.orderData.lineItems);
-          await AutoSendEmail.customerOrder(
-            this.app,
-            'auto-email-order-cancel-success',
-            orderData.orderID,
-            orderData.email,
-            orderData.language
-          );
+
+            for (const email of new Set([origin.orderData.customer_info, origin.orderData.user_info].map((dd)=>{
+              return dd && dd.email
+            }))) {
+            if (email) {
+              await AutoSendEmail.customerOrder(
+                this.app,
+                'auto-email-order-cancel-success',
+                orderData.orderID,
+                email,
+                orderData.language
+              );
+            }
+          }
           //變成處理或已完成扣庫存
         } else if (prevStatus === '-1' && orderData.orderStatus !== '-1') {
           await this.resetStore(origin.orderData.lineItems, 'minus');
@@ -3827,14 +3854,17 @@ export class Shopping {
       const line = new LineMessage(this.app);
       messages.push(line.sendCustomerLine(`auto-line-${typeMap[type]}`, orderData.orderID, lineID));
     }
-    for (const data of [orderData.customer_info, orderData.user_info]) {
-      if (data.email) {
+
+      for (const email of new Set([orderData.customer_info, orderData.user_info].map((dd)=>{
+        return dd && dd.email
+      }))) {
+      if (email) {
         messages.push(
           AutoSendEmail.customerOrder(
             this.app,
             `auto-email-${typeMap[type]}`,
             orderData.orderID,
-            data.email,
+            email,
             orderData.language
           )
         );
@@ -3953,7 +3983,14 @@ export class Shopping {
 
       // 訂單待核款信件通知
       new ManagerNotify(this.app).uploadProof({ orderData: orderData });
-      await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email, orderData.language);
+        for (const email of new Set([orderData.customer_info, orderData.user_info].map((dd)=>{
+          return dd && dd.email
+        }))) {
+        if (email) {
+          await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, email, orderData.language);
+        }
+      }
+
 
       if (orderData.customer_info.phone) {
         let sns = new SMS(this.app);
@@ -4092,7 +4129,8 @@ export class Shopping {
       }
 
       if (query.valid) {
-        const countingSQL = await new User(this.app).getCheckoutCountingModeSQL();
+        const countingSQL = await new User(this.app).getCheckoutCountingModeSQL('o');
+
         querySql.push(countingSQL);
       }
 
@@ -4451,14 +4489,20 @@ export class Shopping {
           orderData: cartData.orderData,
           status: status,
         });
+        for (const email of new Set([cartData.orderData.customer_info, cartData.orderData.user_info].map((dd)=>{
+          return dd && dd.email
+        }))) {
+          if (email) {
+            await AutoSendEmail.customerOrder(
+              this.app,
+              'auto-email-payment-successful',
+              order_id,
+              email,
+              cartData.orderData.language
+            );
+          }
+        }
 
-        await AutoSendEmail.customerOrder(
-          this.app,
-          'auto-email-payment-successful',
-          order_id,
-          cartData.email,
-          cartData.orderData.language
-        );
 
         if (cartData.orderData.customer_info.phone) {
           let sns = new SMS(this.app);

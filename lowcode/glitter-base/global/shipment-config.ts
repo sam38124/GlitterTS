@@ -101,7 +101,7 @@ export class ShipmentConfig {
         'zh-TW': { info: configData.info || '' },
       };
     }
-
+    configData.support=configData.support??[];
     const shipmentOptions = ShipmentConfig.list
       .map(dd => {
         return { key: dd.value, name: dd.title };

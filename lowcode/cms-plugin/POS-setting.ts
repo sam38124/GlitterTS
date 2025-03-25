@@ -262,6 +262,9 @@ height: 51px;
                     }, 150);
                 }
             };
+            glitter.share._scanBack = (text:string)=>{
+                POSSetting.scannerCallback(gvc,text)
+            };
             function getTimeState(startDate: string, endDate: string): 'beforeStart' | 'inRange' | 'afterEnd' {
                 const now = new Date();
                 const start = new Date(`${startDate}T00:00:00`);
@@ -412,7 +415,7 @@ height: 51px;
                     OrderDetail.singleInstance.lineItems.find((dd) => {
                         return dd.id + dd.spec.join('-') === data.id + selectVariant.spec.join('-');
                     })!.count++;
-
+                    gvc.glitter.share.checkStock()
                     gvc.notifyDataChange(['order', 'checkout-page']);
                 } else {
                     swal.toast({ icon: 'error', title: '無此商品' });
@@ -428,6 +431,7 @@ height: 51px;
             } else {
                 dialog.dataLoading({ visible: false });
                 OrderDetail.singleInstance.user_info.email = user.response.userData.email;
+                OrderDetail.singleInstance.user_info.phone = user.response.userData.phone;
                 gvc.notifyDataChange(['checkout-page']);
             }
         }

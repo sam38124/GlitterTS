@@ -47,6 +47,7 @@ export interface Product {
   shopee_id: number;
   tax?: string;
   label: any;
+  sort_weight:number;
   shipment_type?: string;
   v_length?: string;
   v_width?: string;

@@ -5,6 +5,9 @@ export class ApiCart {
     static get checkoutCart() {
         return localStorage.getItem('checkoutCart') || ApiCart.globalCart;
     }
+    static set checkoutCart(value) {
+        localStorage.setItem('checkoutCart', value);
+    }
     static toCheckOutPage(cartID = ApiCart.globalCart) {
         localStorage.setItem('checkoutCart', cartID);
         window.glitter.href = '/checkout';

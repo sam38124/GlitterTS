@@ -680,6 +680,7 @@ export class ApiUser {
           config[key + user_id] = res;
         }
         switch (key) {
+          case 'app-header-config':
           case 'collection':
           case 'footer-setting':
           case 'menu-setting':

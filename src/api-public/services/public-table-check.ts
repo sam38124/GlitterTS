@@ -12,6 +12,9 @@ export class ApiPublic {
   public static checkedApp: { app_name: string; refer_app: string }[] = [];
   //正在檢查更新的APP
   public static checkingApp: { app_name: string; refer_app: string }[] = [];
+  //301轉址
+  public static app301:{ app_name: string; router: {legacy_url:string,new_url:string}[] }[] = [];
+
 
   public static async createScheme(appName: string) {
     //已通過則直接回傳執行
@@ -750,12 +753,20 @@ export class ApiPublic {
           }
         });
       }
-      //AI客服的設定
-      await AiRobot.syncAiRobot(appName);
+      //AI客服的設定，*注意*異步避免chat-gpt異常
+      AiRobot.syncAiRobot(appName);
       //舊版未分倉庫的資料格式，改成有分倉庫的資料格式
       await ApiPublic.migrateVariants(appName);
       //檢查資料庫更新
       await UpdatedTableChecked.startCheck(appName);
+      //賽入301轉址判斷
+      ApiPublic.app301.push({
+        app_name:appName,
+        router:(await new User(appName).getConfigV2({
+          key:'domain_301',
+          user_id:'manager'
+        })).list ?? []
+      })
       //更新檢查通過，推入可執行
       ApiPublic.checkedApp.push({
         app_name: appName,

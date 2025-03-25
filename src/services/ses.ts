@@ -30,7 +30,7 @@ export async function sendmail(sender: any, recipient: any, subject: any, body: 
                 console.log('Error sending email:', err);
             } else {
                 callback && callback(true);
-                console.log('Email sent! Message ID:', data.MessageId);
+                console.log(`Email sent! Email:${recipient} Message ID:`, data.MessageId);
             }
         });
     }

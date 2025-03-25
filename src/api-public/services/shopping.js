@@ -85,7 +85,7 @@ class Shopping {
                 updated_time_desc: `ORDER BY updated_time DESC`,
                 updated_time_asc: `ORDER BY updated_time ASC`,
                 sales_desc: `ORDER BY content->>'$.total_sales' DESC`,
-                default: `ORDER BY id DESC`,
+                default: `ORDER BY content->>'$.sort_weight' DESC`,
                 stock_desc: '',
                 stock_asc: '',
             };
@@ -233,7 +233,7 @@ class Shopping {
                 querySql.push(`(content->>'$.hideIndex' IS NULL OR content->>'$.hideIndex' = 'false')`);
             }
             if (query.id_list) {
-                query.order_by = ` ORDER BY id IN (${query.id_list})`;
+                query.order_by = ` ORDER BY FIELD (${query.id_list})`;
             }
             if (!query.is_manger && !query.status) {
                 query.status = 'inRange';
@@ -333,7 +333,7 @@ class Shopping {
                     .filter(Boolean));
                 products.data = products.data.filter((product) => idSet.has(`${product.id}`));
             }
-            if (query.id_list && query.order_by === 'order by id desc') {
+            if (query.id_list) {
                 products.data = query.id_list
                     .split(',')
                     .map(id => {
@@ -538,6 +538,9 @@ class Shopping {
                 price && priceList.push(price);
             };
             const processProduct = async (product) => {
+                if (!product || !product.content) {
+                    return;
+                }
                 const createPriceMap = (type) => {
                     return Object.fromEntries(product.content.multi_sale_price
                         .filter((item) => item.type === type)
@@ -658,9 +661,15 @@ class Shopping {
                 }
             };
             if (Array.isArray(products.data)) {
+                products.data = products.data.filter((dd) => {
+                    return dd && dd.content;
+                });
                 await Promise.all(products.data.map(processProduct));
             }
             else {
+                if ((products.data) && !products.data.content) {
+                    products.data = undefined;
+                }
                 await processProduct(products.data);
             }
             return products;
@@ -707,6 +716,9 @@ class Shopping {
         return recommendData;
     }
     async aboutProductVoucher(json) {
+        if (!json.product.content) {
+            return [];
+        }
         const id = `${json.product.id}`;
         const collection = (() => {
             try {
@@ -2071,7 +2083,13 @@ class Shopping {
                             await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                             console.log('訂單line訊息寄送成功');
                         }
-                        auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email, carData.language);
+                        for (const email of new Set([carData.customer_info, carData.user_info].map((dd) => {
+                            return dd && dd.email;
+                        }))) {
+                            if (email) {
+                                auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
+                            }
+                        }
                         await this.releaseVoucherHistory(carData.orderID, 1);
                         checkPoint('default release checkout');
                         return {
@@ -2653,7 +2671,13 @@ class Shopping {
                 const prevProgress = origin.orderData.progress;
                 if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
                     await this.resetStore(origin.orderData.lineItems);
-                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', orderData.orderID, orderData.email, orderData.language);
+                    for (const email of new Set([origin.orderData.customer_info, origin.orderData.user_info].map((dd) => {
+                        return dd && dd.email;
+                    }))) {
+                        if (email) {
+                            await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', orderData.orderID, email, orderData.language);
+                        }
+                    }
                 }
                 else if (prevStatus === '-1' && orderData.orderStatus !== '-1') {
                     await this.resetStore(origin.orderData.lineItems, 'minus');
@@ -2822,9 +2846,11 @@ class Shopping {
             const line = new line_message_1.LineMessage(this.app);
             messages.push(line.sendCustomerLine(`auto-line-${typeMap[type]}`, orderData.orderID, lineID));
         }
-        for (const data of [orderData.customer_info, orderData.user_info]) {
-            if (data.email) {
-                messages.push(auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, `auto-email-${typeMap[type]}`, orderData.orderID, data.email, orderData.language));
+        for (const email of new Set([orderData.customer_info, orderData.user_info].map((dd) => {
+            return dd && dd.email;
+        }))) {
+            if (email) {
+                messages.push(auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, `auto-email-${typeMap[type]}`, orderData.orderID, email, orderData.language));
             }
         }
         for (const data of [orderData.customer_info, orderData.user_info]) {
@@ -2915,7 +2941,13 @@ class Shopping {
            where cart_token = ?`, [order_id]))[0]['orderData'];
             orderData.proof_purchase = text;
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
-            await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email, orderData.language);
+            for (const email of new Set([orderData.customer_info, orderData.user_info].map((dd) => {
+                return dd && dd.email;
+            }))) {
+                if (email) {
+                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, email, orderData.language);
+                }
+            }
             if (orderData.customer_info.phone) {
                 let sns = new sms_js_1.SMS(this.app);
                 await sns.sendCustomerSns('sns-proof-purchase', order_id, orderData.customer_info.phone);
@@ -3019,7 +3051,7 @@ class Shopping {
                 querySql.push(`(${temp})`);
             }
             if (query.valid) {
-                const countingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
+                const countingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL('o');
                 querySql.push(countingSQL);
             }
             if (query.is_shipment) {
@@ -3305,7 +3337,13 @@ class Shopping {
                     orderData: cartData.orderData,
                     status: status,
                 });
-                await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email, cartData.orderData.language);
+                for (const email of new Set([cartData.orderData.customer_info, cartData.orderData.user_info].map((dd) => {
+                    return dd && dd.email;
+                }))) {
+                    if (email) {
+                        await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, email, cartData.orderData.language);
+                    }
+                }
                 if (cartData.orderData.customer_info.phone) {
                     let sns = new sms_js_1.SMS(this.app);
                     await sns.sendCustomerSns('auto-sns-payment-successful', order_id, cartData.orderData.customer_info.phone);

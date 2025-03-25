@@ -13,9 +13,6 @@ const glitter_finance_js_1 = require("../api-public/models/glitter-finance.js");
 const shipment_config_js_1 = require("../api-public/config/shipment-config.js");
 class Private_config {
     async setConfig(config) {
-        if (!(await this.verifyPermission(config.appName))) {
-            throw exception_js_1.default.BadRequestError('Forbidden', 'No Permission.', null);
-        }
         try {
             if (config.key === 'sql_api_config_post') {
                 post_1.Post.lambda_function[config.appName] = undefined;
@@ -31,9 +28,6 @@ class Private_config {
         }
     }
     async getConfig(config) {
-        if (!(await this.verifyPermission(config.appName))) {
-            throw exception_js_1.default.BadRequestError('Forbidden', 'No Permission.', null);
-        }
         try {
             const data = await database_js_1.default.execute(`select *
                  from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config
@@ -66,20 +60,6 @@ class Private_config {
             console.error(e);
             throw exception_js_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
-    }
-    async verifyPermission(appName) {
-        const result = await database_js_1.default.query(`SELECT count(1)
-             FROM ${config_js_1.saasConfig.SAAS_NAME}.app_config
-             WHERE (user = ? and appName = ?)
-                OR appName in (
-                 (SELECT appName
-                  FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.app_auth_config
-                  WHERE user = ?
-                    AND status = 1
-                    AND invited = 1
-                    AND appName = ?));
-            `, [this.token.userID, appName, this.token.userID, appName]);
-        return result[0]['count(1)'] === 1;
     }
     constructor(token) {
         this.token = token;

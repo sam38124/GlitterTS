@@ -368,47 +368,153 @@ export class ShoppingInformation {
                         })}
               <div style="margin-top: 24px;"></div>
               ${BgWidget.card([
-                            html `<div class="d-flex align-items-center">
+                            html ` <div class="d-flex align-items-center">
                     <div class="d-flex flex-column">
                       <div class="tx_normal fw-bold">301轉址</div>
                       <div style="color: #8D8D8D; font-size: 13px; padding-right: 10px;">
-                        設定301轉址，搬移舊有網站項目
+                        設定301轉址，將舊有連結導向至新連結
                       </div>
                     </div>
                     <div class="flex-fill"></div>
                     ${BgWidget.customButton({
                                 button: { color: 'snow', size: 'md' },
-                                text: { name: '新增' },
-                                event: gvc.event(() => {
-                                    const plus_data = {
-                                        legacy_url: '',
-                                        new_url: '',
-                                    };
+                                text: { name: '設定' },
+                                event: gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                    var _a;
+                                    let domain_301 = (_a = (yield ApiUser.getPublicConfig('domain_301', 'manager')).response.value.list) !== null && _a !== void 0 ? _a : [];
+                                    function plusEvent() {
+                                        const plus_data = {
+                                            legacy_url: '',
+                                            new_url: '',
+                                        };
+                                        BgWidget.settingDialog({
+                                            gvc,
+                                            title: '新增網址',
+                                            width: 600,
+                                            innerHTML: gvc => {
+                                                return [
+                                                    BgWidget.editeInput({
+                                                        gvc: gvc,
+                                                        title: '舊網址',
+                                                        default: plus_data.legacy_url || '',
+                                                        placeHolder: '請輸入相對路徑(例如:/blogs/sample-page)',
+                                                        callback: text => {
+                                                            plus_data.legacy_url = text;
+                                                        },
+                                                    }),
+                                                    BgWidget.editeInput({
+                                                        gvc: gvc,
+                                                        title: '新網址',
+                                                        default: plus_data.new_url || '',
+                                                        placeHolder: '請輸入相對路徑(例如:/blogs/sample-page)',
+                                                        callback: text => {
+                                                            plus_data.new_url = text;
+                                                        },
+                                                    }),
+                                                ].join('');
+                                            },
+                                            footer_html: gvc => {
+                                                return [
+                                                    BgWidget.cancel(gvc.event(() => {
+                                                        gvc.closeDialog();
+                                                    })),
+                                                    BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                                        if (domain_301.find((dd) => dd.legacy_url === plus_data.legacy_url || dd.new_url === plus_data.new_url)) {
+                                                            dialog.errorMessage({ text: '此網址已設定過' });
+                                                            return;
+                                                        }
+                                                        if (!plus_data.legacy_url) {
+                                                            dialog.errorMessage({ text: '請輸入原先網址' });
+                                                            return;
+                                                        }
+                                                        if (!plus_data.new_url) {
+                                                            dialog.errorMessage({ text: '請輸入新網址' });
+                                                            return;
+                                                        }
+                                                        if (plus_data.legacy_url === plus_data.new_url) {
+                                                            dialog.errorMessage({ text: '網址不可相同' });
+                                                            return;
+                                                        }
+                                                        dialog.dataLoading({ visible: true });
+                                                        ApiUser.setPublicConfig({
+                                                            key: 'domain_301',
+                                                            user_id: 'manager',
+                                                            value: {
+                                                                list: [
+                                                                    {
+                                                                        new_url: plus_data.new_url,
+                                                                        legacy_url: plus_data.legacy_url,
+                                                                    },
+                                                                    ...domain_301,
+                                                                ],
+                                                            },
+                                                        }).then(res => {
+                                                            dialog.dataLoading({ visible: false });
+                                                            dialog.successMessage({ text: '設定成功' });
+                                                            gvc.closeDialog();
+                                                        });
+                                                    })), '新增'),
+                                                ].join('');
+                                            },
+                                        });
+                                    }
                                     BgWidget.settingDialog({
                                         gvc,
-                                        title: '新增網址',
+                                        title: '301轉址設定',
                                         width: 600,
                                         innerHTML: gvc => {
-                                            return [
-                                                BgWidget.editeInput({
+                                            if (domain_301.length) {
+                                                return BgWidget.tableV3({
                                                     gvc: gvc,
-                                                    title: '舊網址',
-                                                    default: plus_data.legacy_url || '',
-                                                    placeHolder: '請輸入舊網址',
-                                                    callback: text => {
-                                                        plus_data.legacy_url = text;
+                                                    getData: vd => {
+                                                        vd.pageSize = 1;
+                                                        vd.originalData = domain_301;
+                                                        vd.tableData = domain_301.map((dd) => {
+                                                            var _a, _b;
+                                                            return [
+                                                                { key: '舊網址', value: `${(_a = dd.legacy_url) !== null && _a !== void 0 ? _a : ''}` },
+                                                                { key: '新網址', value: `${(_b = dd.new_url) !== null && _b !== void 0 ? _b : ''}` },
+                                                            ];
+                                                        });
+                                                        setTimeout(() => {
+                                                            vd.callback();
+                                                        });
                                                     },
-                                                }),
-                                                BgWidget.editeInput({
-                                                    gvc: gvc,
-                                                    title: '新網址',
-                                                    default: plus_data.new_url || '',
-                                                    placeHolder: '請輸入新網址',
-                                                    callback: text => {
-                                                        plus_data.new_url = text;
-                                                    },
-                                                }),
-                                            ].join('');
+                                                    rowClick: (data, index) => { },
+                                                    filter: [
+                                                        {
+                                                            name: '批量移除',
+                                                            event: checkedData => {
+                                                                dialog.checkYesOrNot({
+                                                                    text: '是否確認移除?',
+                                                                    callback: (response) => {
+                                                                        dialog.dataLoading({ visible: true });
+                                                                        domain_301 = domain_301.filter((dd) => {
+                                                                            return !(checkedData.find((d1) => {
+                                                                                return d1.legacy_url === dd.legacy_url || d1.new_url === dd.new_url;
+                                                                            }));
+                                                                        });
+                                                                        ApiUser.setPublicConfig({
+                                                                            key: 'domain_301',
+                                                                            user_id: 'manager',
+                                                                            value: {
+                                                                                list: domain_301,
+                                                                            },
+                                                                        }).then(res => {
+                                                                            dialog.dataLoading({ visible: false });
+                                                                            dialog.successMessage({ text: '設定成功' });
+                                                                            gvc.recreateView();
+                                                                        });
+                                                                    }
+                                                                });
+                                                            },
+                                                        },
+                                                    ],
+                                                });
+                                            }
+                                            else {
+                                                return BgWidget.warningInsignia('尚未新增轉址連結，點擊右下角新增');
+                                            }
                                         },
                                         footer_html: gvc => {
                                             return [
@@ -416,13 +522,12 @@ export class ShoppingInformation {
                                                     gvc.closeDialog();
                                                 })),
                                                 BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
-                                                    dialog.dataLoading({ visible: true });
-                                                    gvc.closeDialog();
-                                                }))),
+                                                    plusEvent();
+                                                })), '新增'),
                                             ].join('');
                                         },
                                     });
-                                }),
+                                })),
                             })}
                   </div>`,
                         ].join(`<div class="mt-2"></div>`))}

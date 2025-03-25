@@ -58,6 +58,10 @@ class GlitterUtil {
                         req.query.page = req.baseUrl.replace(dd.root_path, '');
                     }
                     const seo = await dd.seoManager(req, resp);
+                    if (seo.redirect) {
+                        resp.redirect(301, seo.redirect);
+                        return;
+                    }
                     let fullPath = dd.path + "/index.html";
                     const data = fs_1.default.readFileSync(fullPath, 'utf8');
                     resp.header('Content-Type', 'text/html; charset=UTF-8');

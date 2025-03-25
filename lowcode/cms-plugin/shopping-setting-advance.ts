@@ -113,7 +113,7 @@ export class ShoppingSettingAdvance {
                     )}`,
                   postMD.product_category === 'course'
                     ? ''
-                    : html`<div class="d-flex align-items-center">
+                    : html` <div class="d-flex align-items-center">
                           <div style="color: #393939; font-weight: 700;">數量單位</div>
                           ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
                         </div>
@@ -129,6 +129,23 @@ export class ShoppingSettingAdvance {
                             gvc.notifyDataChange(id);
                           },
                         })}`,
+                  html`
+                    <div class="d-flex align-items-center">
+                      <div style="color: #393939; font-weight: 700;">排序權重</div>
+                    </div>
+                    ${BgWidget.grayNote('數字越大商品排序會越靠前。')}
+                    ${BgWidget.editeInput({
+                      gvc: obj.gvc,
+                      default: `${postMD.sort_weight || ''}`,
+                      title: '',
+                      type: 'text',
+                      placeHolder: '數字越大商品排序會越靠前',
+                      callback: (text: any) => {
+                        postMD.sort_weight=text
+                        gvc.notifyDataChange(id);
+                      },
+                    })}
+                  `,
                 ]
                   .filter(Boolean)
                   .join(BgWidget.mbContainer(18))
@@ -204,7 +221,7 @@ export class ShoppingSettingAdvance {
                             case 'min_qty':
                             case 'max_qty':
                               stringArray.push(
-                                html`<div class="d-flex align-items-center fw-500" style="gap:10px;">
+                                html` <div class="d-flex align-items-center fw-500" style="gap:10px;">
                                   ${BgWidget.editeInput({
                                     gvc: obj.gvc,
                                     default: `${postMD[dd.key] || ''}`,
@@ -592,7 +609,7 @@ export class ShoppingSettingAdvance {
                               `
                             : ''}
                           ${postMD.multi_sale_price && postMD.multi_sale_price.length > 0
-                            ? html`<div class="mt-3 d-grid" style="overflow: scroll;" id="scrollDiv">
+                            ? html` <div class="mt-3 d-grid" style="overflow: scroll;" id="scrollDiv">
                                 <div class="d-flex">
                                   ${['商品名稱', '成本', '原價', '售價', ...particularKeys.map(item => item.name)]
                                     .map(
@@ -630,7 +647,7 @@ export class ShoppingSettingAdvance {
                                                       : Tool.truncateString(postMD.title, 10)}
                                                   </div>
                                                   ${priceVM.showPriceDetail
-                                                    ? html`<div style="color: #8D8D8D;">
+                                                    ? html` <div style="color: #8D8D8D;">
                                                         定價 : ${compare_price.toLocaleString()} / 售價 :
                                                         ${sale_price.toLocaleString()}
                                                       </div>`
@@ -1124,7 +1141,7 @@ export class ShoppingSettingAdvance {
               ),
             ]
               .filter(Boolean)
-              .join(html`<div class="my-3"></div>`);
+              .join(html` <div class="my-3"></div>`);
           },
           divCreate: {
             class: `w-100`,

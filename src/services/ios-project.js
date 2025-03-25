@@ -45,7 +45,7 @@ class ViewController: UIViewController {
     
     public static var vc:ViewController? = nil
     public static var redirect:String = ""
-    public let webView = GlitterActivity.create(glitterConfig: GlitterActivity.GlitterConfig(parameters:"",projectRout: URL(string: "${domain}")! )).initWkWebView()
+    public let webView = GlitterActivity.create(glitterConfig: GlitterActivity.GlitterConfig(parameters:"?a=1",projectRout: URL(string: "https://${domain}")! )).initWkWebView()
     override func viewDidLoad() {
         webView.webView!.allowsBackForwardNavigationGestures = true;
         NotificationCenter.default.addObserver(self, selector: #selector(keyBoardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)

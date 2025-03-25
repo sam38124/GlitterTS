@@ -29,7 +29,7 @@ async function sendmail(sender, recipient, subject, body, callback) {
             }
             else {
                 callback && callback(true);
-                console.log('Email sent! Message ID:', data.MessageId);
+                console.log(`Email sent! Email:${recipient} Message ID:`, data.MessageId);
             }
         });
     }

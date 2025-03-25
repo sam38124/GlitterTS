@@ -282,6 +282,7 @@ export class Language{
             {key: 'remove_to_wishlist', tw: '從心願單移除', cn: '從心願单移除', en: 'Remove from Wishlist'},
             {key: 'reset_password', tw: '重設密碼', cn: '重设密码', en: 'Reset Password'},
             {key: 'logout', tw: '登出', cn: '登出', en: 'Logout'},
+            {key: 'check_logout', tw: '是否確認登出?', cn: '是否确认登出?', en: 'Confirm to log out?'},
             {key: 'reset_password_event', tw: '重設密碼事件', cn: '重设密码事件', en: 'Reset Password Event'},
             {key: 'password', tw: '密碼', cn: '密码', en: 'Password'},
             {key: 'new_password', tw: '新密碼', cn: '新密码', en: 'New Password'},

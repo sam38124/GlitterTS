@@ -2347,7 +2347,7 @@ ${obj.default ?? ''}</textarea
     }
   ) {
     return html` <div
-      class=" mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0 mt-2'}"
+      class=" mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0'}"
       style="max-width: 100%; width: ${this.getContainerWidth()}px; ${obj?.style ?? ''}"
     >
       ${htmlString}

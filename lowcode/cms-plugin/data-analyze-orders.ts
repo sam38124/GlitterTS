@@ -41,7 +41,7 @@ export class DataAnalyze {
         view: () => {
           try {
             return html`
-              <div class="title-container ms-3">${BgWidget.title('營運分析')}</div>
+              <div class="title-container ms-lg-3">${BgWidget.title('營運分析')}</div>
               <div class="row mx-0 mt-4">
                 <div class="col-12 mb-3">
                   ${DataAnalyzeModuleCart.filterCart(gvc, vm, () => {

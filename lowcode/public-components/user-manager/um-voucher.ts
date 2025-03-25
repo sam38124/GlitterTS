@@ -72,10 +72,25 @@ export class UMVoucher {
                 } else {
                     const isWebsite = document.body.clientWidth > 768;
                     return html`
-                        <div class="um-container row mx-auto">
-                            <div class="col-12">${UmClass.nav(gvc)}</div>
-                            <div class="col-12 mt-2" style="min-height: 500px;">
-                                <div class="mx-auto orderList pt-3 mb-4 row">
+                        <div class="mx-auto">
+                            <div class="w-100  align-items-center d-flex py-3 pb-lg-3 pt-lg-0" style="gap:10px;">
+
+                                <div  class="d-none d-lg-flex" style="background: #FF9705;background: #FF9705;width:4px;height: 20px;" onclick="${gvc.event(()=>{
+                                    gvc.glitter.getModule(new URL(gvc.glitter.root_path+'official_event/page/change-page.js', import.meta.url).href, (cl) => {
+                                        cl.changePage('account_userinfo', 'home', {})
+                                    })
+                                })}"></div>
+                                <div class="d-flex d-lg-none align-items-center justify-content-center" style="width:20px;height: 20px;" onclick="${gvc.event(()=>{
+                                    gvc.glitter.getModule(new URL(gvc.glitter.root_path+'official_event/page/change-page.js', import.meta.url).href, (cl) => {
+                                        cl.changePage('account_userinfo', 'home', {})
+                                    })
+                                })}">
+                                    <i class="fa-solid fa-angle-left fs-4"></i>
+                                </div>
+                                <div class="um-info-title fw-bold " style="font-size: 24px;">${`${Language.text('my_coupons')}`}</div>
+                            </div>
+                            <div class="w-100 " style="min-height: 500px;">
+                                <div class="mx-auto orderList  mb-4 row">
                                     ${(() => {
                                         if (vm.dataList.length === 0) {
                                             return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">

@@ -253,16 +253,18 @@ export class App {
             }
             if (copyPageData) {
                 for (const dd of copyPageData) {
-                    await trans.execute(
-                        `
+                    if(dd.tag !== 'index-app'){
+                        await trans.execute(
+                          `
                             insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`,
                                                                                  \`name\`,
                                                                                  \`config\`, \`page_config\`, page_type)
                             values (?, ?, ?, ?, ?, ${db.escape(JSON.stringify(dd.config))},
                                     ${db.escape(JSON.stringify(dd.page_config))}, ${db.escape(dd.page_type)});
                         `,
-                        [this.token!.userID, cf.appName, dd.tag, dd.group || '未分類', dd.name],
-                    );
+                          [this.token!.userID, cf.appName, dd.tag, dd.group || '未分類', dd.name],
+                        );
+                    }
                 }
             } else {
                 await trans.execute(
@@ -564,7 +566,7 @@ export class App {
                 )
             )[0];
             //試用版本是企業方案
-            appConfig.plan = appConfig.plan || 'omo-year';
+            appConfig.plan = appConfig.plan || 'app-year';
             return {
                 memberType: userData?.userData?.menber_type ?? null, // 避免 userData 為 undefined
                 brand: appConfig.brand,

@@ -46,6 +46,11 @@ export class CmsRouter {
                                     resolve(cl.main(gvc));
                                 });
                                 break;
+                            case 'app-design':
+                                gvc.glitter.getModule(new URL('./cms-plugin/app-design.js', gvc.glitter.root_path).href, (cl) => {
+                                    resolve(cl.main(gvc));
+                                });
+                                break;
                             default:
                                 resolve('no page');
                         }

@@ -138,7 +138,7 @@ export class ShoppingOrderManager {
               </div>
             </div>
             <div class="${query.isShipment ? `` : 'd-none'} mb-3"></div>
-            <div class="title-container ${query.isShipment ? `d-none` : ''}">
+            <div class=" ${query.isShipment ? `d-none` : ''}">
               ${BgWidget.tab(query.isPOS
                         ? [
                             { title: '所有訂單', key: 'all' },

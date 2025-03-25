@@ -365,7 +365,10 @@ export class PdClass {
           >
             <div
               class="w-100 d-flex align-items-center p-3 border-bottom"
-              style="position: sticky; top: 0; background: #fff;z-index:12;"
+              style="position: sticky; top: 0; background: #fff;z-index:12;height: calc(60px + ${gvc.glitter.share.top_inset}px);
+              ${gvc.glitter.share.top_inset ? `padding-top: ${gvc.glitter.share.top_inset}px !important;`:``}
+
+"
             >
               <div
                 class="fw-bold fs-5"
@@ -374,13 +377,15 @@ export class PdClass {
                 ${obj.prod.title}
               </div>
               <div class="flex-fill"></div>
-              <i
-                class="fa-regular fa-circle-xmark fs-5 text-dark"
-                style="cursor: pointer"
-                onclick="${gvc.event(() => {
-                  gvc.closeDialog();
-                })}"
-              ></i>
+              <div class="d-flex align-items-center justify-content-center" style="width:40px;height: 40px;">
+                <i
+                  class="fa-regular fa-circle-xmark fs-5 text-dark"
+                  style="cursor: pointer"
+                  onclick="${gvc.event(() => {
+                    gvc.closeDialog();
+                  })}"
+                ></i>
+              </div>
             </div>
             <div
               class="c_dialog_main"

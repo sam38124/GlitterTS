@@ -6,14 +6,12 @@ import { IToken } from '../models/Auth.js';
 import { Post } from '../api-public/services/post';
 import { onlinePayArray } from '../api-public/models/glitter-finance.js';
 import { ShipmentConfig } from '../api-public/config/shipment-config.js';
+import { UtPermission } from '../api-public/utils/ut-permission.js';
 
 export class Private_config {
   public token: IToken;
 
   public async setConfig(config: { appName: string; key: string; value: any }) {
-    if (!(await this.verifyPermission(config.appName))) {
-      throw exception.BadRequestError('Forbidden', 'No Permission.', null);
-    }
     try {
       if (config.key === 'sql_api_config_post') {
         Post.lambda_function[config.appName] = undefined;
@@ -32,9 +30,6 @@ export class Private_config {
   }
 
   public async getConfig(config: { appName: string; key: string }) {
-    if (!(await this.verifyPermission(config.appName))) {
-      throw exception.BadRequestError('Forbidden', 'No Permission.', null);
-    }
     try {
       const data = await db.execute(
         `select *
@@ -74,23 +69,24 @@ export class Private_config {
     }
   }
 
-  public async verifyPermission(appName: string) {
-    const result = await db.query(
-      `SELECT count(1)
-             FROM ${saasConfig.SAAS_NAME}.app_config
-             WHERE (user = ? and appName = ?)
-                OR appName in (
-                 (SELECT appName
-                  FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
-                  WHERE user = ?
-                    AND status = 1
-                    AND invited = 1
-                    AND appName = ?));
-            `,
-      [this.token.userID, appName, this.token.userID, appName]
-    );
-    return result[0]['count(1)'] === 1;
-  }
+  // public async verifyPermission(appName: string) {
+  //
+  //   const result = await db.query(
+  //     `SELECT count(1)
+  //            FROM ${saasConfig.SAAS_NAME}.app_config
+  //            WHERE (user = ? and appName = ?)
+  //               OR appName in (
+  //                (SELECT appName
+  //                 FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+  //                 WHERE user = ?
+  //                   AND status = 1
+  //                   AND invited = 1
+  //                   AND appName = ?));
+  //           `,
+  //     [this.token.userID, appName, this.token.userID, appName]
+  //   );
+  //   return result[0]['count(1)'] === 1;
+  // }
 
   constructor(token: IToken) {
     this.token = token;

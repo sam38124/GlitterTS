@@ -147,10 +147,52 @@ export class AppRelease {
                                     })()}
                                 </div>`)}
                             </div>`,
-                            BgWidget.alertInfo(``, [`審核通過時間約莫在7-14天，請確實填寫所有內容，已加快審核進度`], {
-                                style: '',
-                                class: 'fs-6 fw-500',
-                            }),
+                            `<div class="mx-2 mx-lg-0">${BgWidget.warningInsignia(`審核通過時間約莫在7-14天，請確實填寫所有內容，已加快審核進度`)}</div>`,
+                            BgWidget.card(
+                              gvc.bindView(() => {
+                                  const id = gvc.glitter.getUUID();
+                                  return {
+                                      bind: id,
+                                      view: async () => {
+                                          const template:any = await new Promise((resolve, reject)=> {
+                                              (window as any).glitterInitialHelper.getPageData({
+                                                  tag: 'index-app',
+                                                  appName: (window as any).appName,
+                                              }, (d2: any) => {
+                                                  resolve(d2.response.result[0])
+                                              })
+                                          });
+                                          return html`
+                  <div class="d-flex flex-column" style="gap:5px;">
+                    ${[
+                                              `<div class="tx_normal fs-5 fw-500">APP佈景主題</div>`,
+                                              `<div class="tx_normal fs-sm fw-500 text-body" style="white-space: nowrap;">上次更新時間: ${gvc.glitter.ut.dateFormat(new Date(template.updated_time),'MM-dd hh:mm')}</div>`,
+                                              ``,
+                                          ].join('')}
+                  </div>
+                  <div class="flex-fill"></div>
+                  <div class="d-flex w-100" style="gap:10px;">
+                      <div class="flex-fill"></div>
+                    ${[
+                                              BgWidget.save(
+                                                gvc.event(() => {
+                                                    (window.parent as any).glitter.setUrlParameter('function','user-editor');
+                                                    (window.parent as any).glitter.setUrlParameter('device','mobile');
+                                                    (window.parent as any).glitter.setUrlParameter('page','index-app');
+                                                    (window.parent as any).location.reload();
+                                                }),
+                                                '主題設計'
+                                              ),
+                                          ].join('')}
+                  </div>
+                `;
+                                  },
+                                      divCreate:{
+                                          class:`d-flex flex-column flex-lg-row align-items-lg-center `,
+                                      }
+                              }
+                              })
+                            ),
                             [
                                 {
                                     title: '品牌內容',
@@ -190,7 +232,7 @@ export class AppRelease {
                                                             })}
                                                         </div>`,
                                                         html` <div class="w-100 d-flex align-items-center justify-content-end">
-                                                            ${BgWidget.cancel(
+                                                            ${BgWidget.save(
                                                                 gvc.event(() => {
                                                                     save(false, postMD, (result) => {});
                                                                 }),
@@ -349,7 +391,7 @@ export class AppRelease {
                                                 };
                                             }),
                                             html`<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
-                                                ${BgWidget.cancel(
+                                                ${BgWidget.save(
                                                     gvc.event(() => {
                                                         save(false, postMD, (result) => {});
                                                     }),
@@ -419,7 +461,7 @@ export class AppRelease {
                                                 };
                                             }),
                                             html`<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
-                                                ${BgWidget.cancel(
+                                                ${BgWidget.save(
                                                     gvc.event(() => {
                                                         save(false, postMD, (result) => {});
                                                     }),
@@ -438,7 +480,7 @@ export class AppRelease {
                                     </div>`);
                                 })
                                 .join(BgWidget.mbContainer(24)),
-                            html`<div class="w-100 d-flex align-items-center justify-content-end">
+                            html`<div class="update-bar-container">
                                 ${BgWidget.save(
                                     gvc.event(() => {
                                         save(true, postMDRefer, () => {});
