@@ -24,6 +24,7 @@ export interface VoucherData {
     rule: 'min_price' | 'min_count';
     productOffStart: 'price_asc' | 'price_desc' | 'price_all';
     conditionType: 'order' | 'item';
+    includeDiscount: 'before' | 'after';
     counting: 'each' | 'single';
     forKey: string[];
     ruleValue: number;

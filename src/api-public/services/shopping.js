@@ -661,13 +661,13 @@ class Shopping {
                 }
             };
             if (Array.isArray(products.data)) {
-                products.data = products.data.filter((dd) => {
+                products.data = products.data.filter(dd => {
                     return dd && dd.content;
                 });
                 await Promise.all(products.data.map(processProduct));
             }
             else {
-                if ((products.data) && !products.data.content) {
+                if (products.data && !products.data.content) {
                     products.data = undefined;
                 }
                 await processProduct(products.data);
@@ -1889,6 +1889,7 @@ class Shopping {
                     times: 1,
                     counting: 'single',
                     conditionType: 'item',
+                    includeDiscount: 'before',
                     device: ['normal'],
                     productOffStart: 'price_all',
                 };
@@ -2083,7 +2084,7 @@ class Shopping {
                             await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                             console.log('訂單line訊息寄送成功');
                         }
-                        for (const email of new Set([carData.customer_info, carData.user_info].map((dd) => {
+                        for (const email of new Set([carData.customer_info, carData.user_info].map(dd => {
                             return dd && dd.email;
                         }))) {
                             if (email) {
@@ -2359,211 +2360,197 @@ class Shopping {
     async checkVoucher(cart) {
         var _a;
         cart.discount = 0;
-        cart.lineItems.map(dd => {
-            dd.discount_price = 0;
-            dd.rebate = 0;
+        cart.lineItems.map(item => {
+            item.discount_price = 0;
+            item.rebate = 0;
         });
+        const userData = (_a = (await new user_js_1.User(this.app).getUserData(cart.email, 'email_or_phone'))) !== null && _a !== void 0 ? _a : { userID: -1 };
+        const allVoucher = await this.getAllUseVoucher(userData.userID);
+        const reduceDiscount = {};
+        let overlay = false;
         function switchValidProduct(caseName, caseList, caseOffStart) {
-            const filterItems = cart.lineItems.filter(dp => {
+            const filterItems = cart.lineItems
+                .filter(item => {
                 switch (caseName) {
                     case 'collection':
-                        return dp.collection.some((d2) => caseList.includes(d2));
+                        return item.collection.some(col => caseList.includes(col));
                     case 'product':
-                        return caseList
-                            .map(dd => {
-                            return `${dd}`;
-                        })
-                            .includes(`${dp.id}`);
-                    case 'all':
+                        return caseList.map(caseString => `${caseString}`).includes(`${item.id}`);
+                    default:
                         return true;
                 }
+            })
+                .sort((a, b) => {
+                return caseOffStart === 'price_desc' ? b.sale_price - a.sale_price : a.sale_price - b.sale_price;
             });
-            return filterItems.sort((a, b) => caseOffStart === 'price_desc' ? b.sale_price - a.sale_price : a.sale_price - b.sale_price);
+            return filterItems;
         }
-        const userClass = new user_js_1.User(this.app);
-        const userData = (_a = (await userClass.getUserData(cart.email, 'email_or_phone'))) !== null && _a !== void 0 ? _a : { userID: -1 };
-        const allVoucher = await this.getAllUseVoucher(userData.userID);
-        let overlay = false;
-        const voucherList = allVoucher
-            .filter(dd => {
-            if (!dd.device) {
+        function checkSource(voucher) {
+            if (!voucher.device)
                 return true;
-            }
-            if (dd.device.length === 0) {
+            if (voucher.device.length === 0)
                 return false;
+            return voucher.device.includes(cart.orderSource === 'POS' ? 'pos' : 'normal');
+        }
+        function checkTarget(voucher) {
+            if (voucher.target === 'customer') {
+                return (userData === null || userData === void 0 ? void 0 : userData.id) && voucher.targetList.includes(userData.userID);
             }
-            switch (cart.orderSource) {
-                case 'POS':
-                    return dd.device.includes('pos');
-                default:
-                    return dd.device.includes('normal');
-            }
-        })
-            .filter(dd => {
-            if (dd.target === 'customer') {
-                return userData && userData.id && dd.targetList.includes(userData.userID);
-            }
-            if (dd.target === 'levels') {
-                if (userData && userData.member) {
-                    const find = userData.member.find((dd) => dd.trigger);
-                    return find && dd.targetList.includes(find.id);
+            if (voucher.target === 'levels') {
+                if (userData === null || userData === void 0 ? void 0 : userData.member) {
+                    const trigger = userData.member.find((m) => m.trigger);
+                    return trigger && voucher.targetList.includes(trigger.id);
                 }
                 return false;
             }
             return true;
-        })
-            .filter(dd => {
+        }
+        function setBindProduct(voucher) {
             var _a;
-            dd.bind = [];
-            dd.productOffStart = (_a = dd.productOffStart) !== null && _a !== void 0 ? _a : 'price_all';
-            switch (dd.trigger) {
+            voucher.bind = [];
+            voucher.productOffStart = (_a = voucher.productOffStart) !== null && _a !== void 0 ? _a : 'price_all';
+            switch (voucher.trigger) {
                 case 'auto':
-                    dd.bind = switchValidProduct(dd.for, dd.forKey, dd.productOffStart);
+                    voucher.bind = switchValidProduct(voucher.for, voucher.forKey, voucher.productOffStart);
                     break;
                 case 'code':
-                    if (dd.code === `${cart.code}` || (cart.code_array || []).includes(`${dd.code}`)) {
-                        dd.bind = switchValidProduct(dd.for, dd.forKey, dd.productOffStart);
+                    if (voucher.code === `${cart.code}` || (cart.code_array || []).includes(`${voucher.code}`)) {
+                        voucher.bind = switchValidProduct(voucher.for, voucher.forKey, voucher.productOffStart);
                     }
                     break;
                 case 'distribution':
-                    if (cart.distribution_info && cart.distribution_info.voucher === dd.id) {
-                        dd.bind = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data, dd.productOffStart);
+                    if (cart.distribution_info && cart.distribution_info.voucher === voucher.id) {
+                        voucher.bind = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data, voucher.productOffStart);
                     }
                     break;
             }
-            if (dd.method === 'percent' &&
-                dd.conditionType === 'order' &&
-                dd.rule === 'min_count' &&
-                dd.reBackType === 'discount' &&
-                dd.productOffStart !== 'price_all' &&
-                dd.ruleValue > 0) {
-                dd.bind = dd.bind.slice(0, dd.ruleValue);
+            if (voucher.method === 'percent' &&
+                voucher.conditionType === 'order' &&
+                voucher.rule === 'min_count' &&
+                voucher.reBackType === 'discount' &&
+                voucher.productOffStart !== 'price_all' &&
+                voucher.ruleValue > 0) {
+                voucher.bind = voucher.bind.slice(0, voucher.ruleValue);
             }
-            return dd.bind.length > 0;
-        })
-            .filter(dd => {
-            const pass = (() => {
-                dd.times = 0;
-                dd.bind_subtotal = 0;
-                const ruleValue = parseInt(`${dd.ruleValue}`, 10);
-                if (dd.conditionType === 'order') {
-                    let cartValue = 0;
-                    dd.bind.map(item => {
-                        dd.bind_subtotal += item.count * item.sale_price;
+            return voucher.bind.length > 0;
+        }
+        function checkCartTotal(voucher) {
+            voucher.times = 0;
+            voucher.bind_subtotal = 0;
+            const ruleValue = parseInt(`${voucher.ruleValue}`, 10);
+            if (voucher.conditionType === 'order') {
+                let cartValue = 0;
+                voucher.bind.map(item => {
+                    voucher.bind_subtotal += item.count * item.sale_price;
+                });
+                if (cart.discount && voucher.includeDiscount === 'after') {
+                    voucher.bind_subtotal -= cart.discount;
+                }
+                if (voucher.rule === 'min_price') {
+                    cartValue = voucher.bind_subtotal;
+                }
+                if (voucher.rule === 'min_count') {
+                    voucher.bind.map(item => {
+                        cartValue += item.count;
                     });
-                    if (dd.rule === 'min_price') {
-                        cartValue = dd.bind_subtotal;
-                    }
-                    if (dd.rule === 'min_count') {
-                        dd.bind.map(item => {
-                            cartValue += item.count;
-                        });
-                    }
-                    if (dd.reBackType === 'shipment_free') {
-                        return cartValue >= ruleValue;
-                    }
-                    if (cartValue >= ruleValue) {
-                        if (dd.counting === 'each') {
-                            dd.times = Math.floor(cartValue / ruleValue);
-                        }
-                        if (dd.counting === 'single') {
-                            dd.times = 1;
-                        }
-                    }
-                    return dd.times > 0;
                 }
-                if (dd.conditionType === 'item') {
-                    if (dd.rule === 'min_price') {
-                        dd.bind = dd.bind.filter(item => {
-                            item.times = 0;
-                            if (item.count * item.sale_price >= ruleValue) {
-                                if (dd.counting === 'each') {
-                                    item.times = Math.floor((item.count * item.sale_price) / ruleValue);
-                                }
-                                if (dd.counting === 'single') {
-                                    item.times = 1;
-                                }
-                            }
-                            return item.times > 0;
-                        });
-                    }
-                    if (dd.rule === 'min_count') {
-                        dd.bind = dd.bind.filter(item => {
-                            item.times = 0;
-                            if (item.count >= ruleValue) {
-                                if (dd.counting === 'each') {
-                                    item.times = Math.floor(item.count / ruleValue);
-                                }
-                                if (dd.counting === 'single') {
-                                    item.times = 1;
-                                }
-                            }
-                            return item.times > 0;
-                        });
-                    }
-                    return dd.bind.reduce((acc, item) => acc + item.times, 0) > 0;
+                if (voucher.reBackType === 'shipment_free') {
+                    return cartValue >= ruleValue;
                 }
-                return false;
-            })();
-            return pass !== null && pass !== void 0 ? pass : false;
-        })
-            .sort(function (a, b) {
-            let compareB = b.bind
-                .map(dd => {
-                return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
-            })
-                .reduce(function (accumulator, currentValue) {
-                return accumulator + currentValue;
-            }, 0);
-            let compareA = a.bind
-                .map(dd => {
-                return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
-            })
-                .reduce(function (accumulator, currentValue) {
-                return accumulator + currentValue;
-            }, 0);
-            return compareB - compareA;
-        })
-            .filter(dd => {
-            if (!overlay && !dd.overlay) {
-                overlay = true;
-                return true;
+                if (cartValue >= ruleValue) {
+                    if (voucher.counting === 'each') {
+                        voucher.times = Math.floor(cartValue / ruleValue);
+                    }
+                    if (voucher.counting === 'single') {
+                        voucher.times = 1;
+                    }
+                }
+                return voucher.times > 0;
             }
-            return dd.overlay;
-        })
-            .filter(dd => {
+            if (voucher.conditionType === 'item') {
+                if (voucher.rule === 'min_price') {
+                    voucher.bind = voucher.bind.filter(item => {
+                        var _a;
+                        item.times = 0;
+                        let subtotal = item.count * item.sale_price;
+                        if (cart.discount && voucher.includeDiscount === 'after') {
+                            subtotal -= (_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0;
+                        }
+                        if (subtotal >= ruleValue) {
+                            if (voucher.counting === 'each') {
+                                item.times = Math.floor(subtotal / ruleValue);
+                            }
+                            if (voucher.counting === 'single') {
+                                item.times = 1;
+                            }
+                        }
+                        return item.times > 0;
+                    });
+                }
+                if (voucher.rule === 'min_count') {
+                    voucher.bind = voucher.bind.filter(item => {
+                        item.times = 0;
+                        if (item.count >= ruleValue) {
+                            if (voucher.counting === 'each') {
+                                item.times = Math.floor(item.count / ruleValue);
+                            }
+                            if (voucher.counting === 'single') {
+                                item.times = 1;
+                            }
+                        }
+                        return item.times > 0;
+                    });
+                }
+                return voucher.bind.reduce((acc, item) => acc + item.times, 0) > 0;
+            }
+            return false;
+        }
+        function compare(data) {
+            return data.bind
+                .map(item => {
+                const val = parseFloat(data.value);
+                return data.method === 'percent' ? (item.sale_price * val) / 100 : val;
+            })
+                .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+        }
+        function checkOverlay(voucher) {
+            if (overlay || voucher.overlay)
+                return voucher.overlay;
+            overlay = true;
+            return true;
+        }
+        function checkCondition(voucher) {
             var _a, _b;
-            dd.discount_total = (_a = dd.discount_total) !== null && _a !== void 0 ? _a : 0;
-            dd.rebate_total = (_b = dd.rebate_total) !== null && _b !== void 0 ? _b : 0;
-            if (dd.reBackType === 'shipment_free') {
+            voucher.discount_total = (_a = voucher.discount_total) !== null && _a !== void 0 ? _a : 0;
+            voucher.rebate_total = (_b = voucher.rebate_total) !== null && _b !== void 0 ? _b : 0;
+            if (voucher.reBackType === 'shipment_free')
                 return true;
-            }
-            const disValue = dd.method === 'percent' ? parseFloat(dd.value) / 100 : parseFloat(dd.value);
-            if (dd.conditionType === 'order') {
-                if (dd.method === 'fixed') {
-                    dd.discount_total = disValue * dd.times;
+            const disValue = parseFloat(voucher.value) / (voucher.method === 'percent' ? 100 : 1);
+            if (voucher.conditionType === 'order') {
+                if (voucher.method === 'fixed') {
+                    voucher.discount_total = disValue * voucher.times;
                 }
-                if (dd.method === 'percent') {
-                    dd.discount_total = dd.bind_subtotal * disValue;
+                if (voucher.method === 'percent') {
+                    voucher.discount_total = voucher.bind_subtotal * disValue;
                 }
-                if (dd.bind_subtotal >= dd.discount_total) {
-                    let remain = parseInt(`${dd.discount_total}`, 10);
-                    dd.bind.map((d2, index) => {
+                if (voucher.bind_subtotal >= voucher.discount_total) {
+                    let remain = parseInt(`${voucher.discount_total}`, 10);
+                    voucher.bind.map((item, index) => {
                         let discount = 0;
-                        if (index === dd.bind.length - 1) {
+                        if (index === voucher.bind.length - 1) {
                             discount = remain;
                         }
                         else {
-                            discount = Math.round(remain * ((d2.sale_price * d2.count) / dd.bind_subtotal));
+                            discount = Math.round(remain * ((item.sale_price * item.count) / voucher.bind_subtotal));
                         }
-                        if (discount > 0 && discount <= d2.sale_price * d2.count) {
-                            if (dd.reBackType === 'rebate') {
-                                d2.rebate += discount / d2.count;
+                        if (discount > 0 && discount <= item.sale_price * item.count) {
+                            if (voucher.reBackType === 'rebate') {
+                                item.rebate += Math.round(discount / item.count);
                                 cart.rebate += discount;
-                                dd.rebate_total += discount;
+                                voucher.rebate_total += discount;
                             }
                             else {
-                                d2.discount_price += discount / d2.count;
+                                item.discount_price += Math.round(discount / item.count);
                                 cart.discount += discount;
                             }
                         }
@@ -2578,39 +2565,39 @@ class Shopping {
                 }
                 return false;
             }
-            if (dd.conditionType === 'item') {
-                if (dd.method === 'fixed') {
-                    dd.bind = dd.bind.filter(d2 => {
-                        const discount = disValue * d2.times;
-                        if (discount <= d2.sale_price * d2.count) {
-                            if (dd.reBackType === 'rebate') {
-                                d2.rebate += discount / d2.count;
+            if (voucher.conditionType === 'item') {
+                if (voucher.method === 'fixed') {
+                    voucher.bind = voucher.bind.filter(item => {
+                        const discount = disValue * item.times;
+                        if (discount <= item.sale_price * item.count) {
+                            if (voucher.reBackType === 'rebate') {
+                                item.rebate += Math.round(discount / item.count);
                                 cart.rebate += discount;
-                                dd.rebate_total += discount;
+                                voucher.rebate_total += discount;
                             }
                             else {
-                                d2.discount_price += discount / d2.count;
+                                item.discount_price += Math.round(discount / item.count);
                                 cart.discount += discount;
-                                dd.discount_total += discount;
+                                voucher.discount_total += discount;
                             }
                             return true;
                         }
                         return false;
                     });
                 }
-                if (dd.method === 'percent') {
-                    dd.bind = dd.bind.filter(d2 => {
-                        const discount = Math.floor(d2.sale_price * d2.count * disValue);
-                        if (discount <= d2.sale_price * d2.count) {
-                            if (dd.reBackType === 'rebate') {
-                                d2.rebate += discount / d2.count;
+                if (voucher.method === 'percent') {
+                    voucher.bind = voucher.bind.filter(item => {
+                        const discount = Math.floor(item.sale_price * item.count * disValue);
+                        if (discount <= item.sale_price * item.count) {
+                            if (voucher.reBackType === 'rebate') {
+                                item.rebate += Math.round(discount / item.count);
                                 cart.rebate += discount;
-                                dd.rebate_total += discount;
+                                voucher.rebate_total += discount;
                             }
                             else {
-                                d2.discount_price += discount / d2.count;
+                                item.discount_price += Math.round(discount / item.count);
                                 cart.discount += discount;
-                                dd.discount_total += discount;
+                                voucher.discount_total += discount;
                             }
                             return true;
                         }
@@ -2618,12 +2605,39 @@ class Shopping {
                     });
                 }
             }
-            return dd.bind.length > 0;
+            return voucher.bind.length > 0;
+        }
+        function countingBindDiscount(voucher) {
+            voucher.bind.map(item => {
+                var _a;
+                reduceDiscount[item.id] = ((_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0) + item.discount_price * item.count;
+            });
+            return true;
+        }
+        function filterVoucherlist(vouchers) {
+            return vouchers
+                .filter(voucher => {
+                return [checkSource, checkTarget, setBindProduct, checkCartTotal].every(fn => fn(voucher));
+            })
+                .sort((a, b) => {
+                return compare(b) - compare(a);
+            })
+                .filter(voucher => {
+                return [checkOverlay, checkCondition, countingBindDiscount].every(fn => fn(voucher));
+            });
+        }
+        const includeDiscountVouchers = [];
+        const withoutDiscountVouchers = [];
+        allVoucher.map(voucher => {
+            voucher.includeDiscount === 'after'
+                ? includeDiscountVouchers.push(voucher)
+                : withoutDiscountVouchers.push(voucher);
         });
-        if (!voucherList.find((d2) => d2.code === `${cart.code}`)) {
+        const voucherList = [...filterVoucherlist(withoutDiscountVouchers), ...filterVoucherlist(includeDiscountVouchers)];
+        if (!voucherList.find((voucher) => voucher.code === `${cart.code}`)) {
             cart.code = undefined;
         }
-        if (voucherList.find((d2) => d2.reBackType === 'shipment_free')) {
+        if (voucherList.find((voucher) => voucher.reBackType === 'shipment_free')) {
             cart.total -= cart.shipment_fee;
             cart.shipment_fee = 0;
         }
@@ -2671,9 +2685,8 @@ class Shopping {
                 const prevProgress = origin.orderData.progress;
                 if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
                     await this.resetStore(origin.orderData.lineItems);
-                    for (const email of new Set([origin.orderData.customer_info, origin.orderData.user_info].map((dd) => {
-                        return dd && dd.email;
-                    }))) {
+                    const emailList = new Set([origin.orderData.customer_info, origin.orderData.user_info].map(user => user === null || user === void 0 ? void 0 : user.email));
+                    for (const email of emailList) {
                         if (email) {
                             await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', orderData.orderID, email, orderData.language);
                         }
@@ -2846,7 +2859,7 @@ class Shopping {
             const line = new line_message_1.LineMessage(this.app);
             messages.push(line.sendCustomerLine(`auto-line-${typeMap[type]}`, orderData.orderID, lineID));
         }
-        for (const email of new Set([orderData.customer_info, orderData.user_info].map((dd) => {
+        for (const email of new Set([orderData.customer_info, orderData.user_info].map(dd => {
             return dd && dd.email;
         }))) {
             if (email) {
@@ -2941,7 +2954,7 @@ class Shopping {
            where cart_token = ?`, [order_id]))[0]['orderData'];
             orderData.proof_purchase = text;
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
-            for (const email of new Set([orderData.customer_info, orderData.user_info].map((dd) => {
+            for (const email of new Set([orderData.customer_info, orderData.user_info].map(dd => {
                 return dd && dd.email;
             }))) {
                 if (email) {
@@ -3337,7 +3350,7 @@ class Shopping {
                     orderData: cartData.orderData,
                     status: status,
                 });
-                for (const email of new Set([cartData.orderData.customer_info, cartData.orderData.user_info].map((dd) => {
+                for (const email of new Set([cartData.orderData.customer_info, cartData.orderData.user_info].map(dd => {
                     return dd && dd.email;
                 }))) {
                     if (email) {

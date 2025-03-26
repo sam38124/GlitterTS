@@ -224,6 +224,7 @@ export class ShoppingDiscountSetting {
       rule: 'min_price' | 'min_count';
       counting: 'single' | 'each';
       conditionType: 'item' | 'order';
+      includeDiscount: 'before' | 'after';
       productOffStart: 'price_asc' | 'price_desc' | 'price_all';
       forKey: (number | string)[];
       ruleValue: number;
@@ -242,7 +243,7 @@ export class ShoppingDiscountSetting {
       targetList: [];
       macroLimited: number;
       microLimited: number;
-    } = vm.data ?? {
+    } = {
       title: '',
       code: '',
       trigger: 'auto',
@@ -270,7 +271,9 @@ export class ShoppingDiscountSetting {
       microLimited: 0,
       counting: 'single',
       conditionType: 'order',
+      includeDiscount: 'before',
       productOffStart: 'price_desc',
+      ...vm.data,
     };
 
     const productForList = [
@@ -1253,6 +1256,36 @@ export class ShoppingDiscountSetting {
                                   {
                                     single: true,
                                     readonly: voucherData.reBackType === 'shipment_free',
+                                  }
+                                )}`,
+                              html` ${BgWidget.horizontalLine()}
+                                <div class="tx_700">消費金額於其他折扣觸發時機</div>
+                                ${BgWidget.mbContainer(18)}
+                                ${BgWidget.multiCheckboxContainer(
+                                  gvc,
+                                  [
+                                    {
+                                      key: 'before',
+                                      name: '觸發前',
+                                      innerHtml: BgWidget.grayNote(
+                                        '在其他折扣觸發前，訂單的消費金額將做為達成消費條件的金額，來判斷是否可使用此優惠券'
+                                      ),
+                                    },
+                                    {
+                                      key: 'after',
+                                      name: '觸發後',
+                                      innerHtml: BgWidget.grayNote(
+                                        '將訂單的消費金額包含其他折扣後，做為達成消費條件的金額，來判斷是否可使用此優惠券'
+                                      ),
+                                    },
+                                  ],
+                                  [voucherData.includeDiscount],
+                                  text => {
+                                    voucherData.includeDiscount = text[0] as 'before' | 'after';
+                                    gvc.notifyDataChange(pageVM.conditionId);
+                                  },
+                                  {
+                                    single: true,
                                   }
                                 )}`,
                               gvc.bindView({

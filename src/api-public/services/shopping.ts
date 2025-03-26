@@ -58,6 +58,7 @@ export interface VoucherData {
   rule: 'min_price' | 'min_count';
   productOffStart: 'price_asc' | 'price_desc' | 'price_all';
   conditionType: 'order' | 'item';
+  includeDiscount: 'before' | 'after';
   counting: 'each' | 'single';
   forKey: string[];
   ruleValue: number;
@@ -282,7 +283,6 @@ export class Shopping {
         stock_desc: '',
         stock_asc: '',
       };
-
 
       query.order_by = orderMapping[query.order_by as keyof typeof orderMapping] || orderMapping.default;
 
@@ -825,8 +825,8 @@ export class Shopping {
       };
 
       const processProduct = async (product: any) => {
-        if(!product || !product.content){
-          return
+        if (!product || !product.content) {
+          return;
         }
         const createPriceMap = (type: MultiSaleType): Record<string, Map<string, number>> => {
           return Object.fromEntries(
@@ -972,13 +972,13 @@ export class Shopping {
       };
 
       if (Array.isArray(products.data)) {
-        products.data=products.data.filter((dd)=>{
-          return dd && dd.content
-        })
+        products.data = products.data.filter(dd => {
+          return dd && dd.content;
+        });
         await Promise.all(products.data.map(processProduct));
       } else {
-        if((products.data) && !products.data.content){
-          products.data=undefined
+        if (products.data && !products.data.content) {
+          products.data = undefined;
         }
         await processProduct(products.data);
       }
@@ -1050,8 +1050,8 @@ export class Shopping {
     userID: string;
     viewSource: string;
   }) {
-    if(!json.product.content){
-      return  []
+    if (!json.product.content) {
+      return [];
     }
     const id = `${json.product.id}`;
     const collection = (() => {
@@ -2610,6 +2610,7 @@ export class Shopping {
           times: 1,
           counting: 'single',
           conditionType: 'item',
+          includeDiscount: 'before',
           device: ['normal'],
           productOffStart: 'price_all',
         };
@@ -2851,9 +2852,11 @@ export class Shopping {
             //     await fb.sendCustomerFB('auto-fb-order-create', carData.orderID, carData.customer_info.fb_id);
             //     console.log('訂單FB訊息寄送成功');
             // }
-              for (const email of new Set([carData.customer_info, carData.user_info].map((dd)=>{
-                return dd && dd.email
-              }))) {
+            for (const email of new Set(
+              [carData.customer_info, carData.user_info].map(dd => {
+                return dd && dd.email;
+              })
+            )) {
               if (email) {
                 AutoSendEmail.customerOrder(
                   this.app,
@@ -3229,314 +3232,338 @@ export class Shopping {
 
   async checkVoucher(cart: Cart) {
     cart.discount = 0;
-    cart.lineItems.map(dd => {
-      dd.discount_price = 0;
-      dd.rebate = 0;
+    cart.lineItems.map(item => {
+      item.discount_price = 0;
+      item.rebate = 0;
     });
 
+    // 確認用戶資訊
+    const userData = (await new User(this.app).getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
+
+    // 取得所有可使用優惠券
+    const allVoucher = await this.getAllUseVoucher(userData.userID);
+
+    // 訂單商品經優惠券折扣的物件
+    const reduceDiscount: Record<string, number> = {};
+
+    // 過濾可使用優惠券狀態
+    let overlay = false;
+
+    // 篩選符合商品判斷方法
     function switchValidProduct(
       caseName: 'collection' | 'product' | 'all',
       caseList: string[],
       caseOffStart: 'price_desc' | 'price_asc' | 'price_all'
     ): any {
-      const filterItems = cart.lineItems.filter(dp => {
-        switch (caseName) {
-          case 'collection':
-            return dp.collection.some((d2: string) => caseList.includes(d2));
-          case 'product':
-            return caseList
-              .map(dd => {
-                return `${dd}`;
-              })
-              .includes(`${dp.id}`);
-          case 'all':
-            return true;
-        }
-      });
+      const filterItems = cart.lineItems
+        .filter(item => {
+          switch (caseName) {
+            case 'collection':
+              return item.collection.some(col => caseList.includes(col));
+            case 'product':
+              return caseList.map(caseString => `${caseString}`).includes(`${item.id}`);
+            default:
+              return true;
+          }
+        })
+        .sort((a, b) => {
+          return caseOffStart === 'price_desc' ? b.sale_price - a.sale_price : a.sale_price - b.sale_price;
+        });
 
-      return filterItems.sort((a, b) =>
-        caseOffStart === 'price_desc' ? b.sale_price - a.sale_price : a.sale_price - b.sale_price
-      );
+      return filterItems;
     }
 
-    // 確認用戶資訊
-    const userClass = new User(this.app);
+    // 訂單來源判斷
+    function checkSource(voucher: VoucherData): Boolean {
+      if (!voucher.device) return true;
+      if (voucher.device.length === 0) return false;
+      return voucher.device.includes(cart.orderSource === 'POS' ? 'pos' : 'normal');
+    }
 
-    const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
-    // 取得所有可使用優惠券
-    const allVoucher = await this.getAllUseVoucher(userData.userID);
+    // 判斷用戶是否為指定客群
+    function checkTarget(voucher: VoucherData): Boolean {
+      if (voucher.target === 'customer') {
+        return userData?.id && voucher.targetList.includes(userData.userID);
+      }
+      if (voucher.target === 'levels') {
+        if (userData?.member) {
+          const trigger = userData.member.find((m: any) => m.trigger);
+          return trigger && voucher.targetList.includes(trigger.id);
+        }
+        return false;
+      }
+      return true; // 所有顧客皆可使用
+    }
 
-    // 過濾可使用優惠券狀態
-    let overlay = false;
+    // 判斷符合商品類型
+    function setBindProduct(voucher: VoucherData): Boolean {
+      voucher.bind = [];
+      voucher.productOffStart = voucher.productOffStart ?? 'price_all';
 
-    const voucherList = allVoucher
-      .filter(dd => {
-        // 訂單來源判斷
-        if (!dd.device) {
-          return true;
-        }
-        if (dd.device.length === 0) {
-          return false;
-        }
-        switch (cart.orderSource) {
-          case 'POS':
-            return dd.device.includes('pos');
-          default:
-            return dd.device.includes('normal');
-        }
-      })
-      .filter(dd => {
-        // 判斷用戶是否為指定客群
-        if (dd.target === 'customer') {
-          return userData && userData.id && dd.targetList.includes(userData.userID);
-        }
-        if (dd.target === 'levels') {
-          if (userData && userData.member) {
-            const find = userData.member.find((dd: any) => dd.trigger);
-            return find && dd.targetList.includes(find.id);
+      switch (voucher.trigger) {
+        case 'auto': // 自動填入
+          voucher.bind = switchValidProduct(voucher.for, voucher.forKey, voucher.productOffStart);
+          break;
+        case 'code': // 輸入代碼
+          if (voucher.code === `${cart.code}` || (cart.code_array || []).includes(`${voucher.code}`)) {
+            voucher.bind = switchValidProduct(voucher.for, voucher.forKey, voucher.productOffStart);
           }
-          return false;
+          break;
+        case 'distribution': // 分銷優惠
+          if (cart.distribution_info && cart.distribution_info.voucher === voucher.id) {
+            voucher.bind = switchValidProduct(
+              cart.distribution_info.relative,
+              cart.distribution_info.relative_data,
+              voucher.productOffStart
+            );
+          }
+          break;
+      }
+
+      // 採用百分比打折, 整份訂單, 最少購買, 活動為現折, 價高者商品或價低商品打折的篩選
+      if (
+        voucher.method === 'percent' &&
+        voucher.conditionType === 'order' &&
+        voucher.rule === 'min_count' &&
+        voucher.reBackType === 'discount' &&
+        voucher.productOffStart !== 'price_all' &&
+        voucher.ruleValue > 0
+      ) {
+        voucher.bind = voucher.bind.slice(0, voucher.ruleValue);
+      }
+
+      return voucher.bind.length > 0;
+    }
+
+    // 購物車是否達到優惠條件，與計算優惠觸發次數
+    function checkCartTotal(voucher: VoucherData): Boolean {
+      voucher.times = 0;
+      voucher.bind_subtotal = 0;
+
+      const ruleValue = parseInt(`${voucher.ruleValue}`, 10);
+
+      // 單位為訂單的優惠觸發
+      if (voucher.conditionType === 'order') {
+        let cartValue = 0;
+        voucher.bind.map(item => {
+          voucher.bind_subtotal += item.count * item.sale_price;
+        });
+        if (cart.discount && voucher.includeDiscount === 'after') {
+          voucher.bind_subtotal -= cart.discount;
         }
-        return true; // 所有顧客皆可使用
-      })
-      .filter(dd => {
-        dd.bind = [];
-        dd.productOffStart = dd.productOffStart ?? 'price_all';
-
-        // 判斷符合商品類型
-        switch (dd.trigger) {
-          case 'auto': // 自動填入
-            dd.bind = switchValidProduct(dd.for, dd.forKey, dd.productOffStart);
-            break;
-          case 'code': // 輸入代碼
-            if (dd.code === `${cart.code}` || (cart.code_array || []).includes(`${dd.code}`)) {
-              dd.bind = switchValidProduct(dd.for, dd.forKey, dd.productOffStart);
-            }
-            break;
-          case 'distribution': // 分銷優惠
-            if (cart.distribution_info && cart.distribution_info.voucher === dd.id) {
-              dd.bind = switchValidProduct(
-                cart.distribution_info.relative,
-                cart.distribution_info.relative_data,
-                dd.productOffStart
-              );
-            }
-            break;
+        if (voucher.rule === 'min_price') {
+          cartValue = voucher.bind_subtotal;
+        }
+        if (voucher.rule === 'min_count') {
+          voucher.bind.map(item => {
+            cartValue += item.count;
+          });
+        }
+        if (voucher.reBackType === 'shipment_free') {
+          return cartValue >= ruleValue; // 回傳免運費判斷
+        }
+        if (cartValue >= ruleValue) {
+          if (voucher.counting === 'each') {
+            voucher.times = Math.floor(cartValue / ruleValue);
+          }
+          if (voucher.counting === 'single') {
+            voucher.times = 1;
+          }
         }
 
-        // 採用百分比打折, 整份訂單, 最少購買, 活動為現折, 價高者商品或價低商品打折的篩選
-        if (
-          dd.method === 'percent' &&
-          dd.conditionType === 'order' &&
-          dd.rule === 'min_count' &&
-          dd.reBackType === 'discount' &&
-          dd.productOffStart !== 'price_all' &&
-          dd.ruleValue > 0
-        ) {
-          dd.bind = dd.bind.slice(0, dd.ruleValue);
-        }
+        return voucher.times > 0;
+      }
 
-        return dd.bind.length > 0;
-      })
-      .filter(dd => {
-        const pass = (() => {
-          // 購物車是否達到優惠條件，與計算優惠觸發次數
-          dd.times = 0;
-          dd.bind_subtotal = 0;
-
-          const ruleValue = parseInt(`${dd.ruleValue}`, 10);
-
-          if (dd.conditionType === 'order') {
-            let cartValue = 0;
-            dd.bind.map(item => {
-              dd.bind_subtotal += item.count * item.sale_price;
-            });
-            if (dd.rule === 'min_price') {
-              cartValue = dd.bind_subtotal;
+      // 計算單位為商品的優惠觸發
+      if (voucher.conditionType === 'item') {
+        if (voucher.rule === 'min_price') {
+          voucher.bind = voucher.bind.filter(item => {
+            item.times = 0;
+            let subtotal = item.count * item.sale_price;
+            if (cart.discount && voucher.includeDiscount === 'after') {
+              subtotal -= reduceDiscount[item.id] ?? 0;
             }
-            if (dd.rule === 'min_count') {
-              dd.bind.map(item => {
-                cartValue += item.count;
-              });
-            }
-            if (dd.reBackType === 'shipment_free') {
-              return cartValue >= ruleValue; // 回傳免運費判斷
-            }
-            if (cartValue >= ruleValue) {
-              if (dd.counting === 'each') {
-                dd.times = Math.floor(cartValue / ruleValue);
+            if (subtotal >= ruleValue) {
+              if (voucher.counting === 'each') {
+                item.times = Math.floor(subtotal / ruleValue);
               }
-              if (dd.counting === 'single') {
-                dd.times = 1;
+              if (voucher.counting === 'single') {
+                item.times = 1;
               }
             }
-            // 單位為訂單的優惠觸發
-            return dd.times > 0;
-          }
-
-          if (dd.conditionType === 'item') {
-            if (dd.rule === 'min_price') {
-              dd.bind = dd.bind.filter(item => {
-                item.times = 0;
-                if (item.count * item.sale_price >= ruleValue) {
-                  if (dd.counting === 'each') {
-                    item.times = Math.floor((item.count * item.sale_price) / ruleValue);
-                  }
-                  if (dd.counting === 'single') {
-                    item.times = 1;
-                  }
-                }
-                return item.times > 0;
-              });
-            }
-            if (dd.rule === 'min_count') {
-              dd.bind = dd.bind.filter(item => {
-                item.times = 0;
-                if (item.count >= ruleValue) {
-                  if (dd.counting === 'each') {
-                    item.times = Math.floor(item.count / ruleValue);
-                  }
-                  if (dd.counting === 'single') {
-                    item.times = 1;
-                  }
-                }
-                return item.times > 0;
-              });
-            }
-            // 計算單位為商品的優惠觸發
-            return dd.bind.reduce((acc, item) => acc + item.times, 0) > 0;
-          }
-
-          return false;
-        })();
-
-        return pass ?? false;
-      })
-      .sort(function (a: VoucherData, b: VoucherData) {
-        // 排序折扣金額
-        let compareB = b.bind
-          .map(dd => {
-            return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
-          })
-          .reduce(function (accumulator, currentValue) {
-            return accumulator + currentValue;
-          }, 0);
-        let compareA = a.bind
-          .map(dd => {
-            return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
-          })
-          .reduce(function (accumulator, currentValue) {
-            return accumulator + currentValue;
-          }, 0);
-        return compareB - compareA;
-      })
-      .filter(dd => {
-        // 是否可疊加
-        if (!overlay && !dd.overlay) {
-          overlay = true;
-          return true;
+            return item.times > 0;
+          });
         }
-        return dd.overlay;
-      })
-      .filter(dd => {
-        dd.discount_total = dd.discount_total ?? 0;
-        dd.rebate_total = dd.rebate_total ?? 0;
-
-        if (dd.reBackType === 'shipment_free') {
-          return true;
+        if (voucher.rule === 'min_count') {
+          voucher.bind = voucher.bind.filter(item => {
+            item.times = 0;
+            if (item.count >= ruleValue) {
+              if (voucher.counting === 'each') {
+                item.times = Math.floor(item.count / ruleValue);
+              }
+              if (voucher.counting === 'single') {
+                item.times = 1;
+              }
+            }
+            return item.times > 0;
+          });
         }
 
-        const disValue = dd.method === 'percent' ? parseFloat(dd.value) / 100 : parseFloat(dd.value);
+        return voucher.bind.reduce((acc, item) => acc + item.times, 0) > 0;
+      }
 
-        if (dd.conditionType === 'order') {
-          if (dd.method === 'fixed') {
-            dd.discount_total = disValue * dd.times;
-          }
-          if (dd.method === 'percent') {
-            dd.discount_total = dd.bind_subtotal * disValue;
-          }
-          if (dd.bind_subtotal >= dd.discount_total) {
-            let remain = parseInt(`${dd.discount_total}`, 10);
-            dd.bind.map((d2, index) => {
-              let discount = 0;
-              if (index === dd.bind.length - 1) {
-                discount = remain;
+      return false;
+    }
+
+    // 計算優惠券的訂單折扣
+    function compare(data: VoucherData) {
+      return data.bind
+        .map(item => {
+          const val = parseFloat(data.value);
+          return data.method === 'percent' ? (item.sale_price * val) / 100 : val;
+        })
+        .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    }
+
+    // 是否可疊加
+    function checkOverlay(voucher: VoucherData): Boolean {
+      if (overlay || voucher.overlay) return voucher.overlay;
+      overlay = true;
+      return true;
+    }
+
+    // 決定折扣金額
+    function checkCondition(voucher: VoucherData): Boolean {
+      voucher.discount_total = voucher.discount_total ?? 0;
+      voucher.rebate_total = voucher.rebate_total ?? 0;
+
+      if (voucher.reBackType === 'shipment_free') return true;
+
+      const disValue = parseFloat(voucher.value) / (voucher.method === 'percent' ? 100 : 1);
+
+      if (voucher.conditionType === 'order') {
+        if (voucher.method === 'fixed') {
+          voucher.discount_total = disValue * voucher.times;
+        }
+        if (voucher.method === 'percent') {
+          voucher.discount_total = voucher.bind_subtotal * disValue;
+        }
+        if (voucher.bind_subtotal >= voucher.discount_total) {
+          let remain = parseInt(`${voucher.discount_total}`, 10);
+          voucher.bind.map((item, index) => {
+            let discount = 0;
+            if (index === voucher.bind.length - 1) {
+              discount = remain;
+            } else {
+              discount = Math.round(remain * ((item.sale_price * item.count) / voucher.bind_subtotal));
+            }
+            if (discount > 0 && discount <= item.sale_price * item.count) {
+              // 計算單位為訂單，優惠發放
+              if (voucher.reBackType === 'rebate') {
+                item.rebate += Math.round(discount / item.count);
+                cart.rebate! += discount;
+                voucher.rebate_total += discount;
               } else {
-                discount = Math.round(remain * ((d2.sale_price * d2.count) / dd.bind_subtotal));
+                item.discount_price += Math.round(discount / item.count);
+                cart.discount! += discount;
               }
-              if (discount > 0 && discount <= d2.sale_price * d2.count) {
-                // 計算單位為訂單，優惠發放
-                if (dd.reBackType === 'rebate') {
-                  d2.rebate += discount / d2.count;
-                  cart.rebate! += discount;
-                  dd.rebate_total += discount;
-                } else {
-                  d2.discount_price += discount / d2.count;
-                  cart.discount! += discount;
-                }
-              }
-              if (remain - discount > 0) {
-                remain -= discount;
+            }
+            if (remain - discount > 0) {
+              remain -= discount;
+            } else {
+              remain = 0;
+            }
+          });
+          return true;
+        }
+        return false;
+      }
+
+      if (voucher.conditionType === 'item') {
+        if (voucher.method === 'fixed') {
+          voucher.bind = voucher.bind.filter(item => {
+            const discount = disValue * item.times;
+            if (discount <= item.sale_price * item.count) {
+              // 計算單位為商品，固定折扣的優惠發放
+              if (voucher.reBackType === 'rebate') {
+                item.rebate += Math.round(discount / item.count);
+                cart.rebate! += discount;
+                voucher.rebate_total += discount;
               } else {
-                remain = 0;
+                item.discount_price += Math.round(discount / item.count);
+                cart.discount! += discount;
+                voucher.discount_total += discount;
               }
-            });
-            return true;
-          }
-          return false;
+              return true;
+            }
+            return false;
+          });
         }
-
-        if (dd.conditionType === 'item') {
-          if (dd.method === 'fixed') {
-            dd.bind = dd.bind.filter(d2 => {
-              const discount = disValue * d2.times;
-              if (discount <= d2.sale_price * d2.count) {
-                // 計算單位為商品，固定折扣的優惠發放
-                if (dd.reBackType === 'rebate') {
-                  d2.rebate += discount / d2.count;
-                  cart.rebate! += discount;
-                  dd.rebate_total += discount;
-                } else {
-                  d2.discount_price += discount / d2.count;
-                  cart.discount! += discount;
-                  dd.discount_total += discount;
-                }
-                return true;
+        if (voucher.method === 'percent') {
+          voucher.bind = voucher.bind.filter(item => {
+            const discount = Math.floor(item.sale_price * item.count * disValue);
+            if (discount <= item.sale_price * item.count) {
+              // 計算單位為商品，百分比折扣的優惠發放
+              if (voucher.reBackType === 'rebate') {
+                item.rebate += Math.round(discount / item.count);
+                cart.rebate! += discount;
+                voucher.rebate_total += discount;
+              } else {
+                item.discount_price += Math.round(discount / item.count);
+                cart.discount! += discount;
+                voucher.discount_total += discount;
               }
-              return false;
-            });
-          }
-          if (dd.method === 'percent') {
-            dd.bind = dd.bind.filter(d2 => {
-              const discount = Math.floor(d2.sale_price * d2.count * disValue);
-              if (discount <= d2.sale_price * d2.count) {
-                // 計算單位為商品，百分比折扣的優惠發放
-                if (dd.reBackType === 'rebate') {
-                  d2.rebate += discount / d2.count;
-                  cart.rebate! += discount;
-                  dd.rebate_total += discount;
-                } else {
-                  d2.discount_price += discount / d2.count;
-                  cart.discount! += discount;
-                  dd.discount_total += discount;
-                }
-                return true;
-              }
-              return false;
-            });
-          }
+              return true;
+            }
+            return false;
+          });
         }
+      }
 
-        return dd.bind.length > 0;
+      return voucher.bind.length > 0;
+    }
+
+    // 計算有折扣綁定商品的折抵數值
+    function countingBindDiscount(voucher: VoucherData) {
+      voucher.bind.map(item => {
+        reduceDiscount[item.id] = (reduceDiscount[item.id] ?? 0) + item.discount_price * item.count;
       });
+      return true;
+    }
+
+    // ==== 篩選優惠券 =====
+    function filterVoucherlist(vouchers: VoucherData[]) {
+      return vouchers
+        .filter(voucher => {
+          return [checkSource, checkTarget, setBindProduct, checkCartTotal].every(fn => fn(voucher));
+        })
+        .sort((a, b) => {
+          return compare(b) - compare(a);
+        })
+        .filter(voucher => {
+          return [checkOverlay, checkCondition, countingBindDiscount].every(fn => fn(voucher));
+        });
+    }
+
+    // 分優惠前後，批次處理優惠券
+    const includeDiscountVouchers: VoucherData[] = [];
+    const withoutDiscountVouchers: VoucherData[] = [];
+
+    allVoucher.map(voucher => {
+      voucher.includeDiscount === 'after'
+        ? includeDiscountVouchers.push(voucher)
+        : withoutDiscountVouchers.push(voucher);
+    });
+
+    const voucherList = [...filterVoucherlist(withoutDiscountVouchers), ...filterVoucherlist(includeDiscountVouchers)];
 
     // 判斷優惠碼無效
-    if (!voucherList.find((d2: VoucherData) => d2.code === `${cart.code}`)) {
+    if (!voucherList.find((voucher: VoucherData) => voucher.code === `${cart.code}`)) {
       cart.code = undefined;
     }
 
     // 如果有折扣運費，刪除基本運費
-    if (voucherList.find((d2: VoucherData) => d2.reBackType === 'shipment_free')) {
+    if (voucherList.find((voucher: VoucherData) => voucher.reBackType === 'shipment_free')) {
       cart.total -= cart.shipment_fee;
       cart.shipment_fee = 0;
     }
@@ -3617,9 +3644,10 @@ export class Shopping {
         if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
           await this.resetStore(origin.orderData.lineItems);
 
-            for (const email of new Set([origin.orderData.customer_info, origin.orderData.user_info].map((dd)=>{
-              return dd && dd.email
-            }))) {
+          const emailList = new Set(
+            [origin.orderData.customer_info, origin.orderData.user_info].map(user => user?.email)
+          );
+          for (const email of emailList) {
             if (email) {
               await AutoSendEmail.customerOrder(
                 this.app,
@@ -3642,7 +3670,6 @@ export class Shopping {
           delete update.orderData.user_info.shipment_date;
         }
 
-        console.log(`update-progress==>`, updateProgress);
         // 當訂單出貨狀態變更，觸發通知事件
         if (prevProgress !== updateProgress) {
           if (updateProgress === 'shipping') {
@@ -3855,9 +3882,11 @@ export class Shopping {
       messages.push(line.sendCustomerLine(`auto-line-${typeMap[type]}`, orderData.orderID, lineID));
     }
 
-      for (const email of new Set([orderData.customer_info, orderData.user_info].map((dd)=>{
-        return dd && dd.email
-      }))) {
+    for (const email of new Set(
+      [orderData.customer_info, orderData.user_info].map(dd => {
+        return dd && dd.email;
+      })
+    )) {
       if (email) {
         messages.push(
           AutoSendEmail.customerOrder(
@@ -3983,14 +4012,15 @@ export class Shopping {
 
       // 訂單待核款信件通知
       new ManagerNotify(this.app).uploadProof({ orderData: orderData });
-        for (const email of new Set([orderData.customer_info, orderData.user_info].map((dd)=>{
-          return dd && dd.email
-        }))) {
+      for (const email of new Set(
+        [orderData.customer_info, orderData.user_info].map(dd => {
+          return dd && dd.email;
+        })
+      )) {
         if (email) {
           await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, email, orderData.language);
         }
       }
-
 
       if (orderData.customer_info.phone) {
         let sns = new SMS(this.app);
@@ -4489,9 +4519,11 @@ export class Shopping {
           orderData: cartData.orderData,
           status: status,
         });
-        for (const email of new Set([cartData.orderData.customer_info, cartData.orderData.user_info].map((dd)=>{
-          return dd && dd.email
-        }))) {
+        for (const email of new Set(
+          [cartData.orderData.customer_info, cartData.orderData.user_info].map(dd => {
+            return dd && dd.email;
+          })
+        )) {
           if (email) {
             await AutoSendEmail.customerOrder(
               this.app,
@@ -4502,7 +4534,6 @@ export class Shopping {
             );
           }
         }
-
 
         if (cartData.orderData.customer_info.phone) {
           let sns = new SMS(this.app);

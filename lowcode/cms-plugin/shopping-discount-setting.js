@@ -185,41 +185,11 @@ export class ShoppingDiscountSetting {
         });
     }
     static voucherEditor(obj) {
-        var _a;
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
         const vm = obj.vm;
         const html = String.raw;
-        const voucherData = (_a = vm.data) !== null && _a !== void 0 ? _a : {
-            title: '',
-            code: '',
-            trigger: 'auto',
-            method: 'fixed',
-            value: '0',
-            for: 'all',
-            forKey: [],
-            device: ['normal'],
-            rule: 'min_price',
-            ruleValue: 1000,
-            startDate: this.getDateTime().date,
-            startTime: this.getDateTime().time,
-            endDate: undefined,
-            endTime: undefined,
-            status: 1,
-            type: 'voucher',
-            overlay: false,
-            start_ISO_Date: '',
-            end_ISO_Date: '',
-            reBackType: obj.reBackType,
-            rebateEndDay: '30',
-            target: 'all',
-            targetList: [],
-            macroLimited: 0,
-            microLimited: 0,
-            counting: 'single',
-            conditionType: 'order',
-            productOffStart: 'price_desc',
-        };
+        const voucherData = Object.assign({ title: '', code: '', trigger: 'auto', method: 'fixed', value: '0', for: 'all', forKey: [], device: ['normal'], rule: 'min_price', ruleValue: 1000, startDate: this.getDateTime().date, startTime: this.getDateTime().time, endDate: undefined, endTime: undefined, status: 1, type: 'voucher', overlay: false, start_ISO_Date: '', end_ISO_Date: '', reBackType: obj.reBackType, rebateEndDay: '30', target: 'all', targetList: [], macroLimited: 0, microLimited: 0, counting: 'single', conditionType: 'order', includeDiscount: 'before', productOffStart: 'price_desc' }, vm.data);
         const productForList = [
             { title: '所有商品', value: 'all' },
             { title: '商品分類', value: 'collection' },
@@ -1109,6 +1079,26 @@ export class ShoppingDiscountSetting {
                                                 }, {
                                                     single: true,
                                                     readonly: voucherData.reBackType === 'shipment_free',
+                                                })}`,
+                                                html ` ${BgWidget.horizontalLine()}
+                                <div class="tx_700">消費金額於其他折扣觸發時機</div>
+                                ${BgWidget.mbContainer(18)}
+                                ${BgWidget.multiCheckboxContainer(gvc, [
+                                                    {
+                                                        key: 'before',
+                                                        name: '觸發前',
+                                                        innerHtml: BgWidget.grayNote('在其他折扣觸發前，訂單的消費金額將做為達成消費條件的金額，來判斷是否可使用此優惠券'),
+                                                    },
+                                                    {
+                                                        key: 'after',
+                                                        name: '觸發後',
+                                                        innerHtml: BgWidget.grayNote('將訂單的消費金額包含其他折扣後，做為達成消費條件的金額，來判斷是否可使用此優惠券'),
+                                                    },
+                                                ], [voucherData.includeDiscount], text => {
+                                                    voucherData.includeDiscount = text[0];
+                                                    gvc.notifyDataChange(pageVM.conditionId);
+                                                }, {
+                                                    single: true,
                                                 })}`,
                                                 gvc.bindView({
                                                     bind: pageVM.countingId,
