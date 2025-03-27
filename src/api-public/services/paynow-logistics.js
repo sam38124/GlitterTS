@@ -27,7 +27,9 @@ class PayNowLogistics {
         }))[0];
         return {
             pwd: deliveryConfig.value.pay_now.pwd,
-            link: deliveryConfig.value.pay_now.Action === 'test' ? `https://testlogistic.paynow.com.tw` : `https://logistic.paynow.com.tw`,
+            link: deliveryConfig.value.pay_now.Action === 'test'
+                ? `https://testlogistic.paynow.com.tw`
+                : `https://logistic.paynow.com.tw`,
             toggle: deliveryConfig.value.pay_now.toggle,
             account: deliveryConfig.value.pay_now.account,
             sender_name: deliveryConfig.value.pay_now.SenderName,
@@ -39,16 +41,21 @@ class PayNowLogistics {
     async choseLogistics(type, return_url) {
         const key = tool_js_1.default.randomString(6);
         await redis_js_1.default.setValue('redirect_' + key, return_url);
-        const code = await this.encrypt(process_1.default.env.logistic_apicode);
-        const shipment_config = (await new user_js_1.User(this.app_name).getConfigV2({
+        const shipment_config = await new user_js_1.User(this.app_name).getConfigV2({
             key: `shipment_config_${type}`,
-            user_id: 'manager'
-        }));
+            user_id: 'manager',
+        });
+        let deliveryConfig = (await private_config_js_1.Private_config.getConfig({
+            appName: this.app_name,
+            key: 'glitter_delivery',
+        }))[0];
+        deliveryConfig = (deliveryConfig && deliveryConfig.value && deliveryConfig.value.pay_now) || {};
+        const code = await this.encrypt(deliveryConfig.pwd || process_1.default.env.logistic_apicode);
         const cf = {
-            user_account: process_1.default.env.logistic_account,
+            user_account: deliveryConfig.account || process_1.default.env.logistic_account,
             apicode: encodeURIComponent(code),
             Logistic_serviceID: (() => {
-                const paynow_id = shipment_config_js_1.ShipmentConfig.list.find((dd) => {
+                const paynow_id = shipment_config_js_1.ShipmentConfig.list.find(dd => {
                     return dd.value === type;
                 }).paynow_id;
                 if (shipment_config.bulk) {
@@ -72,20 +79,23 @@ class PayNowLogistics {
                     return paynow_id;
                 }
             })(),
-            returnUrl: `${process_1.default.env.DOMAIN}/api-public/v1/ec/logistics/redirect?g-app=${this.app_name}&return=${key}`
+            returnUrl: `${process_1.default.env.DOMAIN}/api-public/v1/ec/logistics/redirect?g-app=${this.app_name}&return=${key}`,
         };
-        console.log(`Logistic_serviceID`, cf.Logistic_serviceID);
         return html `
-            <form action="https://logistic.paynow.com.tw/Member/Order/Choselogistics" method="post"
-                  enctype="application/x-www-form-urlencoded"
-                  accept="text/html">
-                ${Object.keys(cf).map((dd) => {
+      <form
+        action="https://logistic.paynow.com.tw/Member/Order/Choselogistics"
+        method="post"
+        enctype="application/x-www-form-urlencoded"
+        accept="text/html"
+      >
+        ${Object.keys(cf)
+            .map(dd => {
             return `<input type="hidden" name="${dd}" id="${dd}" value="${cf[dd]}"/>`;
-        }).join('\n')}
-                <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
-                        hidden></button>
-            </form>
-        `;
+        })
+            .join('\n')}
+        <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit" hidden></button>
+      </form>
+    `;
     }
     async deleteLogOrder(orderNO, logisticNumber, totalAmount) {
         const l_config = await this.config();
@@ -93,9 +103,9 @@ class PayNowLogistics {
         const data = {
             LogisticNumber: logisticNumber,
             sno: 1,
-            PassCode: await this.sha1Encrypt([l_config.account, orderNO, totalAmount, l_config.pwd].join(''))
+            PassCode: await this.sha1Encrypt([l_config.account, orderNO, totalAmount, l_config.pwd].join('')),
         };
-        Object.keys(data).map((dd) => {
+        Object.keys(data).map(dd => {
             data[dd] = `${data[dd]}`;
         });
         const config = {
@@ -103,22 +113,22 @@ class PayNowLogistics {
             maxBodyLength: Infinity,
             url: url,
             headers: {
-                'Content-Type': 'application/JSON'
+                'Content-Type': 'application/JSON',
             },
-            data: data
+            data: data,
         };
         const response = await (0, axios_1.default)(config);
         console.log(`response_data==>`, response.data);
-        if (response.data && !(response.data.includes('已繳費')) && !(response.data.includes('已寄件'))) {
+        if (response.data && !response.data.includes('已繳費') && !response.data.includes('已寄件') && !response.data.includes('出貨中')) {
             const order = (await database_js_1.default.query(`select *
-                                           from \`${this.app_name}\`.t_checkout
-                                           where cart_token = ?`, [orderNO]))[0];
+           from \`${this.app_name}\`.t_checkout
+           where cart_token = ?`, [orderNO]))[0];
             delete order.orderData.user_info.shipment_number;
             delete order.orderData.user_info.shipment_refer;
             await new shopping_js_1.Shopping(this.app_name).putOrder({
                 cart_token: orderNO,
                 orderData: order.orderData,
-                status: undefined
+                status: undefined,
             });
         }
         return response.data;
@@ -132,8 +142,8 @@ class PayNowLogistics {
                 maxBodyLength: Infinity,
                 url: url,
                 headers: {
-                    'Content-Type': 'application/JSON'
-                }
+                    'Content-Type': 'application/JSON',
+                },
             };
             const response = await (0, axios_1.default)(config);
             return response.data;
@@ -141,19 +151,19 @@ class PayNowLogistics {
         catch (e) {
             console.log(e);
             return {
-                status: e.status
+                status: e.status,
             };
         }
     }
     async printLogisticsOrder(carData) {
         const l_config = await this.config();
         const url = `${l_config.link}/api/Orderapi/Add_Order`;
-        const shipment_config = (await new user_js_1.User(this.app_name).getConfigV2({
+        const shipment_config = await new user_js_1.User(this.app_name).getConfigV2({
             key: `shipment_config_${carData.user_info.shipment}`,
-            user_id: 'manager'
-        }));
+            user_id: 'manager',
+        });
         const service = (() => {
-            const paynow_id = shipment_config_js_1.ShipmentConfig.list.find((dd) => {
+            const paynow_id = shipment_config_js_1.ShipmentConfig.list.find(dd => {
                 return dd.value === carData.user_info.shipment;
             }).paynow_id;
             if (shipment_config.bulk) {
@@ -184,7 +194,7 @@ class PayNowLogistics {
                     apicode: l_config.pwd,
                     Logistic_service: service,
                     OrderNo: carData.orderID,
-                    DeliverMode: (carData.customer_info.payment_select == 'cash_on_delivery') ? '01' : '02',
+                    DeliverMode: carData.customer_info.payment_select == 'cash_on_delivery' ? '01' : '02',
                     TotalAmount: carData.total,
                     receiver_storeid: carData.user_info.CVSStoreID,
                     receiver_storename: carData.user_info.CVSStoreName,
@@ -211,9 +221,9 @@ class PayNowLogistics {
                                 return '0003';
                         }
                     })(),
-                    "Remark": "",
-                    "Description": "",
-                    PassCode: await this.sha1Encrypt([l_config.account, carData.orderID, carData.total, l_config.pwd].join(''))
+                    Remark: '',
+                    Description: '',
+                    PassCode: await this.sha1Encrypt([l_config.account, carData.orderID, carData.total, l_config.pwd].join('')),
                 };
             }
             else {
@@ -222,7 +232,7 @@ class PayNowLogistics {
                     apicode: l_config.pwd,
                     Logistic_service: service,
                     OrderNo: carData.orderID,
-                    DeliverMode: (carData.customer_info.payment_select == 'cash_on_delivery') ? '01' : '02',
+                    DeliverMode: carData.customer_info.payment_select == 'cash_on_delivery' ? '01' : '02',
                     TotalAmount: carData.total,
                     receiver_storeid: carData.user_info.CVSStoreID,
                     receiver_storename: carData.user_info.CVSStoreName,
@@ -235,12 +245,13 @@ class PayNowLogistics {
                     Sender_Phone: l_config.sender_phone,
                     Sender_Email: l_config.sender_email,
                     Sender_address: l_config.sender_address,
-                    "Remark": "",
-                    "Description": "",
-                    PassCode: await this.sha1Encrypt([l_config.account, carData.orderID, carData.total, l_config.pwd].join(''))
+                    Remark: '',
+                    Description: '',
+                    PassCode: await this.sha1Encrypt([l_config.account, carData.orderID, carData.total, l_config.pwd].join('')),
                 };
             }
         })();
+        console.log(`add-order-data==>`, data);
         function getDaysDifference(date1, date2) {
             const timeDifference = Math.abs(date2.getTime() - date1.getTime());
             const daysDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
@@ -252,7 +263,7 @@ class PayNowLogistics {
         else if (['02', '22', '04', '24'].includes(service)) {
             data.Deadline = getDaysDifference(new Date(), new Date(carData.user_info.shipment_date));
         }
-        Object.keys(data).map((dd) => {
+        Object.keys(data).map(dd => {
             data[dd] = `${data[dd]}`;
         });
         const config = {
@@ -260,11 +271,11 @@ class PayNowLogistics {
             maxBodyLength: Infinity,
             url: url,
             headers: {
-                'Content-Type': 'application/JSON'
+                'Content-Type': 'application/JSON',
             },
             data: {
-                JsonOrder: await this.encrypt(JSON.stringify(data))
-            }
+                JsonOrder: await this.encrypt(JSON.stringify(data)),
+            },
         };
         const response = await (0, axios_1.default)(config);
         console.log(`response_data==>`, response.data);
@@ -272,12 +283,12 @@ class PayNowLogistics {
     }
     async encrypt(content) {
         try {
-            var ivbyte = crypto_js_1.default.enc.Utf8.parse("12345678");
+            var ivbyte = crypto_js_1.default.enc.Utf8.parse('12345678');
             console.log(`ivbyte=>`, ivbyte);
-            const encrypted = crypto_js_1.default.TripleDES.encrypt(crypto_js_1.default.enc.Utf8.parse(content), crypto_js_1.default.enc.Utf8.parse("123456789070828783123456"), {
+            const encrypted = crypto_js_1.default.TripleDES.encrypt(crypto_js_1.default.enc.Utf8.parse(content), crypto_js_1.default.enc.Utf8.parse('123456789070828783123456'), {
                 iv: ivbyte,
                 mode: crypto_js_1.default.mode.ECB,
-                padding: crypto_js_1.default.pad.ZeroPadding
+                padding: crypto_js_1.default.pad.ZeroPadding,
             });
             return encrypted.toString();
         }
@@ -291,4 +302,5 @@ class PayNowLogistics {
     }
 }
 exports.PayNowLogistics = PayNowLogistics;
+PayNowLogistics.printStack = [];
 //# sourceMappingURL=paynow-logistics.js.map

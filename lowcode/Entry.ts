@@ -140,7 +140,7 @@ export class Entry {
     }
     (window as any).renderClock = (window as any).renderClock ?? createClock();
     console.log(`Entry-time:`, (window as any).renderClock.stop());
-    glitter.share.editerVersion = 'V_19.4.2';
+    glitter.share.editerVersion = 'V_19.6.8';
     glitter.share.start = new Date();
     const vm = { appConfig: [] };
     (window as any).saasConfig = {
@@ -304,6 +304,8 @@ export class Entry {
       }
       console.log(`視窗大小變化: 寬度=${width}px, 高度=${height}px`);
     });
+
+
   }
 
   // 判斷是否為 Iframe 來覆寫 Glitter 代碼

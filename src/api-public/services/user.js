@@ -993,6 +993,7 @@ class User {
         WHERE (${whereClause})
         ORDER BY ${orderByClause} ${limitClause}
     `;
+        console.log(sql);
         return sql;
     }
     getOrderByClause(orderBy) {
@@ -1016,10 +1017,14 @@ class User {
     async getUserList(query) {
         var _a, _b, _c, _d;
         try {
+            const orderCountingSQL = await this.getCheckoutCountingModeSQL();
             const querySql = ['1=1'];
             const noRegisterUsers = [];
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
+            function sqlDateConvert(dd) {
+                return dd.replace('T', ' ').replace('.000Z', '');
+            }
             if (query.groupType) {
                 const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
                 if (getGroup.result && getGroup.data[0]) {
@@ -1114,8 +1119,8 @@ class User {
                 const last_time = query.last_order_time.split(',');
                 if (last_time.length > 1) {
                     querySql.push(`
-                        (lo.last_order_time BETWEEN ${database_1.default.escape(`${last_time[0]}`)} 
-                        AND ${database_1.default.escape(`${last_time[1]}`)})
+                        (lo.last_order_time BETWEEN ${database_1.default.escape(`${sqlDateConvert(last_time[0])}`)} 
+                        AND ${database_1.default.escape(`${sqlDateConvert(last_time[1])}`)})
                     `);
                 }
             }
@@ -1123,9 +1128,11 @@ class User {
                 const last_time = query.last_shipment_date.split(',');
                 if (last_time.length > 1) {
                     querySql.push(`
-((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.phone')  between ${database_1.default.escape(`${last_time[0]}`)} and ${database_1.default.escape(`${last_time[1]}`)})   
+(((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.phone' and ${orderCountingSQL})  between ${database_1.default.escape(sqlDateConvert(last_time[0]))} and ${database_1.default.escape(sqlDateConvert(last_time[1]))})
+
+)   
 or
-((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.email')  between ${database_1.default.escape(`${last_time[0]}`)} and ${database_1.default.escape(`${last_time[1]}`)})                    
+((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.email' and ${orderCountingSQL})  between ${database_1.default.escape(sqlDateConvert(last_time[0]))} and ${database_1.default.escape(sqlDateConvert(last_time[1]))})                    
                     `);
                 }
             }
@@ -1257,7 +1264,6 @@ or
                     }
                 }
             }
-            const orderCountingSQL = await this.getCheckoutCountingModeSQL();
             const processUserData = async (user) => {
                 var _a;
                 const phone = user.userData.phone || 'asnhsauh';

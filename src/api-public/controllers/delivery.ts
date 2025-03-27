@@ -134,3 +134,29 @@ router.get('/formView', async (req: express.Request, resp: express.Response) => 
         return response.fail(resp, err);
     }
 });
+
+router.get('/print-delivery', async (req: express.Request, resp: express.Response) => {
+    try {
+        const html = String.raw;
+        const f_=PayNowLogistics.printStack.find((dd)=>{
+            return dd.code===req.query.code;
+        })
+        if(f_?.html){
+            return resp.send(f_.html);
+        }else{
+            return resp.send(html`<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8"/>
+            <title>Title</title>
+        </head>
+        <body>
+         Not Found
+        </body>
+        </html>`);
+        }
+
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+})

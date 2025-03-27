@@ -923,10 +923,10 @@ export class ShoppingOrderManager {
                 vm.type = 'replace';
             })));
         });
-        const shipmentNumbers = record.match(/{{shipment=(\d+)}}/g) || [];
+        const shipmentNumbers = record.match(/{{shipment=(.*?)}}/g) || [];
         shipmentNumbers.map((order) => {
             const pureOrder = order.replace(/{{shipment=|}}/g, '');
-            record = record.replace(order, BgWidget.blueNote(`#${pureOrder}`, gvc.event(() => {
+            record = record.replace(order, BgWidget.blueNote(`${pureOrder}`, gvc.event(() => {
                 window.glitter.setUrlParameter('page', 'shipment_list');
                 window.glitter.setUrlParameter('orderID', orderID);
                 gvc.recreateView();
@@ -1019,7 +1019,7 @@ export class ShoppingOrderManager {
                             type: 'order',
                             userID: '',
                         };
-                        let invoiceData = {};
+                        let invoiceDataList = [];
                         let invoiceLoading = true;
                         let storeList = [];
                         let storeLoading = true;
@@ -1031,7 +1031,7 @@ export class ShoppingOrderManager {
                             search: orderData.cart_token,
                             searchType: 'order_number',
                         }).then((data) => {
-                            invoiceData = data.response.data[0];
+                            invoiceDataList = data.response.data;
                             invoiceLoading = false;
                             gvc.notifyDataChange('invoiceView');
                         });
@@ -2371,16 +2371,12 @@ export class ShoppingOrderManager {
                                             gvc.bindView({
                                                 bind: 'invoiceView',
                                                 view: () => {
-                                                    var _a;
                                                     const dialog = new ShareDialog(gvc.glitter);
                                                     if (invoiceLoading) {
                                                         dialog.dataLoading({ visible: true });
                                                         return '';
                                                     }
                                                     dialog.dataLoading({ visible: false });
-                                                    if (!invoiceData) {
-                                                        return '';
-                                                    }
                                                     return BgWidget.mainCard(html `
                                   <div class="tx_700">發票資訊</div>
                                   ${BgWidget.mbContainer(18)}
@@ -2390,7 +2386,9 @@ export class ShoppingOrderManager {
                                     <div class="col-3 text-center">發票金額</div>
                                     <div class="col-2 text-center">狀態</div>
                                   </div>
-                                  <div class="d-flex">
+                                  ${invoiceDataList.map((invoiceData) => {
+                                                        var _a;
+                                                        return `<div class="d-flex" style="height:55px;">
                                     <div class="col-3 d-flex align-items-center ">
                                       ${invoiceData.create_date.split('T')[0]}
                                     </div>
@@ -2405,18 +2403,19 @@ export class ShoppingOrderManager {
                                     </div>
                                     <div class="col-2 text-center d-flex align-items-center justify-content-center">
                                       ${invoiceData.status == 1
-                                                        ? html ` <div style="color:#10931D">已完成</div>`
-                                                        : html ` <div style="color:#DA1313">已作廢</div>`}
+                                                            ? html ` <div style="color:#10931D">已完成</div>`
+                                                            : html ` <div style="color:#DA1313">已作廢</div>`}
                                     </div>
                                     <div class="flex-fill d-flex justify-content-end align-items-center">
                                       <div style="margin-right: 14px;">
                                         ${BgWidget.grayButton('查閱', gvc.event(() => {
-                                                        vm.invoiceData = invoiceData;
-                                                        vm.type = 'viewInvoice';
-                                                    }), { textStyle: `` })}
+                                                            vm.invoiceData = invoiceData;
+                                                            vm.type = 'viewInvoice';
+                                                        }), { textStyle: `` })}
                                       </div>
                                     </div>
-                                  </div>
+                                  </div>`;
+                                                    }).join('')}
                                 `);
                                                 },
                                                 divCreate: {},
@@ -2847,7 +2846,7 @@ ${[
                                                         return {
                                                             bind: id,
                                                             view: () => {
-                                                                if (vc.data.fincial == 'ezpay' || vc.data.fincial == 'ecpay') {
+                                                                if ((vc.data.fincial == 'ezpay' || vc.data.fincial == 'ecpay') && (orderData.invoice_status !== 1)) {
                                                                     return BgWidget.grayButton('開立發票', gvc.event(() => {
                                                                         vm.tempOrder = orderData.cart_token;
                                                                         vm.type = 'createInvoice';
@@ -4416,8 +4415,9 @@ ${[
                     orderDetail.pay_status = e.value;
                 })}"
                     >
-                      <option value="1" ${orderDetail.pay_status == 1 ? 'selected' : ''}>線下付款-已付款</option>
-                      <option value="0" ${orderDetail.pay_status == 0 ? 'selected' : ''}>線下付款-未付款</option>
+                      <option value="1" ${`${orderDetail.pay_status}` == '1' ? 'selected' : ''}>線下付款-已付款</option>
+                      <option value="0" ${`${orderDetail.pay_status}` == '0' ? 'selected' : ''}>線下付款-未付款</option>
+                      <option value="2" ${`${orderDetail.pay_status}` == '2' ? 'selected' : ''}>貨到付款</option>
                     </select>
                   </div>
                   <div class="d-flex flex-column flex-fill" style="gap: 8px;">

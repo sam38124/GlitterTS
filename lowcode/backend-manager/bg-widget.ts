@@ -1511,10 +1511,15 @@ ${obj.default ?? ''}</textarea
     default: string;
     options: OptionsItem[];
     style?: string;
+    title?: string;
     readonly?: boolean;
     place_holder?: string;
   }) {
-    return html`<select
+    return html`
+      ${obj.title
+        ? html` <div class="tx_normal fw-normal mb-2" >${obj.title}</div>`
+        : ``}
+      <select
       class="c_select c_select_w_100"
       style="${obj.style ?? ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
       onchange="${obj.gvc.event(e => {

@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Encoding } from 'crypto';
 import axios from 'axios';
 interface KeyData {
@@ -238,8 +237,6 @@ export declare class JKO {
         SECRET_KEY: string;
     };
     appName: string;
-    PublicKey: string;
-    PrivateKey: string;
     BASE_URL: string;
     constructor(appName: string, keyData: any);
     confirmAndCaptureOrder(transactionId?: string): Promise<any>;
@@ -259,7 +256,7 @@ export declare class JKO {
         use_wallet: number;
         user_email: string;
         method: string;
-    }): Promise<string>;
+    }): Promise<any>;
     refundOrder(platform_order_id: string, refund_amount: number): Promise<void>;
     private generateDigest;
 }

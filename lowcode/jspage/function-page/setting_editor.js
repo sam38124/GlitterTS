@@ -1075,14 +1075,6 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'allowance_list',
-            group: '訂單管理',
-            title: '折讓列表',
-            appName: 'cms_system',
-            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/file-invoice-dollar-sharp-light.svg',
-        },
-        {
-            icon: '',
             page: 'member_manager',
             group: '顧客管理',
             title: '顧客設定',

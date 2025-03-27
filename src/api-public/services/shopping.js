@@ -233,7 +233,7 @@ class Shopping {
                 querySql.push(`(content->>'$.hideIndex' IS NULL OR content->>'$.hideIndex' = 'false')`);
             }
             if (query.id_list) {
-                query.order_by = ` ORDER BY FIELD (${query.id_list})`;
+                query.order_by = ` ORDER BY FIELD (id,${query.id_list})`;
             }
             if (!query.is_manger && !query.status) {
                 query.status = 'inRange';
@@ -2055,8 +2055,8 @@ class Shopping {
                         return await new financial_service_js_1.PayNow(this.app, kd).createOrder(carData);
                     }
                     case 'jkopay': {
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&orderid=${carData.orderID}`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&jkopay=true`;
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&return=${id}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=jkopay&return=${id}`;
                         checkPoint('select jkopay');
                         return await new financial_service_js_1.JKO(this.app, kd).createOrder(carData);
                     }
@@ -2074,9 +2074,11 @@ class Shopping {
                             orderData: carData,
                             status: 0,
                         });
-                        if (carData.customer_info.phone) {
+                        for (const phone of new Set([carData.customer_info, carData.user_info].map(dd => {
+                            return dd && dd.phone;
+                        }))) {
                             let sns = new sms_js_1.SMS(this.app);
-                            await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, carData.customer_info.phone);
+                            await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
                             console.log('訂單簡訊寄送成功');
                         }
                         if (carData.customer_info.lineID) {
@@ -2971,9 +2973,11 @@ class Shopping {
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, email, orderData.language);
                 }
             }
-            if (orderData.customer_info.phone) {
+            for (const phone of new Set([orderData.customer_info, orderData.user_info].map(dd => {
+                return dd && dd.phone;
+            }))) {
                 let sns = new sms_js_1.SMS(this.app);
-                await sns.sendCustomerSns('sns-proof-purchase', order_id, orderData.customer_info.phone);
+                await sns.sendCustomerSns('sns-proof-purchase', order_id, phone);
                 console.log('訂單待核款簡訊寄送成功');
             }
             if (orderData.customer_info.lineID) {
@@ -3187,12 +3191,12 @@ class Shopping {
                         i.\`status\` as invoice_status,
                         o.*
                  FROM \`${this.app}\`.t_checkout o
-                          LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id
+                          LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id and i.status = 1
                  WHERE ${querySql.join(' and ')} ${orderString}`;
             if (query.returnSearch == 'true') {
                 const data = await database_js_1.default.query(`SELECT *
            FROM \`${this.app}\`.t_checkout
-           WHERE cart_token = ${query.search}`, []);
+           WHERE cart_token = ${database_js_1.default.escape(query.search)}`, []);
                 let returnSql = `SELECT *
                          FROM \`${this.app}\`.t_return_order
                          WHERE order_id = ${query.search}`;
@@ -3367,9 +3371,11 @@ class Shopping {
                         await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, email, cartData.orderData.language);
                     }
                 }
-                if (cartData.orderData.customer_info.phone) {
+                for (const phone of new Set([cartData.orderData.customer_info, cartData.orderData.user_info].map(dd => {
+                    return dd && dd.phone;
+                }))) {
                     let sns = new sms_js_1.SMS(this.app);
-                    await sns.sendCustomerSns('auto-sns-payment-successful', order_id, cartData.orderData.customer_info.phone);
+                    await sns.sendCustomerSns('auto-sns-payment-successful', order_id, phone);
                     console.log('付款成功簡訊寄送成功');
                 }
                 if (cartData.orderData.customer_info.lineID) {
@@ -4535,11 +4541,10 @@ class Shopping {
             orderData: obj.orderData.orderData,
             status: obj.orderData.status,
         });
-        await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(obj.orderID, obj.invoice_data.getPaper == 'Y');
-        await new invoice_js_1.Invoice(this.app).updateInvoice({
-            orderID: obj.orderData.cart_token,
-            invoice_data: obj.invoice_data,
-        });
+        const invoice_response = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(obj.orderID, false);
+        return {
+            result: invoice_response,
+        };
     }
     async voidInvoice(obj) {
         var _a, _b;

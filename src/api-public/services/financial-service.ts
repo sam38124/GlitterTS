@@ -10,6 +10,7 @@ import Tool from './ezpay/tool.js';
 import tool from '../../modules/tool.js';
 import { OrderEvent } from './order-event.js';
 import { Private_config } from '../../services/private_config.js';
+import exception from '../../modules/exception.js';
 
 interface KeyData {
   MERCHANT_ID: string;
@@ -1321,34 +1322,34 @@ export class JKO {
     SECRET_KEY: string;
   };
   appName: string;
-  PublicKey: string;
-  PrivateKey: string;
   BASE_URL: string;
 
   constructor(appName: string, keyData: any) {
     this.keyData = keyData;
     this.appName = appName;
-    this.PublicKey = keyData.public_key ?? '';
-    this.PrivateKey = keyData.private_key ?? '';
-    this.BASE_URL = 'https://uat-onlinepay.jkopay.app/';
+    this.BASE_URL = 'https://onlinepay.jkopay.com/';
   }
 
   async confirmAndCaptureOrder(transactionId?: string) {
-    const secret = this.keyData.SECRET_KEY;
-    const digest = this.generateDigest(`platform_order_ids=${transactionId}`, secret);
-    console.log('digest -- ', digest);
+    //平台 API KEY
+    const apiKey: string = process.env.jko_api_key || '';
+    //平台 Secret Key
+    const secretKey: string = process.env.jko_api_secret || '';
+
+    const digest = this.generateDigest(`platform_order_ids=${transactionId}`, secretKey);
+
     let config = {
       method: 'get',
-      url: `${this.BASE_URL}/platform/inquiry?platform_order_ids=${transactionId}`,
+      url: `${this.BASE_URL}platform/inquiry?platform_order_ids=${transactionId}`,
       headers: {
+        'api-key': apiKey,
+        digest: digest,
         'Content-Type': 'application/json',
-        DIGEST: digest,
-        'API-KEY': this.keyData.API_KEY,
       },
     };
     try {
       const response = await axios.request(config);
-      return response.data;
+      return response.data.result_object;
     } catch (error: any) {
       console.error('Error paynow:', error.response?.data.data || error.message);
       throw error;
@@ -1372,43 +1373,23 @@ export class JKO {
     user_email: string;
     method: string;
   }) {
-    function transProduct(
-      lineItems: {
-        id: string;
-        spec: string[];
-        count: number;
-        sale_price: number;
-        preview_image: string;
-        title: string;
-      }[]
-    ) {
-      return lineItems.map(item => {
-        return {
-          name: item.title + ' ' + item.spec.join(','),
-          img: item.preview_image,
-          unit_count: item.count,
-          unit_price: item.sale_price,
-          unit_final_price: item.sale_price,
-        };
-      });
-    }
-
-    // console.log(transProduct(orderData.lineItems));
-    // console.log("orderData.lineItems -- " , orderData.lineItems)
     const payload = {
       currency: 'TWD',
       total_price: orderData.total,
       final_price: orderData.total,
-      result_url: this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
+      platform_order_id:orderData.orderID,
+      store_id: this.keyData.STORE_ID,
+      result_url: this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
+      result_display_url:this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
+      unredeem:0
     };
+    //resul_url
+    //result_url
+    console.log(`payload=>`,payload)
+    //平台 API KEY
     const apiKey: string = process.env.jko_api_key || '';
-
-    // 設定 Secret Key
+    //平台 Secret Key
     const secretKey: string = process.env.jko_api_secret || '';
-
-    const secret = this.keyData.SECRET_KEY;
-    // const digest = this.generateDigest(JSON.stringify(payload), secret);
-
     // 使用 HMAC-SHA256 生成 `digest`
     const digest = crypto.createHmac('sha256', secretKey).update(JSON.stringify(payload), 'utf8').digest('hex');
 
@@ -1419,42 +1400,24 @@ export class JKO {
       'Content-Type': 'application/json',
     };
 
-    // 顯示結果
-    console.log('API Key:', apiKey);
-    console.log('Digest:', digest);
-    console.log('Headers:', headers);
-
-    // const secret = this.keyData.SECRET_KEY;
-    // const digest = this.generateDigest(JSON.stringify(payload) , secret);
-    // console.log("response -- " , secret)
-    // console.log("digest -- " , digest)
-    // console.log("API-KEY -- " , this.keyData.API_KEY)
-    // console.log("this.keyData.STORE_ID -- " , this.keyData.STORE_ID)
     const url = `${this.BASE_URL}platform/entry`;
     const config = {
       method: 'post',
       url: url,
-      headers: {
-        'Content-Type': 'application/json',
-        DIGEST: digest,
-        'API-KEY': this.keyData.API_KEY,
-      },
+      headers: headers,
       data: payload,
     };
     try {
       const response = await axios.request(config);
+      await OrderEvent.insertOrder({
+        cartData: orderData,
+        status: 0,
+        app: this.appName,
+      });
+      return response.data;
 
-      await db.execute(
-        `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-         VALUES (?, ?, ?, ?)
-        `,
-        [orderData.orderID, 0, orderData.email, orderData]
-      );
-
-      await redis.setValue('paynow' + orderData.orderID, response.data.result.id);
-      return ``;
     } catch (error: any) {
-      console.error('Error payNow:', error.response?.data || error.message);
+      console.error('Error jkoPay:', error.response?.data || error.message);
       throw error;
     }
   }

@@ -126,5 +126,31 @@ router.get('/formView', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/print-delivery', async (req, resp) => {
+    try {
+        const html = String.raw;
+        const f_ = paynow_logistics_js_1.PayNowLogistics.printStack.find((dd) => {
+            return dd.code === req.query.code;
+        });
+        if (f_ === null || f_ === void 0 ? void 0 : f_.html) {
+            return resp.send(f_.html);
+        }
+        else {
+            return resp.send(html `<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8"/>
+            <title>Title</title>
+        </head>
+        <body>
+         Not Found
+        </body>
+        </html>`);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=delivery.js.map

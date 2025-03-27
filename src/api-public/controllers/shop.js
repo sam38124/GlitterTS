@@ -610,15 +610,6 @@ async function redirect_link(req, resp) {
             }
         }
         if (req.query.jkopay && req.query.jkopay === 'true') {
-            let kd = {
-                ReturnURL: '',
-                NotifyURL: '',
-            };
-            const jko = new financial_service_js_1.JKO(req.query.appName, kd);
-            const data = jko.confirmAndCaptureOrder(req.query.orderID);
-            if (data.tranactions[0].status == 'success') {
-                await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
-            }
         }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
@@ -669,7 +660,6 @@ router.get('/testRelease', async (req, resp) => {
 });
 router.post('/notify', upload.single('file'), async (req, resp) => {
     try {
-        console.log(`notify-order-result`);
         let decodeData = undefined;
         req.query.appName = req.query.appName || req.get('g-app') || req.query['g-app'];
         const appName = req.query.appName;
@@ -683,6 +673,13 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
             const payNow = new financial_service_js_1.PayNow(req.query.appName, keyData);
             const data = await payNow.confirmAndCaptureOrder(check_id);
             if (data.type == 'success' && data.result.status === 'success') {
+                await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
+            }
+        }
+        if (type === 'jkopay') {
+            const jko = new financial_service_js_1.JKO(req.query.appName, keyData);
+            const data = await jko.confirmAndCaptureOrder(req.query.orderID);
+            if (`${data.transactions[0].status}` === '0') {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }
         }
@@ -1277,7 +1274,6 @@ router.post('/customer_invoice', async (req, resp) => {
     try {
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).postCustomerInvoice({
             orderID: req.body.orderID,
-            invoice_data: req.body.invoiceData,
             orderData: req.body.orderData,
         }));
     }

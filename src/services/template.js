@@ -186,6 +186,9 @@ class Template {
         if (query_page.includes('#')) {
             query_page = query_page.substring(0, query_page.indexOf('#'));
         }
+        if (appName === 'proshake_v2') {
+            return query_page;
+        }
         console.log(`query_page`, query_page);
         if (page === 'index-app') {
             const count = await database_1.default.query(`select count(1)

@@ -14,6 +14,7 @@ import { Tool } from '../../modules/tool.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { FormCheck } from "../../cms-plugin/module/form-check.js";
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 const html = String.raw;
 const css = String.raw;
 export class UMLogin {
@@ -405,14 +406,25 @@ export class UMLogin {
         GlobalUser.updateUserData = JSON.parse(JSON.stringify(response));
         widget.event('success', { title: text !== null && text !== void 0 ? text : Language.text('login_success') });
         setTimeout(() => {
-            if (GlobalUser.loginRedirect) {
-                const red = GlobalUser.loginRedirect;
-                GlobalUser.loginRedirect = '';
-                gvc.glitter.href = red;
-            }
-            else {
-                gvc.glitter.href = '/account_userinfo';
-            }
+            ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
+                if (res.response.userData && !res.response.userData.phone && window.login_config.phone_verify && gvc.glitter.getUrlParameter('page') !== 'account_edit') {
+                    const dialog = new ShareDialog(gvc.glitter);
+                    dialog.infoMessage({
+                        text: Language.text('phone_verify_check')
+                    });
+                    gvc.glitter.href = '/account_edit';
+                }
+                else {
+                    if (GlobalUser.loginRedirect) {
+                        const red = GlobalUser.loginRedirect;
+                        GlobalUser.loginRedirect = '';
+                        gvc.glitter.href = red;
+                    }
+                    else {
+                        gvc.glitter.href = '/account_userinfo';
+                    }
+                }
+            });
         }, 700);
     }
     static authThirdPartyHTML(gvc, widget, vm) {

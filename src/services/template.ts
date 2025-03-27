@@ -233,6 +233,9 @@ export class Template {
     if (query_page.includes('#')) {
       query_page = query_page.substring(0, query_page.indexOf('#'));
     }
+    if(appName === 'proshake_v2'){
+      return  query_page
+    }
     console.log(`query_page`, query_page);
     //判斷是APP頁面，首次預設複製首頁頁面
     if (page === 'index-app') {
@@ -264,6 +267,7 @@ export class Template {
           );
         }
       }
+
     }
     //判斷是條款頁面或部落格列表頁面時
     if (

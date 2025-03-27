@@ -147,6 +147,7 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.delivery + '/c2cRedirect', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.delivery + '/c2cNotify', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.delivery + '/storeMaps', 'public'), method: 'POST' },
+    { url: config.getRoute(config.public_route.delivery + '/print-delivery', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'PUT' },

@@ -548,9 +548,10 @@ export declare class Shopping {
     }>;
     postCustomerInvoice(obj: {
         orderID: any;
-        invoice_data: any;
         orderData: any;
-    }): Promise<void>;
+    }): Promise<{
+        result: string | boolean | undefined;
+    }>;
     voidInvoice(obj: {
         invoice_no: string;
         reason: string;

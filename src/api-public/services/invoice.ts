@@ -6,6 +6,7 @@ import db from '../../modules/database.js';
 import { EcInvoice, EcInvoiceInterface } from './EcInvoice.js';
 import { EcPay } from './financial-service.js';
 import { Shopping } from './shopping.js';
+import Tool from '../../modules/tool.js';
 
 export class Invoice {
   public appName: string;
@@ -15,7 +16,7 @@ export class Invoice {
   }
 
   //判斷發票類型開立
-  public async postInvoice(cf: { invoice_data: any; print: boolean }) {
+  public async postInvoice(cf: { invoice_data: any; print: boolean; order_id: string; orderData: any }) {
     try {
       const config = await app.getAdConfig(this.appName, 'invoice_setting');
       switch (config.fincial) {
@@ -35,7 +36,9 @@ export class Invoice {
             merchNO: config.merchNO,
             app_name: this.appName,
             invoice_data: cf.invoice_data,
+            orderData: cf.orderData,
             beta: config.point === 'beta',
+            order_id: cf.order_id,
             print: cf.print,
           });
       }
@@ -43,7 +46,6 @@ export class Invoice {
       throw exception.BadRequestError('BAD_REQUEST', e.message, null);
     }
   }
-
 
   //訂單開發票
   public async postCheckoutInvoice(orderID: string | any, print: boolean, obj?: { offlineInvoice?: boolean }) {
@@ -83,12 +85,24 @@ export class Invoice {
         ? (
             await db.query(
               `SELECT *
-         FROM \`${this.appName}\`.t_checkout
-         where cart_token = ?`,
+             FROM \`${this.appName}\`.t_checkout
+             where cart_token = ?`,
               [orderID]
             )
           )[0]['orderData']
         : orderID;
+    const count_invoice = (
+      await db.query(
+        `SELECT count(1)
+                                           from \`${this.appName}\`.t_invoice_memory
+                                           where order_id = ?
+                                             and status = 1`,
+        [order.orderID]
+      )
+    )[0]['count(1)'];
+    if (count_invoice) {
+      return false;
+    }
     const config = await app.getAdConfig(this.appName, 'invoice_setting');
     let can_discount_tax_5 = 0;
     let can_discount_tax_0 = 0;
@@ -99,11 +113,11 @@ export class Invoice {
           page: 0,
           limit: 1,
         });
-const tax_type=(product.data && product.data.content && (product.data.content.tax==='0')) ? 3:1
-        if(tax_type===3){
-          can_discount_tax_0+=dd.sale_price * dd.count;
-        }else{
-          can_discount_tax_5+=dd.sale_price * dd.count;
+        const tax_type = product.data && product.data.content && product.data.content.tax === '0' ? 3 : 1;
+        if (tax_type === 3) {
+          can_discount_tax_0 += dd.sale_price * dd.count;
+        } else {
+          can_discount_tax_5 += dd.sale_price * dd.count;
         }
         return {
           ItemName: dd.title + (dd.spec.join('-') ? `/${dd.spec.join('-')}` : ``),
@@ -111,45 +125,50 @@ const tax_type=(product.data && product.data.content && (product.data.content.ta
           ItemCount: dd.count,
           ItemPrice: dd.sale_price,
           ItemAmt: dd.sale_price * dd.count,
-          ItemTaxType:tax_type
+          ItemTaxType: tax_type,
         };
       })
     );
-    order.use_rebate=parseInt(`${order.use_rebate || '0'}`,10);
-    order.discount=parseInt(`${order.discount || '0'}`,10);
-    order.shipment_fee=parseInt(`${order.shipment_fee || '0'}`,10);
+    order.use_rebate = parseInt(`${order.use_rebate || '0'}`, 10);
+    order.discount = parseInt(`${order.discount || '0'}`, 10);
+    order.shipment_fee = parseInt(`${order.shipment_fee || '0'}`, 10);
     //所有折扣扣除應稅折扣
-    let all_discount=order.use_rebate+order.discount;
+    let all_discount = order.use_rebate + order.discount;
     if (order.shipment_fee) {
-      can_discount_tax_5=can_discount_tax_5+order.shipment_fee;
+      can_discount_tax_5 = can_discount_tax_5 + order.shipment_fee;
       line_item.push({
         ItemName: '運費',
         ItemUnit: '趟',
         ItemCount: 1,
         ItemPrice: order.shipment_fee,
         ItemAmt: order.shipment_fee,
-        ItemTaxType:1
+        ItemTaxType: 1,
       });
     }
     line_item.push({
       ItemName: '應稅折扣',
       ItemUnit: '-',
       ItemCount: 1,
-      ItemPrice: ((all_discount<=can_discount_tax_5) ? all_discount:can_discount_tax_5) * -1,
-      ItemAmt:((all_discount<=can_discount_tax_5) ? all_discount:can_discount_tax_5) * -1,
-      ItemTaxType:1
+      ItemPrice: (all_discount <= can_discount_tax_5 ? all_discount : can_discount_tax_5) * -1,
+      ItemAmt: (all_discount <= can_discount_tax_5 ? all_discount : can_discount_tax_5) * -1,
+      ItemTaxType: 1,
     });
     //所有折扣扣除應稅折扣
-    let free_tax_discount=(all_discount-can_discount_tax_5)
-    line_item.push({
-      ItemName: '免稅折扣',
-      ItemUnit: '-',
-      ItemCount: 1,
-      ItemPrice: ((free_tax_discount >0) ?free_tax_discount:0) * -1,
-      ItemAmt:((free_tax_discount >0) ?free_tax_discount:0) * -1,
-      ItemTaxType:3
-    });
-
+    if (
+      line_item.find(dd => {
+        return dd.ItemTaxType === 3;
+      })
+    ) {
+      let free_tax_discount = all_discount - can_discount_tax_5;
+      line_item.push({
+        ItemName: '免稅折扣',
+        ItemUnit: '-',
+        ItemCount: 1,
+        ItemPrice: (free_tax_discount > 0 ? free_tax_discount : 0) * -1,
+        ItemAmt: (free_tax_discount > 0 ? free_tax_discount : 0) * -1,
+        ItemTaxType: 3,
+      });
+    }
 
     if (config.fincial === 'ezpay') {
       const timeStamp = '' + new Date().getTime();
@@ -181,12 +200,15 @@ const tax_type=(product.data && product.data.content && (product.data.content.ta
       return await this.postInvoice({
         invoice_data: json,
         print: print,
+        orderData: order,
+        order_id: typeof orderID === 'string' ? (orderID as string) : orderID.orderID,
       });
     } else if (config.fincial === 'ecpay') {
-      const json: EcInvoiceInterface = {
+      let json: EcInvoiceInterface = {
         MerchantID: config.merchNO as string,
-        RelateNumber: typeof orderID === 'string' ? (orderID as string) : orderID.orderID,
-        CustomerID: typeof orderID === 'string' ? (orderID as string) : orderID.orderID,
+        RelateNumber:
+          (typeof orderID === 'string' ? (orderID as string) : orderID.orderID) + `_${Tool.randomString(4)}`,
+        CustomerID: (typeof orderID === 'string' ? (orderID as string) : orderID.orderID) + `_${Tool.randomString(4)}`,
         CustomerIdentifier: (order.user_info.invoice_type === 'company'
           ? order.user_info.gui_number || ''
           : undefined) as string,
@@ -196,7 +218,7 @@ const tax_type=(product.data && product.data.content && (product.data.content.ta
         CustomerAddr: order.user_info.address as string,
         CustomerPhone: (order.user_info.phone || undefined) as string,
         CustomerEmail: order.user_info.email === 'no-email' ? 'pos@ncdesign.info' : order.user_info.email,
-        Print: '0',
+        Print: order.user_info.invoice_type === 'company' ? '1' : '0',
         CarrierType: order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier' ? '3' : '1',
         CarrierNum:
           order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier'
@@ -204,9 +226,11 @@ const tax_type=(product.data && product.data.content && (product.data.content.ta
             : undefined,
         Donation: order.user_info.invoice_type === 'donate' ? '1' : '0',
         LoveCode: order.user_info.invoice_type === 'donate' ? (order.user_info as any).love_code : undefined,
-        TaxType: line_item.find((dd)=>{
-          return dd.ItemTaxType===3
-        }) ? '9':'1',
+        TaxType: line_item.find(dd => {
+          return dd.ItemTaxType === 3;
+        })
+          ? '9'
+          : '1',
         SalesAmount: order.total,
         InvType: '07',
         Items: line_item.map((dd, index) => {
@@ -222,7 +246,17 @@ const tax_type=(product.data && product.data.content && (product.data.content.ta
           };
         }),
       };
-      console.log(`invoice_data==>`,json)
+      if(order.user_info.invoice_type === 'company'){
+        json={
+          ...json,
+          ClearanceMark: '1',
+          Print: '1',
+          Donation: '0',
+          LoveCode: '',
+          CarrierType: '',
+          CarrierNum: '',
+        }
+      }
       if (print) {
         const cover = {
           CustomerID: '',
@@ -236,7 +270,7 @@ const tax_type=(product.data && product.data.content && (product.data.content.ta
           Donation: '0',
           LoveCode: '',
           CarrierType: '',
-          CarrierNum: ''
+          CarrierNum: '',
         };
         if (order.user_info.invoice_type === 'company') {
           cover.CustomerName = await EcInvoice.getCompanyName({
@@ -251,6 +285,8 @@ const tax_type=(product.data && product.data.content && (product.data.content.ta
       return await this.postInvoice({
         invoice_data: json,
         print: print,
+        orderData: order,
+        order_id: typeof orderID === 'string' ? (orderID as string) : orderID.orderID,
       });
     } else {
       return 'no_need';
@@ -268,8 +304,8 @@ const tax_type=(product.data && product.data.content && (product.data.content.ta
     data.invoice_data.remark = obj.invoice_data;
     await db.query(
       `UPDATE \`${this.appName}\`.t_invoice_memory
-                    set invoice_data = ?
-                    WHERE order_id = ?`,
+       set invoice_data = ?
+       WHERE order_id = ?`,
       [JSON.stringify(data.invoice_data), obj.orderID]
     );
     // console.log("data -- " , data.invoice_data)

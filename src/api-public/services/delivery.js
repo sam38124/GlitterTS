@@ -14,6 +14,8 @@ const axios_1 = __importDefault(require("axios"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const shopping_js_1 = require("./shopping.js");
 const paynow_logistics_js_1 = require("./paynow-logistics.js");
+const user_js_1 = require("./user.js");
+const process_1 = __importDefault(require("process"));
 const html = String.raw;
 class EcPay {
     constructor(appName) {
@@ -21,7 +23,7 @@ class EcPay {
     }
     static generateCheckMacValue(params, HashKey, HashIV) {
         const sortedKeys = Object.keys(params).sort();
-        const sortedParams = sortedKeys.map((key) => `${key}=${params[key]}`).join('&');
+        const sortedParams = sortedKeys.map(key => `${key}=${params[key]}`).join('&');
         const stringToEncode = `HashKey=${HashKey}&${sortedParams}&HashIV=${HashIV}`;
         const urlEncodedString = encodeURIComponent(stringToEncode)
             .replace(/%2d/g, '-')
@@ -39,21 +41,27 @@ class EcPay {
     static generateForm(json) {
         const formId = `form_ecpay_${tool_js_1.default.randomString(10)}`;
         const inputHTML = Object.entries(json.params)
-            .map(([key, value]) => html `<input type="hidden" name="${key}" id="${key}" value="${value}"/>`)
+            .map(([key, value]) => html `<input type="hidden" name="${key}" id="${key}" value="${value}" />`)
             .join('\n');
         return html `
-            <form id="${formId}" action="${json.actionURL}" method="post" enctype="application/x-www-form-urlencoded"
-                  accept="text/html">
-                ${inputHTML} ${json.checkMacValue ? html `<input type="hidden" name="CheckMacValue" id="CheckMacValue"
-                                                                value="${json.checkMacValue}"/>` : ''}
-                <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
-                        hidden></button>
-            </form>
-        `;
+      <form
+        id="${formId}"
+        action="${json.actionURL}"
+        method="post"
+        enctype="application/x-www-form-urlencoded"
+        accept="text/html"
+      >
+        ${inputHTML}
+        ${json.checkMacValue
+            ? html `<input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${json.checkMacValue}" />`
+            : ''}
+        <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit" hidden></button>
+      </form>
+    `;
     }
     static async axiosRequest(json) {
         try {
-            return new Promise((resolve) => {
+            return new Promise(resolve => {
                 axios_1.default
                     .request({
                     method: 'post',
@@ -68,13 +76,13 @@ class EcPay {
                     resolve(response.data);
                 });
             })
-                .then((response) => {
+                .then(response => {
                 return {
                     result: true,
                     data: response,
                 };
             })
-                .catch((error) => {
+                .catch(error => {
                 return {
                     result: false,
                     data: error.message,
@@ -88,9 +96,9 @@ class EcPay {
     async notifyOrder(json) {
         try {
             const checkouts = await database_js_1.default.query(`SELECT *
-                 FROM \`${this.appName}\`.t_checkout
-                 WHERE JSON_EXTRACT(orderData, '$.deliveryData.AllPayLogisticsID') = ?
-                   AND JSON_EXTRACT(orderData, '$.deliveryData.MerchantTradeNo') = ?;`, [json.AllPayLogisticsID, json.MerchantTradeNo]);
+         FROM \`${this.appName}\`.t_checkout
+         WHERE JSON_EXTRACT(orderData, '$.deliveryData.AllPayLogisticsID') = ?
+           AND JSON_EXTRACT(orderData, '$.deliveryData.MerchantTradeNo') = ?;`, [json.AllPayLogisticsID, json.MerchantTradeNo]);
             if (checkouts[0]) {
                 const checkout = checkouts[0];
                 if (checkout.orderData.deliveryNotifyList && checkout.orderData.deliveryNotifyList.length > 0) {
@@ -102,7 +110,7 @@ class EcPay {
                 await new shopping_js_1.Shopping(this.appName).putOrder({
                     id: checkout.id,
                     orderData: checkout.orderData,
-                    status: undefined
+                    status: undefined,
                 });
             }
             return '1|OK';
@@ -120,18 +128,18 @@ class Delivery {
     async getC2CMap(returnURL, logistics) {
         const id = 'redirect_' + tool_js_1.default.randomString(10);
         await redis_js_1.default.setValue(id, returnURL);
-        console.log(`process.env.EC_SHIPMENT_ID=>`, process.env.EC_SHIPMENT_ID);
+        console.log(`process.env.EC_SHIPMENT_ID=>`, process_1.default.env.EC_SHIPMENT_ID);
         if (logistics === 'UNIMARTFREEZE') {
             logistics = 'UNIMARTC2C';
         }
         console.log(`logistics=>`, logistics);
         const params = {
-            MerchantID: process.env.EC_SHIPMENT_ID,
+            MerchantID: process_1.default.env.EC_SHIPMENT_ID,
             MerchantTradeNo: new Date().getTime(),
             LogisticsType: 'CVS',
             LogisticsSubType: logistics,
             IsCollection: 'N',
-            ServerReplyURL: `${process.env.DOMAIN}/api-public/v1/delivery/c2cRedirect?g-app=${this.appName}&return=${encodeURIComponent(id)}`,
+            ServerReplyURL: `${process_1.default.env.DOMAIN}/api-public/v1/delivery/c2cRedirect?g-app=${this.appName}&return=${encodeURIComponent(id)}`,
         };
         return EcPay.generateForm({
             actionURL: 'https://logistics.ecpay.com.tw/Express/map',
@@ -143,8 +151,10 @@ class Delivery {
             appName: this.appName,
             key: 'glitter_delivery',
         }))[0].value.ec_pay;
-        const actionURL = keyData.Action === 'main' ? 'https://logistics.ecpay.com.tw/Express/Create' : 'https://logistics-stage.ecpay.com.tw/Express/Create';
-        const originParams = Object.assign({ MerchantID: keyData.MERCHANT_ID, MerchantTradeDate: (0, moment_timezone_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'), ServerReplyURL: `${process.env.DOMAIN}/api-public/v1/delivery/c2cNotify?g-app=${this.appName}`, SenderName: keyData.SenderName, SenderCellPhone: keyData.SenderCellPhone }, json);
+        const actionURL = keyData.Action === 'main'
+            ? 'https://logistics.ecpay.com.tw/Express/Create'
+            : 'https://logistics-stage.ecpay.com.tw/Express/Create';
+        const originParams = Object.assign({ MerchantID: keyData.MERCHANT_ID, MerchantTradeDate: (0, moment_timezone_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'), ServerReplyURL: `${process_1.default.env.DOMAIN}/api-public/v1/delivery/c2cNotify?g-app=${this.appName}`, SenderName: keyData.SenderName, SenderCellPhone: keyData.SenderCellPhone }, json);
         const params = Delivery.removeUndefined(originParams);
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
         const response = await EcPay.axiosRequest({
@@ -199,7 +209,7 @@ class Delivery {
         await new shopping_js_1.Shopping(this.appName).putOrder({
             id: id,
             orderData: carData,
-            status: undefined
+            status: undefined,
         });
         await redis_js_1.default.setValue('delivery_' + random_id, JSON.stringify({
             actionURL,
@@ -216,7 +226,8 @@ class Delivery {
                 key: 'glitter_delivery',
             }))[0];
             console.log(`deliveryConfig=>`, deliveryConfig);
-            if (!(deliveryConfig && (`${deliveryConfig.value.ec_pay.toggle}` === 'true' || `${deliveryConfig.value.pay_now.toggle}` === 'true'))) {
+            if (!(deliveryConfig &&
+                (`${deliveryConfig.value.ec_pay.toggle}` === 'true' || `${deliveryConfig.value.pay_now.toggle}` === 'true'))) {
                 console.error('deliveryConfig 不存在 / 未開啟');
                 return {
                     result: false,
@@ -225,8 +236,7 @@ class Delivery {
             }
             const keyData = deliveryConfig.value.ec_pay;
             const shoppingClass = new shopping_js_1.Shopping(this.appName);
-            const cart = (await Promise.all(obj.cart_token.split(',').map((dd) => {
-                console.log(`cart_token=>${dd}`);
+            const cart = (await Promise.all(obj.cart_token.split(',').map(dd => {
                 return new Promise(async (resolve, reject) => {
                     const data = await shoppingClass.getCheckOut({
                         page: 0,
@@ -239,7 +249,7 @@ class Delivery {
             }))).filter((dd) => {
                 return dd[0];
             });
-            if (!(cart.length)) {
+            if (!cart.length) {
                 console.error('orderData 不存在');
                 return {
                     result: false,
@@ -266,69 +276,124 @@ class Delivery {
                         }
                     });
                 }));
-                await Promise.all(cart.map(async (dd) => {
+                const log_number = await Promise.all(cart.map(async (dd) => {
+                    const that = this;
+                    async function updateShipmentNumber(numb) {
+                        carData.user_info.shipment_number = numb;
+                        carData.user_info.shipment_refer = 'paynow';
+                        if (obj.shipment_date) {
+                            carData.user_info.shipment_date = obj.shipment_date;
+                        }
+                        await new shopping_js_1.Shopping(that.appName).putOrder({
+                            cart_token: dd[0].cart_token,
+                            orderData: carData,
+                            status: undefined,
+                        });
+                    }
                     const carData = dd[0].orderData;
                     const config = {
                         method: 'get',
                         maxBodyLength: Infinity,
-                        url: `${(await pay_now.config()).link}/${(() => {
-                            switch (carData.user_info.shipment) {
-                                case 'UNIMARTC2C':
-                                    return 'api/Order711';
-                                case 'FAMIC2C':
-                                    return 'api/OrderFamiC2C';
-                                case 'HILIFEC2C':
-                                    return 'api/OrderHiLife';
-                                case 'OKMARTC2C':
-                                    return 'api/OKC2C';
-                                case 'UNIMARTFREEZE':
-                                    return 'Member/OrderEvent/Print711FreezingC2CLabel';
-                            }
-                            return ``;
-                        })()}?orderNumberStr=${dd[0].cart_token}&user_account=${(await pay_now.config()).account}`,
-                        headers: { 'Content-Type': 'application/json' }
+                        url: `${(await pay_now.config()).link}/api/Orderapi/Get_Order_Info_orderno?orderno=${dd[0].cart_token}&user_account=${(await pay_now.config()).account}&sno=1`,
+                        headers: { 'Content-Type': 'application/json' },
                     };
                     const link_response = await (0, axios_1.default)(config);
-                    try {
-                        const link = link_response.data;
-                        const her_ = new URL(link.replace('S,', ''));
-                        if (her_.searchParams.get('LogisticNumbers')) {
-                            carData.user_info.shipment_number = her_.searchParams.get('LogisticNumbers');
-                            carData.user_info.shipment_refer = 'paynow';
-                            if (obj.shipment_date) {
-                                carData.user_info.shipment_date = obj.shipment_date;
-                            }
-                            await new shopping_js_1.Shopping(this.appName).putOrder({
-                                cart_token: dd[0].cart_token,
-                                orderData: carData,
-                                status: undefined
-                            });
-                        }
-                    }
-                    catch (e) {
-                    }
+                    await updateShipmentNumber(link_response.data.LogisticNumber);
+                    return link_response.data.LogisticNumber;
                 }));
                 const carData = cart[0][0].orderData;
+                const shipment_config = await new user_js_1.User(this.appName).getConfigV2({
+                    key: `shipment_config_${carData.user_info.shipment}`,
+                    user_id: 'manager',
+                });
+                if (shipment_config.bulk) {
+                    const conf = await pay_now.config();
+                    const request_ = {
+                        method: 'post',
+                        maxBodyLength: Infinity,
+                        url: `${conf.link}/api/${(() => {
+                            switch (carData.user_info.shipment) {
+                                case 'UNIMARTC2C':
+                                    return 'Bulk711Order/ShipBulk711paymentno';
+                                case 'FAMIC2C':
+                                    return `FamiB2COrder/ShipFamiB2Cpaymentno`;
+                                case 'UNIMARTFREEZE':
+                                    return '711FreezingB2C/Ship711B2Cpaymentno';
+                                case 'FAMIC2CFREEZE':
+                                    return '711FreezingB2C/Ship711B2Cpaymentno';
+                            }
+                            return ``;
+                        })()}`,
+                        headers: { 'Content-Type': 'application/json' },
+                        data: {
+                            JsonOrder: await pay_now.encrypt(JSON.stringify({
+                                user_account: conf.account,
+                                apicode: conf.pwd,
+                                PassCode: await pay_now.sha1Encrypt([conf.account, conf.pwd].join('')),
+                                ShipList: log_number.map(dd => {
+                                    return {
+                                        LogisticNumber: dd,
+                                        sno: '1',
+                                    };
+                                }),
+                            })),
+                        },
+                    };
+                    const link_response = await (0, axios_1.default)(request_);
+                    console.log(`request.url_=>`, request_.url);
+                    console.log(`link_response_=>`, link_response);
+                }
+                const payNowAccount = (await pay_now.config()).account;
                 const config = {
-                    method: 'get',
+                    method: shipment_config.bulk ? 'post' : 'get',
                     maxBodyLength: Infinity,
                     url: `${(await pay_now.config()).link}/${(() => {
                         switch (carData.user_info.shipment) {
                             case 'UNIMARTC2C':
+                                if (shipment_config.bulk) {
+                                    return `Member/Order/Print711bulkLabel`;
+                                }
                                 return 'api/Order711';
                             case 'FAMIC2C':
+                                if (shipment_config.bulk) {
+                                    return `Member/Order/PrintFamiB2CLabel`;
+                                }
                                 return 'api/OrderFamiC2C';
                             case 'HILIFEC2C':
                                 return 'api/OrderHiLife';
                             case 'OKMARTC2C':
                                 return 'api/OKC2C';
                             case 'UNIMARTFREEZE':
+                                if (shipment_config.bulk) {
+                                    return `Member/Order/Print711FreezingB2CLabel`;
+                                }
                                 return 'Member/OrderEvent/Print711FreezingC2CLabel';
+                            case 'FAMIC2CFREEZE':
+                                if (shipment_config.bulk) {
+                                    return `Member/Order/PrintFamiFreezingB2CLabel`;
+                                }
+                                return 'Member/Order/PrintFamiFreezingC2CLabel';
                         }
                         return ``;
-                    })()}?orderNumberStr=${obj.cart_token}&user_account=${(await pay_now.config()).account}`,
-                    headers: { 'Content-Type': 'application/json' }
+                    })()}${(() => {
+                        if (shipment_config.bulk) {
+                            return ``;
+                        }
+                        else {
+                            return `?orderNumberStr=${obj.cart_token}&user_account=${payNowAccount}`;
+                        }
+                    })()}`,
+                    headers: { 'Content-Type': 'application/json' },
                 };
+                if (shipment_config.bulk) {
+                    config.data = {
+                        LogisticNumbers: log_number
+                            .map(dd => {
+                            return `${dd}_1`;
+                        })
+                            .join(','),
+                    };
+                }
                 const link_response = await (0, axios_1.default)(config);
                 const link = link_response.data;
                 if (error_text) {
@@ -337,10 +402,26 @@ class Delivery {
                         message: error_text,
                     };
                 }
-                return {
-                    result: true,
-                    link: link.replace('S,', ''),
-                };
+                if (shipment_config.bulk) {
+                    const key = tool_js_1.default.randomString(10);
+                    paynow_logistics_js_1.PayNowLogistics.printStack.push({
+                        code: key,
+                        html: link,
+                    });
+                    setTimeout(() => {
+                        paynow_logistics_js_1.PayNowLogistics.printStack = paynow_logistics_js_1.PayNowLogistics.printStack.filter(dd => dd.code !== key);
+                    }, 60 * 1000 * 5);
+                    return {
+                        result: true,
+                        link: `${process_1.default.env.DOMAIN}/api-public/v1/delivery/print-delivery?code=${key}&g-app=${this.appName}`,
+                    };
+                }
+                else {
+                    return {
+                        result: true,
+                        link: link.replace('S,', ''),
+                    };
+                }
             }
             else if (`${deliveryConfig.value.ec_pay.toggle}` === 'true') {
                 const id = cart[0][0].id;
@@ -388,7 +469,7 @@ class Delivery {
                     }
                     if (['normal', 'black_cat', 'black_cat_ice', 'black_cat_freezing'].includes(carData.user_info.shipment)) {
                         const receiverPostData = await shoppingClass.getPostAddressData(carData.user_info.address);
-                        const senderPostData = await new Promise((resolve) => {
+                        const senderPostData = await new Promise(resolve => {
                             setTimeout(() => {
                                 resolve(shoppingClass.getPostAddressData(keyData.SenderAddress));
                             }, 2000);
@@ -420,7 +501,7 @@ class Delivery {
                                     default:
                                         return '0001';
                                 }
-                            })()
+                            })(),
                         };
                         const delivery = await this.postStoreOrder(delivery_cf);
                         if (delivery.result) {
@@ -464,17 +545,17 @@ class Delivery {
     async notify(json) {
         try {
             const getNotification = await database_js_1.default.query(`SELECT *
-                 FROM \`${this.appName}\`.public_config
-                 WHERE \`key\` = "ecpay_delivery_notify";
-                `, []);
+         FROM \`${this.appName}\`.public_config
+         WHERE \`key\` = "ecpay_delivery_notify";
+        `, []);
             json.token && delete json.token;
             const notification = getNotification[0];
             if (notification) {
                 notification.value.push(json);
                 await database_js_1.default.query(`UPDATE \`${this.appName}\`.public_config
-                     SET ?
-                     WHERE \`key\` = "ecpay_delivery_notify";
-                    `, [
+           SET ?
+           WHERE \`key\` = "ecpay_delivery_notify";
+          `, [
                     {
                         value: JSON.stringify(notification.value),
                         updated_at: new Date(),
@@ -483,8 +564,8 @@ class Delivery {
             }
             else {
                 await database_js_1.default.query(`INSERT INTO \`${this.appName}\`.public_config
-                     SET ?;
-                    `, [
+           SET ?;
+          `, [
                     {
                         key: 'ecpay_delivery_notify',
                         value: JSON.stringify([json]),

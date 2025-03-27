@@ -1280,7 +1280,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static select(obj) {
         var _a;
-        return html `<select
+        return html `
+      ${obj.title
+            ? html ` <div class="tx_normal fw-normal mb-2" >${obj.title}</div>`
+            : ``}
+      <select
       class="c_select c_select_w_100"
       style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
       onchange="${obj.gvc.event(e => {

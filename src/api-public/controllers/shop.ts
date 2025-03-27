@@ -670,7 +670,6 @@ async function redirect_link(req: express.Request, resp: express.Response) {
   try {
     //預防沒有APPName
     req.query.appName = req.query.appName || (req.get('g-app') as string) || (req.query['g-app'] as string);
-    // 判斷paypal進來 做capture
     let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
     if (req.query.LinePay && req.query.LinePay === 'true') {
       const check_id = await redis.getValue(`linepay` + req.query.orderID);
@@ -734,16 +733,16 @@ async function redirect_link(req: express.Request, resp: express.Response) {
     }
     //pp_1bed7f12879241198832063d5e091976
     if (req.query.jkopay && req.query.jkopay === 'true') {
-      let kd = {
-        ReturnURL: '',
-        NotifyURL: '',
-      };
-
-      const jko = new JKO(req.query.appName as string, kd);
-      const data: any = jko.confirmAndCaptureOrder(req.query.orderID as string);
-      if (data.tranactions[0].status == 'success') {
-        await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
-      }
+      // let kd = {
+      //   ReturnURL: '',
+      //   NotifyURL: '',
+      // };
+      //
+      // const jko = new JKO(req.query.appName as string, kd);
+      // const data: any = jko.confirmAndCaptureOrder(req.query.orderID as string);
+      // if (data.tranactions[0].status == 'success') {
+      //   await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+      // }
     }
     const html = String.raw;
     return resp.send(
@@ -797,7 +796,6 @@ router.get('/testRelease', async (req: express.Request, resp: express.Response) 
 });
 router.post('/notify', upload.single('file'), async (req: express.Request, resp: express.Response) => {
   try {
-    console.log(`notify-order-result`);
     let decodeData = undefined;
     //預防沒有APPName
     req.query.appName = req.query.appName || (req.get('g-app') as string) || (req.query['g-app'] as string);
@@ -815,6 +813,14 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
       const payNow = new PayNow(req.query.appName as string, keyData);
       const data: any = await payNow.confirmAndCaptureOrder(check_id as string);
       if (data.type == 'success' && data.result.status === 'success') {
+        await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+      }
+    }
+
+    if(type === 'jkopay'){
+      const jko = new JKO(req.query.appName as string, keyData);
+      const data: any = await jko.confirmAndCaptureOrder(req.query.orderID as string);
+      if (`${data.transactions[0].status}` === '0') {
         await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
       }
     }
@@ -1507,11 +1513,11 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
 // 手動開立發票
 router.post('/customer_invoice', async (req: express.Request, resp: express.Response) => {
   try {
+
     return response.succ(
       resp,
       await new Shopping(req.get('g-app') as string, req.body.token).postCustomerInvoice({
         orderID: req.body.orderID,
-        invoice_data: req.body.invoiceData,
         orderData: req.body.orderData,
       })
     );

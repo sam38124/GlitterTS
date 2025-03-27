@@ -258,6 +258,7 @@ export class HeaderClass {
                                                             </div>
                                                         </div>`;
                                                 } else {
+                                                  console.log(`vm.dataList==>`,vm.dataList)
                                                     return vm.dataList
                                                             .map((data) => {
                                                                 const logistic = vm.shippings.find((item) => item.value === data.logistic);

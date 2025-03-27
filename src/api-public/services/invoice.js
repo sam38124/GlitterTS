@@ -10,6 +10,7 @@ const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const EcInvoice_js_1 = require("./EcInvoice.js");
 const shopping_js_1 = require("./shopping.js");
+const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 class Invoice {
     constructor(appName) {
         this.appName = appName;
@@ -33,7 +34,9 @@ class Invoice {
                         merchNO: config.merchNO,
                         app_name: this.appName,
                         invoice_data: cf.invoice_data,
+                        orderData: cf.orderData,
                         beta: config.point === 'beta',
+                        order_id: cf.order_id,
                         print: cf.print,
                     });
             }
@@ -45,9 +48,16 @@ class Invoice {
     async postCheckoutInvoice(orderID, print, obj) {
         const order = typeof orderID === 'string'
             ? (await database_js_1.default.query(`SELECT *
-         FROM \`${this.appName}\`.t_checkout
-         where cart_token = ?`, [orderID]))[0]['orderData']
+             FROM \`${this.appName}\`.t_checkout
+             where cart_token = ?`, [orderID]))[0]['orderData']
             : orderID;
+        const count_invoice = (await database_js_1.default.query(`SELECT count(1)
+                                           from \`${this.appName}\`.t_invoice_memory
+                                           where order_id = ?
+                                             and status = 1`, [order.orderID]))[0]['count(1)'];
+        if (count_invoice) {
+            return false;
+        }
         const config = await app_js_1.default.getAdConfig(this.appName, 'invoice_setting');
         let can_discount_tax_5 = 0;
         let can_discount_tax_0 = 0;
@@ -57,7 +67,7 @@ class Invoice {
                 page: 0,
                 limit: 1,
             });
-            const tax_type = (product.data && product.data.content && (product.data.content.tax === '0')) ? 3 : 1;
+            const tax_type = product.data && product.data.content && product.data.content.tax === '0' ? 3 : 1;
             if (tax_type === 3) {
                 can_discount_tax_0 += dd.sale_price * dd.count;
             }
@@ -70,7 +80,7 @@ class Invoice {
                 ItemCount: dd.count,
                 ItemPrice: dd.sale_price,
                 ItemAmt: dd.sale_price * dd.count,
-                ItemTaxType: tax_type
+                ItemTaxType: tax_type,
             };
         }));
         order.use_rebate = parseInt(`${order.use_rebate || '0'}`, 10);
@@ -85,26 +95,30 @@ class Invoice {
                 ItemCount: 1,
                 ItemPrice: order.shipment_fee,
                 ItemAmt: order.shipment_fee,
-                ItemTaxType: 1
+                ItemTaxType: 1,
             });
         }
         line_item.push({
             ItemName: '應稅折扣',
             ItemUnit: '-',
             ItemCount: 1,
-            ItemPrice: ((all_discount <= can_discount_tax_5) ? all_discount : can_discount_tax_5) * -1,
-            ItemAmt: ((all_discount <= can_discount_tax_5) ? all_discount : can_discount_tax_5) * -1,
-            ItemTaxType: 1
+            ItemPrice: (all_discount <= can_discount_tax_5 ? all_discount : can_discount_tax_5) * -1,
+            ItemAmt: (all_discount <= can_discount_tax_5 ? all_discount : can_discount_tax_5) * -1,
+            ItemTaxType: 1,
         });
-        let free_tax_discount = (all_discount - can_discount_tax_5);
-        line_item.push({
-            ItemName: '免稅折扣',
-            ItemUnit: '-',
-            ItemCount: 1,
-            ItemPrice: ((free_tax_discount > 0) ? free_tax_discount : 0) * -1,
-            ItemAmt: ((free_tax_discount > 0) ? free_tax_discount : 0) * -1,
-            ItemTaxType: 3
-        });
+        if (line_item.find(dd => {
+            return dd.ItemTaxType === 3;
+        })) {
+            let free_tax_discount = all_discount - can_discount_tax_5;
+            line_item.push({
+                ItemName: '免稅折扣',
+                ItemUnit: '-',
+                ItemCount: 1,
+                ItemPrice: (free_tax_discount > 0 ? free_tax_discount : 0) * -1,
+                ItemAmt: (free_tax_discount > 0 ? free_tax_discount : 0) * -1,
+                ItemTaxType: 3,
+            });
+        }
         if (config.fincial === 'ezpay') {
             const timeStamp = '' + new Date().getTime();
             const json = {
@@ -135,13 +149,15 @@ class Invoice {
             return await this.postInvoice({
                 invoice_data: json,
                 print: print,
+                orderData: order,
+                order_id: typeof orderID === 'string' ? orderID : orderID.orderID,
             });
         }
         else if (config.fincial === 'ecpay') {
-            const json = {
+            let json = {
                 MerchantID: config.merchNO,
-                RelateNumber: typeof orderID === 'string' ? orderID : orderID.orderID,
-                CustomerID: typeof orderID === 'string' ? orderID : orderID.orderID,
+                RelateNumber: (typeof orderID === 'string' ? orderID : orderID.orderID) + `_${tool_js_1.default.randomString(4)}`,
+                CustomerID: (typeof orderID === 'string' ? orderID : orderID.orderID) + `_${tool_js_1.default.randomString(4)}`,
                 CustomerIdentifier: (order.user_info.invoice_type === 'company'
                     ? order.user_info.gui_number || ''
                     : undefined),
@@ -151,16 +167,18 @@ class Invoice {
                 CustomerAddr: order.user_info.address,
                 CustomerPhone: (order.user_info.phone || undefined),
                 CustomerEmail: order.user_info.email === 'no-email' ? 'pos@ncdesign.info' : order.user_info.email,
-                Print: '0',
+                Print: order.user_info.invoice_type === 'company' ? '1' : '0',
                 CarrierType: order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier' ? '3' : '1',
                 CarrierNum: order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier'
                     ? order.user_info.carrier_num
                     : undefined,
                 Donation: order.user_info.invoice_type === 'donate' ? '1' : '0',
                 LoveCode: order.user_info.invoice_type === 'donate' ? order.user_info.love_code : undefined,
-                TaxType: line_item.find((dd) => {
+                TaxType: line_item.find(dd => {
                     return dd.ItemTaxType === 3;
-                }) ? '9' : '1',
+                })
+                    ? '9'
+                    : '1',
                 SalesAmount: order.total,
                 InvType: '07',
                 Items: line_item.map((dd, index) => {
@@ -176,7 +194,9 @@ class Invoice {
                     };
                 }),
             };
-            console.log(`invoice_data==>`, json);
+            if (order.user_info.invoice_type === 'company') {
+                json = Object.assign(Object.assign({}, json), { ClearanceMark: '1', Print: '1', Donation: '0', LoveCode: '', CarrierType: '', CarrierNum: '' });
+            }
             if (print) {
                 const cover = {
                     CustomerID: '',
@@ -189,7 +209,7 @@ class Invoice {
                     Donation: '0',
                     LoveCode: '',
                     CarrierType: '',
-                    CarrierNum: ''
+                    CarrierNum: '',
                 };
                 if (order.user_info.invoice_type === 'company') {
                     cover.CustomerName = await EcInvoice_js_1.EcInvoice.getCompanyName({
@@ -204,6 +224,8 @@ class Invoice {
             return await this.postInvoice({
                 invoice_data: json,
                 print: print,
+                orderData: order,
+                order_id: typeof orderID === 'string' ? orderID : orderID.orderID,
             });
         }
         else {
@@ -217,8 +239,8 @@ class Invoice {
         data = data[0];
         data.invoice_data.remark = obj.invoice_data;
         await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_invoice_memory
-                    set invoice_data = ?
-                    WHERE order_id = ?`, [JSON.stringify(data.invoice_data), obj.orderID]);
+       set invoice_data = ?
+       WHERE order_id = ?`, [JSON.stringify(data.invoice_data), obj.orderID]);
     }
     static checkWhiteList(config, invoice_data) {
         if (config.point === 'beta' && invoice_data.BuyerEmail && config.whiteList && config.whiteList.length > 0) {

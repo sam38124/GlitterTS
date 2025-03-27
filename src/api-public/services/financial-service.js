@@ -1002,30 +1002,27 @@ class PayNow {
 exports.PayNow = PayNow;
 class JKO {
     constructor(appName, keyData) {
-        var _a, _b;
         this.keyData = keyData;
         this.appName = appName;
-        this.PublicKey = (_a = keyData.public_key) !== null && _a !== void 0 ? _a : '';
-        this.PrivateKey = (_b = keyData.private_key) !== null && _b !== void 0 ? _b : '';
-        this.BASE_URL = 'https://uat-onlinepay.jkopay.app/';
+        this.BASE_URL = 'https://onlinepay.jkopay.com/';
     }
     async confirmAndCaptureOrder(transactionId) {
         var _a;
-        const secret = this.keyData.SECRET_KEY;
-        const digest = this.generateDigest(`platform_order_ids=${transactionId}`, secret);
-        console.log('digest -- ', digest);
+        const apiKey = process_1.default.env.jko_api_key || '';
+        const secretKey = process_1.default.env.jko_api_secret || '';
+        const digest = this.generateDigest(`platform_order_ids=${transactionId}`, secretKey);
         let config = {
             method: 'get',
-            url: `${this.BASE_URL}/platform/inquiry?platform_order_ids=${transactionId}`,
+            url: `${this.BASE_URL}platform/inquiry?platform_order_ids=${transactionId}`,
             headers: {
+                'api-key': apiKey,
+                digest: digest,
                 'Content-Type': 'application/json',
-                DIGEST: digest,
-                'API-KEY': this.keyData.API_KEY,
             },
         };
         try {
             const response = await axios_1.default.request(config);
-            return response.data;
+            return response.data.result_object;
         }
         catch (error) {
             console.error('Error paynow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
@@ -1034,56 +1031,43 @@ class JKO {
     }
     async createOrder(orderData) {
         var _a;
-        function transProduct(lineItems) {
-            return lineItems.map(item => {
-                return {
-                    name: item.title + ' ' + item.spec.join(','),
-                    img: item.preview_image,
-                    unit_count: item.count,
-                    unit_price: item.sale_price,
-                    unit_final_price: item.sale_price,
-                };
-            });
-        }
         const payload = {
             currency: 'TWD',
             total_price: orderData.total,
             final_price: orderData.total,
-            result_url: this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
+            platform_order_id: orderData.orderID,
+            store_id: this.keyData.STORE_ID,
+            result_url: this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
+            result_display_url: this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
+            unredeem: 0
         };
+        console.log(`payload=>`, payload);
         const apiKey = process_1.default.env.jko_api_key || '';
         const secretKey = process_1.default.env.jko_api_secret || '';
-        const secret = this.keyData.SECRET_KEY;
         const digest = crypto_1.default.createHmac('sha256', secretKey).update(JSON.stringify(payload), 'utf8').digest('hex');
         const headers = {
             'api-key': apiKey,
             digest: digest,
             'Content-Type': 'application/json',
         };
-        console.log('API Key:', apiKey);
-        console.log('Digest:', digest);
-        console.log('Headers:', headers);
         const url = `${this.BASE_URL}platform/entry`;
         const config = {
             method: 'post',
             url: url,
-            headers: {
-                'Content-Type': 'application/json',
-                DIGEST: digest,
-                'API-KEY': this.keyData.API_KEY,
-            },
+            headers: headers,
             data: payload,
         };
         try {
             const response = await axios_1.default.request(config);
-            await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-         VALUES (?, ?, ?, ?)
-        `, [orderData.orderID, 0, orderData.email, orderData]);
-            await redis_1.default.setValue('paynow' + orderData.orderID, response.data.result.id);
-            return ``;
+            await order_event_js_1.OrderEvent.insertOrder({
+                cartData: orderData,
+                status: 0,
+                app: this.appName,
+            });
+            return response.data;
         }
         catch (error) {
-            console.error('Error payNow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            console.error('Error jkoPay:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
             throw error;
         }
     }

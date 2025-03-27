@@ -1132,9 +1132,9 @@ export class CheckoutIndex {
                           const shipmentList = this.getShipmentMethod(vm.cartData).filter((dd: { value: string }) =>
                             shipmentSupportSet.has(dd.value)
                           );
-                          console.log(`cartData.shipment_selector=>`,vm.cartData.shipment_selector);
-                          console.log(`shipmentSupportSet=>`,shipmentSupportSet)
-                          console.log(`shipmentList==>`,shipmentList)
+                          console.log(`cartData.shipment_selector=>`, vm.cartData.shipment_selector);
+                          console.log(`shipmentSupportSet=>`, shipmentSupportSet);
+                          console.log(`shipmentList==>`, shipmentList);
                           const localShip = shipmentSupportSet.has(localStorage.getItem('shipment-select'));
                           if (shipmentList.length === 0) {
                             vm.cartData.user_info.shipment = 'none';
@@ -1184,6 +1184,7 @@ export class CheckoutIndex {
                                                 return ``;
                                               }
                                             }
+
                                             const title =
                                               (item.language_data &&
                                                 item.language_data[Language.getLanguage()].title) ||
@@ -1210,220 +1211,222 @@ export class CheckoutIndex {
                                               gvc.notifyDataChange(ids.shipping);
                                             }
 
-                                            return html`<div class="d-flex flex-column p-lg-3 px-2 py-3 gap-2">
-                                              <div class="d-flex w-100 position-relative" style="gap:20px;">
-                                                <div class=" justify-content-start  ">
-                                                  <div
-                                                    style="width: 88px;height: 88px;border-radius: 10px;background: 50%/cover url('${item.preview_image}')"
-                                                  ></div>
-                                                </div>
-                                                <div
-                                                  class="d-flex  flex-column  position-relative"
-                                                  style="gap: 2px; position: relative; width:calc(100% - 115px);"
-                                                >
-                                                  <span
-                                                    class="fw-bold pe-4"
-                                                    style="gap:5px;font-size:${document.body.clientWidth > 800
-                                                      ? `16`
-                                                      : `14`}px;max-width:calc(100% - 10px); display: -webkit-box; -webkit-line-clamp: 2;  -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; "
-                                                    >${title}</span
-                                                  >
-                                                  <div class="${gClass(['66text'])} fs-sm">
-                                                    ${spec ? spec.join(' / ') : ''}
+                                            return html`
+                                              <div class="d-flex flex-column p-lg-3 px-2 py-3 gap-2">
+                                                <div class="d-flex w-100 position-relative" style="gap:20px;">
+                                                  <div class=" justify-content-start  ">
+                                                    <div
+                                                      style="width: 88px;height: 88px;border-radius: 10px;background: 50%/cover url('${item.preview_image}')"
+                                                    ></div>
                                                   </div>
-                                                  <div>${getBadgeClass()}</div>
-                                                  <div class="d-flex flex-column align-items-start " style="gap:2px;">
-                                                    <div class="fw-bold fs-6 ${gClass('price-text')}">
+                                                  <div
+                                                    class="d-flex  flex-column  position-relative"
+                                                    style="gap: 2px; position: relative; width:calc(100% - 115px);"
+                                                  >
+                                                    <span
+                                                      class="fw-bold pe-4"
+                                                      style="gap:5px;font-size:${document.body.clientWidth > 800
+                                                        ? `16`
+                                                        : `14`}px;max-width:calc(100% - 10px); display: -webkit-box; -webkit-line-clamp: 2;  -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; "
+                                                      >${title}</span
+                                                    >
+                                                    <div class="${gClass(['66text'])} fs-sm">
+                                                      ${spec ? spec.join(' / ') : ''}
+                                                    </div>
+                                                    <div>${getBadgeClass()}</div>
+                                                    <div class="d-flex flex-column align-items-start " style="gap:2px;">
+                                                      <div class="fw-bold fs-6 ${gClass('price-text')}">
+                                                        ${(() => {
+                                                          if (item.is_gift) {
+                                                            return Currency.convertCurrencyText(0);
+                                                          }
+                                                          return Currency.convertCurrencyText(
+                                                            parseFloat(item.sale_price)
+                                                          );
+                                                        })()}
+                                                      </div>
                                                       ${(() => {
-                                                        if (item.is_gift) {
-                                                          return Currency.convertCurrencyText(0);
+                                                        if (item.is_gift || item.sale_price >= item.origin_price) {
+                                                          return '';
                                                         }
-                                                        return Currency.convertCurrencyText(
-                                                          parseFloat(item.sale_price)
-                                                        );
+                                                        return html` <div
+                                                          style="text-decoration: line-through; font-size: 12px;"
+                                                        >
+                                                          ${Currency.convertCurrencyText(parseFloat(item.origin_price))}
+                                                        </div>`;
                                                       })()}
                                                     </div>
-                                                    ${(() => {
-                                                      if (item.is_gift || item.sale_price >= item.origin_price) {
-                                                        return '';
-                                                      }
-                                                      return html` <div
-                                                        style="text-decoration: line-through; font-size: 12px;"
-                                                      >
-                                                        ${Currency.convertCurrencyText(parseFloat(item.origin_price))}
-                                                      </div>`;
-                                                    })()}
-                                                  </div>
-                                                  <div class="w-100 d-flex">
-                                                    <div class="flex-fill"></div>
-                                                    <div
-                                                      class="d-flex align-items-center border rounded-2"
-                                                      style="overflow: hidden;"
-                                                    >
+                                                    <div class="w-100 d-flex">
+                                                      <div class="flex-fill"></div>
                                                       <div
-                                                        class="${item.is_gift
-                                                          ? `d-none`
-                                                          : `d-flex`} align-items-center justify-content-center"
-                                                        style="width:38px;height: 38px;cursor: pointer;"
-                                                        onclick="${gvc.event(() => {
-                                                          apiCart.setCart(cartItem => {
-                                                            const find = cartItem.line_items.find(dd => {
-                                                              return (
-                                                                dd.id === item.id &&
-                                                                item.spec.join('') === dd.spec.join('')
-                                                              );
-                                                            })!;
-                                                            if (find.count - 1 > 0) {
-                                                              find.count = find.count - 1;
-                                                              refreshCartData();
-                                                            }
-                                                          });
-                                                        })}"
+                                                        class="d-flex align-items-center border rounded-2"
+                                                        style="overflow: hidden;"
                                                       >
-                                                        <i class="fa-solid fa-minus" style="color:black;"></i>
-                                                      </div>
-                                                      <select
-                                                        class="form-select custom-select mx-0 p-0 "
-                                                        style="
+                                                        <div
+                                                          class="${item.is_gift
+                                                            ? `d-none`
+                                                            : `d-flex`} align-items-center justify-content-center"
+                                                          style="width:38px;height: 38px;cursor: pointer;"
+                                                          onclick="${gvc.event(() => {
+                                                            apiCart.setCart(cartItem => {
+                                                              const find = cartItem.line_items.find(dd => {
+                                                                return (
+                                                                  dd.id === item.id &&
+                                                                  item.spec.join('') === dd.spec.join('')
+                                                                );
+                                                              })!;
+                                                              if (find.count - 1 > 0) {
+                                                                find.count = find.count - 1;
+                                                                refreshCartData();
+                                                              }
+                                                            });
+                                                          })}"
+                                                        >
+                                                          <i class="fa-solid fa-minus" style="color:black;"></i>
+                                                        </div>
+                                                        <select
+                                                          class="form-select custom-select mx-0 p-0 "
+                                                          style="
                                                             
                                                             ${item.is_gift
-                                                          ? `border:none;`
-                                                          : `border-top:none;border-bottom: none;`}
+                                                            ? `border:none;`
+                                                            : `border-top:none;border-bottom: none;`}
                                                             border-radius: 0px; color: #575757; width: 50px;height:38px;background-image:none;${parseInt(
-                                                          vm.quantity,
-                                                          10
-                                                        ) < 10
-                                                          ? `text-indent: 43%;`
-                                                          : `text-indent: 40%;`}"
-                                                        onchange="${gvc.event(e => {
+                                                            vm.quantity,
+                                                            10
+                                                          ) < 10
+                                                            ? `text-indent: 43%;`
+                                                            : `text-indent: 40%;`}"
+                                                          onchange="${gvc.event(e => {
+                                                            apiCart.setCart(cartItem => {
+                                                              cartItem.line_items.find(dd => {
+                                                                return (
+                                                                  dd.id === item.id &&
+                                                                  item.spec.join('') === dd.spec.join('')
+                                                                );
+                                                              })!.count = parseInt(e.value, 10);
+                                                              refreshCartData();
+                                                            });
+                                                          })}"
+                                                          ${item.is_gift ? `disabled` : ``}
+                                                        >
+                                                          ${[
+                                                            ...new Array(
+                                                              (() => {
+                                                                if (item.show_understocking === 'false') {
+                                                                  return 50;
+                                                                }
+                                                                return item.stock < 50 ? item.stock : 50;
+                                                              })()
+                                                            ),
+                                                          ]
+                                                            .map((_, index) => {
+                                                              return html` <option
+                                                                value="${index + 1}"
+                                                                ${index + 1 === item.count ? `selected` : ``}
+                                                              >
+                                                                ${index + 1}
+                                                              </option>`;
+                                                            })
+                                                            .join('')}
+                                                        </select>
+                                                        <div
+                                                          class=" align-items-center justify-content-center ${item.is_gift
+                                                            ? `d-none`
+                                                            : `d-flex`}"
+                                                          style="width:38px;height: 38px;cursor: pointer;"
+                                                          onclick="${gvc.event(() => {
+                                                            apiCart.setCart(cartItem => {
+                                                              const find = cartItem.line_items.find(dd => {
+                                                                return (
+                                                                  dd.id === item.id &&
+                                                                  item.spec.join('') === dd.spec.join('')
+                                                                );
+                                                              })!;
+                                                              if (
+                                                                item.show_understocking === 'false' ||
+                                                                find.count + 1 < item.stock
+                                                              ) {
+                                                                find.count = find.count + 1;
+                                                                refreshCartData();
+                                                              }
+                                                            });
+                                                          })}"
+                                                        >
+                                                          <i class="fa-solid fa-plus" style="color:black;"></i>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                    <div
+                                                      class="d-block "
+                                                      style="position: absolute; right: 5px; top:0px;"
+                                                    >
+                                                      <i
+                                                        class="fa-solid fa-xmark-large"
+                                                        style="cursor: pointer;color:gray;"
+                                                        onclick="${gvc.event(() => {
                                                           apiCart.setCart(cartItem => {
-                                                            cartItem.line_items.find(dd => {
-                                                              return (
+                                                            cartItem.line_items = cartItem.line_items.filter(dd => {
+                                                              return !(
                                                                 dd.id === item.id &&
                                                                 item.spec.join('') === dd.spec.join('')
                                                               );
-                                                            })!.count = parseInt(e.value, 10);
+                                                            });
                                                             refreshCartData();
                                                           });
                                                         })}"
-                                                        ${item.is_gift ? `disabled` : ``}
-                                                      >
-                                                        ${[
-                                                          ...new Array(
-                                                            (() => {
-                                                              if (item.show_understocking === 'false') {
-                                                                return 50;
-                                                              }
-                                                              return item.stock < 50 ? item.stock : 50;
-                                                            })()
-                                                          ),
-                                                        ]
-                                                          .map((_, index) => {
-                                                            return html` <option
-                                                              value="${index + 1}"
-                                                              ${index + 1 === item.count ? `selected` : ``}
-                                                            >
-                                                              ${index + 1}
-                                                            </option>`;
-                                                          })
-                                                          .join('')}
-                                                      </select>
-                                                      <div
-                                                        class=" align-items-center justify-content-center ${item.is_gift
-                                                          ? `d-none`
-                                                          : `d-flex`}"
-                                                        style="width:38px;height: 38px;cursor: pointer;"
-                                                        onclick="${gvc.event(() => {
-                                                          apiCart.setCart(cartItem => {
-                                                            const find = cartItem.line_items.find(dd => {
-                                                              return (
-                                                                dd.id === item.id &&
-                                                                item.spec.join('') === dd.spec.join('')
-                                                              );
-                                                            })!;
-                                                            if (
-                                                              item.show_understocking === 'false' ||
-                                                              find.count + 1 < item.stock
-                                                            ) {
-                                                              find.count = find.count + 1;
-                                                              refreshCartData();
-                                                            }
-                                                          });
-                                                        })}"
-                                                      >
-                                                        <i class="fa-solid fa-plus" style="color:black;"></i>
-                                                      </div>
+                                                      ></i>
                                                     </div>
                                                   </div>
-                                                  <div
-                                                    class="d-block "
-                                                    style="position: absolute; right: 5px; top:0px;"
-                                                  >
-                                                    <i
-                                                      class="fa-solid fa-xmark-large"
-                                                      style="cursor: pointer;color:gray;"
-                                                      onclick="${gvc.event(() => {
-                                                        apiCart.setCart(cartItem => {
-                                                          cartItem.line_items = cartItem.line_items.filter(dd => {
-                                                            return !(
-                                                              dd.id === item.id &&
-                                                              item.spec.join('') === dd.spec.join('')
-                                                            );
-                                                          });
-                                                          refreshCartData();
-                                                        });
-                                                      })}"
-                                                    ></i>
-                                                  </div>
+                                                </div>
+                                                <div>
+                                                  ${vm.cartData.voucherList
+                                                    .filter((dd: any) => {
+                                                      return (
+                                                        dd.bind.find((d2: any) => {
+                                                          return d2.id === item.id;
+                                                        }) &&
+                                                        dd.reBackType !== 'giveaway' &&
+                                                        dd.reBackType !== 'add_on_items'
+                                                      );
+                                                    })
+                                                    .map((dd: any) => {
+                                                      return `<div class=" w-100 " style="${document.body.clientWidth < 800 ? `font-size:12px;` : `font-size:14px;`}"><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
+                                                    })
+                                                    .join('<div class="my-1"></div>')}
+                                                  ${(() => {
+                                                    let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                                    let count = 0;
+                                                    for (const b of vm.cartData.lineItems) {
+                                                      if (b.id === item.id) {
+                                                        count += b.count;
+                                                      }
+                                                    }
+                                                    if (count < min) {
+                                                      return `<div class="text-danger">${Language.text('min_p_count').replace('_c_', min)}</div>`;
+                                                    } else {
+                                                      return ``;
+                                                    }
+                                                  })()}
+                                                  ${(() => {
+                                                    let max_qty =
+                                                      (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
+                                                    let count = 0;
+                                                    for (const b of vm.cartData.lineItems) {
+                                                      if (b.id === item.id) {
+                                                        count += b.count;
+                                                      }
+                                                    }
+
+                                                    if (count > max_qty) {
+                                                      return `<div class="text-danger">${Language.text('max_p_count').replace('_c_', max_qty)}</div>`;
+                                                    } else {
+                                                      return ``;
+                                                    }
+                                                  })()}
                                                 </div>
                                               </div>
-                                              <div>
-                                                ${vm.cartData.voucherList
-                                                  .filter((dd: any) => {
-                                                    return (
-                                                      dd.bind.find((d2: any) => {
-                                                        return d2.id === item.id;
-                                                      }) &&
-                                                      dd.reBackType !== 'giveaway' &&
-                                                      dd.reBackType !== 'add_on_items'
-                                                    );
-                                                  })
-                                                  .map((dd: any) => {
-                                                    return `<div class=" w-100 " style="${document.body.clientWidth < 800 ? `font-size:12px;` : `font-size:14px;`}"><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
-                                                  })
-                                                  .join('<div class="my-1"></div>')}
-                                                ${(() => {
-                                                  let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
-                                                  let count = 0;
-                                                  for (const b of vm.cartData.lineItems) {
-                                                    if (b.id === item.id) {
-                                                      count += b.count;
-                                                    }
-                                                  }
-                                                  if (count < min) {
-                                                    return `<div class="text-danger">${Language.text('min_p_count').replace('_c_', min)}</div>`;
-                                                  } else {
-                                                    return ``;
-                                                  }
-                                                })()}
-                                                ${(() => {
-                                                  let max_qty =
-                                                    (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
-                                                  let count = 0;
-                                                  for (const b of vm.cartData.lineItems) {
-                                                    if (b.id === item.id) {
-                                                      count += b.count;
-                                                    }
-                                                  }
-
-                                                  if (count > max_qty) {
-                                                    return `<div class="text-danger">${Language.text('max_p_count').replace('_c_', max_qty)}</div>`;
-                                                  } else {
-                                                    return ``;
-                                                  }
-                                                })()}
-                                              </div>
-                                            </div> `;
+                                            `;
                                           })
                                           .join(`<div class="border-bottom w-100"></div>`);
                                       } catch (e) {
@@ -1904,7 +1907,7 @@ export class CheckoutIndex {
                                                         </option>`;
                                                       })
                                                       .join('')
-                                                  : html`<option selected>(${Language.text('disable_ship')})</option>`}
+                                                  : html` <option selected>(${Language.text('disable_ship')})</option>`}
                                               </select>
                                             </div>`;
                                           },
@@ -3013,17 +3016,19 @@ export class CheckoutIndex {
                                     }
                                     return html`
                                       <div style="height:100px;"></div>
-                                      
+
                                       <div
                                         class="w-100 d-flex align-items-center justify-content-center position-fixed bottom-0 start-0 p-2 shadow bg-white"
                                         style="min-height:76px;z-index:10;"
                                       >
-                                        ${(()=>{
-                                          if(verify.length > 0 ){
-                                            return verify.map((dd)=>{
-                                              return `<div class="text-danger" style="font-size: 13px;">${dd}</div>`
-                                            }).join('')
-                                          }else{
+                                        ${(() => {
+                                          if (verify.length > 0) {
+                                            return verify
+                                              .map(dd => {
+                                                return `<div class="text-danger" style="font-size: 13px;">${dd}</div>`;
+                                              })
+                                              .join('');
+                                          } else {
                                             return ` <div
                                           class="d-flex align-items-center justify-content-end"
                                           style="width:1180px;max-width: 100%;gap:24px;"
@@ -3042,280 +3047,315 @@ export class CheckoutIndex {
                                           <div class="">
                                             <button
                                               class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
-                                              style="${document.body.clientWidth < 800
-                                              ? `min-width:100px;`
-                                              : `min-width:380px;`}"
+                                              style="${
+                                                document.body.clientWidth < 800
+                                                  ? `min-width:100px;`
+                                                  : `min-width:380px;`
+                                              }"
                                               onclick="${gvc.event(() => {
-                                              if (
-                                                (window as any).login_config.login_in_to_order &&
-                                                !GlobalUser.token
-                                              ) {
-                                                GlobalUser.loginRedirect = location.href;
-                                                gvc.glitter.href = '/login';
-                                                return;
-                                              }
+                                                const that = this;
 
-                                              if (vm.cartData.user_info_same) {
-                                                vm.cartData.user_info.name = vm.cartData.customer_info.name;
-                                                vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
-                                                vm.cartData.user_info.email = vm.cartData.customer_info.email;
-                                              }
-                                              if (verify.length > 0) {
-                                                return;
-                                              }
-
-                                              if (shipmentList.length === 0) {
-                                                vm.cartData.user_info.shipment = 'none';
-                                              }
-
-                                              const dialog = new ShareDialog(gvc.glitter);
-                                              if (!this.checkFormData(gvc, vm.cartData, widget)) {
-                                                return;
-                                              }
-                                              for (const item of vm.cartData.lineItems) {
-                                                const title =
-                                                  (item.language_data &&
-                                                    item.language_data[Language.getLanguage()].title) ||
-                                                  item.title;
-                                                let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
-                                                let max_qty =
-                                                  (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
-                                                let count = 0;
-                                                for (const b of vm.cartData.lineItems) {
-                                                  if (b.id === item.id) {
-                                                    count += b.count;
+                                                function next() {
+                                                  if (vm.cartData.user_info_same) {
+                                                    vm.cartData.user_info.name = vm.cartData.customer_info.name;
+                                                    vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
+                                                    vm.cartData.user_info.email = vm.cartData.customer_info.email;
                                                   }
-                                                }
-                                                if (count < min) {
-                                                  dialog.errorMessage({
-                                                    text: Language.text('min_p_count_d')
-                                                      .replace('_c_', min)
-                                                      .replace('_p_', `『${title}』`),
-                                                  });
-                                                  return;
-                                                }
-                                                if (count > max_qty) {
-                                                  dialog.errorMessage({
-                                                    text: Language.text('max_p_count_d')
-                                                      .replace('_c_', max_qty)
-                                                      .replace('_p_', `『${title}』`),
-                                                  });
-                                                  return;
-                                                }
-                                                if (max_qty > 0 && count + item.buy_history_count > max_qty) {
-                                                  dialog.errorMessage({
-                                                    text: Language.text('trigger_maximum_item').replace(
-                                                      '_p_',
-                                                      `『${title}』`
-                                                    ),
-                                                  });
-                                                  return;
-                                                }
-                                              }
-                                              [
-                                                'MerchantTradeNo',
-                                                'LogisticsSubType',
-                                                'CVSStoreID',
-                                                'CVSStoreName',
-                                                'CVSTelephone',
-                                                'CVSOutSide',
-                                                'ExtraData',
-                                                'CVSAddress',
-                                              ].map(dd => {
-                                                if (gvc.glitter.getUrlParameter(dd)) {
-                                                  vm.cartData.user_info[dd] = decodeURI(glitter.getUrlParameter(dd));
-                                                }
-                                              });
-                                              dialog.dataLoading({ visible: true });
-                                              vm.cartData.user_info.note =
-                                                (vm.cartData.user_info.note ?? '') + (check_out_sub.note ?? '');
-                                              ApiShop.toCheckout({
-                                                line_items: vm.cartData.lineItems.map((dd: any) => {
-                                                  return {
-                                                    id: dd.id,
-                                                    spec: dd.spec,
-                                                    count: dd.count,
-                                                  };
-                                                }),
-                                                customer_info: vm.cartData.customer_info,
-                                                return_url: (() => {
-                                                  const originalUrl =
-                                                    glitter.root_path + 'order_detail' + location.search;
-                                                  const urlObject = new URL(originalUrl);
-                                                  urlObject.searchParams.set('EndCheckout', '1');
-                                                  const newUrl = urlObject.toString();
-                                                  return newUrl;
-                                                })(),
-                                                user_info: vm.cartData.user_info,
-                                                code: apiCart.cart.code,
-                                                use_rebate: apiCart.cart.use_rebate,
-                                                custom_form_format: vm.cartData.custom_form_format,
-                                                custom_form_data: vm.cartData.custom_form_data,
-                                                custom_receipt_form: vm.cartData.receipt_form,
-                                                distribution_code: localStorage.getItem('distributionCode') ?? '',
-                                                give_away: apiCart.cart.give_away,
-                                              }).then(res => {
-                                                dialog.dataLoading({ visible: false });
-                                                if (vm.cartData.customer_info.payment_select == 'paynow') {
-                                                  if (!res.response?.data?.result?.secret) {
-                                                    return 'paynow API失敗';
+                                                  if (verify.length > 0) {
+                                                    return;
                                                   }
-                                                  glitter.innerDialog(
-                                                    (gvc: GVC) => {
-                                                      document.body.style.setProperty(
-                                                        'overflow-y',
-                                                        'hidden',
-                                                        'important'
+
+                                                  if (shipmentList.length === 0) {
+                                                    vm.cartData.user_info.shipment = 'none';
+                                                  }
+
+                                                  const dialog = new ShareDialog(gvc.glitter);
+                                                  if (!that.checkFormData(gvc, vm.cartData, widget)) {
+                                                    return;
+                                                  }
+                                                  for (const item of vm.cartData.lineItems) {
+                                                    const title =
+                                                      (item.language_data &&
+                                                        item.language_data[Language.getLanguage()].title) ||
+                                                      item.title;
+                                                    let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                                    let max_qty =
+                                                      (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
+                                                    let count = 0;
+                                                    for (const b of vm.cartData.lineItems) {
+                                                      if (b.id === item.id) {
+                                                        count += b.count;
+                                                      }
+                                                    }
+                                                    if (count < min) {
+                                                      dialog.errorMessage({
+                                                        text: Language.text('min_p_count_d')
+                                                          .replace('_c_', min)
+                                                          .replace('_p_', `『${title}』`),
+                                                      });
+                                                      return;
+                                                    }
+                                                    if (count > max_qty) {
+                                                      dialog.errorMessage({
+                                                        text: Language.text('max_p_count_d')
+                                                          .replace('_c_', max_qty)
+                                                          .replace('_p_', `『${title}』`),
+                                                      });
+                                                      return;
+                                                    }
+                                                    if (max_qty > 0 && count + item.buy_history_count > max_qty) {
+                                                      dialog.errorMessage({
+                                                        text: Language.text('trigger_maximum_item').replace(
+                                                          '_p_',
+                                                          `『${title}』`
+                                                        ),
+                                                      });
+                                                      return;
+                                                    }
+                                                  }
+                                                  [
+                                                    'MerchantTradeNo',
+                                                    'LogisticsSubType',
+                                                    'CVSStoreID',
+                                                    'CVSStoreName',
+                                                    'CVSTelephone',
+                                                    'CVSOutSide',
+                                                    'ExtraData',
+                                                    'CVSAddress',
+                                                  ].map(dd => {
+                                                    if (gvc.glitter.getUrlParameter(dd)) {
+                                                      vm.cartData.user_info[dd] = decodeURI(
+                                                        glitter.getUrlParameter(dd)
                                                       );
-                                                      return gvc.bindView({
-                                                        bind: `paynow`,
-                                                        view: () => {
-                                                          return html` <div
-                                                              class="w-100 h-100 d-flex align-items-center justify-content-center"
-                                                            >
-                                                              ${document.body.clientWidth < 800
-                                                            ? `
+                                                    }
+                                                  });
+                                                  dialog.dataLoading({ visible: true });
+                                                  vm.cartData.user_info.note =
+                                                    (vm.cartData.user_info.note ?? '') + (check_out_sub.note ?? '');
+                                                  ApiShop.toCheckout({
+                                                    line_items: vm.cartData.lineItems.map((dd: any) => {
+                                                      return {
+                                                        id: dd.id,
+                                                        spec: dd.spec,
+                                                        count: dd.count,
+                                                      };
+                                                    }),
+                                                    customer_info: vm.cartData.customer_info,
+                                                    return_url: (() => {
+                                                      const originalUrl =
+                                                        glitter.root_path + 'order_detail' + location.search;
+                                                      const urlObject = new URL(originalUrl);
+                                                      urlObject.searchParams.set('EndCheckout', '1');
+                                                      const newUrl = urlObject.toString();
+                                                      return newUrl;
+                                                    })(),
+                                                    user_info: vm.cartData.user_info,
+                                                    code: apiCart.cart.code,
+                                                    use_rebate: apiCart.cart.use_rebate,
+                                                    custom_form_format: vm.cartData.custom_form_format,
+                                                    custom_form_data: vm.cartData.custom_form_data,
+                                                    custom_receipt_form: vm.cartData.receipt_form,
+                                                    distribution_code: localStorage.getItem('distributionCode') ?? '',
+                                                    give_away: apiCart.cart.give_away,
+                                                  }).then(res => {
+                                                    dialog.dataLoading({ visible: false });
+                                                    if (vm.cartData.customer_info.payment_select == 'paynow') {
+                                                      if (!res.response?.data?.result?.secret) {
+                                                        return 'paynow API失敗';
+                                                      }
+                                                      glitter.innerDialog(
+                                                        (gvc: GVC) => {
+                                                          document.body.style.setProperty(
+                                                            'overflow-y',
+                                                            'hidden',
+                                                            'important'
+                                                          );
+                                                          return gvc.bindView({
+                                                            bind: `paynow`,
+                                                            view: () => {
+                                                              return html` <div
+                                                                class="w-100 h-100 d-flex align-items-center justify-content-center"
+                                                              >
+                                                                ${document.body.clientWidth < 800
+                                                                  ? `
                                                                             <div class="pt-5  bg-white position-relative vw-100" style="height: ${window.innerHeight}px;overflow-y: auto;">
                                                                             `
-                                                            : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
-                                                              <div
-                                                                style="position: absolute; right: 15px;top:15px;z-index:1;"
-                                                                onclick="${gvc.event(() => {
-                                                            gvc.closeDialog();
-                                                          })}"
-                                                              >
-                                                                <i
-                                                                  class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
-                                                                ></i>
-                                                              </div>
-                                                              <div id="paynow-container" class="" style="">
-                                                                <div style="width:200px;height:200px;">loading...</div>
-                                                              </div>
-                                                              <div class="px-3 px-sm-0 w-100">
-                                                                <button
-                                                                  class="${gClass(
-                                                            verify.length > 0
-                                                              ? 'button-bgr-disable'
-                                                              : 'button-bgr'
-                                                          )} "
-                                                                  id="checkoutButton"
+                                                                  : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
+                                                                <div
+                                                                  style="position: absolute; right: 15px;top:15px;z-index:1;"
                                                                   onclick="${gvc.event(() => {
-                                                            // const inputGroup = document.querySelector('#paynow-container');
-                                                            // console.log("inputGroup -- " , inputGroup)
-                                                            const PayNow = (window as any).PayNow;
-                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                            dialog.dataLoading({ visible: true });
-                                                            PayNow.checkout().then((response: any) => {
-                                                              dialog.dataLoading({ visible: false });
-                                                              console.log('response -- ', response);
-                                                              if (response.error) {
-                                                                dialog.errorMessage({
-                                                                  text: response.error.message,
-                                                                });
-                                                                // handle error
-                                                              }
-                                                              // handle success
-                                                            });
-                                                          })}"
+                                                                    gvc.closeDialog();
+                                                                  })}"
                                                                 >
-                                                                  <span class="${gClass('button-text')}">確認結帳</span>
-                                                                </button>
-                                                              </div>
-                                                            </div>`;
-                                                        },
-                                                        divCreate: {
-                                                          class: ` h-100 d-flex align-items-center justify-content-center`,
-                                                          style: `max-width:100vw;${document.body.clientWidth < 800 ? 'width:100%;' : 'width:400px;'};`,
-                                                        },
-                                                        onCreate: () => {
-                                                          const publicKey = res.response.publicKey;
-                                                          const secret = res.response.data.result.secret;
-                                                          const env =
-                                                            res.response.BETA == 'true' ? 'sandbox' : 'production';
-                                                          // res.response.result.secret
-                                                          const PayNow = (window as any).PayNow;
-                                                          PayNow.createPayment({
-                                                            publicKey: publicKey,
-                                                            secret: secret,
-                                                            env: env,
-                                                          });
-                                                          PayNow.mount('#paynow-container', {
-                                                            locale: 'zh_tw',
-                                                            appearance: {
-                                                              variables: {
-                                                                fontFamily: 'monospace',
-                                                                colorPrimary: '#0078ab',
-                                                                colorDefault: '#0a0a0a',
-                                                                colorBorder: '#cccccc',
-                                                                colorPlaceholder: '#eeeeee',
-                                                                borderRadius: '.3rem',
-                                                                colorDanger: '#ff3d3d',
-                                                              },
+                                                                  <i
+                                                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                                                  ></i>
+                                                                </div>
+                                                                <div id="paynow-container" class="" style="">
+                                                                  <div style="width:200px;height:200px;">
+                                                                    loading...
+                                                                  </div>
+                                                                </div>
+                                                                <div class="px-3 px-sm-0 w-100">
+                                                                  <button
+                                                                    class="${gClass(
+                                                                      verify.length > 0
+                                                                        ? 'button-bgr-disable'
+                                                                        : 'button-bgr'
+                                                                    )} "
+                                                                    id="checkoutButton"
+                                                                    onclick="${gvc.event(() => {
+                                                                      // const inputGroup = document.querySelector('#paynow-container');
+                                                                      // console.log("inputGroup -- " , inputGroup)
+                                                                      const PayNow = (window as any).PayNow;
+                                                                      const dialog = new ShareDialog(gvc.glitter);
+                                                                      dialog.dataLoading({ visible: true });
+                                                                      PayNow.checkout().then((response: any) => {
+                                                                        dialog.dataLoading({ visible: false });
+                                                                        console.log('response -- ', response);
+                                                                        if (response.error) {
+                                                                          dialog.errorMessage({
+                                                                            text: response.error.message,
+                                                                          });
+                                                                          // handle error
+                                                                        }
+                                                                        // handle success
+                                                                      });
+                                                                    })}"
+                                                                  >
+                                                                    <span class="${gClass('button-text')}"
+                                                                      >確認結帳</span
+                                                                    >
+                                                                  </button>
+                                                                </div>
+                                                              </div>`;
+                                                            },
+                                                            divCreate: {
+                                                              class: ` h-100 d-flex align-items-center justify-content-center`,
+                                                              style: `max-width:100vw;${document.body.clientWidth < 800 ? 'width:100%;' : 'width:400px;'};`,
+                                                            },
+                                                            onCreate: () => {
+                                                              const publicKey = res.response.publicKey;
+                                                              const secret = res.response.data.result.secret;
+                                                              const env =
+                                                                res.response.BETA == 'true' ? 'sandbox' : 'production';
+                                                              // res.response.result.secret
+                                                              const PayNow = (window as any).PayNow;
+                                                              PayNow.createPayment({
+                                                                publicKey: publicKey,
+                                                                secret: secret,
+                                                                env: env,
+                                                              });
+                                                              PayNow.mount('#paynow-container', {
+                                                                locale: 'zh_tw',
+                                                                appearance: {
+                                                                  variables: {
+                                                                    fontFamily: 'monospace',
+                                                                    colorPrimary: '#0078ab',
+                                                                    colorDefault: '#0a0a0a',
+                                                                    colorBorder: '#cccccc',
+                                                                    colorPlaceholder: '#eeeeee',
+                                                                    borderRadius: '.3rem',
+                                                                    colorDanger: '#ff3d3d',
+                                                                  },
+                                                                },
+                                                              });
                                                             },
                                                           });
                                                         },
-                                                      });
-                                                    },
-                                                    `paynow`,
-                                                    {
-                                                      animation:
-                                                        document.body.clientWidth > 800
-                                                          ? Animation.fade
-                                                          : Animation.popup,
-                                                      dismiss: () => {
-                                                        document.body.style.setProperty('overflow-y', 'auto');
-                                                      },
+                                                        `paynow`,
+                                                        {
+                                                          animation:
+                                                            document.body.clientWidth > 800
+                                                              ? Animation.fade
+                                                              : Animation.popup,
+                                                          dismiss: () => {
+                                                            document.body.style.setProperty('overflow-y', 'auto');
+                                                          },
+                                                        }
+                                                      );
                                                     }
-                                                  );
+
+                                                    localStorage.setItem(
+                                                      'clear_cart_items',
+                                                      JSON.stringify(vm.cartData.lineItems.map((item: any) => item.id))
+                                                    );
+
+                                                    if (res.response.off_line || res.response.is_free) {
+                                                      location.href = res.response.return_url;
+                                                    } else {
+                                                      if (
+                                                        res.response.returnCode == '0000' &&
+                                                        vm.cartData.customer_info.payment_select == 'line_pay'
+                                                      ) {
+                                                        console.log(
+                                                          'res.response.form.info.paymentUrl.web -- ',
+                                                          res.response.info.paymentUrl.web
+                                                        );
+                                                        location.href = res.response.info.paymentUrl.web;
+                                                        // todo 手機跳轉用這個
+                                                        //     location.href = res.response.form.info.paymentUrl.app;
+                                                      } else if (res.response.approveLink) {
+                                                        location.href = res.response.approveLink;
+                                                      } else if (vm.cartData.customer_info.payment_select == 'jkopay') {
+                                                        location.href = res.response.result_object.payment_url;
+                                                      } else {
+                                                        const id = gvc.glitter.getUUID();
+                                                        $('body').append(
+                                                          html` <div id="${id}" style="display: none;">
+                                                            ${res.response.form}
+                                                          </div>`
+                                                        );
+                                                        (document.querySelector(`#${id} #submit`) as any).click();
+                                                      }
+                                                    }
+                                                  });
                                                 }
 
-                                                localStorage.setItem(
-                                                  'clear_cart_items',
-                                                  JSON.stringify(vm.cartData.lineItems.map((item: any) => item.id))
-                                                );
-
-                                                if (res.response.off_line || res.response.is_free) {
-                                                  location.href = res.response.return_url;
+                                                if (
+                                                  (window as any).login_config.login_in_to_order &&
+                                                  !GlobalUser.token
+                                                ) {
+                                                  GlobalUser.loginRedirect = location.href;
+                                                  gvc.glitter.href = '/login';
+                                                  return;
                                                 } else {
-                                                  if (
-                                                    res.response.returnCode == '0000' &&
-                                                    vm.cartData.customer_info.payment_select == 'line_pay'
-                                                  ) {
-                                                    console.log(
-                                                      'res.response.form.info.paymentUrl.web -- ',
-                                                      res.response.info.paymentUrl.web
-                                                    );
-                                                    location.href = res.response.info.paymentUrl.web;
-                                                    // todo 手機跳轉用這個
-                                                    //     location.href = res.response.form.info.paymentUrl.app;
-                                                  } else if (res.response.approveLink) {
-                                                    location.href = res.response.approveLink;
-                                                  } else {
-                                                    const id = gvc.glitter.getUUID();
-                                                    $('body').append(
-                                                      html` <div id="${id}" style="display: none;">
-                                                          ${res.response.form}
-                                                        </div>`
-                                                    );
-                                                    (document.querySelector(`#${id} #submit`) as any).click();
-                                                  }
+                                                  ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
+                                                    if (
+                                                      res.response.userData &&
+                                                      !res.response.userData.phone &&
+                                                      (window as any).login_config.phone_verify &&
+                                                      glitter.getUrlParameter('page') !== 'account_edit'
+                                                    ) {
+                                                      const dialog = new ShareDialog(glitter);
+                                                      dialog.infoMessage({
+                                                        text: Language.text('phone_verify_check'),
+                                                      });
+                                                      glitter.href = '/account_edit';
+                                                    } else {
+                                                      next();
+                                                    }
+                                                  });
                                                 }
-                                              });
-                                            })}"
+                                              })}"
                                             >
                                               <span class="${gClass('button-text')} "
-                                                    style="${(verify.length > 0 ) ? `font-size:13px;`:``}"
+                                                    style="${verify.length > 0 ? `font-size:13px;` : ``}"
                                                 >
-                                                ${verify.length > 0 ? verify.join('<br/>') :((window as any).login_config.login_in_to_order && !GlobalUser.token
-                                              ? Language.text('login_in_to_checkout')
-                                              : Language.text('next'))}
+                                                ${
+                                                  verify.length > 0
+                                                    ? verify.join('<br/>')
+                                                    : (window as any).login_config.login_in_to_order &&
+                                                        !GlobalUser.token
+                                                      ? Language.text('login_in_to_checkout')
+                                                      : Language.text('next')
+                                                }
                                                 </span >
                                             </button>
                                           </div>
-                                        </div>`
+                                        </div>`;
                                           }
                                         })()}
-                                       
                                       </div>
                                     `;
                                   })()}

@@ -4,6 +4,8 @@ export declare class Invoice {
     postInvoice(cf: {
         invoice_data: any;
         print: boolean;
+        order_id: string;
+        orderData: any;
     }): Promise<boolean | undefined>;
     postCheckoutInvoice(orderID: string | any, print: boolean, obj?: {
         offlineInvoice?: boolean;
