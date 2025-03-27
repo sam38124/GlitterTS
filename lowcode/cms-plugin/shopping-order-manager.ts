@@ -3451,6 +3451,7 @@ ${[
         name: string;
         email: string;
         phone: string;
+        payment_select?:string;
       };
       user_info: {
         name: string;
@@ -3494,7 +3495,7 @@ ${[
           phone: '',
           email: '',
         };
-        this.pay_status = 1;
+
         this.total = 0;
       }
     }
@@ -4087,6 +4088,7 @@ ${[
             let returnHTML = '';
             gvc.notifyDataChange('orderDetail');
             if (newOrder.productCheck.length) {
+              
               newOrder.productCheck.map((product: any, index: number) => {
                 let selectVariant = product.content.variants[parseInt(product.selectIndex ?? 0)];
                 let productIMG =
@@ -5040,28 +5042,29 @@ ${[
         gvc.bindView({
           bind: 'setLogistics',
           view: async () => {
+            orderDetail.pay_status='0';
             return html`
               <div class="tx_700">設定金物流</div>
               <div class="d-flex flex-column" style="gap: 18px">
                 <div class="d-flex align-items-center w-100" style="gap:18px;">
-                  <div class="d-flex flex-column flex-fill" style="gap: 8px;">
-                    <div>付款方式 / 付款狀態</div>
-                    <select
-                      class="form-select"
-                      style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                      onchange="${gvc.event(e => {
-                        orderDetail.pay_status = e.value;
-                      })}"
-                    >
-                      <option value="1" ${`${orderDetail.pay_status}` == '1' ? 'selected' : ''}>線下付款-已付款</option>
-                      <option value="0" ${`${orderDetail.pay_status}` == '0' ? 'selected' : ''}>線下付款-未付款</option>
-                      <option value="2" ${`${orderDetail.pay_status}` == '2' ? 'selected' : ''}>貨到付款</option>
-                    </select>
-                  </div>
-                  <div class="d-flex flex-column flex-fill" style="gap: 8px;">
-                    <div>運送方式</div>
-                    ${BgWidget.select({
+                  <div class="row w-100">
+                  ${[
+                    BgWidget.select({
                       gvc: gvc,
+                      callback: dd => {
+                        orderDetail.customer_info.payment_select=dd
+                      },
+                      title:'付款方式',
+                      default: orderDetail.customer_info.payment_select ?? '',
+                      options: (await PaymentConfig.getSupportPayment()).map((dd)=>{
+                        return {
+                          key:dd.key,value:dd.name
+                        }
+                      }),
+                    }),
+                    BgWidget.select({
+                      gvc: gvc,
+                      title:'配送方式',
                       callback: dd => {
                         orderDetail.user_info.shipment = dd;
                         orderDetailRefresh = true;
@@ -5078,7 +5081,10 @@ ${[
                           value: dd.name,
                         };
                       }),
-                    })}
+                    })
+                  ].map((dd)=>{
+                    return `<div class="col-12 col-lg-6">${dd}</div>`
+                  }).join('')}  
                   </div>
                 </div>
 
@@ -5274,6 +5280,9 @@ ${[
                           style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
                           onclick="${gvc.event(() => {
                             gvc.glitter.closeDiaLog();
+                           
+                            (window.parent as any).glitter.setUrlParameter('orderID',  r.response.data.orderID);
+                            (window.parent as any).location.reload();
                           })}"
                         >
                           <path d="M1 1L13 13" stroke="#393939" stroke-linecap="round" />
@@ -5551,6 +5560,7 @@ ${[
             ),
             BgWidget.save(
               gvc.event(() => {
+
                 gvc.closeDialog();
                 next();
               }),

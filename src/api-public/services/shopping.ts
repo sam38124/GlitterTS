@@ -2656,7 +2656,25 @@ export class Shopping {
           app: this.app,
         });
         checkPoint('manual order done');
-
+        new ManagerNotify(this.app).checkout({
+          orderData: carData,
+          status: 0,
+        });
+        for (const email of new Set(
+          [carData.customer_info, carData.user_info].map(dd => {
+            return dd && dd.email;
+          })
+        )) {
+          if (email) {
+            AutoSendEmail.customerOrder(
+              this.app,
+              'auto-email-order-create',
+              carData.orderID,
+              email,
+              carData.language!!
+            );
+          }
+        }
         return {
           data: carData,
         };
@@ -2705,7 +2723,21 @@ export class Shopping {
         await Promise.all(saveStockArray.map(dd => dd()));
         await this.releaseCheckout((data.pay_status as any) ?? 0, carData.orderID);
         checkPoint('release pos checkout');
-
+        for (const email of new Set(
+          [carData.customer_info, carData.user_info].map(dd => {
+            return dd && dd.email;
+          })
+        )) {
+          if (email) {
+            AutoSendEmail.customerOrder(
+              this.app,
+              'auto-email-order-create',
+              carData.orderID,
+              email,
+              carData.language!!
+            );
+          }
+        }
         return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
       }
 
