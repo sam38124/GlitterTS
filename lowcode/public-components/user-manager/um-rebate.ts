@@ -48,6 +48,11 @@ export class UMRebate {
             view: true,
         };
 
+        let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
+        gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
+            changePage = cl.changePage;
+        });
+
         return gvc.bindView({
             bind: ids.view,
             view: () => {
@@ -152,13 +157,24 @@ export class UMRebate {
                                                 })(),
                                                 (() => {
                                                     if (item.orderID) {
-                                                        if (item.money > 0) {
-                                                            return `${Language.text('order')}『 ${item.orderID} 』${Language.text('obtain')} ${vm.rebateConfig.title}  `;
-                                                        } else {
-                                                            return `${Language.text('order')}『 ${item.orderID} 』${Language.text('use')} ${vm.rebateConfig.title}  `;
-                                                        }
+                                                      const orderLink = UmClass.style_components.blueNote(
+                                                        item.orderID,
+                                                        gvc.event(() => {
+                                                          gvc.glitter.setUrlParameter('cart_token', item.orderID);
+                                                          changePage('order_detail', 'page', {});
+                                                        }),
+                                                        'font-size: 16px;'
+                                                      );
+
+                                                      const moneyText =
+                                                        item.money > 0 ? Language.text('obtain') : Language.text('use');
+
+                                                      return `${Language.text('order')}『 ${orderLink} 』${moneyText} ${vm.rebateConfig.title}`;
                                                     } else {
-                                                        return item.note || `${Language.text('manual_adjustment')} ${vm.rebateConfig.title}`;
+                                                      return (
+                                                        item.note ||
+                                                        `${Language.text('manual_adjustment')} ${vm.rebateConfig.title}`
+                                                      );
                                                     }
                                                 })(),
                                                 item.money.toLocaleString(),
