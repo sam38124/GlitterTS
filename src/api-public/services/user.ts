@@ -2557,6 +2557,9 @@ or
       case 'list-header-view':
         value = FormCheck.initialListHeader(value);
         break;
+      case 'login_config':
+        value = FormCheck.initialLoginConfig(value);
+        break;
     }
   }
 

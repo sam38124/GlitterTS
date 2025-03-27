@@ -771,7 +771,7 @@ export class ShoppingProductSetting {
                               </div>
                             `;
                           } catch (e) {
-                            console.log(e);
+                            console.error(e);
                             return `${e}`;
                           }
                         },
@@ -1040,7 +1040,6 @@ export class ShoppingProductSetting {
                                                 const inputValue = parseInt(e.value, 10) || 0;
                                                 variant.stockList[stockSpot.id].count = inputValue;
                                                 variant.stock += inputValue;
-                                                console.log('variant.stock -- ', variant.stock);
                                               })}"
                                             />
                                           `;
@@ -1817,18 +1816,15 @@ export class ShoppingProductSetting {
                 >
                   <div
                     class="d-flex align-items-center"
-                    style="gap: 10px; flex-wrap: wrap;background-color:white !important;"
+                    style="gap: 10px; flex-wrap: wrap; background-color:white !important;"
                   >
                     ${(() => {
                       const tempHTML = [];
                       temp.option.map((data: any, index: number) => {
                         tempHTML.push(html`
-                          <div
-                            class="d-flex align-items-center"
-                            style="height: 24px;border-radius: 5px;background: #F2F2F2;display: flex;padding: 1px 6px;justify-content: center;align-items: center;gap: 4px;"
-                          >
-                            ${data.title}<i
-                              class="fa-solid fa-xmark ms-1 fs-5"
+                          <div class="d-flex align-items-center spec-option" style="height: 32px;">
+                            ${Tool.truncateString(data.title, 30)}<i
+                              class="fa-solid fa-xmark ms-2 fs-5"
                               style="font-size: 12px;cursor: pointer;"
                               onclick="${gvc.event(() => {
                                 temp.option.splice(index, 1);
@@ -1915,6 +1911,7 @@ export class ShoppingProductSetting {
                   }, 30);
                 });
               };
+
               document.removeEventListener('keydown', gvc.glitter.share.keyDownEvent[vm.enterId]);
 
               gvc.glitter.share.keyDownEvent[vm.enterId] = (event: any) => {

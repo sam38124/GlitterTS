@@ -295,6 +295,13 @@ class FormCheck {
         (_b = data['order-list']) !== null && _b !== void 0 ? _b : (data['order-list'] = ['訂單編號', '訂單日期', '訂購人', '訂單金額', '付款狀態', '出貨狀態', '訂單狀態']);
         return data;
     }
+    static initialLoginConfig(data) {
+        data = Object.assign({ sorted_voucher: {
+                toggle: false,
+                array: [],
+            } }, (data !== null && data !== void 0 ? data : {}));
+        return data;
+    }
 }
 exports.FormCheck = FormCheck;
 //# sourceMappingURL=form-check.js.map

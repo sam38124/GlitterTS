@@ -503,16 +503,16 @@ router.get('/voucher', async (req, resp) => {
             limit: Number(req.query.limit) || 50,
             id: req.query.id,
         });
-        const isManager = await ut_permission_1.UtPermission.isManager(req);
-        if (isManager && !req.query.user_email) {
-            return response_1.default.succ(resp, vouchers);
-        }
         if (req.query.date_confirm === 'true') {
             vouchers.data = vouchers.data.filter((voucher) => {
                 const { start_ISO_Date, end_ISO_Date } = voucher.content;
                 const now = new Date().getTime();
                 return new Date(start_ISO_Date).getTime() < now && (!end_ISO_Date || new Date(end_ISO_Date).getTime() > now);
             });
+        }
+        const isManager = await ut_permission_1.UtPermission.isManager(req);
+        if (isManager && !req.query.user_email) {
+            return response_1.default.succ(resp, vouchers);
         }
         const userClass = new user_js_1.User(req.get('g-app'));
         const groupList = await userClass.getUserGroups();

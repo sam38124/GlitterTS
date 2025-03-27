@@ -219,7 +219,7 @@ export class ShoppingSettingBasic {
                         return {
                             bind: vm.id,
                             view: () => __awaiter(this, void 0, void 0, function* () {
-                                return html ` <div class="d-flex align-items-center justify-content-end ">
+                                return html ` <div class="d-flex align-items-center justify-content-end">
                         <div class="d-flex align-items-center gap-2">
                           <div style="color: #393939; font-weight: 700;">
                             ${cat_title}簡述 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}
@@ -862,6 +862,18 @@ export class ShoppingSettingBasic {
                 BgWidget.mainCard(obj.gvc.bindView(() => {
                     const specid = obj.gvc.glitter.getUUID();
                     let editIndex = -1;
+                    gvc.addStyle(`
+                .spec-option {
+                  border: 0.25px solid #393939;
+                  background-color: #f7f7f7;
+                  border-radius: 0.5rem;
+                  padding: 4px 8px;
+                  font-size: 14px;
+                  min-width: 40px;
+                  min-height: 24px;
+                  text-align: center;
+                }
+              `);
                     return {
                         bind: specid,
                         dataList: [{ obj: createPage, key: 'page' }],
@@ -929,15 +941,6 @@ export class ShoppingSettingBasic {
                                                         var _a;
                                                         dd.language_title = ((_a = dd.language_title) !== null && _a !== void 0 ? _a : {});
                                                         if (editSpectPage[specIndex].type == 'show') {
-                                                            gvc.addStyle(`
-                                      .option {
-                                        cursor: move;
-                                        background-color: #f7f7f7;
-                                      }
-                                      .pen {
-                                        display: none;
-                                      }
-                                    `);
                                                             return gvc.bindView({
                                                                 bind: gvc.glitter.getUUID(),
                                                                 view: () => {
@@ -951,23 +954,20 @@ export class ShoppingSettingBasic {
                                                                             opt.language_title = ((_a = opt.language_title) !== null && _a !== void 0 ? _a : {});
                                                                             returnHTML += html `
                                                 <div
-                                                  class="option sortable-item-${specIndex}"
-                                                  style="border-radius: 5px; padding: 1px 9px; font-size: 14px;"
+                                                  class="spec-option"
+                                                  style="cursor: move;"
                                                   draggable="true"
                                                   data-index="${index}"
                                                 >
-                                                  ${opt.language_title[sel_lan()] || opt.title}
+                                                  ${Tool.truncateString(opt.language_title[sel_lan()] || opt.title, 30)}
                                                 </div>
                                               `;
                                                                         });
                                                                         return html `
-                                              <div
-                                                class="d-flex w-100 sortable-list-${specIndex}"
-                                                style="gap: 12px; flex-wrap: wrap"
-                                              >
+                                              <div class="d-flex w-100 flex-wrap gap-2" id="sortable-list-${specIndex}">
                                                 ${returnHTML}
                                                 <div
-                                                  class="position-absolute "
+                                                  class="position-absolute"
                                                   style="right:12px;top:50%;transform: translateY(-50%);"
                                                   onclick="${gvc.event(() => {
                                                                             createPage.page = 'add';
@@ -976,8 +976,7 @@ export class ShoppingSettingBasic {
                                                                         })}"
                                                 >
                                                   <svg
-                                                    class="pen"
-                                                    style="cursor:pointer"
+                                                    style="cursor: pointer;"
                                                     xmlns="http://www.w3.org/2000/svg"
                                                     width="16"
                                                     height="17"
@@ -1011,58 +1010,38 @@ export class ShoppingSettingBasic {
                                                                     style: 'gap: 6px; align-items: flex-start; padding: 12px 0;',
                                                                 },
                                                                 onCreate: () => {
-                                                                    const list = document.querySelector(`.sortable-list-${specIndex}`);
-                                                                    if (list) {
-                                                                        let draggingItem = null;
-                                                                        let sortableItems = null;
-                                                                        list.addEventListener('dragstart', e => {
-                                                                            draggingItem = e.target;
-                                                                            draggingItem.classList.add('dragging');
-                                                                            sortableItems = list.querySelectorAll(`.sortable-item-${specIndex}`);
-                                                                        });
-                                                                        list.addEventListener('dragend', () => {
-                                                                            if (!draggingItem)
+                                                                    gvc.addMtScript([{ src: 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js' }], () => {
+                                                                        const interval = setInterval(() => {
+                                                                            const Sortable = window.Sortable;
+                                                                            if (!Sortable)
                                                                                 return;
-                                                                            draggingItem.classList.remove('dragging');
-                                                                            sortableItems === null || sortableItems === void 0 ? void 0 : sortableItems.forEach(item => item.classList.remove('over'));
-                                                                            draggingItem = null;
-                                                                            updateSpecOrder();
-                                                                        });
-                                                                        list.addEventListener('dragover', e => {
-                                                                            e.preventDefault();
-                                                                            if (!draggingItem)
-                                                                                return;
-                                                                            const draggingOverItem = getDragAfterElement(list, e.clientX);
-                                                                            if (draggingOverItem && draggingOverItem !== draggingItem.nextSibling) {
-                                                                                draggingOverItem.classList.add('over');
-                                                                                list.insertBefore(draggingItem, draggingOverItem);
-                                                                            }
-                                                                            else if (!draggingOverItem && draggingItem !== list.lastChild) {
-                                                                                list.appendChild(draggingItem);
-                                                                            }
-                                                                        });
-                                                                        function getDragAfterElement(container, x) {
-                                                                            const draggableElements = Array.from(container.querySelectorAll(`.sortable-item-${specIndex}:not(.dragging)`));
-                                                                            let closestElement = null;
-                                                                            let closestOffset = Number.NEGATIVE_INFINITY;
-                                                                            for (const child of draggableElements) {
-                                                                                const box = child.getBoundingClientRect();
-                                                                                const offset = x - box.left - box.height / 2;
-                                                                                if (offset < 0 && offset > closestOffset) {
-                                                                                    closestOffset = offset;
-                                                                                    closestElement = child;
+                                                                            clearInterval(interval);
+                                                                            try {
+                                                                                function swapArray(arr, index1, index2) {
+                                                                                    if (index1 === index2)
+                                                                                        return;
+                                                                                    const [item] = arr.splice(index1, 1);
+                                                                                    arr.splice(index2, 0, item);
                                                                                 }
+                                                                                const dragId = `sortable-list-${specIndex}`;
+                                                                                const dragEl = document.getElementById(dragId);
+                                                                                if (!dragEl) {
+                                                                                    console.warn(`Element with id '${dragId}' not found.`);
+                                                                                    return;
+                                                                                }
+                                                                                Sortable.create(dragEl, {
+                                                                                    group: 'foo',
+                                                                                    animation: 150,
+                                                                                    onEnd(evt) {
+                                                                                        swapArray(postMD.specs[specIndex].option, evt.oldIndex, evt.newIndex);
+                                                                                    },
+                                                                                });
                                                                             }
-                                                                            return closestElement;
-                                                                        }
-                                                                        function updateSpecOrder() {
-                                                                            const indexSet = [...list.children]
-                                                                                .filter(item => item.classList.contains('option'))
-                                                                                .map(item => item.dataset.index);
-                                                                            postMD.specs[specIndex].option = indexSet.map(item => dd.option[item]);
-                                                                            gvc.notifyDataChange(specid);
-                                                                        }
-                                                                    }
+                                                                            catch (e) {
+                                                                                console.error('SortableJS initialization error:', e);
+                                                                            }
+                                                                        }, 100);
+                                                                    }, () => console.error('Failed to load SortableJS'));
                                                                 },
                                                             });
                                                         }
@@ -1289,7 +1268,7 @@ export class ShoppingSettingBasic {
                             };
                         })));
                         map_.push(BgWidget.mainCard(html `
-                    <div class="d-flex flex-column " style="gap:18px;">
+                    <div class="d-flex flex-column" style="gap:18px;">
                       <div class="d-flex flex-column guide5-7" style="gap:18px;">
                         <div style="font-weight: 700;">商品材積</div>
                         <div class="row">
@@ -1467,7 +1446,7 @@ export class ShoppingSettingBasic {
                                                 type: 'number',
                                             })}
                                 </div>
-                                <div class="fw-50 " style="flex:1;">
+                                <div class="fw-50" style="flex:1;">
                                   ${BgWidget.editeInput({
                                                 gvc: gvc,
                                                 title: '',
@@ -2301,7 +2280,7 @@ export class ShoppingSettingBasic {
                                                                     : `${['售價*', '庫存數量*', '運費計算方式']
                                                                         .map(dd => {
                                                                         return html ` <div
-                                                    style="color:#393939;font-size: 16px;font-weight: 400;width: 20%; "
+                                                    style="color:#393939;font-size: 16px;font-weight: 400;width: 20%;"
                                                   >
                                                     ${dd}
                                                   </div>`;

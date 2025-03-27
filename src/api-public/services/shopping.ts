@@ -3238,7 +3238,12 @@ export class Shopping {
     });
 
     // 確認用戶資訊
-    const userData = (await new User(this.app).getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
+    const userClass = new User(this.app);
+    const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
+
+    // 取得商店優惠券優先級
+    const loginConfig = await userClass.getConfigV2({ key: 'login_config', user_id: 'manager' });
+    const sortedVoucher = loginConfig?.sorted_voucher ?? { toggle: false };
 
     // 取得所有可使用優惠券
     const allVoucher = await this.getAllUseVoucher(userData.userID);
@@ -3416,13 +3421,20 @@ export class Shopping {
     }
 
     // 計算優惠券的訂單折扣
-    function compare(data: VoucherData) {
-      return data.bind
+    function compare(voucher: VoucherData) {
+      return voucher.bind
         .map(item => {
-          const val = parseFloat(data.value);
-          return data.method === 'percent' ? (item.sale_price * val) / 100 : val;
+          const val = parseFloat(voucher.value);
+          return voucher.method === 'percent' ? (item.sale_price * val) / 100 : val;
         })
         .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    }
+
+    // 商家設定手動排序
+    function manualSorted(a: VoucherData, b: VoucherData) {
+      const aIndex = sortedVoucher.array.indexOf(a.id);
+      const bIndex = sortedVoucher.array.indexOf(b.id);
+      return aIndex > bIndex ? 1 : -1;
     }
 
     // 是否可疊加
@@ -3538,6 +3550,9 @@ export class Shopping {
           return [checkSource, checkTarget, setBindProduct, checkCartTotal].every(fn => fn(voucher));
         })
         .sort((a, b) => {
+          if (sortedVoucher.toggle) {
+            return manualSorted(a, b);
+          }
           return compare(b) - compare(a);
         })
         .filter(voucher => {

@@ -598,13 +598,6 @@ router.get('/voucher', async (req: express.Request, resp: express.Response) => {
       id: req.query.id as string,
     });
 
-    const isManager = await UtPermission.isManager(req);
-
-    // 後台列表直接回傳
-    if (isManager && !req.query.user_email) {
-      return response.succ(resp, vouchers);
-    }
-
     // 篩選過期優惠券
     if (req.query.date_confirm === 'true') {
       vouchers.data = vouchers.data.filter((voucher: { content: VoucherData }) => {
@@ -612,6 +605,13 @@ router.get('/voucher', async (req: express.Request, resp: express.Response) => {
         const now = new Date().getTime();
         return new Date(start_ISO_Date).getTime() < now && (!end_ISO_Date || new Date(end_ISO_Date).getTime() > now);
       });
+    }
+
+    const isManager = await UtPermission.isManager(req);
+
+    // 後台列表直接回傳
+    if (isManager && !req.query.user_email) {
+      return response.succ(resp, vouchers);
     }
 
     // 獲取用戶資料

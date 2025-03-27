@@ -2358,13 +2358,16 @@ class Shopping {
         }
     }
     async checkVoucher(cart) {
-        var _a;
+        var _a, _b;
         cart.discount = 0;
         cart.lineItems.map(item => {
             item.discount_price = 0;
             item.rebate = 0;
         });
-        const userData = (_a = (await new user_js_1.User(this.app).getUserData(cart.email, 'email_or_phone'))) !== null && _a !== void 0 ? _a : { userID: -1 };
+        const userClass = new user_js_1.User(this.app);
+        const userData = (_a = (await userClass.getUserData(cart.email, 'email_or_phone'))) !== null && _a !== void 0 ? _a : { userID: -1 };
+        const loginConfig = await userClass.getConfigV2({ key: 'login_config', user_id: 'manager' });
+        const sortedVoucher = (_b = loginConfig === null || loginConfig === void 0 ? void 0 : loginConfig.sorted_voucher) !== null && _b !== void 0 ? _b : { toggle: false };
         const allVoucher = await this.getAllUseVoucher(userData.userID);
         const reduceDiscount = {};
         let overlay = false;
@@ -2505,13 +2508,18 @@ class Shopping {
             }
             return false;
         }
-        function compare(data) {
-            return data.bind
+        function compare(voucher) {
+            return voucher.bind
                 .map(item => {
-                const val = parseFloat(data.value);
-                return data.method === 'percent' ? (item.sale_price * val) / 100 : val;
+                const val = parseFloat(voucher.value);
+                return voucher.method === 'percent' ? (item.sale_price * val) / 100 : val;
             })
                 .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+        }
+        function manualSorted(a, b) {
+            const aIndex = sortedVoucher.array.indexOf(a.id);
+            const bIndex = sortedVoucher.array.indexOf(b.id);
+            return aIndex > bIndex ? 1 : -1;
         }
         function checkOverlay(voucher) {
             if (overlay || voucher.overlay)
@@ -2620,6 +2628,9 @@ class Shopping {
                 return [checkSource, checkTarget, setBindProduct, checkCartTotal].every(fn => fn(voucher));
             })
                 .sort((a, b) => {
+                if (sortedVoucher.toggle) {
+                    return manualSorted(a, b);
+                }
                 return compare(b) - compare(a);
             })
                 .filter(voucher => {
@@ -2701,7 +2712,6 @@ class Shopping {
                 else if (!update.orderData.user_info.shipment_number) {
                     delete update.orderData.user_info.shipment_date;
                 }
-                console.log(`update-progress==>`, updateProgress);
                 if (prevProgress !== updateProgress) {
                     if (updateProgress === 'shipping') {
                         await this.sendNotifications(orderData, 'shipment');

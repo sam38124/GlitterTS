@@ -323,7 +323,8 @@ export class ApiUser {
             if (!value)
                 return [];
             if (Array.isArray(value) && value.length > 0 && value.every(Boolean)) {
-                return `${key}=${value.map((dd, index) => {
+                return `${key}=${value
+                    .map((dd, index) => {
                     if (['last_shipment_date', 'last_order_time'].includes(key)) {
                         if (index === 0) {
                             return new Date(`${dd} 00:00:00`).toISOString();
@@ -333,7 +334,8 @@ export class ApiUser {
                         }
                     }
                     return dd;
-                }).join(',')}`;
+                })
+                    .join(',')}`;
             }
             if (typeof value === 'object' && value !== null) {
                 const valObj = value;

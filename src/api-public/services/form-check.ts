@@ -1,5 +1,5 @@
 export class FormCheck {
-  public static initialRegisterForm(form_formats: any[]) {
+  static initialRegisterForm(form_formats: any[]) {
     //沒有姓名欄位
     if (
       !form_formats.find((dd: any) => {
@@ -221,7 +221,8 @@ export class FormCheck {
       });
     }
   }
-  public static initialUserForm(form_formats: any[]) {
+
+  static initialUserForm(form_formats: any[]) {
     //沒有姓名欄位
     const userObject = [
       { key: 'carrier_number', title: '手機載具' },
@@ -292,7 +293,8 @@ export class FormCheck {
 
     return form_formats;
   }
-  public static initialListHeader(data?: any) {
+
+  static initialListHeader(data?: any) {
     data = data || {};
     data['user-list'] ??= [
       '顧客名稱',
@@ -305,6 +307,17 @@ export class FormCheck {
       '用戶狀態',
     ];
     data['order-list'] ??= ['訂單編號', '訂單日期', '訂購人', '訂單金額', '付款狀態', '出貨狀態', '訂單狀態'];
+    return data;
+  }
+
+  static initialLoginConfig(data?: any) {
+    data = {
+      sorted_voucher: {
+        toggle: false,
+        array: [],
+      },
+      ...(data ?? {}),
+    };
     return data;
   }
 }

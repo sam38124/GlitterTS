@@ -342,21 +342,21 @@ export class ApiUser {
     if (!obj) return [];
 
     return Object.entries(obj).flatMap(([key, value]) => {
-
       if (!value) return []; // 排除 null、undefined 或 false
 
       if (Array.isArray(value) && value.length > 0 && value.every(Boolean)) {
-
-        return `${key}=${value.map((dd,index)=>{
-          if(['last_shipment_date','last_order_time'].includes(key)){
-            if(index===0){
-              return  new Date(`${dd} 00:00:00`).toISOString()
-            }else{
-              return  new Date(`${dd} 23:59:59`).toISOString()
+        return `${key}=${value
+          .map((dd, index) => {
+            if (['last_shipment_date', 'last_order_time'].includes(key)) {
+              if (index === 0) {
+                return new Date(`${dd} 00:00:00`).toISOString();
+              } else {
+                return new Date(`${dd} 23:59:59`).toISOString();
+              }
             }
-          }
-          return dd
-        }).join(',')}`;
+            return dd;
+          })
+          .join(',')}`;
       }
 
       if (typeof value === 'object' && value !== null) {

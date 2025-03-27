@@ -2044,6 +2044,9 @@ or
             case 'list-header-view':
                 value = form_check_js_1.FormCheck.initialListHeader(value);
                 break;
+            case 'login_config':
+                value = form_check_js_1.FormCheck.initialLoginConfig(value);
+                break;
         }
     }
     async checkEmailExists(email) {

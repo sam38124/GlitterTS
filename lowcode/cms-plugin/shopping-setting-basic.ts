@@ -244,7 +244,7 @@ export class ShoppingSettingBasic {
                 return {
                   bind: vm.id,
                   view: async () => {
-                    return html` <div class="d-flex align-items-center justify-content-end ">
+                    return html` <div class="d-flex align-items-center justify-content-end">
                         <div class="d-flex align-items-center gap-2">
                           <div style="color: #393939; font-weight: 700;">
                             ${cat_title}簡述 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}
@@ -980,6 +980,20 @@ export class ShoppingSettingBasic {
             obj.gvc.bindView(() => {
               const specid = obj.gvc.glitter.getUUID();
               let editIndex = -1;
+
+              gvc.addStyle(`
+                .spec-option {
+                  border: 0.25px solid #393939;
+                  background-color: #f7f7f7;
+                  border-radius: 0.5rem;
+                  padding: 4px 8px;
+                  font-size: 14px;
+                  min-width: 40px;
+                  min-height: 24px;
+                  text-align: center;
+                }
+              `);
+
               return {
                 bind: specid,
                 dataList: [{ obj: createPage, key: 'page' }],
@@ -1053,16 +1067,6 @@ export class ShoppingSettingBasic {
                                 view: () => {
                                   dd.language_title = (dd.language_title ?? ({} as any)) as any;
                                   if (editSpectPage[specIndex].type == 'show') {
-                                    gvc.addStyle(`
-                                      .option {
-                                        cursor: move;
-                                        background-color: #f7f7f7;
-                                      }
-                                      .pen {
-                                        display: none;
-                                      }
-                                    `);
-
                                     return gvc.bindView({
                                       bind: gvc.glitter.getUUID(),
                                       view: () => {
@@ -1075,23 +1079,23 @@ export class ShoppingSettingBasic {
                                               opt.language_title = (opt.language_title ?? ({} as any)) as any;
                                               returnHTML += html`
                                                 <div
-                                                  class="option sortable-item-${specIndex}"
-                                                  style="border-radius: 5px; padding: 1px 9px; font-size: 14px;"
+                                                  class="spec-option"
+                                                  style="cursor: move;"
                                                   draggable="true"
                                                   data-index="${index}"
                                                 >
-                                                  ${(opt.language_title as any)[sel_lan()] || opt.title}
+                                                  ${Tool.truncateString(
+                                                    (opt.language_title as any)[sel_lan()] || opt.title,
+                                                    30
+                                                  )}
                                                 </div>
                                               `;
                                             });
                                             return html`
-                                              <div
-                                                class="d-flex w-100 sortable-list-${specIndex}"
-                                                style="gap: 12px; flex-wrap: wrap"
-                                              >
+                                              <div class="d-flex w-100 flex-wrap gap-2" id="sortable-list-${specIndex}">
                                                 ${returnHTML}
                                                 <div
-                                                  class="position-absolute "
+                                                  class="position-absolute"
                                                   style="right:12px;top:50%;transform: translateY(-50%);"
                                                   onclick="${gvc.event(() => {
                                                     createPage.page = 'add';
@@ -1100,8 +1104,7 @@ export class ShoppingSettingBasic {
                                                   })}"
                                                 >
                                                   <svg
-                                                    class="pen"
-                                                    style="cursor:pointer"
+                                                    style="cursor: pointer;"
                                                     xmlns="http://www.w3.org/2000/svg"
                                                     width="16"
                                                     height="17"
@@ -1135,88 +1138,47 @@ export class ShoppingSettingBasic {
                                         style: 'gap: 6px; align-items: flex-start; padding: 12px 0;',
                                       },
                                       onCreate: () => {
-                                        const list = document.querySelector(
-                                          `.sortable-list-${specIndex}`
-                                        ) as HTMLElement;
+                                        gvc.addMtScript(
+                                          [{ src: 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js' }],
+                                          () => {
+                                            const interval = setInterval(() => {
+                                              const Sortable = (window as any).Sortable;
+                                              if (!Sortable) return;
 
-                                        if (list) {
-                                          let draggingItem: HTMLElement | null = null;
-                                          let sortableItems: NodeListOf<HTMLElement> | null = null; // 儲存 sortable-items，避免頻繁 querySelectorAll
+                                              clearInterval(interval);
 
-                                          list.addEventListener('dragstart', e => {
-                                            draggingItem = e.target as HTMLElement;
-                                            draggingItem.classList.add('dragging');
+                                              try {
+                                                function swapArray(arr: any[], index1: number, index2: number) {
+                                                  if (index1 === index2) return;
+                                                  const [item] = arr.splice(index1, 1);
+                                                  arr.splice(index2, 0, item);
+                                                }
 
-                                            // 預先查找 sortable-items
-                                            sortableItems = list.querySelectorAll(`.sortable-item-${specIndex}`);
-                                          });
+                                                const dragId = `sortable-list-${specIndex}`;
+                                                const dragEl = document.getElementById(dragId);
+                                                if (!dragEl) {
+                                                  console.warn(`Element with id '${dragId}' not found.`);
+                                                  return;
+                                                }
 
-                                          list.addEventListener('dragend', () => {
-                                            if (!draggingItem) return;
-
-                                            draggingItem.classList.remove('dragging');
-
-                                            // 清除所有 `over` 樣式
-                                            sortableItems?.forEach(item => item.classList.remove('over'));
-                                            draggingItem = null;
-
-                                            updateSpecOrder();
-                                          });
-
-                                          list.addEventListener('dragover', e => {
-                                            e.preventDefault();
-                                            if (!draggingItem) return;
-
-                                            const draggingOverItem = getDragAfterElement(
-                                              list,
-                                              (e as MouseEvent).clientX
-                                            );
-
-                                            // 避免無謂的 DOM 操作
-                                            if (draggingOverItem && draggingOverItem !== draggingItem.nextSibling) {
-                                              draggingOverItem.classList.add('over');
-                                              list.insertBefore(draggingItem, draggingOverItem);
-                                            } else if (!draggingOverItem && draggingItem !== list.lastChild) {
-                                              list.appendChild(draggingItem);
-                                            }
-                                          });
-
-                                          // 取得應該插入的拖曳元素目標
-                                          function getDragAfterElement(
-                                            container: HTMLElement,
-                                            x: number
-                                          ): HTMLElement | null {
-                                            const draggableElements: HTMLElement[] = Array.from(
-                                              container.querySelectorAll(`.sortable-item-${specIndex}:not(.dragging)`)
-                                            );
-
-                                            let closestElement: HTMLElement | null = null;
-                                            let closestOffset = Number.NEGATIVE_INFINITY;
-
-                                            // 先計算所有元素的 `getBoundingClientRect()`，避免重複計算
-                                            for (const child of draggableElements) {
-                                              const box = child.getBoundingClientRect();
-                                              const offset = x - box.left - box.height / 2;
-
-                                              if (offset < 0 && offset > closestOffset) {
-                                                closestOffset = offset;
-                                                closestElement = child;
+                                                Sortable.create(dragEl, {
+                                                  group: 'foo',
+                                                  animation: 150,
+                                                  onEnd(evt: any) {
+                                                    swapArray(
+                                                      postMD.specs[specIndex].option,
+                                                      evt.oldIndex,
+                                                      evt.newIndex
+                                                    );
+                                                  },
+                                                });
+                                              } catch (e) {
+                                                console.error('SortableJS initialization error:', e);
                                               }
-                                            }
-
-                                            return closestElement;
-                                          }
-
-                                          // 更新排序後的選項
-                                          function updateSpecOrder() {
-                                            const indexSet = [...list.children]
-                                              .filter(item => item.classList.contains('option'))
-                                              .map(item => (item as any).dataset.index);
-
-                                            postMD.specs[specIndex].option = indexSet.map(item => dd.option[item]);
-                                            gvc.notifyDataChange(specid);
-                                          }
-                                        }
+                                            }, 100);
+                                          },
+                                          () => console.error('Failed to load SortableJS')
+                                        );
                                       },
                                     });
                                   }
@@ -1472,7 +1434,7 @@ export class ShoppingSettingBasic {
                 );
                 map_.push(
                   BgWidget.mainCard(html`
-                    <div class="d-flex flex-column " style="gap:18px;">
+                    <div class="d-flex flex-column" style="gap:18px;">
                       <div class="d-flex flex-column guide5-7" style="gap:18px;">
                         <div style="font-weight: 700;">商品材積</div>
                         <div class="row">
@@ -1668,7 +1630,7 @@ export class ShoppingSettingBasic {
                                     type: 'number',
                                   })}
                                 </div>
-                                <div class="fw-50 " style="flex:1;">
+                                <div class="fw-50" style="flex:1;">
                                   ${BgWidget.editeInput({
                                     gvc: gvc,
                                     title: '',
@@ -2554,7 +2516,7 @@ export class ShoppingSettingBasic {
                                             : `${['售價*', '庫存數量*', '運費計算方式']
                                                 .map(dd => {
                                                   return html` <div
-                                                    style="color:#393939;font-size: 16px;font-weight: 400;width: 20%; "
+                                                    style="color:#393939;font-size: 16px;font-weight: 400;width: 20%;"
                                                   >
                                                     ${dd}
                                                   </div>`;
