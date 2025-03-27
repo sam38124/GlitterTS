@@ -7,7 +7,6 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { Language } from '../glitter-base/global/language.js';
 import { Tool } from '../modules/tool.js';
 import { imageLibrary } from '../modules/image-library.js';
-import { CheckInput } from '../modules/checkInput.js';
 import { ProductSetting } from './module/product-setting.js';
 import { QuestionInfo } from './module/question-info.js';
 import { ProductAi } from './ai-generator/product-ai.js';
@@ -18,12 +17,6 @@ const html = String.raw;
 
 export class ShoppingSettingBasic {
   public static updateVariants(gvc: GVC, postMD: Product, shipment_config: any, variantsViewID: string, obj: any) {
-    if (postMD.product_category === 'kitchen') {
-      postMD.specs = postMD.specs.filter(dd => Array.isArray(dd.option) && dd.option.length);
-      obj.gvc.notifyDataChange(variantsViewID);
-      return;
-    }
-    postMD.specs = postMD.specs.filter(dd => Array.isArray(dd.option) && dd.option.length);
     const specs: any = {};
 
     function getCombinations(specs: any) {
@@ -46,11 +39,18 @@ export class ShoppingSettingBasic {
       return result;
     }
 
+    if (postMD.product_category === 'kitchen') {
+      postMD.specs = postMD.specs.filter(dd => Array.isArray(dd.option) && dd.option.length);
+      obj.gvc.notifyDataChange(variantsViewID);
+      return;
+    }
+    postMD.specs = postMD.specs.filter(dd => Array.isArray(dd.option) && dd.option.length);
     postMD.specs.map(dd => {
       specs[dd.title] = dd.option.map((d1: any) => {
         return d1.title;
       });
     });
+
     const combinations = getCombinations(specs);
     combinations.map((d1: any) => {
       const spec = postMD.specs.map(dd => d1[dd.title]);
@@ -82,6 +82,7 @@ export class ShoppingSettingBasic {
         });
       }
     });
+
     postMD.variants = postMD.variants.filter(variant => {
       let pass = true;
       let index = 0;
@@ -99,7 +100,7 @@ export class ShoppingSettingBasic {
       }
       return pass && variant.spec.length === postMD.specs.length;
     });
-    // 當規格為空時，需補一個進去
+
     if (postMD.variants.length === 0) {
       postMD.variants.push({
         show_understocking: 'true',
@@ -126,7 +127,9 @@ export class ShoppingSettingBasic {
       dd.checked = undefined;
       return dd;
     });
+
     obj.vm.replaceData = postMD;
+
     if (postMD.multi_sale_price) {
       postMD.multi_sale_price.forEach(m => {
         const variantMaps = new Map(m.variants.map(v => [v.spec.join(','), v]));
@@ -141,6 +144,7 @@ export class ShoppingSettingBasic {
         m.variants = temp;
       });
     }
+
     obj.gvc.notifyDataChange(variantsViewID);
   }
 
@@ -160,11 +164,13 @@ export class ShoppingSettingBasic {
     const gvc = obj.gvc;
     const postMD = obj.postMD;
     const vm = obj.vm2;
+    const language_data = obj.language_data;
     const shipment_config = obj.shipment_config;
     const variantsViewID = gvc.glitter.getUUID();
     const dialog = new ShareDialog(gvc.glitter);
     const sel_lan = () => vm.language;
     let selectFunRow = false;
+    let createPage: any = { page: 'add' };
 
     function checkSpecSingle() {
       if (postMD.specs.length > 0) {
@@ -189,11 +195,8 @@ export class ShoppingSettingBasic {
       }
     }
 
-    let createPage: any = {
-      page: 'add',
-    };
-    const language_data = obj.language_data;
     ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
+
     const cat_title = (() => {
       switch (postMD.product_category) {
         case 'commodity':
@@ -206,6 +209,7 @@ export class ShoppingSettingBasic {
           return '商品';
       }
     })();
+
     return BgWidget.container1x2(
       {
         html: [
@@ -1050,6 +1054,12 @@ export class ShoppingSettingBasic {
                           obj.gvc.notifyDataChange([specid, 'productInf', 'spec_text_show']);
                         },
                         array: () => {
+                          function swapArray(arr: any[], index1: number, index2: number) {
+                            if (index1 === index2) return;
+                            const [item] = arr.splice(index1, 1);
+                            arr.splice(index2, 0, item);
+                          }
+
                           return postMD.specs.map((dd, specIndex: number) => {
                             let temp: any = {
                               title: '',
@@ -1148,21 +1158,16 @@ export class ShoppingSettingBasic {
                                               clearInterval(interval);
 
                                               try {
-                                                function swapArray(arr: any[], index1: number, index2: number) {
-                                                  if (index1 === index2) return;
-                                                  const [item] = arr.splice(index1, 1);
-                                                  arr.splice(index2, 0, item);
-                                                }
-
                                                 const dragId = `sortable-list-${specIndex}`;
                                                 const dragEl = document.getElementById(dragId);
+
                                                 if (!dragEl) {
                                                   console.warn(`Element with id '${dragId}' not found.`);
                                                   return;
                                                 }
 
                                                 Sortable.create(dragEl, {
-                                                  group: 'foo',
+                                                  group: { name: dragId, pull: false, put: false },
                                                   animation: 150,
                                                   onEnd(evt: any) {
                                                     swapArray(
@@ -2832,6 +2837,9 @@ export class ShoppingSettingBasic {
                                                     return gvc.bindView({
                                                       bind: viewID,
                                                       view: () => {
+                                                        if (postMD.product_category === 'weighing') {
+                                                          data.shipment_type = 'none';
+                                                        }
                                                         return html`
                                                           <div
                                                             style="background-color: white;position:relative;display: flex;padding: 8px 0px;align-items: center;border-radius: 10px;width:100%;"
@@ -2945,6 +2953,9 @@ export class ShoppingSettingBasic {
                                                                 onchange="${gvc.event(e => {
                                                                   data.shipment_type = e.value;
                                                                 })}"
+                                                                ${postMD.product_category === 'weighing'
+                                                                  ? 'disabled'
+                                                                  : ''}
                                                               >
                                                                 <option
                                                                   value="none"
@@ -3045,11 +3056,7 @@ export class ShoppingSettingBasic {
                             value="${language_data.seo.domain || ''}"
                             onchange="${gvc.event(e => {
                               let text = e.value;
-                              if (!CheckInput.isChineseEnglishNumberHyphen(text)) {
-                                dialog.infoMessage({ text: '連結僅限使用中英文數字與連接號' });
-                              } else {
-                                language_data.seo.domain = text;
-                              }
+                              language_data.seo.domain = text;
                               gvc.notifyDataChange('seo');
                             })}"
                           />
@@ -3405,28 +3412,39 @@ ${language_data.seo.content ?? ''}</textarea
                   })()
                 )}`
             ),
-            BgWidget.mainCard(html`
-              <div class="mb-2" style="font-weight: 700;">銷售管道</div>
-              ${BgWidget.multiCheckboxContainer(
-                gvc,
-                [
-                  { key: 'normal', name: 'APP & 官網' },
-                  { key: 'pos', name: 'POS' },
-                ],
-                postMD.channel ?? [],
-                text => {
-                  postMD.channel = text as ('normal' | 'pos')[];
-                },
-                { single: false }
-              )}
-              <div class="${postMD.shopee_id ? `d-flex` : `d-none`} align-items-center mt-1" style="gap:6px;">
-                <img
-                  src="https://deo.shopeemobile.com/shopee/shopee-mobilemall-live-sg/assets/icon_favicon_1_32.0Wecxv.png"
-                  style="width:20px;height:20px;"
-                />
-                蝦皮賣場
-              </div>
-            `),
+            BgWidget.mainCard(
+              (() => {
+                if (postMD.product_category === 'weighing') {
+                  postMD.channel = ['pos'];
+                }
+
+                return html`
+                  <div class="mb-2" style="font-weight: 700;">銷售管道</div>
+                  ${BgWidget.multiCheckboxContainer(
+                    gvc,
+                    [
+                      { key: 'normal', name: 'APP & 官網' },
+                      { key: 'pos', name: 'POS' },
+                    ],
+                    postMD.channel ?? [],
+                    text => {
+                      postMD.channel = text as ('normal' | 'pos')[];
+                    },
+                    {
+                      single: false,
+                      readonly: postMD.product_category === 'weighing',
+                    }
+                  )}
+                  <div class="${postMD.shopee_id ? `d-flex` : `d-none`} align-items-center mt-1" style="gap:6px;">
+                    <img
+                      src="https://deo.shopeemobile.com/shopee/shopee-mobilemall-live-sg/assets/icon_favicon_1_32.0Wecxv.png"
+                      style="width:20px;height:20px;"
+                    />
+                    蝦皮賣場
+                  </div>
+                `;
+              })()
+            ),
             BgWidget.mainCard(
               html` <div class="mb-2 position-relative" style="font-weight: 700;">
                   ${cat_title}促銷標籤 ${BgWidget.questionButton(gvc.event(() => QuestionInfo.promoteLabel(gvc)))}

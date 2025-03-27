@@ -2620,7 +2620,6 @@ class Shopping {
                 var _a;
                 reduceDiscount[item.id] = ((_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0) + item.discount_price * item.count;
             });
-            return true;
         }
         function filterVoucherlist(vouchers) {
             return vouchers
@@ -2628,13 +2627,14 @@ class Shopping {
                 return [checkSource, checkTarget, setBindProduct, checkCartTotal].every(fn => fn(voucher));
             })
                 .sort((a, b) => {
-                if (sortedVoucher.toggle) {
-                    return manualSorted(a, b);
-                }
-                return compare(b) - compare(a);
+                return sortedVoucher.toggle ? manualSorted(a, b) : compare(b) - compare(a);
             })
                 .filter(voucher => {
-                return [checkOverlay, checkCondition, countingBindDiscount].every(fn => fn(voucher));
+                return [checkOverlay, checkCondition].every(fn => fn(voucher));
+            })
+                .map(voucher => {
+                countingBindDiscount(voucher);
+                return voucher;
             });
         }
         const includeDiscountVouchers = [];

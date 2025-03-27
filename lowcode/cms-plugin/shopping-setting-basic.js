@@ -15,7 +15,6 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { Language } from '../glitter-base/global/language.js';
 import { Tool } from '../modules/tool.js';
 import { imageLibrary } from '../modules/image-library.js';
-import { CheckInput } from '../modules/checkInput.js';
 import { ProductSetting } from './module/product-setting.js';
 import { QuestionInfo } from './module/question-info.js';
 import { ProductAi } from './ai-generator/product-ai.js';
@@ -23,12 +22,6 @@ import { ShoppingProductSetting } from './shopping-product-setting.js';
 const html = String.raw;
 export class ShoppingSettingBasic {
     static updateVariants(gvc, postMD, shipment_config, variantsViewID, obj) {
-        if (postMD.product_category === 'kitchen') {
-            postMD.specs = postMD.specs.filter(dd => Array.isArray(dd.option) && dd.option.length);
-            obj.gvc.notifyDataChange(variantsViewID);
-            return;
-        }
-        postMD.specs = postMD.specs.filter(dd => Array.isArray(dd.option) && dd.option.length);
         const specs = {};
         function getCombinations(specs) {
             const keys = Object.keys(specs);
@@ -47,6 +40,12 @@ export class ShoppingSettingBasic {
             combine(0, {});
             return result;
         }
+        if (postMD.product_category === 'kitchen') {
+            postMD.specs = postMD.specs.filter(dd => Array.isArray(dd.option) && dd.option.length);
+            obj.gvc.notifyDataChange(variantsViewID);
+            return;
+        }
+        postMD.specs = postMD.specs.filter(dd => Array.isArray(dd.option) && dd.option.length);
         postMD.specs.map(dd => {
             specs[dd.title] = dd.option.map((d1) => {
                 return d1.title;
@@ -138,15 +137,17 @@ export class ShoppingSettingBasic {
         obj.gvc.notifyDataChange(variantsViewID);
     }
     static main(obj) {
-        var _a, _b;
+        var _a;
         const gvc = obj.gvc;
         const postMD = obj.postMD;
         const vm = obj.vm2;
+        const language_data = obj.language_data;
         const shipment_config = obj.shipment_config;
         const variantsViewID = gvc.glitter.getUUID();
         const dialog = new ShareDialog(gvc.glitter);
         const sel_lan = () => vm.language;
         let selectFunRow = false;
+        let createPage = { page: 'add' };
         function checkSpecSingle() {
             if (postMD.specs.length > 0) {
                 const uniqueTitlesMap = new Map();
@@ -166,10 +167,6 @@ export class ShoppingSettingBasic {
                 postMD.specs = Array.from(uniqueTitlesMap, ([title, option]) => ({ title, option }));
             }
         }
-        let createPage = {
-            page: 'add',
-        };
-        const language_data = obj.language_data;
         ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
         const cat_title = (() => {
             switch (postMD.product_category) {
@@ -923,6 +920,12 @@ export class ShoppingSettingBasic {
                                         obj.gvc.notifyDataChange([specid, 'productInf', 'spec_text_show']);
                                     },
                                     array: () => {
+                                        function swapArray(arr, index1, index2) {
+                                            if (index1 === index2)
+                                                return;
+                                            const [item] = arr.splice(index1, 1);
+                                            arr.splice(index2, 0, item);
+                                        }
                                         return postMD.specs.map((dd, specIndex) => {
                                             let temp = {
                                                 title: '',
@@ -1017,12 +1020,6 @@ export class ShoppingSettingBasic {
                                                                                 return;
                                                                             clearInterval(interval);
                                                                             try {
-                                                                                function swapArray(arr, index1, index2) {
-                                                                                    if (index1 === index2)
-                                                                                        return;
-                                                                                    const [item] = arr.splice(index1, 1);
-                                                                                    arr.splice(index2, 0, item);
-                                                                                }
                                                                                 const dragId = `sortable-list-${specIndex}`;
                                                                                 const dragEl = document.getElementById(dragId);
                                                                                 if (!dragEl) {
@@ -1030,7 +1027,7 @@ export class ShoppingSettingBasic {
                                                                                     return;
                                                                                 }
                                                                                 Sortable.create(dragEl, {
-                                                                                    group: 'foo',
+                                                                                    group: { name: dragId, pull: false, put: false },
                                                                                     animation: 150,
                                                                                     onEnd(evt) {
                                                                                         swapArray(postMD.specs[specIndex].option, evt.oldIndex, evt.newIndex);
@@ -2579,6 +2576,9 @@ export class ShoppingSettingBasic {
                                                                                 return gvc.bindView({
                                                                                     bind: viewID,
                                                                                     view: () => {
+                                                                                        if (postMD.product_category === 'weighing') {
+                                                                                            data.shipment_type = 'none';
+                                                                                        }
                                                                                         return html `
                                                           <div
                                                             style="background-color: white;position:relative;display: flex;padding: 8px 0px;align-items: center;border-radius: 10px;width:100%;"
@@ -2683,6 +2683,9 @@ export class ShoppingSettingBasic {
                                                                 onchange="${gvc.event(e => {
                                                                                             data.shipment_type = e.value;
                                                                                         })}"
+                                                                ${postMD.product_category === 'weighing'
+                                                                                            ? 'disabled'
+                                                                                            : ''}
                                                               >
                                                                 <option
                                                                   value="none"
@@ -2782,12 +2785,7 @@ export class ShoppingSettingBasic {
                             value="${language_data.seo.domain || ''}"
                             onchange="${gvc.event(e => {
                                         let text = e.value;
-                                        if (!CheckInput.isChineseEnglishNumberHyphen(text)) {
-                                            dialog.infoMessage({ text: '連結僅限使用中英文數字與連接號' });
-                                        }
-                                        else {
-                                            language_data.seo.domain = text;
-                                        }
+                                        language_data.seo.domain = text;
                                         gvc.notifyDataChange('seo');
                                     })}"
                           />
@@ -3107,22 +3105,31 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                         },
                     };
                 })())}`),
-                BgWidget.mainCard(html `
-              <div class="mb-2" style="font-weight: 700;">銷售管道</div>
-              ${BgWidget.multiCheckboxContainer(gvc, [
-                    { key: 'normal', name: 'APP & 官網' },
-                    { key: 'pos', name: 'POS' },
-                ], (_b = postMD.channel) !== null && _b !== void 0 ? _b : [], text => {
-                    postMD.channel = text;
-                }, { single: false })}
-              <div class="${postMD.shopee_id ? `d-flex` : `d-none`} align-items-center mt-1" style="gap:6px;">
-                <img
-                  src="https://deo.shopeemobile.com/shopee/shopee-mobilemall-live-sg/assets/icon_favicon_1_32.0Wecxv.png"
-                  style="width:20px;height:20px;"
-                />
-                蝦皮賣場
-              </div>
-            `),
+                BgWidget.mainCard((() => {
+                    var _a;
+                    if (postMD.product_category === 'weighing') {
+                        postMD.channel = ['pos'];
+                    }
+                    return html `
+                  <div class="mb-2" style="font-weight: 700;">銷售管道</div>
+                  ${BgWidget.multiCheckboxContainer(gvc, [
+                        { key: 'normal', name: 'APP & 官網' },
+                        { key: 'pos', name: 'POS' },
+                    ], (_a = postMD.channel) !== null && _a !== void 0 ? _a : [], text => {
+                        postMD.channel = text;
+                    }, {
+                        single: false,
+                        readonly: postMD.product_category === 'weighing',
+                    })}
+                  <div class="${postMD.shopee_id ? `d-flex` : `d-none`} align-items-center mt-1" style="gap:6px;">
+                    <img
+                      src="https://deo.shopeemobile.com/shopee/shopee-mobilemall-live-sg/assets/icon_favicon_1_32.0Wecxv.png"
+                      style="width:20px;height:20px;"
+                    />
+                    蝦皮賣場
+                  </div>
+                `;
+                })()),
                 BgWidget.mainCard(html ` <div class="mb-2 position-relative" style="font-weight: 700;">
                   ${cat_title}促銷標籤 ${BgWidget.questionButton(gvc.event(() => QuestionInfo.promoteLabel(gvc)))}
                 </div>

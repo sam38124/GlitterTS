@@ -22,12 +22,14 @@ const html = String.raw;
 
 export class ShoppingProductSetting {
   public static select_language = (window.parent as any).store_info.language_setting.def;
+
   public static select_product_type: 'course' | 'commodity' = 'commodity';
+
   public static select_page_index = 0;
 
-  public static getSupportProductCategory() {
-    return ProductExcel.getSupportProductCategory();
-  }
+  public static getSupportProductCategory = () => ProductExcel.getSupportProductCategory();
+
+  public static getProductTypeString = (product: any) => ProductExcel.getProductTypeString(product);
 
   public static main(gvc: GVC, type: 'product' | 'addProduct' | 'giveaway' | 'hidden' = 'product') {
     const glitter = gvc.glitter;
@@ -66,27 +68,28 @@ export class ShoppingProductSetting {
     const ListComp = new BgListComponent(gvc, vm, FilterOptions.productFilterFrame);
     vm.filter = ListComp.getFilterObject();
 
-    //AI快速生成
+    // AI快速生成
     if (localStorage.getItem('add_product')) {
       vm.ai_initial = JSON.parse(localStorage.getItem('add_product') as string);
       vm.type = 'ai-initial';
       localStorage.removeItem('add_product');
     }
+
     return gvc.bindView(() => {
       return {
         dataList: [{ obj: vm, key: 'type' }],
         bind: vm.id,
         view: () => {
           gvc.addStyle(`
-                        input[type='number']::-webkit-outer-spin-button,
-                        input[type='number']::-webkit-inner-spin-button {
-                            -webkit-appearance: none;
-                            margin: 0;
-                        }
-                        input[type='number'] {
-                            -moz-appearance: textfield;
-                        }
-                    `);
+            input[type='number']::-webkit-outer-spin-button,
+            input[type='number']::-webkit-inner-spin-button {
+              -webkit-appearance: none;
+              margin: 0;
+            }
+            input[type='number'] {
+              -moz-appearance: textfield;
+            }
+          `);
           switch (vm.type) {
             case 'ai-initial':
               return ShoppingProductSetting.editProduct({
@@ -118,7 +121,6 @@ export class ShoppingProductSetting {
                   if (vmlist.loading) {
                     return '';
                   } else {
-                    let importInput: any = {};
                     if (FilterOptions.productFunnel.findIndex(item => item.key === 'collection') === -1) {
                       FilterOptions.productFunnel.push({
                         key: 'collection',
@@ -534,7 +536,6 @@ export class ShoppingProductSetting {
                     `);
                   }
                 },
-                divCreate: {},
                 onCreate: () => {
                   if (vmlist.loading) {
                     BgProduct.getCollectionAllOpts(vmlist.collections, () => {
@@ -565,10 +566,7 @@ export class ShoppingProductSetting {
               });
           }
         },
-        divCreate: {
-          class: `w-100 h-100`,
-        },
-        onCreate: () => {},
+        divCreate: { class: 'w-100 h-100' },
       };
     });
   }
@@ -847,7 +845,7 @@ export class ShoppingProductSetting {
                   `),
                 ];
                 postMD.product_category = postMD.product_category || 'commodity';
-                if (postMD.product_category === 'commodity') {
+                if (['commodity', 'weighing'].includes(postMD.product_category)) {
                   map_.push(
                     BgWidget.mainCard(
                       gvc.bindView(() => {
@@ -857,6 +855,9 @@ export class ShoppingProductSetting {
                         return {
                           bind: vm.id,
                           view: () => {
+                            if (postMD.product_category === 'weighing') {
+                              variant.shipment_type = 'none';
+                            }
                             return html` <div style="font-weight: 700;margin-bottom: 6px;">運費計算</div>
                               ${BgWidget.multiCheckboxContainer(
                                 gvc,
@@ -880,7 +881,10 @@ export class ShoppingProductSetting {
                                   variant.shipment_type = data[0];
                                   gvc.notifyDataChange(vm.id);
                                 },
-                                { single: true }
+                                {
+                                  single: true,
+                                  readonly: postMD.product_category === 'weighing',
+                                }
                               )}`;
                           },
                           divCreate: {
@@ -891,9 +895,11 @@ export class ShoppingProductSetting {
                       })
                     )
                   );
+                }
+                if (postMD.product_category === 'commodity') {
                   map_.push(
                     BgWidget.mainCard(html`
-                      <div class="d-flex flex-column " style="gap:18px;">
+                      <div class="d-flex flex-column" style="gap:18px;">
                         <div class="d-flex flex-column guide5-7" style="gap:18px;">
                           <div style="font-weight: 700;">商品材積</div>
                           <div class="row">
@@ -964,189 +970,164 @@ export class ShoppingProductSetting {
                   BgWidget.mainCard(html`
                     <div class="d-flex flex-column" style="gap: 18px;">
                       <div style="font-weight: 700;">庫存政策</div>
-                      ${gvc.bindView(() => {
-                        const id = gvc.glitter.getUUID();
-                        return {
-                          bind: stockId,
-                          view: () => {
-                            function showStockView() {
-                              function initStockList() {
-                                let newList: any = {};
-                                //用於原本的陣列轉object
-                                if (variant.stockList && Object.entries(variant.stockList).length > 0) {
-                                  variant.stockList.forEach((stock: { id: string; value: number }) => {
-                                    newList[stock.id] = {
-                                      count: stock.value,
-                                    };
-                                  });
-                                } else {
-                                  stockList.forEach((stock: { id: string; value: number }) => {
-                                    newList[stock.id] = {
-                                      count: 0,
-                                    };
-                                  });
-                                }
+                      ${gvc.bindView({
+                        bind: stockId,
+                        view: () => {
+                          function initStockList() {
+                            let newList: any = {};
+                            //用於原本的陣列轉object
+                            if (variant.stockList && Object.entries(variant.stockList).length > 0) {
+                              variant.stockList.forEach((stock: { id: string; value: number }) => {
+                                newList[stock.id] = {
+                                  count: stock.value,
+                                };
+                              });
+                            } else {
+                              stockList.forEach((stock: { id: string; value: number }) => {
+                                newList[stock.id] = {
+                                  count: 0,
+                                };
+                              });
+                            }
+                            variant.stockList = newList;
+                          }
 
-                                variant.stockList = newList;
-                              }
-
-                              // 把variant的stockList 從陣列改成object
-                              if (Array.isArray(variant.stockList) && variant.stockList.length > 0) {
-                                initStockList();
-                              }
-                              // 庫存倉庫超過一個
-                              if (stockList.length > 1) {
-                                //先確認商品資訊是否有被正確記錄，沒有的話先初始化，或是先從陣列轉為object
-                                if (!variant.stockList || Object.entries(variant.stockList).length == 0) {
-                                  initStockList();
-                                }
-
-                                return html` <div
-                                  class="w-100 align-items-center"
-                                  style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
-                                >
-                                  <div
-                                    class="flex-fill d-flex flex-column"
-                                    style="gap: 8px;border-left:solid 1px #E5E5E5;padding-left:14px;"
-                                  >
-                                    <div class="w-100" style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
-                                      ${postMD.shopee_id
-                                        ? `
-                                                                                    此商品來源為蝦皮電商平台，更改將自動同步蝦皮庫存，蝦皮商品僅支援單一庫存點。
-                                                                                    `
-                                        : `線上販售的商品將優先從庫存量較多的庫存點中扣除`}
-                                    </div>
-                                    ${(() => {
-                                      return stockList
-                                        .map((stockSpot: any, index: number) => {
-                                          if (postMD.shopee_id && index > 0) {
-                                            return ``;
-                                          }
-                                          variant.stockList = variant.stockList ?? {};
-                                          variant.stockList[stockSpot.id] = variant.stockList[stockSpot.id] ?? {
-                                            count: 0,
-                                          };
-                                          return html`
-                                            <div>${postMD.shopee_id ? `蝦皮庫存` : stockSpot.name}</div>
-                                            <input
-                                              class="w-100"
-                                              value="${variant.stockList[stockSpot.id].count ?? 0}"
-                                              type="number"
-                                              style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                              placeholder="請輸入該庫存點庫存數量"
-                                              onchange="${gvc.event(e => {
-                                                // variant.stock = e.value;
-                                                // const target = data.find(item => item.id === 'any');
-                                                const inputValue = parseInt(e.value, 10) || 0;
-                                                variant.stockList[stockSpot.id].count = inputValue;
-                                                variant.stock += inputValue;
-                                              })}"
-                                            />
-                                          `;
-                                        })
-                                        .join(``);
-                                    })()}
-                                  </div>
-                                </div>`;
-                              } else {
-                                return html` <div
-                                  class="w-100 align-items-center"
-                                  style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
-                                >
-                                  <div style="background-color: #E5E5E5;height: 80px;width: 1px;"></div>
-                                  <div class="flex-fill d-flex flex-column" style="gap: 8px">
-                                    <div>庫存數量</div>
-                                    <div
-                                      class="w-100 ${(postMD as any).shopee_id ? `` : `d-none`}"
-                                      style="font-size: 14px;font-weight: 400;color: #8D8D8D;"
-                                    >
-                                      此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
-                                    </div>
-                                    <input
-                                      class="w-100"
-                                      type="number"
-                                      value="${variant.stock ?? '0'}"
-                                      style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                      placeholder="請輸入庫存數量"
-                                      onchange="${gvc.event(e => {
-                                        variant.stockList[stockList[0].id].count = e.value;
-                                      })}"
-                                    />
-                                  </div>
-                                </div>`;
-                              }
+                          function showStockView() {
+                            // 把variant的stockList 從陣列改成object
+                            if (Array.isArray(variant.stockList) && variant.stockList.length > 0) {
+                              initStockList();
                             }
 
-                            return html`
-                              <div class="d-flex flex-column w-100">
-                                <div
-                                  class="d-flex align-items-center"
-                                  style="gap:6px;cursor: pointer;"
-                                  onclick="${gvc.event(() => {
-                                    variant.show_understocking = 'true';
-                                    gvc.notifyDataChange(stockId);
-                                  })}"
-                                >
-                                  ${variant.show_understocking != 'false'
-                                    ? html` <div
-                                        style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"
-                                      ></div>`
-                                    : html` <div
-                                        style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"
-                                      ></div>`}
-                                  追蹤庫存
-                                </div>
-                                ${variant.show_understocking != 'false' ? showStockView() : ``}
-                              </div>
-                              <div
-                                class="d-flex align-items-center"
-                                style="gap:6px;cursor: pointer;"
-                                onclick="${gvc.event(() => {
-                                  variant.show_understocking = 'false';
-                                  gvc.notifyDataChange(stockId);
-                                })}"
+                            // 庫存倉庫超過一個
+                            if (stockList.length > 1) {
+                              //先確認商品資訊是否有被正確記錄，沒有的話先初始化，或是先從陣列轉為object
+                              if (!variant.stockList || Object.entries(variant.stockList).length == 0) {
+                                initStockList();
+                              }
+
+                              return html` <div
+                                class="w-100 align-items-center"
+                                style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;"
                               >
-                                ${variant.show_understocking == 'false'
-                                  ? html` <div
-                                      style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"
-                                    ></div>`
-                                  : html` <div
-                                      style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"
-                                    ></div>`}
-                                不追蹤庫存
+                                <div class="flex-fill d-flex flex-column gap-2">
+                                  <div class="w-100" style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
+                                    ${postMD.shopee_id
+                                      ? '此商品來源為蝦皮電商平台，更改將自動同步蝦皮庫存，蝦皮商品僅支援單一庫存點'
+                                      : '線上販售的商品，將優先從庫存量較多的庫存點中扣除'}
+                                  </div>
+                                  ${stockList
+                                    .map((stockSpot: any, index: number) => {
+                                      if (postMD.shopee_id && index > 0) return '';
+
+                                      variant.stockList = variant.stockList ?? {};
+                                      variant.stockList[stockSpot.id] = variant.stockList[stockSpot.id] ?? { count: 0 };
+
+                                      return html`
+                                        <div>${postMD.shopee_id ? '蝦皮庫存' : stockSpot.name}</div>
+                                        <input
+                                          class="w-100"
+                                          value="${variant.stockList[stockSpot.id].count ?? 0}"
+                                          type="number"
+                                          style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                          placeholder="請輸入該庫存點庫存數量"
+                                          onchange="${gvc.event(e => {
+                                            const inputValue = parseInt(e.value, 10) || 0;
+                                            variant.stockList[stockSpot.id].count = inputValue;
+                                            variant.stock += inputValue;
+                                          })}"
+                                        />
+                                      `;
+                                    })
+                                    .join(``)}
+                                </div>
+                              </div>`;
+                            }
+
+                            return html`<div
+                              class="w-100 align-items-center"
+                              style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
+                            >
+                              <div style="background-color: #E5E5E5;height: 80px;width: 1px;"></div>
+                              <div class="flex-fill d-flex flex-column" style="gap: 8px">
+                                <div>庫存數量</div>
+                                <div
+                                  class="w-100 ${(postMD as any).shopee_id ? `` : `d-none`}"
+                                  style="font-size: 14px;font-weight: 400;color: #8D8D8D;"
+                                >
+                                  此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
+                                </div>
+                                <input
+                                  class="w-100"
+                                  type="number"
+                                  value="${variant.stock ?? '0'}"
+                                  style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                  placeholder="請輸入庫存數量"
+                                  onchange="${gvc.event(e => {
+                                    variant.stockList[stockList[0].id].count = e.value;
+                                  })}"
+                                />
                               </div>
-                              <div style="width:100%;height:1px;backgound:#DDDDDD;"></div>
-                              ${variant.show_understocking == 'false'
-                                ? ''
-                                : html` <div
-                                    class="flex-fill d-flex flex-column"
-                                    style="gap: 8px;font-size: 16px;font-weight: 700;"
-                                  >
-                                    <div>庫存警示</div>
-                                    <div class="w-100" style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
-                                      當庫存低於此數量，會自動寄送警示通知。
-                                    </div>
-                                    <input
-                                      class="w-100"
-                                      value="${variant.save_stock ?? '0'}"
-                                      style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                      placeholder="請輸入安全庫存"
-                                      onchange="${gvc.event(e => {
-                                        variant.save_stock = e.value;
-                                      })}"
-                                    />
-                                  </div>`}
-                            `;
-                          },
-                          divCreate: {
-                            style: `display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;`,
-                          },
-                        };
+                            </div>`;
+                          }
+
+                          variant.show_understocking =
+                            postMD.product_category === 'weighing' ? 'false' : variant.show_understocking;
+
+                          return [
+                            BgWidget.multiCheckboxContainer(
+                              gvc,
+                              [
+                                {
+                                  key: 'true',
+                                  name: '追蹤庫存',
+                                  innerHtml: showStockView(),
+                                },
+                                {
+                                  key: 'false',
+                                  name: '不追蹤庫存',
+                                },
+                              ],
+                              [variant.show_understocking],
+                              (value: string[]) => {
+                                variant.show_understocking = value[0];
+                                gvc.notifyDataChange(stockId);
+                              },
+                              {
+                                single: true,
+                                readonly: postMD.product_category === 'weighing',
+                              }
+                            ),
+                            variant.show_understocking == 'false'
+                              ? ''
+                              : html` <div
+                                  class="flex-fill d-flex flex-column"
+                                  style="gap: 8px;font-size: 16px;font-weight: 700;"
+                                >
+                                  <div>庫存警示</div>
+                                  <div class="w-100" style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
+                                    當庫存低於此數量，會自動寄送警示通知。
+                                  </div>
+                                  <input
+                                    class="w-100"
+                                    value="${variant.save_stock ?? '0'}"
+                                    style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                    placeholder="請輸入安全庫存"
+                                    onchange="${gvc.event(e => {
+                                      variant.save_stock = e.value;
+                                    })}"
+                                  />
+                                </div>`,
+                          ].join('');
+                        },
+                        divCreate: {
+                          style:
+                            'display: flex; flex-direction: column; align-items: flex-start; gap: 12px; align-self: stretch;',
+                        },
                       })}
                     </div>
                   `)
                 );
-                if (postMD.product_category === 'commodity') {
+                if (['commodity', 'weighing'].includes(postMD.product_category)) {
                   map_.push(
                     BgWidget.mainCard(html`
                       <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
@@ -1409,15 +1390,16 @@ export class ShoppingProductSetting {
     if (start && now < start) {
       return 'beforeStart'; // 待上架
     }
+
     if (end && now > end) {
       return 'afterEnd'; // 下架
     }
+
     if (start && now >= start && (!end || now <= end)) {
       return 'inRange'; // 上架
     }
 
-    // 如果 start 或 end 沒有設定且 data 不符合條件
-    return 'draft';
+    return 'draft'; // 如果 start 或 end 沒有設定且 data 不符合條件
   }
 
   static getDateTime = (n = 0) => {
@@ -1440,8 +1422,39 @@ export class ShoppingProductSetting {
     initial_data?: any;
     product_type?: 'product' | 'addProduct' | 'giveaway' | 'hidden';
   }) {
+    const gvc = obj.gvc;
+    const dialog = new ShareDialog(gvc.glitter);
+    const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
+    const vm: {
+      id: string;
+      language: any;
+      content_detail: any;
+      show_page: 'normal' | 'advance';
+    } = {
+      id: gvc.glitter.getUUID(),
+      language: ShoppingProductSetting.select_language,
+      content_detail: undefined,
+      show_page: 'normal',
+    };
+
+    let shipment_config: any = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitter_shipment`);
     let postMD: Product = obj.initial_data || ProductConfig.getInitial(obj);
     let stockList: any = [];
+
+    function refreshProductPage() {
+      gvc.notifyDataChange(vm.id);
+    }
+
+    function getStockStore() {
+      if (stockList.length == 0) {
+        ApiUser.getPublicConfig('store_manager', 'manager').then((storeData: any) => {
+          if (storeData.result) {
+            stockList = storeData.response.value.list;
+            gvc.notifyDataChange('selectFunRow');
+          }
+        });
+      }
+    }
 
     function setProductType() {
       switch (obj.product_type) {
@@ -1464,67 +1477,37 @@ export class ShoppingProductSetting {
       }
     }
 
-    function getStockStore() {
-      if (stockList.length == 0) {
-        ApiUser.getPublicConfig('store_manager', 'manager').then((storeData: any) => {
-          if (storeData.result) {
-            stockList = storeData.response.value.list;
-            gvc.notifyDataChange('selectFunRow');
-          }
-        });
-      }
-    }
-
     getStockStore();
     setProductType();
     postMD.content_array = postMD.content_array ?? [];
     postMD.content_json = postMD.content_json ?? [];
+
     if (obj.type === 'replace') {
-      postMD = {
-        ...postMD,
-        ...obj.defData,
-      };
+      postMD = { ...postMD, ...obj.defData };
     } else {
       obj.vm.replaceData = postMD;
       postMD.product_category = ShoppingProductSetting.select_product_type;
     }
+
     let origin_data = JSON.stringify(postMD);
-    setTimeout(() => {
-      origin_data = JSON.stringify(postMD);
-    }, 1000);
+    setTimeout(() => (origin_data = JSON.stringify(postMD)), 1000);
     (window.parent as any).glitter.share.checkData = () => origin_data === JSON.stringify(postMD);
-    const gvc = obj.gvc;
-    const dialog = new ShareDialog(gvc.glitter);
-    const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
-    let shipment_config: any = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitter_shipment`);
+
     if (shipment_config.response.result[0]) {
       shipment_config = shipment_config.response.result[0].value || {};
     } else {
       shipment_config = {};
     }
-    gvc.addStyle(`
-            .specInput:focus {
-                outline: none;
-            }
-        `);
-    const vm: {
-      id: string;
-      language: any;
-      content_detail: any;
-      show_page: 'normal' | 'advance';
-    } = {
-      id: gvc.glitter.getUUID(),
-      language: ShoppingProductSetting.select_language,
-      content_detail: undefined,
-      show_page: 'normal',
-    };
 
-    function refreshProductPage() {
-      gvc.notifyDataChange(vm.id);
-    }
+    gvc.addStyle(`
+      .specInput:focus {
+        outline: none;
+      }
+    `);
 
     ProductInitial.initial(postMD);
     postMD.product_category = postMD.product_category || 'commodity';
+
     return gvc.bindView(() => {
       return {
         bind: vm.id,
@@ -1783,8 +1766,10 @@ export class ShoppingProductSetting {
       viewId: Tool.randomString(7),
       enterId: Tool.randomString(7),
     };
+
     let keyboard = '';
     let saveKeyEvent: any = undefined;
+
     return html` <div class="bg-white w-100">
       ${[
         html` <div
@@ -1950,11 +1935,13 @@ export class ShoppingProductSetting {
   public static putEvent(postMD: any, gvc: GVC, vm: any) {
     const dialog = new ShareDialog(gvc.glitter);
     dialog.dataLoading({ text: '商品上傳中...', visible: true });
+
     postMD.type = 'product';
     postMD.variants.map((dd: any) => {
       dd.checked = undefined;
       return dd;
     });
+
     ApiShop.putProduct({
       data: postMD,
       token: (window.parent as any).config.token,
@@ -1974,6 +1961,7 @@ export class ShoppingProductSetting {
   public static postEvent(postMD: any, gvc: GVC, vm: any) {
     const dialog = new ShareDialog(gvc.glitter);
     dialog.dataLoading({ text: '商品上傳中...', visible: true });
+
     postMD.type = 'product';
     postMD.variants.map((dd: any) => {
       dd.checked = undefined;
@@ -1996,17 +1984,15 @@ export class ShoppingProductSetting {
     });
   }
 
-  public static getProductTypeString(product: any) {
-    return ProductExcel.getProductTypeString(product);
-  }
-
   static getOnboardStatus(content: any) {
     if (content.status === 'draft') {
       return BgWidget.secondaryInsignia('草稿');
     }
+
     if (!content.active_schedule) {
       return BgWidget.infoInsignia('上架');
     }
+
     const state = ShoppingProductSetting.getTimeState(content.active_schedule);
     switch (state) {
       case 'afterEnd':

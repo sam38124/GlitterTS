@@ -6,16 +6,16 @@ import { Currency } from '../glitter-base/global/currency.js';
 import { LanguageBackend } from './language-backend.js';
 import { GlobalUser } from '../glitter-base/global/global-user.js';
 import { FilterOptions } from './filter-options.js';
-import { Article } from '../glitter-base/route/article.js';
 
 const html = String.raw;
 
 export class ShoppingInformation {
-  public static saveArray: (() => Promise<boolean>)[] = [];
+  static saveArray: (() => Promise<boolean>)[] = [];
 
-  public static main(gvc: GVC) {
+  static main(gvc: GVC) {
     const glitter = gvc.glitter;
     const dialog = new ShareDialog(gvc.glitter);
+
     const vm: {
       id: string;
       tableId: string;
@@ -81,6 +81,7 @@ export class ShoppingInformation {
         });
       },
     };
+
     const shopCategory = [
       '寵物用品',
       '服飾販售',
@@ -343,7 +344,6 @@ export class ShoppingInformation {
                     ''
                   );
                 },
-                divCreate: {},
               })}
               <div style="margin-top: 24px;"></div>
               ${gvc.bindView(() => {
@@ -561,14 +561,14 @@ export class ShoppingInformation {
                                     name: '批量移除',
                                     event: checkedData => {
                                       dialog.checkYesOrNot({
-                                        text:'是否確認移除?',
-                                        callback:(response)=>{
-                                          dialog.dataLoading({visible:true})
-                                          domain_301=domain_301.filter((dd:any)=>{
-                                            return !(checkedData.find((d1:any)=>{
-                                              return d1.legacy_url===dd.legacy_url || d1.new_url===dd.new_url
-                                            }))
-                                          })
+                                        text: '是否確認移除?',
+                                        callback: response => {
+                                          dialog.dataLoading({ visible: true });
+                                          domain_301 = domain_301.filter((dd: any) => {
+                                            return !checkedData.find((d1: any) => {
+                                              return d1.legacy_url === dd.legacy_url || d1.new_url === dd.new_url;
+                                            });
+                                          });
                                           ApiUser.setPublicConfig({
                                             key: 'domain_301',
                                             user_id: 'manager',
@@ -578,10 +578,10 @@ export class ShoppingInformation {
                                           }).then(res => {
                                             dialog.dataLoading({ visible: false });
                                             dialog.successMessage({ text: '設定成功' });
-                                            gvc.recreateView()
-                                          })
-                                        }
-                                      })
+                                            gvc.recreateView();
+                                          });
+                                        },
+                                      });
                                     },
                                   },
                                 ],
@@ -615,7 +615,7 @@ export class ShoppingInformation {
           },
           function: () => {
             return BgWidget.mainCard(html`
-              <div class="d-flex flex-column" style="gap:8px;">
+              <div class="d-flex flex-column gap-2">
                 ${createSection('網站功能', '系統將根據您勾選的項目，開放相對應的功能')}
                 ${BgWidget.inlineCheckBox({
                   title: '',
@@ -626,6 +626,7 @@ export class ShoppingInformation {
                     { title: '授課網站', value: 'teaching' },
                     { title: '預約系統', value: 'reserve' },
                     { title: '餐飲組合', value: 'kitchen' },
+                    // { title: '秤重交易', value: 'weighing' },
                   ],
                   callback: (array: any) => {
                     vm.data.web_type = array;
@@ -877,7 +878,7 @@ export class ShoppingInformation {
     });
   }
 
-  public static goDaddyDoc = (gvc: GVC): string => {
+  static goDaddyDoc = (gvc: GVC): string => {
     return BgWidget.questionButton(
       gvc.event(() => {
         BgWidget.settingDialog({
@@ -978,12 +979,13 @@ export class ShoppingInformation {
     );
   };
 
-  public static policy(gvc: GVC) {
+  static policy(gvc: GVC) {
     const id = gvc.glitter.getUUID();
     const dialog = new ShareDialog(gvc.glitter);
     const vm2 = {
       language: (window.parent as any).store_info.language_setting.def,
     };
+
     return BgWidget.container(
       gvc.bindView(() => {
         return {

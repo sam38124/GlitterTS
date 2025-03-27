@@ -3536,11 +3536,10 @@ export class Shopping {
     }
 
     // 計算有折扣綁定商品的折抵數值
-    function countingBindDiscount(voucher: VoucherData) {
+    function countingBindDiscount(voucher: VoucherData): void {
       voucher.bind.map(item => {
         reduceDiscount[item.id] = (reduceDiscount[item.id] ?? 0) + item.discount_price * item.count;
       });
-      return true;
     }
 
     // ==== 篩選優惠券 =====
@@ -3550,13 +3549,14 @@ export class Shopping {
           return [checkSource, checkTarget, setBindProduct, checkCartTotal].every(fn => fn(voucher));
         })
         .sort((a, b) => {
-          if (sortedVoucher.toggle) {
-            return manualSorted(a, b);
-          }
-          return compare(b) - compare(a);
+          return sortedVoucher.toggle ? manualSorted(a, b) : compare(b) - compare(a);
         })
         .filter(voucher => {
-          return [checkOverlay, checkCondition, countingBindDiscount].every(fn => fn(voucher));
+          return [checkOverlay, checkCondition].every(fn => fn(voucher));
+        })
+        .map(voucher => {
+          countingBindDiscount(voucher);
+          return voucher;
         });
     }
 

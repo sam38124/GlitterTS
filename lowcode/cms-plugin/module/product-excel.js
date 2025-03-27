@@ -490,6 +490,7 @@ export class ProductExcel {
             { key: 'course', value: '課程販售', compare: 'teaching' },
             { key: 'commodity', value: '零售商品', compare: 'shop' },
             { key: 'kitchen', value: '餐飲組合', compare: 'kitchen' },
+            { key: 'weighing', value: '秤重交易', compare: 'weighing' },
         ];
         const webType = ((_b = (_a = window.parent) === null || _a === void 0 ? void 0 : _a.store_info) === null || _b === void 0 ? void 0 : _b.web_type) || [];
         return productCategories.filter(product => webType.includes(product.compare));

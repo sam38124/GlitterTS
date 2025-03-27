@@ -3942,7 +3942,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return `"data:image/svg+xml,%3csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='16' height='16' rx='8' fill='${color}'/%3e%3crect x='4' y='4' width='8' height='8' rx='4' fill='white'/%3e%3c/svg%3e"`;
     }
     static getCheckedClass(gvc, color) {
-        const className = 'checked-image';
+        const className = color ? 'checked-image' : 'checked-image-readonly';
         gvc.addStyle(`
       .${className} {
         min-width: 1.25rem;
@@ -3958,7 +3958,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return className;
     }
     static getSquareClass(gvc, color) {
-        const className = 'square-image';
+        const className = color ? 'square-image' : 'square-image-readonly';
         gvc.addStyle(`
       .${className} {
         min-width: 1.25rem;
@@ -3974,35 +3974,35 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static getDarkDotClass(gvc) {
         const className = 'dark-dot-image';
         gvc.addStyle(`
-            .${className} {
-                min-width: 1.15rem;
-                min-height: 1.15rem;
-                margin-right: 4px;
-            }
-            .${className}:checked[type='radio'] {
-                border: 2px solid #000;
-                background-color: #fff;
-                background-image: url(${this.darkDotDataImage('#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.15rem;
+        min-height: 1.15rem;
+        margin-right: 4px;
+      }
+      .${className}:checked[type='radio'] {
+        border: 2px solid #000;
+        background-color: #fff;
+        background-image: url(${this.darkDotDataImage('#000')});
+        background-position: center center;
+      }
+    `);
         return className;
     }
     static getWhiteDotClass(gvc, color) {
-        const className = 'white-dot-image';
+        const className = color ? 'white-dot-image' : 'white-dot-image-readonly';
         gvc.addStyle(`
-            .${className} {
-                min-width: 1.15rem;
-                min-height: 1.15rem;
-                margin-right: 4px;
-            }
-            .${className}:checked[type='radio'] {
-                border: 0px solid #000;
-                background-color: #fff;
-                background-image: url(${this.whiteDotDataImage(color !== null && color !== void 0 ? color : '#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.15rem;
+        min-height: 1.15rem;
+        margin-right: 4px;
+      }
+      .${className}:checked[type='radio'] {
+        border: 0px solid #000;
+        background-color: #fff;
+        background-image: url(${this.whiteDotDataImage(color !== null && color !== void 0 ? color : '#000')});
+        background-position: center center;
+      }
+    `);
         return className;
     }
     static isImageUrlValid(url) {

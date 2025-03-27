@@ -4671,7 +4671,7 @@ ${obj.default ?? ''}</textarea
   }
 
   static getCheckedClass(gvc: GVC, color?: string) {
-    const className = 'checked-image';
+    const className = color ? 'checked-image' : 'checked-image-readonly';
     gvc.addStyle(`
       .${className} {
         min-width: 1.25rem;
@@ -4688,7 +4688,7 @@ ${obj.default ?? ''}</textarea
   }
 
   static getSquareClass(gvc: GVC, color?: string) {
-    const className = 'square-image';
+    const className = color ? 'square-image' : 'square-image-readonly';
     gvc.addStyle(`
       .${className} {
         min-width: 1.25rem;
@@ -4705,36 +4705,36 @@ ${obj.default ?? ''}</textarea
   static getDarkDotClass(gvc: GVC) {
     const className = 'dark-dot-image';
     gvc.addStyle(`
-            .${className} {
-                min-width: 1.15rem;
-                min-height: 1.15rem;
-                margin-right: 4px;
-            }
-            .${className}:checked[type='radio'] {
-                border: 2px solid #000;
-                background-color: #fff;
-                background-image: url(${this.darkDotDataImage('#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.15rem;
+        min-height: 1.15rem;
+        margin-right: 4px;
+      }
+      .${className}:checked[type='radio'] {
+        border: 2px solid #000;
+        background-color: #fff;
+        background-image: url(${this.darkDotDataImage('#000')});
+        background-position: center center;
+      }
+    `);
     return className;
   }
 
   static getWhiteDotClass(gvc: GVC, color?: string) {
-    const className = 'white-dot-image';
+    const className = color ? 'white-dot-image' : 'white-dot-image-readonly';
     gvc.addStyle(`
-            .${className} {
-                min-width: 1.15rem;
-                min-height: 1.15rem;
-                margin-right: 4px;
-            }
-            .${className}:checked[type='radio'] {
-                border: 0px solid #000;
-                background-color: #fff;
-                background-image: url(${this.whiteDotDataImage(color ?? '#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.15rem;
+        min-height: 1.15rem;
+        margin-right: 4px;
+      }
+      .${className}:checked[type='radio'] {
+        border: 0px solid #000;
+        background-color: #fff;
+        background-image: url(${this.whiteDotDataImage(color ?? '#000')});
+        background-position: center center;
+      }
+    `);
     return className;
   }
 

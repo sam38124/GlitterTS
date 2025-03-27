@@ -289,7 +289,6 @@ export class ShoppingInformation {
                       </div>
                     `, '');
                             },
-                            divCreate: {},
                         })}
               <div style="margin-top: 24px;"></div>
               ${gvc.bindView(() => {
@@ -487,12 +486,12 @@ export class ShoppingInformation {
                                                             event: checkedData => {
                                                                 dialog.checkYesOrNot({
                                                                     text: '是否確認移除?',
-                                                                    callback: (response) => {
+                                                                    callback: response => {
                                                                         dialog.dataLoading({ visible: true });
                                                                         domain_301 = domain_301.filter((dd) => {
-                                                                            return !(checkedData.find((d1) => {
+                                                                            return !checkedData.find((d1) => {
                                                                                 return d1.legacy_url === dd.legacy_url || d1.new_url === dd.new_url;
-                                                                            }));
+                                                                            });
                                                                         });
                                                                         ApiUser.setPublicConfig({
                                                                             key: 'domain_301',
@@ -505,7 +504,7 @@ export class ShoppingInformation {
                                                                             dialog.successMessage({ text: '設定成功' });
                                                                             gvc.recreateView();
                                                                         });
-                                                                    }
+                                                                    },
                                                                 });
                                                             },
                                                         },
@@ -535,7 +534,7 @@ export class ShoppingInformation {
                     },
                     function: () => {
                         return BgWidget.mainCard(html `
-              <div class="d-flex flex-column" style="gap:8px;">
+              <div class="d-flex flex-column gap-2">
                 ${createSection('網站功能', '系統將根據您勾選的項目，開放相對應的功能')}
                 ${BgWidget.inlineCheckBox({
                             title: '',

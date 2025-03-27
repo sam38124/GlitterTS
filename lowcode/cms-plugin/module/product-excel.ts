@@ -600,6 +600,7 @@ export class ProductExcel {
       { key: 'course', value: '課程販售', compare: 'teaching' },
       { key: 'commodity', value: '零售商品', compare: 'shop' },
       { key: 'kitchen', value: '餐飲組合', compare: 'kitchen' },
+      { key: 'weighing', value: '秤重交易', compare: 'weighing' },
     ];
 
     const webType = (window.parent as any)?.store_info?.web_type || [];

@@ -47,7 +47,7 @@ export interface Product {
   shopee_id: number;
   tax?: string;
   label: any;
-  sort_weight:number;
+  sort_weight: number;
   shipment_type?: string;
   v_length?: string;
   v_width?: string;
@@ -61,7 +61,7 @@ export interface Product {
     addProduct: boolean;
     giveaway: boolean;
   };
-  product_category: 'course' | 'commodity' | 'kitchen';
+  product_category: 'course' | 'commodity' | 'kitchen' | 'weighing';
   visible: 'true' | 'false';
   content: string;
   preview_image: string[];
