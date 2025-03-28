@@ -1376,8 +1376,10 @@ class Shopping {
                 if (getProductData) {
                     const content = getProductData.content;
                     const variant = getVariant(content, item);
+                    const count = Number(item.count);
                     if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
-                        Number.isInteger(item.count)) {
+                        !isNaN(count) &&
+                        count > 0) {
                         const isPOS = checkOutType === 'POS';
                         const isUnderstockingVisible = variant.show_understocking !== 'false';
                         const isManualType = type === 'manual' || type === 'manual-preview';

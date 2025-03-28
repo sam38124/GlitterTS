@@ -40,7 +40,7 @@ export class POSSetting {
             return {
                 bind: id,
                 view: () => {
-                    return html `<section
+                    return html ` <section
             class="vw-100 vh-100"
             style="box-sizing: border-box; display: flex; align-items: center; justify-content: center; padding-top: 120px; padding-bottom: 130px; background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);"
           >
@@ -92,7 +92,7 @@ export class POSSetting {
                 </div>
                 <div class="w-100 d-flex" style="gap: 15px;">
                   <div
-                    class="${mode === 'switch' ? `` : `d-none`}"
+                    class="${mode === 'switch' ? '' : 'd-none'}"
                     style="display: flex; width: 100%; padding: 16px; gap: 10px; border-radius: 10px; background: #DDD; height: 51px; text-align: center; align-items: center; justify-content: center; color: #393939; font-size: 20px; font-weight: 700; line-height: normal; letter-spacing: 1.6px; cursor: pointer;"
                     onclick="${gvc.event(() => {
                         gvc.closeDialog();
@@ -112,10 +112,11 @@ export class POSSetting {
                             dialog.dataLoading({ visible: false });
                             if (r.result) {
                                 GlobalUser.saas_token = r.response.token;
-                                if ((yield ApiUser.checkAdminAuth({
+                                const isAdmin = yield ApiUser.checkAdminAuth({
                                     app: gvc.glitter.getUrlParameter('app-id'),
                                     token: GlobalUser.saas_token,
-                                })).response.result) {
+                                });
+                                if (isAdmin.response.result) {
                                     POSSetting.config.who = 'manager';
                                     result(true);
                                     gvc.recreateView();
@@ -157,6 +158,7 @@ export class POSSetting {
     }
     static main(gvc) {
         const glitter = gvc.glitter;
+        const dialog = new ShareDialog(glitter);
         gvc.addStyle(`
       .dialog-box {
         width: 100vw;
@@ -213,7 +215,7 @@ export class POSSetting {
                 timer: 0,
                 last_string: '',
             };
-            let scannerObserver = function (event) {
+            const scannerObserver = function (event) {
                 if (event.key.toLowerCase() !== 'enter' && event.key.toLowerCase() !== 'shift') {
                     clearInterval(timer_vm.timer);
                     timer_vm.last_string += event.key;
@@ -257,34 +259,28 @@ export class POSSetting {
                         glitter.share.member_auth_list = member_auth;
                         try {
                             const login_user = GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID;
-                            const find_ = member_auth.find((dd) => {
-                                return `${dd.user}` === `${login_user}`;
-                            });
+                            const find_ = member_auth.find((dd) => `${dd.user}` === `${login_user}`);
                             POSSetting.config.who = find_.user;
                         }
-                        catch (e) { }
-                        const member_auth_ = member_auth.find((dd) => {
-                            return `${dd.user}` === `${POSSetting.config.who}`;
-                        });
+                        catch (e) {
+                            console.error(e);
+                        }
+                        const member_auth_ = member_auth.find((dd) => `${dd.user}` === `${POSSetting.config.who}`);
                         member_auth_.config.support_shop = member_auth_.config.support_shop.filter((dd) => {
-                            return store_list.find((d1) => {
-                                return dd === d1.id;
-                            });
+                            return store_list.find((d1) => dd === d1.id);
                         });
                         if (res.response.result && (member_auth_ || POSSetting.config.who === 'manager')) {
                             if (!member_auth_.config.support_shop || member_auth_.config.support_shop.length === 0) {
-                                const dialog = new ShareDialog(gvc.glitter);
                                 dialog.errorMessage({
                                     text: `尚未設定任何門市，請前往『 門市設定 』與『 員工設定 』中設定相關參數`,
                                     callback: () => {
-                                        const dialog = new ShareDialog(gvc.glitter);
                                         dialog.dataLoading({ visible: true });
                                         localStorage.removeItem('on-pos');
                                         window.parent.history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
                                         glitter.share.reload('cms', 'shopnex');
                                     },
                                 });
-                                return ``;
+                                return '';
                             }
                             else {
                                 glitter.share.member_auth_list = member_auth.filter((dd) => {
@@ -293,7 +289,8 @@ export class POSSetting {
                                 if (!member_auth_.config.support_shop.includes(POSSetting.config.where_store)) {
                                     POSSetting.config.where_store = member_auth_.config.support_shop[0];
                                 }
-                                glitter.share.work_status = (yield ApiPos.getWorkStatus(POSSetting.config.who, POSSetting.config.where_store)).response.status;
+                                const workStatus = yield ApiPos.getWorkStatus(POSSetting.config.who, POSSetting.config.where_store);
+                                glitter.share.work_status = workStatus.response.status;
                                 return POSSetting.posView(gvc);
                             }
                         }
@@ -302,12 +299,11 @@ export class POSSetting {
                         }
                     }
                     catch (e) {
-                        const dialog = new ShareDialog(gvc.glitter);
                         dialog.dataLoading({ visible: true });
                         localStorage.removeItem('on-pos');
                         window.parent.history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
                         glitter.share.reload('cms', 'shopnex');
-                        return ``;
+                        return '';
                     }
                 }),
                 onCreate: () => {
@@ -318,6 +314,322 @@ export class POSSetting {
                     document.removeEventListener('keydown', scannerObserver);
                 },
             };
+        });
+    }
+    static productDialog(obj) {
+        const gvc = obj.gvc;
+        const data = obj.defaultData;
+        const orderDetail = obj.orderDetail;
+        let selectVariant = obj.selectVariant;
+        let count = 1;
+        function arraysEqual(arr1, arr2) {
+            if (arr1.length !== arr2.length)
+                return false;
+            return arr1.every((value, index) => value === arr2[index]);
+        }
+        function changeSelectVariant(product) {
+            let emptyArray = [];
+            product.content.specs.forEach((spec) => {
+                emptyArray.push(spec.option.find((opt) => opt.select == true).title);
+            });
+            return product.content.variants.find((variant) => arraysEqual(variant.spec, emptyArray));
+        }
+        gvc.glitter.innerDialog(gvc => {
+            return gvc.bindView({
+                bind: 'productDialog',
+                view: () => {
+                    var _a;
+                    try {
+                        selectVariant.preview_image = selectVariant.preview_image || [];
+                        selectVariant.stock =
+                            (selectVariant.stockList[POSSetting.config.where_store] &&
+                                parseInt(selectVariant.stockList[POSSetting.config.where_store].count, 10)) ||
+                                0;
+                        return html ` <div
+                class="w-100 h-100 d-flex align-items-center justify-content-center"
+                onclick="${gvc.event(() => gvc.glitter.closeDiaLog())}"
+              >
+                <div
+                  class="d-flex flex-column position-relative"
+                  style="width: 542px;padding: 32px;background-color: white;border-radius: 10px;max-width: calc(100% - 20px);overflow-y:auto;max-height:calc(100% - 20px);"
+                  onclick="${gvc.event((_, event) => event.stopPropagation())}"
+                >
+                  <div class="w-100 d-block d-sm-flex flex-column flex-sm-row m" style="gap:24px;">
+                    <div
+                      class="rounded-3 d-none"
+                      style="${document.body.offsetWidth < 800
+                            ? `width: 100%;padding-bottom:100%;`
+                            : `width: 204px;height: 204px;`}background: 50%/cover url('${(selectVariant.preview_image
+                            .length > 1
+                            ? selectVariant.preview_image
+                            : data.content.preview_image[0]) ||
+                            'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}');"
+                    ></div>
+                    <div class="d-flex flex-column flex-fill justify-content-center">
+                      <div style="font-size: 24px;font-weight: 700;">${(_a = data.content.title) !== null && _a !== void 0 ? _a : 'no name'}</div>
+                      <div style="font-size: 20px;font-weight: 500;margin-top: 8px;">
+                        NT.${parseInt(selectVariant.sale_price, 10).toLocaleString()}
+                      </div>
+                      ${gvc.bindView({
+                            bind: 'productSpec',
+                            view: () => {
+                                if (data.content.specs.length == 0) {
+                                    return '';
+                                }
+                                return data.content.specs
+                                    .map((spec) => {
+                                    return html `
+                                <div style="font-size: 16px;font-style: normal;font-weight: 500;color: #8D8D8D;">
+                                  ${spec.title}
+                                </div>
+                                <select
+                                  class="w-100 form-select"
+                                  style="border-radius: 5px;border: 1px solid #DDD;padding: 10px 18px;font-size: 18px;"
+                                  onchange="${gvc.event(e => {
+                                        spec.option.forEach((option) => {
+                                            option.select = false;
+                                        });
+                                        spec.option[e.value].select = true;
+                                        selectVariant = changeSelectVariant(data);
+                                        obj.callback(selectVariant);
+                                        gvc.notifyDataChange('productDialog');
+                                    })}"
+                                >
+                                  ${spec.option
+                                        .map((option, index) => {
+                                        return html ` <option
+                                        class="d-flex align-items-center justify-content-center"
+                                        value="${index}"
+                                        ${option.select ? 'selected' : ''}
+                                        style="border-radius: 5px;padding: 10px 18px;color: #393939;font-size: 18px;font-weight: 500;letter-spacing: 0.72px;"
+                                      >
+                                        ${option.title}
+                                      </option>`;
+                                    })
+                                        .join('')}
+                                </select>
+                              `;
+                                })
+                                    .join('');
+                            },
+                            divCreate: {
+                                style: `gap:8px;margin-bottom:${data.content.specs.length ? `24px` : `0px`};margin-top:16px;`,
+                                class: `d-flex flex-column`,
+                            },
+                        })}
+                      ${gvc.bindView(() => {
+                            return {
+                                bind: 'count_bt',
+                                view: () => {
+                                    return html `
+                              <div
+                                class="d-flex align-items-center justify-content-between"
+                                style="gap: 10px;padding: 10px 18px;border-radius: 5px;border: 1px solid #DDD;"
+                              >
+                                <div
+                                  class="d-flex align-items-center justify-content-center"
+                                  style="border-radius: 10px;cursor: pointer;"
+                                  onclick="${gvc.event(() => {
+                                        count = count == 1 ? count : count - 1;
+                                        gvc.notifyDataChange(`productDialog`);
+                                    })}"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="13"
+                                    height="3"
+                                    viewBox="0 0 13 3"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M13 1.5C13 1.98398 12.5531 2.375 12 2.375H1C0.446875 2.375 0 1.98398 0 1.5C0 1.01602 0.446875 0.625 1 0.625H12C12.5531 0.625 13 1.01602 13 1.5Z"
+                                      fill="#393939"
+                                    />
+                                  </svg>
+                                </div>
+                                <input
+                                  class="border-0 qty"
+                                  style="text-align: center; width: 120px; height: 32px;"
+                                  value="${count}"
+                                  onchange="${gvc.event(e => {
+                                        const n = data.content.product_category === 'weighing'
+                                            ? parseFloat(e.value)
+                                            : parseInt(e.value);
+                                        count = isNaN(n) ? 0 : n;
+                                        gvc.notifyDataChange(['count_bt', 'product_btn']);
+                                    })}"
+                                />
+                                <div
+                                  class="d-flex align-items-center justify-content-center"
+                                  style="border-radius: 10px;cursor: pointer;"
+                                  onclick="${gvc.event(() => {
+                                        count++;
+                                        gvc.notifyDataChange(['count_bt', 'product_btn']);
+                                    })}"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="15"
+                                    viewBox="0 0 14 15"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M8.07692 1.57692C8.07692 0.98125 7.59567 0.5 7 0.5C6.40433 0.5 5.92308 0.98125 5.92308 1.57692V6.42308H1.07692C0.48125 6.42308 0 6.90433 0 7.5C0 8.09567 0.48125 8.57692 1.07692 8.57692H5.92308V13.4231C5.92308 14.0188 6.40433 14.5 7 14.5C7.59567 14.5 8.07692 14.0188 8.07692 13.4231V8.57692H12.9231C13.5188 8.57692 14 8.09567 14 7.5C14 6.90433 13.5188 6.42308 12.9231 6.42308H8.07692V1.57692Z"
+                                      fill="#393939"
+                                    />
+                                  </svg>
+                                </div>
+                              </div>
+                              <div class="d-flex mt-2 align-items-center justify-content-end ">
+                                <span
+                                  >${(() => {
+                                        if (selectVariant.show_understocking === 'false') {
+                                            return '此商品未追蹤庫存數量';
+                                        }
+                                        if (POSSetting.config.where_store.includes('exhibition_') &&
+                                            selectVariant.exhibition_type) {
+                                            return `庫存數量:${selectVariant.exhibition_active_stock}`;
+                                        }
+                                        return `庫存數量:${selectVariant.stock}`;
+                                    })()}</span
+                                >
+                              </div>
+                            `;
+                                },
+                                divCreate: { class: `d-flex flex-column` },
+                            };
+                        })}
+                    </div>
+                  </div>
+                  <div class="d-flex mt-4 justify-content-between" style="gap:10px;">
+                    ${gvc.bindView(() => {
+                            return {
+                                bind: 'close',
+                                view: () => {
+                                    return '取消';
+                                },
+                                divCreate: () => {
+                                    return {
+                                        class: `d-flex align-items-center justify-content-center`,
+                                        style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;min-height: 58px;background:gray;`,
+                                        option: [
+                                            {
+                                                key: 'onclick',
+                                                value: gvc.event(() => {
+                                                    gvc.glitter.closeDiaLog();
+                                                }),
+                                            },
+                                        ],
+                                    };
+                                },
+                            };
+                        })}
+                    ${gvc.bindView(() => {
+                            return {
+                                bind: 'product_btn',
+                                view: () => {
+                                    if (POSSetting.config.where_store.includes('exhibition_')) {
+                                        return selectVariant.exhibition_type && selectVariant.exhibition_active_stock > 0
+                                            ? '加入購物車'
+                                            : '非展會銷售規格';
+                                    }
+                                    if (selectVariant.show_understocking === 'true' && selectVariant.stock <= 0) {
+                                        return '預購商品';
+                                    }
+                                    return '加入購物車';
+                                },
+                                divCreate: () => {
+                                    const getColorStyle = () => {
+                                        if (POSSetting.config.where_store.includes('exhibition_') &&
+                                            !selectVariant.exhibition_type) {
+                                            return 'gray';
+                                        }
+                                        return selectVariant.show_understocking === 'true' && selectVariant.stock <= 0
+                                            ? '#FF6C02'
+                                            : '#393939';
+                                    };
+                                    return {
+                                        class: 'd-flex align-items-center justify-content-center',
+                                        style: `
+                              flex: 1;
+                              padding: 12px 24px;
+                              font-size: 20px;
+                              color: #fff;
+                              font-weight: 500;
+                              border-radius: 10px;
+                              background: ${getColorStyle()};
+                              min-height: 58px;
+                            `,
+                                        option: [
+                                            {
+                                                key: 'onclick',
+                                                value: gvc.event(() => {
+                                                    function next() {
+                                                        var _a, _b;
+                                                        const countValue = data.content.product_category === 'weighing'
+                                                            ? parseFloat(`${count !== null && count !== void 0 ? count : 0}`)
+                                                            : parseInt(`${count !== null && count !== void 0 ? count : 0}`, 10);
+                                                        let addItem = orderDetail.lineItems.find((item) => data.content.title === item.title && arraysEqual(item.spec, selectVariant.spec));
+                                                        if (addItem) {
+                                                            addItem.count += countValue;
+                                                        }
+                                                        else {
+                                                            orderDetail.lineItems.push({
+                                                                id: data.id,
+                                                                title: data.content.title,
+                                                                preview_image: selectVariant.preview_image.length > 1
+                                                                    ? selectVariant.preview_image
+                                                                    : ((_b = (_a = data.content.preview_image) === null || _a === void 0 ? void 0 : _a[0]) !== null && _b !== void 0 ? _b : ''),
+                                                                spec: selectVariant.spec,
+                                                                count: countValue,
+                                                                sale_price: selectVariant.sale_price,
+                                                                sku: selectVariant.sku,
+                                                                product_category: data.content.product_category,
+                                                            });
+                                                        }
+                                                        const cartCountEl = document.querySelector('.js-cart-count');
+                                                        cartCountEl && cartCountEl.recreateView();
+                                                        gvc.glitter.share.checkStock();
+                                                        gvc.glitter.closeDiaLog();
+                                                    }
+                                                    if (POSSetting.config.where_store.includes('exhibition_')) {
+                                                        if (!selectVariant.exhibition_type)
+                                                            return;
+                                                    }
+                                                    if (selectVariant.exhibition_type && selectVariant.exhibition_active_stock > 0) {
+                                                        return next();
+                                                    }
+                                                    if (selectVariant.show_understocking === 'true' && selectVariant.stock === 0) {
+                                                        new ShareDialog(gvc.glitter).checkYesOrNot({
+                                                            text: '庫存數量不足，是否進行預購?',
+                                                            callback: response => response && next(),
+                                                        });
+                                                        return;
+                                                    }
+                                                    next();
+                                                }),
+                                            },
+                                        ],
+                                    };
+                                },
+                            };
+                        })}
+                  </div>
+                </div>
+              </div>`;
+                    }
+                    catch (e) {
+                        console.error(e);
+                        return '';
+                    }
+                },
+                divCreate: { class: 'w-100 h-100' },
+            });
+        }, 'product', {
+            dismiss: () => {
+                gvc.notifyDataChange('order');
+            },
         });
     }
     static scannerCallback(gvc, text) {
@@ -342,9 +654,20 @@ export class POSSetting {
                     orderBy: 'created_time_desc',
                 }).then(res => {
                     dialog.dataLoading({ visible: false });
-                    if (res.response.data[0]) {
-                        const data = res.response.data[0];
-                        const selectVariant = res.response.data[0].content.variants.find((d1) => d1.barcode === text);
+                    const data = res.response.data[0];
+                    if (data) {
+                        const productCategory = data.content.product_category;
+                        const selectVariant = data.content.variants.find((d1) => d1.barcode === text);
+                        if (productCategory === 'weighing') {
+                            this.productDialog({
+                                gvc,
+                                selectVariant,
+                                defaultData: data,
+                                orderDetail: OrderDetail.singleInstance,
+                                callback: () => { },
+                            });
+                            return;
+                        }
                         if (!OrderDetail.singleInstance.lineItems.find(dd => {
                             return dd.id + dd.spec.join('-') === data.id + selectVariant.spec.join('-');
                         })) {
@@ -370,7 +693,6 @@ export class POSSetting {
                 });
             }
             if (text.indexOf(`user-`) === 0) {
-                const dialog = new ShareDialog(gvc.glitter);
                 dialog.dataLoading({ visible: true });
                 const user = yield ApiUser.getUsersData(text.replace('user-', ''));
                 if (!user.response || !user.response.account) {
@@ -385,7 +707,6 @@ export class POSSetting {
             }
             if (text.indexOf(`voucher-`) === 0) {
                 text = text.replace(`voucher-`, '');
-                const dialog = new ShareDialog(gvc.glitter);
                 OrderDetail.singleInstance.code_array = OrderDetail.singleInstance.code_array || [];
                 OrderDetail.singleInstance.code_array = OrderDetail.singleInstance.code_array.filter((dd) => {
                     return dd !== text;
@@ -417,6 +738,7 @@ export class POSSetting {
     }
     static posView(gvc) {
         const glitter = gvc.glitter;
+        const dialog = new ShareDialog(glitter);
         const vm = {
             id: glitter.getUUID(),
             filterID: glitter.getUUID(),
@@ -552,7 +874,7 @@ export class POSSetting {
                     </span>`;
                                 },
                                 divCreate: {
-                                    class: `nav-link js-cart-count d-sm-none ${vm.type !== 'menu' ? `d-none` : ``}`,
+                                    class: `nav-link js-cart-count d-sm-none ${vm.type !== 'menu' ? `d-none` : ''}`,
                                     style: `cursor: pointer;`,
                                     option: [
                                         {
@@ -602,12 +924,12 @@ export class POSSetting {
                           class="d-flex flex-column justify-content-center align-items-center ${document.body
                                         .offsetWidth < 800
                                         ? `py-2`
-                                        : ``}"
+                                        : ''}"
                           style="gap: 6px;font-weight: 500;letter-spacing: 0.8px;${vm.type == data.type
                                         ? `color:#393939;${document.body.offsetWidth < 800 ? `border-bottom: 3px solid #393939;font-size: 16px;` : `border-right: 3px solid #393939;font-size: 18px;padding-top: 16px;padding-bottom: 16px;`}`
                                         : 'color:#949494;'}flex:1;cursor:pointer;${glitter.ut.frSize({
                                         sm: `padding-right:32px;padding-left:32px;`,
-                                    }, ``)}"
+                                    }, '')}"
                           onclick="${gvc.event(() => {
                                         vm.type = data.type;
                                     })}"
@@ -686,14 +1008,14 @@ export class POSSetting {
                             POS
                           </div>
                         </div>`}
-                    ${document.body.clientWidth > 800 ? cartBtn : ``}
+                    ${document.body.clientWidth > 800 ? cartBtn : ''}
                     <div
-                      class="searchBar ms-sm-2 me-2 ${vm.type !== 'menu' ? `d-none` : ``} ${document.body.offsetWidth <
+                      class="searchBar ms-sm-2 me-2 ${vm.type !== 'menu' ? `d-none` : ''} ${document.body.offsetWidth <
                             800
                             ? `d-none`
-                            : ``}"
+                            : ''}"
                       style="position: relative;max-width:calc(100% - 60px); ${document.body.clientWidth < 800
-                            ? ``
+                            ? ''
                             : `position: absolute;left: 50%;top:50%;transform:translate(-50%,-50%);`}"
                     >
                       <input
@@ -733,7 +1055,7 @@ export class POSSetting {
                         </defs>
                       </svg>
                     </div>
-                    ${document.body.clientWidth > 800 ? `<div class="flex-fill"></div>` : ``}
+                    ${document.body.clientWidth > 800 ? `<div class="flex-fill"></div>` : ''}
                     ${gvc.bindView({
                             bind: 'right_top_info',
                             view: () => {
@@ -854,7 +1176,6 @@ export class POSSetting {
                                           class="dropdown-item cursor_pointer d-flex align-items-center"
                                           style="gap:5px;"
                                           onclick="${gvc.event(() => {
-                                                        const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.checkYesOrNot({
                                                             text: html `是否確認打卡下班? <br /><span
                                                   style="font-size:13px;color:gray;"
@@ -897,7 +1218,7 @@ export class POSSetting {
                                 class: `h-100`,
                             },
                         })}
-                    ${document.body.clientWidth < 800 ? html `<div class="flex-fill"></div>` : ``}
+                    ${document.body.clientWidth < 800 ? html `<div class="flex-fill"></div>` : ''}
                     <div class="h-100 d-flex align-items-center border-start ps-1">
                       <div
                         style="width:50px;height: 100%;cursor: pointer;"
@@ -915,11 +1236,11 @@ export class POSSetting {
                                   >${TempOrder.getTempOrders().length}</span
                                 ></span
                               >`
-                            : ``}
+                            : ''}
                         </div>
                       </div>
                       ${document.body.clientWidth > 800 || vm.type !== 'menu'
-                            ? ``
+                            ? ''
                             : html `<div style="width:50px;" class="d-flex align-items-center justify-content-center">
                             ${cartBtn}
                           </div>`}
@@ -963,7 +1284,6 @@ export class POSSetting {
                                           class="dropdown-item cursor_pointer d-flex align-items-center"
                                           style="gap:10px;"
                                           onclick="${gvc.event(() => {
-                                                    const dialog = new ShareDialog(gvc.glitter);
                                                     dialog.checkYesOrNot({
                                                         text: '是否斷開與 IMIN 裝置的連線?',
                                                         callback: response => {
@@ -1006,7 +1326,6 @@ export class POSSetting {
                                   class="dropdown-item cursor_pointer  d-flex align-items-center"
                                   style="gap:5px;"
                                   onclick="${gvc.event(() => {
-                                        const dialog = new ShareDialog(gvc.glitter);
                                         dialog.dataLoading({ visible: true });
                                         localStorage.removeItem('on-pos');
                                         window.parent.history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
@@ -1080,7 +1399,7 @@ export class POSSetting {
                                 return view;
                             }),
                             divCreate: {
-                                class: `h-100 ${document.body.clientWidth < 768 ? `` : `d-flex`}`,
+                                class: `h-100 ${document.body.clientWidth < 768 ? '' : `d-flex`}`,
                                 style: `background: #F7F7F7;padding-top:${glitter.share.top_inset}px;`,
                             },
                         })}
@@ -1194,13 +1513,13 @@ export class POSSetting {
     }
 }
 POSSetting.config = {
+    recreate: () => { },
     get who() {
         return localStorage.getItem('pos_use_member') || '';
     },
     set who(value) {
         localStorage.setItem('pos_use_member', value);
     },
-    recreate: () => { },
     get pickup_number() {
         if (parseInt(localStorage.getItem('orderGetNumber') || '1', 10) > 1000) {
             POSSetting.config.pickup_number = 1;

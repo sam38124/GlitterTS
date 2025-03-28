@@ -1515,32 +1515,29 @@ ${obj.default ?? ''}</textarea
     readonly?: boolean;
     place_holder?: string;
   }) {
-    return html`
-      ${obj.title
-        ? html` <div class="tx_normal fw-normal mb-2" >${obj.title}</div>`
-        : ``}
+    return html` ${obj.title ? html` <div class="tx_normal fw-normal mb-2">${obj.title}</div>` : ``}
       <select
-      class="c_select c_select_w_100"
-      style="${obj.style ?? ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
-      onchange="${obj.gvc.event(e => {
-        obj.callback(e.value);
-      })}"
-      ${obj.readonly ? 'disabled' : ''}
-    >
-      ${obj.gvc.map(
-        obj.options.map(
-          opt =>
-            html` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>
-              ${opt.value}
-            </option>`
-        )
-      )}
-      ${(obj.options as any).find((opt: any) => {
-        return obj.default === opt.key;
-      })
-        ? ``
-        : `<option class="d-none" selected>${obj.place_holder || `請選擇項目`}</option>`}
-    </select>`;
+        class="c_select c_select_w_100"
+        style="${obj.style ?? ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
+        onchange="${obj.gvc.event(e => {
+          obj.callback(e.value);
+        })}"
+        ${obj.readonly ? 'disabled' : ''}
+      >
+        ${obj.gvc.map(
+          obj.options.map(
+            opt =>
+              html` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>
+                ${opt.value}
+              </option>`
+          )
+        )}
+        ${(obj.options as any).find((opt: any) => {
+          return obj.default === opt.key;
+        })
+          ? ``
+          : `<option class="d-none" selected>${obj.place_holder || `請選擇項目`}</option>`}
+      </select>`;
   }
 
   // 頁面
