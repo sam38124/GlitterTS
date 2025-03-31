@@ -1,12 +1,12 @@
-import { BgWidget } from '../backend-manager/bg-widget.js';
 import { GVC } from '../glitterBundle/GVController.js';
-import { QuestionInfo } from './module/question-info.js';
-import { ApiUser } from '../glitter-base/route/user.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
-import { Product, MultiSaleType } from '../public-models/product.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
+import { ApiUser } from '../glitter-base/route/user.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
+import { QuestionInfo } from './module/question-info.js';
 import { Tool } from '../modules/tool.js';
+import { Product, MultiSaleType } from '../public-models/product.js';
 
 const html = String.raw;
 
@@ -44,12 +44,12 @@ export class ShoppingSettingAdvance {
               BgWidget.mainCard(
                 [
                   html`
-                    <div class="d-flex flex-column guide5-4">
-                      <div style="font-weight: 700;" class="mb-1">
-                        ${carTitle}標籤 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
+                    <div class="guide5-4">
+                      <div class="d-flex align-items-center">
+                        <div style="color: #393939; font-weight: 700;">${carTitle}標籤</div>
+                        ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
                       </div>
-                      ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + carTitle)}
-                      <div class="mb-2"></div>
+                      ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + carTitle)} ${BgWidget.mbContainer(4)}
                       ${BgWidget.multipleInput(gvc, (postMD.product_tag.language as any)[vm.language], {
                         save: def => {
                           (postMD.product_tag.language as any)[vm.language] = def;
@@ -57,14 +57,26 @@ export class ShoppingSettingAdvance {
                       })}
                     </div>
                   `,
-                  html` <div class="mt-2 mb-2 position-relative" style="font-weight: 700;">
-                      ${carTitle}促銷標籤
+                  html`
+                    <div>
+                      <div style="color: #393939; font-weight: 700;">${carTitle}管理員標籤</div>
+                      ${BgWidget.grayNote('操作後台人員登記與分類用，不會顯示於前台')} ${BgWidget.mbContainer(4)}
+                      ${BgWidget.multipleInput(gvc, postMD.product_customize_tag ?? [], {
+                        save: def => {
+                          postMD.product_customize_tag = def;
+                        },
+                      })}
+                    </div>
+                  `,
+                  html` <div class="d-flex align-items-center gap-2">
+                      <div style="color: #393939; font-weight: 700;">${carTitle}促銷標籤</div>
                       ${BgWidget.questionButton(
                         gvc.event(() => {
                           QuestionInfo.promoteLabel(gvc);
                         })
                       )}
                     </div>
+                    ${BgWidget.mbContainer(8)}
                     ${gvc.bindView(
                       (() => {
                         const id = gvc.glitter.getUUID();
@@ -80,7 +92,6 @@ export class ShoppingSettingAdvance {
                               { key: '', value: '不設定' },
                             ];
                           }
-
                           gvc.notifyDataChange(id);
                         });
 
@@ -102,12 +113,11 @@ export class ShoppingSettingAdvance {
                     )}`,
                   postMD.product_category === 'course'
                     ? ''
-                    : html`<div class="d-flex flex-column mt-2">
-                        <div style="font-weight: 700;" class="mb-1">
-                          數量單位 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
+                    : html` <div class="d-flex align-items-center">
+                          <div style="color: #393939; font-weight: 700;">數量單位</div>
+                          ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
                         </div>
                         ${BgWidget.grayNote('例如 : 坪、件、個、打，預設單位為件。')}
-                        <div class="mb-2"></div>
                         ${BgWidget.editeInput({
                           gvc: obj.gvc,
                           default: `${(postMD.unit as any)[vm.language] || ''}`,
@@ -118,9 +128,27 @@ export class ShoppingSettingAdvance {
                             (postMD.unit as any)[vm.language] = text;
                             gvc.notifyDataChange(id);
                           },
-                        })}
-                      </div>`,
-                ].join('')
+                        })}`,
+                  html`
+                    <div class="d-flex align-items-center">
+                      <div style="color: #393939; font-weight: 700;">排序權重</div>
+                    </div>
+                    ${BgWidget.grayNote('數字越大商品排序會越靠前。')}
+                    ${BgWidget.editeInput({
+                      gvc: obj.gvc,
+                      default: `${postMD.sort_weight || ''}`,
+                      title: '',
+                      type: 'text',
+                      placeHolder: '數字越大商品排序會越靠前',
+                      callback: (text: any) => {
+                        postMD.sort_weight=text
+                        gvc.notifyDataChange(id);
+                      },
+                    })}
+                  `,
+                ]
+                  .filter(Boolean)
+                  .join(BgWidget.mbContainer(18))
               ),
               BgWidget.mainCard(
                 [
@@ -193,7 +221,7 @@ export class ShoppingSettingAdvance {
                             case 'min_qty':
                             case 'max_qty':
                               stringArray.push(
-                                html`<div class="d-flex align-items-center fw-500" style="gap:10px;">
+                                html` <div class="d-flex align-items-center fw-500" style="gap:10px;">
                                   ${BgWidget.editeInput({
                                     gvc: obj.gvc,
                                     default: `${postMD[dd.key] || ''}`,
@@ -338,9 +366,7 @@ export class ShoppingSettingAdvance {
                                                     postMD.match_by_with = value;
                                                     gvc.notifyDataChange(id);
                                                   },
-                                                  filter: dd => {
-                                                    return dd.key !== postMD.id;
-                                                  },
+                                                  filter: dd => dd.key !== postMD.id,
                                                 });
                                               }),
                                               { textStyle: 'font-weight: 400;' }
@@ -521,12 +547,9 @@ export class ShoppingSettingAdvance {
                   return gvc.bindView({
                     bind: priceVM.id,
                     view: () => {
-                      if (priceVM.loading) {
-                        return BgWidget.spinner();
-                      }
+                      if (priceVM.loading) return BgWidget.spinner();
 
                       const toggleList = createToggleList();
-
                       const particularKeys = priceVM.typeData.filter(item => {
                         return postMD.multi_sale_price?.some(m => m.type === item.type && m.key === item.key);
                       });
@@ -586,7 +609,7 @@ export class ShoppingSettingAdvance {
                               `
                             : ''}
                           ${postMD.multi_sale_price && postMD.multi_sale_price.length > 0
-                            ? html`<div class="mt-3 d-grid" style="overflow: scroll;" id="scrollDiv">
+                            ? html` <div class="mt-3 d-grid" style="overflow: scroll;" id="scrollDiv">
                                 <div class="d-flex">
                                   ${['商品名稱', '成本', '原價', '售價', ...particularKeys.map(item => item.name)]
                                     .map(
@@ -624,7 +647,7 @@ export class ShoppingSettingAdvance {
                                                       : Tool.truncateString(postMD.title, 10)}
                                                   </div>
                                                   ${priceVM.showPriceDetail
-                                                    ? html`<div style="color: #8D8D8D;">
+                                                    ? html` <div style="color: #8D8D8D;">
                                                         定價 : ${compare_price.toLocaleString()} / 售價 :
                                                         ${sale_price.toLocaleString()}
                                                       </div>`
@@ -935,9 +958,7 @@ export class ShoppingSettingAdvance {
                                     postMD.relative_product = value;
                                     gvc.notifyDataChange(id);
                                   },
-                                  filter: dd => {
-                                    return dd.key !== postMD.id;
-                                  },
+                                  filter: dd => dd.key !== postMD.id,
                                 });
                               }),
                               { textStyle: 'font-weight: 400;' }
@@ -1119,8 +1140,8 @@ export class ShoppingSettingAdvance {
                 })
               ),
             ]
-              .filter(dd => dd)
-              .join('<div class="my-3"></div>');
+              .filter(Boolean)
+              .join(html` <div class="my-3"></div>`);
           },
           divCreate: {
             class: `w-100`,

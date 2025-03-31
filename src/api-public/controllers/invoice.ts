@@ -4,6 +4,7 @@ import {EzInvoice} from "../services/ezpay/invoice";
 import app from "../../app";
 import {Invoice} from "../services/invoice.js";
 import {UtPermission} from "../utils/ut-permission";
+import { EcInvoice } from '../services/EcInvoice.js';
 
 
 const router: express.Router = express.Router();
@@ -31,6 +32,22 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
             case "green":
                 return response.succ(resp, {result: false, message: "尚未支援"});
         }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/print', async (req: express.Request, resp: express.Response) => {
+    try {
+        const config = await app.getAdConfig(req.get('g-app') as string, 'invoice_setting');
+        return response.succ(resp, await EcInvoice.printInvoice({
+            hashKey: config.hashkey,
+            hash_IV: config.hashiv,
+            merchNO: config.merchNO,
+            app_name: req.get('g-app') as string,
+            order_id: req.body.order_id,
+            beta: config.point === 'beta'
+        }));
     } catch (err) {
         return response.fail(resp, err);
     }

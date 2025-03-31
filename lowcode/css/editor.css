@@ -952,7 +952,7 @@ h6 {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 20px;
+  padding: 12px;
   overflow-y: auto;
   max-height: 400px;
 }
@@ -1040,6 +1040,8 @@ h6 {
   margin: 0 0.25rem;
 }
 
+/* insignia fill */
+
 .insignia {
   border-radius: 0.5rem;
   min-height: 26px;
@@ -1051,6 +1053,13 @@ h6 {
   text-align: center;
   white-space: normal;
   vertical-align: baseline;
+}
+
+.insignia-sm {
+  border-radius: 0.25rem;
+  min-height: 20px;
+  padding: 3px 4px;
+  font-size: 12px;
 }
 
 .insignia-primary {
@@ -1093,6 +1102,54 @@ h6 {
   color: var(--main-black);
 }
 
+/* insignia border */
+
+.insignia-border {
+  padding: 5px 7px;
+}
+
+.insignia-primary-border {
+  border: 1px solid var(--item-primary);
+  color: var(--item-primary);
+}
+
+.insignia-success-border {
+  border: 1px solid var(--main-green);
+  color: var(--main-green);
+}
+
+.insignia-danger-border {
+  border: 1px solid var(--item-danger);
+  color: var(--item-danger);
+}
+
+.insignia-info-border {
+  border: 1px solid var(--item-info);
+  color: var(--item-info);
+}
+
+.insignia-warning-border {
+  border: 1px solid var(--main-orange);
+  color: var(--main-orange);
+}
+
+.insignia-notify-border {
+  border: 1px solid var(--item-notify);
+  color: var(--item-notify);
+}
+
+.insignia-secondary-border {
+  border: 1px solid var(--main-gray-1);
+  color: var(--main-gray-1);
+}
+
+.insignia-normal-border {
+  border: 1px solid var(--item-normal);
+  color: var(--item-normal);
+}
+
+/* ------- */
+
 .textbox {
   display: flex;
   height: 34px;
@@ -1115,6 +1172,20 @@ h6 {
   background: #fff;
 }
 
+.drag-badge {
+  display: flex;
+  padding: 6px 12px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border-radius: 7px;
+  cursor: move;
+}
+
+.drag-badge-warning {
+  background: var(--item-warning);
+}
+
 /* 行動端頁面 */
 @media (max-width: 768px) {
   .c_select_w_100 {
@@ -1122,9 +1193,9 @@ h6 {
   }
 
   .c_absolute {
-    width: 180px;
+    width: 200px;
     height: 250px;
-    padding: 18px;
+    padding: 12px;
   }
 
   .btn-gray,
@@ -1152,7 +1223,9 @@ h6 {
   }
 
   .title-container {
-    padding: 0 1rem;
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-top: 10px;
   }
 
   .bt_orange_lin {
@@ -1164,6 +1237,10 @@ h6 {
   .insignia {
     padding: 7.5px 10px;
     font-size: 12px;
+  }
+
+  .insignia-sm {
+    padding: 5px 7px;
   }
 }
 
@@ -1223,4 +1300,8 @@ h1,
   font-weight: 400;
   white-space: normal !important;
   word-break: break-all !important;
+}
+.hoverPlace:hover {
+  opacity: 1 !important;
+  display: flex;
 }

@@ -10,31 +10,16 @@ const exception_1 = __importDefault(require("../modules/exception"));
 const process_1 = __importDefault(require("process"));
 const ut_database_js_1 = require("../api-public/utils/ut-database.js");
 class Template {
-    async verifyPermission(appName) {
-        const count = await database_1.default.query(`SELECT count(1) 
-                    FROM ${config_1.saasConfig.SAAS_NAME}.app_config
-                    WHERE 
-                        (user = ? and appName = ?)
-                        OR appName in (
-                            (SELECT appName FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
-                            WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
-                        );
-                    `, [this.token.userID, appName, this.token.userID, appName]);
-        return count[0]['count(1)'] === 1;
-    }
     async createPage(config) {
         var _a, _b, _c;
-        if (!(await this.verifyPermission(config.appName))) {
-            throw exception_1.default.BadRequestError('Forbidden', 'No Permission.', null);
-        }
         if (config.copy) {
             const data = (await database_1.default.execute(`
-                select \`${config_1.saasConfig.SAAS_NAME}\`.page_config.page_config,
-                       \`${config_1.saasConfig.SAAS_NAME}\`.page_config.config
-                from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                where tag = ${database_1.default.escape(config.copy)}
-                  and appName = ${database_1.default.escape(config.copyApp || config.appName)}
-            `, []))[0];
+              select \`${config_1.saasConfig.SAAS_NAME}\`.page_config.page_config,
+                     \`${config_1.saasConfig.SAAS_NAME}\`.page_config.config
+              from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+              where tag = ${database_1.default.escape(config.copy)}
+                and appName = ${database_1.default.escape(config.copyApp || config.appName)}
+          `, []))[0];
             config.page_config = data['page_config'];
             config.config = data['config'];
         }
@@ -43,7 +28,16 @@ class Template {
                 ${config.replace ? `replace` : 'insert'} into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config,
                                                                      page_config, page_type)
                 values (?, ?, ?, ?, ?, ?, ?, ?);
-            `, [this.token.userID, config.appName, config.tag, config.group, config.name, (_a = config.config) !== null && _a !== void 0 ? _a : [], (_b = config.page_config) !== null && _b !== void 0 ? _b : {}, (_c = config.page_type) !== null && _c !== void 0 ? _c : 'page']);
+            `, [
+                this.token.userID,
+                config.appName,
+                config.tag,
+                config.group,
+                config.name,
+                (_a = config.config) !== null && _a !== void 0 ? _a : [],
+                (_b = config.page_config) !== null && _b !== void 0 ? _b : {},
+                (_c = config.page_type) !== null && _c !== void 0 ? _c : 'page',
+            ]);
             return true;
         }
         catch (e) {
@@ -51,9 +45,6 @@ class Template {
         }
     }
     async updatePage(config) {
-        if (!(await this.verifyPermission(config.appName))) {
-            throw exception_1.default.BadRequestError('Forbidden', 'No Permission.', null);
-        }
         const page_db = (() => {
             switch (config.language) {
                 case 'zh-TW':
@@ -79,13 +70,17 @@ class Template {
                 return sql;
             })();
             let sql = `
-                select count(1) from \`${config_1.saasConfig.SAAS_NAME}\`.${page_db} where 1=1 ${where_}
-            `;
+          select count(1)
+          from \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
+          where 1 = 1 ${where_}
+      `;
             const count = await database_1.default.query(sql, []);
             if (count[0]['count(1)'] === 0) {
                 await database_1.default.query(`INSERT INTO \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
-SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
-`, []);
+           SELECT *
+           FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+           where 1 = 1 ${where_};
+          `, []);
             }
         }
         await checkExits();
@@ -102,10 +97,10 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
             config.favorite && (params['favorite'] = config.favorite);
             config.updated_time = new Date();
             let sql = `
-                UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
-                SET ?
-                WHERE 1 = 1
-            `;
+          UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
+          SET ?
+          WHERE 1 = 1
+      `;
             if (config.id) {
                 sql += ` and \`id\` = ${config.id} `;
             }
@@ -121,22 +116,19 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
         }
     }
     async deletePage(config) {
-        if (!(await this.verifyPermission(config.appName))) {
-            throw exception_1.default.BadRequestError('Forbidden', 'No Permission.', null);
-        }
         try {
             for (const b of ['page_config', 'page_config_rcn', 'page_config_en']) {
                 let sql = config.id
                     ? `
-                delete
-                from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
-                WHERE appName = ${database_1.default.escape(config.appName)}
-                  and id = ${database_1.default.escape(config.id)}`
+                    delete
+                    from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
+                    WHERE appName = ${database_1.default.escape(config.appName)}
+                      and id = ${database_1.default.escape(config.id)}`
                     : `
-                delete
-                from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
-                WHERE appName = ${database_1.default.escape(config.appName)}
-                  and tag = ${database_1.default.escape(config.tag)}`;
+                    delete
+                    from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
+                    WHERE appName = ${database_1.default.escape(config.appName)}
+                      and tag = ${database_1.default.escape(config.tag)}`;
                 await database_1.default.execute(sql, []);
             }
             return true;
@@ -164,9 +156,6 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
     async postTemplate(config) {
         var _a, _b;
         try {
-            if (!(await this.verifyPermission(config.appName))) {
-                throw exception_1.default.BadRequestError('Forbidden', 'No Permission.', null);
-            }
             let template_type = '0';
             if (config.data.post_to === 'all') {
                 let officialAccount = ((_a = process_1.default.env.OFFICIAL_ACCOUNT) !== null && _a !== void 0 ? _a : '').split(',');
@@ -181,10 +170,10 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
                 template_type = '3';
             }
             return ((await database_1.default.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                                      set template_config = ?,
-                                          template_type=${template_type}
-                                      where appName = ${database_1.default.escape(config.appName)}
-                                        and tag = ?
+             set template_config = ?,
+                 template_type=${template_type}
+             where appName = ${database_1.default.escape(config.appName)}
+               and tag = ?
             `, [config.data, config.tag]))['changedRows'] == true);
         }
         catch (e) {
@@ -197,7 +186,52 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
         if (query_page.includes('#')) {
             query_page = query_page.substring(0, query_page.indexOf('#'));
         }
-        if (['privacy', 'term', 'refund', 'delivery', 'blogs', 'blog_tag_setting', 'blog_global_setting', 'checkout', 'fb_live', 'ig_live', 'line_plus', 'shipment_list', 'shipment_list_archive', 'reconciliation_area'].includes(query_page)) {
+        if (appName === 'proshake_v2') {
+            return query_page;
+        }
+        console.log(`query_page`, query_page);
+        if (page === 'index-app') {
+            const count = await database_1.default.query(`select count(1)
+         from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+         where appName = ${database_1.default.escape(appName)}
+           and tag = 'index-app'`, []);
+            if (count[0]['count(1)'] === 0) {
+                const copyPageData = await database_1.default.execute(`select *
+           from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+           where appName = ${database_1.default.escape(appName)}
+             and tag = 'index'`, []);
+                for (const dd of copyPageData) {
+                    await database_1.default.execute(`
+                insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`,
+                                                                     \`name\`,
+                                                                     \`config\`, \`page_config\`, page_type)
+                values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify(dd.config))},
+                        ${database_1.default.escape(JSON.stringify(dd.page_config))}, ${database_1.default.escape(dd.page_type)});
+            `, [dd.userID, appName, 'index-app', dd.group || '未分類', 'APP首頁樣式']);
+                }
+            }
+        }
+        if ([
+            'privacy',
+            'term',
+            'refund',
+            'delivery',
+            'blogs',
+            'blog_tag_setting',
+            'blog_global_setting',
+            'checkout',
+            'fb_live',
+            'ig_live',
+            'line_plus',
+            'shipment_list',
+            'shipment_list_archive',
+            'reconciliation_area',
+            'app-design',
+        ].includes(query_page)) {
+            return 'official-router';
+        }
+        if (['account_userinfo', 'voucher-list', 'rebate', 'order_list', 'wishlist', 'account_edit'].includes(query_page) &&
+            appName !== 'cms_system') {
             return 'official-router';
         }
         if (['blogs', 'pages', 'shop', 'hidden'].includes(query_page.split('/')[0]) && query_page.split('/')[1]) {
@@ -206,7 +240,8 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
         if (query_page.split('/')[0] === 'distribution' && query_page.split('/')[1]) {
             try {
                 const page = (await database_1.default.query(`SELECT *
-                                       from \`${appName}\`.t_recommend_links where content->>'$.link'=?`, [query_page.split('/')[1]]))[0].content;
+             from \`${appName}\`.t_recommend_links
+             where content ->>'$.link'=?`, [query_page.split('/')[1]]))[0].content;
                 return await Template.getRealPage(page.redirect.substring(1), appName);
             }
             catch (error) {
@@ -217,7 +252,7 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
         if (query_page.split('/')[0] === 'collections' && query_page.split('/')[1]) {
             page = 'all-product';
         }
-        if (query_page.split('/')[0] === 'products' && query_page.split('/')[1]) {
+        if (query_page.split('/')[0] === 'products' && query_page.split('/')[1] && appName !== '3131_shop') {
             page = 'official-router';
         }
         if (query_page === 'cms') {
@@ -259,8 +294,8 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
                 }
             })();
             let sql = `select ${config.tag || config.id ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
-                       from \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
-                       where ${(() => {
+                 from \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
+                 where ${(() => {
                 let query = [`1 = 1`];
                 config.user_id && query.push(`userID=${config.user_id}`);
                 config.appName && query.push(`appName=${database_1.default.escape(config.appName)}`);
@@ -268,7 +303,7 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
                 config.tag &&
                     query.push(` tag in (${config.tag
                         .split(',')
-                        .map((dd) => {
+                        .map(dd => {
                         return database_1.default.escape(dd);
                     })
                         .join(',')})`);
@@ -276,7 +311,7 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
                 config.group &&
                     query.push(`\`group\` in (${config.group
                         .split(',')
-                        .map((dd) => {
+                        .map(dd => {
                         return database_1.default.escape(dd);
                     })
                         .join(',')})`);

@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
-import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiWallet } from '../../glitter-base/route/wallet.js';
 import { CheckInput } from '../../modules/checkInput.js';
@@ -125,7 +124,7 @@ export class UmClass {
                                                     bind: id,
                                                     view: () => {
                                                         return html `${Language.text('reset_password_verification_code')}
-                                                                    ${BgWidget.blueNote(get_verify_timer
+                                                                    ${UmClass.style_components.blueNote(get_verify_timer
                                                             ? `${Language.text('verification_code_sent_to')}『${userData.userData.email}』`
                                                             : Language.text('get_verification_code'), gvc.event(() => {
                                                             if (!get_verify_timer) {
@@ -869,3 +868,12 @@ export class UmClass {
         });
     }
 }
+UmClass.style_components = {
+    blueNote(text, event = '', style = '') {
+        return html `<span
+      style="color: #4D86DB; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; ${style}"
+      onclick="${event}"
+      >${text}</span
+    >`;
+    }
+};

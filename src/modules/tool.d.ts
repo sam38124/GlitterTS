@@ -21,5 +21,6 @@ declare const _default: {
         inputDate?: string | undefined;
         addSeconds?: number | undefined;
     } | undefined) => string;
+    formatDateTime: (dateTimeStr?: string | undefined, includeSeconds?: boolean) => string;
 };
 export default _default;

@@ -100,7 +100,7 @@ export class GlobalUser {
     public static getPlan() {
         const config = (window.parent as any).glitter.share.editorViewModel.app_config_original;
         const planMapping = this.planMapping();
-        return planMapping[config.plan] ?? planMapping['omo-year'];
+        return planMapping[config.plan] ?? planMapping['app-year'];
     }
 }
 

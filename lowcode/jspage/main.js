@@ -609,7 +609,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                             .join('')}`;
                                     },
                                     divCreate: {
-                                        style: `width:50px;gap:20px;padding-top: 15px;min-width:50px;`,
+                                        style: `width:60px;gap:20px;padding-top: 15px;min-width:60px;`,
                                         class: `${Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor' ? `` : `d-none`} h-120 border-end d-flex flex-column align-items-center`,
                                     },
                                     onCreate: () => {

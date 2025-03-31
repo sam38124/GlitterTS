@@ -157,7 +157,6 @@ export class TriggerEvent {
                             if ((response as any) instanceof Promise) {
                                 response = await (response as any)
                             }
-                            console.log(`returnData-end-${new Date().getTime()}-`, response)
                             oj.subData = response
                             returnData=response
                             resolve(true)

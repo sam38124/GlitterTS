@@ -11,6 +11,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiCart } from '../../glitter-base/route/api-cart.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { Currency } from '../../glitter-base/global/currency.js';
+import { PdClass } from '../product/pd-class.js';
 const html = String.raw;
 export class HeaderClass {
     static hideShopperBtn() {
@@ -215,6 +216,7 @@ export class HeaderClass {
                                                         </div>`;
                                 }
                                 else {
+                                    console.log(`vm.dataList==>`, vm.dataList);
                                     return vm.dataList
                                         .map((data) => {
                                         const logistic = vm.shippings.find((item) => item.value === data.logistic);
@@ -392,9 +394,8 @@ export class HeaderClass {
                                 for (const item of cart.line_items) {
                                     const product = products.find((p) => `${p.id}` === `${item.id}`);
                                     if (product) {
-                                        console.log(`product===>`, product);
-                                        const variant = product.content.variants.find((v) => {
-                                            return v.spec.join(',') === item.spec.join(',');
+                                        const variant = PdClass.getVariant(product.content, {
+                                            specs: item.spec
                                         });
                                         const lineItem = {
                                             id: item.id,
@@ -405,6 +406,9 @@ export class HeaderClass {
                                             price: variant ? variant.sale_price : 0,
                                             image: yield (() => __awaiter(this, void 0, void 0, function* () {
                                                 if (!variant) {
+                                                    if (product.content && product.content.preview_image) {
+                                                        return product.content.preview_image[0];
+                                                    }
                                                     return this.noImageURL;
                                                 }
                                                 const img = yield this.isImageUrlValid(variant.preview_image).then((isValid) => {

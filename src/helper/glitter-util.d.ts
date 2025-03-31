@@ -13,8 +13,9 @@ export declare class GlitterUtil {
         path: string;
         root_path: string;
         seoManager: (req: express.Request, resp: express.Response) => Promise<{
-            head: string;
-            body: string;
+            head?: string;
+            body?: string;
+            redirect?: string;
         }>;
         sitemap: (req: express.Request, resp: express.Response) => Promise<string>;
         sitemap_list: (req: express.Request, resp: express.Response) => Promise<string>;

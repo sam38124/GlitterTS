@@ -432,8 +432,9 @@ export class FormModule {
                         class: '',
                     },
                     onCreate: () => {
+                        let n = 0
                         const interval = setInterval(() => {
-                            console.log(`form-module=====>`)
+                            n++
                             if ((gvc.glitter.window as any).Sortable) {
                                 try {
                                     function swapArr(arr: any, index1: number, index2: number) {
@@ -456,6 +457,9 @@ export class FormModule {
                                         },
                                     });
                                 } catch (e) {}
+                                clearInterval(interval);
+                            }
+                            if(n > 100){
                                 clearInterval(interval);
                             }
                         }, 100);

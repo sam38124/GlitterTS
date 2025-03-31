@@ -24,6 +24,7 @@ export interface VoucherData {
     rule: 'min_price' | 'min_count';
     productOffStart: 'price_asc' | 'price_desc' | 'price_all';
     conditionType: 'order' | 'item';
+    includeDiscount: 'before' | 'after';
     counting: 'each' | 'single';
     forKey: string[];
     ruleValue: number;
@@ -79,6 +80,7 @@ type Collection = {
         'zh-CN': seo;
         'zh-TW': seo;
     };
+    hidden?: boolean;
 };
 type CartItem = {
     id: string;
@@ -162,6 +164,12 @@ export type Cart = {
     fbc: string;
     fbp: string;
     scheduled_id?: string;
+    shipmentSupport?: string[];
+    editRecord: {
+        time: string;
+        record: string;
+    }[];
+    combineOrderID?: number;
 };
 export type Order = {
     id: number;
@@ -382,11 +390,16 @@ export declare class Shopping {
         orderData: any;
         message?: undefined;
     }>;
-    private restoreStock;
+    private writeRecord;
+    private resetStore;
     private sendNotifications;
     private adjustStock;
-    cancelOrder(order_id: string): Promise<{
-        data: boolean;
+    manualCancelOrder(order_id: string): Promise<{
+        result: boolean;
+        message: string;
+    } | {
+        result: boolean;
+        message?: undefined;
     }>;
     deleteOrder(req: {
         id: string;
@@ -420,6 +433,8 @@ export declare class Shopping {
         valid?: boolean;
         is_shipment?: boolean;
         payment_select?: string;
+        is_reconciliation?: boolean;
+        reconciliation_status?: string[];
     }): Promise<any>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
     shareVoucherRebate(cartData: any): Promise<void>;
@@ -533,9 +548,10 @@ export declare class Shopping {
     }>;
     postCustomerInvoice(obj: {
         orderID: any;
-        invoice_data: any;
         orderData: any;
-    }): Promise<void>;
+    }): Promise<{
+        result: string | boolean | undefined;
+    }>;
     voidInvoice(obj: {
         invoice_no: string;
         reason: string;

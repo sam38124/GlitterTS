@@ -1,4 +1,6 @@
 import { Glitter } from '../Glitter.js';
+import { Animation, AnimationConfig } from '../../glitterBundle/module/Animation.js';
+
 
 interface DataLoadingOptions {
   text?: string;
@@ -42,7 +44,7 @@ export class ShareDialog {
         this.glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'dataLoading', {
           type: 'dataLoading',
           obj,
-        });
+        },);
       } else {
         this.glitter.closeDiaLog('dataLoading');
       }
@@ -52,21 +54,21 @@ export class ShareDialog {
       this.glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'infoMessage', {
         type: 'infoMessage',
         obj,
-      });
+      },);
     };
 
     this.errorMessage = (obj: ErrorMessageOptions): void => {
       this.glitter.openDiaLog('glitterBundle/dialog/dialog.js', obj.tag || 'errorMessage', {
         type: 'errorMessage',
         obj,
-      });
+      },);
     };
 
     this.successMessage = (obj: MessageOptions): void => {
       this.glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'successMessage', {
         type: 'successMessage',
         obj,
-      });
+      },);
     };
 
     this.warningMessage = (obj: ConfirmDialogOptions): void => {

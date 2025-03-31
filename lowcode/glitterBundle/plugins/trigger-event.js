@@ -138,7 +138,6 @@ export class TriggerEvent {
                                     if (response instanceof Promise) {
                                         response = yield response;
                                     }
-                                    console.log(`returnData-end-${new Date().getTime()}-`, response);
                                     oj.subData = response;
                                     returnData = response;
                                     resolve(true);

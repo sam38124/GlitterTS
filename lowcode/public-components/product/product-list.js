@@ -24,63 +24,63 @@ export class ProductList {
         const height = (document.body.clientWidth > 768 ? 56 : 59) * (obj.length + 1);
         const closeHeight = 56;
         obj.gvc.addStyle(`
-            .box-item:hover {
-                background-color: #f5f5f5;
-            }
-            .box-container-${text} {
-                position: relative;
-                height: ${closeHeight}px;
-                overflow-y: hidden;
-                transition: height 0.3s ease-out;
-            }
-            .box-container-${text}.open-box {
-                max-height: ${height}px;
-                height: ${height}px;
-                overflow-y: auto;
-            }
-            .box-navbar-${text} {
-                position: sticky;
-                top: 0;
-                min-height: 20px;
-                z-index: 10;
-                display: flex;
-                padding: 16px;
-                align-items: flex-start;
-                justify-content: space-between;
-                cursor: pointer;
-            }
-            .arrow-icon-${text} {
-                color: #393939 !important;
-                box-shadow: none !important;
-                background-color: #fff !important;
-                background-image: url(${this.arrowDownDataImage('#000')}) !important;
-                background-repeat: no-repeat;
-                cursor: pointer;
-                height: 1rem;
-                border: 0;
-                margin-top: 0.35rem;
-                transition: transform 0.3s;
-            }
-            .arrow-icon-${text}.open-box {
-                margin-top: 0.15rem;
-                transform: rotate(180deg);
-            }
-            .box-inside-${text} {
-                padding: 0 1.5rem 1.5rem;
-                overflow-y: auto;
-            }
+      .box-item:hover {
+        background-color: #f5f5f5;
+      }
+      .box-container-${text} {
+        position: relative;
+        height: ${closeHeight}px;
+        overflow-y: hidden;
+        transition: height 0.3s ease-out;
+      }
+      .box-container-${text}.open-box {
+        max-height: ${height}px;
+        height: ${height}px;
+        overflow-y: auto;
+      }
+      .box-navbar-${text} {
+        position: sticky;
+        top: 0;
+        min-height: 20px;
+        z-index: 10;
+        display: flex;
+        padding: 16px;
+        align-items: flex-start;
+        justify-content: space-between;
+        cursor: pointer;
+      }
+      .arrow-icon-${text} {
+        color: #393939 !important;
+        box-shadow: none !important;
+        background-color: #fff !important;
+        background-image: url(${this.arrowDownDataImage('#000')}) !important;
+        background-repeat: no-repeat;
+        cursor: pointer;
+        height: 1rem;
+        border: 0;
+        margin-top: 0.35rem;
+        transition: transform 0.3s;
+      }
+      .arrow-icon-${text}.open-box {
+        margin-top: 0.15rem;
+        transform: rotate(180deg);
+      }
+      .box-inside-${text} {
+        padding: 0 1.5rem 1.5rem;
+        overflow-y: auto;
+      }
 
-            @media (max-width: 768px) {
-                .box-inside-${text} {
-                    padding: 0 1rem 0.5rem;
-                    overflow-x: hidden;
-                }
-            }
-        `);
+      @media (max-width: 768px) {
+        .box-inside-${text} {
+          padding: 0 1rem 0.5rem;
+          overflow-x: hidden;
+        }
+      }
+    `);
         return html ` <div class="box-tag-${obj.tag} box-container-${text} ${obj.openOnInit ? `open-box` : ''}">
-            <div
-                class="box-navbar-${text} ${(_a = obj.guideClass) !== null && _a !== void 0 ? _a : ''}"
-                onclick="${obj.gvc.event((e) => {
+      <div
+        class="box-navbar-${text} ${(_a = obj.guideClass) !== null && _a !== void 0 ? _a : ''}"
+        onclick="${obj.gvc.event(e => {
             if (!obj.autoClose) {
                 const boxes = document.querySelectorAll(`.box-tag-${obj.tag}`);
                 boxes.forEach((box) => {
@@ -118,29 +118,29 @@ export class ProductList {
                 }
             }, 50);
         })}"
-            >
-                <div
-                    class="d-flex tx_700"
-                    style="color: ${obj.fontColor};"
-                    onclick="${obj.gvc.event(() => {
+      >
+        <div
+          class="d-flex tx_700"
+          style="color: ${obj.fontColor};"
+          onclick="${obj.gvc.event(() => {
             obj.changePage('collections/' + obj.code, 'page', {});
             obj.gvc.glitter.closeDrawer();
         })}"
-                >
-                    ${obj.title}
-                </div>
-                <div class="d-flex">
-                    <button class="box-tag-${obj.tag} arrow-icon-${text}"></button>
-                </div>
-            </div>
-            <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''} ">${obj.insideHTML}</div>
-        </div>`;
+        >
+          ${obj.title}
+        </div>
+        <div class="d-flex">
+          <button class="box-tag-${obj.tag} arrow-icon-${text}"></button>
+        </div>
+      </div>
+      <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''} ">${obj.insideHTML}</div>
+    </div>`;
     }
     static spinner() {
         return html `<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
-            <div class="spinner-border" role="status"></div>
-            <span class="mt-3">${Language.text('loading')}</span>
-        </div>`;
+      <div class="spinner-border" role="status"></div>
+      <span class="mt-3">${Language.text('loading')}</span>
+    </div>`;
     }
     static main(gvc, widget, subData) {
         var _a;
@@ -164,93 +164,67 @@ export class ProductList {
         };
         const fontColor = (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
         gvc.addStyle(`
-            .filter-btn {
-                white-space: nowrap;
-                font-weight: 500;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                padding: 8px 12px;
-                border-radius: none !important;
-                background-color: black;
-                border-radius: 5px;
-                background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
-                color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
-                font-size: 16px;
-            }
-        `);
+      .filter-btn {
+        white-space: nowrap;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 8px 12px;
+        border-radius: none !important;
+        background-color: black;
+        border-radius: 5px;
+        background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
+        color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
+        font-size: 16px;
+      }
+    `);
         let changePage = (index, type, subData) => { };
-        gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
+        gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, cl => {
             changePage = (index, type, subData) => {
                 gvc.glitter.setUrlParameter('ai-search', undefined);
                 cl.changePage(index, type, subData);
             };
         });
         function updateCollections(data) {
-            const findCollection = (collections, path) => {
-                let currentCollections = collections;
-                let currentCollection;
-                for (const title of path) {
-                    currentCollection = currentCollections.find((col) => col.title === title);
-                    if (!currentCollection)
-                        return undefined;
-                    currentCollections = currentCollection.array;
-                }
-                return currentCollection;
-            };
-            const addProductToCollection = (collection, productId) => {
-                if (!collection.product_id) {
-                    collection.product_id = [];
-                }
-                if (!collection.product_id.includes(productId)) {
-                    collection.product_id.push(productId);
-                }
-            };
             const flattenCollections = (collections, parentTitles = [], topLevelCollections = []) => {
                 let flattened = [];
-                collections.forEach((col) => {
-                    const { title, array, product_id, seo_title, seo_content, seo_image, code, language_data } = col;
-                    const flattenedCol = {
-                        title: (() => {
-                            if (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title) {
+                collections.forEach(col => {
+                    const { title, array, product_id, code, language_data } = col;
+                    const flattenedCol = Object.assign(Object.assign({}, col), { title: (() => {
+                            if (language_data &&
+                                language_data[Language.getLanguage()] &&
+                                language_data[Language.getLanguage()].title) {
                                 return language_data[Language.getLanguage()].title;
                             }
                             else {
                                 return title;
                             }
-                        })(),
-                        array: [],
-                        product_id: product_id !== null && product_id !== void 0 ? product_id : [],
-                        checked: false,
-                        parentTitles: parentTitles.length ? [...parentTitles] : [],
-                        allCollections: parentTitles.length ? [...topLevelCollections] : [],
-                        subCollections: array.map((subCol) => (() => {
+                        })(), array: [], product_id: product_id !== null && product_id !== void 0 ? product_id : [], checked: false, parentTitles: parentTitles.length ? [...parentTitles] : [], allCollections: parentTitles.length ? [...topLevelCollections] : [], subCollections: array.map(subCol => (() => {
                             const language_data = subCol.language_data;
-                            if (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title) {
+                            if (language_data &&
+                                language_data[Language.getLanguage()] &&
+                                language_data[Language.getLanguage()].title) {
                                 return language_data[Language.getLanguage()].title;
                             }
                             else {
                                 return subCol.title;
                             }
-                        })()),
-                        seo_title: seo_title,
-                        seo_content: seo_content,
-                        seo_image: seo_image,
-                        code: (() => {
-                            if (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title) {
+                        })()), code: (() => {
+                            if (language_data &&
+                                language_data[Language.getLanguage()] &&
+                                language_data[Language.getLanguage()].title) {
                                 return language_data[Language.getLanguage()].seo.domain;
                             }
                             else {
                                 return code;
                             }
-                        })(),
-                        language_data: language_data,
-                    };
+                        })() });
                     if (flattenedCol.title.includes(vm.query) ||
-                        flattenedCol.parentTitles.find((title) => {
+                        flattenedCol.parentTitles.find(title => {
                             return title.includes(vm.query);
                         }) ||
-                        flattenedCol.subCollections.find((title) => {
+                        flattenedCol.subCollections.find(title => {
                             return title.includes(vm.query);
                         })) {
                         flattened.push(flattenedCol);
@@ -259,7 +233,9 @@ export class ProductList {
                         flattened = flattened.concat(flattenCollections(array, [
                             ...parentTitles,
                             (() => {
-                                if (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title) {
+                                if (language_data &&
+                                    language_data[Language.getLanguage()] &&
+                                    language_data[Language.getLanguage()].title) {
                                     return language_data[Language.getLanguage()].title;
                                 }
                                 else {
@@ -271,23 +247,11 @@ export class ProductList {
                 });
                 return flattened;
             };
-            data.products.forEach((product) => {
-                product.content.collection.forEach((category) => {
-                    const path = category.split('/').map((item) => {
-                        return item.replace(/\s/g, '');
-                    });
-                    for (let i = 0; i < path.length; i++) {
-                        const subPath = path.slice(0, i + 1);
-                        const collection = findCollection(data.collections, subPath);
-                        if (collection) {
-                            addProductToCollection(collection, product.id);
-                        }
-                    }
-                });
-            });
-            const topLevelCollections = data.collections.map((col) => (() => {
+            const topLevelCollections = data.collections.map(col => (() => {
                 const language_data = col.language_data;
-                if (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title) {
+                if (language_data &&
+                    language_data[Language.getLanguage()] &&
+                    language_data[Language.getLanguage()].title) {
                     return language_data[Language.getLanguage()].title;
                 }
                 else {
@@ -296,22 +260,12 @@ export class ProductList {
             })());
             return flattenCollections(data.collections, [], topLevelCollections);
         }
-        function extractCategoryTitleFromUrl(url) {
-            const urlParts = url.split('/');
-            const collectionIndex = urlParts.indexOf('collections');
-            if (collectionIndex !== -1 && collectionIndex < urlParts.length - 1) {
-                return urlParts[collectionIndex + 1].split('/')[0].split('?')[0];
-            }
-            else {
-                return '';
-            }
-        }
         function getProductList() {
             return __awaiter(this, void 0, void 0, function* () {
                 const orderByParam = glitter.getUrlParameter('order_by');
                 const page = parseInt(`${vm.pageIndex}`, 10) - 1;
                 const limit = vm.limit;
-                const collection = extractCategoryTitleFromUrl(location.href);
+                const collection = encodeURIComponent(getURICollectionName());
                 if (collection) {
                     gvc.glitter.setUrlParameter('search', undefined);
                 }
@@ -333,7 +287,7 @@ export class ProductList {
                     id_list: gvc.glitter.getUrlParameter('ai-search') || undefined,
                 };
                 return new Promise((resolve, reject) => {
-                    ApiShop.getProduct(inputObj).then((data) => {
+                    ApiShop.getProduct(inputObj).then(data => {
                         try {
                             vm.pageSize = Math.ceil(data.response.total / parseInt(limit, 10));
                             if (parseInt(`${vm.pageIndex}`, 10) >= data.response.data.pageSize) {
@@ -360,19 +314,19 @@ export class ProductList {
                         }
                         else {
                             const cols = vm.collections.filter((item) => {
-                                return item.parentTitles.length === 0;
+                                return item.parentTitles.length === 0 && !Boolean(item.hidden);
                             });
                             return html `<ul class="border navbar-nav me-auto mb-2 mb-lg-0">
-                                    <li class="border-bottom" style="padding: 16px; cursor: pointer;">
-                                        <div
-                                            class="d-flex tx_700"
-                                            style="color: ${fontColor};"
-                                            onclick="${gvc.event(() => {
+                  <li class="border-bottom" style="padding: 16px; cursor: pointer;">
+                    <div
+                      class="d-flex tx_700"
+                      style="color: ${fontColor};"
+                      onclick="${gvc.event(() => {
                                 changePage('all-product', 'page', {});
                                 gvc.glitter.closeDrawer();
                             })}"
-                                        >
-                                            ${(() => {
+                    >
+                      ${(() => {
                                 if (gvc.glitter.getUrlParameter('ai-search')) {
                                     return Language.text('ai_choose');
                                 }
@@ -383,36 +337,40 @@ export class ProductList {
                                     return Language.text('all_products');
                                 }
                             })()}
-                                        </div>
-                                    </li>
-                                    ${cols
+                    </div>
+                  </li>
+                  ${cols
                                 .map((item, index) => {
                                 let subHTML = '';
                                 if (item.subCollections.length > 0) {
                                     for (const col of vm.collections) {
-                                        if (item.subCollections.includes(col.title) && col.parentTitles[0] === item.title) {
+                                        if (item.subCollections.includes(col.title) &&
+                                            col.parentTitles[0] === item.title &&
+                                            !Boolean(col.hidden)) {
                                             subHTML += html `<ul
-                                                            class="mt-1 pt-2 mx-n4 px-4 mb-n2 pb-2 box-item"
-                                                            style="${decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]) === (col.code || col.title)
+                              class="mt-1 pt-2 mx-n4 px-4 mb-n2 pb-2 box-item"
+                              style="${decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]) === (col.code || col.title)
                                                 ? `background:#f5f5f5;`
                                                 : ``}"
-                                                            onclick="${gvc.event(() => {
+                              onclick="${gvc.event(() => {
                                                 changePage(`collections/${col.code || col.title}`, 'page', {});
                                                 gvc.glitter.closeDrawer();
                                             })}"
-                                                        >
-                                                            <li style="font-weight: 500; line-height: 40px;">
-                                                                <div class="d-flex tx_700" style="color: ${fontColor};">${col.title}</div>
-                                                            </li>
-                                                        </ul>`;
+                            >
+                              <li style="font-weight: 500; line-height: 40px;">
+                                <div class="d-flex tx_700" style="color: ${fontColor};">${col.title}</div>
+                              </li>
+                            </ul>`;
                                         }
                                     }
                                 }
                                 return html ` <li
-                                                class="${index + 1 === cols.length ? '' : 'border-bottom'}"
-                                                style="${item.subCollections.length > 0 ? '' : 'padding: 16px;'} cursor: pointer;"
-                                            >
-                                                ${item.subCollections.length > 0
+                        class="${index + 1 === cols.length ? '' : 'border-bottom'}"
+                        style="${item.subCollections.length > 0 && subHTML.length > 0
+                                    ? ''
+                                    : 'padding: 16px;'} cursor: pointer;"
+                      >
+                        ${item.subCollections.length > 0 && subHTML.length > 0
                                     ? ProductList.openBoxContainer({
                                         gvc,
                                         tag: 'collection-box',
@@ -425,7 +383,7 @@ export class ProductList {
                                         openOnInit: [item.code]
                                             .concat(vm.collections
                                             .filter((col) => {
-                                            return item.subCollections.includes(col.title) && col.parentTitles[0] === item.title;
+                                            return (item.subCollections.includes(col.title) && col.parentTitles[0] === item.title);
                                         })
                                             .map((dd) => {
                                             return dd.code || dd.title;
@@ -433,19 +391,19 @@ export class ProductList {
                                             .includes(decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0])),
                                     })
                                     : html `<div
-                                                          class="d-flex tx_700"
-                                                          style="color: ${fontColor};"
-                                                          onclick="${gvc.event(() => {
+                              class="d-flex tx_700"
+                              style="color: ${fontColor};"
+                              onclick="${gvc.event(() => {
                                         changePage('collections/' + item.code, 'page', {});
                                         gvc.glitter.closeDrawer();
                                     })}"
-                                                      >
-                                                          ${item.title}
-                                                      </div>`}
-                                            </li>`;
+                            >
+                              ${item.title}
+                            </div>`}
+                      </li>`;
                             })
                                 .join('')}
-                                </ul>`;
+                </ul>`;
                         }
                     },
                     divCreate: {
@@ -455,10 +413,9 @@ export class ProductList {
                         if (loading) {
                             ApiShop.getCollection().then((data) => {
                                 if (data.result && data.response.value.length > 0) {
-                                    setAdTag(data.response.value);
+                                    setAdTag();
                                     vm.allParents = ['(無)'].concat(data.response.value.map((item) => item.title));
                                     vm.collections = updateCollections({
-                                        products: [],
                                         collections: data.response.value,
                                     });
                                     updatePageTitle();
@@ -471,8 +428,31 @@ export class ProductList {
                 };
             })());
         }
+        function collectionTitle(titleText) {
+            var _a, _b, _c;
+            if (!((_a = vm.collections) === null || _a === void 0 ? void 0 : _a.length))
+                return titleText;
+            try {
+                const collectionName = getURICollectionName();
+                const collectionHidden = getCollectionShowMap();
+                if (!collectionHidden.get(collectionName)) {
+                    return titleText;
+                }
+                const hasCollection = vm.collections.find((item) => {
+                    var _a, _b;
+                    const languageData = (_a = item.language_data) === null || _a === void 0 ? void 0 : _a[Language.getLanguage()];
+                    const possibleNames = [(_b = languageData === null || languageData === void 0 ? void 0 : languageData.seo) === null || _b === void 0 ? void 0 : _b.domain, item.code, languageData === null || languageData === void 0 ? void 0 : languageData.title, item.title];
+                    return possibleNames.find(name => name === collectionName);
+                });
+                return ((_c = (_b = hasCollection === null || hasCollection === void 0 ? void 0 : hasCollection.language_data) === null || _b === void 0 ? void 0 : _b[Language.getLanguage()]) === null || _c === void 0 ? void 0 : _c.title) || (hasCollection === null || hasCollection === void 0 ? void 0 : hasCollection.title) || titleText;
+            }
+            catch (error) {
+                console.error('collectionTitle Error:', error);
+                return titleText;
+            }
+        }
         function updatePageTitle() {
-            const all_text = (() => {
+            const titleText = (() => {
                 if (gvc.glitter.getUrlParameter('ai-search')) {
                     return Language.text('ai_choose');
                 }
@@ -483,57 +463,21 @@ export class ProductList {
                     return Language.text('all_products');
                 }
             })();
-            if (!vm.collections || vm.collections.length === 0) {
-                vm.title = all_text;
-            }
-            else {
-                let collectionObj = vm.collections.find((item) => {
-                    const language_data = item.language_data && item.language_data[Language.getLanguage()];
-                    const code = (language_data && language_data.seo && language_data.seo.domain) || item.code || (language_data && language_data.title) || item.title;
-                    return code === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
-                });
-                try {
-                    if (!collectionObj) {
-                        collectionObj = vm.collections.find((item) => {
-                            return item.title === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
-                        });
-                    }
-                }
-                catch (e) { }
-                if (collectionObj) {
-                    const language_data = collectionObj.language_data;
-                    vm.title = (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title) || collectionObj.title;
-                }
-                else {
-                    vm.title = all_text;
-                }
-            }
+            vm.title = collectionTitle(titleText);
             gvc.notifyDataChange(ids.pageTitle);
         }
-        function setAdTag(data) {
+        function getURICollectionName() {
+            const path = location.pathname;
+            const pathParts = path.split('/');
+            const collectionIndex = pathParts.indexOf('collections');
+            const index = collectionIndex + 1;
+            const collection = pathParts[index];
+            const collectionName = decodeURIComponent(collection);
+            return collectionName;
+        }
+        function setAdTag() {
             try {
-                const path = location.pathname;
-                const pathParts = path.split('/');
-                const collectionIndex = pathParts.indexOf('collections');
-                const index = collectionIndex + 1;
-                const collection = pathParts[index];
-                const collectionName = decodeURIComponent(collection);
-                function findObjectByValue(arr, value) {
-                    for (const item of arr) {
-                        const language_data = item.language_data;
-                        const code = (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].seo && language_data[Language.getLanguage()].seo.domain) || item.code;
-                        if (code === value) {
-                            return item;
-                        }
-                        if (item.array.length > 0) {
-                            const found = findObjectByValue(item.array, value);
-                            if (found) {
-                                return found;
-                            }
-                        }
-                    }
-                    return null;
-                }
+                const collectionName = getURICollectionName();
                 if (window.gtag) {
                     if (collectionName) {
                         Ad.gtagEvent('view_item_list', {
@@ -566,70 +510,89 @@ export class ProductList {
                 }
             }
             catch (e) {
-                console.log(e);
+                console.error(e);
             }
         }
+        function getCollectionShowMap() {
+            const getLanguage = Language.getLanguage();
+            return new Map(vm.collections.map((item) => {
+                const domain = (() => {
+                    var _a;
+                    const defaultName = (_a = item.code) !== null && _a !== void 0 ? _a : item.title;
+                    try {
+                        if (item.language_data && item.language_data[getLanguage].seo.domain) {
+                            return item.language_data[getLanguage].seo.domain;
+                        }
+                        return defaultName;
+                    }
+                    catch (error) {
+                        return defaultName;
+                    }
+                })();
+                return [domain, !Boolean(item.hidden)];
+            }));
+        }
         return html `
-            <div class="container d-flex mt-2" style="min-height: 1000px;">
-                <div
-                    class="d-none d-sm-block mt-4"
-                    style="${(() => {
-            if (PdClass.isPad()) {
-                return `width: 180px; min-width: 180px;`;
-            }
-            return `width: 282px; min-width: 282px;`;
-        })()}"
-                >
-                    ${getCollectionHTML()}
-                </div>
-                <div class="flex-fill my-4 mx-1 mx-md-5">
-                    ${document.body.clientWidth > 768
+      <div class="container d-flex mt-2" style="min-height: 1000px;">
+        <div
+          class="d-none d-sm-block mt-4"
+          style="${PdClass.isPad() ? 'width: 180px; min-width: 180px;' : 'width: 282px; min-width: 282px;'}"
+        >
+          ${getCollectionHTML()}
+        </div>
+        <div class="flex-fill my-4 mx-1 mx-md-5">
+          ${document.body.clientWidth > 768
             ? ''
-            : html `<div class="fw-500 fw-bold" style="font-size: 24px; color: ${fontColor}; text-align: center; margin-bottom: 20px;">
-                              ${gvc.bindView({
+            : html `<div
+                class="fw-500 fw-bold"
+                style="font-size: 24px; color: ${fontColor}; text-align: center; margin-bottom: 20px;"
+              >
+                ${gvc.bindView({
                 bind: ids.pageTitle,
                 view: () => vm.title,
             })}
-                          </div>`}
-                    <div class="d-flex justify-content-between mb-3">
-                        ${document.body.clientWidth > 768
+              </div>`}
+          <div class="d-flex justify-content-between mb-3">
+            ${document.body.clientWidth > 768
             ? html `<div class="fw-500" style="font-size: 24px; color: ${fontColor}">
-                                  ${gvc.bindView({
+                  ${gvc.bindView({
                 bind: ids.pageTitle,
                 view: () => vm.title,
             })}
-                              </div>`
+                </div>`
             : html `<button
-                                  class="filter-btn"
-                                  onclick="${gvc.event(() => {
+                  class="filter-btn"
+                  onclick="${gvc.event(() => {
                 glitter.setDrawer(html `<div class="p-3">
-                                              <div class="fw-500 mb-3" style="font-size: 24px; color: ${fontColor}">${Language.text('product_categories')}</div>
-                                              ${getCollectionHTML()}
-                                          </div>`, () => {
+                        <div class="fw-500 mb-3" style="font-size: 24px; color: ${fontColor}">
+                          ${Language.text('product_categories')}
+                        </div>
+                        ${getCollectionHTML()}
+                      </div>`, () => {
                     gvc.glitter.openDrawer();
                 });
             })}"
-                              >
-                                  <i class="fa-regular fa-filter-list me-1"></i>
-                                  ${Language.text('filter')}
-                              </button>`}
-                        <select
-                            class="form-select form-select-xs"
-                            style="width: 200px;"
-                            onchange="${gvc.event((e) => {
+                >
+                  <i class="fa-regular fa-filter-list me-1"></i>
+                  ${Language.text('filter')}
+                </button>`}
+            <select
+              class="form-select form-select-xs"
+              style="width: 200px;"
+              onchange="${gvc.event(e => {
             vm.pageIndex = 1;
             glitter.setUrlParameter('order_by', e.value);
             loadings.product = true;
             gvc.notifyDataChange(ids.product);
         })}"
-                        >
-                            <option value="time">${Language.text('sort_by_date')}</option>
-                            <option value="sales_desc">${Language.text('sort_by_sales_desc')}</option>
-                            <option value="min_price">${Language.text('sort_by_price_asc')}</option>
-                            <option value="max_price">${Language.text('sort_by_price_desc')}</option>
-                        </select>
-                    </div>
-                    ${gvc.bindView((() => {
+            >
+              <option value="time">${Language.text('sort_by_date')}</option>
+              <option value="sales_desc">${Language.text('sort_by_sales_desc')}</option>
+              <option value="min_price">${Language.text('sort_by_price_asc')}</option>
+              <option value="max_price">${Language.text('sort_by_price_desc')}</option>
+            </select>
+          </div>
+          ${gvc.bindView((() => {
             return {
                 bind: ids.product,
                 view: () => {
@@ -638,47 +601,49 @@ export class ProductList {
                     }
                     else {
                         return html `<div class="row mx-n2 mx-sm-auto">
-                                                ${vm.dataList.length > 0
+                        ${vm.dataList.length > 0
                             ? gvc.map(vm.dataList.map((item) => {
                                 return html `<div class="col-6 col-sm-4 col-lg-3 px-1">
-                                                                  <div class="m-1">
-                                                                      ${glitter.htmlGenerate.renderComponent({
+                                  <div class="m-1">
+                                    ${glitter.htmlGenerate.renderComponent({
                                     appName: window.appName,
                                     tag: 'product_widget',
                                     gvc: gvc,
                                     subData: item,
                                 })}
-                                                                  </div>
-                                                              </div>`;
+                                  </div>
+                                </div>`;
                             }))
-                            : html `<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
-                                                          <lottie-player
-                                                              style="max-width: 100%;width: 300px;"
-                                                              src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                                                              speed="1"
-                                                              loop="true"
-                                                              background="transparent"
-                                                          ></lottie-player>
-                                                          <span class="mb-5 fs-5">${Language.text('no_related_products')}</span>
-                                                      </div>`}
-                                            </div>
-                                            ${this.pageSplitV2(gvc, vm.pageSize, vm.pageIndex, (p) => {
+                            : html `<div
+                              class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto"
+                            >
+                              <lottie-player
+                                style="max-width: 100%;width: 300px;"
+                                src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                speed="1"
+                                loop="true"
+                                background="transparent"
+                              ></lottie-player>
+                              <span class="mb-5 fs-5">${Language.text('no_related_products')}</span>
+                            </div>`}
+                      </div>
+                      ${this.pageSplitV2(gvc, vm.pageSize, vm.pageIndex, p => {
                             vm.pageIndex = p;
                             loadings.product = true;
                             gvc.notifyDataChange(ids.product);
                             document.querySelector('html').scrollTo(0, 0);
                         })}
-                                            <div style="margin-top: 240px;"></div>`;
+                      <div style="margin-top: 240px;"></div>`;
                     }
                 },
                 divCreate: {},
                 onCreate: () => {
                     if (loadings.product) {
-                        gvc.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }], () => {
+                        gvc.addMtScript([{ src: `${gvc.glitter.root_path}/jslib/lottie-player.js` }], () => {
                             Promise.all([
                                 getProductList(),
-                                new Promise((resolve) => {
-                                    ApiShop.getWishList().then((data) => {
+                                new Promise(resolve => {
+                                    ApiShop.getWishList().then(data => {
                                         try {
                                             resolve(data.response.data);
                                         }
@@ -687,8 +652,15 @@ export class ProductList {
                                         }
                                     });
                                 }),
-                            ]).then((dataList) => {
+                            ]).then(dataList => {
                                 vm.dataList = dataList[0];
+                                const collectionName = getURICollectionName();
+                                if (collectionName) {
+                                    const collectionHidden = getCollectionShowMap();
+                                    if (!collectionHidden.get(collectionName)) {
+                                        vm.dataList = [];
+                                    }
+                                }
                                 window.glitter.share.wishList = dataList[1];
                                 loadings.product = false;
                                 gvc.notifyDataChange(ids.product);
@@ -698,16 +670,16 @@ export class ProductList {
                 },
             };
         })())}
-                </div>
-            </div>
-        `;
+        </div>
+      </div>
+    `;
     }
 }
 ProductList.pageSplitV2 = (gvc, countPage, nowPage, callback) => {
     const generator = (n) => {
         return html `<li class="page-item my-0 mx-0">
-                <div class="page-link-v2" onclick="${gvc.event(() => callback(n))}">${n}</div>
-            </li>`;
+        <div class="page-link-v2" onclick="${gvc.event(() => callback(n))}">${n}</div>
+      </li>`;
     };
     const glitter = gvc.glitter;
     let vm = {
@@ -716,69 +688,69 @@ ProductList.pageSplitV2 = (gvc, countPage, nowPage, callback) => {
         dataList: [],
     };
     gvc.addStyle(`
-            .page-link-v2 {
-                display: inline-flex;
-                height: 32px;
-                padding: 10px;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                gap: 10px;
-                cursor: pointer;
-                background: #fff;
-                border:1px solid #393939;
-                color: #393939;
-            }
+      .page-link-v2 {
+        display: inline-flex;
+        height: 32px;
+        padding: 10px;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        background: #fff;
+        border: 1px solid #393939;
+        color: #393939;
+      }
 
-            .page-link-prev {
-                border-radius: 7px 0px 0px 7px;
-                border: 1px solid #d8d8d8;
-                background: #fff;
-                color: #393939;
-            }
+      .page-link-prev {
+        border-radius: 7px 0px 0px 7px;
+        border: 1px solid #d8d8d8;
+        background: #fff;
+        color: #393939;
+      }
 
-            .page-link-next {
-                border-radius: 0px 7px 7px 0px;
-                border: 1px solid #d8d8d8;
-                background: #fff;
-                color: #393939;
-            }
+      .page-link-next {
+        border-radius: 0px 7px 7px 0px;
+        border: 1px solid #d8d8d8;
+        background: #fff;
+        color: #393939;
+      }
 
-            .page-link-active {
-                background: #393939;
-                color: #fff;
-            }
+      .page-link-active {
+        background: #393939;
+        color: #fff;
+      }
 
-            .angle-style {
-                font-size: 12px;
-                color: #d8d8d8;
-            }
-        `);
+      .angle-style {
+        font-size: 12px;
+        color: #d8d8d8;
+      }
+    `);
     return gvc.bindView({
         bind: vm.id,
         view: () => {
             if (vm.loading) {
                 return html `<div class="w-100 d-flex align-items-center justify-content-center p-3">
-                        <div class="spinner-border"></div>
-                    </div>`;
+            <div class="spinner-border"></div>
+          </div>`;
             }
             else {
                 return html `
-                        <nav class="d-flex my-3 justify-content-center">
-                            <ul class="pagination pagination-rounded mb-0">
-                                <li class="page-item me-0">
-                                    <div
-                                        class="page-link-v2 page-link-prev"
-                                        aria-label="Previous"
-                                        style="cursor:pointer"
-                                        onclick="${gvc.event(() => {
+            <nav class="d-flex my-3 justify-content-center">
+              <ul class="pagination pagination-rounded mb-0">
+                <li class="page-item me-0">
+                  <div
+                    class="page-link-v2 page-link-prev"
+                    aria-label="Previous"
+                    style="cursor:pointer"
+                    onclick="${gvc.event(() => {
                     nowPage - 1 > 0 && callback(nowPage - 1);
                 })}"
-                                    >
-                                        <i class="fa-solid fa-angle-left angle-style"></i>
-                                    </div>
-                                </li>
-                                ${glitter.print(() => {
+                  >
+                    <i class="fa-solid fa-angle-left angle-style"></i>
+                  </div>
+                </li>
+                ${glitter.print(() => {
                     if (nowPage - 2 > 0) {
                         return generator(nowPage - 2) + generator(nowPage - 1);
                     }
@@ -789,10 +761,10 @@ ProductList.pageSplitV2 = (gvc, countPage, nowPage, callback) => {
                         return ``;
                     }
                 })}
-                                <li class="page-item active mx-0" style="border-radius: 100%">
-                                    <div class="page-link-v2 page-link-active">${nowPage}</div>
-                                </li>
-                                ${glitter.print(() => {
+                <li class="page-item active mx-0" style="border-radius: 100%">
+                  <div class="page-link-v2 page-link-active">${nowPage}</div>
+                </li>
+                ${glitter.print(() => {
                     if (nowPage + 2 <= countPage) {
                         return generator(nowPage + 1) + generator(nowPage + 2);
                     }
@@ -803,21 +775,21 @@ ProductList.pageSplitV2 = (gvc, countPage, nowPage, callback) => {
                         return ``;
                     }
                 })}
-                                <li class="page-item ms-0">
-                                    <div
-                                        class="page-link-v2 page-link-next"
-                                        aria-label="Next"
-                                        style="cursor:pointer"
-                                        onclick="${gvc.event(() => {
+                <li class="page-item ms-0">
+                  <div
+                    class="page-link-v2 page-link-next"
+                    aria-label="Next"
+                    style="cursor:pointer"
+                    onclick="${gvc.event(() => {
                     nowPage + 1 <= countPage && callback(nowPage + 1);
                 })}"
-                                    >
-                                        <i class="fa-solid fa-angle-right angle-style"></i>
-                                    </div>
-                                </li>
-                            </ul>
-                        </nav>
-                    `;
+                  >
+                    <i class="fa-solid fa-angle-right angle-style"></i>
+                  </div>
+                </li>
+              </ul>
+            </nav>
+          `;
             }
         },
         divCreate: {},

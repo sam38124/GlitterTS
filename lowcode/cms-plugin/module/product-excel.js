@@ -11,6 +11,7 @@ import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
+import { Language } from '../../glitter-base/global/language.js';
 const html = String.raw;
 export class ProductExcel {
     constructor(gvc, headers, lineName) {
@@ -211,6 +212,7 @@ export class ProductExcel {
             '庫存數量',
             '安全庫存數量',
             '商品條碼',
+            '商品簡述',
         ];
     }
     static exampleKitchen() {
@@ -235,6 +237,7 @@ export class ProductExcel {
             '重量單位',
             '庫存政策',
             '庫存數量',
+            '商品簡述',
         ];
     }
     static exampleSheet() {
@@ -487,6 +490,7 @@ export class ProductExcel {
             { key: 'course', value: '課程販售', compare: 'teaching' },
             { key: 'commodity', value: '零售商品', compare: 'shop' },
             { key: 'kitchen', value: '餐飲組合', compare: 'kitchen' },
+            { key: 'weighing', value: '秤重交易', compare: 'weighing' },
         ];
         const webType = ((_b = (_a = window.parent) === null || _a === void 0 ? void 0 : _a.store_info) === null || _b === void 0 ? void 0 : _b.web_type) || [];
         return productCategories.filter(product => webType.includes(product.compare));
@@ -535,6 +539,7 @@ export class ProductExcel {
             stock: '',
             save_stock: '',
             barcode: '',
+            sub_title: '',
         };
         const dialog = new ShareDialog(gvc.glitter);
         dialog.dataLoading({ visible: true });
@@ -588,6 +593,7 @@ export class ProductExcel {
                         stock: expo.checkNumber((_3 = productData.content.variants[index]) === null || _3 === void 0 ? void 0 : _3.stock),
                         save_stock: expo.checkNumber((_4 = productData.content.variants[index]) === null || _4 === void 0 ? void 0 : _4.save_stock),
                         barcode: expo.checkString((_5 = productData.content.variants[index]) === null || _5 === void 0 ? void 0 : _5.barcode),
+                        sub_title: expo.checkString(productData.content.language_data[Language.getLanguage()].sub_title),
                     });
                 };
                 const getShipmentType = (type) => {
@@ -1164,6 +1170,7 @@ export class ProductExcel {
                                 variantData.stock = this.checkNumber(row[26]);
                                 variantData.save_stock = this.checkNumber(row[27]);
                                 variantData.barcode = this.checkString(row[28]);
+                                productData.sub_title = this.checkString(row[29]);
                                 productData.variants.push(JSON.parse(JSON.stringify(variantData)));
                             }
                         }

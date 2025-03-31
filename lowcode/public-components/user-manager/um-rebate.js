@@ -32,6 +32,10 @@ export class UMRebate {
         const loadings = {
             view: true,
         };
+        let changePage = (index, type, subData) => { };
+        gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
+            changePage = cl.changePage;
+        });
         return gvc.bindView({
             bind: ids.view,
             view: () => {
@@ -42,9 +46,24 @@ export class UMRebate {
                     const isWebsite = document.body.clientWidth > 768;
                     vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? Language.text('shopping_credit') : vm.rebateConfig.title;
                     return html `
-                        <div class="um-container row mx-auto">
-                            <div class="col-12">${UmClass.nav(gvc)}</div>
-                            <div class="col-12 mt-3 mt-lg-5 p-4 px-lg-5 mx-auto d-flex um-rb-bgr ${isWebsite ? '' : 'flex-column'}">
+                        <div class="mx-auto p-0">
+                            <div class="w-100  align-items-center d-flex py-3 pb-lg-3 pt-lg-0" style="gap:10px;">
+
+                                <div  class="d-none d-lg-flex" style="background: #FF9705;background: #FF9705;width:4px;height: 20px;" onclick="${gvc.event(() => {
+                        gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'official_event/page/change-page.js', import.meta.url).href, (cl) => {
+                            cl.changePage('account_userinfo', 'home', {});
+                        });
+                    })}"></div>
+                                <div class="d-flex d-lg-none align-items-center justify-content-center" style="width:20px;height: 20px;" onclick="${gvc.event(() => {
+                        gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'official_event/page/change-page.js', import.meta.url).href, (cl) => {
+                            cl.changePage('account_userinfo', 'home', {});
+                        });
+                    })}">
+                                    <i class="fa-solid fa-angle-left fs-4"></i>
+                                </div>
+                                <div class="um-info-title fw-bold " style="font-size: 24px;">${`${Language.text('my')}${glitter.share.rebateConfig.title || Language.text('shopping_credit')}`}</div>
+                            </div>
+                            <div class="col-12  p-4 px-lg-5 mx-auto d-flex um-rb-bgr ${isWebsite ? '' : 'flex-column'}">
                                 <div class="d-flex ${isWebsite ? 'gap-4' : 'gap-3'}">
                                     <div class="fa-duotone fa-coins fs-1 d-flex align-items-center justify-content-center"></div>
                                     <div class="${isWebsite ? '' : 'd-flex align-items-center gap-2'}">
@@ -114,15 +133,16 @@ export class UMRebate {
                                 })(),
                                 (() => {
                                     if (item.orderID) {
-                                        if (item.money > 0) {
-                                            return `${Language.text('order')}『 ${item.orderID} 』${Language.text('obtain')} ${vm.rebateConfig.title}`;
-                                        }
-                                        else {
-                                            return `${Language.text('order')}『 ${item.orderID} 』${Language.text('use')} ${vm.rebateConfig.title}`;
-                                        }
+                                        const orderLink = UmClass.style_components.blueNote(item.orderID, gvc.event(() => {
+                                            gvc.glitter.setUrlParameter('cart_token', item.orderID);
+                                            changePage('order_detail', 'page', {});
+                                        }), 'font-size: 16px;');
+                                        const moneyText = item.money > 0 ? Language.text('obtain') : Language.text('use');
+                                        return `${Language.text('order')}『 ${orderLink} 』${moneyText} ${vm.rebateConfig.title}`;
                                     }
                                     else {
-                                        return item.note || `${Language.text('manual_adjustment')} ${vm.rebateConfig.title}`;
+                                        return (item.note ||
+                                            `${Language.text('manual_adjustment')} ${vm.rebateConfig.title}`);
                                     }
                                 })(),
                                 item.money.toLocaleString(),
@@ -130,7 +150,7 @@ export class UMRebate {
                             ];
                         }
                         if (isWebsite) {
-                            const flexList = [1.4, 1.4, 1, 0.4, 0.4];
+                            const flexList = [1.2, 1.2, 1.2, 0.6, 0.4];
                             return html `
                                                 <div class="w-100 d-sm-flex py-4 um-th-bar">
                                                     ${header
@@ -144,7 +164,7 @@ export class UMRebate {
                                 return html `<div class="w-100 d-sm-flex py-5 um-td-bar">
                                                             ${formatText(item)
                                     .map((dd, index) => {
-                                    return html `<div class="um-td" style="flex: ${flexList[index]}">${dd}</div>`;
+                                    return html `<div class="um-td" style="flex: ${flexList[index]};font-size:16px;word-break: break-word;">${dd}</div>`;
                                 })
                                     .join('')}
                                                         </div>`;
@@ -173,11 +193,11 @@ export class UMRebate {
                 }
             },
             divCreate: {
-                class: 'container',
+                class: '',
             },
             onCreate: () => {
                 if (loadings.view) {
-                    gvc.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }], () => {
+                    gvc.addMtScript([{ src: `${gvc.glitter.root_path}/jslib/lottie-player.js` }], () => {
                         Promise.all([
                             UmClass.getRebateInfo(),
                             new Promise((resolve) => {

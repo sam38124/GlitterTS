@@ -343,12 +343,6 @@ export class Setting_editor {
                                                             gvc.notifyDataChange(id);
                                                         }
                                                         else {
-                                                            if (items[parseInt(dd.index)].page === 'app-design') {
-                                                                localStorage.setItem('lastSelect', '');
-                                                                localStorage.setItem('ViewType', 'mobile');
-                                                                glitter.share.switch_to_web_builder('index-mobile', 'mobile');
-                                                                return;
-                                                            }
                                                             const url = new URL(location.href);
                                                             url.searchParams.forEach((_, key) => {
                                                                 if (!['type', 'appName', 'function', 'tab'].includes(key)) {
@@ -899,7 +893,7 @@ Setting_editor.menuItems = () => {
             icon: '',
             page: 'invoice_setting',
             group: '商店設定',
-            title: '電子發票',
+            title: '發票設定',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
             moduleName: '金流 / 物流 / 發票',
@@ -1064,17 +1058,18 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'invoice_list',
+            page: 'reconciliation_area',
             group: '訂單管理',
-            title: '發票列表',
+            title: '對帳單',
             appName: 'cms_system',
-            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/file-invoice-dollar-sharp-light.svg',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
+            moduleName: 'dashboard_ec',
         },
         {
             icon: '',
-            page: 'allowance_list',
+            page: 'invoice_list',
             group: '訂單管理',
-            title: '折讓單列表',
+            title: '發票列表',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/file-invoice-dollar-sharp-light.svg',
         },
@@ -1182,15 +1177,6 @@ Setting_editor.menuItems = () => {
             page: 'Product_analysis',
             group: '數據分析',
             title: '商品分析',
-            appName: 'cms_system',
-            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
-            moduleName: 'dashboard_ec',
-        },
-        {
-            icon: '',
-            page: 'reconciliation_area',
-            group: '數據分析',
-            title: '對帳專區',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
             moduleName: 'dashboard_ec',
@@ -1496,18 +1482,9 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'app-design',
-            group: 'APP',
-            title: 'APP設計',
-            appName: 'cms_system',
-            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
-            moduleName: 'IOS應用上架',
-        },
-        {
-            icon: '',
             page: 'app-upload',
-            group: 'APP',
-            title: 'APP發佈',
+            group: '品牌APP',
+            title: 'APP發布上架',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
             moduleName: 'IOS應用上架',
@@ -1515,7 +1492,7 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'cloud_subscrible',
-            group: 'APP',
+            group: '品牌APP',
             title: '推播訂閱裝置',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
@@ -1524,7 +1501,7 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'notify_message_list',
-            group: 'APP',
+            group: '品牌APP',
             title: '推播訊息管理',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',

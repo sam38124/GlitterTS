@@ -36,22 +36,46 @@ export class UMVoucher {
                 else {
                     const isWebsite = document.body.clientWidth > 768;
                     return html `
-                        <div class="um-container row mx-auto">
-                            <div class="col-12">${UmClass.nav(gvc)}</div>
-                            <div class="col-12 mt-2" style="min-height: 500px;">
-                                <div class="mx-auto orderList pt-3 mb-4 row">
-                                    ${(() => {
+            <div class="mx-auto">
+              <div class="w-100  align-items-center d-flex py-3 pb-lg-3 pt-lg-0" style="gap:10px;">
+                <div
+                  class="d-none d-lg-flex"
+                  style="background: #FF9705;background: #FF9705;width:4px;height: 20px;"
+                  onclick="${gvc.event(() => {
+                        gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'official_event/page/change-page.js', import.meta.url).href, cl => {
+                            cl.changePage('account_userinfo', 'home', {});
+                        });
+                    })}"
+                ></div>
+                <div
+                  class="d-flex d-lg-none align-items-center justify-content-center"
+                  style="width:20px;height: 20px;"
+                  onclick="${gvc.event(() => {
+                        gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'official_event/page/change-page.js', import.meta.url).href, cl => {
+                            cl.changePage('account_userinfo', 'home', {});
+                        });
+                    })}"
+                >
+                  <i class="fa-solid fa-angle-left fs-4"></i>
+                </div>
+                <div class="um-info-title fw-bold " style="font-size: 24px;">${`${Language.text('my_coupons')}`}</div>
+              </div>
+              <div class="w-100 " style="min-height: 500px;">
+                <div class="mx-auto orderList  mb-4 row">
+                  ${(() => {
                         if (vm.dataList.length === 0) {
-                            return html `<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
-                                                <lottie-player
-                                                    style="max-width: 100%;width: 300px;"
-                                                    src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                                                    speed="1"
-                                                    loop="true"
-                                                    background="transparent"
-                                                ></lottie-player>
-                                                <span class="mb-5 fs-5">${Language.text('no_coupons_available')}</span>
-                                            </div>`;
+                            return html `<div
+                        class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto"
+                      >
+                        <lottie-player
+                          style="max-width: 100%;width: 300px;"
+                          src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                          speed="1"
+                          loop="true"
+                          background="transparent"
+                        ></lottie-player>
+                        <span class="mb-5 fs-5">${Language.text('no_coupons_available')}</span>
+                      </div>`;
                         }
                         const header = [
                             {
@@ -70,43 +94,50 @@ export class UMVoucher {
                         function formatText(item) {
                             const canUse = UMVoucher.isNowBetweenDates(item.start_ISO_Date, item.end_ISO_Date);
                             return [
-                                canUse ? item.title : html `${item.title} <span class="um-insignia um-insignia-secondary">${Language.text('expired')}</span>`,
+                                canUse
+                                    ? item.title
+                                    : html `${item.title}
+                              <span class="um-insignia um-insignia-secondary">${Language.text('expired')}</span>`,
                                 item.code,
                                 (() => {
-                                    const endText = item.end_ISO_Date ? glitter.ut.dateFormat(new Date(item.end_ISO_Date), 'yyyy/MM/dd') : Language.text('no_expiration');
+                                    const endText = item.end_ISO_Date
+                                        ? glitter.ut.dateFormat(new Date(item.end_ISO_Date), 'yyyy/MM/dd')
+                                        : Language.text('no_expiration');
                                     return `${glitter.ut.dateFormat(new Date(item.start_ISO_Date), 'yyyy/MM/dd')} ~ ${endText}`;
                                 })(),
                                 html `<div class="d-flex w-100 justify-content-start ms-2 gap-1">
-                                                    <div
-                                                        class="option px-4 d-flex justify-content-center um-nav-btn um-nav-btn-active me-1"
-                                                        onclick="${gvc.event(() => {
+                          <div
+                            class="option px-4 d-flex justify-content-center um-nav-btn um-nav-btn-active me-1"
+                            onclick="${gvc.event(() => {
                                     UmClass.dialog({
                                         gvc,
                                         tag: 'user-qr-code',
                                         title: Language.text('coupon_details'),
-                                        innerHTML: (gvc) => {
+                                        innerHTML: gvc => {
                                             return html `
-                                                                        <div class="d-flex gap-2 flex-column my-2">
-                                                                            ${gvc.map(UMVoucher.getVoucherTextList(gvc, item).map((text) => {
-                                                return html ` <div class="${text.length > 0 ? '' : 'gray-line'}">${text}</div>`;
+                                    <div class="d-flex gap-2 flex-column my-2">
+                                      ${gvc.map(UMVoucher.getVoucherTextList(gvc, item).map((text) => {
+                                                return html ` <div class="${text.length > 0 ? '' : 'gray-line'}">
+                                            ${text}
+                                          </div>`;
                                             }))}
-                                                                        </div>
-                                                                    `;
+                                    </div>
+                                  `;
                                         },
                                     });
                                 })}"
-                                                    >
-                                                        ${Language.text('view_details')}
-                                                    </div>
-                                                    ${canUse
+                          >
+                            ${Language.text('view_details')}
+                          </div>
+                          ${canUse
                                     ? html `<div
-                                                              class="option px-4 d-flex justify-content-center um-nav-btn um-nav-btn-active"
-                                                              onclick="${gvc.event(() => {
+                                class="option px-4 d-flex justify-content-center um-nav-btn um-nav-btn-active"
+                                onclick="${gvc.event(() => {
                                         UmClass.dialog({
                                             gvc,
                                             tag: 'user-qr-code',
                                             title: Language.text('coupon_qr_code'),
-                                            innerHTML: (gvc) => {
+                                            innerHTML: gvc => {
                                                 return gvc.bindView((() => {
                                                     const id = glitter.getUUID();
                                                     let loading = true;
@@ -123,8 +154,8 @@ export class UMVoucher {
                                                             }
                                                             else {
                                                                 return html ` <div style="text-align: center; vertical-align: middle;">
-                                                                                                  <img src="${img}" />
-                                                                                              </div>`;
+                                                  <img src="${img}" />
+                                                </div>`;
                                                             }
                                                         },
                                                         divCreate: {},
@@ -161,41 +192,41 @@ export class UMVoucher {
                                             },
                                         });
                                     })}"
-                                                          >
-                                                              ${Language.text('show_qr_code')}
-                                                          </div>`
+                              >
+                                ${Language.text('show_qr_code')}
+                              </div>`
                                     : ''}
-                                                </div>`,
+                        </div>`,
                             ];
                         }
                         if (isWebsite) {
                             const flexList = [1.2, 1, 1.5, 1.5];
                             return html `
-                                                <div class="w-100 d-sm-flex py-4 um-th-bar">
-                                                    ${header
+                        <div class="w-100 d-sm-flex py-4 um-th-bar">
+                          ${header
                                 .map((item, index) => {
                                 return html `<div class="um-th" style="flex: ${flexList[index]};">${item.title}</div>`;
                             })
                                 .join('')}
-                                                </div>
-                                                ${vm.dataList
-                                .map((item) => {
+                        </div>
+                        ${vm.dataList
+                                .map(item => {
                                 return html `<div class="w-100 d-sm-flex py-5 um-td-bar">
-                                                            ${formatText(item.content)
+                              ${formatText(item.content)
                                     .map((dd, index) => {
                                     return html `<div class="um-td" style="flex: ${flexList[index]}">${dd}</div>`;
                                 })
                                     .join('')}
-                                                        </div>`;
+                            </div>`;
                             })
                                 .join('')}
-                                            `;
+                      `;
                         }
                         return html `<div class="w-100 d-sm-none mb-3 s162413">
-                                            ${vm.dataList
-                            .map((item) => {
+                      ${vm.dataList
+                            .map(item => {
                             return html `<div class="um-mobile-area">
-                                                        ${formatText(item.content)
+                            ${formatText(item.content)
                                 .map((dd, index) => {
                                 if (header[index].title === '') {
                                     return dd;
@@ -203,15 +234,15 @@ export class UMVoucher {
                                 return html `<div class="um-mobile-text">${header[index].title}: ${dd}</div>`;
                             })
                                 .join('')}
-                                                    </div>`;
+                          </div>`;
                         })
                             .join('')}
-                                        </div> `;
+                    </div> `;
                     })()}
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                </div>
+              </div>
+            </div>
+          `;
                 }
             },
             divCreate: {
@@ -220,7 +251,7 @@ export class UMVoucher {
             },
             onCreate: () => {
                 if (loadings.view) {
-                    gvc.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }], () => {
+                    gvc.addMtScript([{ src: `${gvc.glitter.root_path}/jslib/lottie-player.js` }], () => {
                         ApiShop.getVoucher({
                             page: 0,
                             limit: 10000,
@@ -252,7 +283,7 @@ export class UMVoucher {
             'zh-TW': [
                 `活動標題：${voucherData.title && voucherData.title.length > 0 ? voucherData.title : '尚無標題'}`,
                 `適用商品：${(() => {
-                    const forData = productForList.find((item) => item.value === voucherData.for);
+                    const forData = productForList.find(item => item.value === voucherData.for);
                     return forData ? forData.title : '';
                 })()}`,
                 `輸入代碼：${voucherData.code}`,
@@ -277,7 +308,9 @@ export class UMVoucher {
                                 ? `${voucherData.value} 點 ${glitter.share.rebateConfig.title}`
                                 : `符合條件商品總額的 ${voucherData.value} ％作為 ${glitter.share.rebateConfig.title}`;
                         case 'discount':
-                            return voucherData.method === 'fixed' ? `折扣 ${voucherData.value} 元` : `符合條件商品折扣 ${voucherData.value} ％`;
+                            return voucherData.method === 'fixed'
+                                ? `折扣 ${voucherData.value} 元`
+                                : `符合條件商品折扣 ${voucherData.value} ％`;
                         case 'shipment_free':
                             return '免運費';
                         default:
@@ -296,7 +329,7 @@ export class UMVoucher {
             'zh-CN': [
                 `活动标题：${voucherData.title && voucherData.title.length > 0 ? voucherData.title : '暂无标题'}`,
                 `适用商品：${(() => {
-                    const forData = productForList.find((item) => item.value === voucherData.for);
+                    const forData = productForList.find(item => item.value === voucherData.for);
                     return forData ? forData.title : '';
                 })()}`,
                 `输入代码：${voucherData.code}`,
@@ -321,7 +354,9 @@ export class UMVoucher {
                                 ? `${voucherData.value} 点 ${glitter.share.rebateConfig.title}`
                                 : `符合条件商品总额的 ${voucherData.value}％作为 ${glitter.share.rebateConfig.title}`;
                         case 'discount':
-                            return voucherData.method === 'fixed' ? `折扣 ${voucherData.value} 元` : `符合条件商品折扣 ${voucherData.value}％`;
+                            return voucherData.method === 'fixed'
+                                ? `折扣 ${voucherData.value} 元`
+                                : `符合条件商品折扣 ${voucherData.value}％`;
                         case 'shipment_free':
                             return '免运费';
                         default:
@@ -340,7 +375,7 @@ export class UMVoucher {
             'en-US': [
                 `Campaign Title: ${voucherData.title && voucherData.title.length > 0 ? voucherData.title : 'No Title'}`,
                 `Applicable Products: ${(() => {
-                    const forData = productForList.find((item) => item.value === voucherData.for);
+                    const forData = productForList.find(item => item.value === voucherData.for);
                     return forData ? forData.title : '';
                 })()}`,
                 `Code: ${voucherData.code}`,
@@ -365,7 +400,9 @@ export class UMVoucher {
                                 ? `${voucherData.value} points ${glitter.share.rebateConfig.title}`
                                 : `${voucherData.value}% of qualifying items' total as ${glitter.share.rebateConfig.title}`;
                         case 'discount':
-                            return voucherData.method === 'fixed' ? `Discount ${voucherData.value} USD` : `Discount ${voucherData.value}% for qualifying items`;
+                            return voucherData.method === 'fixed'
+                                ? `Discount ${voucherData.value} USD`
+                                : `Discount ${voucherData.value}% for qualifying items`;
                         case 'shipment_free':
                             return 'Free Shipping';
                         default:

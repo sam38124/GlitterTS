@@ -3,7 +3,6 @@ import { ApiUser } from '../../glitter-base/route/user.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 const html = String.raw;
-const css = String.raw;
 export class OrderSetting {
     static getPaymentMethodText(orderData) {
         if (orderData.orderSource === 'POS') {
@@ -61,6 +60,41 @@ export class OrderSetting {
             return '實體門市';
         }
         return orderData.user_info.address;
+    }
+    static getPaymentStatusOpt() {
+        return [
+            { title: '已付款', value: '1' },
+            { title: '部分付款', value: '3' },
+            { title: '待核款 / 貨到付款 / 未付款', value: '0' },
+            { title: '已退款', value: '-2' },
+        ].map(item => {
+            return {
+                key: item.value,
+                value: item.title,
+            };
+        });
+    }
+    static getShippmentOpt() {
+        return [
+            { title: '已出貨', value: 'shipping' },
+            { title: '未出貨 / 備貨中', value: 'wait' },
+            { title: '已取貨', value: 'finish' },
+            { title: '已退貨', value: 'returns' },
+            { title: '已到貨', value: 'arrived' },
+        ].map(item => {
+            return {
+                key: item.value,
+                value: item.title,
+            };
+        });
+    }
+    static getOrderStatusOpt() {
+        return ApiShop.getOrderStatusArray().map(item => {
+            return {
+                key: item.value,
+                value: item.title,
+            };
+        });
     }
     static getAllStatusBadge(orderData) {
         var _a;
@@ -230,79 +264,100 @@ export class OrderSetting {
                         return gvc.bindView({
                             bind: id,
                             view: () => {
-                                return postMD
-                                    .map((item) => {
-                                    if (item.deduction_log && Object.keys(item.deduction_log).length === 0) {
-                                        return;
-                                    }
-                                    return html `
-                            <div class="d-flex align-items-center" style="gap:44px;">
-                              <div
-                                class="d-flex align-items-center flex-shrink-0"
-                                style="width: ${titleLength}px;gap: 12px"
-                              >
-                                <img style="height: 54px;width: 54px;border-radius: 5px;" src="${item.preview_image}" />
-                                <div class="d-flex flex-column" style="font-size: 16px;">
-                                  <div>${item.title}</div>
-                                  <div style="color: #8D8D8D;font-size: 14px;">
-                                    ${item.spec.length == 0 ? `單一規格` : item.spec.join(`,`)}
+                                try {
+                                    return postMD
+                                        .map((item) => {
+                                        if (!item.deduction_log || Object.keys(item.deduction_log).length === 0) {
+                                            return ``;
+                                        }
+                                        return html `
+                              <div class="d-inline-flex align-items-center" style="gap:44px;">
+                                <div
+                                  class="d-flex align-items-center flex-shrink-0"
+                                  style="width: ${titleLength}px;gap: 12px"
+                                >
+                                  <img
+                                    style="height: 54px;width: 54px;border-radius: 5px;"
+                                    src="${item.preview_image}"
+                                  />
+                                  <div class="d-flex flex-column" style="font-size: 16px;">
+                                    <div
+                                      style="max-width: calc(${titleLength} - 100px);white-space: normal;word-break: break-all;"
+                                    >
+                                      ${item.title}
+                                    </div>
+                                    <div style="color: #8D8D8D;font-size: 14px;">
+                                      ${item.spec.length == 0 ? `單一規格` : item.spec.join(`,`)}
+                                    </div>
+                                    <div style="color: #8D8D8D;font-size: 14px;">存貨單位 (SKU): ${item.sku}</div>
                                   </div>
-                                  <div style="color: #8D8D8D;font-size: 14px;">存貨單位 (SKU): ${item.sku}</div>
                                 </div>
+                                <div
+                                  class="d-flex align-items-center justify-content-end flex-shrink-0"
+                                  style="width: ${elementLength}px;gap: 12px"
+                                >
+                                  ${item.count}
+                                </div>
+                                ${stockList
+                                            .flatMap((stock) => {
+                                            var _a, _b, _c, _d, _e;
+                                            if (!item.deduction_log) {
+                                                return ``;
+                                            }
+                                            const limit = (_c = (_b = (_a = item.stockList) === null || _a === void 0 ? void 0 : _a[stock.id]) === null || _b === void 0 ? void 0 : _b.count) !== null && _c !== void 0 ? _c : 0;
+                                            return [
+                                                html ` <div
+                                        class="d-flex align-items-center justify-content-end flex-shrink-0"
+                                        style="width: ${elementLength}px;gap: 12px;"
+                                      >
+                                        ${parseInt(limit)}
+                                      </div>`,
+                                                html ` <div
+                                        class="d-flex align-items-center justify-content-end flex-shrink-0"
+                                        style="width: ${elementLength}px;gap: 12px"
+                                      >
+                                        <input
+                                          class="w-100"
+                                          style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;text-align: center;padding:0 18px;height:40px;"
+                                          max="${limit + ((_d = item.deduction_log[stock.id]) !== null && _d !== void 0 ? _d : 0)}"
+                                          min="0"
+                                          value="${(_e = item.deduction_log[stock.id]) !== null && _e !== void 0 ? _e : 0}"
+                                          type="number"
+                                          onchange="${gvc.event((e) => {
+                                                    var _a;
+                                                    const originalDeduction = (_a = item.deduction_log[stock.id]) !== null && _a !== void 0 ? _a : 0;
+                                                    item.deduction_log[stock.id] = 0;
+                                                    const totalDeducted = Object.values(item.deduction_log).reduce((total, deduction) => total + deduction, 0);
+                                                    const remainingStock = item.count - totalDeducted;
+                                                    const newDeduction = Math.min(parseInt(e.value), remainingStock);
+                                                    item.deduction_log[stock.id] = newDeduction;
+                                                    if (originalDeduction !== newDeduction) {
+                                                        const stockDiff = newDeduction - originalDeduction;
+                                                        item.stockList[stock.id].count -= stockDiff;
+                                                    }
+                                                    gvc.notifyDataChange(id);
+                                                })}"
+                                        />
+                                      </div>`,
+                                            ];
+                                        })
+                                            .join('')}
                               </div>
-                              <div
-                                class="d-flex align-items-center justify-content-end flex-shrink-0"
-                                style="width: ${elementLength}px;gap: 12px"
-                              >
-                                ${item.count}
-                              </div>
-                              ${stockList
-                                        .flatMap((stock) => {
-                                        var _a, _b, _c, _d, _e;
-                                        const limit = (_c = (_b = (_a = item.stockList) === null || _a === void 0 ? void 0 : _a[stock.id]) === null || _b === void 0 ? void 0 : _b.count) !== null && _c !== void 0 ? _c : 0;
-                                        return [
-                                            html ` <div
-                                      class="d-flex align-items-center justify-content-end flex-shrink-0"
-                                      style="width: ${elementLength}px;gap: 12px;"
-                                    >
-                                      ${parseInt(limit)}
-                                    </div>`,
-                                            html ` <div
-                                      class="d-flex align-items-center justify-content-end flex-shrink-0"
-                                      style="width: ${elementLength}px;gap: 12px"
-                                    >
-                                      <input
-                                        class="w-100"
-                                        style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;text-align: center;padding:0 18px;height:40px;"
-                                        max="${limit + ((_d = item.deduction_log[stock.id]) !== null && _d !== void 0 ? _d : 0)}"
-                                        min="0"
-                                        value="${(_e = item.deduction_log[stock.id]) !== null && _e !== void 0 ? _e : 0}"
-                                        type="number"
-                                        onchange="${gvc.event((e) => {
-                                                var _a;
-                                                const originalDeduction = (_a = item.deduction_log[stock.id]) !== null && _a !== void 0 ? _a : 0;
-                                                item.deduction_log[stock.id] = 0;
-                                                const totalDeducted = Object.values(item.deduction_log).reduce((total, deduction) => total + deduction, 0);
-                                                const remainingStock = item.count - totalDeducted;
-                                                const newDeduction = Math.min(parseInt(e.value), remainingStock);
-                                                item.deduction_log[stock.id] = newDeduction;
-                                                if (originalDeduction !== newDeduction) {
-                                                    const stockDiff = newDeduction - originalDeduction;
-                                                    item.stockList[stock.id].count -= stockDiff;
-                                                }
-                                                gvc.notifyDataChange(id);
-                                            })}"
-                                      />
-                                    </div>`,
-                                        ];
+                            `;
                                     })
-                                        .join('')}
-                            </div>
-                          `;
-                                })
-                                    .join('');
+                                        .filter((item) => {
+                                        return item;
+                                    })
+                                        .map((dd, index) => {
+                                        return `<div class="${index ? `border-top pt-2` : ` pb-2`}">${dd}</div>`;
+                                    })
+                                        .join(``);
+                                }
+                                catch (e) {
+                                    console.error(e);
+                                }
                             },
-                            divCreate: { class: 'd-flex flex-column', style: 'margin-bottom:80px;gap:12px;' },
+                            divCreate: { class: 'd-inline-flex flex-column ', style: 'margin-bottom:80px;gap:12px;' },
                         });
                     })()}
               </div>
@@ -318,6 +373,9 @@ export class OrderSetting {
                         var _a;
                         const errorProducts = [];
                         const hasError = postMD.some((product) => {
+                            if (!product.deduction_log) {
+                                return false;
+                            }
                             const totalDeduction = Object.values(product.deduction_log).reduce((sum, value) => sum + value, 0);
                             if (Object.keys(product.deduction_log).length && totalDeduction !== product.count) {
                                 errorProducts.push(`${product.title} - ${product.spec.join(',')}`);
@@ -1017,5 +1075,270 @@ export class OrderSetting {
         `,
             });
         }, 'combineOrders');
+    }
+    static batchEditOrders(obj) {
+        const wp = window.parent;
+        const topGVC = wp.glitter.pageConfig[wp.glitter.pageConfig.length - 1].gvc;
+        const cloneOrders = structuredClone(obj.orders);
+        topGVC.glitter.innerDialog((gvc) => {
+            const dialog = new ShareDialog(gvc.glitter);
+            const vm = {
+                id: gvc.glitter.getUUID(),
+                loading: true,
+                orders: [],
+            };
+            gvc.addStyle(`
+        .scrollbar-appear::-webkit-scrollbar {
+          width: 10px;
+          height: 10px;
+        }
+        .scrollbar-appear::-webkit-scrollbar-thumb {
+          background: #666;
+          border-radius: 20px;
+        }
+        .scrollbar-appear::-webkit-scrollbar-track {
+          border-radius: 20px;
+          background: #d8d8d8;
+        }
+        .scrollbar-appear {
+        }
+      `);
+            function loadingEvent() {
+                dialog.dataLoading({ visible: true });
+                ApiShop.getOrder({
+                    page: 0,
+                    limit: 1000,
+                    id_list: obj.orders.map((data) => data.id).join(','),
+                }).then(d => {
+                    dialog.dataLoading({ visible: false });
+                    if (d.result && Array.isArray(d.response.data)) {
+                        vm.orders = d.response.data;
+                    }
+                    vm.loading = false;
+                    gvc.notifyDataChange(vm.id);
+                });
+            }
+            function closeEvent() {
+                obj.orders = cloneOrders;
+                topGVC.glitter.closeDiaLog();
+            }
+            function getDatalist() {
+                return vm.orders.map((dd) => {
+                    return [
+                        {
+                            key: '訂單編號',
+                            value: html ` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
+                ${dd.cart_token}${(() => {
+                                switch (dd.orderData.orderSource) {
+                                    case 'manual':
+                                        return BgWidget.primaryInsignia('手動', { type: 'border' });
+                                    case 'combine':
+                                        return BgWidget.warningInsignia('合併', { type: 'border' });
+                                    case 'POS':
+                                        return BgWidget.primaryInsignia('POS', { type: 'border' });
+                                    default:
+                                        return '';
+                                }
+                            })()}
+              </div>`,
+                        },
+                        {
+                            key: '訂單日期',
+                            value: html `<div style="width: 120px;">
+                ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd')}
+              </div>`,
+                        },
+                        {
+                            key: '訂購人',
+                            value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
+                        },
+                        {
+                            key: '訂單金額',
+                            value: `$ ${dd.orderData.total.toLocaleString()}`,
+                        },
+                        {
+                            key: '付款狀態',
+                            value: BgWidget.select({
+                                gvc,
+                                callback: (value) => {
+                                    dd.status = value;
+                                },
+                                default: `${dd.status || 0}`,
+                                options: OrderSetting.getPaymentStatusOpt(),
+                                style: 'min-width: 220px;',
+                            }),
+                        },
+                        {
+                            key: '出貨狀態',
+                            value: BgWidget.select({
+                                gvc,
+                                callback: (value) => {
+                                    dd.orderData.progress = value;
+                                },
+                                default: dd.orderData.progress || 'wait',
+                                options: OrderSetting.getShippmentOpt(),
+                                style: 'min-width: 180px;',
+                            }),
+                        },
+                        {
+                            key: '訂單狀態',
+                            value: BgWidget.select({
+                                gvc,
+                                callback: (value) => {
+                                    dd.orderData.orderStatus = value;
+                                },
+                                default: `${dd.orderData.orderStatus || 0}`,
+                                options: OrderSetting.getOrderStatusOpt(),
+                            }),
+                        },
+                    ];
+                });
+            }
+            function allEditDialog(data) {
+                const defaultValue = '';
+                let temp = '';
+                BgWidget.settingDialog({
+                    gvc: gvc,
+                    title: data.title,
+                    innerHTML: (innerGVC) => {
+                        return html ` <div>
+              <div class="tx_700 mb-2">更改為</div>
+              ${BgWidget.select({
+                            gvc: innerGVC,
+                            callback: (value) => {
+                                temp = value;
+                            },
+                            default: defaultValue,
+                            options: [{ key: '', value: '請選擇狀態' }, ...data.options],
+                        })}
+            </div>`;
+                    },
+                    footer_html: (footerGVC) => {
+                        return [
+                            BgWidget.cancel(footerGVC.event(() => footerGVC.closeDialog()), '取消'),
+                            BgWidget.save(footerGVC.event(() => {
+                                if (temp === defaultValue) {
+                                    dialog.infoMessage({ text: '請選擇欲更改的選項' });
+                                    return;
+                                }
+                                footerGVC.closeDialog();
+                                data.callback(temp);
+                                gvc.notifyDataChange(vm.id);
+                            }), '儲存'),
+                        ].join('');
+                    },
+                    width: 350,
+                });
+            }
+            function editOrderView() {
+                return BgWidget.tableV3({
+                    gvc,
+                    filter: [
+                        {
+                            name: '更改付款狀態',
+                            event: (checkArray) => {
+                                allEditDialog({
+                                    title: '批量更改付款狀態',
+                                    options: OrderSetting.getPaymentStatusOpt(),
+                                    callback: (value) => {
+                                        checkArray.forEach((order) => {
+                                            order.status = Number(value);
+                                        });
+                                    },
+                                });
+                            },
+                        },
+                        {
+                            name: '更改出貨狀態',
+                            event: (checkArray) => {
+                                allEditDialog({
+                                    title: '批量更改出貨狀態',
+                                    options: OrderSetting.getShippmentOpt(),
+                                    callback: (value) => {
+                                        checkArray.forEach((order) => {
+                                            order.orderData.progress = value;
+                                        });
+                                    },
+                                });
+                            },
+                        },
+                        {
+                            name: '更改訂單狀態',
+                            event: (checkArray) => {
+                                allEditDialog({
+                                    title: '批量更改訂單狀態',
+                                    options: OrderSetting.getOrderStatusOpt(),
+                                    callback: (value) => {
+                                        checkArray.forEach((order) => {
+                                            order.orderData.orderStatus = value;
+                                        });
+                                    },
+                                });
+                            },
+                        },
+                    ],
+                    getData: vmi => {
+                        vmi.pageSize = 0;
+                        vmi.originalData = vm.orders;
+                        vmi.tableData = getDatalist();
+                        setTimeout(() => {
+                            vmi.loading = false;
+                            vmi.callback();
+                        }, 100);
+                    },
+                    rowClick: () => { },
+                    hiddenPageSplit: true,
+                    windowTarget: wp,
+                });
+            }
+            return gvc.bindView({
+                bind: vm.id,
+                view: () => {
+                    if (vm.loading) {
+                        loadingEvent();
+                        return '';
+                    }
+                    return html `
+            <div
+              class="d-flex flex-column"
+              style="width: 100vw; height: 100vh; position: absolute; left: 0; top: 0; background-color: white; z-index: 1;"
+            >
+              <div
+                class="d-flex align-items-center"
+                style="height: 60px; width: 100vw; border-bottom: solid 1px #DDD; font-size: 16px; font-style: normal; font-weight: 700; color: #393939;"
+              >
+                <div
+                  class="d-flex"
+                  style="padding: 19px 32px; gap: 8px; cursor: pointer; border-right: solid 1px #DDD;"
+                  onclick="${topGVC.event(() => closeEvent())}"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M13.7859 4.96406L8.02969 10.7203C7.69219 11.0578 7.5 11.5219 7.5 12C7.5 12.4781 7.69219 12.9422 8.02969 13.2797L13.7859 19.0359C14.0859 19.3359 14.4891 19.5 14.9109 19.5C15.7875 19.5 16.5 18.7875 16.5 17.9109V15H22.5C23.3297 15 24 14.3297 24 13.5V10.5C24 9.67031 23.3297 9 22.5 9H16.5V6.08906C16.5 5.2125 15.7875 4.5 14.9109 4.5C14.4891 4.5 14.0859 4.66875 13.7859 4.96406ZM7.5 19.5H4.5C3.67031 19.5 3 18.8297 3 18V6C3 5.17031 3.67031 4.5 4.5 4.5H7.5C8.32969 4.5 9 3.82969 9 3C9 2.17031 8.32969 1.5 7.5 1.5H4.5C2.01562 1.5 0 3.51562 0 6V18C0 20.4844 2.01562 22.5 4.5 22.5H7.5C8.32969 22.5 9 21.8297 9 21C9 20.1703 8.32969 19.5 7.5 19.5Z"
+                      fill="#393939"
+                    />
+                  </svg>
+                  返回
+                </div>
+                <div class="flex-fill" style="padding: 19px 32px;">編輯 ${obj.orders.length} 個訂單</div>
+              </div>
+              <div
+                class="overflow-scroll scrollbar-appear flex-fill"
+                style="padding: ${document.body.clientWidth > 768 ? 20 : 8}px;"
+              >
+                ${editOrderView()}
+              </div>
+              <div class="w-100 d-flex justify-content-end" style="padding: 14px 16px; gap: 14px;">
+                ${BgWidget.cancel(gvc.event(() => closeEvent()))}
+                ${BgWidget.save(gvc.event(() => {
+                        obj.callback(vm.orders);
+                        topGVC.glitter.closeDiaLog();
+                    }))}
+              </div>
+            </div>
+          `;
+                },
+            });
+        }, 'batchEditOrders');
     }
 }

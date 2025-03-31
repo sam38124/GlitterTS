@@ -61,7 +61,7 @@ export class GlobalUser {
         var _a;
         const config = window.parent.glitter.share.editorViewModel.app_config_original;
         const planMapping = this.planMapping();
-        return (_a = planMapping[config.plan]) !== null && _a !== void 0 ? _a : planMapping['omo-year'];
+        return (_a = planMapping[config.plan]) !== null && _a !== void 0 ? _a : planMapping['app-year'];
     }
 }
 GlobalUser.tagId = 'sjnsannsai23ij3as';

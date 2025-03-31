@@ -32,10 +32,10 @@ class FinancialService {
     }
     static JsonToQueryString(data) {
         const queryString = Object.keys(data)
-            .map((key) => {
+            .map(key => {
             const value = data[key];
             if (Array.isArray(value)) {
-                return value.map((v) => `${encodeURIComponent(key)}[]=${encodeURIComponent(v)}`).join('&');
+                return value.map(v => `${encodeURIComponent(key)}[]=${encodeURIComponent(v)}`).join('&');
             }
             return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
         })
@@ -53,7 +53,7 @@ class FinancialService {
         return await order_event_js_1.OrderEvent.insertOrder({
             cartData: orderData,
             status: 0,
-            app: this.appName
+            app: this.appName,
         });
     }
     async saveWallet(orderData) {
@@ -115,7 +115,7 @@ class EzPay {
                     title: '超商條碼',
                     realKey: 'BARCODE',
                 },
-            ].map((dd) => {
+            ].map(dd => {
                 if (dd.value === orderData.method) {
                     params[dd.realKey] = 1;
                 }
@@ -127,20 +127,23 @@ class EzPay {
         await order_event_js_1.OrderEvent.insertOrder({
             cartData: orderData,
             status: 0,
-            app: this.appName
+            app: this.appName,
         });
         const qs = FinancialService.JsonToQueryString(params);
         const tradeInfo = FinancialService.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
-        const tradeSha = crypto_1.default.createHash('sha256').update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`).digest('hex').toUpperCase();
-        return html `
-            <form name="Newebpay" action="${this.keyData.ActionURL}" method="POST" class="payment">
-                <input type="hidden" name="MerchantID" value="${this.keyData.MERCHANT_ID}"/>
-                <input type="hidden" name="TradeInfo" value="${tradeInfo}"/>
-                <input type="hidden" name="TradeSha" value="${tradeSha}"/>
-                <input type="hidden" name="Version" value="${params.Version}"/>
-                <input type="hidden" name="MerchantOrderNo" value="${params.MerchantOrderNo}"/>
-                <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
-            </form>`;
+        const tradeSha = crypto_1.default
+            .createHash('sha256')
+            .update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`)
+            .digest('hex')
+            .toUpperCase();
+        return html ` <form name="Newebpay" action="${this.keyData.ActionURL}" method="POST" class="payment">
+      <input type="hidden" name="MerchantID" value="${this.keyData.MERCHANT_ID}" />
+      <input type="hidden" name="TradeInfo" value="${tradeInfo}" />
+      <input type="hidden" name="TradeSha" value="${tradeSha}" />
+      <input type="hidden" name="Version" value="${params.Version}" />
+      <input type="hidden" name="MerchantOrderNo" value="${params.MerchantOrderNo}" />
+      <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
+    </form>`;
     }
     async saveMoney(orderData) {
         const params = {
@@ -156,11 +159,15 @@ class EzPay {
         };
         const appName = this.appName;
         await database_js_1.default.execute(`INSERT INTO \`${appName}\`.${orderData.table} (orderID, userID, money, status, note)
-             VALUES (?, ?, ?, ?, ?)
-            `, [params.MerchantOrderNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]);
+       VALUES (?, ?, ?, ?, ?)
+      `, [params.MerchantOrderNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]);
         const qs = FinancialService.JsonToQueryString(params);
         const tradeInfo = FinancialService.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
-        const tradeSha = crypto_1.default.createHash('sha256').update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`).digest('hex').toUpperCase();
+        const tradeSha = crypto_1.default
+            .createHash('sha256')
+            .update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`)
+            .digest('hex')
+            .toUpperCase();
         const subMitData = {
             actionURL: this.keyData.ActionURL,
             MerchantOrderNo: params.MerchantOrderNo,
@@ -169,15 +176,14 @@ class EzPay {
             TradeSha: tradeSha,
             Version: params.Version,
         };
-        return html `
-            <form name="Newebpay" action="${subMitData.actionURL}" method="POST" class="payment">
-                <input type="hidden" name="MerchantID" value="${subMitData.MerchantID}"/>
-                <input type="hidden" name="TradeInfo" value="${subMitData.TradeInfo}"/>
-                <input type="hidden" name="TradeSha" value="${subMitData.TradeSha}"/>
-                <input type="hidden" name="Version" value="${subMitData.Version}"/>
-                <input type="hidden" name="MerchantOrderNo" value="${subMitData.MerchantOrderNo}"/>
-                <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
-            </form>`;
+        return html ` <form name="Newebpay" action="${subMitData.actionURL}" method="POST" class="payment">
+      <input type="hidden" name="MerchantID" value="${subMitData.MerchantID}" />
+      <input type="hidden" name="TradeInfo" value="${subMitData.TradeInfo}" />
+      <input type="hidden" name="TradeSha" value="${subMitData.TradeSha}" />
+      <input type="hidden" name="Version" value="${subMitData.Version}" />
+      <input type="hidden" name="MerchantOrderNo" value="${subMitData.MerchantOrderNo}" />
+      <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
+    </form>`;
     }
 }
 exports.EzPay = EzPay;
@@ -218,7 +224,7 @@ class EcPay {
     static generateCheckMacValue(params, HashKey, HashIV) {
         const sortedQueryString = Object.keys(params)
             .sort()
-            .map((key) => `${key}=${params[key]}`)
+            .map(key => `${key}=${params[key]}`)
             .join('&');
         const rawString = `HashKey=${HashKey}&${sortedQueryString}&HashIV=${HashIV}`;
         const encodedString = encodeURIComponent(rawString)
@@ -241,7 +247,7 @@ class EcPay {
             TotalAmount: orderData.total - orderData.use_wallet,
             TradeDesc: '商品資訊',
             ItemName: orderData.lineItems
-                .map((dd) => {
+                .map(dd => {
                 return dd.title + (dd.spec.join('-') && '-' + dd.spec.join('-'));
             })
                 .join('#'),
@@ -274,7 +280,7 @@ class EcPay {
                             title: '超商條碼',
                             realKey: 'BARCODE',
                         },
-                    ].find((dd) => {
+                    ].find(dd => {
                         return dd.value === orderData.method;
                     });
                     return find && find.realKey;
@@ -288,41 +294,38 @@ class EcPay {
             EncryptType: '1',
             PaymentType: 'aio',
             OrderResultURL: this.keyData.ReturnURL,
-            NeedExtraPaidInfo: 'Y'
+            NeedExtraPaidInfo: 'Y',
         };
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         orderData.CheckMacValue = chkSum;
         await order_event_js_1.OrderEvent.insertOrder({
             cartData: orderData,
             status: 0,
-            app: this.appName
+            app: this.appName,
         });
         console.log(`params-is=>`, params);
         return html `
-            <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
-                <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}"/>
-                <input type="hidden" name="MerchantTradeDate" id="MerchantTradeDate"
-                       value="${params.MerchantTradeDate}"/>
-                <input type="hidden" name="TotalAmount" id="TotalAmount" value="${params.TotalAmount}"/>
-                <input type="hidden" name="TradeDesc" id="TradeDesc" value="${params.TradeDesc}"/>
-                <input type="hidden" name="ItemName" id="ItemName" value="${params.ItemName}"/>
-                <input type="hidden" name="ReturnURL" id="ReturnURL" value="${params.ReturnURL}"/>
-                <input type="hidden" name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}"/>
-                <input type="hidden" name="PlatformID" id="PlatformID" value="${params.PlatformID}"/>
-                <input type="hidden" name="MerchantID" id="MerchantID" value="${params.MerchantID}"/>
-                <input type="hidden" name="InvoiceMark" id="InvoiceMark" value="${params.InvoiceMark}"/>
-                <input type="hidden" name="IgnorePayment" id="IgnorePayment" value="${params.IgnorePayment}"/>
-                <input type="hidden" name="DeviceSource" id="DeviceSource" value="${params.DeviceSource}"/>
-                <input type="hidden" name="EncryptType" id="EncryptType" value="${params.EncryptType}"/>
-                <input type="hidden" name="PaymentType" id="PaymentType" value="${params.PaymentType}"/>
-                <input type="hidden" name="OrderResultURL" id="OrderResultURL" value="${params.OrderResultURL}"/>
-                <input type="hidden" name="NeedExtraPaidInfo" id="NeedExtraPaidInfo"
-                       value="${params.NeedExtraPaidInfo}"/>
-                <input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${chkSum}"/>
-                <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
-                        hidden></button>
-            </form>
-        `;
+      <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
+        <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}" />
+        <input type="hidden" name="MerchantTradeDate" id="MerchantTradeDate" value="${params.MerchantTradeDate}" />
+        <input type="hidden" name="TotalAmount" id="TotalAmount" value="${params.TotalAmount}" />
+        <input type="hidden" name="TradeDesc" id="TradeDesc" value="${params.TradeDesc}" />
+        <input type="hidden" name="ItemName" id="ItemName" value="${params.ItemName}" />
+        <input type="hidden" name="ReturnURL" id="ReturnURL" value="${params.ReturnURL}" />
+        <input type="hidden" name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}" />
+        <input type="hidden" name="PlatformID" id="PlatformID" value="${params.PlatformID}" />
+        <input type="hidden" name="MerchantID" id="MerchantID" value="${params.MerchantID}" />
+        <input type="hidden" name="InvoiceMark" id="InvoiceMark" value="${params.InvoiceMark}" />
+        <input type="hidden" name="IgnorePayment" id="IgnorePayment" value="${params.IgnorePayment}" />
+        <input type="hidden" name="DeviceSource" id="DeviceSource" value="${params.DeviceSource}" />
+        <input type="hidden" name="EncryptType" id="EncryptType" value="${params.EncryptType}" />
+        <input type="hidden" name="PaymentType" id="PaymentType" value="${params.PaymentType}" />
+        <input type="hidden" name="OrderResultURL" id="OrderResultURL" value="${params.OrderResultURL}" />
+        <input type="hidden" name="NeedExtraPaidInfo" id="NeedExtraPaidInfo" value="${params.NeedExtraPaidInfo}" />
+        <input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${chkSum}" />
+        <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit" hidden></button>
+      </form>
+    `;
     }
     async checkCreditInfo(CreditRefundId, CreditAmount) {
         await this.key_initial();
@@ -330,7 +333,7 @@ class EcPay {
             CreditRefundId: `${CreditRefundId}`,
             CreditAmount: CreditAmount,
             MerchantID: this.keyData.MERCHANT_ID,
-            CreditCheckCode: this.keyData.CreditCheckCode
+            CreditCheckCode: this.keyData.CreditCheckCode,
         };
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         params.CheckMacValue = chkSum;
@@ -340,10 +343,11 @@ class EcPay {
             url: `https://payment.ecpay.com.tw/CreditDetail/QueryTrade/V2`,
             headers: {},
             'Content-Type': 'application/x-www-form-urlencoded',
-            data: new URLSearchParams(params).toString()
+            data: new URLSearchParams(params).toString(),
         };
         return await new Promise((resolve, reject) => {
-            axios_1.default.request(config)
+            axios_1.default
+                .request(config)
                 .then((response) => {
                 resolve(response.data.RtnValue);
             })
@@ -365,20 +369,23 @@ class EcPay {
         let config = {
             method: 'post',
             maxBodyLength: Infinity,
-            url: (EcPay.beta === this.keyData.ActionURL) ? 'https://payment-stage.ecpay.com.tw/Cashier/QueryTradeInfo/V5' : 'https://payment.ecpay.com.tw/Cashier/QueryTradeInfo/V5',
+            url: EcPay.beta === this.keyData.ActionURL
+                ? 'https://payment-stage.ecpay.com.tw/Cashier/QueryTradeInfo/V5'
+                : 'https://payment.ecpay.com.tw/Cashier/QueryTradeInfo/V5',
             headers: {},
             'Content-Type': 'application/x-www-form-urlencoded',
-            data: new URLSearchParams(params).toString()
+            data: new URLSearchParams(params).toString(),
         };
         return await new Promise((resolve, reject) => {
-            axios_1.default.request(config)
+            axios_1.default
+                .request(config)
                 .then(async (response) => {
                 const params = new URLSearchParams(response.data);
                 const paramsObject = {};
                 params.forEach((value, key) => {
                     paramsObject[key] = value;
                 });
-                if (paramsObject.gwsr && this.keyData.CreditCheckCode && (EcPay.beta !== this.keyData.ActionURL)) {
+                if (paramsObject.gwsr && this.keyData.CreditCheckCode && EcPay.beta !== this.keyData.ActionURL) {
                     paramsObject.credit_receipt = await this.checkCreditInfo(paramsObject.gwsr, paramsObject.TradeAmt);
                     if (paramsObject.credit_receipt.status !== '已授權') {
                         paramsObject.TradeStatus = '10200095';
@@ -389,7 +396,7 @@ class EcPay {
                 .catch((error) => {
                 console.log(error);
                 resolve({
-                    TradeStatus: '10200095'
+                    TradeStatus: '10200095',
                 });
             });
         });
@@ -411,10 +418,11 @@ class EcPay {
             url: `https://payment.ecpay.com.tw/CreditDetail/DoAction`,
             headers: {},
             'Content-Type': 'application/x-www-form-urlencoded',
-            data: new URLSearchParams(params).toString()
+            data: new URLSearchParams(params).toString(),
         };
         return await new Promise((resolve, reject) => {
-            axios_1.default.request(config)
+            axios_1.default
+                .request(config)
                 .then((response) => {
                 const params = new URLSearchParams(response.data);
                 const paramsObject = {};
@@ -426,7 +434,7 @@ class EcPay {
                 .catch((error) => {
                 console.log(error);
                 resolve({
-                    RtnCode: `-1`
+                    RtnCode: `-1`,
                 });
             });
         });
@@ -468,7 +476,7 @@ class EcPay {
                             title: '超商條碼',
                             realKey: 'BARCODE',
                         },
-                    ].find((dd) => {
+                    ].find(dd => {
                         return dd.value === orderData.method;
                     });
                     return find && find.realKey;
@@ -486,31 +494,29 @@ class EcPay {
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         orderData.CheckMacValue = chkSum;
         await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.${orderData.table} (orderID, userID, money, status, note)
-             VALUES (?, ?, ?, ?, ?)
-            `, [params.MerchantTradeNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]);
+       VALUES (?, ?, ?, ?, ?)
+      `, [params.MerchantTradeNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]);
         return html `
-            <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
-                <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}"/>
-                <input type="hidden" name="MerchantTradeDate" id="MerchantTradeDate"
-                       value="${params.MerchantTradeDate}"/>
-                <input type="hidden" name="TotalAmount" id="TotalAmount" value="${params.TotalAmount}"/>
-                <input type="hidden" name="TradeDesc" id="TradeDesc" value="${params.TradeDesc}"/>
-                <input type="hidden" name="ItemName" id="ItemName" value="${params.ItemName}"/>
-                <input type="hidden" name="ReturnURL" id="ReturnURL" value="${params.ReturnURL}"/>
-                <input type="hidden" name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}"/>
-                <input type="hidden" name="PlatformID" id="PlatformID" value="${params.PlatformID}"/>
-                <input type="hidden" name="MerchantID" id="MerchantID" value="${params.MerchantID}"/>
-                <input type="hidden" name="InvoiceMark" id="InvoiceMark" value="${params.InvoiceMark}"/>
-                <input type="hidden" name="IgnorePayment" id="IgnorePayment" value="${params.IgnorePayment}"/>
-                <input type="hidden" name="DeviceSource" id="DeviceSource" value="${params.DeviceSource}"/>
-                <input type="hidden" name="EncryptType" id="EncryptType" value="${params.EncryptType}"/>
-                <input type="hidden" name="PaymentType" id="PaymentType" value="${params.PaymentType}"/>
-                <input type="hidden" name="OrderResultURL" id="OrderResultURL" value="${params.OrderResultURL}"/>
-                <input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${chkSum}"/>
-                <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
-                        hidden></button>
-            </form>
-        `;
+      <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
+        <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}" />
+        <input type="hidden" name="MerchantTradeDate" id="MerchantTradeDate" value="${params.MerchantTradeDate}" />
+        <input type="hidden" name="TotalAmount" id="TotalAmount" value="${params.TotalAmount}" />
+        <input type="hidden" name="TradeDesc" id="TradeDesc" value="${params.TradeDesc}" />
+        <input type="hidden" name="ItemName" id="ItemName" value="${params.ItemName}" />
+        <input type="hidden" name="ReturnURL" id="ReturnURL" value="${params.ReturnURL}" />
+        <input type="hidden" name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}" />
+        <input type="hidden" name="PlatformID" id="PlatformID" value="${params.PlatformID}" />
+        <input type="hidden" name="MerchantID" id="MerchantID" value="${params.MerchantID}" />
+        <input type="hidden" name="InvoiceMark" id="InvoiceMark" value="${params.InvoiceMark}" />
+        <input type="hidden" name="IgnorePayment" id="IgnorePayment" value="${params.IgnorePayment}" />
+        <input type="hidden" name="DeviceSource" id="DeviceSource" value="${params.DeviceSource}" />
+        <input type="hidden" name="EncryptType" id="EncryptType" value="${params.EncryptType}" />
+        <input type="hidden" name="PaymentType" id="PaymentType" value="${params.PaymentType}" />
+        <input type="hidden" name="OrderResultURL" id="OrderResultURL" value="${params.OrderResultURL}" />
+        <input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${chkSum}" />
+        <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit" hidden></button>
+      </form>
+    `;
     }
 }
 exports.EcPay = EcPay;
@@ -521,32 +527,32 @@ class PayPal {
         this.appName = appName;
         this.PAYPAL_CLIENT_ID = keyData.PAYPAL_CLIENT_ID;
         this.PAYPAL_SECRET = keyData.PAYPAL_SECRET;
-        this.PAYPAL_BASE_URL = (keyData.BETA == 'true') ? "https://api-m.sandbox.paypal.com" : "https://api-m.paypal.com";
+        this.PAYPAL_BASE_URL = keyData.BETA == 'true' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
     }
     async getAccessToken() {
         var _a;
         try {
             const tokenUrl = `${this.PAYPAL_BASE_URL}/v1/oauth2/token`;
             const config = {
-                method: "POST",
+                method: 'POST',
                 url: tokenUrl,
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 auth: {
                     username: this.PAYPAL_CLIENT_ID,
                     password: this.PAYPAL_SECRET,
                 },
                 data: new URLSearchParams({
-                    grant_type: "client_credentials",
+                    grant_type: 'client_credentials',
                 }).toString(),
             };
             const response = await axios_1.default.request(config);
             return response.data.access_token;
         }
         catch (error) {
-            console.error("Error fetching access token:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
-            throw new Error("Failed to retrieve PayPal access token.");
+            console.error('Error fetching access token:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            throw new Error('Failed to retrieve PayPal access token.');
         }
     }
     async checkout(orderData) {
@@ -555,7 +561,7 @@ class PayPal {
         const order = await this.createOrderPage(accessToken, orderData);
         return {
             orderId: order.id,
-            approveLink: (_a = order.links.find((link) => link.rel === "approve")) === null || _a === void 0 ? void 0 : _a.href,
+            approveLink: (_a = order.links.find((link) => link.rel === 'approve')) === null || _a === void 0 ? void 0 : _a.href,
         };
     }
     async createOrderPage(accessToken, orderData) {
@@ -563,49 +569,49 @@ class PayPal {
         try {
             const createOrderUrl = `${this.PAYPAL_BASE_URL}/v2/checkout/orders`;
             let itemPrice = 0;
-            orderData.lineItems.forEach((item) => {
+            orderData.lineItems.forEach(item => {
                 itemPrice += item.sale_price;
             });
             const config = {
-                method: "POST",
+                method: 'POST',
                 url: createOrderUrl,
                 headers: {
-                    "Content-Type": "application/json",
+                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${accessToken}`,
                 },
                 data: {
-                    intent: "CAPTURE",
+                    intent: 'CAPTURE',
                     purchase_units: [
                         {
                             reference_id: orderData.orderID,
                             amount: {
-                                currency_code: "TWD",
+                                currency_code: 'TWD',
                                 value: itemPrice,
                                 breakdown: {
                                     item_total: {
-                                        currency_code: "TWD",
+                                        currency_code: 'TWD',
                                         value: itemPrice,
                                     },
                                 },
                             },
-                            items: orderData.lineItems.map((item) => {
+                            items: orderData.lineItems.map(item => {
                                 var _a;
                                 return {
                                     name: item.title,
                                     unit_amount: {
-                                        currency_code: "TWD",
+                                        currency_code: 'TWD',
                                         value: item.sale_price,
                                     },
                                     quantity: item.count,
-                                    description: (_a = item.spec.join(',')) !== null && _a !== void 0 ? _a : ""
+                                    description: (_a = item.spec.join(',')) !== null && _a !== void 0 ? _a : '',
                                 };
                             }),
                         },
                     ],
                     application_context: {
                         brand_name: this.appName,
-                        landing_page: "NO_PREFERENCE",
-                        user_action: "PAY_NOW",
+                        landing_page: 'NO_PREFERENCE',
+                        user_action: 'PAY_NOW',
                         return_url: `${this.keyData.ReturnURL}&payment=true&appName=${this.appName}&orderID=${orderData.orderID}`,
                         cancel_url: `${this.keyData.ReturnURL}&payment=false`,
                     },
@@ -615,14 +621,14 @@ class PayPal {
             await order_event_js_1.OrderEvent.insertOrder({
                 cartData: orderData,
                 status: 0,
-                app: this.appName
+                app: this.appName,
             });
             await redis_1.default.setValue('paypal' + orderData.orderID, response.data.id);
             return response.data;
         }
         catch (error) {
-            console.error("Error creating order:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
-            throw new Error("Failed to create PayPal order.");
+            console.error('Error creating order:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            throw new Error('Failed to create PayPal order.');
         }
     }
     async getOrderDetails(orderId, accessToken) {
@@ -631,11 +637,11 @@ class PayPal {
         const axiosInstance = axios_1.default.create({
             baseURL: this.PAYPAL_BASE_URL,
             headers: {
-                "Content-Type": "application/json",
+                'Content-Type': 'application/json',
             },
         });
         const config = {
-            method: "GET",
+            method: 'GET',
             url: url,
             headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -644,7 +650,7 @@ class PayPal {
         try {
             const response = await axiosInstance.request(config);
             const order = response.data;
-            if (order.status === "APPROVED") {
+            if (order.status === 'APPROVED') {
                 return order;
             }
             else {
@@ -652,7 +658,7 @@ class PayPal {
             }
         }
         catch (error) {
-            console.error("Error fetching order details:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            console.error('Error fetching order details:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
             throw error;
         }
     }
@@ -662,11 +668,11 @@ class PayPal {
         const axiosInstance = axios_1.default.create({
             baseURL: this.PAYPAL_BASE_URL,
             headers: {
-                "Content-Type": "application/json",
+                'Content-Type': 'application/json',
             },
         });
         const config = {
-            method: "POST",
+            method: 'POST',
             url: url,
             headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -677,7 +683,7 @@ class PayPal {
             return response.data;
         }
         catch (error) {
-            console.error("Error capturing payment:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            console.error('Error capturing payment:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
             throw error;
         }
     }
@@ -686,11 +692,11 @@ class PayPal {
             const accessToken = await this.getAccessToken();
             const order = await this.getOrderDetails(orderId, accessToken);
             const captureResult = await this.capturePayment(order.id, accessToken);
-            console.log("Payment process completed successfully.");
+            console.log('Payment process completed successfully.');
             return captureResult;
         }
         catch (error) {
-            console.error("Error during order confirmation or payment capture:", error.message);
+            console.error('Error during order confirmation or payment capture:', error.message);
             throw error;
         }
     }
@@ -702,13 +708,13 @@ class LinePay {
         this.appName = appName;
         this.LinePay_CLIENT_ID = keyData.CLIENT_ID;
         this.LinePay_SECRET = keyData.SECRET;
-        this.LinePay_BASE_URL = (keyData.BETA == 'true') ? "https://sandbox-api-pay.line.me" : "https://api-pay.line.me";
+        this.LinePay_BASE_URL = keyData.BETA == 'true' ? 'https://sandbox-api-pay.line.me' : 'https://api-pay.line.me';
     }
     async confirmAndCaptureOrder(transactionId, total) {
         var _a;
         const body = {
             amount: parseInt(`${total}`, 10),
-            currency: 'TWD'
+            currency: 'TWD',
         };
         const uri = `/payments/${transactionId}/confirm`;
         const nonce = new Date().getTime().toString();
@@ -716,15 +722,15 @@ class LinePay {
         const head = [this.LinePay_SECRET, `/v3${uri}`, JSON.stringify(body), nonce].join('');
         const signature = crypto_1.default.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
         const config = {
-            method: "POST",
+            method: 'POST',
             url: url,
             headers: {
-                "Content-Type": "application/json",
-                "X-LINE-ChannelId": this.LinePay_CLIENT_ID,
-                "X-LINE-Authorization-Nonce": nonce,
-                "X-LINE-Authorization": signature
+                'Content-Type': 'application/json',
+                'X-LINE-ChannelId': this.LinePay_CLIENT_ID,
+                'X-LINE-Authorization-Nonce': nonce,
+                'X-LINE-Authorization': signature,
             },
-            data: body
+            data: body,
         };
         console.log(`line-conform->
         URL:${url}
@@ -736,67 +742,82 @@ class LinePay {
             return response;
         }
         catch (error) {
-            console.error("Error linePay:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
+            console.error('Error linePay:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
             throw error;
         }
     }
     async createOrder(orderData) {
-        var _a;
+        var _a, _b;
         const confirm_url = `${this.keyData.ReturnURL}&LinePay=true&appName=${this.appName}&orderID=${orderData.orderID}`;
         const cancel_url = `${this.keyData.ReturnURL}&payment=false`;
+        orderData.discount = parseInt((_a = orderData.discount) !== null && _a !== void 0 ? _a : 0, 10);
         const body = {
-            "amount": orderData.total,
-            "currency": "TWD",
-            "orderId": orderData.orderID,
-            "shippingFee": orderData.shipment_fee,
-            "packages": orderData.lineItems.map((data) => {
-                return {
-                    "id": data.id,
-                    "amount": data.count * data.sale_price,
-                    "products": [
+            amount: orderData.total,
+            currency: 'TWD',
+            orderId: orderData.orderID,
+            shippingFee: orderData.shipment_fee,
+            packages: [
+                {
+                    id: 'product_list',
+                    amount: orderData.lineItems
+                        .map(data => {
+                        return data.count * data.sale_price;
+                    })
+                        .reduce((a, b) => a + b, 0) - orderData.discount,
+                    products: orderData.lineItems
+                        .map(data => {
+                        return {
+                            id: data.spec.join(','),
+                            name: data.title,
+                            imageUrl: '',
+                            quantity: data.count,
+                            price: data.sale_price,
+                        };
+                    })
+                        .concat([
                         {
-                            "id": data.spec.join(','),
-                            "name": data.title,
-                            "imageUrl": "",
-                            "quantity": data.count,
-                            "price": data.sale_price
-                        }
-                    ],
-                };
-            }),
-            "redirectUrls": {
-                "confirmUrl": confirm_url,
-                "cancelUrl": cancel_url
-            }
+                            id: 'discount',
+                            name: '折扣',
+                            imageUrl: '',
+                            quantity: 1,
+                            price: orderData.discount * -1,
+                        },
+                    ]),
+                },
+            ],
+            redirectUrls: {
+                confirmUrl: confirm_url,
+                cancelUrl: cancel_url,
+            },
         };
         body.packages.push({
-            "id": "shipping",
-            "amount": orderData.shipment_fee,
-            "products": [
+            id: 'shipping',
+            amount: orderData.shipment_fee,
+            products: [
                 {
-                    "id": "shipping",
-                    "name": "shipping",
-                    "imageUrl": "",
-                    "quantity": 1,
-                    "price": orderData.shipment_fee
-                }
+                    id: 'shipping',
+                    name: 'shipping',
+                    imageUrl: '',
+                    quantity: 1,
+                    price: orderData.shipment_fee,
+                },
             ],
         });
-        const uri = "/payments/request";
+        const uri = '/payments/request';
         const nonce = new Date().getTime().toString();
         const url = `${this.LinePay_BASE_URL}/v3${uri}`;
         const head = [this.LinePay_SECRET, `/v3${uri}`, JSON.stringify(body), nonce].join('');
         const signature = crypto_1.default.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
         const config = {
-            method: "POST",
+            method: 'POST',
             url: url,
             headers: {
-                "Content-Type": "application/json",
-                "X-LINE-ChannelId": this.LinePay_CLIENT_ID,
-                "X-LINE-Authorization-Nonce": nonce,
-                "X-LINE-Authorization": signature
+                'Content-Type': 'application/json',
+                'X-LINE-ChannelId': this.LinePay_CLIENT_ID,
+                'X-LINE-Authorization-Nonce': nonce,
+                'X-LINE-Authorization': signature,
             },
-            data: body
+            data: body,
         };
         console.log(`line-request->
         URL:${url}
@@ -808,14 +829,14 @@ class LinePay {
             await order_event_js_1.OrderEvent.insertOrder({
                 cartData: orderData,
                 status: 0,
-                app: this.appName
+                app: this.appName,
             });
             console.log(`response.data===>`, response.data);
             await redis_1.default.setValue('linepay' + orderData.orderID, response.data.info.transactionId);
             return response.data;
         }
         catch (error) {
-            console.error("Error linePay:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            console.error('Error linePay:', ((_b = error.response) === null || _b === void 0 ? void 0 : _b.data) || error.message);
             throw error;
         }
     }
@@ -826,9 +847,9 @@ class PayNow {
         var _a, _b;
         this.keyData = keyData;
         this.appName = appName;
-        this.PublicKey = (_a = keyData.public_key) !== null && _a !== void 0 ? _a : "";
-        this.PrivateKey = (_b = keyData.private_key) !== null && _b !== void 0 ? _b : "";
-        this.BASE_URL = (keyData.BETA == 'true') ? "https://sandboxapi.paynow.com.tw" : "https://api.paynow.com.tw";
+        this.PublicKey = (_a = keyData.public_key) !== null && _a !== void 0 ? _a : '';
+        this.PrivateKey = (_b = keyData.private_key) !== null && _b !== void 0 ? _b : '';
+        this.BASE_URL = keyData.BETA == 'true' ? 'https://sandboxapi.paynow.com.tw' : 'https://api.paynow.com.tw';
     }
     async executePaymentIntent(transactionId, secret, paymentNo) {
         var _a;
@@ -837,35 +858,35 @@ class PayNow {
             maxBodyLength: Infinity,
             url: `${this.BASE_URL}/api/v1/payment-intents/${transactionId}/checkout`,
             headers: {
-                'Accept': 'application/json',
-                'Authorization': `Bearer ` + this.PrivateKey
+                Accept: 'application/json',
+                Authorization: `Bearer ` + this.PrivateKey,
             },
             data: JSON.stringify({
-                "paymentNo": paymentNo,
-                "usePayNowSdk": true,
-                "key": this.PublicKey,
-                "secret": secret,
-                "paymentMethodType": "CreditCard",
-                "paymentMethodData": {},
-                "otpFlag": false,
-                "meta": {
-                    "client": {
-                        "height": 0,
-                        "width": 0
+                paymentNo: paymentNo,
+                usePayNowSdk: true,
+                key: this.PublicKey,
+                secret: secret,
+                paymentMethodType: 'CreditCard',
+                paymentMethodData: {},
+                otpFlag: false,
+                meta: {
+                    client: {
+                        height: 0,
+                        width: 0,
                     },
-                    "iframe": {
-                        "height": 0,
-                        "width": 0
-                    }
-                }
-            })
+                    iframe: {
+                        height: 0,
+                        width: 0,
+                    },
+                },
+            }),
         };
         try {
             const response = await axios_1.default.request(config);
             return response.data;
         }
         catch (error) {
-            console.error("Error paynow:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
+            console.error('Error paynow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
             throw error;
         }
     }
@@ -885,15 +906,16 @@ class PayNow {
             url: 'https://api.paynow.com.tw/api/v1/partner/merchants/binding',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ` + process_1.default.env.paynow_partner
+                Authorization: `Bearer ` + process_1.default.env.paynow_partner,
             },
             data: {
-                "merchant_no": kd.account,
-                "api_key": kd.pwd
-            }
+                merchant_no: kd.account,
+                api_key: kd.pwd,
+            },
         };
         return await new Promise((resolve, reject) => {
-            axios_1.default.request(config)
+            axios_1.default
+                .request(config)
                 .then(async (response) => {
                 if (response.data.result.length) {
                     keyData.public_key = response.data.result[0].public_key;
@@ -901,13 +923,13 @@ class PayNow {
                 }
                 resolve({
                     public_key: keyData.public_key,
-                    private_key: keyData.private_key
+                    private_key: keyData.private_key,
                 });
             })
                 .catch((error) => {
                 resolve({
                     public_key: '',
-                    private_key: ''
+                    private_key: '',
                 });
             });
         });
@@ -919,42 +941,42 @@ class PayNow {
             maxBodyLength: Infinity,
             url: `${this.BASE_URL}/api/v1/payment-intents/${transactionId}`,
             headers: {
-                'Accept': 'application/json',
-                'Authorization': `Bearer ` + (await this.bindKey()).private_key
-            }
+                Accept: 'application/json',
+                Authorization: `Bearer ` + (await this.bindKey()).private_key,
+            },
         };
         try {
             const response = await axios_1.default.request(config);
             return response.data;
         }
         catch (error) {
-            console.error("Error paynow:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
+            console.error('Error paynow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
             throw error;
         }
     }
     async createOrder(orderData) {
         var _a;
         const data = JSON.stringify({
-            "amount": orderData.total,
-            "currency": "TWD",
-            "description": orderData.orderID,
-            "resultUrl": this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
-            "webhookUrl": this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
-            "allowedPaymentMethods": ["CreditCard"],
-            "expireDays": 3,
+            amount: orderData.total,
+            currency: 'TWD',
+            description: orderData.orderID,
+            resultUrl: this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
+            webhookUrl: this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
+            allowedPaymentMethods: ['CreditCard'],
+            expireDays: 3,
         });
         console.log(`webhook=>`, this.keyData.NotifyURL + `&orderID=${orderData.orderID}`);
         const url = `${this.BASE_URL}/api/v1/payment-intents`;
-        const key_ = (await this.bindKey());
+        const key_ = await this.bindKey();
         const config = {
             method: 'post',
             maxBodyLength: Infinity,
             url: url,
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ` + key_.private_key
+                Authorization: `Bearer ` + key_.private_key,
             },
-            data: data
+            data: data,
         };
         try {
             const response = await axios_1.default.request(config);
@@ -962,17 +984,17 @@ class PayNow {
             await order_event_js_1.OrderEvent.insertOrder({
                 cartData: orderData,
                 status: 0,
-                app: this.appName
+                app: this.appName,
             });
             await redis_1.default.setValue('paynow' + orderData.orderID, response.data.result.id);
             return {
                 data: response.data,
                 publicKey: key_.public_key,
-                BETA: this.keyData.BETA
+                BETA: this.keyData.BETA,
             };
         }
         catch (error) {
-            console.error("Error payNow:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            console.error('Error payNow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
             throw error;
         }
     }
@@ -980,115 +1002,96 @@ class PayNow {
 exports.PayNow = PayNow;
 class JKO {
     constructor(appName, keyData) {
-        var _a, _b;
         this.keyData = keyData;
         this.appName = appName;
-        this.PublicKey = (_a = keyData.public_key) !== null && _a !== void 0 ? _a : "";
-        this.PrivateKey = (_b = keyData.private_key) !== null && _b !== void 0 ? _b : "";
-        this.BASE_URL = "https://uat-onlinepay.jkopay.app/";
+        this.BASE_URL = 'https://onlinepay.jkopay.com/';
     }
     async confirmAndCaptureOrder(transactionId) {
         var _a;
-        const secret = this.keyData.SECRET_KEY;
-        const digest = this.generateDigest(`platform_order_ids=${transactionId}`, secret);
+        const apiKey = process_1.default.env.jko_api_key || '';
+        const secretKey = process_1.default.env.jko_api_secret || '';
+        const digest = this.generateDigest(`platform_order_ids=${transactionId}`, secretKey);
         let config = {
             method: 'get',
-            url: `${this.BASE_URL}/platform/inquiry?platform_order_ids=${transactionId}`,
+            url: `${this.BASE_URL}platform/inquiry?platform_order_ids=${transactionId}`,
             headers: {
+                'api-key': apiKey,
+                digest: digest,
                 'Content-Type': 'application/json',
-                'DIGEST': digest,
-                'API-KEY': this.keyData.API_KEY
             },
         };
         try {
             const response = await axios_1.default.request(config);
-            return response.data;
+            return response.data.result_object;
         }
         catch (error) {
-            console.error("Error paynow:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
+            console.error('Error paynow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
             throw error;
         }
     }
     async createOrder(orderData) {
         var _a;
-        function transProduct(lineItems) {
-            return lineItems.map((item) => {
-                return {
-                    'name': item.title + ' ' + item.spec.join(','),
-                    'img': item.preview_image,
-                    'unit_count': item.count,
-                    'unit_price': item.sale_price,
-                    'unit_final_price': item.sale_price
-                };
-            });
-        }
         const payload = {
-            "currency": "TWD",
-            "total_price": orderData.total,
-            "final_price": orderData.total,
-            "result_url": this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
+            currency: 'TWD',
+            total_price: orderData.total,
+            final_price: orderData.total,
+            platform_order_id: orderData.orderID,
+            store_id: this.keyData.STORE_ID,
+            result_url: this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
+            result_display_url: this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
+            unredeem: 0
         };
-        const apiKey = "689c57cd9d5b5ec80f5d5451d18fe24cfe855d21b25c7ff30bcd07829a902f7a";
-        const secretKey = "8ec78345a13e3d376452d9c89c66b543ef1516c0ef1a05f0adf654c37ac8edac";
-        const secret = this.keyData.SECRET_KEY;
-        const digest = crypto_1.default.createHmac('sha256', secretKey)
-            .update(JSON.stringify(payload), 'utf8')
-            .digest('hex');
+        console.log(`payload=>`, payload);
+        const apiKey = process_1.default.env.jko_api_key || '';
+        const secretKey = process_1.default.env.jko_api_secret || '';
+        const digest = crypto_1.default.createHmac('sha256', secretKey).update(JSON.stringify(payload), 'utf8').digest('hex');
         const headers = {
             'api-key': apiKey,
-            'digest': digest,
-            'Content-Type': 'application/json'
+            digest: digest,
+            'Content-Type': 'application/json',
         };
-        console.log("API Key:", apiKey);
-        console.log("Digest:", digest);
-        console.log("Headers:", headers);
         const url = `${this.BASE_URL}platform/entry`;
         const config = {
             method: 'post',
             url: url,
-            headers: {
-                'Content-Type': 'application/json',
-                'DIGEST': digest,
-                'API-KEY': this.keyData.API_KEY
-            },
-            data: payload
+            headers: headers,
+            data: payload,
         };
         try {
             const response = await axios_1.default.request(config);
-            await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-                 VALUES (?, ?, ?, ?)
-                `, [orderData.orderID, 0, orderData.email, orderData]);
-            await redis_1.default.setValue('paynow' + orderData.orderID, response.data.result.id);
-            return ``;
+            await order_event_js_1.OrderEvent.insertOrder({
+                cartData: orderData,
+                status: 0,
+                app: this.appName,
+            });
+            return response.data;
         }
         catch (error) {
-            console.error("Error payNow:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            console.error('Error jkoPay:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
             throw error;
         }
     }
     async refundOrder(platform_order_id, refund_amount) {
         const payload = JSON.stringify({
-            "platform_order_id": "1740299355493",
-            "refund_amount": 10000
+            platform_order_id: '1740299355493',
+            refund_amount: 10000,
         });
-        const apiKey = "689c57cd9d5b5ec80f5d5451d18fe24cfe855d21b25c7ff30bcd07829a902f7a";
-        const secretKey = "8ec78345a13e3d376452d9c89c66b543ef1516c0ef1a05f0adf654c37ac8edac";
-        console.log("payload -- ", payload);
-        const digest = crypto_1.default.createHmac('sha256', secretKey)
-            .update(payload, 'utf8')
-            .digest('hex');
+        const apiKey = '689c57cd9d5b5ec80f5d5451d18fe24cfe855d21b25c7ff30bcd07829a902f7a';
+        const secretKey = '8ec78345a13e3d376452d9c89c66b543ef1516c0ef1a05f0adf654c37ac8edac';
+        console.log('payload -- ', payload);
+        const digest = crypto_1.default.createHmac('sha256', secretKey).update(payload, 'utf8').digest('hex');
         const headers = {
             'api-key': apiKey,
-            'digest': digest,
-            'Content-Type': 'application/json'
+            digest: digest,
+            'Content-Type': 'application/json',
         };
-        console.log("API Key:", apiKey);
-        console.log("Digest:", digest);
-        console.log("Headers:", headers);
+        console.log('API Key:', apiKey);
+        console.log('Digest:', digest);
+        console.log('Headers:', headers);
     }
     generateDigest(data, apiSecret) {
-        console.log("data --", data);
-        console.log("apiSecret -- ", apiSecret);
+        console.log('data --', data);
+        console.log('apiSecret -- ', apiSecret);
         const hmac = crypto_1.default.createHmac('sha256', apiSecret);
         hmac.update(data);
         return hmac.digest('hex');

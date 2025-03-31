@@ -464,7 +464,11 @@ export class PageManager {
         for (let a = glitter.pageConfig.length - 1; a >= 0; a--) {
             if (glitter.pageConfig[a].type === GVCType.Dialog && ((glitter.pageConfig[a].tag === tag) || tag === undefined)) {
                 glitter.pageConfig[a].animation.outView(glitter.pageConfig[a], () => {
-                    this.hidePageView(glitter.pageConfig[a].id, true);
+                    try {
+                        this.hidePageView(glitter.pageConfig[a].id, true);
+                    }catch (e) {
+
+                    }
                 });
             }
         }

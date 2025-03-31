@@ -20,8 +20,8 @@ import { FormCheck } from '../cms-plugin/module/form-check.js';
 import { Language } from '../glitter-base/global/language.js';
 import { ProductAi } from '../cms-plugin/ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
+import { Animation } from '../glitterBundle/module/Animation.js';
 const html = String.raw;
-const css = String.raw;
 export class BgWidget {
     static title(title, style = '') {
         return html ` <h3 class="tx_title" style="white-space: nowrap; ${style}">${title}</h3>`;
@@ -334,51 +334,101 @@ export class BgWidget {
       />${text}
     </div>`;
     }
-    static primaryInsignia(text) {
-        return html ` <div class="insignia insignia-primary">${text}</div>`;
+    static insignia(className, text, args) {
+        var _a, _b;
+        const typeMap = {
+            border: `insignia-border insignia-${className}-border`,
+            fill: `insignia-${className}`,
+        };
+        const sizeMap = {
+            sm: 'insignia insignia-sm',
+            md: 'insignia',
+        };
+        return html ` <div class="${(_a = sizeMap[args.size]) !== null && _a !== void 0 ? _a : sizeMap.md} ${(_b = typeMap[args.type]) !== null && _b !== void 0 ? _b : typeMap.fill}">${text}</div>`;
     }
-    static successInsignia(text) {
-        return html ` <div class="insignia insignia-success">${text}</div>`;
+    static primaryInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('primary', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static dangerInsignia(text) {
-        return html ` <div class="insignia insignia-danger">${text}</div>`;
+    static successInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('success', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static infoInsignia(text) {
-        return html ` <div class="insignia insignia-info">${text}</div>`;
+    static dangerInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('danger', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static warningInsignia(text) {
-        return html ` <div class="insignia insignia-warning">${text}</div>`;
+    static infoInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('info', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static normalInsignia(text) {
-        return html ` <div class="insignia insignia-normal">${text}</div>`;
+    static warningInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('warning', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static notifyInsignia(text) {
-        return html ` <div class="insignia insignia-notify">${text}</div>`;
+    static normalInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('normal', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static secondaryInsignia(text) {
-        return html ` <div class="insignia insignia-secondary">${text}</div>`;
+    static notifyInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('notify', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
-    static leftLineBar() {
-        return html ` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
+    static secondaryInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('secondary', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
     }
     static languageInsignia(language, style) {
         switch (language) {
             case 'zh-TW':
-                return `  <div class="insignia " style="background: #ffe9b2;${style || ''};">${Language.getLanguageText({
+                return html ` <div class="insignia insignia-sm" style="background: #ffe9b2; ${style || ''};">
+          ${Language.getLanguageText({
                     local: true,
                     compare: language,
-                })}</div>`;
+                })}
+        </div>`;
             case 'en-US':
-                return `  <div class="insignia " style="background: #D8E7EC;${style || ''};">${Language.getLanguageText({
+                return html ` <div class="insignia insignia-sm" style="background: #D8E7EC; ${style || ''};">
+          ${Language.getLanguageText({
                     local: true,
                     compare: language,
-                })}</div>`;
+                })}
+        </div>`;
             case 'zh-CN':
-                return `  <div class="insignia " style="background: #FFD5D0;${style || ''};">${Language.getLanguageText({
+                return html ` <div class="insignia insignia-sm" style="background: #FFD5D0; ${style || ''};">
+          ${Language.getLanguageText({
                     local: true,
                     compare: language,
-                })}</div>`;
+                })}
+        </div>`;
         }
+    }
+    static leftLineBar() {
+        return html ` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
     }
     static horizontalLine(css = {}) {
         const { color = '#DDD', size = 1, margin = '1rem 0' } = css;
@@ -422,9 +472,7 @@ export class BgWidget {
         let save = () => {
             let stack_list = [];
             for (const b of vm.language_list.label) {
-                if (stack_list.find((dd) => {
-                    return dd.tag === b.tag;
-                })) {
+                if (stack_list.find((dd) => dd.tag === b.tag)) {
                     return dialog.errorMessage({ text: `偵測到重複代號『${b.tag}』` });
                 }
                 else if (!b.tag) {
@@ -1232,23 +1280,24 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static select(obj) {
         var _a;
-        return html `<select
-      class="c_select c_select_w_100"
-      style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
-      onchange="${obj.gvc.event(e => {
+        return html ` ${obj.title ? html ` <div class="tx_normal fw-normal mb-2">${obj.title}</div>` : ``}
+      <select
+        class="c_select c_select_w_100"
+        style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
+        onchange="${obj.gvc.event(e => {
             obj.callback(e.value);
         })}"
-      ${obj.readonly ? 'disabled' : ''}
-    >
-      ${obj.gvc.map(obj.options.map(opt => html ` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>
-              ${opt.value}
-            </option>`))}
-      ${obj.options.find((opt) => {
+        ${obj.readonly ? 'disabled' : ''}
+      >
+        ${obj.gvc.map(obj.options.map(opt => html ` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>
+                ${opt.value}
+              </option>`))}
+        ${obj.options.find((opt) => {
             return obj.default === opt.key;
         })
             ? ``
             : `<option class="d-none" selected>${obj.place_holder || `請選擇項目`}</option>`}
-    </select>`;
+      </select>`;
     }
     static maintenance() {
         return html ` <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
@@ -1636,10 +1685,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 def: vm.originalData.every((item) => item.checked),
                                 callback: result => renderRowCheckbox(result),
                                 stopChangeView: changeView,
+                                style: 'justify-content: end !important;',
                             });
                         }
                         function changeHeaderStyle() {
-                            const target = document.querySelector(`[gvc-id="${gvc.id(ids.header)}"]`);
+                            var _a;
+                            const key = `[gvc-id="${gvc.id(ids.header)}"]`;
+                            const target = ((_a = obj.windowTarget) !== null && _a !== void 0 ? _a : window).document.querySelector(key);
                             if (!target)
                                 return;
                             const checked = vm.originalData.find((dd) => dd.checked);
@@ -1670,6 +1722,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                     gvc: gvc,
                                                     def: (_a = checkedMap.get(`${vm.page}-${index}`)) === null || _a === void 0 ? void 0 : _a.checked,
                                                     callback: result => checkEvent(index, result),
+                                                    style: 'justify-content: end !important;',
                                                 }),
                                                 stopClick: true,
                                             },
@@ -1875,7 +1928,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                     const tr = gvc.glitter.document.querySelector(`.${ids.tr}`);
                                     tr === null || tr === void 0 ? void 0 : tr.querySelectorAll('td').forEach((td, index) => {
                                         if (checkbox && index === 0) {
-                                            widthList[index] = 60;
+                                            widthList[index] = 40;
                                         }
                                         else {
                                             widthList[index] = Math.ceil(td.offsetWidth > widthList[index] ? td.offsetWidth : widthList[index]);
@@ -1908,7 +1961,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static container(htmlString, obj) {
         var _a;
         return html ` <div
-      class=" mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0 mt-2'}"
+      class=" mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0'}"
       style="max-width: 100%; width: ${this.getContainerWidth()}px; ${(_a = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _a !== void 0 ? _a : ''}"
     >
       ${htmlString}
@@ -2296,7 +2349,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
       height: 40px !important;
       border-radius: 10px;
       background: linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), #fff;
-      padding: 0 20px;
+      padding: 0 16.25px;
       ${document.body.clientWidth > 768 ? `width: 100%;` : `width: calc(100vw - 24px); `}
     `;
         return html `
@@ -2308,10 +2361,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
       >
         <div style="display: flex; align-items: center; font-size: 14px; color: #393939;">
           ${(_a = data.checkbox) !== null && _a !== void 0 ? _a : ''}
-          <span style="margin-left: 24px; font-weight: 700;">已選取${data.count}項</span>
+          <span style="margin-left: 0.5rem; font-weight: 700;">已選取${data.count}項</span>
           ${data.cancelCallback
             ? html `<span
-                style="margin-left: 12px; cursor: pointer; color: #4D86DB;"
+                style="margin-left: 0.5rem; cursor: pointer; color: #4D86DB;"
                 onclick="${data.cancelCallback.gvc.event(() => { var _a; return (_a = data.cancelCallback) === null || _a === void 0 ? void 0 : _a.event(); })}"
                 >全部取消選取</span
               >`
@@ -3476,12 +3529,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 loading: false,
             };
             return html ` <div
-        class="bg-white shadow rounded-3"
-        style="overflow-y: auto; ${document.body.clientWidth > 768
+          class="bg-white shadow rounded-3"
+          style="overflow-y: auto; ${document.body.clientWidth > 768
                 ? `width: ${(_a = obj.width) !== null && _a !== void 0 ? _a : 600}px;max-width:calc(100vw - 20px);`
                 : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
-      >
-        ${gvc.bindView({
+        >
+          ${gvc.bindView({
                 bind: vm.id,
                 view: () => {
                     var _a, _b, _c;
@@ -3490,38 +3543,40 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         return html ` <div class="my-4">${this.spinner()}</div>`;
                     }
                     return html ` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
-              <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                <div class="tx_700">${(_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表'}</div>
-                <div class="flex-fill"></div>
-                <i
-                  class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
-                  onclick="${gvc.event(() => {
+                <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                  <div class="tx_700">${(_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表'}</div>
+                  <div class="flex-fill"></div>
+                  <i
+                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                    onclick="${gvc.event(() => {
                         if (obj.closeCallback) {
                             obj.closeCallback();
                         }
                         gvc.closeDialog();
                     })}"
-                ></i>
-              </div>
-              <div class="c_dialog">
-                <div class="c_dialog_body">
-                  <div
-                    class="c_dialog_main"
-                    style="${obj.d_main_style || ''};gap: 24px; ${obj.height
+                  ></i>
+                </div>
+                <div class="c_dialog">
+                  <div class="c_dialog_body">
+                    <div
+                      class="c_dialog_main"
+                      style="${obj.d_main_style || ''};gap: 24px; ${obj.height
                         ? `height:${obj.height}px;max-height: 100vh;`
                         : `height:auto;max-height: 500px;`} "
-                  >
-                    ${(_c = obj.innerHTML(gvc)) !== null && _c !== void 0 ? _c : ''}
+                    >
+                      ${(_c = obj.innerHTML(gvc)) !== null && _c !== void 0 ? _c : ''}
+                    </div>
+                    ${footer ? `<div class="c_dialog_bar">${footer}</div>` : ``}
                   </div>
-                  ${footer ? `<div class="c_dialog_bar">${footer}</div>` : ``}
                 </div>
-              </div>
-            </div>`;
+              </div>`;
                 },
                 onCreate: () => { },
             })}
-      </div>`;
-        }, obj.gvc.glitter.getUUID());
+        </div>`;
+        }, obj.gvc.glitter.getUUID(), {
+            animation: Animation.fade,
+        });
     }
     static dialog(obj) {
         if (obj.gvc.glitter.getUrlParameter('cms') === 'true') {
@@ -3855,7 +3910,14 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 divCreate: {
                     class: 'h-100',
                 },
-                onCreate: () => { },
+                onCreate: () => {
+                    if (vm.loading) {
+                        setTimeout(() => {
+                            vm.loading = false;
+                            gvc.notifyDataChange(vm.id);
+                        }, 300);
+                    }
+                },
             })}
       </div>`;
         }, obj.gvc.glitter.getUUID());
@@ -3881,67 +3943,67 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return `"data:image/svg+xml,%3csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='16' height='16' rx='8' fill='${color}'/%3e%3crect x='4' y='4' width='8' height='8' rx='4' fill='white'/%3e%3c/svg%3e"`;
     }
     static getCheckedClass(gvc, color) {
-        const className = 'checked-image';
+        const className = color ? 'checked-image' : 'checked-image-readonly';
         gvc.addStyle(`
-            .${className} {
-                min-width: 1.25rem;
-                min-height: 1.25rem;
-            }
-            .${className}:checked[type='checkbox'] {
-                border: 2px solid ${color !== null && color !== void 0 ? color : '#000'};
-                background-color: #fff;
-                background-image: url(${this.checkedDataImage(color !== null && color !== void 0 ? color : '#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.25rem;
+        min-height: 1.25rem;
+      }
+      .${className}:checked[type='checkbox'] {
+        border: 2px solid ${color !== null && color !== void 0 ? color : '#000'};
+        background-color: #fff;
+        background-image: url(${this.checkedDataImage(color !== null && color !== void 0 ? color : '#000')});
+        background-position: center center;
+      }
+    `);
         return className;
     }
     static getSquareClass(gvc, color) {
-        const className = 'square-image';
+        const className = color ? 'square-image' : 'square-image-readonly';
         gvc.addStyle(`
-            .${className} {
-                min-width: 1.25rem;
-                min-height: 1.25rem;
-                border: 0;
-                background-color: #fff;
-                background-image: url(${this.squareDataImage(color !== null && color !== void 0 ? color : '#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.25rem;
+        min-height: 1.25rem;
+        border: 0;
+        background-color: #fff;
+        background-image: url(${this.squareDataImage(color !== null && color !== void 0 ? color : '#000')});
+        background-position: center center;
+      }
+    `);
         return className;
     }
     static getDarkDotClass(gvc) {
         const className = 'dark-dot-image';
         gvc.addStyle(`
-            .${className} {
-                min-width: 1.15rem;
-                min-height: 1.15rem;
-                margin-right: 4px;
-            }
-            .${className}:checked[type='radio'] {
-                border: 2px solid #000;
-                background-color: #fff;
-                background-image: url(${this.darkDotDataImage('#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.15rem;
+        min-height: 1.15rem;
+        margin-right: 4px;
+      }
+      .${className}:checked[type='radio'] {
+        border: 2px solid #000;
+        background-color: #fff;
+        background-image: url(${this.darkDotDataImage('#000')});
+        background-position: center center;
+      }
+    `);
         return className;
     }
     static getWhiteDotClass(gvc, color) {
-        const className = 'white-dot-image';
+        const className = color ? 'white-dot-image' : 'white-dot-image-readonly';
         gvc.addStyle(`
-            .${className} {
-                min-width: 1.15rem;
-                min-height: 1.15rem;
-                margin-right: 4px;
-            }
-            .${className}:checked[type='radio'] {
-                border: 0px solid #000;
-                background-color: #fff;
-                background-image: url(${this.whiteDotDataImage(color !== null && color !== void 0 ? color : '#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.15rem;
+        min-height: 1.15rem;
+        margin-right: 4px;
+      }
+      .${className}:checked[type='radio'] {
+        border: 0px solid #000;
+        background-color: #fff;
+        background-image: url(${this.whiteDotDataImage(color !== null && color !== void 0 ? color : '#000')});
+        background-position: center center;
+      }
+    `);
         return className;
     }
     static isImageUrlValid(url) {
@@ -3960,16 +4022,16 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             url: this.noImageURL,
         };
         const wh = `
-            display: flex;
-            min-width: ${obj.width}px;
-            min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
-            max-width: ${obj.width}px;
-            max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-        `;
+      display: flex;
+      min-width: ${obj.width}px;
+      min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
+      max-width: ${obj.width}px;
+      max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    `;
         return obj.gvc.bindView({
             bind: imageVM.id,
             view: () => {
@@ -4287,7 +4349,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             BgWidget.fullDialog({
                                 gvc: gvc,
                                 title: gvc2 => {
-                                    return `<div class="d-flex align-items-center" style="gap:10px;">${obj.title +
+                                    return html `<div class="d-flex align-items-center" style="gap:10px;">
+                        ${obj.title +
                                         BgWidget.aiChatButton({
                                             gvc: gvc2,
                                             select: 'writer',
@@ -4298,7 +4361,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                     gvc2.recreateView();
                                                 });
                                             },
-                                        })}</div>`;
+                                        })}
+                      </div>`;
                                 },
                                 innerHTML: gvc2 => {
                                     return html ` <div>
@@ -4317,7 +4381,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                 if (urlArray.length > 0) {
                                                     const imgHTML = urlArray
                                                         .map(url => {
-                                                        return html ` <img src="${url.data}" />`;
+                                                        return html `<img src="${url.data}" class="p-0 my-0" />`;
                                                     })
                                                         .join('');
                                                     editor.html.set(editor.html
@@ -4546,12 +4610,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
 BgWidget.dotlottieJS = 'https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs';
 BgWidget.getContainerWidth = (obj) => {
     const clientWidth = document.body.clientWidth;
-    const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.79;
+    const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.95;
     const rateForPad = obj && obj.rate && obj.rate.pad ? obj.rate.pad : 0.92;
     const rateForPhone = obj && obj.rate && obj.rate.phone ? obj.rate.phone : 0.95;
     const width = (() => {
         if (clientWidth >= 1440) {
-            return 1440 * rateForWeb;
+            return clientWidth * rateForWeb;
         }
         if (clientWidth >= 1200) {
             return 1200 * rateForWeb;

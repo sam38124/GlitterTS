@@ -58,6 +58,10 @@ class GlitterUtil {
                         req.query.page = req.baseUrl.replace(dd.root_path, '');
                     }
                     const seo = await dd.seoManager(req, resp);
+                    if (seo.redirect) {
+                        resp.redirect(301, seo.redirect);
+                        return;
+                    }
                     let fullPath = dd.path + "/index.html";
                     const data = fs_1.default.readFileSync(fullPath, 'utf8');
                     resp.header('Content-Type', 'text/html; charset=UTF-8');
@@ -65,6 +69,7 @@ class GlitterUtil {
                         `<head>`,
                         `<meta name="apple-mobile-web-app-capable" content="yes">`,
                         `<meta name="apple-touch-fullscreen" content="yes">`,
+                        `<meta name="mobile-web-app-capable" content="yes">`,
                         `<meta http-equiv="content-type" content="text/html;charset=UTF-8">`,
                         (req.query._preview_width && req.query._preview_scale) ? `<meta name="viewport" content="width=${req.query._preview_width}, initial-scale=${req.query._preview_scale}, maximum-scale=${req.query._preview_scale}, user-scalable=no">` : `<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">`,
                         seo.head,

@@ -4,13 +4,20 @@ import db from '../modules/database';
 import {saasConfig} from "../config";
 import {Template} from "../services/template";
 import {App} from "../services/app.js";
+import { UtPermission } from '../api-public/utils/ut-permission.js';
+import exception from '../modules/exception.js';
 
 const router: express.Router = express.Router();
 export = router;
 
 router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
-        return response.succ(resp, {result: (await (new Template(req.body.token).createPage(req.body)))});
+        if(!await UtPermission.isManager(req)){
+            throw exception.BadRequestError('Forbidden', 'No Permission.', null);
+        }else{
+            return response.succ(resp, {result: (await (new Template(req.body.token).createPage(req.body)))});
+        }
+
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -18,8 +25,12 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
 
 router.put('/', async (req: express.Request, resp: express.Response) => {
     try {
-        req.body.language=req.headers['language'] as any;
-        return response.succ(resp, {result: (await (new Template(req.body.token).updatePage(req.body)))});
+        if(!await UtPermission.isManager(req)){
+            throw exception.BadRequestError('Forbidden', 'No Permission.', null);
+        }else{
+            req.body.language=req.headers['language'] as any;
+            return response.succ(resp, {result: (await (new Template(req.body.token).updatePage(req.body)))});
+        }
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -27,8 +38,13 @@ router.put('/', async (req: express.Request, resp: express.Response) => {
 
 router.delete('/', async (req: express.Request, resp: express.Response) => {
     try {
-        req.body.language=req.headers['language'] as any;
-        return response.succ(resp, {result: (await (new Template(req.body.token).deletePage(req.body)))});
+        if(!await UtPermission.isManager(req)){
+            throw exception.BadRequestError('Forbidden', 'No Permission.', null);
+        }else{
+            req.body.language=req.headers['language'] as any;
+            return response.succ(resp, {result: (await (new Template(req.body.token).deletePage(req.body)))});
+        }
+
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -80,13 +96,18 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
 
 router.post('/create_template', async (req: express.Request, resp: express.Response) => {
     try {
-        return response.succ(resp, {
-            result: (await new Template(req.body.token).postTemplate({
-                appName: req.body.appName,
-                data: req.body.config,
-                tag: req.body.tag
-            }))
-        });
+        if(!await UtPermission.isManager(req)){
+            throw exception.BadRequestError('Forbidden', 'No Permission.', null);
+        }else{
+            return response.succ(resp, {
+                result: (await new Template(req.body.token).postTemplate({
+                    appName: req.body.appName,
+                    data: req.body.config,
+                    tag: req.body.tag
+                }))
+            });
+        }
+
     } catch (err) {
         return response.fail(resp, err);
     }

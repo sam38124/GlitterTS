@@ -1059,7 +1059,7 @@ class Add_item_dia {
             const glitter = gvc.glitter
             let configText = ''
             gvc.addMtScript([
-                {src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`}
+                {src: `${ gvc.glitter.root_path}/jslib/lottie-player.js`}
             ], () => {
             }, () => {
             })
@@ -1184,7 +1184,7 @@ class Add_item_dia {
             const glitter = gvc.glitter
             let configText = ''
             gvc.addMtScript([
-                {src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`}
+                {src: `${ gvc.glitter.root_path}/jslib/lottie-player.js`}
             ], () => {
             }, () => {
             })

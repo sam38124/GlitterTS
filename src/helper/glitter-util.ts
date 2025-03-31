@@ -23,7 +23,7 @@ export class GlitterUtil {
         }
     }
 
-    public static async set_frontend_v2(express: core.Express, rout: { app_name: string, rout: string, path: string, root_path: string, seoManager: (req: express.Request, resp: express.Response) => Promise<{head:string,body:string}>, sitemap: (req: express.Request, resp: express.Response) => Promise<string> ,
+    public static async set_frontend_v2(express: core.Express, rout: { app_name: string, rout: string, path: string, root_path: string, seoManager: (req: express.Request, resp: express.Response) => Promise<{head?:string,body?:string,redirect?:string}>, sitemap: (req: express.Request, resp: express.Response) => Promise<string> ,
         sitemap_list: (req: express.Request, resp: express.Response) => Promise<string>
         robots:(req: express.Request, resp: express.Response) => Promise<string>,
         tw_shop:(req: express.Request, resp: express.Response) => Promise<string>
@@ -56,6 +56,10 @@ export class GlitterUtil {
                         req.query.page = req.baseUrl.replace(dd.root_path, '');
                     }
                     const seo = await dd.seoManager(req, resp)
+                     if(seo.redirect){
+                         resp.redirect(301, seo.redirect);
+                         return
+                     }
                     let fullPath = dd.path + "/index.html"
                     const data = fs.readFileSync(fullPath, 'utf8');
                     resp.header('Content-Type', 'text/html; charset=UTF-8')
@@ -64,13 +68,14 @@ export class GlitterUtil {
                          `<head>`,
                          `<meta name="apple-mobile-web-app-capable" content="yes">`,
                          `<meta name="apple-touch-fullscreen" content="yes">`,
+                         `<meta name="mobile-web-app-capable" content="yes">`,
                          `<meta http-equiv="content-type" content="text/html;charset=UTF-8">`,
                          (req.query._preview_width && req.query._preview_scale) ? `<meta name="viewport" content="width=${req.query._preview_width}, initial-scale=${req.query._preview_scale}, maximum-scale=${req.query._preview_scale}, user-scalable=no">`:`<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">`,
                          seo.head,
                          (req.body) ? `<script>window.post_body=${(typeof req.body==='string') ? req.body:`${JSON.stringify(req.body)}`};</script>`:``,
                          `</head>`,
                          seo.body,
-                     ].map((dd)=>{
+                     ].map((dd:any)=>{
                          return dd.trim()
                      });
                     try {

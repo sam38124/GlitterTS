@@ -18,6 +18,7 @@ const initial_fake_data_js_1 = require("./initial-fake-data.js");
 const line_message_1 = require("./line-message");
 const public_table_check_js_1 = require("./public-table-check.js");
 const app_js_1 = require("../../services/app.js");
+const user_update_js_1 = require("./user-update.js");
 class Schedule {
     async perload(app) {
         const brand_type = await app_js_1.App.checkBrandAndMemberType(app);
@@ -104,6 +105,7 @@ class Schedule {
                         const users = await database_1.default.query(`select * from \`${app}\`.t_user  `, []);
                         for (const user of users) {
                             await new user_1.User(app).checkMember(user, true);
+                            await user_update_js_1.UserUpdate.update(app, user.userID);
                         }
                     }
                     console.log(`renewMemberLevel-finish->`, app);

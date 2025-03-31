@@ -4,6 +4,7 @@ import {ApiCart} from '../../glitter-base/route/api-cart.js';
 import {Tool} from '../../modules/tool.js';
 import {Language} from '../../glitter-base/global/language.js';
 import {Currency} from '../../glitter-base/global/currency.js';
+import { PdClass } from '../product/pd-class.js';
 
 const html = String.raw;
 
@@ -257,6 +258,7 @@ export class HeaderClass {
                                                             </div>
                                                         </div>`;
                                                 } else {
+                                                  console.log(`vm.dataList==>`,vm.dataList)
                                                     return vm.dataList
                                                             .map((data) => {
                                                                 const logistic = vm.shippings.find((item) => item.value === data.logistic);
@@ -440,10 +442,10 @@ export class HeaderClass {
                                                     id: number
                                                 }) => `${p.id}` === `${item.id}`);
                                                 if (product) {
-                                                    console.log(`product===>`, product)
-                                                    const variant = product.content.variants.find((v: any) => {
-                                                        return v.spec.join(',') === item.spec.join(',');
+                                                    const variant = PdClass.getVariant(product.content,{
+                                                      specs:item.spec
                                                     });
+
                                                     const lineItem = {
                                                         id: item.id,
                                                         title: product.content.title,
@@ -453,7 +455,10 @@ export class HeaderClass {
                                                         price: variant ? variant.sale_price : 0,
                                                         image: await (async () => {
                                                             if (!variant) {
-                                                                return this.noImageURL;
+                                                              if(product.content && product.content.preview_image){
+                                                                return  product.content.preview_image[0]
+                                                              }
+                                                                return  this.noImageURL;
                                                             }
                                                             const img = await this.isImageUrlValid(variant.preview_image).then((isValid) => {
                                                                 return isValid ? variant.preview_image : product.content.preview_image[0] || this.noImageURL;

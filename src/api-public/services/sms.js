@@ -20,13 +20,16 @@ class SMS {
             let msgid = '';
             for (const b of chunkArray(Array.from(new Set(data.phone)), 10)) {
                 let check = b.length;
-                await new Promise((resolve) => {
+                await new Promise(resolve => {
                     for (const d of b) {
-                        this.sendSNS({ data: data.content, phone: d, date: date }, (res) => {
+                        this.sendSNS({ data: data.content, phone: d, date: date }, res => {
                             check--;
                             console.log(' res -- ', res);
                             if (check === 0) {
-                                database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers SET status = ${date ? 0 : 1} , content = JSON_SET(content, '$.name', '${res.msgid}') WHERE id = ?;`, [id]);
+                                database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers
+                          SET status = ${date ? 0 : 1},
+                              content = JSON_SET(content, '$.name', '${res.msgid}')
+                          WHERE id = ?;`, [id]);
                                 resolve(true);
                             }
                         });
@@ -41,6 +44,7 @@ class SMS {
     async sendSNS(obj, callback) {
         var _a, _b;
         try {
+            console.log('obj.phone -- ', obj.phone);
             if (await this.checkPoints(obj.data, 1)) {
                 let snsData = {
                     username: (_a = config_1.default.SNSAccount) !== null && _a !== void 0 ? _a : '',
@@ -78,6 +82,7 @@ class SMS {
                             smsPoint: result[3].split('=')[1],
                             accountPoint: result[4].split('=')[1],
                         };
+                        console.log('snsResponse -- ', snsResponse);
                         callback(snsResponse);
                         resolve(response.data);
                     })
@@ -109,11 +114,11 @@ class SMS {
             return new Promise((resolve, reject) => {
                 axios_1.default
                     .request(urlConfig)
-                    .then((response) => {
+                    .then(response => {
                     callback(response.data);
                     resolve(response.data);
                 })
-                    .catch((error) => {
+                    .catch(error => {
                     console.log('error -- ', error);
                     resolve(false);
                 });
@@ -150,16 +155,18 @@ class SMS {
                 whereList.push(`(JSON_EXTRACT(content, '$.type') in (${maiTypeString}))`);
             }
             const whereSQL = `(tag = 'sendSNS' OR tag = 'sendSNSBySchedule') AND ${whereList.join(' AND ')}`;
-            const emails = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
-                 WHERE ${whereSQL}
-                 ORDER BY id DESC
-                 ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`, []);
-            const total = await database_js_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_triggers
-                 WHERE ${whereSQL};`, []);
+            const emails = await database_js_1.default.query(`SELECT *
+         FROM \`${this.app}\`.t_triggers
+         WHERE ${whereSQL}
+         ORDER BY id DESC
+             ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`, []);
+            const total = await database_js_1.default.query(`SELECT count(id) as c
+         FROM \`${this.app}\`.t_triggers
+         WHERE ${whereSQL};`, []);
             let n = 0;
-            await new Promise((resolve) => {
+            await new Promise(resolve => {
                 for (const email of emails) {
-                    auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, email.content.type, 'zh-TW').then((dd) => {
+                    auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, email.content.type, 'zh-TW').then(dd => {
                         email.content.typeName = dd && dd.tag_name ? dd.tag_name : '手動發送';
                         n++;
                     });
@@ -189,7 +196,8 @@ class SMS {
                 if (isLater(data.sendTime)) {
                     return { result: false, message: '排定發送的時間需大於現在時間' };
                 }
-                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
+                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                           SET ?;`, [
                     {
                         tag: 'sendSNS',
                         content: JSON.stringify(data),
@@ -200,7 +208,8 @@ class SMS {
                 this.chunkSendSNS(data, insertData.insertId, formatDateTime(data.sendTime));
             }
             else {
-                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
+                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                           SET ?;`, [
                     {
                         tag: 'sendSNS',
                         content: JSON.stringify(data),
@@ -218,14 +227,17 @@ class SMS {
     }
     async deleteSns(data) {
         try {
-            const emails = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
-                 WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`, []);
-            await new Promise((resolve) => {
-                this.deleteSNS({ id: data.id }, (res) => {
+            const emails = await database_js_1.default.query(`SELECT *
+         FROM \`${this.app}\`.t_triggers
+         WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`, []);
+            await new Promise(resolve => {
+                this.deleteSNS({ id: data.id }, res => {
                     resolve(true);
                 });
             });
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers SET status = 2 WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`, []);
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers
+                      SET status = 2
+                      WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`, []);
             return { result: true, message: '取消預約成功' };
         }
         catch (e) {
@@ -234,18 +246,22 @@ class SMS {
     }
     async sendCustomerSns(tag, order_id, phone) {
         const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, tag, 'zh-TW');
-        if (customerMail.toggle) {
+        if (customerMail.toggle && phone) {
             await new Promise(async (resolve) => {
-                resolve(await this.sendSNS({ data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id), phone: phone, order_id: order_id }, (res) => { }));
+                resolve(await this.sendSNS({
+                    data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                    phone: phone,
+                    order_id: order_id,
+                }, res => { }));
             });
         }
     }
     async checkPoints(message, user_count) {
         const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(this.app);
         const sum = (await database_js_1.default.query(`SELECT sum(money)
-                     FROM \`${brandAndMemberType.brand}\`.t_sms_points
-                     WHERE status in (1, 2)
-                       and userID = ?`, [brandAndMemberType.user_id]))[0]['sum(money)'] || 0;
+           FROM \`${brandAndMemberType.brand}\`.t_sms_points
+           WHERE status in (1, 2)
+             and userID = ?`, [brandAndMemberType.user_id]))[0]['sum(money)'] || 0;
         return sum > this.getUsePoints(message, user_count);
     }
     async usePoints(obj) {
@@ -255,7 +271,7 @@ class SMS {
         let total = this.getUsePoints(obj.message, obj.user_count);
         const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(this.app);
         await database_js_1.default.query(`insert into \`${brandAndMemberType.brand}\`.t_sms_points
-                        set ?`, [
+       set ?`, [
             {
                 orderID: obj.order_id || tool_js_1.default.randomNumber(8),
                 money: total * -1,

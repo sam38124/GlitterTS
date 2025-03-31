@@ -58,6 +58,7 @@ const shopee_1 = require("./shopee");
 const shipment_config_js_1 = require("../config/shipment-config.js");
 const paynow_logistics_js_1 = require("./paynow-logistics.js");
 const checkout_js_1 = require("./checkout.js");
+const product_initial_js_1 = require("./product-initial.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -84,7 +85,7 @@ class Shopping {
                 updated_time_desc: `ORDER BY updated_time DESC`,
                 updated_time_asc: `ORDER BY updated_time ASC`,
                 sales_desc: `ORDER BY content->>'$.total_sales' DESC`,
-                default: `ORDER BY id DESC`,
+                default: `ORDER BY content->>'$.sort_weight' DESC`,
                 stock_desc: '',
                 stock_asc: '',
             };
@@ -107,7 +108,15 @@ class Shopping {
                             querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`);
                         }
                         break;
+                    case 'customize_tag':
+                        querySql.push(`JSON_EXTRACT(content, '$.product_customize_tag') LIKE '%${query.search}%'`);
+                        break;
                     case 'title':
+                        querySql.push(`(${[
+                            `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
+                            `(UPPER(content->>'$.language_data."${query.language}".title') LIKE UPPER('%${query.search}%'))`,
+                        ].join(' OR ')})`);
+                        break;
                     default:
                         querySql.push(`(${[
                             `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
@@ -115,7 +124,8 @@ class Shopping {
                             `UPPER(content->>'$.product_tag.language."${query.language}"') like '%${query.search}%'`,
                             `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
                             `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`,
-                        ].join(' or ')})`);
+                            `JSON_EXTRACT(content, '$.product_customize_tag') LIKE '%${query.search}%'`,
+                        ].join(' OR ')})`);
                         break;
                 }
             }
@@ -176,7 +186,9 @@ class Shopping {
                 querySql.push(`(content->>'$.productType.product' = "true")`);
             }
             if (query.collection) {
-                const collection_cf = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';
+                const collection_cf = (await database_js_1.default.query(`SELECT *
+             FROM \`${this.app}\`.public_config
+             WHERE \`key\` = 'collection';
             `, []))[0]['value'];
                 query.collection = decodeURI(query.collection);
                 query.collection = query.collection
@@ -221,7 +233,7 @@ class Shopping {
                 querySql.push(`(content->>'$.hideIndex' IS NULL OR content->>'$.hideIndex' = 'false')`);
             }
             if (query.id_list) {
-                query.order_by = ` ORDER BY id IN (${query.id_list})`;
+                query.order_by = ` ORDER BY FIELD (id,${query.id_list})`;
             }
             if (!query.is_manger && !query.status) {
                 query.status = 'inRange';
@@ -300,15 +312,17 @@ class Shopping {
             products.data = (Array.isArray(products.data) ? products.data : [products.data]).filter(product => product);
             if (userID !== '' && products.data.length > 0) {
                 const productIds = products.data.map((product) => product.id);
-                const wishListData = await database_js_1.default.query(`SELECT content->>'$.product_id' AS product_id
+                const wishListData = await database_js_1.default.query(`SELECT content ->>'$.product_id' AS product_id
            FROM \`${this.app}\`.t_post
-           WHERE userID = ? 
+           WHERE userID = ?
              AND content->>'$.type' = 'wishlist'
              AND content->>'$.product_id' IN (${productIds.map(() => '?').join(',')})`, [userID, ...productIds]);
                 const wishListSet = new Set(wishListData.map((row) => row.product_id));
                 products.data = products.data.map((product) => {
-                    product.content.in_wish_list = wishListSet.has(String(product.id));
-                    product.content.id = product.id;
+                    if (product.content) {
+                        product.content.in_wish_list = wishListSet.has(String(product.id));
+                        product.content.id = product.id;
+                    }
                     return product;
                 });
             }
@@ -319,7 +333,7 @@ class Shopping {
                     .filter(Boolean));
                 products.data = products.data.filter((product) => idSet.has(`${product.id}`));
             }
-            if (query.id_list && query.order_by === 'order by id desc') {
+            if (query.id_list) {
                 products.data = query.id_list
                     .split(',')
                     .map(id => {
@@ -327,7 +341,17 @@ class Shopping {
                 })
                     .filter(dd => dd);
             }
-            await Promise.all(products.data.map((product) => {
+            await Promise.all(products.data
+                .filter((dd) => {
+                return dd.content;
+            })
+                .map((product) => {
+                product.content.collection = Array.from(new Set((() => {
+                    var _a;
+                    return ((_a = product.content.collection) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                        return dd.replace(' / ', '/').replace(' /', '/').replace('/ ', '/').replace('/', ' / ');
+                    });
+                })()));
                 return new Promise(async (resolve) => {
                     var _a, _b, _c;
                     if (product) {
@@ -335,6 +359,7 @@ class Shopping {
                         const { language } = query;
                         const { content } = product;
                         content.preview_image = (_a = content.preview_image) !== null && _a !== void 0 ? _a : [];
+                        product_initial_js_1.ProductInitial.initial(content);
                         if (language && ((_b = content === null || content === void 0 ? void 0 : content.language_data) === null || _b === void 0 ? void 0 : _b[language])) {
                             const langData = content.language_data[language];
                             if ((langData.preview_image && langData.preview_image.length === 0) || !langData.preview_image) {
@@ -398,17 +423,19 @@ class Shopping {
                         }
                         else {
                             const soldOldHistory = await database_js_1.default.query(`
-                  SELECT * 
-                  FROM \`${this.app}\`.t_products_sold_history 
-                  WHERE product_id = ${database_js_1.default.escape(content.id)} 
-                    AND order_id IN (
-                      SELECT cart_token 
-                      FROM \`${this.app}\`.t_checkout 
-                      WHERE ${count_sql}
-                    )
-                  `, []);
+                        SELECT *
+                        FROM \`${this.app}\`.t_products_sold_history
+                        WHERE product_id = ${database_js_1.default.escape(content.id)}
+                          AND order_id IN (SELECT cart_token
+                                           FROM \`${this.app}\`.t_checkout
+                                           WHERE ${count_sql})
+                    `, []);
                             (content.variants || []).forEach((variant) => {
                                 var _a, _b;
+                                if (content.variants.length === 1) {
+                                    variant.preview_image = undefined;
+                                    variant[`preview_image_${language}`] = undefined;
+                                }
                                 variant.spec = variant.spec || [];
                                 variant.stock = 0;
                                 variant.sold_out =
@@ -458,7 +485,6 @@ class Shopping {
                                 skip_image_load: true,
                             });
                             if (shopee_data && shopee_data.variants) {
-                                console.log(`get-shopee_data-success`);
                                 (content.variants || []).forEach((variant) => {
                                     const shopee_variants = shopee_data.variants.find(dd => {
                                         return dd.spec.join('') === variant.spec.join('');
@@ -488,6 +514,9 @@ class Shopping {
                 });
                 products.data = foundProduct || products.data[0];
             }
+            if (query.id && products.data.length > 0) {
+                products.data = products.data[0];
+            }
             if ((query.domain || query.id) && products.data !== undefined) {
                 products.data.json_ld = await seo_config_js_1.SeoConfig.getProductJsonLd(this.app, products.data.content);
             }
@@ -509,11 +538,17 @@ class Shopping {
                 price && priceList.push(price);
             };
             const processProduct = async (product) => {
+                if (!product || !product.content) {
+                    return;
+                }
                 const createPriceMap = (type) => {
                     return Object.fromEntries(product.content.multi_sale_price
                         .filter((item) => item.type === type)
                         .map((item) => [item.key, new Map(item.variants.map((v) => [v.spec.join('-'), v.price]))]));
                 };
+                if (!product || !product.content) {
+                    return product;
+                }
                 product.content.about_vouchers = await this.aboutProductVoucher({
                     product,
                     userID,
@@ -626,9 +661,15 @@ class Shopping {
                 }
             };
             if (Array.isArray(products.data)) {
+                products.data = products.data.filter(dd => {
+                    return dd && dd.content;
+                });
                 await Promise.all(products.data.map(processProduct));
             }
             else {
+                if (products.data && !products.data.content) {
+                    products.data = undefined;
+                }
                 await processProduct(products.data);
             }
             return products;
@@ -675,8 +716,18 @@ class Shopping {
         return recommendData;
     }
     async aboutProductVoucher(json) {
+        if (!json.product.content) {
+            return [];
+        }
         const id = `${json.product.id}`;
-        const collection = json.product.content.collection || [];
+        const collection = (() => {
+            try {
+                return json.product.content.collection || [];
+            }
+            catch (error) {
+                return [];
+            }
+        })();
         const userData = json.userData;
         const recommendData = json.recommendData;
         function checkValidProduct(caseName, caseList) {
@@ -733,12 +784,11 @@ class Shopping {
         const orderClause = query.order_by || 'ORDER BY id DESC';
         const offset = query.page * query.limit;
         let sql = `
-      SELECT * 
-      FROM \`${this.app}\`.t_manager_post
-      ${whereClause} 
-      ${orderClause}
+        SELECT *
+        FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}
     `;
-        const data = await database_js_1.default.query(`SELECT * FROM (${sql}) AS subquery LIMIT ?, ?`, [offset, Number(query.limit)]);
+        const data = await database_js_1.default.query(`SELECT *
+       FROM (${sql}) AS subquery LIMIT ?, ?`, [offset, Number(query.limit)]);
         if (query.id) {
             return {
                 data: data[0] || {},
@@ -747,7 +797,8 @@ class Shopping {
         }
         else {
             const total = await database_js_1.default
-                .query(`SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}`, [])
+                .query(`SELECT COUNT(*) as count
+           FROM \`${this.app}\`.t_manager_post ${whereClause}`, [])
                 .then((res) => { var _a; return ((_a = res[0]) === null || _a === void 0 ? void 0 : _a.count) || 0; });
             return {
                 data: data.map((dd) => (Object.assign(Object.assign({}, dd), { content: Object.assign(Object.assign({}, dd.content), { id: dd.id }) }))),
@@ -879,24 +930,24 @@ class Shopping {
     }
     async getShippingMethod() {
         var _a;
-        const shipment_setting = await new Promise(async (resolve, reject) => {
-            var _a;
+        const shipment_setting = await (async () => {
             try {
-                resolve(((_a = (await private_config_js_1.Private_config.getConfig({
+                const config = await private_config_js_1.Private_config.getConfig({
                     appName: this.app,
                     key: 'logistics_setting',
-                }))) !== null && _a !== void 0 ? _a : [
-                    {
-                        value: {
-                            support: [],
-                        },
-                    },
-                ])[0].value);
+                });
+                if (!config) {
+                    return {
+                        support: [],
+                        shipmentSupport: [],
+                    };
+                }
+                return config[0].value;
             }
             catch (e) {
-                resolve([]);
+                return [];
             }
-        });
+        })();
         return [
             {
                 name: '中華郵政',
@@ -992,13 +1043,12 @@ class Shopping {
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9;
         try {
             const timer = {
                 count: 0,
                 history: [Date.now()],
             };
-            let scheduledData;
             const checkPoint = (name) => {
                 const t = Date.now();
                 timer.history.push(t);
@@ -1013,15 +1063,23 @@ class Shopping {
             };
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
-            data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
-            data.isExhibition = data.checkOutType === 'POS' && ((_c = (_b = data.pos_store) === null || _b === void 0 ? void 0 : _b.includes('exhibition_')) !== null && _c !== void 0 ? _c : false);
+            const checkoutPayment = (_a = data.user_info) === null || _a === void 0 ? void 0 : _a.payment;
+            let scheduledData;
+            data.line_items = (_b = (data.line_items || data.lineItems)) !== null && _b !== void 0 ? _b : [];
+            data.isExhibition = data.checkOutType === 'POS' && ((_d = (_c = data.pos_store) === null || _c === void 0 ? void 0 : _c.includes('exhibition_')) !== null && _d !== void 0 ? _d : false);
             if (replace_order_id) {
-                const orderData = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ? AND status = 0;
+                const orderData = (await database_js_1.default.query(`SELECT *
+             FROM \`${this.app}\`.t_checkout
+             WHERE cart_token = ?
+               AND status = 0;
             `, [replace_order_id]))[0];
                 if (!orderData) {
                     throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
                 }
-                await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_checkout WHERE cart_token = ? AND status = 0;
+                await database_js_1.default.query(`DELETE
+           FROM \`${this.app}\`.t_checkout
+           WHERE cart_token = ?
+             AND status = 0;
           `, [replace_order_id]);
                 const { lineItems, user_info, code, customer_info, use_rebate } = orderData.orderData;
                 data.line_items = lineItems;
@@ -1032,26 +1090,29 @@ class Shopping {
                 data.use_rebate = use_rebate;
             }
             if (data.order_id && type === 'POS') {
-                const order = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?
+                const order = (await database_js_1.default.query(`SELECT *
+             FROM \`${this.app}\`.t_checkout
+             WHERE cart_token = ?
             `, [data.order_id]))[0];
-                if (!order) {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this POS order', null);
-                }
-                for (const b of order.orderData.lineItems) {
-                    const pdDqlData = (await this.getProduct({
-                        page: 0,
-                        limit: 50,
-                        id: b.id,
-                        status: 'inRange',
-                        channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-                        whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
-                    })).data;
-                    const pd = pdDqlData.content;
-                    const variant = pd.variants.find((dd) => dd.spec.join('-') === b.spec.join('-'));
-                    await updateStock(variant, b.deduction_log);
-                    await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                    await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post SET content = ? WHERE id = ?
-            `, [JSON.stringify(pd), pdDqlData.id]);
+                if (order) {
+                    for (const b of order.orderData.lineItems) {
+                        const pdDqlData = (await this.getProduct({
+                            page: 0,
+                            limit: 50,
+                            id: b.id,
+                            status: 'inRange',
+                            channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
+                            whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
+                        })).data;
+                        const pd = pdDqlData.content;
+                        const variant = pd.variants.find((dd) => dd.spec.join('-') === b.spec.join('-'));
+                        await updateStock(variant, b.deduction_log);
+                        await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                        await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post
+               SET content = ?
+               WHERE id = ?
+              `, [JSON.stringify(pd), pdDqlData.id]);
+                    }
                 }
             }
             async function updateStock(variant, deductionLog) {
@@ -1076,7 +1137,7 @@ class Shopping {
             if (type !== 'preview' && !hasAuthentication(data)) {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error: No email and phone', null);
             }
-            const checkOutType = (_d = data.checkOutType) !== null && _d !== void 0 ? _d : 'manual';
+            const checkOutType = (_e = data.checkOutType) !== null && _e !== void 0 ? _e : 'manual';
             const getUserDataAsync = async (type, token, data) => {
                 if (type === 'preview' &&
                     !((token === null || token === void 0 ? void 0 : token.userID) || (data.user_info && data.user_info.email) || (data.user_info && data.user_info.phone))) {
@@ -1091,12 +1152,12 @@ class Shopping {
             };
             checkPoint('check user auth');
             const userData = await getUserDataAsync(type, this.token, data);
-            data.email = ((_e = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _e === void 0 ? void 0 : _e.email) || ((_f = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _f === void 0 ? void 0 : _f.phone) || '';
+            data.email = ((_f = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _f === void 0 ? void 0 : _f.email) || ((_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.phone) || '';
             if (!data.email || data.email === 'no-email') {
                 data.email =
-                    ((_g = data.user_info) === null || _g === void 0 ? void 0 : _g.email) && data.user_info.email !== 'no-email'
+                    ((_h = data.user_info) === null || _h === void 0 ? void 0 : _h.email) && data.user_info.email !== 'no-email'
                         ? data.user_info.email
-                        : ((_h = data.user_info) === null || _h === void 0 ? void 0 : _h.phone) || '';
+                        : ((_j = data.user_info) === null || _j === void 0 ? void 0 : _j.phone) || '';
             }
             if (!data.email && type !== 'preview') {
                 data.email = 'no-email';
@@ -1152,24 +1213,24 @@ class Shopping {
                 }
                 return def;
             })();
-            const shipment_setting = await new Promise(async (resolve, reject) => {
-                var _a;
+            const shipment_setting = await (async () => {
                 try {
-                    resolve(((_a = (await private_config_js_1.Private_config.getConfig({
+                    const config = await private_config_js_1.Private_config.getConfig({
                         appName: this.app,
                         key: 'logistics_setting',
-                    }))) !== null && _a !== void 0 ? _a : [
-                        {
-                            value: {
-                                support: [],
-                            },
-                        },
-                    ])[0].value);
+                    });
+                    if (!config) {
+                        return {
+                            support: [],
+                            shipmentSupport: [],
+                        };
+                    }
+                    return config[0].value;
                 }
                 catch (e) {
-                    resolve([]);
+                    return [];
                 }
-            });
+            })();
             checkPoint('set shipment');
             shipment_setting.custom_delivery = shipment_setting.custom_delivery
                 ? await Promise.all(shipment_setting.custom_delivery.map(async (form) => {
@@ -1181,14 +1242,14 @@ class Shopping {
                     return form;
                 })).then(dataArray => dataArray)
                 : [];
-            shipment_setting.support = (_j = shipment_setting.support) !== null && _j !== void 0 ? _j : [];
-            const languageInfo = (_l = (_k = shipment_setting.language_data) === null || _k === void 0 ? void 0 : _k[data.language]) === null || _l === void 0 ? void 0 : _l.info;
+            shipment_setting.support = (_k = shipment_setting.support) !== null && _k !== void 0 ? _k : [];
+            const languageInfo = (_m = (_l = shipment_setting.language_data) === null || _l === void 0 ? void 0 : _l[data.language]) === null || _m === void 0 ? void 0 : _m.info;
             shipment_setting.info = languageInfo !== null && languageInfo !== void 0 ? languageInfo : shipment_setting.info;
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                email: (_p = (_m = data.email) !== null && _m !== void 0 ? _m : (_o = data.user_info) === null || _o === void 0 ? void 0 : _o.email) !== null && _p !== void 0 ? _p : '',
+                email: (_q = (_o = data.email) !== null && _o !== void 0 ? _o : (_p = data.user_info) === null || _p === void 0 ? void 0 : _p.email) !== null && _q !== void 0 ? _q : '',
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
@@ -1202,7 +1263,7 @@ class Shopping {
                         name: dd.title,
                         value: dd.value,
                     })),
-                    ...((_q = shipment_setting.custom_delivery) !== null && _q !== void 0 ? _q : []).map((dd) => ({
+                    ...((_r = shipment_setting.custom_delivery) !== null && _r !== void 0 ? _r : []).map((dd) => ({
                         form: dd.form,
                         name: dd.name,
                         value: dd.id,
@@ -1210,8 +1271,8 @@ class Shopping {
                     })),
                 ].filter(option => shipment_setting.support.includes(option.value)),
                 use_wallet: 0,
-                method: (_r = data.user_info) === null || _r === void 0 ? void 0 : _r.method,
-                user_email: (_v = (_t = (_s = userData === null || userData === void 0 ? void 0 : userData.account) !== null && _s !== void 0 ? _s : data.email) !== null && _t !== void 0 ? _t : (_u = data.user_info) === null || _u === void 0 ? void 0 : _u.email) !== null && _v !== void 0 ? _v : '',
+                method: (_s = data.user_info) === null || _s === void 0 ? void 0 : _s.method,
+                user_email: (_w = (_u = (_t = userData === null || userData === void 0 ? void 0 : userData.account) !== null && _t !== void 0 ? _t : data.email) !== null && _u !== void 0 ? _u : (_v = data.user_info) === null || _v === void 0 ? void 0 : _v.email) !== null && _w !== void 0 ? _w : '',
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
@@ -1225,6 +1286,7 @@ class Shopping {
                 client_ip_address: data.client_ip_address,
                 fbc: data.fbc,
                 fbp: data.fbp,
+                editRecord: [],
             };
             if (!data.user_info.name && userData && userData.userData) {
                 carData.user_info.name = userData.userData.name;
@@ -1278,6 +1340,9 @@ class Shopping {
                         show_understocking = Boolean((_a = prod.stock) !== null && _a !== void 0 ? _a : '');
                         stock = Number(prod.stock) || 0;
                     }
+                    if (stock === Infinity) {
+                        show_understocking = false;
+                    }
                     return {
                         sku: '',
                         spec: [],
@@ -1288,6 +1353,7 @@ class Shopping {
                         sale_price: price,
                         origin_price: 0,
                         compare_price: 0,
+                        preview_image: prod.preview_image && prod.preview_image[0],
                         shipment_type: 'none',
                         show_understocking: String(show_understocking),
                     };
@@ -1298,21 +1364,22 @@ class Shopping {
             }
             data.line_items = await Promise.all(data.line_items.map(async (item) => {
                 var _a, _b, _c, _d, _e;
-                const getProductArray = (await this.getProduct({
+                const getProductData = (await this.getProduct({
                     page: 0,
                     limit: 1,
-                    id: item.id,
+                    id: `${item.id}`,
                     status: 'inRange',
                     channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
                     whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
                     setUserID: `${(userData === null || userData === void 0 ? void 0 : userData.userID) || ''}`,
                 })).data;
-                if (getProductArray[0]) {
-                    const getProductData = getProductArray[0];
+                if (getProductData) {
                     const content = getProductData.content;
                     const variant = getVariant(content, item);
+                    const count = Number(item.count);
                     if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
-                        Number.isInteger(item.count)) {
+                        !isNaN(count) &&
+                        count > 0) {
                         const isPOS = checkOutType === 'POS';
                         const isUnderstockingVisible = variant.show_understocking !== 'false';
                         const isManualType = type === 'manual' || type === 'manual-preview';
@@ -1366,8 +1433,7 @@ class Shopping {
                                     const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
                                     const scheduledDataQuery = `
                         SELECT *
-                        FROM \`${this.app}\`.\`t_live_purchase_interactions\`
-                        ${sql});
+                        FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
                     `;
                                     scheduledData = (await database_js_1.default.query(scheduledDataQuery, []))[0];
                                     if (scheduledData) {
@@ -1419,10 +1485,9 @@ class Shopping {
                                         if (!scheduledData) {
                                             const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
                                             const scheduledDataQuery = `
-                              SELECT *
-                              FROM \`${this.app}\`.\`t_live_purchase_interactions\`
-                              ${sql});
-                          `;
+                                SELECT *
+                                FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
+                            `;
                                             scheduledData = (await database_js_1.default.query(scheduledDataQuery, []))[0];
                                         }
                                         if (scheduledData) {
@@ -1464,7 +1529,9 @@ class Shopping {
                                         else {
                                             await this.updateVariantsWithSpec(variant, item.id, item.spec);
                                         }
-                                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${getProductData.id}`, [{ content: JSON.stringify(content) }]);
+                                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
+                             SET ?
+                             WHERE id = ${getProductData.id}`, [{ content: JSON.stringify(content) }]);
                                     }
                                     resolve(true);
                                 }
@@ -1498,24 +1565,24 @@ class Shopping {
             }
             if (hasMaxProduct && data.email !== 'no-email') {
                 const cartTokenSQL = `
-          SELECT cart_token 
-          FROM \`${this.app}\`.t_checkout 
-          WHERE email IN (${[-99, (_w = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _w === void 0 ? void 0 : _w.email, (_x = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _x === void 0 ? void 0 : _x.phone]
+            SELECT cart_token
+            FROM \`${this.app}\`.t_checkout
+            WHERE email IN (${[-99, (_x = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _x === void 0 ? void 0 : _x.email, (_y = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _y === void 0 ? void 0 : _y.phone]
                     .filter(Boolean)
                     .map(item => database_js_1.default.escape(item))
-                    .join(',')}) 
-          AND order_status <> '-1'
+                    .join(',')})
+              AND order_status <> '-1'
         `;
                 const soldHistory = await database_js_1.default.query(`
-            SELECT * 
-            FROM \`${this.app}\`.t_products_sold_history 
-            WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
-              AND order_id IN (${cartTokenSQL})
+              SELECT *
+              FROM \`${this.app}\`.t_products_sold_history
+              WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
+                AND order_id IN (${cartTokenSQL})
           `, []);
                 const purchaseHistory = new Map();
                 for (const history of soldHistory) {
                     const pid = Number(history.product_id);
-                    purchaseHistory.set(pid, ((_y = purchaseHistory.get(pid)) !== null && _y !== void 0 ? _y : 0) + history.count);
+                    purchaseHistory.set(pid, ((_z = purchaseHistory.get(pid)) !== null && _z !== void 0 ? _z : 0) + history.count);
                 }
                 for (const item of data.line_items) {
                     if (maxProductMap.has(item.id)) {
@@ -1548,8 +1615,8 @@ class Shopping {
             carData.voucherList = [];
             checkPoint('set carData');
             if (userData && userData.account) {
-                const data = await rebateClass.getOneRebate({ user_id: userData.userID });
-                carData.user_rebate_sum = (data === null || data === void 0 ? void 0 : data.point) || 0;
+                const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
+                carData.user_rebate_sum = (userRebate === null || userRebate === void 0 ? void 0 : userRebate.point) || 0;
             }
             if (data.distribution_code) {
                 const linkList = await new recommend_js_1.Recommend(this.app, this.token).getLinkList({
@@ -1592,7 +1659,7 @@ class Shopping {
                 await this.checkVoucher(carData);
                 checkPoint('check voucher');
                 let can_add_gift = [];
-                (_z = carData.voucherList) === null || _z === void 0 ? void 0 : _z.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
+                (_0 = carData.voucherList) === null || _0 === void 0 ? void 0 : _0.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
                 gift_product.forEach(dd => {
                     const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
                     if (dd.count <= max_count) {
@@ -1603,18 +1670,17 @@ class Shopping {
                     }
                 });
                 for (const giveawayData of carData.voucherList.filter(dd => dd.reBackType === 'giveaway')) {
-                    if (!((_0 = giveawayData.add_on_products) === null || _0 === void 0 ? void 0 : _0.length))
+                    if (!((_1 = giveawayData.add_on_products) === null || _1 === void 0 ? void 0 : _1.length))
                         continue;
                     const productPromises = giveawayData.add_on_products.map(async (id) => {
-                        var _a;
-                        const getGiveawayData = ((_a = (await this.getProduct({
+                        const getGiveawayData = (await this.getProduct({
                             page: 0,
                             limit: 1,
                             id: `${id}`,
                             status: 'inRange',
                             channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
                             whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
-                        })).data[0]) !== null && _a !== void 0 ? _a : { content: {} }).content;
+                        })).data.content;
                         getGiveawayData.voucher_id = giveawayData.id;
                         return getGiveawayData;
                     });
@@ -1625,7 +1691,7 @@ class Shopping {
                 appName: this.app,
                 key: 'glitter_finance',
             });
-            const keyData = (_1 = configData[0]) === null || _1 === void 0 ? void 0 : _1.value;
+            const keyData = (_2 = configData[0]) === null || _2 === void 0 ? void 0 : _2.value;
             if (keyData) {
                 carData.payment_info_custom = keyData.payment_info_custom;
             }
@@ -1655,37 +1721,27 @@ class Shopping {
                 }
             });
             checkPoint('set payment');
-            carData.payment_setting = glitter_finance_js_1.onlinePayArray
-                .filter(dd => {
-                return keyData[dd.key] && keyData[dd.key].toggle;
-            })
-                .filter((dd) => {
-                dd.custome_name = keyData[dd.key].custome_name;
-                if (carData.orderSource === 'POS') {
-                    if (dd.key === 'ut_credit_card') {
-                        dd.pwd = keyData[dd.key]['pwd'];
-                    }
-                    return dd.type === 'pos';
-                }
-                else {
-                    return dd.type !== 'pos';
-                }
-            });
-            keyData.cash_on_delivery = (_2 = keyData.cash_on_delivery) !== null && _2 !== void 0 ? _2 : { support: [] };
-            const is_support_cash = keyData.cash_on_delivery.support.find((item, index) => {
-                return carData.shipment_selector.find(dd => {
-                    return dd.value === item;
-                });
-            });
-            carData.off_line_support = keyData.off_line_support;
+            keyData.cash_on_delivery = (_3 = keyData.cash_on_delivery) !== null && _3 !== void 0 ? _3 : { support: [] };
             carData.payment_info_line_pay = keyData.payment_info_line_pay;
             carData.payment_info_atm = keyData.payment_info_atm;
-            if (!is_support_cash) {
-                carData.off_line_support.cash_on_delivery = false;
-            }
-            else {
-                carData.cash_on_delivery_support = keyData.cash_on_delivery.support;
-            }
+            const defaultPayArray = glitter_finance_js_1.onlinePayArray.map(item => item.key);
+            carData.shipmentSupport = checkoutPayment
+                ? ((_4 = (() => {
+                    if (defaultPayArray.includes(checkoutPayment) || checkoutPayment === 'cash_on_delivery') {
+                        return keyData[checkoutPayment];
+                    }
+                    else if (checkoutPayment === 'atm') {
+                        return keyData.payment_info_atm;
+                    }
+                    else if (checkoutPayment === 'line') {
+                        return keyData.payment_info_line_pay;
+                    }
+                    else {
+                        const customPay = keyData.payment_info_custom.find((c) => c.id === checkoutPayment);
+                        return customPay !== null && customPay !== void 0 ? customPay : {};
+                    }
+                })().shipmentSupport) !== null && _4 !== void 0 ? _4 : [])
+                : [];
             let subtotal = 0;
             carData.lineItems.map(item => {
                 var _a;
@@ -1730,6 +1786,63 @@ class Shopping {
             carData.code_array = (carData.code_array || []).filter(code => {
                 return (carData.voucherList || []).find(dd => dd.code === code);
             });
+            function getCartFormulaPass(keyData) {
+                const data = keyData.cartSetting;
+                if (!data || data.orderFormula === undefined)
+                    return true;
+                const formulaSet = new Set(data.orderFormula);
+                const total = carData.total -
+                    (formulaSet.has('shipment_fee') ? 0 : carData.shipment_fee) +
+                    (formulaSet.has('discount') || !carData.discount ? 0 : carData.discount) +
+                    (formulaSet.has('use_rebate') ? 0 : carData.use_rebate);
+                return (!data.minimumTotal || total >= data.minimumTotal) && (!data.maximumTotal || total <= data.maximumTotal);
+            }
+            carData.payment_setting = glitter_finance_js_1.onlinePayArray.filter((dd) => {
+                const k = keyData[dd.key];
+                if (!k || !k.toggle || !getCartFormulaPass(k))
+                    return false;
+                dd.custome_name = k.custome_name;
+                if (carData.orderSource === 'POS') {
+                    if (dd.key === 'ut_credit_card') {
+                        dd.pwd = k['pwd'];
+                    }
+                    return dd.type === 'pos';
+                }
+                return dd.type !== 'pos';
+            });
+            carData.off_line_support = (_5 = keyData.off_line_support) !== null && _5 !== void 0 ? _5 : {};
+            Object.entries(carData.off_line_support).map(([key, value]) => {
+                if (!value)
+                    return;
+                if (key === 'cash_on_delivery') {
+                    carData.off_line_support[key] = getCartFormulaPass(keyData[key]);
+                }
+                else if (key === 'atm') {
+                    carData.off_line_support[key] = getCartFormulaPass(keyData.payment_info_atm);
+                }
+                else if (key === 'line') {
+                    carData.off_line_support[key] = getCartFormulaPass(keyData.payment_info_line_pay);
+                }
+                else {
+                    const customPay = keyData.payment_info_custom.find((c) => c.id === key);
+                    carData.off_line_support[key] = getCartFormulaPass(customPay !== null && customPay !== void 0 ? customPay : {});
+                }
+            });
+            if (Array.isArray(carData.shipmentSupport)) {
+                await Promise.all(carData.shipmentSupport.map(async (sup) => {
+                    return await userClass
+                        .getConfigV2({ key: 'shipment_config_' + sup, user_id: 'manager' })
+                        .then(r => {
+                        return getCartFormulaPass(r);
+                    })
+                        .catch(() => {
+                        return true;
+                    });
+                })).then(dataArray => {
+                    var _a;
+                    carData.shipmentSupport = (_a = carData.shipmentSupport) === null || _a === void 0 ? void 0 : _a.filter((_, index) => dataArray[index]);
+                });
+            }
             checkPoint('return preview');
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
@@ -1778,13 +1891,14 @@ class Shopping {
                     times: 1,
                     counting: 'single',
                     conditionType: 'item',
+                    includeDiscount: 'before',
                     device: ['normal'],
                     productOffStart: 'price_all',
                 };
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_3 = data.total) !== null && _3 !== void 0 ? _3 : 0;
+                carData.total = (_6 = data.total) !== null && _6 !== void 0 ? _6 : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1809,6 +1923,17 @@ class Shopping {
                     app: this.app,
                 });
                 checkPoint('manual order done');
+                new notify_js_1.ManagerNotify(this.app).checkout({
+                    orderData: carData,
+                    status: 0,
+                });
+                for (const email of new Set([carData.customer_info, carData.user_info].map(dd => {
+                    return dd && dd.email;
+                }))) {
+                    if (email) {
+                        auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
+                    }
+                }
                 return {
                     data: carData,
                 };
@@ -1818,8 +1943,10 @@ class Shopping {
                 if (checkOutType === 'POS' && Array.isArray(data.voucherList)) {
                     const manualVoucher = data.voucherList.find((item) => item.id === 0);
                     if (manualVoucher) {
-                        manualVoucher.discount = (_4 = manualVoucher.discount_total) !== null && _4 !== void 0 ? _4 : 0;
+                        manualVoucher.discount = (_7 = manualVoucher.discount_total) !== null && _7 !== void 0 ? _7 : 0;
                         carData.total -= manualVoucher.discount;
+                        carData.discount += manualVoucher.discount;
+                        carData.voucherList.push(manualVoucher);
                     }
                 }
                 const trans = await database_js_1.default.Transaction.build();
@@ -1851,8 +1978,15 @@ class Shopping {
                 await trans.commit();
                 await trans.release();
                 await Promise.all(saveStockArray.map(dd => dd()));
-                await this.releaseCheckout((_5 = data.pay_status) !== null && _5 !== void 0 ? _5 : 0, carData.orderID);
+                await this.releaseCheckout((_8 = data.pay_status) !== null && _8 !== void 0 ? _8 : 0, carData.orderID);
                 checkPoint('release pos checkout');
+                for (const email of new Set([carData.customer_info, carData.user_info].map(dd => {
+                    return dd && dd.email;
+                }))) {
+                    if (email) {
+                        auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
+                    }
+                }
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
             const id = 'redirect_' + tool_js_1.default.randomString(6);
@@ -1892,7 +2026,7 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                let kd = (_6 = keyData[carData.customer_info.payment_select]) !== null && _6 !== void 0 ? _6 : {
+                let kd = (_9 = keyData[carData.customer_info.payment_select]) !== null && _9 !== void 0 ? _9 : {
                     ReturnURL: '',
                     NotifyURL: '',
                 };
@@ -1941,8 +2075,8 @@ class Shopping {
                         return await new financial_service_js_1.PayNow(this.app, kd).createOrder(carData);
                     }
                     case 'jkopay': {
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&orderid=${carData.orderID}`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&jkopay=true`;
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&return=${id}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=jkopay&return=${id}`;
                         checkPoint('select jkopay');
                         return await new financial_service_js_1.JKO(this.app, kd).createOrder(carData);
                     }
@@ -1960,9 +2094,11 @@ class Shopping {
                             orderData: carData,
                             status: 0,
                         });
-                        if (carData.customer_info.phone) {
+                        for (const phone of new Set([carData.customer_info, carData.user_info].map(dd => {
+                            return dd && dd.phone;
+                        }))) {
                             let sns = new sms_js_1.SMS(this.app);
-                            await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, carData.customer_info.phone);
+                            await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
                             console.log('訂單簡訊寄送成功');
                         }
                         if (carData.customer_info.lineID) {
@@ -1970,7 +2106,13 @@ class Shopping {
                             await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                             console.log('訂單line訊息寄送成功');
                         }
-                        auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email, carData.language);
+                        for (const email of new Set([carData.customer_info, carData.user_info].map(dd => {
+                            return dd && dd.email;
+                        }))) {
+                            if (email) {
+                                auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
+                            }
+                        }
                         await this.releaseVoucherHistory(carData.orderID, 1);
                         checkPoint('default release checkout');
                         return {
@@ -2030,10 +2172,10 @@ class Shopping {
                 }
             }
             if (query.archived === 'true') {
-                querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
+                querySql.push(`(archived="${query.archived}")`);
             }
             else if (query.archived === 'false') {
-                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
+                querySql.push(`((archived is null) or (archived!='true'))`);
             }
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
@@ -2112,6 +2254,7 @@ class Shopping {
     async combineOrder(dataMap) {
         try {
             delete dataMap.token;
+            const currentTime = new Date().toISOString();
             for (const data of Object.values(dataMap)) {
                 if (data.orders.length === 0)
                     continue;
@@ -2127,6 +2270,12 @@ class Shopping {
                 const formatTargetOrder = JSON.parse(JSON.stringify(targetOrder));
                 const base = formatTargetOrder.orderData;
                 base.orderSource = 'combine';
+                base.editRecord = [
+                    {
+                        time: currentTime,
+                        record: `合併自${data.orders.length}筆訂單\\n${cartTokens.map(token => `{{order=${token}}}`).join('\\n')}`,
+                    },
+                ];
                 const accumulateValues = (feed, keys, operation) => {
                     keys.forEach(key => {
                         var _a, _b;
@@ -2156,12 +2305,18 @@ class Shopping {
                     status: targetOrder.status,
                     app: this.app,
                 });
+                const newRecord = {
+                    time: currentTime,
+                    record: `與其他訂單合併至\\n{{order=${base.orderID}}}`,
+                };
                 await Promise.all(orders.map(async (order) => {
-                    order.orderData.orderStatus = '-1';
-                    order.orderData.archived = 'true';
-                    return database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-               SET orderData = ?
-               WHERE cart_token = ?`, [JSON.stringify(order.orderData), order.cart_token]);
+                    var _a;
+                    order.orderData = Object.assign(Object.assign({}, order.orderData), { orderStatus: '-1', archived: 'true', combineOrderID: base.orderID, editRecord: [...((_a = order.orderData.editRecord) !== null && _a !== void 0 ? _a : []), newRecord] });
+                    await this.putOrder({
+                        id: `${order.id}`,
+                        orderData: order.orderData,
+                        status: order.status,
+                    });
                 }));
             }
             return true;
@@ -2225,213 +2380,207 @@ class Shopping {
         }
     }
     async checkVoucher(cart) {
-        var _a;
+        var _a, _b;
         cart.discount = 0;
-        cart.lineItems.map(dd => {
-            dd.discount_price = 0;
-            dd.rebate = 0;
+        cart.lineItems.map(item => {
+            item.discount_price = 0;
+            item.rebate = 0;
         });
-        function switchValidProduct(caseName, caseList, caseOffStart) {
-            const filterItems = cart.lineItems.filter(dp => {
-                switch (caseName) {
-                    case 'collection':
-                        return dp.collection.some((d2) => caseList.includes(d2));
-                    case 'product':
-                        return caseList
-                            .map(dd => {
-                            return `${dd}`;
-                        })
-                            .includes(`${dp.id}`);
-                    case 'all':
-                        return true;
-                }
-            });
-            return filterItems.sort((a, b) => caseOffStart === 'price_desc' ? b.sale_price - a.sale_price : a.sale_price - b.sale_price);
-        }
         const userClass = new user_js_1.User(this.app);
         const userData = (_a = (await userClass.getUserData(cart.email, 'email_or_phone'))) !== null && _a !== void 0 ? _a : { userID: -1 };
+        const loginConfig = await userClass.getConfigV2({ key: 'login_config', user_id: 'manager' });
+        const sortedVoucher = (_b = loginConfig === null || loginConfig === void 0 ? void 0 : loginConfig.sorted_voucher) !== null && _b !== void 0 ? _b : { toggle: false };
         const allVoucher = await this.getAllUseVoucher(userData.userID);
+        const reduceDiscount = {};
         let overlay = false;
-        const voucherList = allVoucher
-            .filter(dd => {
-            if (!dd.device) {
+        function switchValidProduct(caseName, caseList, caseOffStart) {
+            const filterItems = cart.lineItems
+                .filter(item => {
+                switch (caseName) {
+                    case 'collection':
+                        return item.collection.some(col => caseList.includes(col));
+                    case 'product':
+                        return caseList.map(caseString => `${caseString}`).includes(`${item.id}`);
+                    default:
+                        return true;
+                }
+            })
+                .sort((a, b) => {
+                return caseOffStart === 'price_desc' ? b.sale_price - a.sale_price : a.sale_price - b.sale_price;
+            });
+            return filterItems;
+        }
+        function checkSource(voucher) {
+            if (!voucher.device)
                 return true;
-            }
-            if (dd.device.length === 0) {
+            if (voucher.device.length === 0)
                 return false;
+            return voucher.device.includes(cart.orderSource === 'POS' ? 'pos' : 'normal');
+        }
+        function checkTarget(voucher) {
+            if (voucher.target === 'customer') {
+                return (userData === null || userData === void 0 ? void 0 : userData.id) && voucher.targetList.includes(userData.userID);
             }
-            switch (cart.orderSource) {
-                case 'POS':
-                    return dd.device.includes('pos');
-                default:
-                    return dd.device.includes('normal');
-            }
-        })
-            .filter(dd => {
-            if (dd.target === 'customer') {
-                return userData && userData.id && dd.targetList.includes(userData.userID);
-            }
-            if (dd.target === 'levels') {
-                if (userData && userData.member) {
-                    const find = userData.member.find((dd) => dd.trigger);
-                    return find && dd.targetList.includes(find.id);
+            if (voucher.target === 'levels') {
+                if (userData === null || userData === void 0 ? void 0 : userData.member) {
+                    const trigger = userData.member.find((m) => m.trigger);
+                    return trigger && voucher.targetList.includes(trigger.id);
                 }
                 return false;
             }
             return true;
-        })
-            .filter(dd => {
+        }
+        function setBindProduct(voucher) {
             var _a;
-            dd.bind = [];
-            dd.productOffStart = (_a = dd.productOffStart) !== null && _a !== void 0 ? _a : 'price_all';
-            switch (dd.trigger) {
+            voucher.bind = [];
+            voucher.productOffStart = (_a = voucher.productOffStart) !== null && _a !== void 0 ? _a : 'price_all';
+            switch (voucher.trigger) {
                 case 'auto':
-                    dd.bind = switchValidProduct(dd.for, dd.forKey, dd.productOffStart);
+                    voucher.bind = switchValidProduct(voucher.for, voucher.forKey, voucher.productOffStart);
                     break;
                 case 'code':
-                    if (dd.code === `${cart.code}` || (cart.code_array || []).includes(`${dd.code}`)) {
-                        dd.bind = switchValidProduct(dd.for, dd.forKey, dd.productOffStart);
+                    if (voucher.code === `${cart.code}` || (cart.code_array || []).includes(`${voucher.code}`)) {
+                        voucher.bind = switchValidProduct(voucher.for, voucher.forKey, voucher.productOffStart);
                     }
                     break;
                 case 'distribution':
-                    if (cart.distribution_info && cart.distribution_info.voucher === dd.id) {
-                        dd.bind = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data, dd.productOffStart);
+                    if (cart.distribution_info && cart.distribution_info.voucher === voucher.id) {
+                        voucher.bind = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data, voucher.productOffStart);
                     }
                     break;
             }
-            if (dd.method === 'percent' &&
-                dd.conditionType === 'order' &&
-                dd.rule === 'min_count' &&
-                dd.reBackType === 'discount' &&
-                dd.productOffStart !== 'price_all' &&
-                dd.ruleValue > 0) {
-                dd.bind = dd.bind.slice(0, dd.ruleValue);
+            if (voucher.method === 'percent' &&
+                voucher.conditionType === 'order' &&
+                voucher.rule === 'min_count' &&
+                voucher.reBackType === 'discount' &&
+                voucher.productOffStart !== 'price_all' &&
+                voucher.ruleValue > 0) {
+                voucher.bind = voucher.bind.slice(0, voucher.ruleValue);
             }
-            return dd.bind.length > 0;
-        })
-            .filter(dd => {
-            const pass = (() => {
-                dd.times = 0;
-                dd.bind_subtotal = 0;
-                const ruleValue = parseInt(`${dd.ruleValue}`, 10);
-                if (dd.conditionType === 'order') {
-                    let cartValue = 0;
-                    dd.bind.map(item => {
-                        dd.bind_subtotal += item.count * item.sale_price;
+            return voucher.bind.length > 0;
+        }
+        function checkCartTotal(voucher) {
+            voucher.times = 0;
+            voucher.bind_subtotal = 0;
+            const ruleValue = parseInt(`${voucher.ruleValue}`, 10);
+            if (voucher.conditionType === 'order') {
+                let cartValue = 0;
+                voucher.bind.map(item => {
+                    voucher.bind_subtotal += item.count * item.sale_price;
+                });
+                if (cart.discount && voucher.includeDiscount === 'after') {
+                    voucher.bind_subtotal -= cart.discount;
+                }
+                if (voucher.rule === 'min_price') {
+                    cartValue = voucher.bind_subtotal;
+                }
+                if (voucher.rule === 'min_count') {
+                    voucher.bind.map(item => {
+                        cartValue += item.count;
                     });
-                    if (dd.rule === 'min_price') {
-                        cartValue = dd.bind_subtotal;
-                    }
-                    if (dd.rule === 'min_count') {
-                        dd.bind.map(item => {
-                            cartValue += item.count;
-                        });
-                    }
-                    if (dd.reBackType === 'shipment_free') {
-                        return cartValue >= ruleValue;
-                    }
-                    if (cartValue >= ruleValue) {
-                        if (dd.counting === 'each') {
-                            dd.times = Math.floor(cartValue / ruleValue);
-                        }
-                        if (dd.counting === 'single') {
-                            dd.times = 1;
-                        }
-                    }
-                    return dd.times > 0;
                 }
-                if (dd.conditionType === 'item') {
-                    if (dd.rule === 'min_price') {
-                        dd.bind = dd.bind.filter(item => {
-                            item.times = 0;
-                            if (item.count * item.sale_price >= ruleValue) {
-                                if (dd.counting === 'each') {
-                                    item.times = Math.floor((item.count * item.sale_price) / ruleValue);
-                                }
-                                if (dd.counting === 'single') {
-                                    item.times = 1;
-                                }
-                            }
-                            return item.times > 0;
-                        });
-                    }
-                    if (dd.rule === 'min_count') {
-                        dd.bind = dd.bind.filter(item => {
-                            item.times = 0;
-                            if (item.count >= ruleValue) {
-                                if (dd.counting === 'each') {
-                                    item.times = Math.floor(item.count / ruleValue);
-                                }
-                                if (dd.counting === 'single') {
-                                    item.times = 1;
-                                }
-                            }
-                            return item.times > 0;
-                        });
-                    }
-                    return dd.bind.reduce((acc, item) => acc + item.times, 0) > 0;
+                if (voucher.reBackType === 'shipment_free') {
+                    return cartValue >= ruleValue;
                 }
-                return false;
-            })();
-            return pass !== null && pass !== void 0 ? pass : false;
-        })
-            .sort(function (a, b) {
-            let compareB = b.bind
-                .map(dd => {
-                return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
-            })
-                .reduce(function (accumulator, currentValue) {
-                return accumulator + currentValue;
-            }, 0);
-            let compareA = a.bind
-                .map(dd => {
-                return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
-            })
-                .reduce(function (accumulator, currentValue) {
-                return accumulator + currentValue;
-            }, 0);
-            return compareB - compareA;
-        })
-            .filter(dd => {
-            if (!overlay && !dd.overlay) {
-                overlay = true;
-                return true;
+                if (cartValue >= ruleValue) {
+                    if (voucher.counting === 'each') {
+                        voucher.times = Math.floor(cartValue / ruleValue);
+                    }
+                    if (voucher.counting === 'single') {
+                        voucher.times = 1;
+                    }
+                }
+                return voucher.times > 0;
             }
-            return dd.overlay;
-        })
-            .filter(dd => {
+            if (voucher.conditionType === 'item') {
+                if (voucher.rule === 'min_price') {
+                    voucher.bind = voucher.bind.filter(item => {
+                        var _a;
+                        item.times = 0;
+                        let subtotal = item.count * item.sale_price;
+                        if (cart.discount && voucher.includeDiscount === 'after') {
+                            subtotal -= (_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0;
+                        }
+                        if (subtotal >= ruleValue) {
+                            if (voucher.counting === 'each') {
+                                item.times = Math.floor(subtotal / ruleValue);
+                            }
+                            if (voucher.counting === 'single') {
+                                item.times = 1;
+                            }
+                        }
+                        return item.times > 0;
+                    });
+                }
+                if (voucher.rule === 'min_count') {
+                    voucher.bind = voucher.bind.filter(item => {
+                        item.times = 0;
+                        if (item.count >= ruleValue) {
+                            if (voucher.counting === 'each') {
+                                item.times = Math.floor(item.count / ruleValue);
+                            }
+                            if (voucher.counting === 'single') {
+                                item.times = 1;
+                            }
+                        }
+                        return item.times > 0;
+                    });
+                }
+                return voucher.bind.reduce((acc, item) => acc + item.times, 0) > 0;
+            }
+            return false;
+        }
+        function compare(voucher) {
+            return voucher.bind
+                .map(item => {
+                const val = parseFloat(voucher.value);
+                return voucher.method === 'percent' ? (item.sale_price * val) / 100 : val;
+            })
+                .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+        }
+        function manualSorted(a, b) {
+            const aIndex = sortedVoucher.array.indexOf(a.id);
+            const bIndex = sortedVoucher.array.indexOf(b.id);
+            return aIndex > bIndex ? 1 : -1;
+        }
+        function checkOverlay(voucher) {
+            if (overlay || voucher.overlay)
+                return voucher.overlay;
+            overlay = true;
+            return true;
+        }
+        function checkCondition(voucher) {
             var _a, _b;
-            dd.discount_total = (_a = dd.discount_total) !== null && _a !== void 0 ? _a : 0;
-            dd.rebate_total = (_b = dd.rebate_total) !== null && _b !== void 0 ? _b : 0;
-            if (dd.reBackType === 'shipment_free') {
+            voucher.discount_total = (_a = voucher.discount_total) !== null && _a !== void 0 ? _a : 0;
+            voucher.rebate_total = (_b = voucher.rebate_total) !== null && _b !== void 0 ? _b : 0;
+            if (voucher.reBackType === 'shipment_free')
                 return true;
-            }
-            const disValue = dd.method === 'percent' ? parseFloat(dd.value) / 100 : parseFloat(dd.value);
-            if (dd.conditionType === 'order') {
-                if (dd.method === 'fixed') {
-                    dd.discount_total = disValue * dd.times;
+            const disValue = parseFloat(voucher.value) / (voucher.method === 'percent' ? 100 : 1);
+            if (voucher.conditionType === 'order') {
+                if (voucher.method === 'fixed') {
+                    voucher.discount_total = disValue * voucher.times;
                 }
-                if (dd.method === 'percent') {
-                    dd.discount_total = dd.bind_subtotal * disValue;
+                if (voucher.method === 'percent') {
+                    voucher.discount_total = voucher.bind_subtotal * disValue;
                 }
-                if (dd.bind_subtotal >= dd.discount_total) {
-                    let remain = parseInt(`${dd.discount_total}`, 10);
-                    dd.bind.map((d2, index) => {
+                if (voucher.bind_subtotal >= voucher.discount_total) {
+                    let remain = parseInt(`${voucher.discount_total}`, 10);
+                    voucher.bind.map((item, index) => {
                         let discount = 0;
-                        if (index === dd.bind.length - 1) {
+                        if (index === voucher.bind.length - 1) {
                             discount = remain;
                         }
                         else {
-                            discount = Math.round(remain * ((d2.sale_price * d2.count) / dd.bind_subtotal));
+                            discount = Math.round(remain * ((item.sale_price * item.count) / voucher.bind_subtotal));
                         }
-                        if (discount > 0 && discount <= d2.sale_price * d2.count) {
-                            if (dd.reBackType === 'rebate') {
-                                d2.rebate += discount / d2.count;
+                        if (discount > 0 && discount <= item.sale_price * item.count) {
+                            if (voucher.reBackType === 'rebate') {
+                                item.rebate += Math.round(discount / item.count);
                                 cart.rebate += discount;
-                                dd.rebate_total += discount;
+                                voucher.rebate_total += discount;
                             }
                             else {
-                                d2.discount_price += discount / d2.count;
+                                item.discount_price += Math.round(discount / item.count);
                                 cart.discount += discount;
                             }
                         }
@@ -2446,39 +2595,39 @@ class Shopping {
                 }
                 return false;
             }
-            if (dd.conditionType === 'item') {
-                if (dd.method === 'fixed') {
-                    dd.bind = dd.bind.filter(d2 => {
-                        const discount = disValue * d2.times;
-                        if (discount <= d2.sale_price * d2.count) {
-                            if (dd.reBackType === 'rebate') {
-                                d2.rebate += discount / d2.count;
+            if (voucher.conditionType === 'item') {
+                if (voucher.method === 'fixed') {
+                    voucher.bind = voucher.bind.filter(item => {
+                        const discount = disValue * item.times;
+                        if (discount <= item.sale_price * item.count) {
+                            if (voucher.reBackType === 'rebate') {
+                                item.rebate += Math.round(discount / item.count);
                                 cart.rebate += discount;
-                                dd.rebate_total += discount;
+                                voucher.rebate_total += discount;
                             }
                             else {
-                                d2.discount_price += discount / d2.count;
+                                item.discount_price += Math.round(discount / item.count);
                                 cart.discount += discount;
-                                dd.discount_total += discount;
+                                voucher.discount_total += discount;
                             }
                             return true;
                         }
                         return false;
                     });
                 }
-                if (dd.method === 'percent') {
-                    dd.bind = dd.bind.filter(d2 => {
-                        const discount = Math.floor(d2.sale_price * d2.count * disValue);
-                        if (discount <= d2.sale_price * d2.count) {
-                            if (dd.reBackType === 'rebate') {
-                                d2.rebate += discount / d2.count;
+                if (voucher.method === 'percent') {
+                    voucher.bind = voucher.bind.filter(item => {
+                        const discount = Math.floor(item.sale_price * item.count * disValue);
+                        if (discount <= item.sale_price * item.count) {
+                            if (voucher.reBackType === 'rebate') {
+                                item.rebate += Math.round(discount / item.count);
                                 cart.rebate += discount;
-                                dd.rebate_total += discount;
+                                voucher.rebate_total += discount;
                             }
                             else {
-                                d2.discount_price += discount / d2.count;
+                                item.discount_price += Math.round(discount / item.count);
                                 cart.discount += discount;
-                                dd.discount_total += discount;
+                                voucher.discount_total += discount;
                             }
                             return true;
                         }
@@ -2486,12 +2635,42 @@ class Shopping {
                     });
                 }
             }
-            return dd.bind.length > 0;
+            return voucher.bind.length > 0;
+        }
+        function countingBindDiscount(voucher) {
+            voucher.bind.map(item => {
+                var _a;
+                reduceDiscount[item.id] = ((_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0) + item.discount_price * item.count;
+            });
+        }
+        function filterVoucherlist(vouchers) {
+            return vouchers
+                .filter(voucher => {
+                return [checkSource, checkTarget, setBindProduct, checkCartTotal].every(fn => fn(voucher));
+            })
+                .sort((a, b) => {
+                return sortedVoucher.toggle ? manualSorted(a, b) : compare(b) - compare(a);
+            })
+                .filter(voucher => {
+                return [checkOverlay, checkCondition].every(fn => fn(voucher));
+            })
+                .map(voucher => {
+                countingBindDiscount(voucher);
+                return voucher;
+            });
+        }
+        const includeDiscountVouchers = [];
+        const withoutDiscountVouchers = [];
+        allVoucher.map(voucher => {
+            voucher.includeDiscount === 'after'
+                ? includeDiscountVouchers.push(voucher)
+                : withoutDiscountVouchers.push(voucher);
         });
-        if (!voucherList.find((d2) => d2.code === `${cart.code}`)) {
+        const voucherList = [...filterVoucherlist(withoutDiscountVouchers), ...filterVoucherlist(includeDiscountVouchers)];
+        if (!voucherList.find((voucher) => voucher.code === `${cart.code}`)) {
             cart.code = undefined;
         }
-        if (voucherList.find((d2) => d2.reBackType === 'shipment_free')) {
+        if (voucherList.find((voucher) => voucher.reBackType === 'shipment_free')) {
             cart.total -= cart.shipment_fee;
             cart.shipment_fee = 0;
         }
@@ -2538,8 +2717,16 @@ class Shopping {
                 const prevStatus = origin.orderData.orderStatus;
                 const prevProgress = origin.orderData.progress;
                 if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
-                    await this.restoreStock(origin.orderData.lineItems);
-                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', orderData.orderID, orderData.email, orderData.language);
+                    await this.resetStore(origin.orderData.lineItems);
+                    const emailList = new Set([origin.orderData.customer_info, origin.orderData.user_info].map(user => user === null || user === void 0 ? void 0 : user.email));
+                    for (const email of emailList) {
+                        if (email) {
+                            await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', orderData.orderID, email, orderData.language);
+                        }
+                    }
+                }
+                else if (prevStatus === '-1' && orderData.orderStatus !== '-1') {
+                    await this.resetStore(origin.orderData.lineItems, 'minus');
                 }
                 if (update.orderData.user_info.shipment_number && !update.orderData.user_info.shipment_date) {
                     update.orderData.user_info.shipment_date = new Date().toISOString();
@@ -2562,6 +2749,7 @@ class Shopping {
                     await this.releaseCheckout(update.status, data.orderData.orderID);
                 }
             }
+            this.writeRecord(origin, update);
             const updateData = Object.entries(update).reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: typeof value === 'object' ? JSON.stringify(value) : value })), {});
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
          SET ?
@@ -2607,35 +2795,113 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
         }
     }
-    async restoreStock(lineItems) {
+    writeRecord(origin, update) {
+        var _a, _b;
+        const editArray = [];
+        const currentTime = new Date().toISOString();
+        const { orderStatus, progress } = origin.orderData;
+        origin.orderData = Object.assign(Object.assign({}, origin.orderData), { orderStatus: orderStatus !== null && orderStatus !== void 0 ? orderStatus : '0', progress: progress !== null && progress !== void 0 ? progress : 'wait' });
+        if (update.status != origin.status) {
+            const statusTexts = {
+                '1': '付款成功',
+                '-2': '退款成功',
+                '0': '修改為未付款',
+                '3': '修改為部分付款',
+            };
+            const statusText = statusTexts[update.status];
+            if (statusText) {
+                editArray.push({
+                    time: currentTime,
+                    record: statusText,
+                });
+            }
+        }
+        if (update.orderData.orderStatus != origin.orderData.orderStatus) {
+            const orderStatusTexts = {
+                '1': '訂單已完成',
+                '0': '訂單改為處理中',
+                '-1': '訂單已取消',
+            };
+            const orderStatusText = orderStatusTexts[update.orderData.orderStatus];
+            if (orderStatusText) {
+                editArray.push({
+                    time: currentTime,
+                    record: orderStatusText,
+                });
+            }
+        }
+        if (update.orderData.progress != origin.orderData.progress) {
+            const progressTexts = {
+                shipping: '商品已出貨',
+                wait: '商品處理中',
+                finish: '商品已取貨',
+                returns: '商品已退貨',
+                arrived: '商品已到貨',
+            };
+            const progressText = progressTexts[update.orderData.progress];
+            if (progressText) {
+                editArray.push({
+                    time: currentTime,
+                    record: progressText,
+                });
+            }
+        }
+        const updateNumber = (_a = update.orderData.user_info) === null || _a === void 0 ? void 0 : _a.shipment_number;
+        if (updateNumber && updateNumber !== origin.orderData.user_info.shipment_number) {
+            const type = origin.orderData.user_info.shipment_number ? '更新' : '建立';
+            editArray.push({
+                time: currentTime,
+                record: `${type}出貨單號碼\\n{{shipment=${updateNumber}}}`,
+            });
+        }
+        if (update.orderData.archived === 'true' && origin.orderData.archived !== 'true') {
+            editArray.push({
+                time: currentTime,
+                record: '訂單已封存',
+            });
+        }
+        if (editArray.length > 0) {
+            update.orderData.editRecord = [...((_b = update.orderData.editRecord) !== null && _b !== void 0 ? _b : []), ...editArray];
+        }
+    }
+    async resetStore(lineItems, plus_or_minus = 'plus') {
         const stockUpdates = lineItems.map(async (item) => {
             var _a;
             if (item.product_category === 'kitchen' && ((_a = item.spec) === null || _a === void 0 ? void 0 : _a.length)) {
                 return new Shopping(this.app, this.token).calcVariantsStock(item.count, '', item.id, item.spec);
             }
             return Promise.all(Object.entries(item.deduction_log).map(([location, count]) => {
-                const intCount = parseInt(`${count || 0}`, 10);
+                let intCount = parseInt(`${count || 0}`, 10);
+                if (plus_or_minus === 'minus') {
+                    intCount = intCount * -1;
+                }
                 return new Shopping(this.app, this.token).calcVariantsStock(intCount, location, item.id, item.spec);
             }));
         });
         await Promise.all(stockUpdates);
     }
     async sendNotifications(orderData, type) {
-        const { phone, lineID } = orderData.customer_info;
+        const { lineID } = orderData.customer_info;
         const messages = [];
         const typeMap = {
             shipment: 'shipment',
             arrival: 'shipment-arrival',
         };
-        if (phone) {
-            const sns = new sms_js_1.SMS(this.app);
-            messages.push(sns.sendCustomerSns(`auto-sns-${typeMap[type]}`, orderData.orderID, phone));
-        }
         if (lineID) {
             const line = new line_message_1.LineMessage(this.app);
             messages.push(line.sendCustomerLine(`auto-line-${typeMap[type]}`, orderData.orderID, lineID));
         }
-        messages.push(auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, `auto-email-${typeMap[type]}`, orderData.orderID, orderData.email, orderData.language));
+        for (const email of new Set([orderData.customer_info, orderData.user_info].map(dd => {
+            return dd && dd.email;
+        }))) {
+            if (email) {
+                messages.push(auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, `auto-email-${typeMap[type]}`, orderData.orderID, email, orderData.language));
+            }
+        }
+        for (const data of [orderData.customer_info, orderData.user_info]) {
+            const sns = new sms_js_1.SMS(this.app);
+            messages.push(sns.sendCustomerSns(`auto-sns-${typeMap[type]}`, orderData.orderID, data.phone));
+        }
         await Promise.all(messages);
     }
     async adjustStock(origin, orderData) {
@@ -2647,25 +2913,35 @@ class Shopping {
             if (newItem.product_category === 'kitchen' && ((_a = newItem.spec) === null || _a === void 0 ? void 0 : _a.length)) {
                 return new Shopping(this.app, this.token).calcVariantsStock(newItem.count, '', newItem.id, newItem.spec);
             }
-            return Promise.all(Object.entries(newItem.deduction_log).map(([location, newCount]) => {
+            for (const [location, newCount] of Object.entries(newItem.deduction_log)) {
                 const originalCount = originalItem.deduction_log[location] || 0;
                 const parsedNewCount = Number(newCount || 0);
                 const delta = (isNaN(parsedNewCount) ? 0 : parsedNewCount) - originalCount;
-                return new Shopping(this.app, this.token).calcVariantsStock(delta * -1, location, newItem.id, newItem.spec);
-            }));
+                await new Shopping(this.app, this.token).calcVariantsStock(delta * -1, location, newItem.id, newItem.spec);
+            }
         });
         await Promise.all(stockAdjustments);
     }
-    async cancelOrder(order_id) {
+    async manualCancelOrder(order_id) {
+        var _a;
         try {
+            if (!this.token) {
+                return { result: false, message: 'The token is undefined' };
+            }
             const orderList = await database_js_1.default.query(`SELECT *
          FROM \`${this.app}\`.t_checkout
          WHERE cart_token = ?;
         `, [order_id]);
-            if (orderList.length !== 1) {
-                return { data: false };
+            if (orderList.length === 0) {
+                return { result: false, message: `Order id #${order_id} is not exist` };
             }
+            const userClass = new user_js_1.User(this.app);
+            const user = await userClass.getUserData(`${this.token.userID}`, 'userID');
+            const { email, phone } = user.userData;
             const origin = orderList[0];
+            if (![email, phone].includes(origin.email)) {
+                return { result: false, message: 'The order does not match the token' };
+            }
             const orderData = origin.orderData;
             const proofPurchase = orderData.proof_purchase === undefined;
             const paymentStatus = origin.status === undefined || origin.status === 0 || origin.status === -1;
@@ -2673,20 +2949,18 @@ class Shopping {
             const orderStatus = orderData.orderStatus === undefined || `${orderData.orderStatus}` === '0';
             if (proofPurchase && paymentStatus && progressStatus && orderStatus) {
                 orderData.orderStatus = '-1';
-                const record = { time: this.formatDateString(), record: '顧客手動取消訂單' };
-                if (orderData.editRecord) {
-                    orderData.editRecord.push(record);
-                }
-                else {
-                    orderData.editRecord = [record];
-                }
+                const newRecord = {
+                    time: new Date().toISOString(),
+                    record: '顧客手動取消訂單',
+                };
+                orderData.editRecord = [...((_a = orderData.editRecord) !== null && _a !== void 0 ? _a : []), newRecord];
             }
             await this.putOrder({
                 cart_token: order_id,
                 orderData: orderData,
                 status: undefined,
             });
-            return { data: true };
+            return { result: true };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'cancelOrder Error:' + e, null);
@@ -2712,10 +2986,18 @@ class Shopping {
            where cart_token = ?`, [order_id]))[0]['orderData'];
             orderData.proof_purchase = text;
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
-            await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email, orderData.language);
-            if (orderData.customer_info.phone) {
+            for (const email of new Set([orderData.customer_info, orderData.user_info].map(dd => {
+                return dd && dd.email;
+            }))) {
+                if (email) {
+                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, email, orderData.language);
+                }
+            }
+            for (const phone of new Set([orderData.customer_info, orderData.user_info].map(dd => {
+                return dd && dd.phone;
+            }))) {
                 let sns = new sms_js_1.SMS(this.app);
-                await sns.sendCustomerSns('sns-proof-purchase', order_id, orderData.customer_info.phone);
+                await sns.sendCustomerSns('sns-proof-purchase', order_id, phone);
                 console.log('訂單待核款簡訊寄送成功');
             }
             if (orderData.customer_info.lineID) {
@@ -2746,12 +3028,18 @@ class Shopping {
                         querySql.push(`(cart_token like '%${query.search}%')`);
                         break;
                     case 'shipment_number':
-                        querySql.push(`(orderData->>'$.user_info.shipment_number' like '%${query.search}%')`);
+                        querySql.push(`(shipment_number like '%${query.search}%')`);
                         break;
                     case 'name':
-                    case 'invoice_number':
                     case 'phone':
-                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.${query.searchType}')) LIKE ('%${query.search}%')))`);
+                    case 'email':
+                        querySql.push(`((UPPER(customer_${query.searchType}) LIKE '%${query.search.toUpperCase()}%') or (UPPER(shipment_${query.searchType}) LIKE '%${query.search.toUpperCase()}%'))`);
+                        break;
+                    case 'address':
+                        querySql.push(`((UPPER(shipment_${query.searchType}) LIKE '%${query.search.toUpperCase()}%'))`);
+                        break;
+                    case 'invoice_number':
+                        querySql.push(`(cart_token in (select order_id from \`${this.app}\`.t_invoice_memory where invoice_no like '%${query.search}%' ))`);
                         break;
                     default:
                         querySql.push(`JSON_CONTAINS_PATH(orderData, 'one', '$.lineItems[*].title') AND JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.lineItems[*].${query.searchType}')) REGEXP '${query.search}'`);
@@ -2760,38 +3048,67 @@ class Shopping {
             }
             if (query.id_list) {
                 const id_list = [-99, ...query.id_list.split(',')].join(',');
-                console.log('id_list');
-                console.log(id_list);
                 switch (query.searchType) {
                     case 'cart_token':
                         querySql.push(`(cart_token IN (${id_list}))`);
                         break;
                     case 'shipment_number':
-                        querySql.push(`(orderData->>'$.user_info.shipment_number' IN (${id_list}))`);
+                        querySql.push(`(shipment_number IN (${id_list}))`);
                         break;
                     default:
-                        querySql.push(`(id IN (${id_list}))`);
+                        querySql.push(`(o.id IN (${id_list}))`);
                         break;
                 }
+            }
+            if (query.reconciliation_status) {
+                let search = [];
+                query.reconciliation_status.map(status => {
+                    if (status === 'pending_entry') {
+                        search.push(`total_received is NULL`);
+                    }
+                    else if (status === 'completed_entry') {
+                        search.push(`total_received = total`);
+                    }
+                    else if (status === 'refunded') {
+                        search.push(`(total_received > total) && ((total_received + offset_amount) = total)`);
+                    }
+                    else if (status === 'completed_offset') {
+                        search.push(`(total_received < total) && ((total_received + offset_amount) = total)`);
+                    }
+                    else if (status === 'pending_offset') {
+                        search.push(`(total_received < total)  &&  (offset_amount is null)`);
+                    }
+                    else if (status === 'pending_refund') {
+                        search.push(`(total_received > total)   &&  (offset_amount is null)`);
+                    }
+                });
+                querySql.push(`(${search
+                    .map(dd => {
+                    return `(${dd})`;
+                })
+                    .join(' or ')})`);
             }
             if (query.orderStatus) {
                 let orderArray = query.orderStatus.split(',');
                 let temp = '';
                 if (orderArray.includes('0')) {
-                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IS NULL OR ";
+                    temp += 'order_status IS NULL OR ';
                 }
-                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IN (${query.orderStatus})`;
+                temp += `order_status IN (${query.orderStatus})`;
                 querySql.push(`(${temp})`);
             }
             if (query.valid) {
-                const countingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
+                const countingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL('o');
                 querySql.push(countingSQL);
             }
             if (query.is_shipment) {
-                querySql.push(`(orderData->>'$.user_info.shipment_number' IS NOT NULL) and (orderData->>'$.user_info.shipment_number' != '')`);
+                querySql.push(`(shipment_number IS NOT NULL) and (shipment_number != '')`);
+            }
+            if (query.is_reconciliation) {
+                querySql.push(`((o.status in (1,-2)) or ((payment_method='cash_on_delivery' and progress='finish') ))`);
             }
             if (query.payment_select) {
-                querySql.push(`(orderData->>'$.customer_info.payment_select') in (${query.payment_select
+                querySql.push(`payment_method in (${query.payment_select
                     .split(',')
                     .map(d => `'${d}'`)
                     .join(',')})`);
@@ -2807,9 +3124,9 @@ class Shopping {
                 let newArray = query.progress.split(',');
                 let temp = '';
                 if (newArray.includes('wait')) {
-                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IS NULL OR ";
+                    temp += 'progress IS NULL OR ';
                 }
-                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IN (${newArray.map(status => `"${status}"`).join(',')})`;
+                temp += `progress IN (${newArray.map(status => `"${status}"`).join(',')})`;
                 querySql.push(`(${temp})`);
             }
             if (query.distribution_code) {
@@ -2819,18 +3136,18 @@ class Shopping {
                 querySql.push(`(${temp})`);
             }
             if (query.is_pos === 'true') {
-                querySql.push(`orderData->>'$.orderSource'='POS'`);
+                querySql.push(`order_source='POS'`);
             }
             else if (query.is_pos === 'false') {
-                querySql.push(`orderData->>'$.orderSource'<>'POS'`);
+                querySql.push(`(order_source!='POS' or order_source is null)`);
             }
             if (query.shipment) {
                 let shipment = query.shipment.split(',');
                 let temp = '';
                 if (shipment.includes('normal')) {
-                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.shipment')) IS NULL OR ";
+                    temp += '(shipment_method IS NULL) OR ';
                 }
-                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.shipment')) IN (${shipment.map(status => `"${status}"`).join(',')})`;
+                temp += `(shipment_method IN (${shipment.map(status => `"${status}"`).join(',')}))`;
                 querySql.push(`(${temp})`);
             }
             if (query.created_time) {
@@ -2846,8 +3163,8 @@ class Shopping {
                 const shipment_time = query.shipment_time.split(',');
                 if (shipment_time.length > 1) {
                     querySql.push(`
-                       (orderData->>'$.user_info.shipment_date' >= ${database_js_1.default.escape(`${shipment_time[0]} 00:00:00`)}) and
-                        (orderData->>'$.user_info.shipment_date' <= ${database_js_1.default.escape(`${shipment_time[1]} 23:59:59`)})
+                       (shipment_date >= ${database_js_1.default.escape(`${shipment_time[0]}`)}) and
+                        (shipment_date <= ${database_js_1.default.escape(`${shipment_time[1]}`)})
                     `);
                 }
             }
@@ -2860,44 +3177,46 @@ class Shopping {
                         orderString = 'order by created_time asc';
                         break;
                     case 'order_total_desc':
-                        orderString = "order by CAST(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.total')) AS SIGNED) desc";
+                        orderString = 'order by total desc';
                         break;
                     case 'order_total_asc':
-                        orderString = "order by CAST(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.total')) AS SIGNED) asc";
+                        orderString = 'order by total asc';
                         break;
                 }
             }
-            query.status && querySql.push(`status IN (${query.status})`);
+            query.status && querySql.push(`o.status IN (${query.status})`);
             const orderMath = [];
             query.email && orderMath.push(`(email=${database_js_1.default.escape(query.email)})`);
             query.phone && orderMath.push(`(email=${database_js_1.default.escape(query.phone)})`);
             if (orderMath.length) {
                 querySql.push(`(${orderMath.join(' or ')})`);
             }
-            query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             if (query.filter_type === 'true' || query.archived) {
                 if (query.archived === 'true') {
-                    querySql.push(`(orderData->>'$.archived'="${query.archived}") 
-                    AND (JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IS NULL 
-                    OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
+                    querySql.push(`(archived="${query.archived}") 
+                    AND (order_status IS NULL OR order_status NOT IN (-99))`);
                 }
                 else {
-                    querySql.push(`((orderData->>'$.archived'="${query.archived}") or (orderData->>'$.archived' is null))`);
+                    querySql.push(`((archived="${query.archived}") or (archived is null))`);
                 }
             }
             else if (query.filter_type === 'normal') {
-                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
+                querySql.push(`((archived is null) or (archived!='true'))`);
             }
             if (!(query.filter_type === 'true' || query.archived)) {
-                querySql.push(`((orderData->>'$.orderStatus' is null) or (orderData->>'$.orderStatus' NOT IN (-99)))`);
+                querySql.push(`((order_status is null) or (order_status NOT IN (-99)))`);
             }
-            let sql = `SELECT *
-                 FROM \`${this.app}\`.t_checkout
+            let sql = `SELECT i.invoice_no,
+                        i.invoice_data,
+                        i.\`status\` as invoice_status,
+                        o.*
+                 FROM \`${this.app}\`.t_checkout o
+                          LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id and i.status = 1
                  WHERE ${querySql.join(' and ')} ${orderString}`;
             if (query.returnSearch == 'true') {
                 const data = await database_js_1.default.query(`SELECT *
            FROM \`${this.app}\`.t_checkout
-           WHERE cart_token = ${query.search}`, []);
+           WHERE cart_token = ${database_js_1.default.escape(query.search)}`, []);
                 let returnSql = `SELECT *
                          FROM \`${this.app}\`.t_return_order
                          WHERE order_id = ${query.search}`;
@@ -2956,7 +3275,6 @@ class Shopping {
                     if (order.orderData.user_info.shipment_refer === 'paynow') {
                         const pay_now = new paynow_logistics_js_1.PayNowLogistics(this.app);
                         order.orderData.user_info.shipment_detail = await pay_now.getOrderInfo(order.cart_token);
-                        console.log(`PayNowLogisticCode=>`, order.orderData.user_info.shipment_detail.PayNowLogisticCode);
                         const status = (() => {
                             switch (order.orderData.user_info.shipment_detail.PayNowLogisticCode) {
                                 case '0000':
@@ -3066,10 +3384,18 @@ class Shopping {
                     orderData: cartData.orderData,
                     status: status,
                 });
-                await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email, cartData.orderData.language);
-                if (cartData.orderData.customer_info.phone) {
+                for (const email of new Set([cartData.orderData.customer_info, cartData.orderData.user_info].map(dd => {
+                    return dd && dd.email;
+                }))) {
+                    if (email) {
+                        await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, email, cartData.orderData.language);
+                    }
+                }
+                for (const phone of new Set([cartData.orderData.customer_info, cartData.orderData.user_info].map(dd => {
+                    return dd && dd.phone;
+                }))) {
                     let sns = new sms_js_1.SMS(this.app);
-                    await sns.sendCustomerSns('auto-sns-payment-successful', order_id, cartData.orderData.customer_info.phone);
+                    await sns.sendCustomerSns('auto-sns-payment-successful', order_id, phone);
                     console.log('付款成功簡訊寄送成功');
                 }
                 if (cartData.orderData.customer_info.lineID) {
@@ -3321,6 +3647,7 @@ class Shopping {
                 id: product_id,
                 page: 0,
                 limit: 1,
+                is_manger: true,
             })).data.content;
             const variant_s = pd_data.variants.find((dd) => {
                 return dd.spec.join('-') === spec.join('-');
@@ -3502,6 +3829,7 @@ class Shopping {
                 seo_content: replace.seo_content,
                 seo_image: replace.seo_image,
                 language_data: replace.language_data,
+                hidden: Boolean(replace.hidden),
             };
             if (original.title.length === 0) {
                 const parentIndex = config.value.findIndex((col) => {
@@ -3515,14 +3843,10 @@ class Shopping {
                 }
             }
             else if (replace.parentTitles.length === 0) {
-                const parentIndex = config.value.findIndex((col) => {
-                    return col.title === original.title;
-                });
+                const parentIndex = config.value.findIndex((col) => col.title === original.title);
                 config.value[parentIndex] = Object.assign(Object.assign({}, formatData), { array: replace.subCollections.map(col => {
-                        const sub = config.value[parentIndex].array.find((item) => {
-                            return item.title === col;
-                        });
-                        return { array: [], title: col, code: sub ? sub.code : '' };
+                        const sub = config.value[parentIndex].array.find((item) => item.title === col);
+                        return Object.assign(Object.assign({}, sub), { array: [], title: col, code: sub ? sub.code : '', hidden: formatData.hidden ? true : Boolean(sub.hidden) });
                     }) });
             }
             else {
@@ -3570,11 +3894,11 @@ class Shopping {
                     }
                 }
             }
-            const get_product_sql = `SELECT *
-                               FROM \`${this.app}\`.t_manager_post
-                               WHERE id = ?`;
             for (const id of (_e = replace.product_id) !== null && _e !== void 0 ? _e : []) {
-                const get_product = await database_js_1.default.query(get_product_sql, [id]);
+                const get_product = await database_js_1.default.query(`SELECT *
+           FROM \`${this.app}\`.t_manager_post
+           WHERE id = ?
+          `, [id]);
                 if (get_product[0]) {
                     const product = get_product[0];
                     const originalParentTitles = (_f = original.parentTitles[0]) !== null && _f !== void 0 ? _f : '';
@@ -3622,10 +3946,10 @@ class Shopping {
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            const update_col_sql = `UPDATE \`${this.app}\`.public_config
-                              SET value = ?
-                              WHERE \`key\` = 'collection';`;
-            await database_js_1.default.execute(update_col_sql, [config.value]);
+            await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config
+         SET value = ?
+         WHERE \`key\` = 'collection';
+        `, [config.value]);
             return { result: true };
         }
         catch (e) {
@@ -3728,6 +4052,9 @@ class Shopping {
     }
     async updateCollectionFromUpdateProduct(collection) {
         var _a;
+        collection = Array.from(new Set(collection.map(dd => {
+            return dd.replace(/\s*\/\s*/g, '/');
+        })));
         let config = (_a = (await database_js_1.default.query(`SELECT *
            FROM \`${this.app}\`.public_config
            WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
@@ -3786,7 +4113,7 @@ class Shopping {
             }
             let productArray = content.data;
             await Promise.all(productArray.map((product, index) => {
-                return new Promise(async (resolve, reject) => {
+                return new Promise(async (resolve) => {
                     product.type = 'product';
                     if (product.id) {
                         const og_data = (await database_js_1.default.query(`select *
@@ -3799,17 +4126,18 @@ class Shopping {
                             if (og_content.language_data && og_content.language_data[store_info.language_setting.def]) {
                                 og_content.language_data[store_info.language_setting.def].seo = product.seo;
                                 og_content.language_data[store_info.language_setting.def].title = product.title;
+                                og_content.language_data[store_info.language_setting.def].sub_title = product.sub_title;
                             }
                             product = Object.assign(Object.assign({}, og_content), product);
                             product.preview_image = og_data['content'].preview_image || [];
                             productArray[index] = product;
                         }
                         else {
-                            console.log(`product-not-in==>`, product);
+                            console.log(`Product-not-in ==>`, product);
                         }
                     }
                     else {
-                        console.log(`no-product-id==>`, product);
+                        console.log(`No-exist-product-id ==>`, product);
                     }
                     resolve(true);
                 });
@@ -3825,7 +4153,6 @@ class Shopping {
                 this.checkVariantDataType(product.variants);
                 return [product.id || null, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
             });
-            console.log(`productArray==>`, productArray);
             if (productArray.length) {
                 const data = await database_js_1.default.query(`replace
           INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
@@ -4104,9 +4431,9 @@ class Shopping {
                         break;
                     case 'lessSafe':
                         querySql.push(`(
-                            JSON_EXTRACT(v.content, '$.save_stock') is not null AND
-                            (cast(JSON_EXTRACT(v.content, '$.stock') AS SIGNED) - cast(JSON_EXTRACT(v.content, '$.save_stock') AS SIGNED) < ${stockCount[1]})
-                        )`);
+              JSON_EXTRACT(v.content, '$.save_stock') is not null AND
+              (cast(JSON_EXTRACT(v.content, '$.stock') AS SIGNED) - cast(JSON_EXTRACT(v.content, '$.save_stock') AS SIGNED) < ${stockCount[1]})
+            )`);
                         break;
                 }
             }
@@ -4188,6 +4515,7 @@ class Shopping {
                     `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
                     `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
                     `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`,
+                    `JSON_EXTRACT(content, '$.product_customize_tag') LIKE '%${query.search}%'`,
                 ].join(' or ')})`);
             }
             if (query.domain) {
@@ -4233,11 +4561,10 @@ class Shopping {
             orderData: obj.orderData.orderData,
             status: obj.orderData.status,
         });
-        await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(obj.orderID, obj.invoice_data.getPaper == 'Y');
-        await new invoice_js_1.Invoice(this.app).updateInvoice({
-            orderID: obj.orderData.cart_token,
-            invoice_data: obj.invoice_data,
-        });
+        const invoice_response = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(obj.orderID, false);
+        return {
+            result: invoice_response,
+        };
     }
     async voidInvoice(obj) {
         var _a, _b;

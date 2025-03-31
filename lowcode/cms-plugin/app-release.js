@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
@@ -123,10 +132,47 @@ export class AppRelease {
                         })()}
                                 </div>`)}
                             </div>`,
-                        BgWidget.alertInfo(``, [`審核通過時間約莫在7-14天，請確實填寫所有內容，已加快審核進度`], {
-                            style: '',
-                            class: 'fs-6 fw-500',
-                        }),
+                        `<div class="mx-2 mx-lg-0">${BgWidget.warningInsignia(`審核通過時間約莫在7-14天，請確實填寫所有內容，已加快審核進度`)}</div>`,
+                        BgWidget.card(gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                view: () => __awaiter(this, void 0, void 0, function* () {
+                                    const template = yield new Promise((resolve, reject) => {
+                                        window.glitterInitialHelper.getPageData({
+                                            tag: 'index-app',
+                                            appName: window.appName,
+                                        }, (d2) => {
+                                            resolve(d2.response.result[0]);
+                                        });
+                                    });
+                                    return html `
+                  <div class="d-flex flex-column" style="gap:5px;">
+                    ${[
+                                        `<div class="tx_normal fs-5 fw-500">APP佈景主題</div>`,
+                                        `<div class="tx_normal fs-sm fw-500 text-body" style="white-space: nowrap;">上次更新時間: ${gvc.glitter.ut.dateFormat(new Date(template.updated_time), 'MM-dd hh:mm')}</div>`,
+                                        ``,
+                                    ].join('')}
+                  </div>
+                  <div class="flex-fill"></div>
+                  <div class="d-flex w-100" style="gap:10px;">
+                      <div class="flex-fill"></div>
+                    ${[
+                                        BgWidget.save(gvc.event(() => {
+                                            window.parent.glitter.setUrlParameter('function', 'user-editor');
+                                            window.parent.glitter.setUrlParameter('device', 'mobile');
+                                            window.parent.glitter.setUrlParameter('page', 'index-app');
+                                            window.parent.location.reload();
+                                        }), '主題設計'),
+                                    ].join('')}
+                  </div>
+                `;
+                                }),
+                                divCreate: {
+                                    class: `d-flex flex-column flex-lg-row align-items-lg-center `,
+                                }
+                            };
+                        })),
                         [
                             {
                                 title: '品牌內容',
@@ -166,7 +212,7 @@ export class AppRelease {
                                                     })}
                                                         </div>`,
                                                     html ` <div class="w-100 d-flex align-items-center justify-content-end">
-                                                            ${BgWidget.cancel(gvc.event(() => {
+                                                            ${BgWidget.save(gvc.event(() => {
                                                         save(false, postMD, (result) => { });
                                                     }), '儲存')}
                                                         </div>`,
@@ -310,7 +356,7 @@ export class AppRelease {
                                             };
                                         }),
                                         html `<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
-                                                ${BgWidget.cancel(gvc.event(() => {
+                                                ${BgWidget.save(gvc.event(() => {
                                             save(false, postMD, (result) => { });
                                         }), '儲存')}
                                             </div>`,
@@ -375,7 +421,7 @@ export class AppRelease {
                                             };
                                         }),
                                         html `<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
-                                                ${BgWidget.cancel(gvc.event(() => {
+                                                ${BgWidget.save(gvc.event(() => {
                                             save(false, postMD, (result) => { });
                                         }), '儲存')}
                                             </div>`,
@@ -391,7 +437,7 @@ export class AppRelease {
                                     </div>`);
                         })
                             .join(BgWidget.mbContainer(24)),
-                        html `<div class="w-100 d-flex align-items-center justify-content-end">
+                        html `<div class="update-bar-container">
                                 ${BgWidget.save(gvc.event(() => {
                             save(true, postMDRefer, () => { });
                         }), '將APP提交審查')}

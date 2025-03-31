@@ -323,7 +323,19 @@ export class ApiUser {
             if (!value)
                 return [];
             if (Array.isArray(value) && value.length > 0 && value.every(Boolean)) {
-                return `${key}=${value.join(',')}`;
+                return `${key}=${value
+                    .map((dd, index) => {
+                    if (['last_shipment_date', 'last_order_time'].includes(key)) {
+                        if (index === 0) {
+                            return new Date(`${dd} 00:00:00`).toISOString();
+                        }
+                        else {
+                            return new Date(`${dd} 23:59:59`).toISOString();
+                        }
+                    }
+                    return dd;
+                })
+                    .join(',')}`;
             }
             if (typeof value === 'object' && value !== null) {
                 const valObj = value;
@@ -390,7 +402,7 @@ export class ApiUser {
                             valid: true,
                             is_shipment: true,
                         })).response.data[0];
-                        if (item.tag_name) {
+                        if (!item.tag_name) {
                             item.tag_name = '一般會員';
                         }
                         if (firstShipment) {
@@ -595,6 +607,7 @@ export class ApiUser {
                     config[key + user_id] = res;
                 }
                 switch (key) {
+                    case 'app-header-config':
                     case 'collection':
                     case 'footer-setting':
                     case 'menu-setting':

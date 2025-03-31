@@ -36,10 +36,6 @@ export class CmsRouter{
                                });
                                break
                            case 'ig_live':
-                               resolve(`<div class="d-flex w-100 align-items-center justify-content-center">
-<div class="insignia insignia-warning">功能優化中，預計於3月14號重新開放!</div>
-</div>`)
-                               break
                            case 'line_plus':
                                gvc.glitter.getModule(new URL('./cms-plugin/live_capture.js', gvc.glitter.root_path).href, (cl) => {
                                    resolve(cl.main(gvc,true))
@@ -56,6 +52,11 @@ export class CmsRouter{
                                break
                            case 'reconciliation_area':
                                gvc.glitter.getModule(new URL('./cms-plugin/reconciliation-area.js', gvc.glitter.root_path).href, (cl) => {
+                                   resolve(cl.main(gvc))
+                               })
+                               break
+                           case 'app-design':
+                               gvc.glitter.getModule(new URL('./cms-plugin/app-design.js', gvc.glitter.root_path).href, (cl) => {
                                    resolve(cl.main(gvc))
                                })
                                break

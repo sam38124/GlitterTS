@@ -1,30 +1,30 @@
 export interface EcInvoiceInterface {
-    "MerchantID": string;
-    "RelateNumber": string;
-    "CustomerID": string;
-    "CustomerIdentifier": string;
-    "CustomerName": string;
-    "CustomerAddr": string;
-    "CustomerPhone": string;
-    "CustomerEmail": string;
+    MerchantID: string;
+    RelateNumber: string;
+    CustomerID: string;
+    CustomerIdentifier: string;
+    CustomerName: string;
+    CustomerAddr: string;
+    CustomerPhone: string;
+    CustomerEmail: string;
     LoveCode?: string;
     ClearanceMark?: any;
-    "Print": string;
-    "Donation": string;
-    "TaxType": string;
-    "SalesAmount": number;
-    "InvType": string;
+    Print: string;
+    Donation: string;
+    TaxType: string;
+    SalesAmount: number;
+    InvType: string;
     CarrierType: string;
     CarrierNum?: string;
-    "Items": {
-        "ItemSeq": number;
-        "ItemName": string;
-        "ItemCount": number;
-        "ItemWord": string;
-        "ItemPrice": number;
-        "ItemTaxType": string;
-        "ItemAmount": number;
-        "ItemRemark": string;
+    Items: {
+        ItemSeq: number;
+        ItemName: string;
+        ItemCount: number;
+        ItemWord: string;
+        ItemPrice: number;
+        ItemTaxType: string;
+        ItemAmount: number;
+        ItemRemark: string;
     }[];
 }
 export interface EcPrintInterFace {
@@ -44,9 +44,11 @@ export declare class EcInvoice {
         hash_IV: string;
         merchNO: string;
         app_name: string;
+        order_id: string;
         invoice_data: EcInvoiceInterface;
         beta: boolean;
         print: boolean;
+        orderData: any;
     }): Promise<boolean>;
     static voidInvoice(obj: {
         hashKey: string;

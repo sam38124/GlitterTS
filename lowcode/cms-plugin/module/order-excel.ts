@@ -6,6 +6,9 @@ import { PaymentConfig } from '../../glitter-base/global/payment-config.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { Tool } from '../../modules/tool.js';
 import { Excel } from './excel.js';
+import { ApiReconciliation } from '../../glitter-base/route/api-reconciliation.js';
+import { ApiUser } from '../../glitter-base/route/user.js';
+import { GlobalUser } from '../../glitter-base/global/global-user.js';
 
 const html = String.raw;
 
@@ -17,6 +20,26 @@ export class OrderExcel {
     {
       訂單編號: '1241770010001',
       出貨單號碼: '1249900602345',
+    },
+  ];
+
+  // 範例檔資料 (對帳單)
+  static importReconciliation = [
+    {
+      訂單編號: '1241770010001',
+      操作選項: '入帳',
+      '入帳/沖帳日期': '2025-01-01',
+      '入帳/沖帳金額': '2000',
+      沖帳原因: '',
+      沖帳備註: '',
+    },
+    {
+      訂單編號: '1241770010002',
+      操作選項: '沖帳',
+      '入帳/沖帳日期': '2025-01-02',
+      '入帳/沖帳金額': '-1000',
+      沖帳原因: '支付金額異常',
+      沖帳備註: '於玉山銀行進行查帳只有收到',
     },
   ];
 
@@ -56,6 +79,7 @@ export class OrderExcel {
       '會員等級',
       '備註',
     ],
+    對帳資訊: ['對帳狀態', '入帳金額', '入帳日期', '應沖金額', '沖帳原因'],
   };
 
   // 選項元素
@@ -143,7 +167,9 @@ export class OrderExcel {
 
     // 取得琣送與付款方式設定檔
     const [shipment_methods, payment_methods] = await Promise.all([
-      ShipmentConfig.allShipmentMethod(),
+      ShipmentConfig.shipmentMethod({
+        type:'all'
+      }),
       PaymentConfig.getSupportPayment(true),
     ]);
 
@@ -240,6 +266,43 @@ export class OrderExcel {
       });
     };
 
+    // 對帳欄位物件
+    const getReconciliationJSON = (order: any) => {
+      return formatJSON({
+        對帳狀態: (() => {
+          const received_c = (order.total_received ?? 0) + order.offset_amount;
+          if (order.total_received === null || order.total_received === undefined) {
+            return '待入帳';
+          } else if (order.total_received === order.total) {
+            return '已入帳';
+          } else if (order.total_received > order.total && received_c === order.total) {
+            return '已退款';
+          } else if (order.total_received < order.total && received_c === order.total) {
+            return '已沖帳';
+          } else if (received_c < order.total) {
+            return '待沖帳';
+          } else if (received_c > order.total) {
+            return '待退款';
+          }
+        })(),
+        入帳金額: `$${((order.total_received || 0) + (order.offset_amount || 0)).toLocaleString()}`,
+        入帳日期: order.reconciliation_date
+          ? gvc.glitter.ut.dateFormat(new Date(order.reconciliation_date), 'yyyy-MM-dd')
+          : '-',
+        應沖金額: (() => {
+          if (
+            order.total_received === order.total ||
+            order.total_received === null ||
+            order.total_received === undefined
+          ) {
+            return '-';
+          } else {
+            return `$${order.orderData.total - (order.total_received + (order.offset_amount || 0))}`;
+          }
+        })(),
+        沖帳原因: order.offset_reason ?? '-',
+      });
+    };
     // 匯出訂單 Excel
     function exportOrdersToExcel(dataArray: any[]) {
       if (!dataArray.length) {
@@ -254,8 +317,15 @@ export class OrderExcel {
               ...getOrderJSON(order, orderData),
               ...getProductJSON(item),
               ...getUserJSON(order, orderData),
+              ...getReconciliationJSON(order),
             }))
-          : [{ ...getOrderJSON(order, orderData), ...getUserJSON(order, orderData) }];
+          : [
+              {
+                ...getOrderJSON(order, orderData),
+                ...getUserJSON(order, orderData),
+                ...getReconciliationJSON(order),
+              },
+            ];
       });
 
       const worksheet = XLSX.utils.json_to_sheet(printArray);
@@ -288,7 +358,7 @@ export class OrderExcel {
       }
     }
 
-    const limit = 250;
+    const limit = 1000;
     dialog.checkYesOrNot({
       text: `系統將會依條件匯出資料，最多匯出${limit}筆<br/>確定要匯出嗎？`,
       callback: bool => bool && fetchOrders(limit),
@@ -301,23 +371,24 @@ export class OrderExcel {
       select: 'all' as Range,
       column: [] as string[],
     };
-
     const pageType = (() => {
       const isArchived = apiJSON.archived === 'true';
       const isShipment = apiJSON.is_shipment;
       const isPOS = apiJSON.is_pos;
+      const isReconciliation = apiJSON.is_reconciliation;
 
       if (isShipment && isArchived) return '已封存出貨單';
       if (isShipment) return '出貨單';
       if (isArchived && isPOS) return '已封存POS訂單';
       if (isArchived) return '已封存訂單';
       if (isPOS) return 'POS訂單';
+      if (isReconciliation) return '對帳單';
       return '訂單';
     })();
 
     BgWidget.settingDialog({
       gvc,
-      title: '匯出訂單',
+      title: '匯出' + pageType,
       width: 700,
       innerHTML: gvc2 => {
         return html`<div class="d-flex flex-column align-items-start gap-2">
@@ -358,13 +429,20 @@ export class OrderExcel {
                 return;
               }
 
+
               const dataMap: Record<Range, any> = {
                 search: apiJSON,
                 checked: {
                   ...apiJSON,
                   id_list: dataArray.map(data => data.id).join(','),
+                  searchType:'id'
                 },
-                all: {},
+                all: {
+                  is_reconciliation: apiJSON.is_reconciliation,
+                  is_shipment: apiJSON.is_shipment,
+                  archived: apiJSON.archived,
+                  is_pos: apiJSON.is_pos,
+                },
               };
 
               this.export(gvc, dataMap[vm.select], vm.column);
@@ -449,22 +527,11 @@ export class OrderExcel {
         // 更新事件與紀錄
         const saveEvent = (order: any, setShipping: boolean) => {
           const orderData = order.orderData;
-          const temps = [
-            {
-              time: Tool.formatDateTime(),
-              record: `建立出貨單號碼 #${orderData.user_info.shipment_number}`,
-            },
-          ];
 
           if (setShipping) {
             orderData.progress = 'shipping';
-            temps.push({
-              time: Tool.formatDateTime(),
-              record: '訂單已出貨',
-            });
           }
 
-          orderData.editRecord = [...(orderData.editRecord ?? []), ...temps];
           return ApiShop.putOrder({ id: `${order.id}`, order_data: orderData });
         };
 
@@ -509,6 +576,144 @@ export class OrderExcel {
     }
   }
 
+  // 匯入方法 (對帳單)
+  static async importWithReconciliation(gvc: GVC, target: HTMLInputElement, callback: () => void) {
+    const dialog = new ShareDialog(gvc.glitter);
+
+    function errorMsg(text: string) {
+      dialog.dataLoading({ visible: false });
+      dialog.errorMessage({ text: text });
+    }
+    if (target.files?.length) {
+      try {
+        dialog.dataLoading({ visible: true, text: '上傳檔案中' });
+        const jsonData = await Excel.parseExcelToJson(gvc, target.files[0]);
+
+        // 判斷是否有不成對的訂單編號與出貨單號碼
+        const importMap = new Map();
+        for (let i = 0; i < jsonData.length; i++) {
+          const order = jsonData[i];
+          if (!order['訂單編號'] || !order['操作選項'] || !order['入帳/沖帳日期'] || !order['入帳/沖帳金額']) {
+            !order['訂單編號'] && errorMsg('請輸入訂單編號');
+            !order['操作選項'] && errorMsg('請輸入操作選項');
+            !order['入帳/沖帳日期'] && errorMsg('請輸入入帳/沖帳日期');
+            !order['入帳/沖帳金額'] && errorMsg('請輸入入帳/沖帳金額');
+            return;
+          }
+          importMap.set(`${order['訂單編號']}`, order);
+        }
+        const cartTokens = [...importMap.keys()];
+
+        // 取得訂單資料
+        const getOrders = await ApiShop.getOrder({
+          page: 0,
+          limit: 1000,
+          searchType: 'cart_token',
+          id_list: cartTokens.join(','),
+        });
+
+        if (!getOrders.result) {
+          errorMsg('訂單資料取得失敗');
+          return;
+        }
+
+        const orders = getOrders.response.data;
+
+        // 判斷匯入資料是否有不存在的訂單
+        const orderMap = new Map(orders.map((order: any) => [order.cart_token, true]));
+        const importKey = cartTokens.find(key => !orderMap.has(key));
+        if (importKey) {
+          errorMsg(`訂單編號 #${importKey} 不存在`);
+          return;
+        }
+        // 判斷匯入資料是否可更新對帳單
+        for (const order of orders) {
+          try {
+            const compare = importMap.get(order.cart_token);
+
+            if (compare['操作選項'] === '入帳' && order.reconciliation_date) {
+              errorMsg(`已入帳訂單不可再次入帳<br/>（訂單編號: ${order.cart_token}）`);
+              return;
+            }
+          } catch (error) {
+            errorMsg('訂單資料有誤');
+          }
+        }
+        const auth = await ApiUser.getPermission({
+          page: 0,
+          limit: 100,
+        }).then(res => {
+          return res.response.data.find((data: any) => {
+            return `${data.user}` === `${GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID}`;
+          });
+        });
+        // 更新事件與紀錄
+        const saveEvent = (order: any) => {
+          const compare = importMap.get(order.cart_token);
+          const money = parseInt(compare['入帳/沖帳金額'], 10);
+          if (compare['操作選項'] === '入帳') {
+            return ApiReconciliation.putReconciliation({
+              order_id: order.cart_token,
+              update: {
+                reconciliation_date: new Date(compare['入帳/沖帳日期']).toISOString(),
+                total_received: money,
+              },
+            });
+          } else {
+            order.offset_records = order.offset_records ?? [];
+            return ApiReconciliation.putReconciliation({
+              order_id: order.cart_token,
+              update: {
+                offset_amount: order.offset_amount + money,
+                offset_reason: compare['沖帳原因'],
+                offset_records: JSON.stringify(
+                  JSON.parse(JSON.stringify(order.offset_records)).concat([
+                    {
+                      offset_amount: money,
+                      offset_reason: compare['沖帳原因'],
+                      offset_date: new Date(compare['入帳/沖帳日期']).toISOString(),
+                      offset_note: compare['沖帳備註'],
+                      user: auth.config,
+                    },
+                  ])
+                ),
+              },
+            });
+          }
+        };
+
+        try {
+          dialog.dataLoading({ visible: true });
+
+          // 批次更新訂單
+          const responses = await Promise.all(
+            orders.map((order: any) => {
+              return saveEvent(order);
+            }) as { result: boolean; response: any }[]
+          );
+
+          const failedResponse = responses.find(res => !res.result);
+
+          dialog.dataLoading({ visible: false });
+
+          if (failedResponse) {
+            console.error('匯入失敗:', failedResponse);
+            dialog.errorMessage({ text: '匯入失敗' });
+          } else {
+            dialog.successMessage({ text: '匯入成功' });
+            setTimeout(() => callback(), 300);
+          }
+        } catch (error) {
+          dialog.dataLoading({ visible: false });
+          console.error('批次更新錯誤:', error);
+          dialog.errorMessage({ text: '系統錯誤，請稍後再試' });
+        }
+      } catch (error) {
+        console.error('Order Excel 解析失敗', error);
+      }
+    }
+  }
+
   // 匯入檔案彈出視窗
   static importDialog(gvc: GVC, query: any, callback: () => void) {
     const dialog = new ShareDialog(gvc.glitter);
@@ -519,6 +724,7 @@ export class OrderExcel {
       orderTitle: (() => {
         if (query.isShipment) return '出貨單';
         if (query.isArchived) return '已封存訂單';
+        if (query.is_reconciliation) return '對帳單';
         return '訂單';
       })(),
     };
@@ -539,6 +745,7 @@ export class OrderExcel {
                   gvc,
                   (() => {
                     if (query.isShipment) return OrderExcel.importShipmentExample;
+                    if (query.is_reconciliation) return OrderExcel.importReconciliation;
                     if (query.isArchived) return [];
                     return [];
                   })(),
@@ -552,6 +759,13 @@ export class OrderExcel {
                 // 出貨單匯入事件
                 if (query.isShipment) {
                   return this.importWithShipment(gvc, vm.fileInput, () => {
+                    gvc.glitter.closeDiaLog();
+                    callback();
+                  });
+                }
+                //對帳單匯入事件
+                if (query.is_reconciliation) {
+                  return this.importWithReconciliation(gvc, vm.fileInput, () => {
                     gvc.glitter.closeDiaLog();
                     callback();
                   });
@@ -588,7 +802,7 @@ export class OrderExcel {
               : ''}
             <div class="d-flex flex-column w-100 align-items-start gap-3" style="padding: 20px">
               <div class="d-flex align-items-center gap-2">
-                <div class="tx_700">透過XLSX檔案匯入商品</div>
+                <div class="tx_700">透過XLSX檔案匯入${query.isShipment ? `出貨單` : ``}</div>
                 ${BgWidget.blueNote('下載範例', gvc.event(viewData.example.event))}
               </div>
               <input

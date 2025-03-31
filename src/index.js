@@ -68,7 +68,6 @@ const sitemap_1 = require("sitemap");
 const stream_1 = require("stream");
 const seo_config_js_1 = require("./seo-config.js");
 const Language_js_1 = require("./Language.js");
-const fb_api_js_1 = require("./api-public/services/fb-api.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -131,8 +130,8 @@ function createContext(req, res, next) {
 }
 async function createAppRoute() {
     const apps = await database_2.default.execute(`SELECT appName
-         FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config;
-        `, []);
+     FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config;
+    `, []);
     for (const dd of apps) {
         await createAPP(dd);
     }
@@ -143,7 +142,7 @@ async function createAPP(dd) {
     live_source_1.Live_source.liveAPP.push(dd.appName);
     schedule_js_1.Schedule.app.push(dd.appName);
     const file_path = path_1.default.resolve(__dirname, '../lowcode');
-    return await glitter_util_js_1.GlitterUtil.set_frontend_v2(exports.app, ['/' + encodeURI(dd.appName) + '/*', '/' + encodeURI(dd.appName)].map((rout) => {
+    return await glitter_util_js_1.GlitterUtil.set_frontend_v2(exports.app, ['/' + encodeURI(dd.appName) + '/*', '/' + encodeURI(dd.appName)].map(rout => {
         return {
             rout: rout,
             path: file_path,
@@ -152,11 +151,7 @@ async function createAPP(dd) {
             seoManager: async (req) => {
                 var _a, _b, _c, _d, _e, _f;
                 const og_url = req.headers['x-original-url'];
-                const custom_heads = [];
-                const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-                if (req.query.page === 'shopnex-fb-oauth') {
-                    await new fb_api_js_1.FbApi(dd.appName).OAuth(req);
-                }
+                console.log(`req.query.page=>`, req.query.page);
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -166,7 +161,9 @@ async function createAPP(dd) {
                         appName = req.query.appName;
                     }
                     else if (og_url) {
-                        const new_app = (await database_2.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config where LOWER(domain) = ?`, [og_url]))[0];
+                        const new_app = (await database_2.default.query(`SELECT *
+                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                   where LOWER(domain) = ?`, [og_url]))[0];
                         if (new_app && new_app.appName) {
                             appName = new_app && new_app.appName;
                         }
@@ -180,8 +177,28 @@ async function createAPP(dd) {
                     req.headers['g-app'] = appName;
                     const start = new Date().getTime();
                     console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
+                    await public_table_check_js_1.ApiPublic.createScheme(appName);
+                    const find_app = public_table_check_js_1.ApiPublic.app301.find(dd => {
+                        return dd.app_name === appName;
+                    });
+                    if (find_app) {
+                        const router = find_app.router.find(dd => {
+                            if (dd.legacy_url.startsWith('/')) {
+                                dd.legacy_url = dd.legacy_url.substring(1);
+                            }
+                            if (dd.new_url.startsWith('/')) {
+                                dd.new_url = dd.new_url.substring(1);
+                            }
+                            return dd.legacy_url === req.query.page;
+                        });
+                        if (router) {
+                            return {
+                                redirect: `https://${(await app_js_1.App.checkBrandAndMemberType(appName)).domain}/${router.new_url}`,
+                            };
+                        }
+                    }
                     let seo_content = [];
-                    let [customCode, FBCode, store_info, language_label, check_schema, brandAndMemberType, login_config, ip_country] = await Promise.all([
+                    let [customCode, FBCode, store_info, language_label, check_schema, brandAndMemberType, login_config, ip_country,] = await Promise.all([
                         new user_js_1.User(appName).getConfigV2({
                             key: 'ga4_config',
                             user_id: 'manager',
@@ -227,7 +244,7 @@ async function createAPP(dd) {
                                 page: req.query.page,
                             });
                         }
-                        else if (`${req.query.page}` === ('blogs')) {
+                        else if (`${req.query.page}` === 'blogs') {
                             const seo = await new user_js_1.User(req.get('g-app'), req.body.token).getConfigV2({
                                 key: 'article_seo_data_' + language,
                                 user_id: 'manager',
@@ -259,18 +276,20 @@ async function createAPP(dd) {
                         else if (['privacy', 'term', 'refund', 'delivery'].includes(`${req.query.page}`)) {
                             data.page_config.seo = {
                                 title: Language_js_1.Language.text(`${req.query.page}`, language),
-                                content: Language_js_1.Language.text(`${req.query.page}`, language)
+                                content: Language_js_1.Language.text(`${req.query.page}`, language),
                             };
                         }
                         else if (d.type !== 'custom') {
                             data = home_page_data;
                         }
-                        const preload = req.query.isIframe === 'true' ? {} : await app_js_1.App.preloadPageData(appName, req.query.page, language);
+                        const preload = req.query.isIframe === 'true'
+                            ? {}
+                            : await app_js_1.App.preloadPageData(appName, req.query.page, language);
                         data.page_config = (_c = data.page_config) !== null && _c !== void 0 ? _c : {};
                         data.page_config.seo = (_d = data.page_config.seo) !== null && _d !== void 0 ? _d : {};
                         const seo_detail = await getSeoDetail(appName, req);
                         if (seo_detail) {
-                            Object.keys(seo_detail).map((dd) => {
+                            Object.keys(seo_detail).map(dd => {
                                 data.page_config.seo[dd] = seo_detail[dd];
                             });
                         }
@@ -293,7 +312,8 @@ async function createAPP(dd) {
                                     localStorage.setItem('distributionCode','');
                                 `;
                         }
-                        if (req.query.page.split('/')[0] === 'distribution' && req.query.page.split('/')[1]) {
+                        if (req.query.page.split('/')[0] === 'distribution' &&
+                            req.query.page.split('/')[1]) {
                             distribution_code = await seo_config_js_1.SeoConfig.distributionSEO({
                                 appName: appName,
                                 url: req.url,
@@ -303,7 +323,8 @@ async function createAPP(dd) {
                                 language,
                             });
                         }
-                        if (req.query.page.split('/')[0] === 'collections' && req.query.page.split('/')[1]) {
+                        if (req.query.page.split('/')[0] === 'collections' &&
+                            req.query.page.split('/')[1]) {
                             await seo_config_js_1.SeoConfig.collectionSeo({ appName, language, data, page: req.query.page });
                         }
                         if (FBCode) {
@@ -315,20 +336,19 @@ async function createAPP(dd) {
                                 var _a;
                                 const d = data.page_config.seo;
                                 return html `
-                                        ${(() => {
+                    ${(() => {
                                     var _a, _b, _c;
                                     if (req.query.type === 'editor') {
                                         return seo_config_js_1.SeoConfig.editorSeo;
                                     }
                                     else {
-                                        return html `<title>${[
-                                            home_seo.title_prefix || '',
-                                            d.title || '',
-                                            home_seo.title_suffix || ''
-                                        ].join('') || '尚未設定標題'}</title>
-                                                    <link
-                                                        rel="canonical"
-                                                        href="${(() => {
+                                        return html `<title>
+                            ${[home_seo.title_prefix || '', d.title || '', home_seo.title_suffix || ''].join('') ||
+                                            '尚未設定標題'}
+                          </title>
+                          <link
+                            rel="canonical"
+                            href="${(() => {
                                             if (data.tag === 'index') {
                                                 return `https://${brandAndMemberType.domain}`;
                                             }
@@ -336,28 +356,43 @@ async function createAPP(dd) {
                                                 return `https://${brandAndMemberType.domain}/${data.tag}`;
                                             }
                                         })()}"
-                                                    />
-                                                    ${((data.tag !== req.query.page) || (req.query.page === 'index-mobile')) ? `<meta name="robots" content="noindex">` : `<meta name="robots" content="index, follow"/>`}
-                                                    <meta name="keywords" content="${(d.keywords || '尚未設定關鍵字').replace(/"/g, '&quot;')}" />
-                                                    <link id="appImage" rel="shortcut icon" href="${d.logo || home_seo.logo || ''}" type="image/x-icon" />
-                                                    <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128" />
-                                                    <meta property="og:image" content="${d.image || home_seo.image || ''}" />
-                                                    <meta property="og:title" content="${((_a = d.title) !== null && _a !== void 0 ? _a : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
-                                                    <meta name="description" content="${((_b = d.content) !== null && _b !== void 0 ? _b : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
-                                                    <meta name="og:description" content="${((_c = d.content) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
-                                             
-                                                ${[
-                                            { src: 'css/front-end.css', type: 'text/css' }
-                                        ]
-                                            .map((dd) => {
-                                            return html ` <link src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}" rel="stylesheet"></link>`;
+                          />
+                          ${data.tag !== req.query.page || req.query.page === 'index-mobile'
+                                            ? `<meta name="robots" content="noindex">`
+                                            : `<meta name="robots" content="index, follow"/>`}
+                          <meta name="keywords" content="${(d.keywords || '尚未設定關鍵字').replace(/"/g, '&quot;')}" />
+                          <link
+                            id="appImage"
+                            rel="shortcut icon"
+                            href="${d.logo || home_seo.logo || ''}"
+                            type="image/x-icon"
+                          />
+                          <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128" />
+                          <meta property="og:image" content="${d.image || home_seo.image || ''}" />
+                          <meta
+                            property="og:title"
+                            content="${((_a = d.title) !== null && _a !== void 0 ? _a : '').replace(/\n/g, '').replace(/"/g, '&quot;')}"
+                          />
+                          <meta
+                            name="description"
+                            content="${((_b = d.content) !== null && _b !== void 0 ? _b : '').replace(/\n/g, '').replace(/"/g, '&quot;')}"
+                          />
+                          <meta
+                            name="og:description"
+                            content="${((_c = d.content) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '').replace(/"/g, '&quot;')}"
+                          />
+
+                          ${[{ src: 'css/front-end.css', type: 'text/css' }]
+                                            .map(dd => {
+                                            return html `
+                              <link href="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"
+                                    rel="stylesheet"></link>`;
                                         })
-                                            .join('')}
-                                                `;
+                                            .join('')} `;
                                     }
                                 })()}
-                                        ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
-                                        ${(() => {
+                    ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
+                    ${(() => {
                                     var _a;
                                     if (req.query.type === 'editor') {
                                         return ``;
@@ -368,12 +403,12 @@ async function createAPP(dd) {
                                             try {
                                                 if (dd.data.elem === 'link') {
                                                     return html ` <link
-                                                                    type="text/css"
-                                                                    rel="stylesheet"
-                                                                    href="${dd.data.attr.find((dd) => {
+                                  type="text/css"
+                                  rel="stylesheet"
+                                  href="${dd.data.attr.find((dd) => {
                                                         return dd.attr === 'href';
                                                     }).value}"
-                                                                />`;
+                                />`;
                                                 }
                                             }
                                             catch (e) {
@@ -383,7 +418,7 @@ async function createAPP(dd) {
                                             .join('')}`;
                                     }
                                 })()}
-                                    `;
+                  `;
                             })(),
                             `<script>
                                 ${[
@@ -404,13 +439,14 @@ async function createAPP(dd) {
                                 `window.ip_country = '${ip_country.country || 'TW'}';`,
                                 `window.currency_covert = ${JSON.stringify(await shopping_js_1.Shopping.currencyCovert((req.query.base || 'TWD')))};`,
                                 `window.language_list = ${JSON.stringify(language_label.label)};`,
-                                `window.home_seo=${JSON.stringify(home_seo).replace(/<\/script>/g, 'sdjuescript_prepand')
-                                    .replace(/<script>/g, 'sdjuescript_prefix')};`
+                                `window.home_seo=${JSON.stringify(home_seo)
+                                    .replace(/<\/script>/g, 'sdjuescript_prepand')
+                                    .replace(/<script>/g, 'sdjuescript_prefix')};`,
                             ]
-                                .map((dd) => {
+                                .map(dd => {
                                 return (dd || '').trim();
                             })
-                                .filter((dd) => {
+                                .filter(dd => {
                                 return dd;
                             })
                                 .join(';\n')}
@@ -422,8 +458,11 @@ async function createAPP(dd) {
                                 { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
                                 { src: 'api/pageConfig.js', type: 'module' },
                             ]
-                                .map((dd) => {
-                                return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
+                                .map(dd => {
+                                return html ` <script
+                                  src="/${link_prefix && `${link_prefix}/`}${dd.src}"
+                                  type="${dd.type}"
+                                ></script>`;
                             })
                                 .join('')}
                             ${((_f = preload.event) !== null && _f !== void 0 ? _f : [])
@@ -442,15 +481,15 @@ async function createAPP(dd) {
                                 }
                                 else {
                                     return html `
-                                        ${seo_config_js_1.SeoConfig.gA4(customCode.ga4)} ${seo_config_js_1.SeoConfig.gTag(customCode.g_tag)}
-                                        ${seo_content
-                                        .map((dd) => {
+                                  ${seo_config_js_1.SeoConfig.gA4(customCode.ga4)} ${seo_config_js_1.SeoConfig.gTag(customCode.g_tag)}
+                                  ${seo_content
+                                        .map(dd => {
                                         return dd.trim();
                                     })
                                         .join('\n')}
-                                    `;
+                                `;
                                 }
-                            })()}`
+                            })()}`,
                         ].join('');
                         return {
                             head: head,
@@ -484,12 +523,12 @@ async function createAPP(dd) {
                     limit: 10000,
                 });
                 const domain = (await database_2.default.query(`select \`domain\`
-                             from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                             where appName = ?`, [appName]))[0]['domain'];
+               from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+               where appName = ?`, [appName]))[0]['domain'];
                 const site_map = await getSeoSiteMap(appName, req);
                 const cols = (_a = (await database_2.default.query(`SELECT *
-                                 FROM \`${appName}\`.public_config
-                                 WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
+                 FROM \`${appName}\`.public_config
+                 WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
                 const language_setting = (await new user_js_1.User(appName).getConfigV2({
                     key: 'store-information',
                     user_id: 'manager',
@@ -516,10 +555,10 @@ async function createAPP(dd) {
                 const stream = new sitemap_1.SitemapStream({ hostname: `https://${domain}` });
                 const xml = await (0, sitemap_1.streamToPromise)(stream_1.Readable.from([
                     ...(await database_2.default.query(`select page_config, tag, updated_time
-                             from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                             where appName = ?
-                               and page_config ->>'$.seo.type'='custom'
-                            `, [appName])).map((d2) => {
+                     from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                     where appName = ?
+                       and page_config ->>'$.seo.type'='custom'
+                    `, [appName])).map((d2) => {
                         if (d2.tag === 'index') {
                             return { url: `https://${domain}`, changefreq: 'weekly' };
                         }
@@ -545,7 +584,12 @@ async function createAPP(dd) {
                         let array = [];
                         (0, seo_config_js_1.extractCols)(cols).map((item) => {
                             array = array.concat(language_setting.support.map((d1) => {
-                                const seo = (item.language_data && item.language_data[d1] && item.language_data[d1].seo && item.language_data[d1].seo.domain) || item.code || item.title;
+                                const seo = (item.language_data &&
+                                    item.language_data[d1] &&
+                                    item.language_data[d1].seo &&
+                                    item.language_data[d1].seo.domain) ||
+                                    item.code ||
+                                    item.title;
                                 if (d1 === language_setting.def) {
                                     return { url: `https://${domain}/collections/${seo}`, changefreq: 'weekly' };
                                 }
@@ -570,7 +614,11 @@ async function createAPP(dd) {
                         product.map((dd) => {
                             dd = dd.content;
                             array = array.concat(language_setting.support.map((d1) => {
-                                const seo = (dd.language_data && dd.language_data[d1] && dd.language_data[d1].seo && dd.language_data[d1].seo.domain) || dd.seo.domain;
+                                const seo = (dd.language_data &&
+                                    dd.language_data[d1] &&
+                                    dd.language_data[d1].seo &&
+                                    dd.language_data[d1].seo.domain) ||
+                                    dd.seo.domain;
                                 if (d1 === language_setting.def) {
                                     return { url: `https://${domain}/products/${seo}`, changefreq: 'weekly' };
                                 }
@@ -590,11 +638,11 @@ async function createAPP(dd) {
                         });
                         return array;
                     })(),
-                ].filter((dd) => {
+                ]
+                    .filter(dd => {
                     return dd.url !== `https://${domain}/blogs`;
-                }).concat([
-                    { url: `https://${domain}/blogs`, changefreq: 'weekly' }
-                ])).pipe(stream)).then((data) => data.toString());
+                })
+                    .concat([{ url: `https://${domain}/blogs`, changefreq: 'weekly' }])).pipe(stream)).then((data) => data.toString());
                 return xml;
             },
             sitemap_list: async (req, resp) => {
@@ -603,8 +651,8 @@ async function createAPP(dd) {
                     appName = req.query.appName;
                 }
                 const domain = (await database_2.default.query(`select \`domain\`
-                             from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                             where appName = ?`, [appName]))[0]['domain'];
+               from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+               where appName = ?`, [appName]))[0]['domain'];
                 return `<?xml version="1.0" encoding="UTF-8"?>
                     <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
                         <!-- This is the parent sitemap linking to additional sitemaps for products, collections and pages as shown below. The sitemap can not be edited manually, but is kept up to date in real time. -->
@@ -624,9 +672,11 @@ async function createAPP(dd) {
                 });
                 robots.text = robots.text || '';
                 const domain = (await database_2.default.query(`select \`domain\`
-                             from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                             where appName = ?`, [appName]))[0]['domain'];
-                return robots.text.replace(/\s+/g, '').replace(/\n/g, '') ? robots.text : html `User-agent: * Allow: / Sitemap: https://${domain}/sitemap.xml`;
+               from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+               where appName = ?`, [appName]))[0]['domain'];
+                return robots.text.replace(/\s+/g, '').replace(/\n/g, '')
+                    ? robots.text
+                    : html `User-agent: * Allow: / Sitemap: https://${domain}/sitemap.xml`;
             },
             tw_shop: async (req, resp) => {
                 let appName = dd.appName;
@@ -638,42 +688,42 @@ async function createAPP(dd) {
                         '"': '&quot;',
                         "'": '&#039;',
                     };
-                    return text.replace(/[&<>"']/g, (m) => map[m] || m);
+                    return text.replace(/[&<>"']/g, m => map[m] || m);
                 };
                 if (req.query.appName) {
                     appName = req.query.appName;
                 }
                 const products = await database_2.default.query(`SELECT *
-                         FROM \`${dd.appName}\`.t_manager_post
-                         WHERE JSON_EXTRACT(content, '$.type') = 'product';
-                        `, []);
+             FROM \`${dd.appName}\`.t_manager_post
+             WHERE JSON_EXTRACT(content, '$.type') = 'product';
+            `, []);
                 const domain = (await database_2.default.query(`select \`domain\`
-                             from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                             where appName = ?`, [appName]))[0]['domain'];
+               from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+               where appName = ?`, [appName]))[0]['domain'];
                 let printData = products
                     .map((product) => {
                     return product.content.variants
                         .map((variant) => {
                         var _a, _b;
                         return html `
-                                        <Product>
-                                            <SKU>${variant.sku}</SKU>
-                                            <Name>${product.content.title}</Name>
-                                            <Description>${dd.appName} - ${product.content.title}</Description>
-                                            <URL> ${`https://` + domain + '/products/' + product.content.title}</URL>
-                                            <Price>${(_a = variant.compare_price) !== null && _a !== void 0 ? _a : variant.sale_price}</Price>
-                                            <LargeImage> ${(_b = variant.preview_image) !== null && _b !== void 0 ? _b : ''}</LargeImage>
-                                            <SalePrice>${variant.sale_price}</SalePrice>
-                                            <Category>${product.content.collection.join('')}</Category>
-                                        </Product>
-                                    `;
+                    <Product>
+                      <SKU>${variant.sku}</SKU>
+                      <Name>${product.content.title}</Name>
+                      <Description>${dd.appName} - ${product.content.title}</Description>
+                      <URL> ${`https://` + domain + '/products/' + product.content.title}</URL>
+                      <Price>${(_a = variant.compare_price) !== null && _a !== void 0 ? _a : variant.sale_price}</Price>
+                      <LargeImage> ${(_b = variant.preview_image) !== null && _b !== void 0 ? _b : ''}</LargeImage>
+                      <SalePrice>${variant.sale_price}</SalePrice>
+                      <Category>${product.content.collection.join('')}</Category>
+                    </Product>
+                  `;
                     })
                         .join('');
                 })
                     .join('');
                 return (0, xml_formatter_1.default)(`<Product>${printData}</Product>`, {
                     indentation: '  ',
-                    filter: (node) => node.type !== 'Comment',
+                    filter: node => node.type !== 'Comment',
                     collapseContent: true,
                 });
             },
@@ -711,7 +761,7 @@ async function getSeoDetail(appName, req) {
         const evalString = `
                 return {
                 execute:(${functionValue
-            .map((d2) => {
+            .map(d2 => {
             return d2.key;
         })
             .join(',')})=>{
@@ -753,7 +803,7 @@ async function getSeoSiteMap(appName, req) {
         const evalString = `
                 return {
                 execute:(${functionValue
-            .map((d2) => {
+            .map(d2 => {
             return d2.key;
         })
             .join(',')})=>{

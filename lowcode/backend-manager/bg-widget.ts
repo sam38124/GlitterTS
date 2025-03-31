@@ -12,9 +12,9 @@ import { FormCheck } from '../cms-plugin/module/form-check.js';
 import { Language } from '../glitter-base/global/language.js';
 import { ProductAi } from '../cms-plugin/ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
+import { Animation } from '../glitterBundle/module/Animation.js';
 
 const html = String.raw;
-const css = String.raw;
 
 type MenuItem = {
   name: string;
@@ -30,16 +30,18 @@ type CollecrtionItem = {
   code: string;
 };
 
+type TData = {
+  key: string;
+  title?: string;
+  value: string;
+  stopClick?: boolean;
+};
+
 type TableV3 = {
   loading: boolean;
   page: number;
   pageSize: number;
-  tableData: {
-    key: string;
-    title?: string;
-    value: string;
-    stopClick?: boolean;
-  }[][];
+  tableData: TData[][];
   originalData: any;
   callback: () => void;
   checkedArray: any[];
@@ -214,7 +216,7 @@ export class BgWidget {
     </button>`;
   }
 
-  static grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string,class?:string }) {
+  static grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string; class?: string }) {
     return html` <button class="btn btn-gray ${obj?.class || ''}" style="" type="button" onclick="${event}">
       <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
       ${text.length > 0 ? html`<span class="tx_700" style="${obj?.textStyle ?? ''}">${text}</span>` : ''}
@@ -458,62 +460,105 @@ export class BgWidget {
   }
 
   // 標籤
-  static primaryInsignia(text: string) {
-    return html` <div class="insignia insignia-primary">${text}</div>`;
+  static insignia(className: string, text: string, args: { type: 'fill' | 'border'; size: 'sm' | 'md' }) {
+    const typeMap = {
+      border: `insignia-border insignia-${className}-border`,
+      fill: `insignia-${className}`,
+    };
+
+    const sizeMap = {
+      sm: 'insignia insignia-sm',
+      md: 'insignia',
+    };
+
+    return html` <div class="${sizeMap[args.size] ?? sizeMap.md} ${typeMap[args.type] ?? typeMap.fill}">${text}</div>`;
   }
 
-  static successInsignia(text: string) {
-    return html` <div class="insignia insignia-success">${text}</div>`;
+  static primaryInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('primary', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static dangerInsignia(text: string) {
-    return html` <div class="insignia insignia-danger">${text}</div>`;
+  static successInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('success', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static infoInsignia(text: string) {
-    return html` <div class="insignia insignia-info">${text}</div>`;
+  static dangerInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('danger', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static warningInsignia(text: string) {
-    return html` <div class="insignia insignia-warning">${text}</div>`;
+  static infoInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('info', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static normalInsignia(text: string) {
-    return html` <div class="insignia insignia-normal">${text}</div>`;
+  static warningInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('warning', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static notifyInsignia(text: string) {
-    return html` <div class="insignia insignia-notify">${text}</div>`;
+  static normalInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('normal', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
   }
 
-  static secondaryInsignia(text: string) {
-    return html` <div class="insignia insignia-secondary">${text}</div>`;
+  static notifyInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('notify', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
+  }
+
+  static secondaryInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('secondary', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
+  }
+
+  static languageInsignia(language: 'en-US' | 'zh-CN' | 'zh-TW', style?: string) {
+    switch (language) {
+      case 'zh-TW':
+        return html` <div class="insignia insignia-sm" style="background: #ffe9b2; ${style || ''};">
+          ${Language.getLanguageText({
+            local: true,
+            compare: language,
+          })}
+        </div>`;
+      case 'en-US':
+        return html` <div class="insignia insignia-sm" style="background: #D8E7EC; ${style || ''};">
+          ${Language.getLanguageText({
+            local: true,
+            compare: language,
+          })}
+        </div>`;
+      case 'zh-CN':
+        return html` <div class="insignia insignia-sm" style="background: #FFD5D0; ${style || ''};">
+          ${Language.getLanguageText({
+            local: true,
+            compare: language,
+          })}
+        </div>`;
+    }
   }
 
   // 元素
   static leftLineBar() {
     return html` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
-  }
-
-  //
-  static languageInsignia(language: 'en-US' | 'zh-CN' | 'zh-TW', style?: string) {
-    switch (language) {
-      case 'zh-TW':
-        return `  <div class="insignia " style="background: #ffe9b2;${style || ''};">${Language.getLanguageText({
-          local: true,
-          compare: language,
-        })}</div>`;
-      case 'en-US':
-        return `  <div class="insignia " style="background: #D8E7EC;${style || ''};">${Language.getLanguageText({
-          local: true,
-          compare: language,
-        })}</div>`;
-      case 'zh-CN':
-        return `  <div class="insignia " style="background: #FFD5D0;${style || ''};">${Language.getLanguageText({
-          local: true,
-          compare: language,
-        })}</div>`;
-    }
   }
 
   static horizontalLine(css: { color?: string; size?: number; margin?: number | string } = {}) {
@@ -569,11 +614,7 @@ export class BgWidget {
     let save = () => {
       let stack_list: any = [];
       for (const b of vm.language_list.label) {
-        if (
-          stack_list.find((dd: any) => {
-            return dd.tag === b.tag;
-          })
-        ) {
+        if (stack_list.find((dd: any) => dd.tag === b.tag)) {
           return dialog.errorMessage({ text: `偵測到重複代號『${b.tag}』` });
         } else if (!b.tag) {
           return dialog.errorMessage({ text: `請輸入標籤` });
@@ -1470,31 +1511,33 @@ ${obj.default ?? ''}</textarea
     default: string;
     options: OptionsItem[];
     style?: string;
+    title?: string;
     readonly?: boolean;
     place_holder?: string;
   }) {
-    return html`<select
-      class="c_select c_select_w_100"
-      style="${obj.style ?? ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
-      onchange="${obj.gvc.event(e => {
-        obj.callback(e.value);
-      })}"
-      ${obj.readonly ? 'disabled' : ''}
-    >
-      ${obj.gvc.map(
-        obj.options.map(
-          opt =>
-            html` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>
-              ${opt.value}
-            </option>`
-        )
-      )}
-      ${(obj.options as any).find((opt: any) => {
-        return obj.default === opt.key;
-      })
-        ? ``
-        : `<option class="d-none" selected>${obj.place_holder || `請選擇項目`}</option>`}
-    </select>`;
+    return html` ${obj.title ? html` <div class="tx_normal fw-normal mb-2">${obj.title}</div>` : ``}
+      <select
+        class="c_select c_select_w_100"
+        style="${obj.style ?? ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
+        onchange="${obj.gvc.event(e => {
+          obj.callback(e.value);
+        })}"
+        ${obj.readonly ? 'disabled' : ''}
+      >
+        ${obj.gvc.map(
+          obj.options.map(
+            opt =>
+              html` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>
+                ${opt.value}
+              </option>`
+          )
+        )}
+        ${(obj.options as any).find((opt: any) => {
+          return obj.default === opt.key;
+        })
+          ? ``
+          : `<option class="d-none" selected>${obj.place_holder || `請選擇項目`}</option>`}
+      </select>`;
   }
 
   // 頁面
@@ -1877,6 +1920,7 @@ ${obj.default ?? ''}</textarea
     itemSelect?: () => void;
     tabClick?: (vm: TableV3) => void;
     filterCallback?: (data: any) => void; // 批量點擊回傳資料陣列
+    windowTarget?: Window;
   }) {
     const gvc = obj.gvc;
     const glitter = gvc.glitter;
@@ -1965,12 +2009,14 @@ ${obj.default ?? ''}</textarea
                 def: vm.originalData.every((item: any) => item.checked),
                 callback: result => renderRowCheckbox(result),
                 stopChangeView: changeView,
+                style: 'justify-content: end !important;',
               });
             }
 
             // 表頭位置設定
             function changeHeaderStyle() {
-              const target = document.querySelector(`[gvc-id="${gvc.id(ids.header)}"]`) as HTMLElement;
+              const key = `[gvc-id="${gvc.id(ids.header)}"]`;
+              const target = (obj.windowTarget ?? window).document.querySelector(key) as HTMLElement;
               if (!target) return;
 
               const checked = vm.originalData.find((dd: any) => dd.checked);
@@ -2010,6 +2056,7 @@ ${obj.default ?? ''}</textarea
                           gvc: gvc,
                           def: checkedMap.get(`${vm.page}-${index}`)?.checked,
                           callback: result => checkEvent(index, result),
+                          style: 'justify-content: end !important;',
                         }),
                         stopClick: true,
                       },
@@ -2240,7 +2287,7 @@ ${obj.default ?? ''}</textarea
 
                   tr?.querySelectorAll('td').forEach((td: any, index: number) => {
                     if (checkbox && index === 0) {
-                      widthList[index] = 60;
+                      widthList[index] = 40;
                     } else {
                       widthList[index] = Math.ceil(
                         td.offsetWidth > widthList[index] ? td.offsetWidth : widthList[index]
@@ -2277,12 +2324,12 @@ ${obj.default ?? ''}</textarea
   // 容器
   static getContainerWidth = (obj?: { rate?: { web?: number; pad?: number; phone?: number } }) => {
     const clientWidth = document.body.clientWidth;
-    const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.79;
+    const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.95;
     const rateForPad = obj && obj.rate && obj.rate.pad ? obj.rate.pad : 0.92;
     const rateForPhone = obj && obj.rate && obj.rate.phone ? obj.rate.phone : 0.95;
     const width = (() => {
       if (clientWidth >= 1440) {
-        return 1440 * rateForWeb;
+        return clientWidth * rateForWeb;
       }
       if (clientWidth >= 1200) {
         return 1200 * rateForWeb;
@@ -2302,7 +2349,7 @@ ${obj.default ?? ''}</textarea
     }
   ) {
     return html` <div
-      class=" mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0 mt-2'}"
+      class=" mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0'}"
       style="max-width: 100%; width: ${this.getContainerWidth()}px; ${obj?.style ?? ''}"
     >
       ${htmlString}
@@ -2780,7 +2827,7 @@ ${obj.default ?? ''}</textarea
       height: 40px !important;
       border-radius: 10px;
       background: linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), #fff;
-      padding: 0 20px;
+      padding: 0 16.25px;
       ${document.body.clientWidth > 768 ? `width: 100%;` : `width: calc(100vw - 24px); `}
     `;
     return html`
@@ -2792,10 +2839,10 @@ ${obj.default ?? ''}</textarea
       >
         <div style="display: flex; align-items: center; font-size: 14px; color: #393939;">
           ${data.checkbox ?? ''}
-          <span style="margin-left: 24px; font-weight: 700;">已選取${data.count}項</span>
+          <span style="margin-left: 0.5rem; font-weight: 700;">已選取${data.count}項</span>
           ${data.cancelCallback
             ? html`<span
-                style="margin-left: 12px; cursor: pointer; color: #4D86DB;"
+                style="margin-left: 0.5rem; cursor: pointer; color: #4D86DB;"
                 onclick="${data.cancelCallback.gvc.event(() => data.cancelCallback?.event())}"
                 >全部取消選取</span
               >`
@@ -4127,58 +4174,63 @@ ${obj.default ?? ''}</textarea
       }
       return glitter;
     })();
-    return (glitter as any).innerDialog((gvc: GVC) => {
-      const vm = {
-        id: obj.gvc.glitter.getUUID(),
-        loading: false,
-      };
-
-      return html` <div
-        class="bg-white shadow rounded-3"
-        style="overflow-y: auto; ${document.body.clientWidth > 768
-          ? `width: ${obj.width ?? 600}px;max-width:calc(100vw - 20px);`
-          : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
-      >
-        ${gvc.bindView({
-          bind: vm.id,
-          view: () => {
-            const footer = obj.footer_html(gvc) ?? '';
-            if (vm.loading) {
-              return html` <div class="my-4">${this.spinner()}</div>`;
-            }
-            return html` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
-              <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                <div class="tx_700">${obj.title ?? '產品列表'}</div>
-                <div class="flex-fill"></div>
-                <i
-                  class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
-                  onclick="${gvc.event(() => {
-                    if (obj.closeCallback) {
-                      obj.closeCallback();
-                    }
-                    gvc.closeDialog();
-                  })}"
-                ></i>
-              </div>
-              <div class="c_dialog">
-                <div class="c_dialog_body">
-                  <div
-                    class="c_dialog_main"
-                    style="${obj.d_main_style || ''};gap: 24px; ${obj.height
-                      ? `height:${obj.height}px;max-height: 100vh;`
-                      : `height:auto;max-height: 500px;`} "
-                  >
-                    ${obj.innerHTML(gvc) ?? ''}
-                  </div>
-                  ${footer ? `<div class="c_dialog_bar">${footer}</div>` : ``}
+    return (glitter as any).innerDialog(
+      (gvc: GVC) => {
+        const vm = {
+          id: obj.gvc.glitter.getUUID(),
+          loading: false,
+        };
+        return html` <div
+          class="bg-white shadow rounded-3"
+          style="overflow-y: auto; ${document.body.clientWidth > 768
+            ? `width: ${obj.width ?? 600}px;max-width:calc(100vw - 20px);`
+            : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
+        >
+          ${gvc.bindView({
+            bind: vm.id,
+            view: () => {
+              const footer = obj.footer_html(gvc) ?? '';
+              if (vm.loading) {
+                return html` <div class="my-4">${this.spinner()}</div>`;
+              }
+              return html` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
+                <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                  <div class="tx_700">${obj.title ?? '產品列表'}</div>
+                  <div class="flex-fill"></div>
+                  <i
+                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                    onclick="${gvc.event(() => {
+                      if (obj.closeCallback) {
+                        obj.closeCallback();
+                      }
+                      gvc.closeDialog();
+                    })}"
+                  ></i>
                 </div>
-              </div>
-            </div>`;
-          },
-          onCreate: () => {},
-        })}
-      </div>`;
-    }, obj.gvc.glitter.getUUID());
+                <div class="c_dialog">
+                  <div class="c_dialog_body">
+                    <div
+                      class="c_dialog_main"
+                      style="${obj.d_main_style || ''};gap: 24px; ${obj.height
+                        ? `height:${obj.height}px;max-height: 100vh;`
+                        : `height:auto;max-height: 500px;`} "
+                    >
+                      ${obj.innerHTML(gvc) ?? ''}
+                    </div>
+                    ${footer ? `<div class="c_dialog_bar">${footer}</div>` : ``}
+                  </div>
+                </div>
+              </div>`;
+            },
+            onCreate: () => {},
+          })}
+        </div>`;
+      },
+      obj.gvc.glitter.getUUID(),
+      {
+        animation: Animation.fade,
+      }
+    );
   }
 
   static dialog(obj: {
@@ -4579,7 +4631,14 @@ ${obj.default ?? ''}</textarea
           divCreate: {
             class: 'h-100',
           },
-          onCreate: () => {},
+          onCreate: () => {
+            if (vm.loading) {
+              setTimeout(() => {
+                vm.loading = false;
+                gvc.notifyDataChange(vm.id);
+              }, 300);
+            }
+          },
         })}
       </div>`;
     }, obj.gvc.glitter.getUUID());
@@ -4614,70 +4673,70 @@ ${obj.default ?? ''}</textarea
   }
 
   static getCheckedClass(gvc: GVC, color?: string) {
-    const className = 'checked-image';
+    const className = color ? 'checked-image' : 'checked-image-readonly';
     gvc.addStyle(`
-            .${className} {
-                min-width: 1.25rem;
-                min-height: 1.25rem;
-            }
-            .${className}:checked[type='checkbox'] {
-                border: 2px solid ${color ?? '#000'};
-                background-color: #fff;
-                background-image: url(${this.checkedDataImage(color ?? '#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.25rem;
+        min-height: 1.25rem;
+      }
+      .${className}:checked[type='checkbox'] {
+        border: 2px solid ${color ?? '#000'};
+        background-color: #fff;
+        background-image: url(${this.checkedDataImage(color ?? '#000')});
+        background-position: center center;
+      }
+    `);
     return className;
   }
 
   static getSquareClass(gvc: GVC, color?: string) {
-    const className = 'square-image';
+    const className = color ? 'square-image' : 'square-image-readonly';
     gvc.addStyle(`
-            .${className} {
-                min-width: 1.25rem;
-                min-height: 1.25rem;
-                border: 0;
-                background-color: #fff;
-                background-image: url(${this.squareDataImage(color ?? '#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.25rem;
+        min-height: 1.25rem;
+        border: 0;
+        background-color: #fff;
+        background-image: url(${this.squareDataImage(color ?? '#000')});
+        background-position: center center;
+      }
+    `);
     return className;
   }
 
   static getDarkDotClass(gvc: GVC) {
     const className = 'dark-dot-image';
     gvc.addStyle(`
-            .${className} {
-                min-width: 1.15rem;
-                min-height: 1.15rem;
-                margin-right: 4px;
-            }
-            .${className}:checked[type='radio'] {
-                border: 2px solid #000;
-                background-color: #fff;
-                background-image: url(${this.darkDotDataImage('#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.15rem;
+        min-height: 1.15rem;
+        margin-right: 4px;
+      }
+      .${className}:checked[type='radio'] {
+        border: 2px solid #000;
+        background-color: #fff;
+        background-image: url(${this.darkDotDataImage('#000')});
+        background-position: center center;
+      }
+    `);
     return className;
   }
 
   static getWhiteDotClass(gvc: GVC, color?: string) {
-    const className = 'white-dot-image';
+    const className = color ? 'white-dot-image' : 'white-dot-image-readonly';
     gvc.addStyle(`
-            .${className} {
-                min-width: 1.15rem;
-                min-height: 1.15rem;
-                margin-right: 4px;
-            }
-            .${className}:checked[type='radio'] {
-                border: 0px solid #000;
-                background-color: #fff;
-                background-image: url(${this.whiteDotDataImage(color ?? '#000')});
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1.15rem;
+        min-height: 1.15rem;
+        margin-right: 4px;
+      }
+      .${className}:checked[type='radio'] {
+        border: 0px solid #000;
+        background-color: #fff;
+        background-image: url(${this.whiteDotDataImage(color ?? '#000')});
+        background-position: center center;
+      }
+    `);
     return className;
   }
 
@@ -4708,16 +4767,16 @@ ${obj.default ?? ''}</textarea
       url: this.noImageURL,
     };
     const wh = `
-            display: flex;
-            min-width: ${obj.width}px;
-            min-height: ${obj.height ?? obj.width}px;
-            max-width: ${obj.width}px;
-            max-height: ${obj.height ?? obj.width}px;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-        `;
+      display: flex;
+      min-width: ${obj.width}px;
+      min-height: ${obj.height ?? obj.width}px;
+      max-width: ${obj.width}px;
+      max-height: ${obj.height ?? obj.width}px;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    `;
     return obj.gvc.bindView({
       bind: imageVM.id,
       view: () => {
@@ -5070,8 +5129,8 @@ ${obj.default ?? ''}</textarea
                   BgWidget.fullDialog({
                     gvc: gvc,
                     title: gvc2 => {
-                      return `<div class="d-flex align-items-center" style="gap:10px;">${
-                        obj.title +
+                      return html`<div class="d-flex align-items-center" style="gap:10px;">
+                        ${obj.title +
                         BgWidget.aiChatButton({
                           gvc: gvc2,
                           select: 'writer',
@@ -5082,8 +5141,8 @@ ${obj.default ?? ''}</textarea
                               gvc2.recreateView();
                             });
                           },
-                        })
-                      }</div>`;
+                        })}
+                      </div>`;
                     },
                     innerHTML: gvc2 => {
                       return html` <div>
@@ -5104,7 +5163,7 @@ ${obj.default ?? ''}</textarea
                                 if (urlArray.length > 0) {
                                   const imgHTML = urlArray
                                     .map(url => {
-                                      return html` <img src="${url.data}" />`;
+                                      return html`<img src="${url.data}" class="p-0 my-0" />`;
                                     })
                                     .join('');
                                   editor.html.set(
@@ -5201,8 +5260,8 @@ ${obj.default ?? ''}</textarea
                   FormCheck.initialRecipientForm(form_formats[b.key].list);
                 } else if (b.key === 'customer_form_user_setting') {
                   FormCheck.initialUserForm(form_formats[b.key].list);
-                }else if(b.key.includes('form_delivery_')){
-                  FormCheck.initial_shipment_form(form_formats[b.key].list)
+                } else if (b.key.includes('form_delivery_')) {
+                  FormCheck.initial_shipment_form(form_formats[b.key].list);
                 }
                 form_formats[b.key].list.map((dd: any) => {
                   dd.toggle = false;

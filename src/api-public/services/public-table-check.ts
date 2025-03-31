@@ -12,6 +12,9 @@ export class ApiPublic {
   public static checkedApp: { app_name: string; refer_app: string }[] = [];
   //正在檢查更新的APP
   public static checkingApp: { app_name: string; refer_app: string }[] = [];
+  //301轉址
+  public static app301:{ app_name: string; router: {legacy_url:string,new_url:string}[] }[] = [];
+
 
   public static async createScheme(appName: string) {
     //已通過則直接回傳執行
@@ -22,23 +25,31 @@ export class ApiPublic {
     ) {
       return;
     }
+
     //已經正在檢查中的話，等檢查結束
     if (
-      ApiPublic.checkedApp.find(dd => {
+      ApiPublic.checkingApp.find(dd => {
         return dd.app_name === appName;
       })
     ) {
-      await new Promise(resolve => {
+      const result=await new Promise(resolve => {
         const interval = setInterval(() => {
           if(ApiPublic.checkedApp.find(dd => {
             return dd.app_name === appName;
           })){
             resolve(true);
             clearInterval(interval);
+          }else if(!(ApiPublic.checkingApp.find(dd => {
+            return dd.app_name === appName;
+          }))){
+            resolve(false);
+            clearInterval(interval);
           }
         }, 500);
       });
-      return;
+      if(result){
+        return
+      }
     }
     ApiPublic.checkingApp.push({
       app_name: appName,
@@ -290,7 +301,7 @@ export class ApiPublic {
         {
           scheme: appName,
           table: 't_user',
-          sql: ` (
+          sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`userID\` int NOT NULL,
   \`account\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -302,14 +313,17 @@ export class ApiPublic {
   \`status\` int NOT NULL DEFAULT '1',
   \`online_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`static_info\` json DEFAULT NULL,
+  \`member_level\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (\`id\`,\`userID\`,\`account\`),
   UNIQUE KEY \`account_UNIQUE\` (\`account\`),
   UNIQUE KEY \`userID_UNIQUE\` (\`userID\`),
   KEY \`index5\` (\`company\`),
   KEY \`index6\` (\`role\`),
-  KEY \`index4\` (\`status\`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  KEY \`index4\` (\`status\`),
+  KEY \`index7\` (\`member_level\`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.2'`,
         },
+
         {
           scheme: appName,
           table: 't_checkout',
@@ -331,6 +345,16 @@ export class ApiPublic {
   \`offset_amount\` int DEFAULT NULL,
   \`offset_reason\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`offset_records\` json DEFAULT NULL,
+  \`reconciliation_date\` datetime DEFAULT NULL,
+  \`order_source\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`archived\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`customer_name\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`shipment_name\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`customer_email\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`shipment_email\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`customer_phone\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`shipment_phone\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`shipment_address\` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`cart_token_UNIQUE\` (\`cart_token\`),
   KEY \`index3\` (\`email\`),
@@ -344,8 +368,18 @@ export class ApiPublic {
   KEY \`index11\` (\`shipment_number\`),
   KEY \`index12\` (\`total_received\`),
   KEY \`index13\` (\`offset_amount\`),
-  KEY \`index14\` (\`offset_reason\`)
-) ENGINE=InnoDB AUTO_INCREMENT=32939 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.6'`,
+  KEY \`index14\` (\`offset_reason\`),
+  KEY \`index15\` (\`reconciliation_date\`),
+  KEY \`index16\` (\`order_source\`),
+  KEY \`index17\` (\`customer_name\`),
+  KEY \`index18\` (\`order_source\`),
+  KEY \`index19\` (\`shipment_name\`),
+  KEY \`index20\` (\`customer_email\`),
+  KEY \`index21\` (\`shipment_email\`),
+  KEY \`index22\` (\`customer_phone\`),
+  KEY \`index23\` (\`shipment_phone\`),
+  KEY \`index24\` (\`shipment_address\`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.9'`,
         },
         {
           scheme: appName,
@@ -715,12 +749,20 @@ export class ApiPublic {
           }
         });
       }
-      //AI客服的設定
-      await AiRobot.syncAiRobot(appName);
+      //AI客服的設定，*注意*異步避免chat-gpt異常
+      AiRobot.syncAiRobot(appName);
       //舊版未分倉庫的資料格式，改成有分倉庫的資料格式
       await ApiPublic.migrateVariants(appName);
       //檢查資料庫更新
       await UpdatedTableChecked.startCheck(appName);
+      //賽入301轉址判斷
+      ApiPublic.app301.push({
+        app_name:appName,
+        router:(await new User(appName).getConfigV2({
+          key:'domain_301',
+          user_id:'manager'
+        })).list ?? []
+      })
       //更新檢查通過，推入可執行
       ApiPublic.checkedApp.push({
         app_name: appName,
@@ -733,10 +775,12 @@ export class ApiPublic {
           )
         )[0]['refer_app'],
       });
+
     } catch (e) {
       console.error(e);
-      ApiPublic.checkedApp = ApiPublic.checkedApp.filter(dd => {
-        return dd.app_name === appName;
+      //移除檢查中狀態
+      ApiPublic.checkingApp = ApiPublic.checkingApp.filter(dd => {
+        return dd.app_name !== appName;
       });
     }
   }

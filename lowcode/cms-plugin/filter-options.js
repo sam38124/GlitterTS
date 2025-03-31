@@ -25,6 +25,7 @@ export class FilterOptions {
                     }
                 });
             });
+            const levelData = (yield ApiUser.getPublicConfig('member_level_config', 'manager')).response.value.levels;
             return [
                 {
                     key: 'created_time',
@@ -62,6 +63,14 @@ export class FilterOptions {
                     type: 'multi_checkbox',
                     name: '顧客標籤',
                     data: generalTags,
+                },
+                {
+                    key: 'member_levels',
+                    type: 'multi_checkbox',
+                    name: '會員等級',
+                    data: levelData.map((dd) => {
+                        return { key: dd.id, name: dd.tag_name };
+                    }),
                 },
                 {
                     key: 'rebate',
@@ -111,41 +120,48 @@ export class FilterOptions {
                         { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
                     ],
                 },
+                {
+                    key: 'last_shipment_date',
+                    type: 'during',
+                    name: '最後出貨日期',
+                    data: {
+                        centerText: '至',
+                        list: [
+                            { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
+                            { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
+                        ],
+                    },
+                },
             ];
         });
     }
     static getOrderFunnel() {
-        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            const saasConfig = window.parent.saasConfig;
-            const response = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting');
-            let configData = ((_a = response.response.result[0]) === null || _a === void 0 ? void 0 : _a.value) || {};
-            if (!configData.language_data) {
-                configData.language_data = {
-                    'en-US': { info: '' },
-                    'zh-CN': { info: '' },
-                    'zh-TW': { info: configData.info || '' },
-                };
-            }
-            const shipmentOptions = ShipmentConfig.list
-                .map(dd => {
-                return { key: dd.value, name: dd.title };
-            })
-                .concat(((_b = configData.custom_delivery) !== null && _b !== void 0 ? _b : []).map((dd) => {
-                return { key: dd.id, name: dd.name };
-            }));
             return [
                 { key: 'orderStatus', type: 'multi_checkbox', name: '訂單狀態', data: this.orderStatusOptions },
                 { key: 'payload', type: 'multi_checkbox', name: '付款狀態', data: this.payloadStatusOptions },
-                { key: 'payment_select', type: 'multi_checkbox', name: '付款方式', data: (yield PaymentConfig.getSupportPayment()).map((dd) => {
-                        if (dd.type === 'pos' && !(dd.name.includes('POS'))) {
+                { key: 'reconciliation_status', type: 'multi_checkbox', name: '對帳狀態', data: this.reconciliationOptions },
+                {
+                    key: 'payment_select',
+                    type: 'multi_checkbox',
+                    name: '付款方式',
+                    data: (yield PaymentConfig.getSupportPayment()).map(dd => {
+                        if (dd.type === 'pos' && !dd.name.includes('POS')) {
                             const name = dd.name;
                             dd.name = `<div class="d-flex">${[BgWidget.warningInsignia('POS'), name].join(`<div class="mx-1"></div>`)}</div>`;
                         }
                         return dd;
-                    }) },
+                    }),
+                },
                 { key: 'progress', type: 'multi_checkbox', name: '出貨狀況', data: this.progressOptions },
-                { key: 'shipment', type: 'multi_checkbox', name: '運送方式', data: shipmentOptions },
+                {
+                    key: 'shipment',
+                    type: 'multi_checkbox',
+                    name: '運送方式',
+                    data: yield ShipmentConfig.shipmentMethod({
+                        type: 'support',
+                    }),
+                },
                 {
                     key: 'created_time',
                     type: 'during',
@@ -173,15 +189,69 @@ export class FilterOptions {
             ];
         });
     }
+    static getReconciliationFunnel() {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            const saasConfig = window.parent.saasConfig;
+            const response = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting');
+            let configData = ((_a = response.response.result[0]) === null || _a === void 0 ? void 0 : _a.value) || {};
+            if (!configData.language_data) {
+                configData.language_data = {
+                    'en-US': { info: '' },
+                    'zh-CN': { info: '' },
+                    'zh-TW': { info: configData.info || '' },
+                };
+            }
+            const shipmentOptions = ShipmentConfig.list
+                .map(dd => {
+                return { key: dd.value, name: dd.title };
+            })
+                .concat(((_b = configData.custom_delivery) !== null && _b !== void 0 ? _b : []).map((dd) => {
+                return { key: dd.id, name: dd.name };
+            }));
+            return [
+                { key: 'orderStatus', type: 'multi_checkbox', name: '訂單狀態', data: this.orderStatusOptions },
+                { key: 'reconciliation_status', type: 'multi_checkbox', name: '對帳狀態', data: this.reconciliationOptions },
+                {
+                    key: 'payment_select',
+                    type: 'multi_checkbox',
+                    name: '付款方式',
+                    data: (yield PaymentConfig.getSupportPayment()).map(dd => {
+                        if (dd.type === 'pos' && !dd.name.includes('POS')) {
+                            const name = dd.name;
+                            dd.name = `<div class="d-flex">${[BgWidget.warningInsignia('POS'), name].join(`<div class="mx-1"></div>`)}</div>`;
+                        }
+                        return dd;
+                    }),
+                },
+                { key: 'progress', type: 'multi_checkbox', name: '出貨狀況', data: this.progressOptions },
+                { key: 'shipment', type: 'multi_checkbox', name: '運送方式', data: shipmentOptions },
+                {
+                    key: 'shipment_time',
+                    type: 'during',
+                    name: '出貨日期',
+                    data: {
+                        centerText: '至',
+                        list: [
+                            { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
+                            { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
+                        ],
+                    },
+                },
+            ];
+        });
+    }
 }
 FilterOptions.userFilterFrame = {
     created_time: ['', ''],
     birth: [],
     tags: [],
+    member_levels: [],
     rebate: { key: '', value: '' },
     total_amount: { key: '', value: '' },
     total_count: { key: '', value: '' },
     last_order_time: ['', ''],
+    last_shipment_date: ['', ''],
     last_order_total: { key: '', value: '' },
 };
 FilterOptions.userOrderBy = [
@@ -205,6 +275,7 @@ FilterOptions.userSelect = [
 ];
 FilterOptions.orderFilterFrame = {
     orderStatus: [],
+    reconciliation_status: [],
     payload: [],
     progress: [],
     payment_select: [],
@@ -234,6 +305,14 @@ FilterOptions.orderStatusOptions = [
     { key: '1', name: '已完成' },
     { key: '0', name: '處理中' },
     { key: '-1', name: '已取消' },
+];
+FilterOptions.reconciliationOptions = [
+    { key: 'pending_entry', name: '待入帳' },
+    { key: 'completed_entry', name: '已入帳' },
+    { key: 'refunded', name: '已退款' },
+    { key: 'completed_offset', name: '已沖帳' },
+    { key: 'pending_offset', name: '待沖帳' },
+    { key: 'pending_refund', name: '待退款' },
 ];
 FilterOptions.payloadStatusOptions = [
     { key: '1', name: '已付款' },
@@ -375,6 +454,8 @@ FilterOptions.orderSelect = [
     { key: 'cart_token', value: '訂單編號' },
     { key: 'name', value: '訂購人' },
     { key: 'phone', value: '手機' },
+    { key: 'email', value: '電子信箱' },
+    { key: 'address', value: '宅配地址' },
     { key: 'title', value: '商品名稱' },
     { key: 'sku', value: '商品貨號(SKU)' },
     { key: 'shipment_number', value: '出貨單號碼' },
@@ -452,6 +533,7 @@ FilterOptions.productSelect = [
     { key: 'title', value: '商品名稱' },
     { key: 'sku', value: '庫存單位(SKU)' },
     { key: 'barcode', value: '商品條碼' },
+    { key: 'customize_tag', value: '管理員標籤' },
 ];
 FilterOptions.stockFilterFrame = {
     status: [],

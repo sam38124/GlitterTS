@@ -17,9 +17,18 @@ import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 import { Language } from './glitter-base/global/language.js';
 import { PayConfig } from './cms-plugin/pos-pages/pay-config.js';
 import { ApiCart } from './glitter-base/route/api-cart.js';
+import { ApiUser } from './glitter-base/route/user.js';
 export class Entry {
     static onCreate(glitter) {
         var _a, _b;
+        if (window.parent.glitter.getUrlParameter('device') === 'mobile') {
+            glitter.share.is_application = true;
+        }
+        else {
+            glitter.runJsInterFace('is_application', {}, res => {
+                glitter.share.is_application = res.is_application;
+            });
+        }
         if (glitter.getUrlParameter('EndCheckout') === '1') {
             try {
                 const lineItemIds = JSON.parse(localStorage.getItem('clear_cart_items'));
@@ -36,9 +45,10 @@ export class Entry {
                 }
                 localStorage.removeItem('clear_cart_items');
             }
-            catch (e) {
-            }
+            catch (e) { }
         }
+        glitter.share.ApiCart = ApiCart;
+        glitter.share.ApiUser = ApiUser;
         const clock = glitter.ut.clock();
         const hashLoop = setInterval(() => {
             try {
@@ -131,7 +141,7 @@ export class Entry {
         }
         window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : createClock();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_18.9.0';
+        glitter.share.editerVersion = 'V_19.6.9';
         glitter.share.start = new Date();
         const vm = { appConfig: [] };
         window.saasConfig = {
@@ -230,8 +240,7 @@ export class Entry {
             if (glitter.getUrlParameter('type') === 'editor') {
                 const dialog = new ShareDialog(glitter);
                 dialog.dataLoading({ visible: true, text: '後台載入中' });
-                Entry.toBackendEditor(glitter, () => {
-                });
+                Entry.toBackendEditor(glitter, () => { });
             }
             else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 Entry.toHtmlEditor(glitter, vm, () => Entry.checkIframe(glitter));
@@ -349,7 +358,7 @@ export class Entry {
                         'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
                         'assets/vendor/swiper/swiper-bundle.min.js',
                         'assets/js/theme.min.js',
-                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
+                        `${glitter.root_path}/jslib/lottie-player.js`,
                     ], () => resolve(true), () => resolve(true));
                 });
                 return;
@@ -417,9 +426,7 @@ export class Entry {
             {
                 src: 'https://kit.fontawesome.com/cccedec0f8.js',
             },
-        ], () => {
-        }, () => {
-        });
+        ], () => { }, () => { });
         glitter.addStyle(`
       @media (prefers-reduced-motion: no-preference) {
         :root {
@@ -451,9 +458,7 @@ export class Entry {
                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                 type: 'module',
             };
-        }), () => {
-        }, () => {
-        }, [{ key: 'async', value: 'true' }]);
+        }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
         glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting
             .filter((dd) => {
             return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
@@ -489,11 +494,9 @@ export class Entry {
         glitter.addStyleLink([`https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css`]);
         glitter.addMtScript([
             {
-                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                src: `${glitter.root_path}/jslib/lottie-player.js`,
             },
-        ], () => {
-        }, () => {
-        });
+        ], () => { }, () => { });
         if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
             GlobalUser.token = glitter.getUrlParameter('token');
             glitter.setUrlParameter('token');
@@ -524,8 +527,7 @@ export class Entry {
                 .map((dd) => {
                 return {
                     src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                    callback: () => {
-                    },
+                    callback: () => { },
                 };
             }));
             function authPass() {
@@ -582,7 +584,7 @@ export class Entry {
         glitter.share.PayConfig = PayConfig;
         glitter.runJsInterFace('pos-device', {}, res => {
             console.log(`res.deviceType=>`, res.deviceType);
-            PayConfig.deviceType = (['SUNMI', 'neostra'].includes(res.deviceType)) ? 'pos' : 'web';
+            PayConfig.deviceType = ['SUNMI', 'neostra'].includes(res.deviceType) ? 'pos' : 'web';
             PayConfig.posType = res.deviceType;
             if (res.deviceType === 'neostra') {
                 const script = document.createElement('script');
@@ -596,10 +598,8 @@ export class Entry {
                 glitter.addMtScript([
                     'https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js',
                     'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js',
-                    glitter.root_path + 'jslib/qrcode.min.js',
-                ], () => {
-                }, () => {
-                });
+                    glitter.root_path + 'jslib/qrcode-d.js',
+                ], () => { }, () => { });
                 setTimeout(() => {
                     window.IminPrintInstance = new IminPrinter();
                     window.IminPrintInstance.connect();
@@ -608,21 +608,19 @@ export class Entry {
             if (res.deviceType === 'SUNMI') {
                 glitter.addMtScript([
                     'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js',
-                    glitter.root_path + 'jslib/qrcode.min.js',
-                ], () => {
-                }, () => {
-                });
+                    glitter.root_path + 'jslib/qrcode-d.js',
+                ], () => { }, () => { });
             }
         });
         glitter.runJsInterFace('getTopInset', {}, (response) => {
-            glitter.share.top_inset = response.data;
+            glitter.share.top_inset = parseInt(response.data, 10);
         }, {
             webFunction: () => {
                 return { data: 0 };
             },
         });
         glitter.runJsInterFace('getBottomInset', {}, (response) => {
-            glitter.share.bottom_inset = response.data;
+            glitter.share.bottom_inset = parseInt(response.data, 10);
         }, {
             webFunction: () => {
                 return { data: 0 };

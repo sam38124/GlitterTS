@@ -19,7 +19,6 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         const user = new User(req.get('g-app') as string);
         const isManager = await UtPermission.isManager(req);
         const { type, email, search } = req.query;
-
         const actionMap: Record<string, () => Promise<any>> = {
             list: async () => {
                 if (!isManager) throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);

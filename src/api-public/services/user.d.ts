@@ -8,12 +8,14 @@ interface UserQuery {
     order_string?: string;
     created_time?: string;
     last_order_time?: string;
+    last_shipment_date?: string;
     birth?: string;
     level?: string;
     rebate?: string;
     last_order_total?: string;
     total_amount?: string;
     total_count?: string;
+    member_levels?: string;
     groupType?: string;
     groupTag?: string;
     filter_type?: string;

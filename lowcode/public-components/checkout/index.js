@@ -29,9 +29,11 @@ import { ApiLiveInteraction } from "../../glitter-base/route/live-purchase-inter
 const html = String.raw;
 export class CheckoutIndex {
     static main(gvc, widget, subData) {
+        var _a;
+        console.log(`[CheckoutIndex]:`, gvc);
         const glitter = gvc.glitter;
         let onlineData = {};
-        let apiCart = (() => {
+        const apiCart = (() => {
             if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
                 return new ApiCart(ApiCart.globalCart);
             }
@@ -39,6 +41,7 @@ export class CheckoutIndex {
                 return new ApiCart(ApiCart.checkoutCart);
             }
         })();
+        const check_out_sub = JSON.parse((_a = localStorage.getItem('checkout_sub_' + ApiCart.checkoutCart)) !== null && _a !== void 0 ? _a : '{}');
         const ids = {
             page: glitter.getUUID(),
             cart: glitter.getUUID(),
@@ -108,285 +111,286 @@ export class CheckoutIndex {
         }
         function addStyle() {
             gvc.addStyle(`
-                .${classPrefix}-container {
-                    max-width: 1200px !important;
-                    margin: 2.5rem auto !important;
-                }
+        .${classPrefix}-container {
+          max-width: 1200px !important;
+          margin: 2.5rem auto !important;
+        }
 
-                .${classPrefix}-null-container {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    height: 100vh !important;
-                }
+        .${classPrefix}-null-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          height: 100vh !important;
+        }
 
-                .${classPrefix}-header {
-                    color: #393939;
-                    font-size: 24px;
-                    font-weight: 700;
-                    letter-spacing: 12px;
-                    text-align: center;
-                    margin-bottom: 24px;
-                }
+        .${classPrefix}-header {
+          color: #393939;
+          font-size: 24px;
+          font-weight: 700;
+          letter-spacing: 12px;
+          text-align: center;
+          margin-bottom: 24px;
+        }
 
-                .${classPrefix}-banner-bgr {
-                    padding: 1rem;
-                    border-radius: 10px;
-                    background: #f6f6f6;
-                }
+        .${classPrefix}-banner-bgr {
+          padding: 1rem;
+          border-radius: 10px;
+          background: #f6f6f6;
+        }
 
-                .${classPrefix}-banner-text {
-                    color: #393939;
-                    font-size: 18px;
-                    font-weight: 700;
-                    letter-spacing: 2px;
-                }
+        .${classPrefix}-banner-text {
+          color: #393939;
+          font-size: 18px;
+          font-weight: 700;
+          letter-spacing: 2px;
+        }
 
-                .${classPrefix}-text-1 {
-                    color: #393939;
-                    font-size: 20px;
-                }
+        .${classPrefix}-text-1 {
+          color: #393939;
+          font-size: 20px;
+        }
 
-                .${classPrefix}-text-2 {
-                    color: #393939;
-                    font-size: 16px;
-                }
+        .${classPrefix}-text-2 {
+          color: #393939;
+          font-size: 16px;
+        }
 
-                .${classPrefix}-text-3 {
-                    color: #393939;
-                    font-size: 14px;
-                }
+        .${classPrefix}-text-3 {
+          color: #393939;
+          font-size: 14px;
+        }
 
-                .${classPrefix}-label {
-                    color: #393939;
-                    font-size: 16px;
-                    margin-bottom: 8px;
-                }
+        .${classPrefix}-label {
+          color: #393939;
+          font-size: 16px;
+          margin-bottom: 8px;
+        }
 
-                .${classPrefix}-bold {
-                    font-weight: 700;
-                }
+        .${classPrefix}-bold {
+          font-weight: 700;
+        }
 
-                .${classPrefix}-button-bgr {
-                    width: 100%;
-                    border: 0;
-                    border-radius: 0.375rem;
-                    height: 40px;
-                    background: #393939;
-                    padding: 0 24px;
-                    margin: 18px 0;
-                }
+        .${classPrefix}-button-bgr {
+          width: 100%;
+          border: 0;
+          border-radius: 0.375rem;
+          height: 40px;
+          background: #393939;
+          padding: 0 24px;
+          margin: 18px 0;
+        }
 
-                .${classPrefix}-button-bgr-disable {
-                    width: 100%;
-                    border: 0;
-                    border-radius: 0.375rem;
-                    height: 40px;
-                    background: #dddddd;
-                    padding: 0 24px;
-                    margin: 18px 0;
-                    cursor: not-allowed !important;
-                }
+        .${classPrefix}-button-bgr-disable {
+          width: 100%;
+          border: 0;
+          border-radius: 0.375rem;
+          height: 40px;
+          background: #dddddd;
+          padding: 0 24px;
+          margin: 18px 0;
+          cursor: not-allowed !important;
+        }
 
-                .${classPrefix}-button-text {
-                    color: #fff;
-                    font-size: 16px;
-                }
+        .${classPrefix}-button-text {
+          color: #fff;
+          font-size: 16px;
+        }
 
-                .${classPrefix}-input {
-                    width: 100%;
-                    border-radius: 10px;
-                    border: 1px solid #ddd;
-                    height: 40px;
-                    padding: 0px 18px;
-                }
+        .${classPrefix}-input {
+          width: 100%;
+          border-radius: 10px;
+          border: 1px solid #ddd;
+          height: 40px;
+          padding: 0px 18px;
+        }
 
-                .${classPrefix}-select {
-                    display: flex;
-                    padding: 7px 30px 7px 18px;
-                    max-height: 40px;
-                    align-items: center;
-                    gap: 6px;
-                    border-radius: 10px;
-                    border: 1px solid #ddd;
-                    background: transparent url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png') no-repeat;
-                    background-position-x: calc(100% - 12px);
-                    background-position-y: 16px;
-                    appearance: none;
-                    -webkit-appearance: none;
-                    -moz-appearance: none;
-                    color:#393939;
-                    background-color: white;
-                }
+        .${classPrefix}-select {
+          display: flex;
+          padding: 7px 30px 7px 18px;
+          max-height: 40px;
+          align-items: center;
+          gap: 6px;
+          border-radius: 10px;
+          border: 1px solid #ddd;
+          background: transparent
+            url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png') no-repeat;
+          background-position-x: calc(100% - 12px);
+          background-position-y: 16px;
+          appearance: none;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          color: #393939;
+          background-color: white;
+        }
 
-                .${classPrefix}-select:focus {
-                    outline: 0;
-                }
+        .${classPrefix}-select:focus {
+          outline: 0;
+        }
 
-                .${classPrefix}-group-input {
-                    border: none;
-                    background: none;
-                    text-align: start;
-                    color: #393939;
-                    font-size: 16px;
-                    font-weight: 400;
-                    word-wrap: break-word;
-                    padding-left: 12px;
-                }
+        .${classPrefix}-group-input {
+          border: none;
+          background: none;
+          text-align: start;
+          color: #393939;
+          font-size: 16px;
+          font-weight: 400;
+          word-wrap: break-word;
+          padding-left: 12px;
+        }
 
-                .${classPrefix}-first-td {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 30%;
-                }
+        .${classPrefix}-first-td {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 30%;
+        }
 
-                .${classPrefix}-group-input:focus {
-                    outline: 0;
-                }
+        .${classPrefix}-group-input:focus {
+          outline: 0;
+        }
 
-                .${classPrefix}-group-button {
-                    padding: 9px 18px;
-                    background: #393939;
-                    align-items: center;
-                    gap: 5px;
-                    display: flex;
-                    font-size: 16px;
-                    justify-content: center;
-                    cursor: pointer;
-                }
+        .${classPrefix}-group-button {
+          padding: 9px 18px;
+          background: #393939;
+          align-items: center;
+          gap: 5px;
+          display: flex;
+          font-size: 16px;
+          justify-content: center;
+          cursor: pointer;
+        }
 
-                .${classPrefix}-td {
-                    display: flex;
-                    align-items: center;
-                    justify-content: start;
-                    width: 15%;
-                }
+        .${classPrefix}-td {
+          display: flex;
+          align-items: center;
+          justify-content: start;
+          width: 15%;
+        }
 
-                .${classPrefix}-first-td {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 40%;
-                }
+        .${classPrefix}-first-td {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40%;
+        }
 
-                .${classPrefix}-price-container {
-                    display: flex;
-                    flex-direction: column;
-                    width: 400px;
-                    align-items: center;
-                    padding: 0;
-                    gap: 12px;
-                    margin: 24px 0;
-                }
+        .${classPrefix}-price-container {
+          display: flex;
+          flex-direction: column;
+          width: 400px;
+          align-items: center;
+          padding: 0;
+          gap: 12px;
+          margin: 24px 0;
+        }
 
-                .${classPrefix}-price-row {
-                    display: flex;
-                    width: 100%;
-                    align-items: center;
-                    justify-content: space-between;
-                }
+        .${classPrefix}-price-row {
+          display: flex;
+          width: 100%;
+          align-items: center;
+          justify-content: space-between;
+        }
 
-                .${classPrefix}-origin-price {
-                    text-align: end;
-                    font-weight: 400;
-                    word-wrap: break-word;
-                    text-decoration: line-through;
-                    color: #636363;
-                    font-style: italic;
-                    margin-top: auto;
-                }
+        .${classPrefix}-origin-price {
+          text-align: end;
+          font-weight: 400;
+          word-wrap: break-word;
+          text-decoration: line-through;
+          color: #636363;
+          font-style: italic;
+          margin-top: auto;
+        }
 
-                .${classPrefix}-add-item-badge {
-                    height: 22px;
-                    padding-left: 6px;
-                    padding-right: 6px;
-                    padding-top: 4px;
-                    padding-bottom: 4px;
-                    background: #ffe9b2;
-                    border-radius: 7px;
-                    justify-content: center;
-                    align-items: center;
-                    gap: 10px;
-                    display: inline-flex;
-                }
+        .${classPrefix}-add-item-badge {
+          height: 22px;
+          padding-left: 6px;
+          padding-right: 6px;
+          padding-top: 4px;
+          padding-bottom: 4px;
+          background: #ffe9b2;
+          border-radius: 7px;
+          justify-content: center;
+          align-items: center;
+          gap: 10px;
+          display: inline-flex;
+        }
 
-                .${classPrefix}-add-item-text {
-                    color: #393939;
-                    font-size: 14px;
-                    font-weight: 400;
-                    word-wrap: break-word;
-                }
+        .${classPrefix}-add-item-text {
+          color: #393939;
+          font-size: 14px;
+          font-weight: 400;
+          word-wrap: break-word;
+        }
 
-                .${classPrefix}-shipping-hint {
-                    white-space: normal;
-                    word-break: break-all;
-                    color: #8d8d8d;
-                    font-size: 14px;
-                    font-weight: 400;
-                    margin: 4px 0;
-                }
-                
-                .${classPrefix}-price-text {
-                 color: #FF5353FF;
-                }
+        .${classPrefix}-shipping-hint {
+          white-space: normal;
+          word-break: break-all;
+          color: #8d8d8d;
+          font-size: 14px;
+          font-weight: 400;
+          margin: 4px 0;
+        }
 
-                .img-106px {
-                    width: 106px;
-                    min-width: 106px;
-                    height: 106px;
-                    border-radius: 3px;
-                    background-position: center;
-                    background-size: cover;
-                    background-repeat: no-repeat;
-                }
+        .${classPrefix}-price-text {
+          color: #ff5353ff;
+        }
 
-                .banner-font-15 {
-                    font-size: 15px;
-                    font-style: normal;
-                    font-weight: 400;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    max-width: 130px;
-                    text-overflow: ellipsis;
-                }
+        .img-106px {
+          width: 106px;
+          min-width: 106px;
+          height: 106px;
+          border-radius: 3px;
+          background-position: center;
+          background-size: cover;
+          background-repeat: no-repeat;
+        }
 
-                .ntd-font-14 {
-                    font-size: 14px;
-                    font-style: normal;
-                    font-weight: 700;
-                    line-height: 140%;
-                }
-            `);
+        .banner-font-15 {
+          font-size: 15px;
+          font-style: normal;
+          font-weight: 400;
+          white-space: nowrap;
+          overflow: hidden;
+          max-width: 130px;
+          text-overflow: ellipsis;
+        }
+
+        .ntd-font-14 {
+          font-size: 14px;
+          font-style: normal;
+          font-weight: 700;
+          line-height: 140%;
+        }
+      `);
             gvc.addStyle(`
-                @media (max-width: 768px) {
-                    .${classPrefix}-container {
-                        max-width: 100% !important;
-                        margin: 2.5rem auto !important;
-                    }
+        @media (max-width: 768px) {
+          .${classPrefix}-container {
+            max-width: 100% !important;
+            margin: 2.5rem auto !important;
+          }
 
-                    .${classPrefix}-td {
-                        display: flex;
-                        align-items: center;
-                        justify-content: start;
-                        width: 100%;
-                    }
-                    
-                    .${classPrefix}-66text {
-                        color:#666666;
-                    }
+          .${classPrefix}-td {
+            display: flex;
+            align-items: center;
+            justify-content: start;
+            width: 100%;
+          }
 
-                    .${classPrefix}-price-container {
-                        display: flex;
-                        flex-direction: column;
-                        width: 100% !important;
-                        align-items: center;
-                        padding: 0;
-                        gap: 12px;
-                        margin: 24px 0;
-                    }
-                }
-            `);
+          .${classPrefix}-66text {
+            color: #666666;
+          }
+
+          .${classPrefix}-price-container {
+            display: flex;
+            flex-direction: column;
+            width: 100% !important;
+            align-items: center;
+            padding: 0;
+            gap: 12px;
+            margin: 24px 0;
+          }
+        }
+      `);
         }
         function refreshCartData() {
             const dialog = new ShareDialog(gvc.glitter);
@@ -409,15 +413,13 @@ export class CheckoutIndex {
                         };
                         if (res.line_items) {
                             res.user_info = {
+                                payment: localStorage.getItem('checkout-payment'),
                                 shipment: localStorage.getItem('shipment-select'),
                                 country: localStorage.getItem('country-select'),
                             };
                             const cart = res;
                             ApiShop.getCheckout(cart).then(res => {
                                 if (res.result) {
-                                    if (gvc.glitter.getUrlParameter('source') == 'group_buy') {
-                                        res.response.data.voucherList = [];
-                                    }
                                     resolve(res.response.data);
                                 }
                                 else {
@@ -469,7 +471,6 @@ export class CheckoutIndex {
                         let newTotal = 0;
                         data.lineItems.forEach((lineItem) => {
                             let product = onlineData.interaction.content.item_list.find((item) => { return item.id == lineItem.id; });
-                            console.log("product -- ", product);
                             let variant = product.content.variants.find((item) => { return item.spec.join(',') == lineItem.spec.join(','); });
                             lineItem.sale_price = parseInt(variant.live_model.live_price);
                             newTotal += lineItem.sale_price * lineItem.count;
@@ -485,7 +486,7 @@ export class CheckoutIndex {
                             : vm.rebateConfig.title;
                         gvc.addMtScript([
                             {
-                                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                                src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                             },
                             {
                                 src: `https://js.paynow.com.tw/sdk/v2/index.js`,
@@ -500,7 +501,7 @@ export class CheckoutIndex {
             else {
                 gvc.addMtScript([
                     {
-                        src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                        src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                     },
                 ], () => { }, () => { });
                 vm.cartData = FakeOrder.data;
@@ -513,7 +514,7 @@ export class CheckoutIndex {
                         : vm.rebateConfig.title;
                     gvc.addMtScript([
                         {
-                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                            src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                         },
                         {
                             src: `https://js.paynow.com.tw/sdk/v1/index.js`,
@@ -602,28 +603,28 @@ export class CheckoutIndex {
                         if (loadings.page) {
                             return spinner();
                         }
-                        const detail_info = ` <div class="d-flex flex-column gap-3">
-                                      <span class="${gClass('banner-text')}">${Language.text('shopping_details')}</span>
+                        const detail_info = html ` <div class="d-flex flex-column gap-3">
+                  <span class="${gClass('banner-text')}">${Language.text('shopping_details')}</span>
 
-                                      <div class="${gClass(['price-row', 'text-2'])}">
-                                        <div>${Language.text('total_products')}</div>
-                                        <div>
-                                          ${Currency.convertCurrencyText(vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.discount)}
-                                        </div>
-                                      </div>
-                                      <div class="${gClass(['price-row', 'text-2'])}">
-                                        <div>${Language.text('shipping_fee')}</div>
-                                        <div>${Currency.convertCurrencyText(vm.cartData.shipment_fee)}</div>
-                                      </div>
-                                      <div class="${gClass(['price-row', 'text-2'])}">
-                                        <div>${Language.text('discount_coupon')}</div>
-                                        <div>- ${Currency.convertCurrencyText(vm.cartData.discount)}</div>
-                                      </div>
-                                      <div class="${gClass(['price-row', 'text-2'])}">
-                                        <div>${Language.text('promo_code')}</div>
-                                        <div
-                                          style="cursor: pointer; color: #3564c0;"
-                                          onclick="${gvc.event(() => {
+                  <div class="${gClass(['price-row', 'text-2'])}">
+                    <div>${Language.text('total_products')}</div>
+                    <div>
+                      ${Currency.convertCurrencyText(vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.discount + vm.cartData.use_rebate)}
+                    </div>
+                  </div>
+                  <div class="${gClass(['price-row', 'text-2'])}">
+                    <div>${Language.text('shipping_fee')}</div>
+                    <div>${Currency.convertCurrencyText(vm.cartData.shipment_fee)}</div>
+                  </div>
+                  <div class="${gClass(['price-row', 'text-2'])}">
+                    <div>${Language.text('discount_coupon')}</div>
+                    <div>- ${Currency.convertCurrencyText(vm.cartData.discount)}</div>
+                  </div>
+                  <div class="${gClass(['price-row', 'text-2'])}">
+                    <div>${Language.text('promo_code')}</div>
+                    <div
+                      style="cursor: pointer; color: #3564c0;"
+                      onclick="${gvc.event(() => {
                             this.viewDialog({
                                 gvc: gvc,
                                 title: Language.text('available_coupons'),
@@ -670,28 +671,28 @@ export class CheckoutIndex {
                                                                 })(),
                                                                 item.usePass
                                                                     ? html ` <button
-                                                                      class="${gClass('button-bgr')} my-2"
-                                                                      style="max-width: 150px;"
-                                                                      onclick="${gvc.event(() => {
+                                                  class="${gClass('button-bgr')} my-2"
+                                                  style="max-width: 150px;"
+                                                  onclick="${gvc.event(() => {
                                                                         apiCart.setCart(cartItem => {
                                                                             cartItem.code = item.code;
                                                                             refreshCartData();
                                                                             gvc.closeDialog();
                                                                         });
                                                                     })}"
-                                                                    >
-                                                                      <span class="${gClass('button-text')}"
-                                                                        >${Language.text('select_to_use')}</span
-                                                                      >
-                                                                    </button>`
+                                                >
+                                                  <span class="${gClass('button-text')}"
+                                                    >${Language.text('select_to_use')}</span
+                                                  >
+                                                </button>`
                                                                     : html ` <button
-                                                                      class="${gClass('button-bgr-disable')} my-2"
-                                                                      style="max-width: 150px; cursor: not-allowed"
-                                                                    >
-                                                                      <span class="${gClass('button-text')}"
-                                                                        >${Language.text('not_meet_usage_criteria')}</span
-                                                                      >
-                                                                    </button>`,
+                                                  class="${gClass('button-bgr-disable')} my-2"
+                                                  style="max-width: 150px; cursor: not-allowed"
+                                                >
+                                                  <span class="${gClass('button-text')}"
+                                                    >${Language.text('not_meet_usage_criteria')}</span
+                                                  >
+                                                </button>`,
                                                             ];
                                                         }
                                                         const dialog = new ShareDialog(gvc.glitter);
@@ -723,100 +724,89 @@ export class CheckoutIndex {
                                                         if (isWebsite) {
                                                             const flexList = [1.2, 1, 1.5, 1.5];
                                                             return html `
-                                                                <div>
-                                                                  <div class="d-flex align-items-center mb-2">
-                                                                    <label
-                                                                      class="${gClass('label')} mb-0 me-2"
-                                                                      style="min-width: 80px;"
-                                                                      >${Language.text('enter_code')}</label
-                                                                    >
-                                                                    <input
-                                                                      class="${gClass('input')}"
-                                                                      type="text"
-                                                                      onchange="${gvc.event(e => {
+                                            <div>
+                                              <div class="d-flex align-items-center mb-2">
+                                                <label class="${gClass('label')} mb-0 me-2" style="min-width: 80px;"
+                                                  >${Language.text('enter_code')}</label
+                                                >
+                                                <input
+                                                  class="${gClass('input')}"
+                                                  type="text"
+                                                  onchange="${gvc.event(e => {
                                                                 checkCodeValue(e.value);
                                                             })}"
-                                                                    />
-                                                                  </div>
-                                                                </div>
-                                                                <div class="w-100 d-sm-flex py-4 um-th-bar">
-                                                                  ${header
+                                                />
+                                              </div>
+                                            </div>
+                                            <div class="w-100 d-sm-flex py-4 um-th-bar">
+                                              ${header
                                                                 .map((item, index) => {
-                                                                return html ` <div
-                                                                        class="um-th"
-                                                                        style="flex: ${flexList[index]};"
-                                                                      >
-                                                                        ${item.title}
-                                                                      </div>`;
+                                                                return html ` <div class="um-th" style="flex: ${flexList[index]};">
+                                                    ${item.title}
+                                                  </div>`;
                                                             })
                                                                 .join('')}
-                                                                </div>
-                                                                ${vmi.dataList
+                                            </div>
+                                            ${vmi.dataList
                                                                 .map((item, t1) => {
                                                                 const fText = formatText(item.content);
-                                                                return html ` <div
-                                                                      class="w-100 d-sm-flex py-1 align-items-center"
-                                                                    >
-                                                                      ${fText
+                                                                return html ` <div class="w-100 d-sm-flex py-1 align-items-center">
+                                                  ${fText
                                                                     .map((dd, t2) => {
                                                                     return html ` <div
-                                                                            class="um-td ${t2 === fText.length - 1
-                                                                        ? 'text-center'
-                                                                        : ''}"
-                                                                            style="flex: ${flexList[t2]}"
-                                                                          >
-                                                                            ${dd}
-                                                                          </div>`;
+                                                        class="um-td ${t2 === fText.length - 1 ? 'text-center' : ''}"
+                                                        style="flex: ${flexList[t2]}"
+                                                      >
+                                                        ${dd}
+                                                      </div>`;
                                                                 })
                                                                     .join('')}
-                                                                    </div>`;
+                                                </div>`;
                                                             })
                                                                 .join('')}
-                                                              `;
+                                          `;
                                                         }
                                                         return html ` <div>
-                                                              <div
-                                                                class="d-flex flex-column flex-sm-row align-items-center "
-                                                              >
-                                                                <div class="d-flex align-items-center">
-                                                                  <input
-                                                                    class="${gClass('input')}"
-                                                                    type="text"
-                                                                    style="border-top-right-radius: 0;border-bottom-right-radius: 0px;"
-                                                                    placeholder="${Language.text('enter_promo_code')}"
-                                                                  />
-                                                                  <button
-                                                                    class="${gClass('button-bgr')}"
-                                                                    style="width:100px;border-top-left-radius: 0;border-bottom-left-radius: 0px;"
-                                                                    onclick="${gvc.event(e => {
+                                          <div class="d-flex flex-column flex-sm-row align-items-center ">
+                                            <div class="d-flex align-items-center">
+                                              <input
+                                                class="${gClass('input')}"
+                                                type="text"
+                                                style="border-top-right-radius: 0;border-bottom-right-radius: 0px;"
+                                                placeholder="${Language.text('enter_promo_code')}"
+                                              />
+                                              <button
+                                                class="${gClass('button-bgr')}"
+                                                style="width:100px;border-top-left-radius: 0;border-bottom-left-radius: 0px;"
+                                                onclick="${gvc.event(e => {
                                                             checkCodeValue(e.value);
                                                         })}"
-                                                                  >
-                                                                    <span class="${gClass('button-text')}"
-                                                                      >${Language.text('confirm')}</span
-                                                                    >
-                                                                  </button>
-                                                                </div>
-                                                              </div>
-                                                              <div class="w-100 d-sm-none mb-3 s162413">
-                                                                ${vmi.dataList
+                                              >
+                                                <span class="${gClass('button-text')}"
+                                                  >${Language.text('confirm')}</span
+                                                >
+                                              </button>
+                                            </div>
+                                          </div>
+                                          <div class="w-100 d-sm-none mb-3 s162413">
+                                            ${vmi.dataList
                                                             .map(item => {
                                                             return html ` <div class="um-mobile-area">
-                                                                      ${formatText(item.content)
+                                                  ${formatText(item.content)
                                                                 .map((dd, index) => {
                                                                 if (header[index].title === '') {
                                                                     return dd;
                                                                 }
                                                                 return html ` <div class="um-mobile-text">
-                                                                            ${header[index].title} : ${dd}
-                                                                          </div>`;
+                                                        ${header[index].title} : ${dd}
+                                                      </div>`;
                                                             })
                                                                 .join('')}
-                                                                    </div>`;
+                                                </div>`;
                                                         })
                                                             .join('')}
-                                                              </div>
-                                                            </div>`;
+                                          </div>
+                                        </div>`;
                                                     }
                                                 }
                                                 catch (e) {
@@ -830,15 +820,14 @@ export class CheckoutIndex {
                                                         const now = new Date();
                                                         const startDate = new Date(startIso);
                                                         const endDate = new Date(endIso);
-                                                        if (isNaN(startDate.getTime()) ||
-                                                            isNaN(endDate.getTime())) {
+                                                        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
                                                             return true;
                                                         }
                                                         return now >= startDate && now <= endDate;
                                                     }
                                                     gvc.addMtScript([
                                                         {
-                                                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                                                            src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                                                         },
                                                     ], () => {
                                                         ApiShop.getVoucher({
@@ -876,10 +865,9 @@ export class CheckoutIndex {
                                                                     if (f) {
                                                                         const r = f.response;
                                                                         if (r.result && r.response.data) {
-                                                                            item.content.usePass =
-                                                                                r.response.data.voucherList.some((dd) => {
-                                                                                    return dd.code === f.code;
-                                                                                });
+                                                                            item.content.usePass = r.response.data.voucherList.some((dd) => {
+                                                                                return dd.code === f.code;
+                                                                            });
                                                                         }
                                                                     }
                                                                     return item;
@@ -896,23 +884,23 @@ export class CheckoutIndex {
                                 },
                             });
                         })}"
-                                        >
-                                          ${vm.cartData.code
+                    >
+                      ${vm.cartData.code
                             ? html `${vm.cartData.code}<i
-                                                    class="fa-solid fa-xmark-large ms-2"
-                                                    style="cursor: pointer;"
-                                                    onclick="${gvc.event((e, event) => {
+                              class="fa-solid fa-xmark-large ms-2"
+                              style="cursor: pointer;"
+                              onclick="${gvc.event((e, event) => {
                                 event.stopPropagation();
                                 apiCart.setCart(cartItem => {
                                     cartItem.code = '';
                                     refreshCartData();
                                 });
                             })}"
-                                                  ></i>`
+                            ></i>`
                             : Language.text('add')}
-                                        </div>
-                                      </div>
-                                      ${(() => {
+                    </div>
+                  </div>
+                  ${(() => {
                             if (!GlobalUser.token || !vm.cartData.useRebateInfo.status) {
                                 return ``;
                             }
@@ -921,29 +909,26 @@ export class CheckoutIndex {
                                     let tempRebate = 0;
                                     const dialog = new ShareDialog(gvc.glitter);
                                     return html ` <div class="${gClass(['price-row', 'text-2'])}">
-                                                  <div>
-                                                    ${Language.text('special_discount')} : ${vm.rebateConfig.title}
-                                                  </div>
-                                                  <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
-                                                </div>
+                              <div>${Language.text('special_discount')} : ${vm.rebateConfig.title}</div>
+                              <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
+                            </div>
 
-                                                <div class="${gClass(['price-row', 'text-2'])}">
-                                                  <div
-                                                    style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                            <div class="${gClass(['price-row', 'text-2'])}">
+                              <div
+                                style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
                                         .body.clientWidth > 768
                                         ? 'gap: 18px;'
                                         : 'gap: 0px;'}"
-                                                    class="w-100"
-                                                  >
-                                                    <input
-                                                      class="flex-fill ${gClass('group-input')}"
-                                                      placeholder="${Language.text('please_enter')}${vm.rebateConfig
-                                        .title}"
-                                                      style="${document.body.clientWidth < 800
+                                class="w-100"
+                              >
+                                <input
+                                  class="flex-fill ${gClass('group-input')}"
+                                  placeholder="${Language.text('please_enter')}${vm.rebateConfig.title}"
+                                  style="${document.body.clientWidth < 800
                                         ? `width:calc(100% - 150px) !important;`
                                         : ``}"
-                                                      value="${vm.cartData.use_rebate || ''}"
-                                                      onchange="${gvc.event((e, event) => {
+                                  value="${vm.cartData.use_rebate || ''}"
+                                  onchange="${gvc.event((e, event) => {
                                         if (CheckInput.isNumberString(e.value)) {
                                             tempRebate = parseInt(e.value, 10);
                                         }
@@ -952,11 +937,11 @@ export class CheckoutIndex {
                                             gvc.notifyDataChange(ids.page);
                                         }
                                     })}"
-                                                    />
-                                                    <div class="${gClass('group-button')}">
-                                                      <div
-                                                        class="${gClass('button-text')}"
-                                                        onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                />
+                                <div class="${gClass('group-button')}">
+                                  <div
+                                    class="${gClass('button-text')}"
+                                    onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                                         const sum = yield new Promise((resolve, reject) => {
                                             ApiShop.getRebate({}).then((res) => __awaiter(this, void 0, void 0, function* () {
                                                 if (res.result && res.response.sum) {
@@ -967,9 +952,7 @@ export class CheckoutIndex {
                                                 }
                                             }));
                                         });
-                                        const limit = vm.cartData.total -
-                                            vm.cartData.shipment_fee +
-                                            vm.cartData.use_rebate;
+                                        const limit = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
                                         if (sum === 0) {
                                             dialog.errorMessage({
                                                 text: `您的 ${vm.rebateConfig.title} 為 0 點，無法折抵`,
@@ -987,15 +970,15 @@ export class CheckoutIndex {
                                             refreshCartData();
                                         });
                                     }))}"
-                                                      >
-                                                        ${Language.text('apply')}
-                                                      </div>
-                                                    </div>
-                                                  </div>
-                                                </div>`;
+                                  >
+                                    ${Language.text('apply')}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>`;
                                 })()}
-                                            <div class="${gClass(['price-row', 'text-2'])}">
-                                              ${(() => {
+                        <div class="${gClass(['price-row', 'text-2'])}">
+                          ${(() => {
                                     return gvc.bindView(() => {
                                         return {
                                             bind: gvc.glitter.getUUID(),
@@ -1016,16 +999,13 @@ export class CheckoutIndex {
                                                 const info = vm.cartData.useRebateInfo;
                                                 if (info.condition) {
                                                     return html `${Language.text('distance_from_target_amount')}$
-                                                        ${info.condition.toLocaleString()}
-                                                        ${Language.text('can_use_now')} ${vm.rebateConfig.title}
-                                                        ${Language.text('discount')}`;
+                                    ${info.condition.toLocaleString()} ${Language.text('can_use_now')}
+                                    ${vm.rebateConfig.title} ${Language.text('discount')}`;
                                                 }
                                                 if (info.limit) {
                                                     return html `${Language.text('remaining_balance')} ${sum || 0}
-                                                          ${Language.text('point')} ${vm.rebateConfig.title}
-                                                          <br />${Language.text('max_discount_order')}
-                                                          ${info.limit.toLocaleString()} ${Language.text('point')}
-                                                          ${vm.rebateConfig.title}`;
+                                      ${Language.text('point')} ${vm.rebateConfig.title} <br />${Language.text('max_discount_order')}
+                                      ${info.limit.toLocaleString()} ${Language.text('point')} ${vm.rebateConfig.title}`;
                                                 }
                                                 else {
                                                     return `${Language.text('remaining_balance')} ${sum || 0} ${Language.text('point')} ${vm.rebateConfig.title}`;
@@ -1034,10 +1014,10 @@ export class CheckoutIndex {
                                         };
                                     });
                                 })()}
-                                            </div>`;
+                        </div>`;
                             }
                         })()}
-                                    </div>`;
+                </div>`;
                         if (!widget.share.receipt_form) {
                             const res = yield ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager');
                             widget.share.receipt_form = FormCheck.initialRecipientForm((_a = res.response.value.list) !== null && _a !== void 0 ? _a : []).filter(dd => {
@@ -1078,14 +1058,31 @@ export class CheckoutIndex {
                                 bind: ids.cart,
                                 view: () => {
                                     const padding = (document.body.clientWidth - 1200) / 2;
+                                    const shipmentSupportSet = new Set(vm.cartData.shipment_support);
+                                    const shipmentList = this.getShipmentMethod(vm.cartData).filter((dd) => shipmentSupportSet.has(dd.value));
+                                    console.log(`cartData.shipment_selector=>`, vm.cartData.shipment_selector);
+                                    console.log(`shipmentSupportSet=>`, shipmentSupportSet);
+                                    console.log(`shipmentList==>`, shipmentList);
+                                    const localShip = shipmentSupportSet.has(localStorage.getItem('shipment-select'));
+                                    if (shipmentList.length === 0) {
+                                        vm.cartData.user_info.shipment = 'none';
+                                        localStorage.setItem('shipment-select', 'none');
+                                    }
+                                    else if (localShip) {
+                                        vm.cartData.user_info.shipment = localStorage.getItem('shipment-select');
+                                    }
+                                    else {
+                                        vm.cartData.user_info.shipment = shipmentList[0].value;
+                                        localStorage.setItem('shipment-select', shipmentList[0].value);
+                                    }
                                     return html `
                             <div
                               class="d-flex flex-column flex-md-row justify-content-between w-100"
                               style="${document.body.clientWidth > 800
                                         ? `height:calc(100vh - 150px);overflow-y:auto;`
-                                        : `gap:20px;`}
-padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? padding : 10}px;
-"
+                                        : `gap:20px;`} padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0
+                                        ? padding
+                                        : 10}px;"
                             >
                               <div
                                 style="${document.body.clientWidth > 800
@@ -1155,11 +1152,7 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                                       class="fw-bold pe-4"
                                                       style="gap:5px;font-size:${document.body.clientWidth > 800
                                                         ? `16`
-                                                        : `14`}px;max-width:calc(100% - 10px); display: -webkit-box;
-  -webkit-line-clamp: 2; 
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis; "
+                                                        : `14`}px;max-width:calc(100% - 10px); display: -webkit-box; -webkit-line-clamp: 2;  -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; "
                                                       >${title}</span
                                                     >
                                                     <div class="${gClass(['66text'])} fs-sm">
@@ -1420,8 +1413,10 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                                                         .clientWidth > 768
                                                                         ? `rounded-3`
                                                                         : `h-100`}"
-                                                                    style="
-                width: 100%;  position: relative;${document.body.clientWidth > 768 ? `` : `overflow-y: auto;`}"
+                                                                    style="width: 100%;  position: relative;${document
+                                                                        .body.clientWidth > 768
+                                                                        ? ``
+                                                                        : `overflow-y: auto;`}"
                                                                   >
                                                                     <div
                                                                       class="w-100 d-flex align-items-center p-3 border-bottom"
@@ -1598,8 +1593,10 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                                                 768
                                                                 ? `rounded-3`
                                                                 : `h-100`}"
-                                                                style="
-                width: 100%;  position: relative;${document.body.clientWidth > 768 ? `` : `overflow-y: auto;`}"
+                                                                style="width: 100%;  position: relative;${document.body
+                                                                .clientWidth > 768
+                                                                ? ``
+                                                                : `overflow-y: auto;`}"
                                                               >
                                                                 <div
                                                                   class="w-100 d-flex align-items-center p-3 border-bottom"
@@ -1707,62 +1704,57 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                     })()}
                                 <!--配送資訊-->
                                 <div class="rounded-3 bg-white w-100 p-1 mt-3">
-                                  ${` <section>
-                 <div class="${gClass('banner-text')} px-2 pt-3">${Language.text('payment_and_shipping_methods')}</div>
-                    ${vm.cartData.shipment_info
+                                  ${html ` <section>
+                                    <div class="${gClass('banner-text')} px-2 pt-3">
+                                      ${Language.text('payment_and_shipping_methods')}
+                                    </div>
+                                    ${vm.cartData.shipment_info
                                         ? html ` <div class="pt-2 mx-2 mx-sm-3">${vm.cartData.shipment_info}</div>`
                                         : ''}
-                    <div class="row mt-3 mx-1 mx-sm-0 my-md-3">
-                      <div class="col-12 col-md-6 mb-2 mb-sm-0">
-                        <label class="${gClass('label')}">${Language.text('payment_method')}</label>
-                        <div>
-                          <select
-                            class="w-100 ${gClass('select')}"
-                            onchange="${gvc.event((e, event) => {
+                                    <div class="row mt-3 mx-1 mx-sm-0 my-md-3">
+                                      <div class="col-12 col-md-6 mb-2 mb-sm-0">
+                                        <label class="${gClass('label')}">${Language.text('payment_method')}</label>
+                                        <div>
+                                          <select
+                                            class="w-100 ${gClass('select')}"
+                                            onchange="${gvc.event(e => {
                                         vm.cartData.customer_info.payment_select = e.value;
                                         this.storeLocalData(vm.cartData);
                                         refreshCartData();
                                     })}"
-                          >
-                            ${(() => {
+                                          >
+                                            ${(() => {
                                         return this.getPaymentMethod(vm.cartData)
                                             .map((dd) => {
                                             return html ` <option
-                                    value="${dd.value}"
-                                    ${localStorage.getItem('checkout-payment') === dd.value ? `selected` : ``}
-                                  >
-                                    ${Language.getLanguageCustomText(dd.name) || Language.text(dd.value)}
-                                  </option>`;
+                                                    value="${dd.value}"
+                                                    ${localStorage.getItem('checkout-payment') === dd.value
+                                                ? `selected`
+                                                : ``}
+                                                  >
+                                                    ${Language.getLanguageCustomText(dd.name) ||
+                                                Language.text(dd.value)}
+                                                  </option>`;
                                         })
                                             .join('');
                                     })()}
-                          </select>
-                        </div>
-                      </div>
-                      <div class="col-12 col-md-6 mb-2">
-                        <label class="${gClass('label')}">${Language.text('shipping_method')}</label>
-                        ${gvc.bindView({
+                                          </select>
+                                        </div>
+                                      </div>
+                                      <div class="col-12 col-md-6 mb-2">
+                                        <label class="${gClass('label')}">${Language.text('shipping_method')}</label>
+                                        ${gvc.bindView({
                                         bind: ids.shipping,
                                         view: () => {
-                                            if (vm.cartData.customer_info.payment_select === 'cash_on_delivery' &&
-                                                !vm.cartData.cash_on_delivery_support.includes(vm.cartData.user_info.shipment)) {
-                                                const find = this.getShipmentMethod(vm.cartData).find((d1) => {
-                                                    return vm.cartData.cash_on_delivery_support.includes(d1.value);
-                                                });
-                                                vm.cartData.user_info.shipment = find && find.value;
-                                                this.storeLocalData(vm.cartData);
-                                                refreshCartData();
-                                            }
                                             return html ` <div>
-                              <select
-                                class="w-100 ${gClass('select')}"
-                                onchange="${gvc.event(e => {
+                                              <select
+                                                class="w-100 ${gClass('select')}"
+                                                onchange="${gvc.event(e => {
                                                 [
                                                     'CVSStoreName',
                                                     'MerchantTradeNo',
                                                     'LogisticsSubType',
                                                     'CVSStoreID',
-                                                    'CVSStoreName',
                                                     'CVSTelephone',
                                                     'CVSOutSide',
                                                     'ExtraData',
@@ -1774,47 +1766,50 @@ padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0 ? paddi
                                                 this.storeLocalData(vm.cartData);
                                                 refreshCartData();
                                             })}"
-                              >
-                                ${(() => {
-                                                return this.getShipmentMethod(vm.cartData)
-                                                    .filter((dd) => {
-                                                    return !(vm.cartData.customer_info.payment_select === 'cash_on_delivery' &&
-                                                        !vm.cartData.cash_on_delivery_support.includes(dd.value));
-                                                })
+                                              >
+                                                ${shipmentList.length > 0
+                                                ? shipmentList
                                                     .map((dd) => {
                                                     return html ` <option
-                                        value="${dd.value}"
-                                        ${vm.cartData.user_info.shipment === dd.value ? `selected` : ``}
-                                      >
-                                        ${Language.text(`ship_${dd.value}`) || Language.getLanguageCustomText(dd.name)}
-                                      </option>`;
+                                                          value="${dd.value}"
+                                                          ${vm.cartData.user_info.shipment === dd.value
+                                                        ? `selected`
+                                                        : ``}
+                                                        >
+                                                          ${Language.text(`ship_${dd.value}`) ||
+                                                        Language.getLanguageCustomText(dd.name)}
+                                                        </option>`;
                                                 })
-                                                    .join('');
-                                            })()}
-                              </select>
-                            </div>`;
+                                                    .join('')
+                                                : html ` <option selected>(${Language.text('disable_ship')})</option>`}
+                                              </select>
+                                            </div>`;
                                         },
                                     })}
-                      </div>
-                      <div class="col-12">${gvc.bindView(() => {
+                                      </div>
+                                      <div class="col-12">
+                                        ${gvc.bindView(() => {
                                         return {
                                             bind: gvc.glitter.getUUID(),
                                             view: () => __awaiter(this, void 0, void 0, function* () {
                                                 const log_config = (yield ApiUser.getPublicConfig('shipment_config_' + vm.cartData.user_info.shipment, 'manager')).response.value;
                                                 if (log_config.content) {
-                                                    return `
-<label class="${gClass('label')}">${Language.text('shipping_instructions')}</label>
-<div class="border rounded-3 p-2">
-${log_config.content}
-</div>`;
+                                                    return html ` <label class="${gClass('label')}"
+                                                    >${Language.text('shipping_instructions')}</label
+                                                  >
+                                                  <div class="border rounded-3 p-2">${log_config.content}</div>`;
                                                 }
                                                 return ``;
                                             }),
                                         };
-                                    })}</div>
-                      <!-- 配送地址 -->
-                      ${(() => {
+                                    })}
+                                      </div>
+                                      <!-- 配送地址 -->
+                                      ${(() => {
                                         var _a;
+                                        if (vm.cartData.user_info.shipment === 'none') {
+                                            return false;
+                                        }
                                         const ship_method = this.getShipmentMethod(vm.cartData).find((dd) => {
                                             return vm.cartData.user_info.shipment === dd.value;
                                         });
@@ -1825,57 +1820,65 @@ ${log_config.content}
                                     })()
                                         ? gvc.bindView(() => {
                                             const id = gvc.glitter.getUUID();
-                                            gvc.addStyle(`             
-  .city-selector select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border-width: 1px;
-    border-radius: 8px;
-    border-color: #ddd;
-    outline: none;
-    padding: .3em 1.25em;
-flex:1;
-  }
-                              `);
+                                            gvc.addStyle(`
+                                              .city-selector select {
+                                                -webkit-appearance: none;
+                                                -moz-appearance: none;
+                                                appearance: none;
+                                                border-width: 1px;
+                                                border-radius: 8px;
+                                                border-color: #ddd;
+                                                outline: none;
+                                                padding: 0.3em 1.25em;
+                                                flex: 1;
+                                              }
+                                            `);
                                             let select_id = '';
                                             return {
                                                 bind: id,
                                                 view: () => {
                                                     select_id = gvc.glitter.getUUID();
-                                                    return html `<label class="${gClass('label')} w-100 d-flex align-items-center">${Language.text('shipping_address')}
-                                      <div class="flex-fill"></div>
-                                      <div
-                                        class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
-                                        style="cursor: pointer; color: #3366bb;"
-                                        onclick="${gvc.event(() => {
+                                                    return html `<label
+                                                    class="${gClass('label')} w-100 d-flex align-items-center"
+                                                    >${Language.text('shipping_address')}
+                                                    <div class="flex-fill"></div>
+                                                    <div
+                                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
+                                                      style="cursor: pointer; color: #3366bb;"
+                                                      onclick="${gvc.event(() => {
                                                         ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
-                                                            vm.cartData.user_info.address = res.response.userData.consignee_address;
+                                                            vm.cartData.user_info.address =
+                                                                res.response.userData.consignee_address;
                                                             this.storeLocalData(vm.cartData);
                                                             gvc.notifyDataChange(id);
                                                         });
                                                     })}"
-                                      >
-                                        ${Language.text('quick_input')}
-                                      </div>
-                                    </label>
-                                    <div class="row">
-                                      <div class="col-12 mb-3">
-                                        <div role="tw-city-selector" id="select_id_${id}" class="w-100 city-selector d-flex d_${select_id}" style="gap:15px;"></div>
-                                      </div>
-                                      <div class="col-12">
-                                        <input
-                                          class="${gClass('input')}"
-                                          type="address"
-                                          placeholder="${Language.text('please_enter_street_location')}"
-                                          value="${vm.cartData.user_info.address || ''}"
-                                          onchange="${gvc.event(e => {
+                                                    >
+                                                      ${Language.text('quick_input')}
+                                                    </div>
+                                                  </label>
+                                                  <div class="row">
+                                                    <div class="col-12 mb-3">
+                                                      <div
+                                                        role="tw-city-selector"
+                                                        id="select_id_${id}"
+                                                        class="w-100 city-selector d-flex d_${select_id}"
+                                                        style="gap:15px;"
+                                                      ></div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                      <input
+                                                        class="${gClass('input')}"
+                                                        type="address"
+                                                        placeholder="${Language.text('please_enter_street_location')}"
+                                                        value="${vm.cartData.user_info.address || ''}"
+                                                        onchange="${gvc.event(e => {
                                                         vm.cartData.user_info.address = e.value;
                                                         this.storeLocalData(vm.cartData);
                                                     })}"
-                                        />
-                                      </div>
-                                    </div> `;
+                                                      />
+                                                    </div>
+                                                  </div> `;
                                                 },
                                                 divCreate: {
                                                     class: `col-12  mb-2`,
@@ -1887,25 +1890,25 @@ flex:1;
                                                         },
                                                     ], () => {
                                                         const tw_selector = new TwCitySelector({
-                                                            el: `.d_${select_id}`
+                                                            el: `.d_${select_id}`,
                                                         });
                                                         const interVal = setInterval(() => {
                                                             if (document.querySelector(`#select_id_${id} .county`)) {
                                                                 clearInterval(interVal);
-                                                                document.querySelector(`#select_id_${id} .county`).addEventListener("change", (event) => {
+                                                                document.querySelector(`#select_id_${id} .county`).addEventListener('change', (event) => {
                                                                     const selectedValue = event.target.value;
                                                                     console.log(`選中的值是: ${selectedValue}`);
                                                                     vm.cartData.user_info.city = selectedValue;
                                                                     vm.cartData.user_info.area = undefined;
                                                                     this.storeLocalData(vm.cartData);
                                                                 });
-                                                                document.querySelector(`#select_id_${id} .district`).addEventListener("change", (event) => {
+                                                                document.querySelector(`#select_id_${id} .district`).addEventListener('change', (event) => {
                                                                     const selectedValue = event.target.value;
                                                                     console.log(`選中的值是: ${selectedValue}`);
                                                                     vm.cartData.user_info.area = selectedValue;
                                                                     this.storeLocalData(vm.cartData);
                                                                 });
-                                                                if ((vm.cartData.user_info.city) && (vm.cartData.user_info.area)) {
+                                                                if (vm.cartData.user_info.city && vm.cartData.user_info.area) {
                                                                     tw_selector.setValue(vm.cartData.user_info.city, vm.cartData.user_info.area);
                                                                 }
                                                                 else if (vm.cartData.user_info.city) {
@@ -1915,16 +1918,16 @@ flex:1;
                                                             glitter.share.tw_selector = tw_selector;
                                                         }, 100);
                                                     }, () => { });
-                                                }
+                                                },
                                             };
                                         })
                                         : ``}
-                      <!-- 選取超商 -->
-                      ${ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment)
+                                      <!-- 選取超商 -->
+                                      ${ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment)
                                         ? html ` <div class="col-12">
-                              <button
-                                class="${gClass('button-bgr')}"
-                                onclick="${gvc.event(() => {
+                                            <button
+                                              class="${gClass('button-bgr')}"
+                                              onclick="${gvc.event(() => {
                                             ApiDelivery.storeMaps({
                                                 returnURL: location.href,
                                                 logistics: vm.cartData.user_info.shipment,
@@ -1933,9 +1936,9 @@ flex:1;
                                                 document.querySelector('#submit').click();
                                             }));
                                         })}"
-                              >
-                                <span class="${gClass('button-text')}"
-                                  >${(() => {
+                                            >
+                                              <span class="${gClass('button-text')}"
+                                                >${(() => {
                                             let cvs = glitter.getUrlParameter('CVSStoreName') || '';
                                             if (decodeURIComponent(cvs)) {
                                                 return `${decodeURIComponent(cvs)} 『 ${Language.text('click_to_reselct_store')} 』`;
@@ -1944,12 +1947,15 @@ flex:1;
                                                 return Language.text('select_pickup_store');
                                             }
                                         })()}</span
-                                >
-                              </button>
-                            </div>`
+                                              >
+                                            </button>
+                                          </div>`
                                         : ''}
-                      ${(() => {
+                                      ${(() => {
                                         var _a;
+                                        if (vm.cartData.user_info.shipment === 'none') {
+                                            return false;
+                                        }
                                         const ship_method = this.getShipmentMethod(vm.cartData).find((dd) => {
                                             return vm.cartData.user_info.shipment === dd.value;
                                         });
@@ -1959,7 +1965,8 @@ flex:1;
                                         return ['global_express'].includes(vm.cartData.user_info.shipment);
                                     })()
                                         ? [
-                                            html `<label class="${gClass('label')}">${Language.text('country')}</label> ${gvc.bindView(() => {
+                                            html `<label class="${gClass('label')}">${Language.text('country')}</label>
+                                              ${gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
                                                     bind: id,
@@ -1984,96 +1991,101 @@ flex:1;
                                                             });
                                                         });
                                                         return html `<select
-                                          class="w-100 ${gClass('select')}"
-                                          onchange="${gvc.event((e, event) => {
+                                                      class="w-100 ${gClass('select')}"
+                                                      onchange="${gvc.event((e, event) => {
                                                             vm.cartData.user_info.country = e.value;
                                                             this.storeLocalData(vm.cartData);
                                                             refreshCartData();
                                                         })}"
-                                        >
-                                          ${(() => {
+                                                    >
+                                                      ${(() => {
                                                             let map = country_select.map((dd) => {
                                                                 return html `
-                                                  <option
-                                                    value="${dd.countryCode}"
-                                                    ${vm.cartData.user_info.country === dd.countryCode
+                                                              <option
+                                                                value="${dd.countryCode}"
+                                                                ${vm.cartData.user_info.country === dd.countryCode
                                                                     ? `selected`
                                                                     : ``}
-                                                  >
-                                                    ${dd.countryName}
-                                                  </option>
-                                                `;
+                                                              >
+                                                                ${dd.countryName}
+                                                              </option>
+                                                            `;
                                                             });
                                                             if (!country_select.find((dd) => {
                                                                 return dd.countryCode === vm.cartData.user_info.country;
                                                             })) {
                                                                 delete vm.cartData.user_info.country;
                                                                 map.push(html ` <option class="d-none" selected>
-                                                  ${Language.text('select_country')}
-                                                </option>`);
+                                                              ${Language.text('select_country')}
+                                                            </option>`);
                                                             }
                                                             return map.join('');
                                                         })()}
-                                        </select>`;
+                                                    </select>`;
                                                     }),
                                                     divCreate: {},
                                                 };
                                             })}`,
-                                            html ` <label class="${gClass('label')}">${Language.text('shipping_address')}</label>
-                                <input
-                                  class="${gClass('input')}"
-                                  type="address"
-                                  placeholder="${Language.text('please_enter_delivery_address')}"
-                                  value="${vm.cartData.user_info.address || ''}"
-                                  onchange="${gvc.event(e => {
+                                            html ` <label class="${gClass('label')}"
+                                                >${Language.text('shipping_address')}</label
+                                              >
+                                              <input
+                                                class="${gClass('input')}"
+                                                type="address"
+                                                placeholder="${Language.text('please_enter_delivery_address')}"
+                                                value="${vm.cartData.user_info.address || ''}"
+                                                onchange="${gvc.event(e => {
                                                 vm.cartData.user_info.address = e.value;
                                                 this.storeLocalData(vm.cartData);
                                             })}"
-                                />`,
+                                              />`,
                                             html ` <label class="${gClass('label')}">${Language.text('city')}</label>
-                                <input
-                                  class="${gClass('input')}"
-                                  type="city"
-                                  placeholder="${Language.text('city')}"
-                                  value="${vm.cartData.user_info.city || ''}"
-                                  onchange="${gvc.event(e => {
+                                              <input
+                                                class="${gClass('input')}"
+                                                type="city"
+                                                placeholder="${Language.text('city')}"
+                                                value="${vm.cartData.user_info.city || ''}"
+                                                onchange="${gvc.event(e => {
                                                 vm.cartData.user_info.city = e.value;
                                                 this.storeLocalData(vm.cartData);
                                             })}"
-                                />`,
+                                              />`,
                                             html ` <label class="${gClass('label')}">${Language.text('state')}</label>
-                                <input
-                                  class="${gClass('input')}"
-                                  class="${gClass('input')}"
-                                  type="state"
-                                  placeholder="${Language.text('state')}"
-                                  value="${vm.cartData.user_info.state || ''}"
-                                  onchange="${gvc.event(e => {
+                                              <input
+                                                class="${gClass('input')}"
+                                                class="${gClass('input')}"
+                                                type="state"
+                                                placeholder="${Language.text('state')}"
+                                                value="${vm.cartData.user_info.state || ''}"
+                                                onchange="${gvc.event(e => {
                                                 vm.cartData.user_info.state = e.value;
                                                 this.storeLocalData(vm.cartData);
                                             })}"
-                                />`,
-                                            html ` <label class="${gClass('label')}">${Language.text('postal_code')}</label>
-                                <input
-                                  class="${gClass('input')}"
-                                  type=""
-                                  placeholder="${Language.text('postal_code')}"
-                                  value="${vm.cartData.user_info.postal_code || ''}"
-                                  onchange="${gvc.event(e => {
+                                              />`,
+                                            html ` <label class="${gClass('label')}"
+                                                >${Language.text('postal_code')}</label
+                                              >
+                                              <input
+                                                class="${gClass('input')}"
+                                                type=""
+                                                placeholder="${Language.text('postal_code')}"
+                                                value="${vm.cartData.user_info.postal_code || ''}"
+                                                onchange="${gvc.event(e => {
                                                 vm.cartData.user_info.postal_code = e.value;
                                                 this.storeLocalData(vm.cartData);
                                             })}"
-                                />`,
+                                              />`,
                                         ]
                                             .map(dd => {
                                             return html ` <div class="col-12 col-md-6 mb-2">${dd}</div>`;
                                         })
                                             .join('')
                                         : ''}
-                      ${(() => {
+                                      ${(() => {
                                         var _a;
                                         try {
-                                            vm.cartData.user_info.custom_form_delivery = (_a = vm.cartData.user_info.custom_form_delivery) !== null && _a !== void 0 ? _a : {};
+                                            vm.cartData.user_info.custom_form_delivery =
+                                                (_a = vm.cartData.user_info.custom_form_delivery) !== null && _a !== void 0 ? _a : {};
                                             const formData = this.getShipmentMethod(vm.cartData).find((dd) => {
                                                 return vm.cartData.user_info.shipment === dd.value;
                                             }).form;
@@ -2100,8 +2112,8 @@ flex:1;
                                             return ``;
                                         }
                                     })()}
-                    </div>
-                  </section>`}
+                                    </div>
+                                  </section>`}
                                 </div>
                                 <!--顧客資訊-->
                                 <div class="rounded-3 bg-white w-100 p-1 mt-3">
@@ -2788,11 +2800,21 @@ flex:1;
                                         }
                                         return html `
                                       <div style="height:100px;"></div>
+
                                       <div
                                         class="w-100 d-flex align-items-center justify-content-center position-fixed bottom-0 start-0 p-2 shadow bg-white"
-                                        style="height:76px;z-index:10;"
+                                        style="min-height:76px;z-index:10;"
                                       >
-                                        <div
+                                        ${(() => {
+                                            if (verify.length > 0) {
+                                                return verify
+                                                    .map(dd => {
+                                                    return `<div class="text-danger" style="font-size: 13px;">${dd}</div>`;
+                                                })
+                                                    .join('');
+                                            }
+                                            else {
+                                                return ` <div
                                           class="d-flex align-items-center justify-content-end"
                                           style="width:1180px;max-width: 100%;gap:24px;"
                                         >
@@ -2811,241 +2833,285 @@ flex:1;
                                             <button
                                               class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
                                               style="${document.body.clientWidth < 800
-                                            ? `min-width:100px;`
-                                            : `min-width:380px;`}"
+                                                    ? `min-width:100px;`
+                                                    : `min-width:380px;`}"
                                               onclick="${gvc.event(() => {
-                                            var _a, _b;
-                                            if (((_a = onlineData === null || onlineData === void 0 ? void 0 : onlineData.interaction) === null || _a === void 0 ? void 0 : _a.status) == 3) {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.infoMessage({
-                                                    text: `很抱歉，團購的結帳時間已截止，無法再進行訂單結算。感謝您的支持，期待下次再為您服務！`
-                                                });
-                                                return;
-                                            }
-                                            if (window.login_config.login_in_to_order &&
-                                                !GlobalUser.token) {
-                                                GlobalUser.loginRedirect = location.href;
-                                                gvc.glitter.href = '/login';
-                                                return;
-                                            }
-                                            if (vm.cartData.user_info_same) {
-                                                vm.cartData.user_info.name = vm.cartData.customer_info.name;
-                                                vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
-                                                vm.cartData.user_info.email = vm.cartData.customer_info.email;
-                                            }
-                                            if (verify.length > 0) {
-                                                return;
-                                            }
-                                            const dialog = new ShareDialog(gvc.glitter);
-                                            if (!this.checkFormData(gvc, vm.cartData, widget)) {
-                                                return;
-                                            }
-                                            for (const item of vm.cartData.lineItems) {
-                                                const title = (item.language_data &&
-                                                    item.language_data[Language.getLanguage()].title) ||
-                                                    item.title;
-                                                let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
-                                                let max_qty = (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
-                                                let count = 0;
-                                                for (const b of vm.cartData.lineItems) {
-                                                    if (b.id === item.id) {
-                                                        count += b.count;
+                                                    var _a;
+                                                    const that = this;
+                                                    if (((_a = onlineData === null || onlineData === void 0 ? void 0 : onlineData.interaction) === null || _a === void 0 ? void 0 : _a.status) == 3) {
+                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                        dialog.infoMessage({
+                                                            text: `很抱歉，團購的結帳時間已截止，無法再進行訂單結算。感謝您的支持，期待下次再為您服務！`,
+                                                        });
+                                                        return;
                                                     }
-                                                }
-                                                if (count < min) {
-                                                    dialog.errorMessage({
-                                                        text: Language.text('min_p_count_d')
-                                                            .replace('_c_', min)
-                                                            .replace('_p_', `『${title}』`),
-                                                    });
-                                                    return;
-                                                }
-                                                if (count > max_qty) {
-                                                    dialog.errorMessage({
-                                                        text: Language.text('max_p_count_d')
-                                                            .replace('_c_', max_qty)
-                                                            .replace('_p_', `『${title}』`),
-                                                    });
-                                                    return;
-                                                }
-                                                if (max_qty > 0 && count + item.buy_history_count > max_qty) {
-                                                    dialog.errorMessage({
-                                                        text: Language.text('trigger_maximum_item').replace('_p_', `『${title}』`),
-                                                    });
-                                                    return;
-                                                }
-                                            }
-                                            [
-                                                'MerchantTradeNo',
-                                                'LogisticsSubType',
-                                                'CVSStoreID',
-                                                'CVSStoreName',
-                                                'CVSTelephone',
-                                                'CVSOutSide',
-                                                'ExtraData',
-                                                'CVSAddress',
-                                            ].map(dd => {
-                                                if (gvc.glitter.getUrlParameter(dd)) {
-                                                    vm.cartData.user_info[dd] = decodeURI(glitter.getUrlParameter(dd));
-                                                }
-                                            });
-                                            dialog.dataLoading({ visible: true });
-                                            ApiShop.toCheckout({
-                                                line_items: vm.cartData.lineItems.map((dd) => {
-                                                    return {
-                                                        id: dd.id,
-                                                        spec: dd.spec,
-                                                        count: dd.count,
-                                                    };
-                                                }),
-                                                customer_info: vm.cartData.customer_info,
-                                                return_url: (() => {
-                                                    const originalUrl = glitter.root_path + 'order_detail' + location.search;
-                                                    const urlObject = new URL(originalUrl);
-                                                    urlObject.searchParams.set('EndCheckout', '1');
-                                                    const newUrl = urlObject.toString();
-                                                    return newUrl;
-                                                })(),
-                                                user_info: vm.cartData.user_info,
-                                                code: apiCart.cart.code,
-                                                use_rebate: apiCart.cart.use_rebate,
-                                                custom_form_format: vm.cartData.custom_form_format,
-                                                custom_form_data: vm.cartData.custom_form_data,
-                                                custom_receipt_form: vm.cartData.receipt_form,
-                                                distribution_code: (_b = localStorage.getItem('distributionCode')) !== null && _b !== void 0 ? _b : '',
-                                                give_away: apiCart.cart.give_away,
-                                                checkOutType: glitter.getUrlParameter('source'),
-                                                temp_cart_id: glitter.getUrlParameter('cart_id')
-                                            }).then(res => {
-                                                var _a, _b, _c;
-                                                dialog.dataLoading({ visible: false });
-                                                if (vm.cartData.customer_info.payment_select == 'paynow') {
-                                                    if (!((_c = (_b = (_a = res.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.result) === null || _c === void 0 ? void 0 : _c.secret)) {
-                                                        return 'paynow API失敗';
+                                                    if (window.login_config.login_in_to_order &&
+                                                        !GlobalUser.token) {
+                                                        GlobalUser.loginRedirect = location.href;
+                                                        gvc.glitter.href = '/login';
+                                                        return;
                                                     }
-                                                    glitter.innerDialog((gvc) => {
-                                                        document.body.style.setProperty('overflow-y', 'hidden', 'important');
-                                                        return gvc.bindView({
-                                                            bind: `paynow`,
-                                                            view: () => {
-                                                                return html ` <div
-                                                              class="w-100 h-100 d-flex align-items-center justify-content-center"
-                                                            >
-                                                              ${document.body.clientWidth < 800
-                                                                    ? `
+                                                    function next() {
+                                                        var _a, _b, _c;
+                                                        if (vm.cartData.user_info_same) {
+                                                            vm.cartData.user_info.name = vm.cartData.customer_info.name;
+                                                            vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
+                                                            vm.cartData.user_info.email = vm.cartData.customer_info.email;
+                                                        }
+                                                        if (verify.length > 0) {
+                                                            return;
+                                                        }
+                                                        if (shipmentList.length === 0) {
+                                                            vm.cartData.user_info.shipment = 'none';
+                                                        }
+                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                        if (!that.checkFormData(gvc, vm.cartData, widget)) {
+                                                            return;
+                                                        }
+                                                        for (const item of vm.cartData.lineItems) {
+                                                            const title = (item.language_data &&
+                                                                item.language_data[Language.getLanguage()].title) ||
+                                                                item.title;
+                                                            let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                                            let max_qty = (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
+                                                            let count = 0;
+                                                            for (const b of vm.cartData.lineItems) {
+                                                                if (b.id === item.id) {
+                                                                    count += b.count;
+                                                                }
+                                                            }
+                                                            if (count < min) {
+                                                                dialog.errorMessage({
+                                                                    text: Language.text('min_p_count_d')
+                                                                        .replace('_c_', min)
+                                                                        .replace('_p_', `『${title}』`),
+                                                                });
+                                                                return;
+                                                            }
+                                                            if (count > max_qty) {
+                                                                dialog.errorMessage({
+                                                                    text: Language.text('max_p_count_d')
+                                                                        .replace('_c_', max_qty)
+                                                                        .replace('_p_', `『${title}』`),
+                                                                });
+                                                                return;
+                                                            }
+                                                            if (max_qty > 0 && count + item.buy_history_count > max_qty) {
+                                                                dialog.errorMessage({
+                                                                    text: Language.text('trigger_maximum_item').replace('_p_', `『${title}』`),
+                                                                });
+                                                                return;
+                                                            }
+                                                        }
+                                                        [
+                                                            'MerchantTradeNo',
+                                                            'LogisticsSubType',
+                                                            'CVSStoreID',
+                                                            'CVSStoreName',
+                                                            'CVSTelephone',
+                                                            'CVSOutSide',
+                                                            'ExtraData',
+                                                            'CVSAddress',
+                                                        ].map(dd => {
+                                                            if (gvc.glitter.getUrlParameter(dd)) {
+                                                                vm.cartData.user_info[dd] = decodeURI(glitter.getUrlParameter(dd));
+                                                            }
+                                                        });
+                                                        dialog.dataLoading({ visible: true });
+                                                        vm.cartData.user_info.note =
+                                                            ((_a = vm.cartData.user_info.note) !== null && _a !== void 0 ? _a : '') + ((_b = check_out_sub.note) !== null && _b !== void 0 ? _b : '');
+                                                        ApiShop.toCheckout({
+                                                            line_items: vm.cartData.lineItems.map((dd) => {
+                                                                return {
+                                                                    id: dd.id,
+                                                                    spec: dd.spec,
+                                                                    count: dd.count,
+                                                                };
+                                                            }),
+                                                            customer_info: vm.cartData.customer_info,
+                                                            return_url: (() => {
+                                                                const originalUrl = glitter.root_path + 'order_detail' + location.search;
+                                                                const urlObject = new URL(originalUrl);
+                                                                urlObject.searchParams.set('EndCheckout', '1');
+                                                                const newUrl = urlObject.toString();
+                                                                return newUrl;
+                                                            })(),
+                                                            user_info: vm.cartData.user_info,
+                                                            code: apiCart.cart.code,
+                                                            use_rebate: apiCart.cart.use_rebate,
+                                                            custom_form_format: vm.cartData.custom_form_format,
+                                                            custom_form_data: vm.cartData.custom_form_data,
+                                                            custom_receipt_form: vm.cartData.receipt_form,
+                                                            distribution_code: (_c = localStorage.getItem('distributionCode')) !== null && _c !== void 0 ? _c : '',
+                                                            give_away: apiCart.cart.give_away,
+                                                        }).then(res => {
+                                                            var _a, _b, _c;
+                                                            dialog.dataLoading({ visible: false });
+                                                            if (vm.cartData.customer_info.payment_select == 'paynow') {
+                                                                if (!((_c = (_b = (_a = res.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.result) === null || _c === void 0 ? void 0 : _c.secret)) {
+                                                                    return 'paynow API失敗';
+                                                                }
+                                                                glitter.innerDialog((gvc) => {
+                                                                    document.body.style.setProperty('overflow-y', 'hidden', 'important');
+                                                                    return gvc.bindView({
+                                                                        bind: `paynow`,
+                                                                        view: () => {
+                                                                            return html ` <div
+                                                                class="w-100 h-100 d-flex align-items-center justify-content-center"
+                                                              >
+                                                                ${document.body.clientWidth < 800
+                                                                                ? `
                                                                             <div class="pt-5  bg-white position-relative vw-100" style="height: ${window.innerHeight}px;overflow-y: auto;">
                                                                             `
-                                                                    : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
-                                                              <div
-                                                                style="position: absolute; right: 15px;top:15px;z-index:1;"
-                                                                onclick="${gvc.event(() => {
-                                                                    gvc.closeDialog();
-                                                                })}"
-                                                              >
-                                                                <i
-                                                                  class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
-                                                                ></i>
-                                                              </div>
-                                                              <div id="paynow-container" class="" style="">
-                                                                <div style="width:200px;height:200px;">loading...</div>
-                                                              </div>
-                                                              <div class="px-3 px-sm-0 w-100">
-                                                                <button
-                                                                  class="${gClass(verify.length > 0
-                                                                    ? 'button-bgr-disable'
-                                                                    : 'button-bgr')} "
-                                                                  id="checkoutButton"
+                                                                                : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
+                                                                <div
+                                                                  style="position: absolute; right: 15px;top:15px;z-index:1;"
                                                                   onclick="${gvc.event(() => {
-                                                                    const PayNow = window.PayNow;
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    dialog.dataLoading({ visible: true });
-                                                                    PayNow.checkout().then((response) => {
-                                                                        dialog.dataLoading({ visible: false });
-                                                                        console.log('response -- ', response);
-                                                                        if (response.error) {
-                                                                            dialog.errorMessage({
-                                                                                text: response.error.message,
-                                                                            });
-                                                                        }
-                                                                    });
-                                                                })}"
+                                                                                gvc.closeDialog();
+                                                                            })}"
                                                                 >
-                                                                  <span class="${gClass('button-text')}">確認結帳</span>
-                                                                </button>
-                                                              </div>
-                                                            </div>`;
-                                                            },
-                                                            divCreate: {
-                                                                class: ` h-100 d-flex align-items-center justify-content-center`,
-                                                                style: `max-width:100vw;${document.body.clientWidth < 800 ? 'width:100%;' : 'width:400px;'};`,
-                                                            },
-                                                            onCreate: () => {
-                                                                const publicKey = res.response.publicKey;
-                                                                const secret = res.response.data.result.secret;
-                                                                const env = res.response.BETA == 'true' ? 'sandbox' : 'production';
-                                                                const PayNow = window.PayNow;
-                                                                PayNow.createPayment({
-                                                                    publicKey: publicKey,
-                                                                    secret: secret,
-                                                                    env: env,
-                                                                });
-                                                                PayNow.mount('#paynow-container', {
-                                                                    locale: 'zh_tw',
-                                                                    appearance: {
-                                                                        variables: {
-                                                                            fontFamily: 'monospace',
-                                                                            colorPrimary: '#0078ab',
-                                                                            colorDefault: '#0a0a0a',
-                                                                            colorBorder: '#cccccc',
-                                                                            colorPlaceholder: '#eeeeee',
-                                                                            borderRadius: '.3rem',
-                                                                            colorDanger: '#ff3d3d',
+                                                                  <i
+                                                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                                                  ></i>
+                                                                </div>
+                                                                <div id="paynow-container" class="" style="">
+                                                                  <div style="width:200px;height:200px;">
+                                                                    loading...
+                                                                  </div>
+                                                                </div>
+                                                                <div class="px-3 px-sm-0 w-100">
+                                                                  <button
+                                                                    class="${gClass(verify.length > 0
+                                                                                ? 'button-bgr-disable'
+                                                                                : 'button-bgr')} "
+                                                                    id="checkoutButton"
+                                                                    onclick="${gvc.event(() => {
+                                                                                const PayNow = window.PayNow;
+                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                dialog.dataLoading({ visible: true });
+                                                                                PayNow.checkout().then((response) => {
+                                                                                    dialog.dataLoading({ visible: false });
+                                                                                    console.log('response -- ', response);
+                                                                                    if (response.error) {
+                                                                                        dialog.errorMessage({
+                                                                                            text: response.error.message,
+                                                                                        });
+                                                                                    }
+                                                                                });
+                                                                            })}"
+                                                                  >
+                                                                    <span class="${gClass('button-text')}"
+                                                                      >確認結帳</span
+                                                                    >
+                                                                  </button>
+                                                                </div>
+                                                              </div>`;
                                                                         },
+                                                                        divCreate: {
+                                                                            class: ` h-100 d-flex align-items-center justify-content-center`,
+                                                                            style: `max-width:100vw;${document.body.clientWidth < 800 ? 'width:100%;' : 'width:400px;'};`,
+                                                                        },
+                                                                        onCreate: () => {
+                                                                            const publicKey = res.response.publicKey;
+                                                                            const secret = res.response.data.result.secret;
+                                                                            const env = res.response.BETA == 'true' ? 'sandbox' : 'production';
+                                                                            const PayNow = window.PayNow;
+                                                                            PayNow.createPayment({
+                                                                                publicKey: publicKey,
+                                                                                secret: secret,
+                                                                                env: env,
+                                                                            });
+                                                                            PayNow.mount('#paynow-container', {
+                                                                                locale: 'zh_tw',
+                                                                                appearance: {
+                                                                                    variables: {
+                                                                                        fontFamily: 'monospace',
+                                                                                        colorPrimary: '#0078ab',
+                                                                                        colorDefault: '#0a0a0a',
+                                                                                        colorBorder: '#cccccc',
+                                                                                        colorPlaceholder: '#eeeeee',
+                                                                                        borderRadius: '.3rem',
+                                                                                        colorDanger: '#ff3d3d',
+                                                                                    },
+                                                                                },
+                                                                            });
+                                                                        },
+                                                                    });
+                                                                }, `paynow`, {
+                                                                    animation: document.body.clientWidth > 800
+                                                                        ? Animation.fade
+                                                                        : Animation.popup,
+                                                                    dismiss: () => {
+                                                                        document.body.style.setProperty('overflow-y', 'auto');
                                                                     },
                                                                 });
-                                                            },
+                                                            }
+                                                            localStorage.setItem('clear_cart_items', JSON.stringify(vm.cartData.lineItems.map((item) => item.id)));
+                                                            if (res.response.off_line || res.response.is_free) {
+                                                                location.href = res.response.return_url;
+                                                            }
+                                                            else {
+                                                                if (res.response.returnCode == '0000' &&
+                                                                    vm.cartData.customer_info.payment_select == 'line_pay') {
+                                                                    console.log('res.response.form.info.paymentUrl.web -- ', res.response.info.paymentUrl.web);
+                                                                    location.href = res.response.info.paymentUrl.web;
+                                                                }
+                                                                else if (res.response.approveLink) {
+                                                                    location.href = res.response.approveLink;
+                                                                }
+                                                                else if (vm.cartData.customer_info.payment_select == 'jkopay') {
+                                                                    location.href = res.response.result_object.payment_url;
+                                                                }
+                                                                else {
+                                                                    const id = gvc.glitter.getUUID();
+                                                                    $('body').append(html ` <div id="${id}" style="display: none;">
+                                                            ${res.response.form}
+                                                          </div>`);
+                                                                    document.querySelector(`#${id} #submit`).click();
+                                                                }
+                                                            }
                                                         });
-                                                    }, `paynow`, {
-                                                        animation: document.body.clientWidth > 800
-                                                            ? Animation.fade
-                                                            : Animation.popup,
-                                                        dismiss: () => {
-                                                            document.body.style.setProperty('overflow-y', 'auto');
-                                                        },
-                                                    });
-                                                }
-                                                localStorage.setItem('clear_cart_items', JSON.stringify(vm.cartData.lineItems.map((item) => item.id)));
-                                                if (res.response.off_line || res.response.is_free) {
-                                                    location.href = res.response.return_url;
-                                                }
-                                                else {
-                                                    if (res.response.returnCode == '0000' &&
-                                                        vm.cartData.customer_info.payment_select == 'line_pay') {
-                                                        console.log('res.response.form.info.paymentUrl.web -- ', res.response.info.paymentUrl.web);
-                                                        location.href = res.response.info.paymentUrl.web;
                                                     }
-                                                    else if (res.response.approveLink) {
-                                                        location.href = res.response.approveLink;
+                                                    if (window.login_config.login_in_to_order &&
+                                                        !GlobalUser.token) {
+                                                        GlobalUser.loginRedirect = location.href;
+                                                        gvc.glitter.href = '/login';
+                                                        return;
                                                     }
                                                     else {
-                                                        const id = gvc.glitter.getUUID();
-                                                        $('body').append(html ` <div id="${id}" style="display: none;">
-                                                          ${res.response.form}
-                                                        </div>`);
-                                                        document.querySelector(`#${id} #submit`).click();
+                                                        ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
+                                                            if (res.response.userData &&
+                                                                !res.response.userData.phone &&
+                                                                window.login_config.phone_verify &&
+                                                                glitter.getUrlParameter('page') !== 'account_edit') {
+                                                                const dialog = new ShareDialog(glitter);
+                                                                dialog.infoMessage({
+                                                                    text: Language.text('phone_verify_check'),
+                                                                });
+                                                                glitter.href = '/account_edit';
+                                                            }
+                                                            else {
+                                                                next();
+                                                            }
+                                                        });
                                                     }
-                                                }
-                                            });
-                                        })}"
+                                                })}"
                                             >
-                                              <span class="${gClass('button-text')}"
-                                                >${window.login_config.login_in_to_order && !GlobalUser.token
-                                            ? Language.text('login_in_to_checkout')
-                                            : Language.text('next')}</span
-                                              >
+                                              <span class="${gClass('button-text')} "
+                                                    style="${verify.length > 0 ? `font-size:13px;` : ``}"
+                                                >
+                                                ${verify.length > 0
+                                                    ? verify.join('<br/>')
+                                                    : window.login_config.login_in_to_order &&
+                                                        !GlobalUser.token
+                                                        ? Language.text('login_in_to_checkout')
+                                                        : Language.text('next')}
+                                                </span >
                                             </button>
                                           </div>
-                                        </div>
+                                        </div>`;
+                                            }
+                                        })()}
                                       </div>
                                     `;
                                     })()}
@@ -3055,7 +3121,7 @@ flex:1;
                               <div
                                 style="${document.body.clientWidth > 800
                                         ? `width:calc(34% - 10px);position: sticky; top: 65px;`
-                                        : `width:calc(100% );`}"
+                                        : `width:calc(100%);`}"
                               >
                                 <!--明細-->
                                 <div style="" class="rounded-3 bg-white w-100 p-3">${detail_info}</div>
@@ -3112,51 +3178,16 @@ flex:1;
         const userData = cartData.customer_info;
         const subData = cartData.user_info;
         const dialog = new ShareDialog(gvc.glitter);
-        function checkEmailPattern(input) {
-            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            return emailPattern.test(input);
-        }
-        function checkPhonePattern(input) {
-            const phonePattern = /^09\d{8}$/;
-            return phonePattern.test(input);
-        }
-        function checkReceiverPattern(input) {
-            const receiverPattern = /^[\u4e00-\u9fa5]{2,5}|[a-zA-Z]{4,10}$/;
-            return receiverPattern.test(input);
-        }
         function checkAddressPattern(input) {
             const addressPattern = /^.{6,60}$/;
             return addressPattern.test(input);
         }
         let pass = true;
-        function checkString(text, errorMessage, type = '') {
-            if ((pass && !text) || text === '') {
-                pass = false;
-                dialog.errorMessage({
-                    text: `${Language.text('please_enter')}「${errorMessage}」`,
-                });
-            }
-            if (pass && type === 'email' && !checkEmailPattern(text)) {
-                pass = false;
-                dialog.errorMessage({
-                    text: `「${errorMessage}」${Language.text('format_error')}`,
-                });
-            }
-            if (pass && type === 'phone' && !checkPhonePattern(text)) {
-                pass = false;
-                dialog.errorMessage({
-                    text: html ` <div class="text-center">
-            「${errorMessage} 」${Language.text('format_error')}<br />${Language.text('please_enter')}
-            ${Language.text('phone_format_starting_with_09')}
-          </div>`,
-                });
-            }
-            if (pass && type === 'name' && !checkReceiverPattern(text)) {
-                pass = false;
-                dialog.errorMessage({
-                    text: Language.text('name_length_restrictions'),
-                });
-            }
+        if (subData.shipment === 'none') {
+            dialog.errorMessage({
+                text: Language.text('select_shipping_method'),
+            });
+            return false;
         }
         if (ShipmentConfig.supermarketList.includes(subData['shipment'])) {
             [
@@ -3188,19 +3219,19 @@ flex:1;
             return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(subData['shipment']);
         })()) {
             console.log(`subData===>`, subData);
-            if ((!subData['address'] || subData['address'] === '')) {
+            if (!subData['address'] || subData['address'] === '') {
                 dialog.errorMessage({
                     text: `${Language.text('please_enter')}「${Language.text('shipping_address')}」`,
                 });
                 return false;
             }
-            else if ((!subData['city'] || subData['city'] === '')) {
+            else if (!subData['city'] || subData['city'] === '') {
                 dialog.errorMessage({
                     text: `${Language.text('please_enter')}「${Language.text('city')}」`,
                 });
                 return false;
             }
-            else if ((!subData['area'] || subData['area'] === '')) {
+            else if (!subData['area'] || subData['area'] === '') {
                 dialog.errorMessage({
                     text: `${Language.text('please_enter')}「${Language.text('area')}」`,
                 });
@@ -3403,6 +3434,7 @@ flex:1;
             }
         });
         cartData.off_line_support = (_a = cartData.off_line_support) !== null && _a !== void 0 ? _a : {};
+        console.log(cartData.off_line_support);
         cartData.off_line_support.atm &&
             array.push({
                 name: '銀行轉帳',
@@ -3473,17 +3505,17 @@ flex:1;
     static getCheckedClass(gvc, color) {
         const className = Tool.randomString(6);
         gvc.addStyle(`
-            .${className} {
-                min-width: 1rem;
-                min-height: 1rem;
-            }
-            .${className}:checked[type='checkbox'] {
-                border: 2px solid ${color !== null && color !== void 0 ? color : '#000'};
-                background-color: #fff;
-                background-image: url(${this.checkedDataImage(color !== null && color !== void 0 ? color : '#000')}) !important;
-                background-position: center center;
-            }
-        `);
+      .${className} {
+        min-width: 1rem;
+        min-height: 1rem;
+      }
+      .${className}:checked[type='checkbox'] {
+        border: 2px solid ${color !== null && color !== void 0 ? color : '#000'};
+        background-color: #fff;
+        background-image: url(${this.checkedDataImage(color !== null && color !== void 0 ? color : '#000')}) !important;
+        background-position: center center;
+      }
+    `);
         return className;
     }
     static checkedDataImage(color) {

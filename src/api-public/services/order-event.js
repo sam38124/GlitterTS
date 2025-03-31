@@ -9,12 +9,13 @@ const shopping_js_1 = require("./shopping.js");
 const fb_api_js_1 = require("./fb-api.js");
 class OrderEvent {
     static async insertOrder(obj) {
-        const insert = await database_js_1.default.execute(`replace INTO \`${obj.app}\`.t_checkout (cart_token, status, email, orderData)
-                             values (?, ?, ?, ?)`, [obj.cartData.orderID, obj.status, obj.cartData.email, obj.cartData]);
+        const { orderID, email } = obj.cartData;
+        await database_js_1.default.execute(`REPLACE INTO \`${obj.app}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
+      `, [orderID, obj.status, email, obj.cartData]);
         await new shopping_js_1.Shopping(obj.app).putOrder({
-            cart_token: obj.cartData.orderID,
+            cart_token: orderID,
             status: undefined,
-            orderData: obj.cartData
+            orderData: obj.cartData,
         });
         await new fb_api_js_1.FbApi(obj.app).checkOut(obj.cartData);
     }

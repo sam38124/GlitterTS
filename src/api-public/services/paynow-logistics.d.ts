@@ -1,4 +1,8 @@
 export declare class PayNowLogistics {
+    static printStack: {
+        code: string;
+        html: string;
+    }[];
     app_name: string;
     constructor(app_name: string);
     config(): Promise<{

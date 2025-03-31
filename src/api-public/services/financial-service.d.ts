@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { Encoding } from 'crypto';
-import axios from "axios";
+import axios from 'axios';
 interface KeyData {
     MERCHANT_ID: string;
     HASH_KEY: string;
@@ -186,6 +186,7 @@ export declare class LinePay {
         use_wallet: number;
         user_email: string;
         method: string;
+        discount?: any;
     }): Promise<any>;
 }
 export declare class PayNow {
@@ -237,8 +238,6 @@ export declare class JKO {
         SECRET_KEY: string;
     };
     appName: string;
-    PublicKey: string;
-    PrivateKey: string;
     BASE_URL: string;
     constructor(appName: string, keyData: any);
     confirmAndCaptureOrder(transactionId?: string): Promise<any>;
@@ -258,7 +257,7 @@ export declare class JKO {
         use_wallet: number;
         user_email: string;
         method: string;
-    }): Promise<string>;
+    }): Promise<any>;
     refundOrder(platform_order_id: string, refund_amount: number): Promise<void>;
     private generateDigest;
 }

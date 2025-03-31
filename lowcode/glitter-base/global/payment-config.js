@@ -31,9 +31,7 @@ export class PaymentConfig {
                 },
                 {
                     key: 'cash_on_delivery',
-                    name: `<div class="d-flex flex-wrap align-items-center" style="gap:5px;">
-貨到付款
-</div>`,
+                    name: '貨到付款',
                     img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/images.png',
                 },
                 ...keyData.payment_info_custom.map((dd) => {
@@ -44,22 +42,22 @@ export class PaymentConfig {
                     };
                 }),
             ].filter((dd) => {
-                if (all) {
-                    return true;
-                }
-                return keyData.off_line_support[dd.key];
+                return all || keyData.off_line_support[dd.key];
             });
-            return PaymentConfig.onlinePay.filter(dd => {
-                if (all) {
-                    return true;
-                }
-                return keyData[dd.key].toggle;
-            }).concat(offlinePayArray);
+            return PaymentConfig.onlinePay
+                .filter(dd => {
+                return all || keyData[dd.key].toggle;
+            })
+                .concat(offlinePayArray);
         });
     }
 }
 PaymentConfig.onlinePay = [
-    { key: 'newWebPay', name: '藍新金流', img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/logo.jpg' },
+    {
+        key: 'newWebPay',
+        name: '藍新金流',
+        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/logo.jpg',
+    },
     {
         key: 'ecPay',
         name: '綠界金流',
@@ -70,7 +68,11 @@ PaymentConfig.onlinePay = [
         name: 'PayNow 立吉富',
         img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/download.png',
     },
-    { key: 'paypal', name: 'PayPal', img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/174861.png' },
+    {
+        key: 'paypal',
+        name: 'PayPal',
+        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/174861.png',
+    },
     {
         key: 'line_pay',
         name: 'Line Pay',

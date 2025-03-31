@@ -68,8 +68,8 @@ router.use(config.getRoute(config.public_route.ai_points, 'public'), require('./
 router.use(config.getRoute(config.public_route.sms_points, 'public'), require('./sms-points'));
 router.use(config.getRoute(config.public_route.track, 'public'), require('./track'));
 router.use(config.getRoute(config.public_route.voucher, 'public'), require('./voucher'));
-router.use(config.getRoute(config.public_route.voucher, 'public'), require('./reconciliation'));
 router.use(config.getRoute(config.public_route.fb, 'public'), fb);
+router.use(config.getRoute(config.public_route.reconciliation, 'public'), require('./reconciliation'));
 /******************************/
 const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.customer_sessions + '/online_cart', 'public'), method: 'GET' },
@@ -149,6 +149,7 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.delivery + '/c2cRedirect', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.delivery + '/c2cNotify', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.delivery + '/storeMaps', 'public'), method: 'POST' },
+    { url: config.getRoute(config.public_route.delivery + '/print-delivery', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'PUT' },

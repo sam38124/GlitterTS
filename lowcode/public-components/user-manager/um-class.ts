@@ -1,7 +1,6 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
-import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiWallet } from '../../glitter-base/route/wallet.js';
 import { CheckInput } from '../../modules/checkInput.js';
@@ -11,7 +10,17 @@ const html = String.raw;
 const css = String.raw;
 
 export class UmClass {
+    static style_components={
+        blueNote(text: string, event: string = '', style: string = ''): string {
+    return html`<span
+      style="color: #4D86DB; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; ${style}"
+      onclick="${event}"
+      >${text}</span
+    >`;
+}
+    }
     static nav(gvc: GVC) {
+
         const glitter = gvc.glitter;
         this.addStyle(gvc);
         const vm = {
@@ -120,7 +129,7 @@ export class UmClass {
                                                                 bind: id,
                                                                 view: () => {
                                                                     return html`${Language.text('reset_password_verification_code')}
-                                                                    ${BgWidget.blueNote(
+                                                                    ${UmClass.style_components.blueNote(
                                                                         get_verify_timer
                                                                             ? `${Language.text('verification_code_sent_to')}『${userData.userData.email}』`
                                                                             : Language.text('get_verification_code'),

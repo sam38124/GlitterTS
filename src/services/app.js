@@ -203,13 +203,15 @@ class App {
             }
             if (copyPageData) {
                 for (const dd of copyPageData) {
-                    await trans.execute(`
+                    if (dd.tag !== 'index-app') {
+                        await trans.execute(`
                             insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`,
                                                                                  \`name\`,
                                                                                  \`config\`, \`page_config\`, page_type)
                             values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify(dd.config))},
                                     ${database_1.default.escape(JSON.stringify(dd.page_config))}, ${database_1.default.escape(dd.page_type)});
                         `, [this.token.userID, cf.appName, dd.tag, dd.group || '未分類', dd.name]);
+                    }
                 }
             }
             else {
@@ -428,7 +430,7 @@ class App {
             const userData = (await database_1.default.query(`SELECT userData
                      FROM \`${appConfig.brand}\`.t_user
                      WHERE userID = ?`, [appConfig.userId]))[0];
-            appConfig.plan = appConfig.plan || 'omo-year';
+            appConfig.plan = appConfig.plan || 'app-year';
             return {
                 memberType: (_b = (_a = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _a === void 0 ? void 0 : _a.menber_type) !== null && _b !== void 0 ? _b : null,
                 brand: appConfig.brand,

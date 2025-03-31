@@ -54,6 +54,8 @@ const ut_permission_js_1 = require("../utils/ut-permission.js");
 const share_permission_js_1 = require("./share-permission.js");
 const terms_check_js_1 = require("./terms-check.js");
 const app_js_2 = require("../../services/app.js");
+const user_update_js_1 = require("./user-update.js");
+const public_table_check_js_1 = require("./public-table-check.js");
 class User {
     constructor(app, token) {
         this.normalMember = {
@@ -80,9 +82,9 @@ class User {
     async findAuthUser(email) {
         try {
             const authData = (await database_1.default.query(`SELECT *
-                     FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
-                     WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
-                    `, [email || '-21']))[0];
+           FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
+           WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
+          `, [email || '-21']))[0];
             return authData;
         }
         catch (e) {
@@ -189,7 +191,7 @@ class User {
             userData.verify_code = undefined;
             userData.verify_code_phone = undefined;
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                 VALUES (?, ?, ?, ?, ?);`, [
+         VALUES (?, ?, ?, ?, ?);`, [
                 userID,
                 account,
                 await tool_1.default.hashPwd(pwd),
@@ -215,8 +217,8 @@ class User {
         const usData = await this.getUserData(userID, 'userID');
         usData.userData.repeatPwd = undefined;
         await database_1.default.query(`update \`${this.app}\`.t_user
-             set userData=?
-             where userID = ?`, [
+       set userData=?
+       where userID = ?`, [
             JSON.stringify(await this.checkUpdate({
                 userID: userID,
                 updateUserData: usData.userData,
@@ -268,9 +270,9 @@ class User {
     async login(account, pwd) {
         try {
             const data = (await database_1.default.execute(`select *
-                     from \`${this.app}\`.t_user
-                     where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
-                       and status = 1`, [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]))[0];
+           from \`${this.app}\`.t_user
+           where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
+             and status = 1`, [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]))[0];
             if ((process_1.default.env.universal_password && pwd === process_1.default.env.universal_password) ||
                 (await tool_1.default.compareHash(pwd, data.pwd))) {
                 data.pwd = undefined;
@@ -309,12 +311,12 @@ class User {
             });
         });
         if ((await database_1.default.query(`select count(1)
-                     from \`${this.app}\`.t_user
-                     where userData ->>'$.email' = ?`, [fbResponse.email]))[0]['count(1)'] == 0) {
+           from \`${this.app}\`.t_user
+           where userData ->>'$.email' = ?`, [fbResponse.email]))[0]['count(1)'] == 0) {
             const findAuth = await this.findAuthUser(fbResponse.email);
             const userID = findAuth ? findAuth.user : User.generateUserID();
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                 VALUES (?, ?, ?, ?, ?);`, [
+         VALUES (?, ?, ?, ?, ?);`, [
                 userID,
                 fbResponse.email,
                 await tool_1.default.hashPwd(User.generateUserID()),
@@ -328,14 +330,14 @@ class User {
             await this.createUserHook(userID);
         }
         const data = (await database_1.default.execute(`select *
-                 from \`${this.app}\`.t_user
-                 where userData ->>'$.email' = ?
-                   and status = 1`, [fbResponse.email]))[0];
+         from \`${this.app}\`.t_user
+         where userData ->>'$.email' = ?
+           and status = 1`, [fbResponse.email]))[0];
         data.userData['fb-id'] = fbResponse.id;
         await database_1.default.execute(`update \`${this.app}\`.t_user
-             set userData=?
-             where userID = ?
-               and id > 0`, [JSON.stringify(data.userData), data.userID]);
+       set userData=?
+       where userID = ?
+         and id > 0`, [JSON.stringify(data.userData), data.userID]);
         const usData = await this.getUserData(data.userID, 'userID');
         usData.pwd = undefined;
         usData.token = await UserUtil_1.default.generateToken({
@@ -414,21 +416,21 @@ class User {
             const app = this.app;
             async function getUsData() {
                 return (await database_1.default.execute(`select *
-                     from \`${app}\`.t_user
-                     where (userData ->>'$.email' = ?)
-                        or (userData ->>'$.lineID' = ?)
-                     ORDER BY CASE
-                                  WHEN (userData ->>'$.lineID' = ?) THEN 1
-                                  ELSE 3
-                                  END
-                    `, [line_profile.email, userData.sub, userData.sub]));
+           from \`${app}\`.t_user
+           where (userData ->>'$.email' = ?)
+              or (userData ->>'$.lineID' = ?)
+           ORDER BY CASE
+                        WHEN (userData ->>'$.lineID' = ?) THEN 1
+                        ELSE 3
+                        END
+          `, [line_profile.email, userData.sub, userData.sub]));
             }
             let findList = await getUsData();
             if (!findList[0]) {
                 const findAuth = await this.findAuthUser(line_profile.email);
                 const userID = findAuth ? findAuth.user : User.generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                     VALUES (?, ?, ?, ?, ?);`, [
+           VALUES (?, ?, ?, ?, ?);`, [
                     userID,
                     line_profile.email,
                     await tool_1.default.hashPwd(User.generateUserID()),
@@ -446,9 +448,9 @@ class User {
             const usData = await this.getUserData(data.userID, 'userID');
             data.userData.lineID = userData.sub;
             await database_1.default.execute(`update \`${this.app}\`.t_user
-                 set userData=?
-                 where userID = ?
-                   and id > 0`, [JSON.stringify(data.userData), data.userID]);
+         set userData=?
+         where userID = ?
+           and id > 0`, [JSON.stringify(data.userData), data.userID]);
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
                 user_id: usData['userID'],
@@ -496,12 +498,12 @@ class User {
             }
             const payload = ticket.getPayload();
             if ((await database_1.default.query(`select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.email' = ?`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0]['count(1)'] == 0) {
+             from \`${this.app}\`.t_user
+             where userData ->>'$.email' = ?`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0]['count(1)'] == 0) {
                 const findAuth = await this.findAuthUser(payload === null || payload === void 0 ? void 0 : payload.email);
                 const userID = findAuth ? findAuth.user : User.generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                     VALUES (?, ?, ?, ?, ?);`, [
+           VALUES (?, ?, ?, ?, ?);`, [
                     userID,
                     payload === null || payload === void 0 ? void 0 : payload.email,
                     await tool_1.default.hashPwd(User.generateUserID()),
@@ -514,14 +516,14 @@ class User {
                 await this.createUserHook(userID);
             }
             const data = (await database_1.default.execute(`select *
-                     from \`${this.app}\`.t_user
-                     where userData ->>'$.email' = ?
-                       and status = 1`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0];
+           from \`${this.app}\`.t_user
+           where userData ->>'$.email' = ?
+             and status = 1`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0];
             data.userData['google-id'] = payload === null || payload === void 0 ? void 0 : payload.sub;
             await database_1.default.execute(`update \`${this.app}\`.t_user
-                 set userData=?
-                 where userID = ?
-                   and id > 0`, [JSON.stringify(data.userData), data.userID]);
+         set userData=?
+         where userID = ?
+           and id > 0`, [JSON.stringify(data.userData), data.userID]);
             const usData = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
@@ -602,11 +604,11 @@ class User {
             const findAuth = await this.findAuthUser(decoded.payload.email);
             const userID = findAuth ? findAuth.user : User.generateUserID();
             if ((await database_1.default.query(`select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.email' = ?`, [decoded.payload.email]))[0]['count(1)'] == 0) {
+             from \`${this.app}\`.t_user
+             where userData ->>'$.email' = ?`, [decoded.payload.email]))[0]['count(1)'] == 0) {
                 const userID = User.generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                     VALUES (?, ?, ?, ?, ?);`, [
+           VALUES (?, ?, ?, ?, ?);`, [
                     userID,
                     decoded.payload.email,
                     await tool_1.default.hashPwd(User.generateUserID()),
@@ -622,14 +624,14 @@ class User {
                 await this.createUserHook(userID);
             }
             const data = (await database_1.default.execute(`select *
-                     from \`${this.app}\`.t_user
-                     where userData ->>'$.email' = ?
-                       and status = 1`, [decoded.payload.email]))[0];
+           from \`${this.app}\`.t_user
+           where userData ->>'$.email' = ?
+             and status = 1`, [decoded.payload.email]))[0];
             data.userData['apple-id'] = uid;
             await database_1.default.execute(`update \`${this.app}\`.t_user
-                 set userData=?
-                 where userID = ?
-                   and id > 0`, [JSON.stringify(data.userData), data.userID]);
+         set userData=?
+         where userID = ?
+           and id > 0`, [JSON.stringify(data.userData), data.userID]);
             const usData = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
@@ -646,8 +648,8 @@ class User {
     async getUserData(query, type = 'userID') {
         try {
             const sql = `select *
-                         from \`${this.app}\`.t_user
-                         where ${(() => {
+                   from \`${this.app}\`.t_user
+                   where ${(() => {
                 let query2 = [`1=1`];
                 if (type === 'userID') {
                     query2.push(`userID=${database_1.default.escape(query)}`);
@@ -713,7 +715,7 @@ class User {
                 .filter(Boolean)
                 .map(database_1.default.escape)
                 .join(',')})
-           AND ${orderCountingSQL}
+             AND ${orderCountingSQL}
            ORDER BY id DESC`, [])).map((dd) => ({
                 total_amount: parseInt(dd.total, 10),
                 date: dd.created_time,
@@ -975,28 +977,23 @@ class User {
         const orderCountingSQL = await this.getCheckoutCountingModeSQL();
         const sql = `
         SELECT ${obj.select}
-        FROM (
-            SELECT 
-                email,
-                COUNT(*) AS order_count,
-                SUM(total) AS total_amount
-            FROM \`${this.app}\`.t_checkout
-            WHERE ${orderCountingSQL}
-            GROUP BY email
-        ) AS o
-        RIGHT JOIN \`${this.app}\`.t_user u ON o.email = u.account
-        LEFT JOIN (
-            SELECT 
-                email,
-                total AS last_order_total,
-                created_time AS last_order_time,
-                ROW_NUMBER() OVER(PARTITION BY email ORDER BY created_time DESC) AS rn
-            FROM \`${this.app}\`.t_checkout
-            WHERE ${orderCountingSQL}
-        ) AS lo ON o.email = lo.email AND lo.rn = 1
+        FROM (SELECT email,
+                     COUNT(*)   AS order_count,
+                     SUM(total) AS total_amount
+              FROM \`${this.app}\`.t_checkout
+              WHERE ${orderCountingSQL}
+              GROUP BY email) AS o
+                 RIGHT JOIN \`${this.app}\`.t_user u ON o.email = u.account
+                 LEFT JOIN (SELECT email,
+                                   total        AS last_order_total,
+                                   created_time AS last_order_time,
+                                   ROW_NUMBER()    OVER(PARTITION BY email ORDER BY created_time DESC) AS rn
+                            FROM \`${this.app}\`.t_checkout
+                            WHERE ${orderCountingSQL}) AS lo ON o.email = lo.email AND lo.rn = 1
         WHERE (${whereClause})
         ORDER BY ${orderByClause} ${limitClause}
     `;
+        console.log(sql);
         return sql;
     }
     getOrderByClause(orderBy) {
@@ -1018,12 +1015,16 @@ class User {
         return orderByMap[orderBy] || 'u.id DESC';
     }
     async getUserList(query) {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d;
         try {
+            const orderCountingSQL = await this.getCheckoutCountingModeSQL();
             const querySql = ['1=1'];
             const noRegisterUsers = [];
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
+            function sqlDateConvert(dd) {
+                return dd.replace('T', ' ').replace('.000Z', '');
+            }
             if (query.groupType) {
                 const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
                 if (getGroup.result && getGroup.data[0]) {
@@ -1118,8 +1119,20 @@ class User {
                 const last_time = query.last_order_time.split(',');
                 if (last_time.length > 1) {
                     querySql.push(`
-                        (lo.last_order_time BETWEEN ${database_1.default.escape(`${last_time[0]} 00:00:00`)} 
-                        AND ${database_1.default.escape(`${last_time[1]} 23:59:59`)})
+                        (lo.last_order_time BETWEEN ${database_1.default.escape(`${sqlDateConvert(last_time[0])}`)} 
+                        AND ${database_1.default.escape(`${sqlDateConvert(last_time[1])}`)})
+                    `);
+                }
+            }
+            if (query.last_shipment_date) {
+                const last_time = query.last_shipment_date.split(',');
+                if (last_time.length > 1) {
+                    querySql.push(`
+(((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.phone' and ${orderCountingSQL})  between ${database_1.default.escape(sqlDateConvert(last_time[0]))} and ${database_1.default.escape(sqlDateConvert(last_time[1]))})
+
+)   
+or
+((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.email' and ${orderCountingSQL})  between ${database_1.default.escape(sqlDateConvert(last_time[0]))} and ${database_1.default.escape(sqlDateConvert(last_time[1]))})                    
                     `);
                 }
             }
@@ -1171,6 +1184,14 @@ class User {
                         querySql.push(`(o.order_count > ${arr[1]})`);
                     }
                 }
+            }
+            if (query.member_levels) {
+                querySql.push(`member_level in (${query.member_levels
+                    .split(',')
+                    .map(level => {
+                    return database_1.default.escape(level);
+                })
+                    .join(',')})`);
             }
             if (query.search) {
                 const searchValue = `%${query.search}%`;
@@ -1227,26 +1248,52 @@ class User {
             const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
             const levelMap = new Map(levels.map(lv => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
             const queryResult = await database_1.default.query(`
-                    SELECT *
-                    FROM \`${this.app}\`.t_user_public_config
-                    WHERE \`key\` = 'member_update'
-                      AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
-                `, []);
+            SELECT *
+            FROM \`${this.app}\`.t_user_public_config
+            WHERE \`key\` = 'member_update'
+              AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
+        `, []);
             for (const b of queryResult) {
-                const tagName = (_g = (_f = (_e = b === null || b === void 0 ? void 0 : b.value) === null || _e === void 0 ? void 0 : _e.value) === null || _f === void 0 ? void 0 : _f[0]) === null || _g === void 0 ? void 0 : _g.tag_name;
-                if (tagName) {
+                const tag = levels.find(dd => {
+                    return `${dd.id}` === `${b.user_id}`;
+                });
+                if (tag && tag.data && tag.data.tag_name) {
                     const user = userMap.get(String(b.user_id));
                     if (user) {
-                        user.tag_name = tagName;
+                        user.tag_name = tag.data.tag_name;
                     }
                 }
             }
             const processUserData = async (user) => {
                 var _a;
+                const phone = user.userData.phone || 'asnhsauh';
+                const email = user.userData.email || 'asnhsauh';
                 const _rebate = new rebate_js_1.Rebate(this.app);
                 const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
                 user.rebate = userRebate ? userRebate.point : 0;
                 user.member_deadline = (_a = levelMap.get(user.userID)) !== null && _a !== void 0 ? _a : '';
+                user.latest_order_date = (await database_1.default.query(`select created_time
+                                                  from \`${this.app}\`.t_checkout
+                                                  where email in ('${email}', '${phone}')
+                                                    and ${orderCountingSQL}
+                                                  order by created_time desc limit 0,1`, []))[0];
+                user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
+                user.latest_order_total = (await database_1.default.query(`select total
+                                                   from \`${this.app}\`.t_checkout
+                                                   where email in ('${email}', '${phone}')
+                                                     and ${orderCountingSQL}
+                                                   order by created_time desc limit 0,1`, []))[0];
+                user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
+                user.checkout_total = (await database_1.default.query(`select sum(total)
+                                               from \`${this.app}\`.t_checkout
+                                               where email in ('${email}', '${phone}')
+                                                 and ${orderCountingSQL} `, []))[0];
+                user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
+                user.checkout_count = (await database_1.default.query(`select count(1)
+                                               from \`${this.app}\`.t_checkout
+                                               where email in ('${email}', '${phone}')
+                                                 and ${orderCountingSQL} `, []))[0];
+                user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
             };
             if (Array.isArray(userData) && userData.length > 0) {
                 const chunkSize = 20;
@@ -1282,18 +1329,18 @@ class User {
             let dataList = [];
             if (pass('subscriber')) {
                 const subscriberList = await database_1.default.query(`SELECT DISTINCT u.userID, s.email
-                     FROM \`${this.app}\`.t_subscribe AS s
-                              LEFT JOIN
-                          \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`, []);
+           FROM \`${this.app}\`.t_subscribe AS s
+                    LEFT JOIN
+                \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`, []);
                 dataList.push({ type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList });
             }
             if (pass('neverBuying') || pass('usuallyBuying')) {
                 const buyingList = [];
                 const buyingData = await database_1.default.query(`SELECT u.userID, c.email, JSON_UNQUOTE(JSON_EXTRACT(c.orderData, '$.email')) AS order_email
-                     FROM \`${this.app}\`.t_checkout AS c
-                              JOIN
-                          \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
-                     WHERE c.status = 1;`, []);
+           FROM \`${this.app}\`.t_checkout AS c
+                    JOIN
+                \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
+           WHERE c.status = 1;`, []);
                 buyingData.map((item1) => {
                     const index = buyingList.findIndex(item2 => item2.userID === item1.userID);
                     if (index === -1) {
@@ -1306,8 +1353,8 @@ class User {
                 const usuallyBuyingStandard = 4.5;
                 const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
                 const neverBuyingData = await database_1.default.query(`SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
-                     FROM \`${this.app}\`.t_user
-                     WHERE userID not in (${buyingList
+           FROM \`${this.app}\`.t_user
+           WHERE userID not in (${buyingList
                     .map(item => item.userID)
                     .concat([-1312])
                     .join(',')})`, []);
@@ -1334,7 +1381,7 @@ class User {
                     });
                 }
                 const users = await database_1.default.query(`SELECT userID
-                     FROM \`${this.app}\`.t_user;`, []);
+           FROM \`${this.app}\`.t_user;`, []);
                 const levelItems = await this.getUserLevel(users.map((item) => {
                     return { userId: item.userID };
                 }));
@@ -1378,10 +1425,10 @@ class User {
         const idSQL = idList.length > 0 ? idList.join(',') : -1111;
         const emailSQL = emailList.length > 0 ? emailList.join(',') : -1111;
         const users = await database_1.default.query(`SELECT *
-             FROM \`${this.app}\`.t_user
-             WHERE userID in (${idSQL})
-                OR JSON_EXTRACT(userData, '$.email') in (${emailSQL})
-            `, []);
+       FROM \`${this.app}\`.t_user
+       WHERE userID in (${idSQL})
+          OR JSON_EXTRACT(userData, '$.email') in (${emailSQL})
+      `, []);
         const levelList = await this.getLevelConfig();
         const normalData = {
             id: this.normalMember.id,
@@ -1392,9 +1439,9 @@ class User {
         };
         if (users.length > 0) {
             const memberUpdates = await database_1.default.query(`SELECT *
-                 FROM \`${this.app}\`.t_user_public_config
-                 WHERE \`key\` = 'member_update'
-                   AND user_id in (${idSQL});`, []);
+         FROM \`${this.app}\`.t_user_public_config
+         WHERE \`key\` = 'member_update'
+           AND user_id in (${idSQL});`, []);
             for (const user of users) {
                 if (user.userData.level_status === 'manual') {
                     const member_level = levelList.find((item) => {
@@ -1439,7 +1486,7 @@ class User {
                 database: this.app,
             }, async (sql) => {
                 await sql.query(`replace
-                        into t_subscribe (email,tag) values (?,?)`, [email, tag]);
+            into t_subscribe (email,tag) values (?,?)`, [email, tag]);
             });
         }
         catch (e) {
@@ -1452,7 +1499,7 @@ class User {
                 database: this.app,
             }, async (sql) => {
                 await sql.query(`replace
-                        into t_fcm (userID,deviceToken) values (?,?)`, [userID, deviceToken]);
+            into t_fcm (userID,deviceToken) values (?,?)`, [userID, deviceToken]);
             });
         }
         catch (e) {
@@ -1462,8 +1509,8 @@ class User {
     async deleteSubscribe(email) {
         try {
             await database_1.default.query(`delete
-                 FROM \`${this.app}\`.t_subscribe
-                 where email in (?)`, [email.split(',')]);
+         FROM \`${this.app}\`.t_subscribe
+         where email in (?)`, [email.split(',')]);
             return {
                 result: true,
             };
@@ -1496,20 +1543,20 @@ class User {
                 }
             }
             const subData = await database_1.default.query(`SELECT s.*, u.account
-                 FROM \`${this.app}\`.t_subscribe AS s
-                          LEFT JOIN \`${this.app}\`.t_user AS u
-                                    ON s.email = u.account
-                 WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'} LIMIT ${query.page * query.limit}
-                     , ${query.limit}
+         FROM \`${this.app}\`.t_subscribe AS s
+                  LEFT JOIN \`${this.app}\`.t_user AS u
+                            ON s.email = u.account
+         WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'} LIMIT ${query.page * query.limit}
+             , ${query.limit}
 
-                `, []);
+        `, []);
             const subTotal = await database_1.default.query(`SELECT count(*) as c
-                 FROM \`${this.app}\`.t_subscribe AS s
-                          LEFT JOIN \`${this.app}\`.t_user AS u
-                                    ON s.email = u.account
-                 WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
+         FROM \`${this.app}\`.t_subscribe AS s
+                  LEFT JOIN \`${this.app}\`.t_user AS u
+                            ON s.email = u.account
+         WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
 
-                `, []);
+        `, []);
             return {
                 data: subData,
                 total: subTotal[0].c,
@@ -1532,8 +1579,8 @@ class User {
             const data = await new ut_database_js_1.UtDatabase(this.app, `t_fcm`).querySql(querySql, query);
             for (const b of data.data) {
                 let userData = (await database_1.default.query(`select userData
-                         from \`${this.app}\`.t_user
-                         where userID = ?`, [b.userID]))[0];
+             from \`${this.app}\`.t_user
+             where userID = ?`, [b.userID]))[0];
                 b.userData = userData && userData.userData;
             }
             return data;
@@ -1546,13 +1593,13 @@ class User {
         try {
             if (query.id) {
                 await database_1.default.query(`delete
-                     FROM \`${this.app}\`.t_user
-                     where id in (?)`, [query.id.split(',')]);
+           FROM \`${this.app}\`.t_user
+           where id in (?)`, [query.id.split(',')]);
             }
             else if (query.email) {
                 await database_1.default.query(`delete
-                     FROM \`${this.app}\`.t_user
-                     where userData ->>'$.email'=?`, [query.email]);
+           FROM \`${this.app}\`.t_user
+           where userData ->>'$.email'=?`, [query.email]);
             }
             return {
                 result: true,
@@ -1566,8 +1613,8 @@ class User {
         var _a;
         try {
             const userData = (await database_1.default.query(`select *
-                     from \`${this.app}\`.\`t_user\`
-                     where userID = ${database_1.default.escape(userID)}`, []))[0];
+           from \`${this.app}\`.\`t_user\`
+           where userID = ${database_1.default.escape(userID)}`, []))[0];
             const login_config = await this.getConfigV2({
                 key: 'login_config',
                 user_id: 'manager',
@@ -1581,8 +1628,8 @@ class User {
             if (par.userData.pwd) {
                 if ((await redis_js_1.default.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
                     await database_1.default.query(`update \`${this.app}\`.\`t_user\`
-                         set pwd=?
-                         where userID = ${database_1.default.escape(userID)}`, [await tool_1.default.hashPwd(par.userData.pwd)]);
+             set pwd=?
+             where userID = ${database_1.default.escape(userID)}`, [await tool_1.default.hashPwd(par.userData.pwd)]);
                 }
                 else {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
@@ -1592,9 +1639,9 @@ class User {
             }
             if (par.userData.email && par.userData.email !== userData.userData.email) {
                 const count = (await database_1.default.query(`select count(1)
-                         from \`${this.app}\`.\`t_user\`
-                         where (userData ->>'$.email' = ${database_1.default.escape(par.userData.email)})
-                           and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
+             from \`${this.app}\`.\`t_user\`
+             where (userData ->>'$.email' = ${database_1.default.escape(par.userData.email)})
+               and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
                 if (count) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Already exists.', {
                         msg: 'email-exists',
@@ -1612,9 +1659,9 @@ class User {
             }
             if (par.userData.phone && par.userData.phone !== userData.userData.phone) {
                 const count = (await database_1.default.query(`select count(1)
-                         from \`${this.app}\`.\`t_user\`
-                         where (userData ->>'$.phone' = ${database_1.default.escape(par.userData.phone)})
-                           and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
+             from \`${this.app}\`.\`t_user\`
+             where (userData ->>'$.phone' = ${database_1.default.escape(par.userData.phone)})
+               and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
                 if (count) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Already exists.', {
                         msg: 'phone-exists',
@@ -1634,16 +1681,16 @@ class User {
             par.status = blockCheck ? 0 : 1;
             if (par.userData.phone) {
                 await database_1.default.query(`update \`${this.app}\`.t_checkout
-                     set email=?
-                     where id > 0
-                       and email = ?`, [par.userData.phone, `${userData.userData.phone}`]);
+           set email=?
+           where id > 0
+             and email = ?`, [par.userData.phone, `${userData.userData.phone}`]);
                 userData.account = par.userData.phone;
             }
             if (par.userData.email) {
                 await database_1.default.query(`update \`${this.app}\`.t_checkout
-                     set email=?
-                     where id > 0
-                       and email = ?`, [par.userData.email, `${userData.userData.email}`]);
+           set email=?
+           where id > 0
+             and email = ?`, [par.userData.email, `${userData.userData.email}`]);
                 userData.account = par.userData.email;
             }
             par.userData = await this.checkUpdate({
@@ -1660,11 +1707,13 @@ class User {
             if (!par.account) {
                 delete par.account;
             }
+            const data = (await database_1.default.query(`update \`${this.app}\`.t_user
+         SET ?
+         WHERE 1 = 1
+           and userID = ?`, [par, userID]));
+            await user_update_js_1.UserUpdate.update(this.app, userID);
             return {
-                data: (await database_1.default.query(`update \`${this.app}\`.t_user
-                     SET ?
-                     WHERE 1 = 1
-                       and userID = ?`, [par, userID])),
+                data: data,
             };
         }
         catch (e) {
@@ -1698,8 +1747,8 @@ class User {
     }
     async checkUpdate(cf) {
         let originUserData = (await database_1.default.query(`select userData
-                 from \`${this.app}\`.\`t_user\`
-                 where userID = ${database_1.default.escape(cf.userID)}`, []))[0]['userData'];
+         from \`${this.app}\`.\`t_user\`
+         where userID = ${database_1.default.escape(cf.userID)}`, []))[0]['userData'];
         if (typeof originUserData !== 'object') {
             originUserData = {};
         }
@@ -1715,9 +1764,9 @@ class User {
     async resetPwd(user_id_and_account, newPwd) {
         try {
             const result = (await database_1.default.query(`update \`${this.app}\`.t_user
-                 SET ?
-                 WHERE 1 = 1
-                   and ((userData ->>'$.email' = ?))`, [
+         SET ?
+         WHERE 1 = 1
+           and ((userData ->>'$.email' = ?))`, [
                 {
                     pwd: await tool_1.default.hashPwd(newPwd),
                 },
@@ -1734,14 +1783,14 @@ class User {
     async resetPwdNeedCheck(userID, pwd, newPwd) {
         try {
             const data = (await database_1.default.execute(`select *
-                     from \`${this.app}\`.t_user
-                     where userID = ?
-                       and status = 1`, [userID]))[0];
+           from \`${this.app}\`.t_user
+           where userID = ?
+             and status = 1`, [userID]))[0];
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
                 const result = (await database_1.default.query(`update \`${this.app}\`.t_user
-                     SET ?
-                     WHERE 1 = 1
-                       and userID = ?`, [
+           SET ?
+           WHERE 1 = 1
+             and userID = ?`, [
                     {
                         pwd: await tool_1.default.hashPwd(newPwd),
                     },
@@ -1762,12 +1811,12 @@ class User {
     async updateAccountBack(token) {
         try {
             const sql = `select userData
-                         from \`${this.app}\`.t_user
-                         where JSON_EXTRACT(userData, '$.mailVerify') = ${database_1.default.escape(token)}`;
+                   from \`${this.app}\`.t_user
+                   where JSON_EXTRACT(userData, '$.mailVerify') = ${database_1.default.escape(token)}`;
             const userData = (await database_1.default.query(sql, []))[0]['userData'];
             await database_1.default.execute(`update \`${this.app}\`.t_user
-                 set account=${database_1.default.escape(userData.updateAccount)}
-                 where JSON_EXTRACT(userData, '$.mailVerify') = ?`, [token]);
+         set account=${database_1.default.escape(userData.updateAccount)}
+         where JSON_EXTRACT(userData, '$.mailVerify') = ?`, [token]);
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'updateAccountBack Error:' + e, null);
@@ -1779,9 +1828,9 @@ class User {
                 status: 1,
             };
             return (await database_1.default.query(`update \`${this.app}\`.t_user
-                 SET ?
-                 WHERE 1 = 1
-                   and JSON_EXTRACT(userData, '$.mailVerify') = ?`, [par, token]));
+         SET ?
+         WHERE 1 = 1
+           and JSON_EXTRACT(userData, '$.mailVerify') = ?`, [par, token]));
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify Error:' + e, null);
@@ -1790,9 +1839,9 @@ class User {
     async checkUserExists(account) {
         try {
             return ((await database_1.default.execute(`select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.email'
-                           and status!=0`, [account]))[0]['count(1)'] == 1);
+             from \`${this.app}\`.t_user
+             where userData ->>'$.email'
+               and status!=0`, [account]))[0]['count(1)'] == 1);
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
@@ -1805,16 +1854,16 @@ class User {
             let phoneExists = false;
             if (email) {
                 const emailResult = await database_1.default.execute(`SELECT COUNT(1) AS count
-                     FROM \`${this.app}\`.t_user
-                     WHERE userData ->>'$.email' = ?
-                    `, [email]);
+           FROM \`${this.app}\`.t_user
+           WHERE userData ->>'$.email' = ?
+          `, [email]);
                 emailExists = ((_a = emailResult[0]) === null || _a === void 0 ? void 0 : _a.count) > 0;
             }
             if (phone) {
                 const phoneResult = await database_1.default.execute(`SELECT COUNT(1) AS count
-                     FROM \`${this.app}\`.t_user
-                     WHERE userData ->>'$.phone' = ?
-                    `, [phone]);
+           FROM \`${this.app}\`.t_user
+           WHERE userData ->>'$.phone' = ?
+          `, [phone]);
                 phoneExists = ((_b = phoneResult[0]) === null || _b === void 0 ? void 0 : _b.count) > 0;
             }
             return {
@@ -1832,8 +1881,8 @@ class User {
     async checkUserIdExists(id) {
         try {
             const count = (await database_1.default.query(`select count(1)
-                     from \`${this.app}\`.t_user
-                     where userID = ?`, [id]))[0]['count(1)'];
+           from \`${this.app}\`.t_user
+           where userID = ?`, [id]))[0]['count(1)'];
             return count;
         }
         catch (e) {
@@ -1847,20 +1896,28 @@ class User {
                 config.value = JSON.stringify(config.value);
             }
             if ((await database_1.default.query(`select count(1)
-                         from \`${this.app}\`.t_user_public_config
-                         where \`key\` = ?
-                           and user_id = ? `, [config.key, (_a = config.user_id) !== null && _a !== void 0 ? _a : this.token.userID]))[0]['count(1)'] === 1) {
+             from \`${this.app}\`.t_user_public_config
+             where \`key\` = ?
+               and user_id = ? `, [config.key, (_a = config.user_id) !== null && _a !== void 0 ? _a : this.token.userID]))[0]['count(1)'] === 1) {
                 await database_1.default.query(`update \`${this.app}\`.t_user_public_config
-                     set value=?,
-                         updated_at=?
-                     where \`key\` = ?
-                       and user_id = ?`, [config.value, new Date(), config.key, (_b = config.user_id) !== null && _b !== void 0 ? _b : this.token.userID]);
+           set value=?,
+               updated_at=?
+           where \`key\` = ?
+             and user_id = ?`, [config.value, new Date(), config.key, (_b = config.user_id) !== null && _b !== void 0 ? _b : this.token.userID]);
             }
             else {
                 await database_1.default.query(`insert
-                     into \`${this.app}\`.t_user_public_config (\`user_id\`, \`key\`, \`value\`, updated_at)
-                     values (?, ?, ?, ?)
-                    `, [(_c = config.user_id) !== null && _c !== void 0 ? _c : this.token.userID, config.key, config.value, new Date()]);
+           into \`${this.app}\`.t_user_public_config (\`user_id\`, \`key\`, \`value\`, updated_at)
+           values (?, ?, ?, ?)
+          `, [(_c = config.user_id) !== null && _c !== void 0 ? _c : this.token.userID, config.key, config.value, new Date()]);
+            }
+            if (config.key === 'domain_301') {
+                const find_app_301 = public_table_check_js_1.ApiPublic.app301.find(dd => {
+                    return dd.app_name === this.app;
+                });
+                if (find_app_301) {
+                    find_app_301.router = JSON.parse(config.value).list;
+                }
             }
         }
         catch (e) {
@@ -1871,10 +1928,10 @@ class User {
     async getConfig(config) {
         try {
             return await database_1.default.execute(`select *
-                 from \`${this.app}\`.t_user_public_config
-                 where \`key\` = ${database_1.default.escape(config.key)}
-                   and user_id = ${database_1.default.escape(config.user_id)}
-                `, []);
+         from \`${this.app}\`.t_user_public_config
+         where \`key\` = ${database_1.default.escape(config.key)}
+           and user_id = ${database_1.default.escape(config.user_id)}
+        `, []);
         }
         catch (e) {
             console.error(e);
@@ -1892,7 +1949,7 @@ class User {
                     .map(dd => database_1.default.escape(dd))
                     .join(',')})`
                 : `\`key\` = ${database_1.default.escape(config.key)}`}
-         AND user_id = ${database_1.default.escape(config.user_id)}`, []);
+           AND user_id = ${database_1.default.escape(config.user_id)}`, []);
             async function loop(data) {
                 if (!data && config.user_id === 'manager') {
                     const defaultValues = {
@@ -1993,13 +2050,16 @@ class User {
             case 'list-header-view':
                 value = form_check_js_1.FormCheck.initialListHeader(value);
                 break;
+            case 'login_config':
+                value = form_check_js_1.FormCheck.initialLoginConfig(value);
+                break;
         }
     }
     async checkEmailExists(email) {
         try {
             const count = (await database_1.default.query(`select count(1)
-                     from \`${this.app}\`.t_user
-                     where userData ->>'$.email' = ?`, [email]))[0]['count(1)'];
+           from \`${this.app}\`.t_user
+           where userData ->>'$.email' = ?`, [email]))[0]['count(1)'];
             return count;
         }
         catch (e) {
@@ -2009,8 +2069,8 @@ class User {
     async checkPhoneExists(phone) {
         try {
             const count = (await database_1.default.query(`select count(1)
-                     from \`${this.app}\`.t_user
-                     where userData ->>'$.phone' = ?`, [phone]))[0]['count(1)'];
+           from \`${this.app}\`.t_user
+           where userData ->>'$.phone' = ?`, [phone]))[0]['count(1)'];
             return count;
         }
         catch (e) {
@@ -2021,14 +2081,14 @@ class User {
         var _a, _b;
         try {
             const last_read_time = await database_1.default.query(`SELECT value
-                 FROM \`${this.app}\`.t_user_public_config
-                 where \`key\` = 'notice_last_read'
-                   and user_id = ?;`, [(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID]);
+         FROM \`${this.app}\`.t_user_public_config
+         where \`key\` = 'notice_last_read'
+           and user_id = ?;`, [(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID]);
             const date = !last_read_time[0] ? new Date('2022-01-29') : new Date(last_read_time[0].value.time);
             const count = (await database_1.default.query(`select count(1)
-                     from \`${this.app}\`.t_notice
-                     where user_id = ?
-                       and created_time > ?`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID, date]))[0]['count(1)'];
+           from \`${this.app}\`.t_notice
+           where user_id = ?
+             and created_time > ?`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID, date]))[0]['count(1)'];
             return {
                 count: count,
             };
@@ -2041,16 +2101,16 @@ class User {
         var _a, _b;
         try {
             const result = await database_1.default.query(`select count(1)
-                 from ${process_1.default.env.GLITTER_DB}.app_config
-                 where (appName = ?
-                     and user = ?)
-                    OR appName in (
-                     (SELECT appName
-                      FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
-                      WHERE user = ?
-                        AND status = 1
-                        AND invited = 1
-                        AND appName = ?));`, [this.app, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, (_b = this.token) === null || _b === void 0 ? void 0 : _b.userID, this.app]);
+         from ${process_1.default.env.GLITTER_DB}.app_config
+         where (appName = ?
+             and user = ?)
+            OR appName in (
+             (SELECT appName
+              FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
+              WHERE user = ?
+                AND status = 1
+                AND invited = 1
+                AND appName = ?));`, [this.app, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, (_b = this.token) === null || _b === void 0 ? void 0 : _b.userID, this.app]);
             return {
                 result: result[0]['count(1)'] === 1,
             };
@@ -2063,19 +2123,19 @@ class User {
             const query = [`user_id=${(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID}`];
             let last_time_read = 0;
             const last_read_time = await database_1.default.query(`SELECT value
-                 FROM \`${this.app}\`.t_user_public_config
-                 where \`key\` = 'notice_last_read'
-                   and user_id = ?;`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID]);
+         FROM \`${this.app}\`.t_user_public_config
+         where \`key\` = 'notice_last_read'
+           and user_id = ?;`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID]);
             if (!last_read_time[0]) {
                 await database_1.default.query(`insert into \`${this.app}\`.t_user_public_config (user_id, \`key\`, value, updated_at)
-                     values (?, ?, ?, ?)`, [(_c = this.token) === null || _c === void 0 ? void 0 : _c.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]);
+           values (?, ?, ?, ?)`, [(_c = this.token) === null || _c === void 0 ? void 0 : _c.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]);
             }
             else {
                 last_time_read = new Date(last_read_time[0].value.time).getTime();
                 await database_1.default.query(`update \`${this.app}\`.t_user_public_config
-                     set \`value\`=?
-                     where user_id = ?
-                       and \`key\` = ?`, [JSON.stringify({ time: new Date() }), `${(_d = this.token) === null || _d === void 0 ? void 0 : _d.userID}`, 'notice_last_read']);
+           set \`value\`=?
+           where user_id = ?
+             and \`key\` = ?`, [JSON.stringify({ time: new Date() }), `${(_d = this.token) === null || _d === void 0 ? void 0 : _d.userID}`, 'notice_last_read']);
             }
             const response = await new ut_database_js_1.UtDatabase(this.app, `t_notice`).querySql(query, cf.query);
             response.last_time_read = last_time_read;
@@ -2102,13 +2162,13 @@ class User {
                 headers: {},
             };
             const db_data = (await database_1.default.query(`select *
-                     from ${config_1.saasConfig.SAAS_NAME}.t_ip_info
-                     where ip = ?`, [ip]))[0];
+           from ${config_1.saasConfig.SAAS_NAME}.t_ip_info
+           where ip = ?`, [ip]))[0];
             let ip_data = db_data && db_data.data;
             if (!ip_data) {
                 ip_data = (await axios_1.default.request(config)).data;
                 await database_1.default.query(`insert into ${config_1.saasConfig.SAAS_NAME}.t_ip_info (ip, data)
-                     values (?, ?)`, [ip, JSON.stringify(ip_data)]);
+           values (?, ?)`, [ip, JSON.stringify(ip_data)]);
             }
             return ip_data;
         }

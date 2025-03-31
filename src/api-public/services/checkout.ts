@@ -44,6 +44,22 @@ export class CheckoutService {
         update_object.shipment_number = null;
       }
     }
+    update_object.order_source=json.orderSource || null;
+    update_object.archived=json.archived;
+
+    if(json.customer_info){
+      update_object.customer_name=json.customer_info.name;
+      update_object.customer_phone=json.customer_info.phone;
+      update_object.customer_email=json.customer_info.email;
+    }
+    if(json.user_info){
+      update_object.shipment_name=json.user_info.name;
+      update_object.shipment_phone=json.user_info.phone;
+      update_object.shipment_email=json.user_info.email;
+      update_object.shipment_address=[json.user_info.city, json.user_info.area, json.user_info.address].filter((dd)=>{
+        return dd
+      }).join('');
+    }
     //更新t_checkout欄位
     await db.query(
       `update \`${obj.app_name}\`.t_checkout

@@ -61,19 +61,19 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
       const oldest = await rebateClass.getOldestRebate(req.body.token.userID);
       const historyMaps = historyList
         ? historyList.data.map((item: any) => {
-          return {
-            id: item.id,
-            orderID: item.content.order_id ?? '',
-            userID: item.user_id,
-            money: item.origin,
-            remain: item.remain,
-            status: 1,
-            note: item.note,
-            created_time: item.created_at,
-            deadline: item.deadline,
-            userData: user.userData,
-          };
-        })
+            return {
+              id: item.id,
+              orderID: item.content.order_id ?? '',
+              userID: item.user_id,
+              money: item.origin,
+              remain: item.remain,
+              status: 1,
+              note: item.note,
+              created_time: item.created_at,
+              deadline: item.deadline,
+              userData: user.userData,
+            };
+          })
         : [];
       return response.succ(resp, { data: historyMaps, oldest: oldest?.data });
     }
@@ -161,7 +161,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
       client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip) as string,
       fbc: req.cookies._fbc,
       fbp: req.cookies._fbp,
-      temp_cart_id:req.body.temp_cart_id
+      temp_cart_id: req.body.temp_cart_id,
     });
 
     //
@@ -330,7 +330,10 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
           valid: req.query.valid === 'true',
           shipment_time: req.query.shipment_time as string,
           is_shipment: req.query.is_shipment === 'true',
+          is_reconciliation: req.query.is_reconciliation === 'true',
           payment_select: req.query.payment_select as string,
+          reconciliation_status:
+            req.query.reconciliation_status && ((req.query.reconciliation_status as string).split(',') as any),
         })
       );
     } else if (await UtPermission.isAppUser(req)) {
@@ -349,6 +352,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
           email: user_data.userData.email,
           phone: user_data.userData.phone,
           status: req.query.status as string,
+          progress: req.query.progress as string,
           searchType: req.query.searchType as string,
         })
       );
@@ -363,6 +367,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
           id: req.query.id as string,
           status: req.query.status as string,
           searchType: req.query.searchType as string,
+          progress: req.query.progress as string,
         })
       );
     } else {
@@ -456,7 +461,10 @@ router.put('/order', async (req: express.Request, resp: express.Response) => {
 });
 router.put('/order/cancel', async (req: express.Request, resp: express.Response) => {
   try {
-    return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).cancelOrder(req.body.id));
+    return response.succ(
+      resp,
+      await new Shopping(req.get('g-app') as string, req.body.token).manualCancelOrder(req.body.id)
+    );
   } catch (err) {
     return response.fail(resp, err);
   }
@@ -590,13 +598,6 @@ router.get('/voucher', async (req: express.Request, resp: express.Response) => {
       id: req.query.id as string,
     });
 
-    const isManager = await UtPermission.isManager(req);
-
-    // 後台列表直接回傳
-    if (isManager && !req.query.user_email) {
-      return response.succ(resp, vouchers);
-    }
-
     // 篩選過期優惠券
     if (req.query.date_confirm === 'true') {
       vouchers.data = vouchers.data.filter((voucher: { content: VoucherData }) => {
@@ -604,6 +605,13 @@ router.get('/voucher', async (req: express.Request, resp: express.Response) => {
         const now = new Date().getTime();
         return new Date(start_ISO_Date).getTime() < now && (!end_ISO_Date || new Date(end_ISO_Date).getTime() > now);
       });
+    }
+
+    const isManager = await UtPermission.isManager(req);
+
+    // 後台列表直接回傳
+    if (isManager && !req.query.user_email) {
+      return response.succ(resp, vouchers);
     }
 
     // 獲取用戶資料
@@ -662,7 +670,6 @@ async function redirect_link(req: express.Request, resp: express.Response) {
   try {
     //預防沒有APPName
     req.query.appName = req.query.appName || (req.get('g-app') as string) || (req.query['g-app'] as string);
-    // 判斷paypal進來 做capture
     let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
     if (req.query.LinePay && req.query.LinePay === 'true') {
       const check_id = await redis.getValue(`linepay` + req.query.orderID);
@@ -720,49 +727,48 @@ async function redirect_link(req: express.Request, resp: express.Response) {
       const check_id = await redis.getValue(`paynow` + req.query.orderID);
       const payNow = new PayNow(req.query.appName as string, keyData);
       const data: any = await payNow.confirmAndCaptureOrder(check_id as string);
-      console.log(`paynow-response=>`, data);
       if (data.type == 'success' && data.result.status === 'success') {
         await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
       }
     }
     //pp_1bed7f12879241198832063d5e091976
     if (req.query.jkopay && req.query.jkopay === 'true') {
-      let kd = {
-        ReturnURL: '',
-        NotifyURL: '',
-      };
-
-      const jko = new JKO(req.query.appName as string, kd);
-      const data: any = jko.confirmAndCaptureOrder(req.query.orderID as string);
-      if (data.tranactions[0].status == 'success') {
-        await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
-      }
+      // let kd = {
+      //   ReturnURL: '',
+      //   NotifyURL: '',
+      // };
+      //
+      // const jko = new JKO(req.query.appName as string, kd);
+      // const data: any = jko.confirmAndCaptureOrder(req.query.orderID as string);
+      // if (data.tranactions[0].status == 'success') {
+      //   await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+      // }
     }
     const html = String.raw;
     return resp.send(
       html`<!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Title</title>
-      </head>
-      <body>
-      <script>
-        try {
-          window.webkit.messageHandlers.addJsInterFace.postMessage(
-            JSON.stringify({
-              functionName: 'check_out_finish',
-              callBackId: 0,
-              data: {
-                redirect: '${return_url.href}',
-              },
-            })
-          );
-        } catch (e) {}
-        location.href = '${return_url.href}';
-      </script>
-      </body>
-      </html> `
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <title>Title</title>
+          </head>
+          <body>
+            <script>
+              try {
+                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                  JSON.stringify({
+                    functionName: 'check_out_finish',
+                    callBackId: 0,
+                    data: {
+                      redirect: '${return_url.href}',
+                    },
+                  })
+                );
+              } catch (e) {}
+              location.href = '${return_url.href}';
+            </script>
+          </body>
+        </html> `
     );
   } catch (err) {
     console.error(err);
@@ -790,7 +796,6 @@ router.get('/testRelease', async (req: express.Request, resp: express.Response) 
 });
 router.post('/notify', upload.single('file'), async (req: express.Request, resp: express.Response) => {
   try {
-    console.log(`notify-order-result`);
     let decodeData = undefined;
     //預防沒有APPName
     req.query.appName = req.query.appName || (req.get('g-app') as string) || (req.query['g-app'] as string);
@@ -808,6 +813,14 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
       const payNow = new PayNow(req.query.appName as string, keyData);
       const data: any = await payNow.confirmAndCaptureOrder(check_id as string);
       if (data.type == 'success' && data.result.status === 'success') {
+        await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+      }
+    }
+
+    if(type === 'jkopay'){
+      const jko = new JKO(req.query.appName as string, keyData);
+      const data: any = await jko.confirmAndCaptureOrder(req.query.orderID as string);
+      if (`${data.transactions[0].status}` === '0') {
         await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
       }
     }
@@ -1500,11 +1513,11 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
 // 手動開立發票
 router.post('/customer_invoice', async (req: express.Request, resp: express.Response) => {
   try {
+
     return response.succ(
       resp,
       await new Shopping(req.get('g-app') as string, req.body.token).postCustomerInvoice({
         orderID: req.body.orderID,
-        invoice_data: req.body.invoiceData,
         orderData: req.body.orderData,
       })
     );

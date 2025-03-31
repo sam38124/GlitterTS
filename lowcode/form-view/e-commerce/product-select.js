@@ -150,7 +150,6 @@ export class ProductSelect {
                                         ${BgWidget.grayButton((() => {
                             switch (bundle.formData[bundle.key].select) {
                                 case 'product':
-                                    return `選取`;
                                 case 'collection':
                                     return `選取`;
                             }
@@ -197,14 +196,14 @@ export class ProductSelect {
                                                             <div class="d-flex align-items-center form-check-label c_updown_label px-1"
                                                                  style="justify-content: space-between"
                                                                  data-index="${opt.key}">
-                                                                <div class="d-flex align-items-center gap-3 cursor_move">
+                                                                <div class="d-flex align-items-center gap-3 cursor_move" style="max-width: calc(100% - 50px);">
                                                                     <i class="fa-solid fa-grip-dots-vertical dragItem"></i>
                                                                     ${BgWidget.validImageBox({
                                         gvc,
                                         image: opt.image,
                                         width: 40,
                                     })}
-                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}"  style="white-space:normal;">
                                                                         ${opt.value}
                                                                     </div>
                                                                 </div>
