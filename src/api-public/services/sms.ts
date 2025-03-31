@@ -156,11 +156,11 @@ export class SMS {
       return new Promise<boolean>((resolve, reject) => {
         axios
           .request(urlConfig)
-          .then(response => {
+          .then((response:any) => {
             callback(response.data);
             resolve(response.data);
           })
-          .catch(error => {
+          .catch((error:any) => {
             console.log('error -- ', error);
             resolve(false);
           });

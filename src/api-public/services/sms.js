@@ -114,11 +114,11 @@ class SMS {
             return new Promise((resolve, reject) => {
                 axios_1.default
                     .request(urlConfig)
-                    .then(response => {
+                    .then((response) => {
                     callback(response.data);
                     resolve(response.data);
                 })
-                    .catch(error => {
+                    .catch((error) => {
                     console.log('error -- ', error);
                     resolve(false);
                 });

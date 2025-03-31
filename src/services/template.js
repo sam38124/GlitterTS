@@ -264,9 +264,6 @@ class Template {
         if (query_page === 'shopnex-line-oauth') {
             page = 'official-router';
         }
-        if (query_page === 'shopnex-fb-oauth') {
-            page = 'official-router';
-        }
         return page;
     }
     async getPage(config) {

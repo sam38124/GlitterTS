@@ -36,7 +36,7 @@ export class CheckoutIndex {
     let onlineData:any = {}
 
     //取得要顯示的購物車
-    const apiCart = (() => {
+    let apiCart = (() => {
       if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
         return new ApiCart(ApiCart.globalCart);
       } else {

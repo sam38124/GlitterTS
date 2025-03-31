@@ -33,7 +33,7 @@ export class CheckoutIndex {
         console.log(`[CheckoutIndex]:`, gvc);
         const glitter = gvc.glitter;
         let onlineData = {};
-        const apiCart = (() => {
+        let apiCart = (() => {
             if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
                 return new ApiCart(ApiCart.globalCart);
             }
