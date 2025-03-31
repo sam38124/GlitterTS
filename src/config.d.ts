@@ -70,6 +70,7 @@ export declare const config: {
         customer_sessions: string;
         voucher: string;
         reconciliation: string;
+        fb: string;
     };
     route: {
         shopee: string;

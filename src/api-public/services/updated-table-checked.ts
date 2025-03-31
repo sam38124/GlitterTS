@@ -87,7 +87,6 @@ ADD INDEX \`index11\` (\`shipment_number\` ASC) VISIBLE;`,
         });
       },
     });
-    <<<<<<< HEAD
       //LINE資料表更新
       await UpdatedTableChecked.update({
         app_name: app_name,

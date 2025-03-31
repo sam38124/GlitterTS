@@ -10,7 +10,7 @@ const router = express_1.default.Router();
 router.post('/', async (req, resp) => {
     try {
         const insertID = await new customer_sessions_js_1.CustomerSessions(req.get('g-app'), req.body.token).createScheduled(req.body.data);
-        return resp.status(http_status_codes_1.default.OK).send({ insertID: 123 });
+        return resp.status(http_status_codes_1.default.OK).send(insertID);
     }
     catch (err) {
         return response_js_1.default.fail(resp, err);
@@ -36,7 +36,7 @@ router.post('/finish', async (req, resp) => {
 });
 router.get('/', async (req, resp) => {
     try {
-        const data = await new customer_sessions_js_1.CustomerSessions(req.get('g-app'), req.body.token).getScheduled();
+        const data = await new customer_sessions_js_1.CustomerSessions(req.get('g-app'), req.body.token).getScheduled(req.query.limit, req.query.page, req.query.type);
         return resp.status(http_status_codes_1.default.OK).send(data);
     }
     catch (err) {

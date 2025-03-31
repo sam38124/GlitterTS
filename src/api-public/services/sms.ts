@@ -97,7 +97,7 @@ export class SMS {
                 return new Promise<boolean>((resolve, reject) => {
                     axios
                         .request(urlConfig)
-                        .then((response) => {
+                        .then((response:any) => {
                             let result = response.data.split('\r\n');
                             let snsResponse: SNSResponse = {
                                 clientid: result[0],
@@ -110,7 +110,7 @@ export class SMS {
                             callback(snsResponse);
                             resolve(response.data);
                         })
-                        .catch((error) => {
+                        .catch((error:any) => {
                             console.error('error -- ', error);
                             resolve(false);
                         });
@@ -137,11 +137,11 @@ export class SMS {
             return new Promise<boolean>((resolve, reject) => {
                 axios
                     .request(urlConfig)
-                    .then((response) => {
+                    .then((response:any) => {
                         callback(response.data);
                         resolve(response.data);
                     })
-                    .catch((error) => {
+                    .catch((error:any) => {
                         console.log('error -- ', error);
                         resolve(false);
                     });

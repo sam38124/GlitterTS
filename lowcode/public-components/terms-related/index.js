@@ -73,6 +73,13 @@ export class TermsRelated {
                             });
                         });
                     }
+                    else if (['shopnex-fb-oauth'].includes(page)) {
+                        return yield new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./cms-plugin/third-party-facebook.js', gvc.glitter.root_path).href, (res) => {
+                                document.querySelector(`.${id}`).outerHTML = res.drawFacebookAuthRedirect(gvc);
+                            });
+                        });
+                    }
                     else {
                         let lan_d = (yield ApiUser.getPublicConfig(`terms-related-${page}-${Language.getLanguage()}`, 'manager')).response.value.text;
                         if (!lan_d) {

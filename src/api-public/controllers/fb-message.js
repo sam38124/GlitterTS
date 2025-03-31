@@ -32,23 +32,28 @@ router.get('/', async (req, resp) => {
     }
 });
 router.get('/listenMessage', async (req, resp) => {
+    var _a;
     try {
         if (req.query['hub.verify_token'] === 'my_secret_token') {
             let challenge = req.query["hub.challenge"];
             return resp.status(http_status_codes_1.default.OK).send(challenge);
         }
+        return response_1.default.succ(resp, {
+            "result": "OK"
+        });
     }
     catch (err) {
-        return response_1.default.fail(resp, err);
+        return response_1.default.fail(resp, ((_a = err.response) === null || _a === void 0 ? void 0 : _a.data) || err.message);
     }
 });
 router.post('/listenMessage', async (req, resp) => {
+    var _a;
     try {
         await new fb_message_1.FbMessage(req.get('g-app'), req.body.token).listenMessage(req.body);
         return resp.status(http_status_codes_1.default.OK).send("收到你的訊息");
     }
     catch (err) {
-        return response_1.default.fail(resp, err);
+        return response_1.default.fail(resp, ((_a = err.response) === null || _a === void 0 ? void 0 : _a.data) || err.message);
     }
 });
 module.exports = router;

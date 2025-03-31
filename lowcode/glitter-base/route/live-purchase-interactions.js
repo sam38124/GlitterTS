@@ -26,7 +26,14 @@ export class ApiLiveInteraction extends BaseApi {
     static getScheduled(json) {
         return __awaiter(this, void 0, void 0, function* () {
             return BaseApi.create({
-                url: getBaseUrl() + `/api-public/v1/customer_sessions`,
+                url: getBaseUrl() + `/api-public/v1/customer_sessions?${(() => {
+                    let par = [`limit=${json.limit}`, `page=${json.page}`];
+                    json.search && par.push(`search=${json.search}`);
+                    json.searchType && par.push(`searchType=${json.searchType}`);
+                    json.orderString && par.push(`orderString=${json.orderString}`);
+                    par.push(`type=${json.type}`);
+                    return par.join('&');
+                })()}`,
                 type: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

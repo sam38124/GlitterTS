@@ -2814,10 +2814,8 @@ flex:1;
                                             ? `min-width:100px;`
                                             : `min-width:380px;`}"
                                               onclick="${gvc.event(() => {
-                                            var _a;
-                                            console.log("onlineData -- ", onlineData);
-                                            onlineData.interaction.status;
-                                            if (onlineData && onlineData.interaction.status == 3) {
+                                            var _a, _b;
+                                            if (((_a = onlineData === null || onlineData === void 0 ? void 0 : onlineData.interaction) === null || _a === void 0 ? void 0 : _a.status) == 3) {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.infoMessage({
                                                     text: `很抱歉，團購的結帳時間已截止，無法再進行訂單結算。感謝您的支持，期待下次再為您服務！`
@@ -2914,7 +2912,7 @@ flex:1;
                                                 custom_form_format: vm.cartData.custom_form_format,
                                                 custom_form_data: vm.cartData.custom_form_data,
                                                 custom_receipt_form: vm.cartData.receipt_form,
-                                                distribution_code: (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '',
+                                                distribution_code: (_b = localStorage.getItem('distributionCode')) !== null && _b !== void 0 ? _b : '',
                                                 give_away: apiCart.cart.give_away,
                                                 checkOutType: glitter.getUrlParameter('source'),
                                                 temp_cart_id: glitter.getUrlParameter('cart_id')

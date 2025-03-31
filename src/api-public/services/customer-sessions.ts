@@ -68,127 +68,32 @@ export class CustomerSessions {
 
     async createScheduled(data: scheduled): Promise<{ result: boolean; message: string }> {
         try {
-            const appName = this.app
-            //輸入: 產品資訊
-            //輸出: 根據輸出 產出對應的產品輪播卡
-            function generateProductCarousel(products: {
-                id: string
-                name: string;
-                price: number;
-                imageUrl: string;
-                selectedSpec?: string;
-                options: { label: string; value: string, price: number }[];
-            }[], appName: string, scheduledID: string) {
-                const maxOptions = Math.max(...products.map(p => p.options.length));
-
-                return {
-                    type: "flex",
-                    altText: "團購商品列表",
-                    contents: {
-                        type: "carousel",
-                        contents: products.map((product, index) => ({
-                            type: "bubble",
-                            hero: {
-                                type: "image",
-                                url: product.imageUrl,
-                                size: "full",
-                                aspectRatio: "16:9",
-                                aspectMode: "cover"
-                            },
-                            body: {
-                                type: "box",
-                                layout: "vertical",
-                                spacing: "lg",
-                                height: "120px",
-                                justifyContent: "space-between",
-                                flex: 1,
-                                contents: [
-                                    {
-                                        type: "text",
-                                        text: `${product.name}`,
-                                        weight: "bold",
-                                        size: "xl",
-                                        "wrap": true,
-                                        "maxLines": 2
-                                    },
-                                    {
-                                        type: "text",
-                                        text: `$ ${product.price.toLocaleString()} 起`,
-                                        size: "md",
-                                        "align": "end"
-                                    },
-                                ]
-                            },
-                            footer: {
-                                type: "box",
-                                layout: "vertical",
-                                spacing: "lg",
-                                flex: 1,
-                                justifyContent: "flex-start",
-                                contents: [
-                                    ...product.options.flatMap((option, idx) => [
-                                        {
-                                            type: "text",
-                                            text: (option.label.length > 0)?option.label:"單一規格",
-                                            size: "sm",
-                                            color: "#0D6EFD",
-                                            align: "center",
-                                            action: {
-                                                type: "postback",
-                                                data: `action=selectSpec&productID=${product.id}&spec=${(option.value.length > 0)?option.value:"單一規格"}&g-app=${appName}&scheduledID=${scheduledID}&price=${option.price}`,
-                                            }
-                                        },
-                                        ...(idx < product.options.length - 1 ? [{type: "separator", margin: "sm"}] : []) // ✅ 只在 `text` 之間加 `separator`
-                                    ])
-                                ]
-                            }
-                        }))
-                    }
-                };
-            }
-            //將item轉為product的資料格式
-            function convertToProductFormat(rawData: RawProduct[]): Product[] {
-                return rawData.map(item => {
-                    const id = item.content.id
-                    const content = item.content;
-                    const name = content.title || "未知商品";
-                    const variants = content.variants || [];
-                    // 取得最低價格
-                    const price = variants.length > 0 ? Math.min(...variants.map(v => v.live_model.live_price)) : 0;
-
-                    // 取得第一張商品圖片
-                    const imageUrl = variants.length > 0 ? variants[0].preview_image : "";
-                    // 轉換規格選項
-                    const options = variants.map(v => ({
-                        label: v.spec.length > 0 ? v.spec.join(',') : "", // 避免空陣列
-                        value: v.spec.length > 0 ? v.spec.join(',') : "", // 避免空陣列
-                        price: v.live_model.live_price,
-                    }));
-                    return {
-                        id,
-                        name,
-                        price,
-                        imageUrl,
-                        selectedSpec: undefined, // 預設無選擇規格
-                        options
-                    };
-                });
-            }
-            //從 data 物件中提取 type 和 name 屬性的值，並將剩下的屬性收集到content中。
+            const appName = this.app;
             const {type, name, ...content} = data;
+            let item_list = [];
+            //todo 整理一下商品的必要資訊
 
-            //團購開始時 發送的第一則訊息
-            const message = [
-                {
-                    "type": "text",
-                    "text": `📢 團購開始囉！ 🎉\n團購名稱： ${name}\n團購日期： ${content.start_date} ${content.start_time} ~ ${content.end_date} ${content.end_time}\n\n📍 下方查看完整商品清單`
+            item_list = data.item_list.map(item => {
+                return {
+                    id : item.id,
+                    specs : item.content.specs,
+                    title : item.content.title,
+                    variants : item.content.variants.map((variant:any) => {
+                        return {
+                            sku : variant.sku,
+                            spec : variant.spec,
+                            sale_price : variant.sale_price,
+                            preview_image : variant.preview_image,
+                            stockList: variant.stockList,
+                            live_model : variant.live_model,
+                            live_keyword:variant.live_keyword,
+                        }
+                    }),
+                    live_model:item.content.live_model,
+
                 }
-            ]
-            //把item_list裡的商品資訊轉為方便Product的資料樣式
-            const transProducts: Product[] = convertToProductFormat(content.item_list);
-            //把上面的message 發送到對應的groupID 也就是群組內
-            await this.sendMessageToGroup(data.lineGroup.groupId,message)
-
+            })
+            content.item_list = item_list;
             //建立團購單
             const queryData = await db.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
                                               SET ?;`, [{
@@ -197,81 +102,201 @@ export class CustomerSessions {
                 status: "1",
                 content: JSON.stringify(content)
             }])
-            const flexMessage = generateProductCarousel(transProducts, this.app, queryData.insertId);
-            //檢索所有商品
-            for (const item of content.item_list) {
-                //todo 這裡可以最佳化 一次搜尋
-                const pdDqlData = (
-                  await new Shopping(this.app , this.token).getProduct({
-                      page: 0,
-                      limit: 50,
-                      id: item.id,
-                      status: 'inRange',
-                  })
-                ).data[0];
-                const pd = pdDqlData.content;
-                //做倉儲扣除的動作
-                Promise.all(item.content.variants.map(async (variant: any,i:number) => {
-                    const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, variant.live_model.available_Qty);
-                    const updateVariant = pd.variants.find((dd: any) => dd.spec.join('-') === variant.spec.join('-'));
-                    //預先從庫存倉庫取出後的倉庫列表
-                    updateVariant.stockList = returnData.stockList;
-                    //將每個scheduled視做一個庫存 做轉化
-                    variant.stockList = {}
-                    Object.entries(returnData.deductionLog).forEach(([key, value]) => {
-                        variant.stockList[key] = {
-                            count : value
+            if (data.type == "group_buy") {
+                //輸入: 產品資訊
+                //輸出: 根據輸出 產出對應的產品輪播卡
+                function generateProductCarousel(products: {
+                    id: string
+                    name: string;
+                    price: number;
+                    imageUrl: string;
+                    selectedSpec?: string;
+                    options: { label: string; value: string, price: number }[];
+                }[], appName: string, scheduledID: string) {
+                    const maxOptions = Math.max(...products.map(p => p.options.length));
+
+                    return {
+                        type: "flex",
+                        altText: "團購商品列表",
+                        contents: {
+                            type: "carousel",
+                            contents: products.map((product, index) => ({
+                                type: "bubble",
+                                hero: {
+                                    type: "image",
+                                    url: product.imageUrl,
+                                    size: "full",
+                                    aspectRatio: "16:9",
+                                    aspectMode: "cover"
+                                },
+                                body: {
+                                    type: "box",
+                                    layout: "vertical",
+                                    spacing: "lg",
+                                    height: "120px",
+                                    justifyContent: "space-between",
+                                    flex: 1,
+                                    contents: [
+                                        {
+                                            type: "text",
+                                            text: `${product.name}`,
+                                            weight: "bold",
+                                            size: "xl",
+                                            "wrap": true,
+                                            "maxLines": 2
+                                        },
+                                        {
+                                            type: "text",
+                                            text: `$ ${product.price.toLocaleString()} 起`,
+                                            size: "md",
+                                            "align": "end"
+                                        },
+                                    ]
+                                },
+                                footer: {
+                                    type: "box",
+                                    layout: "vertical",
+                                    spacing: "lg",
+                                    flex: 1,
+                                    justifyContent: "flex-start",
+                                    contents: [
+                                        ...product.options.flatMap((option, idx) => [
+                                            {
+                                                type: "text",
+                                                text: (option.label.length > 0)?option.label:"單一規格",
+                                                size: "sm",
+                                                color: "#0D6EFD",
+                                                align: "center",
+                                                action: {
+                                                    type: "postback",
+                                                    data: `action=selectSpec&productID=${product.id}&spec=${(option.value.length > 0)?option.value:"單一規格"}&g-app=${appName}&scheduledID=${scheduledID}&price=${option.price}`,
+                                                }
+                                            },
+                                            ...(idx < product.options.length - 1 ? [{type: "separator", margin: "sm"}] : []) // ✅ 只在 `text` 之間加 `separator`
+                                        ])
+                                    ]
+                                }
+                            }))
                         }
-                    })
-                    if (updateVariant.deduction_log){
-                        delete updateVariant.deduction_log;
+                    };
+                }
+                //將item轉為product的資料格式
+                function convertToProductFormat(rawData: RawProduct[]): Product[] {
+                    return rawData.map(item => {
+                        const id = item.content.id
+                        const content = item.content;
+                        const name = content.title || "未知商品";
+                        const variants = content.variants || [];
+                        // 取得最低價格
+                        const price = variants.length > 0 ? Math.min(...variants.map(v => v.live_model.live_price)) : 0;
+
+                        // 取得第一張商品圖片
+                        const imageUrl = variants.length > 0 ? variants[0].preview_image : "";
+                        // 轉換規格選項
+                        const options = variants.map(v => ({
+                            label: v.spec.length > 0 ? v.spec.join(',') : "", // 避免空陣列
+                            value: v.spec.length > 0 ? v.spec.join(',') : "", // 避免空陣列
+                            price: v.live_model.live_price,
+                        }));
+                        return {
+                            id,
+                            name,
+                            price,
+                            imageUrl,
+                            selectedSpec: undefined, // 預設無選擇規格
+                            options
+                        };
+                    });
+                }
+                //從 data 物件中提取 type 和 name 屬性的值，並將剩下的屬性收集到content中。
+
+                //團購開始時 發送的第一則訊息
+                const message = [
+                    {
+                        "type": "text",
+                        "text": `📢 團購開始囉！ 🎉\n團購名稱： ${name}\n團購日期： ${content.start_date} ${content.start_time} ~ ${content.end_date} ${content.end_time}\n\n📍 下方查看完整商品清單`
                     }
-                    let newContent = item.content
-                    //對t_variants進行資料庫更新
-                    await new Shopping(this.app, this.token).updateVariantsWithSpec(updateVariant, item.id, variant.spec);
-                })).then(async () => {
-                    try {
-                        await db.query(
-                          `UPDATE \`${this.app}\`.\`t_manager_post\`
+                ]
+                //把item_list裡的商品資訊轉為方便Product的資料樣式
+                const transProducts: Product[] = convertToProductFormat(content.item_list);
+                //把上面的message 發送到對應的groupID 也就是群組內
+                await this.sendMessageToGroup(data.lineGroup.groupId,message)
+
+                const flexMessage = generateProductCarousel(transProducts, this.app, queryData.insertId);
+                //檢索所有商品
+                for (const item of content.item_list) {
+                    //todo 這裡可以最佳化 一次搜尋
+                    const pdDqlData = (
+                      await new Shopping(this.app , this.token).getProduct({
+                          page: 0,
+                          limit: 50,
+                          id: item.id,
+                          status: 'inRange',
+                      })
+                    ).data[0];
+                    const pd = pdDqlData.content;
+                    //做倉儲扣除的動作
+                    Promise.all(item.content.variants.map(async (variant: any,i:number) => {
+                        const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, variant.live_model.available_Qty);
+                        const updateVariant = pd.variants.find((dd: any) => dd.spec.join('-') === variant.spec.join('-'));
+                        //預先從庫存倉庫取出後的倉庫列表
+                        updateVariant.stockList = returnData.stockList;
+                        //將每個scheduled視做一個庫存 做轉化
+                        variant.stockList = {}
+                        Object.entries(returnData.deductionLog).forEach(([key, value]) => {
+                            variant.stockList[key] = {
+                                count : value
+                            }
+                        })
+                        if (updateVariant.deduction_log){
+                            delete updateVariant.deduction_log;
+                        }
+                        let newContent = item.content
+                        //對t_variants進行資料庫更新
+                        await new Shopping(this.app, this.token).updateVariantsWithSpec(updateVariant, item.id, variant.spec);
+                    })).then(async () => {
+                        try {
+                            await db.query(
+                              `UPDATE \`${this.app}\`.\`t_manager_post\`
                              SET content = ?
                              WHERE id = ?
                             `,
-                          [JSON.stringify(pd), item.id]
-                        );
-                    } catch (error: any) {
-                        console.error('發送訊息錯誤:', error.response?.data || error.message);
-                    }
-                    //如果他有shopee_id 這邊還要處理同步至蝦皮的庫存 todo 還要新增一個是否同步至蝦皮的選項
-                    if (pd.shopee_id) {
-                        await new Shopee(this.app, this.token).asyncStockToShopee({
-                            product: pdDqlData,
-                            callback: () => {
-                            },
-                        });
-                    }
-                })
+                              [JSON.stringify(pd), item.id]
+                            );
+                        } catch (error: any) {
+                            console.error('發送訊息錯誤:', error.response?.data || error.message);
+                        }
+                        //如果他有shopee_id 這邊還要處理同步至蝦皮的庫存 todo 還要新增一個是否同步至蝦皮的選項
+                        if (pd.shopee_id) {
+                            await new Shopee(this.app, this.token).asyncStockToShopee({
+                                product: pdDqlData,
+                                callback: () => {
+                                },
+                            });
+                        }
+                    })
+                }
+                try {
+                    const res = await axios.post("https://api.line.me/v2/bot/message/push", {
+                        to: data.lineGroup.groupId,
+                        messages: [flexMessage]
+                    }, {
+                        headers: {Authorization: `Bearer ${ShopnexLineMessage.token}`}
+                    });
+                } catch (error: any) {
+                    console.error('發送訊息錯誤:', error.response?.data || error.message);
+                }
             }
-            try {
-                const res = await axios.post("https://api.line.me/v2/bot/message/push", {
-                    to: data.lineGroup.groupId,
-                    messages: [flexMessage]
-                }, {
-                    headers: {Authorization: `Bearer ${ShopnexLineMessage.token}`}
-                });
-            } catch (error: any) {
-                console.error('發送訊息錯誤:', error.response?.data || error.message);
-            }
-
             return {
                 result: true,
-                message: "OK"
+                message: queryData,
             }
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'createScheduled Error:' + e, null);
         }
     }
 
-    async getScheduled() {
+    async getScheduled(limit: string, page: string,type: string) {
         const appName = this.app;
 
         function isPastEndTime(end_date: string, end_time: string): boolean {
@@ -296,7 +321,8 @@ export class CustomerSessions {
                 let data = await db.query(`
                     SELECT *
                     FROM \`${appName}\`.\`t_live_purchase_interactions\`
-                    order by id desc
+                    WHERE type = \'${type}\'
+                    limit ${parseInt(page)  * parseInt(limit)}, ${limit}
                 `, [])
                 // ✅ 2. 篩選出已過期的團購
                 const expiredItems = data.filter((item: any) =>
@@ -329,6 +355,7 @@ export class CustomerSessions {
                 return (await db.query(`
                             SELECT count(*)
                             FROM \`${appName}\`.\`t_live_purchase_interactions\`
+                            WHERE type = \'${type}\'
                     `,
                     []))[0]["count(*)"]
             } catch (err: any) {

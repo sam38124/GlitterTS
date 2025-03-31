@@ -206,7 +206,6 @@ export class ShopnexLineMessage {
     public static async handlePostbackEvent(event: any, app: string) {
         const userId = event.source.userId;
         const data = event.postback.data;
-        console.log("data -- " , data);
         const userData = await this.getUserProfile(userId)
         // const brandAndMemberType = await App.checkBrandAndMemberType(app);
         console.log(`🔹 Postback 事件來自: ${userId}, data: ${data}`);

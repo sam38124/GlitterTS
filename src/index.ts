@@ -153,7 +153,12 @@ export async function createAPP(dd: any) {
                     const og_url = req.headers['x-original-url'];
                     const custom_heads:string[]=[];
 
-                    console.log(`req.query.page=>`,req.query.page)
+                    const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+
+                    if(req.query.page==='shopnex-fb-oauth'){
+                        await new FbApi(dd.appName).OAuth(req);
+                    }
+
                     try {
                         if (req.query.state === 'google_login') {
                             req.query.page = 'login';

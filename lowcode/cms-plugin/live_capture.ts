@@ -9,6 +9,7 @@ import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { ProductSetting } from './module/product-setting.js';
 import { ApiLiveInteraction } from '../glitter-base/route/live-purchase-interactions.js';
 import { BgCustomerMessage } from '../backend-manager/bg-customer-message';
+import { ApiFbService } from '../glitter-base/route/fb-service.js';
 
 interface ViewModel {
   id: string;
@@ -20,6 +21,38 @@ interface ViewModel {
   queryType?: string;
   orderString?: string;
   filter?: any;
+}
+
+interface Comment {
+  "created_time": string,
+  "from": {
+    "name": string,
+    "id": string
+  },
+  "message": string,
+  "id": string
+}
+
+interface CommentList {
+  "data": Comment[],
+  "paging": {
+    "cursors": {
+      "before": string,
+      "after": string
+    },
+    "previous": string,
+  }
+}
+
+interface StreamingData {
+  orders: number;
+  page_id: string;
+  live_id: string;
+  title: string;
+  accessToken:string,
+  comments: Comment[],
+  amount: number,
+  after:string
 }
 
 const html = String.raw;
@@ -119,7 +152,7 @@ export class LiveCapture {
                     const limit = 20;
                     vmi.loading = true;
                     ApiLiveInteraction.getScheduled({
-                      type: 'group_buy',
+                      type: group_buy?'group_buy':'stream_shout',
                       page: vmi.page - 1,
                       limit: limit,
                       search: vm.query || '',
@@ -127,8 +160,6 @@ export class LiveCapture {
                       orderString: vm.orderString,
                       filter: vm.filter,
                     }).then(data => {
-                      console.log('data.response.data -- ', data.response.data);
-
                       function getDatalist() {
                         return data.response.data.map((dd: any) => {
                           return [
@@ -248,6 +279,7 @@ export class LiveCapture {
       lineGroupLoading: boolean;
       lineGroup: any;
       formData: {
+        id:string;
         type: string;
         purpose: string;
         name: string;
@@ -274,6 +306,7 @@ export class LiveCapture {
       lineGroupLoading: true,
       lineGroup: [],
       formData: {
+        id:"",
         type: group_buy ? 'group_buy' : 'stream_shout',
         purpose: 'self',
         name: '',
@@ -297,10 +330,591 @@ export class LiveCapture {
       },
       summaryType: 'normal',
     };
+    const testData = {
+      "id": "1",
+      "type": "stream_shout",
+      "purpose": "self",
+      "name": "直播名稱",
+      "streamer": "直播人",
+      "platform": "Facebook",
+      "item_list": [
+        {
+          "id": 1066,
+          "userID": 122538856,
+          "content": {
+            "id": 1066,
+            "seo": {
+              "title": "",
+              "domain": "冬季衣 團購庫存測試",
+              "content": "",
+              "keywords": ""
+            },
+            "type": "product",
+            "unit": {
+              "en-US": "",
+              "zh-CN": "",
+              "zh-TW": ""
+            },
+            "specs": [
+              {
+                "title": "顏色",
+                "option": [
+                  {
+                    "title": "白",
+                    "expand": true
+                  },
+                  {
+                    "title": "米白",
+                    "expand": true
+                  },
+                  {
+                    "title": "灰",
+                    "expand": true
+                  }
+                ]
+              }
+            ],
+            "title": "冬季衣 團購庫存測試",
+            "token": {
+              "exp": 1773595079,
+              "iat": 1742059079,
+              "userID": 122538856,
+              "account": "rdtest",
+              "userData": {}
+            },
+            "status": "active",
+            "channel": [
+              "normal",
+              "pos"
+            ],
+            "content": "<html><head></head><body><p id=\"isPasted\"><strong>&nbsp;</strong></p><div class=\"d-flex flex-column\"><strong><div class=\"d-flex flex-column\"><img src=\"https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.17.28-AcozyHershikfabricsingle-seatersofawithamodernyetcomfortabledesign.Thesofaisupholsteredinhigh-qualityfabricinasoft,neutralcol.webp\" class=\"fr-fil fr-dib\" alt=\"\">&nbsp;<img src=\"https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.18.59-AnelegantElizabethsolidwoodwardrobewithaclassic,timelessdesign.Thewardrobefeatureshigh-qualitywoodconstructionwithapolishedfinis.webp\" class=\"fr-fil fr-dib\" alt=\"\">&nbsp;<img src=\"https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp\" class=\"fr-fil fr-dib\" alt=\"\"></div></strong></div><div><strong>擁抱冬日的溫暖舒適感！</strong></div><div>【冬季新品】加絨寬鬆保暖睡衣專為寒冷季節設計，選用柔軟加絨面料，提供絕佳的保暖效果與親膚觸感。經典寬鬆版型，不僅穿著舒適自在，還讓居家時光更加溫馨愜意。時尚簡約的設計風格，兼具實用與美感，是冬季居家的必備單品。</div><p><br></p><hr><h4><strong><sub>商品特色：</sub></strong></h4><ul><li style=\"list-style: revert;\"><strong>加絨面料</strong>：內層細膩加絨，保暖升級，觸感柔軟不刺激肌膚。</li><li style=\"list-style: revert;\"><strong>寬鬆版型</strong>：不拘束活動，輕鬆自在，適合各種身型。</li><li style=\"list-style: revert;\"><strong>防靜電處理</strong>：有效減少靜電干擾，讓穿著更舒適安心。</li><li style=\"list-style: revert;\"><strong>時尚配色</strong>：多款冬季流行色可選，提升居家質感。</li><li style=\"list-style: revert;\"><strong>易清潔材質</strong>：耐洗耐用，不易變形與褪色，長時間保持柔軟。<br><br><br></li><li style=\"list-style: revert;\"><h4 id=\"isPasted\"><strong><sub>材質與清潔方式：</sub></strong></h4><ul><li style=\"list-style: revert;\"><strong>材質</strong>：80%聚酯纖維，20%棉</li><li style=\"list-style: revert;\"><strong>清潔建議</strong>：可機洗，使用冷水及中性洗滌劑，避免高溫烘乾。</li></ul></li><li style=\"list-style: revert;\"><p>讓【冬季新品】加絨寬鬆保暖睡衣陪伴您度過每個溫暖的冬夜！</p></li></ul></body></html>",
+            "visible": "true",
+            "comments": [],
+            "template": "",
+            "variants": [
+              {
+                "sku": "",
+                "cost": 0,
+                "spec": [
+                  "白"
+                ],
+                "type": "variants",
+                "stock": -3,
+                "profit": 0,
+                "weight": "0.1",
+                "barcode": "",
+                "v_width": "15",
+                "v_height": "3",
+                "v_length": "15",
+                "stockList": {
+                  "store_wsmcwg": {
+                    "count": -3
+                  },
+                  "store_ufqm8w": {
+                    "count": 0
+                  },
+                  "store_bopfha": {
+                    "count": 0
+                  },
+                  "store_kqtwki": {
+                    "count": 0
+                  },
+                  "store_gdon2o": {
+                    "count": 0
+                  },
+                  "store_u8u57z": {
+                    "count": 0
+                  },
+                  "store_cg7dcv": {
+                    "count": 0
+                  }
+                },
+                "product_id": 1066,
+                "sale_price": 590,
+                "save_stock": 100,
+                "origin_price": 590,
+                "compare_price": 590,
+                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_s6s9s5s6s0s6s8sd_O1CN01iqOErA1h3GmntlOY2_!!2869234221-0-cib.jpg",
+                "shipment_type": "volume",
+                "show_understocking": "true",
+                "sold_out": 3,
+                "selected": true,
+                "live_model": {
+                  "stock": -3,
+                  "available_Qty": -3,
+                  "original_price": 590,
+                  "live_price": 590,
+                  "limit": 1
+                },
+                "live_keyword": [
+                  "a01",
+                  "A01"
+                ]
+              },
+              {
+                "sku": "",
+                "cost": 0,
+                "spec": [
+                  "米白"
+                ],
+                "type": "variants",
+                "stock": 95,
+                "profit": 0,
+                "weight": "0.1",
+                "barcode": "",
+                "v_width": "15",
+                "v_height": "3",
+                "v_length": "15",
+                "stockList": {
+                  "store_wsmcwg": {
+                    "count": 95
+                  },
+                  "store_ufqm8w": {
+                    "count": 0
+                  },
+                  "store_bopfha": {
+                    "count": 0
+                  },
+                  "store_kqtwki": {
+                    "count": 0
+                  },
+                  "store_gdon2o": {
+                    "count": 0
+                  },
+                  "store_u8u57z": {
+                    "count": 0
+                  },
+                  "store_cg7dcv": {
+                    "count": 0
+                  }
+                },
+                "product_id": 1066,
+                "sale_price": 590,
+                "save_stock": 100,
+                "origin_price": 590,
+                "compare_price": 590,
+                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_s7s7s8scs8scs0sa_O1CN01bn739s1h3GmpNmHzO_!!2869234221-0-cib.jpg",
+                "shipment_type": "volume",
+                "show_understocking": "true",
+                "sold_out": 2,
+                "selected": true,
+                "live_model": {
+                  "stock": 95,
+                  "available_Qty": 95,
+                  "original_price": 590,
+                  "live_price": 590,
+                  "limit": 1
+                },
+                "live_keyword": [
+                  "a02",
+                  "A02"
+                ]
+              },
+              {
+                "sku": "",
+                "cost": 0,
+                "spec": [
+                  "灰"
+                ],
+                "type": "variants",
+                "stock": 0,
+                "profit": 0,
+                "weight": "0.1",
+                "barcode": "",
+                "v_width": "15",
+                "v_height": "3",
+                "v_length": "15",
+                "stockList": {
+                  "store_wsmcwg": {
+                    "count": 0
+                  },
+                  "store_ufqm8w": {
+                    "count": 0
+                  },
+                  "store_bopfha": {
+                    "count": 0
+                  },
+                  "store_kqtwki": {
+                    "count": 0
+                  },
+                  "store_gdon2o": {
+                    "count": 0
+                  },
+                  "store_u8u57z": {
+                    "count": 0
+                  },
+                  "store_cg7dcv": {
+                    "count": 0
+                  }
+                },
+                "product_id": 1066,
+                "sale_price": 590,
+                "save_stock": 100,
+                "origin_price": 999,
+                "compare_price": 999,
+                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_sbs2s1s6s8s6s8s4_O1CN01rrLx3J1h3GmpzUrLl_!!2869234221-0-cib.jpg",
+                "shipment_type": "volume",
+                "show_understocking": "true",
+                "sold_out": 0,
+                "selected": true,
+                "live_model": {
+                  "stock": 0,
+                  "available_Qty": 0,
+                  "original_price": 590,
+                  "live_price": 590,
+                  "limit": 1
+                },
+                "live_keyword": [
+                  "a03",
+                  "A03"
+                ]
+              }
+            ],
+            "hideIndex": "false",
+            "max_price": 590,
+            "min_price": 590,
+            "sub_title": "",
+            "collection": [
+              ""
+            ],
+            "productType": {
+              "product": true,
+              "giveaway": false,
+              "addProduct": false
+            },
+            "product_tag": {
+              "language": {
+                "en-US": [],
+                "zh-CN": [],
+                "zh-TW": []
+              }
+            },
+            "total_sales": 0,
+            "content_json": [],
+            "in_wish_list": false,
+            "content_array": [],
+            "language_data": {
+              "en-US": {
+                "seo": {
+                  "title": "",
+                  "domain": "",
+                  "content": "",
+                  "keywords": ""
+                },
+                "title": "",
+                "content": "",
+                "content_array": []
+              },
+              "zh-CN": {
+                "seo": {
+                  "title": "",
+                  "domain": "",
+                  "content": "",
+                  "keywords": ""
+                },
+                "title": "",
+                "content": "",
+                "content_array": []
+              },
+              "zh-TW": {
+                "seo": {
+                  "title": "",
+                  "domain": "冬季衣 團購庫存測試",
+                  "content": "",
+                  "keywords": ""
+                },
+                "title": "冬季衣 團購庫存測試",
+                "content": "<html><head></head><body><p id=\"isPasted\"><strong>&nbsp;</strong></p><div class=\"d-flex flex-column\"><strong><div class=\"d-flex flex-column\"><img src=\"https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.17.28-AcozyHershikfabricsingle-seatersofawithamodernyetcomfortabledesign.Thesofaisupholsteredinhigh-qualityfabricinasoft,neutralcol.webp\" class=\"fr-fil fr-dib\" alt=\"\">&nbsp;<img src=\"https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.18.59-AnelegantElizabethsolidwoodwardrobewithaclassic,timelessdesign.Thewardrobefeatureshigh-qualitywoodconstructionwithapolishedfinis.webp\" class=\"fr-fil fr-dib\" alt=\"\">&nbsp;<img src=\"https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp\" class=\"fr-fil fr-dib\" alt=\"\"></div></strong></div><div><strong>擁抱冬日的溫暖舒適感！</strong></div><div>【冬季新品】加絨寬鬆保暖睡衣專為寒冷季節設計，選用柔軟加絨面料，提供絕佳的保暖效果與親膚觸感。經典寬鬆版型，不僅穿著舒適自在，還讓居家時光更加溫馨愜意。時尚簡約的設計風格，兼具實用與美感，是冬季居家的必備單品。</div><p><br></p><hr><h4><strong><sub>商品特色：</sub></strong></h4><ul><li style=\"list-style: revert;\"><strong>加絨面料</strong>：內層細膩加絨，保暖升級，觸感柔軟不刺激肌膚。</li><li style=\"list-style: revert;\"><strong>寬鬆版型</strong>：不拘束活動，輕鬆自在，適合各種身型。</li><li style=\"list-style: revert;\"><strong>防靜電處理</strong>：有效減少靜電干擾，讓穿著更舒適安心。</li><li style=\"list-style: revert;\"><strong>時尚配色</strong>：多款冬季流行色可選，提升居家質感。</li><li style=\"list-style: revert;\"><strong>易清潔材質</strong>：耐洗耐用，不易變形與褪色，長時間保持柔軟。<br><br><br></li><li style=\"list-style: revert;\"><h4 id=\"isPasted\"><strong><sub>材質與清潔方式：</sub></strong></h4><ul><li style=\"list-style: revert;\"><strong>材質</strong>：80%聚酯纖維，20%棉</li><li style=\"list-style: revert;\"><strong>清潔建議</strong>：可機洗，使用冷水及中性洗滌劑，避免高溫烘乾。</li></ul></li><li style=\"list-style: revert;\"><p>讓【冬季新品】加絨寬鬆保暖睡衣陪伴您度過每個溫暖的冬夜！</p></li></ul></body></html>",
+                "sub_title": "",
+                "content_json": [],
+                "content_array": [],
+                "preview_image": [
+                  "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_s7s7s8scs8scs0sa_O1CN01bn739s1h3GmpNmHzO_!!2869234221-0-cib.jpg",
+                  "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_sbs2s1s6s8s6s8s4_O1CN01rrLx3J1h3GmpzUrLl_!!2869234221-0-cib.jpg",
+                  "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_s3ses5s5s1s3s2s5_O1CN01e4dkpv1h3GmqgUV8c_!!2869234221-0-cib.jpg",
+                  "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_s6s9s5s6s0s6s8sd_O1CN01iqOErA1h3GmntlOY2_!!2869234221-0-cib.jpg",
+                  "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_sbs9sbs9sbsasas2_O1CN01MyawEe1h3Gmq5MSH4_!!2869234221-0-cib.jpg",
+                  "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_s1s1s9sfs1seses5_O1CN01JOq8A41h3GmpU8pmg_!!2869234221-0-cib.jpg"
+                ]
+              }
+            },
+            "preview_image": [
+              "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_s7s7s8scs8scs0sa_O1CN01bn739s1h3GmpNmHzO_!!2869234221-0-cib.jpg",
+              "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_sbs2s1s6s8s6s8s4_O1CN01rrLx3J1h3GmpzUrLl_!!2869234221-0-cib.jpg",
+              "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_s3ses5s5s1s3s2s5_O1CN01e4dkpv1h3GmqgUV8c_!!2869234221-0-cib.jpg",
+              "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_s6s9s5s6s0s6s8sd_O1CN01iqOErA1h3GmntlOY2_!!2869234221-0-cib.jpg",
+              "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_sbs9sbs9sbsasas2_O1CN01MyawEe1h3Gmq5MSH4_!!2869234221-0-cib.jpg",
+              "https://d3jnmi1tfjgtti.cloudfront.net/file/779474634/size1440_s*px$_s1s1s9sfs1seses5_O1CN01JOq8A41h3GmpU8pmg_!!2869234221-0-cib.jpg"
+            ],
+            "about_vouchers": [
+              {
+                "id": 1080,
+                "for": "all",
+                "code": "D0M8AL",
+                "rule": "min_price",
+                "type": "voucher",
+                "title": "demo 0321",
+                "value": "50",
+                "device": [
+                  "normal"
+                ],
+                "forKey": [],
+                "method": "fixed",
+                "status": 1,
+                "target": "all",
+                "userID": 122538856,
+                "endDate": "",
+                "endTime": "",
+                "overlay": false,
+                "trigger": "code",
+                "counting": "single",
+                "ruleValue": 1000,
+                "startDate": "2025-03-27",
+                "startTime": "13:00",
+                "reBackType": "discount",
+                "targetList": [],
+                "end_ISO_Date": "",
+                "macroLimited": 0,
+                "microLimited": 0,
+                "rebateEndDay": "30",
+                "conditionType": "order",
+                "start_ISO_Date": "2025-03-27T05:00:00.000Z",
+                "includeDiscount": "before",
+                "productOffStart": "price_desc"
+              },
+              {
+                "id": 1076,
+                "for": "all",
+                "code": "",
+                "rule": "min_price",
+                "type": "voucher",
+                "title": "demo 0320",
+                "value": "30",
+                "device": [
+                  "normal"
+                ],
+                "forKey": [],
+                "method": "fixed",
+                "status": 1,
+                "target": "all",
+                "userID": 122538856,
+                "endDate": "",
+                "endTime": "",
+                "overlay": true,
+                "trigger": "auto",
+                "counting": "single",
+                "ruleValue": 1680,
+                "startDate": "2025-03-20",
+                "startTime": "11:00",
+                "reBackType": "discount",
+                "targetList": [],
+                "end_ISO_Date": "",
+                "macroLimited": 0,
+                "microLimited": 0,
+                "rebateEndDay": "30",
+                "conditionType": "order",
+                "start_ISO_Date": "2025-03-20T03:00:00.000Z",
+                "includeDiscount": "before",
+                "productOffStart": "price_desc"
+              },
+              {
+                "id": 1060,
+                "for": "all",
+                "code": "SLV192",
+                "rule": "min_price",
+                "type": "voucher",
+                "title": "滿額一千折200元優惠券",
+                "value": "200",
+                "device": [
+                  "normal",
+                  "pos"
+                ],
+                "forKey": [],
+                "method": "fixed",
+                "status": 1,
+                "target": "all",
+                "userID": 122538856,
+                "endDate": "",
+                "endTime": "",
+                "overlay": false,
+                "trigger": "code",
+                "counting": "single",
+                "ruleValue": 1000,
+                "startDate": "2025-03-05",
+                "startTime": "16:00",
+                "reBackType": "discount",
+                "targetList": [],
+                "end_ISO_Date": "",
+                "macroLimited": 0,
+                "microLimited": 0,
+                "rebateEndDay": "30",
+                "conditionType": "order",
+                "start_ISO_Date": "2025-03-05T08:00:00.000Z",
+                "includeDiscount": "before",
+                "productOffStart": "price_desc"
+              }
+            ],
+            "ai_description": "",
+            "active_schedule": {
+              "startDate": "2025-02-21",
+              "startTime": "10:00",
+              "start_ISO_Date": "2025-02-21T02:00:00.000Z"
+            },
+            "multi_sale_price": [
+              {
+                "key": "s9sas5s5s0s3s8s6",
+                "type": "level",
+                "variants": [
+                  {
+                    "spec": [
+                      "白"
+                    ],
+                    "price": 590
+                  },
+                  {
+                    "spec": [
+                      "米白"
+                    ],
+                    "price": 590
+                  },
+                  {
+                    "spec": [
+                      "灰"
+                    ],
+                    "price": 590
+                  }
+                ]
+              },
+              {
+                "key": "s3s8s5s2sbsas9sd",
+                "type": "level",
+                "variants": [
+                  {
+                    "spec": [
+                      "白"
+                    ],
+                    "price": 590
+                  },
+                  {
+                    "spec": [
+                      "米白"
+                    ],
+                    "price": 590
+                  },
+                  {
+                    "spec": [
+                      "灰"
+                    ],
+                    "price": 590
+                  }
+                ]
+              },
+              {
+                "key": "store_kqtwki",
+                "type": "store",
+                "variants": [
+                  {
+                    "spec": [
+                      "白"
+                    ],
+                    "price": 561
+                  },
+                  {
+                    "spec": [
+                      "米白"
+                    ],
+                    "price": 561
+                  },
+                  {
+                    "spec": [
+                      "灰"
+                    ],
+                    "price": 561
+                  }
+                ]
+              },
+              {
+                "key": "store_gdon2o",
+                "type": "store",
+                "variants": [
+                  {
+                    "spec": [
+                      "白"
+                    ],
+                    "price": 581
+                  },
+                  {
+                    "spec": [
+                      "米白"
+                    ],
+                    "price": 581
+                  },
+                  {
+                    "spec": [
+                      "灰"
+                    ],
+                    "price": 581
+                  }
+                ]
+              }
+            ],
+            "product_category": "commodity",
+            "relative_product": [],
+            "designated_logistics": {
+              "list": [],
+              "type": "all"
+            },
+            "live_model": {
+              "stock": 92,
+              "available_Qty": 92,
+              "min_price": 590,
+              "max_price": null,
+              "min_live_price": 590,
+              "max_live_price": 590,
+              "min_limit": 1,
+              "max_limit": 590
+            }
+          },
+          "created_time": "2025-03-19T03:44:06.000Z",
+          "updated_time": "2025-03-19T03:44:06.000Z",
+          "status": 1,
+          "total_sales": 5,
+          "halfSelected": true,
+          "selected": false,
+          "expand": true
+        }
+      ],
+      "stock": {
+        "reserve": true,
+        "expiry_date": "2025-03-28",
+        "period": "1"
+      },
+      "discount_set": "false",
+      "lineGroup": {
+        "groupId": "",
+        "groupName": ""
+      },
+      "start_date": "2025-03-27",
+      "start_time": "14:09",
+      "end_date": "2025-03-28",
+      "end_time": "14:09"
+    }
+    viewModel.formData = testData;
+    let streamingData: StreamingData = {
+      orders:0,
+      page_id:"",
+      live_id:"",
+      title:"",
+      accessToken:"",
+      comments:[],
+      amount:0,
+      after:"",
+    };
     let options: { value: any; title: any }[] = [];
     let collectLoading = true;
     let dialogShow = false;
     let editItemList = false;
+    let pageLoading = true;
     const stockExpired = [
       {
         title: '一日',
@@ -655,7 +1269,7 @@ export class LiveCapture {
                           const data = [
                             {
                               title: '直播名稱',
-                              name: 'stream_name',
+                              name: 'name',
                               placeholder: '請輸入直播名稱',
                             },
                             {
@@ -1031,9 +1645,9 @@ export class LiveCapture {
                                                                       .map((item, index) => {
                                                                         return html`
                                                                           <div
-                                                                            class="flex-shrink-0 ${index == 2
+                                                                            class=" ${index == 2
                                                                               ? `flex-fill ms-2`
-                                                                              : ``}"
+                                                                              : `flex-shrink-0`}"
                                                                             style="width: ${item.width};text-align: ${item.align
                                                                               ? item.align
                                                                               : 'center'}"
@@ -2959,10 +3573,70 @@ export class LiveCapture {
               dataList: [
                 {
                   obj: viewModel,
-                  key: 'summary',
+                  key: 'summaryType',
                 },
               ],
               view: () => {
+                if (viewModel.summaryType == `streaming`){
+                  return BgWidget.mainCard(html`
+                    <div class="d-flex flex-column" style="gap:12px;">
+                      <div class="d-flex align-items-center" style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input class="border-0" style="margin-left:6px;" placeholder="搜尋顧客名稱、訊息內容">
+                      </div>
+                      ${gvc.bindView({
+                        bind:"board",
+                        view:()=>{
+                          return streamingData.comments.map((comment)=>{
+                            return html`
+                            <div class="flex-column" style="display: flex;padding: 12px 16px;border-radius: 10px;background: #F7F7F7;gap: 6px;">
+                              <div style="font-size: 14px;font-weight: 400;">${comment.from.name}</div>
+                              <div style="font-size: 16px;font-weight: 400;">${comment.message}</div>
+                            </div>
+                            `
+                          }).join('')
+                        },divCreate:{class:"w-100 d-flex flex-column",style:"gap:12px;height:650px;overflow:auto;"},
+                        onCreate:()=>{
+                          clearInterval(gvc.glitter.share.catch_comment_timer || 0)
+                          gvc.glitter.share.catch_comment_timer=setInterval(()=>{
+                            ApiFbService.getLiveComments(viewModel.formData.id, streamingData.live_id, streamingData.accessToken , streamingData.after).then(r =>{
+                              const commentData = r.response.data;
+                              streamingData.comments.push(...commentData);
+                              // if (r.response.paging?.cursors){
+                              //   streamingData.after = r.response.paging.cursors.after;
+                              // }
+                              gvc.notifyDataChange(['board']);
+                            })
+                          },5000)
+                          
+                        },onDestroy:()=>{
+                          clearInterval(gvc.glitter.share.hsahj_timer)
+                        }
+                      })}
+                      <div class="d-flex flex-fill">
+                        
+                      </div>
+                      <div style="display: flex;padding: 20px;flex-direction: column;align-items: center;gap: 10px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;">
+                        <div class="w-100" style="display: flex;align-items: flex-start;gap: 12px;">
+                          <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 3px;flex: 1 0 0;border-right: 1px #DDD solid;">
+                            <div>留言數</div>
+                            <div>${streamingData?.comments?.length??0}</div>
+                          </div>
+                          <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 3px;flex: 1 0 0;">
+                            <div>喊單數</div>
+                            <div>${streamingData?.orders??0}</div>
+                          </div>
+                        </div>
+                        <div class="w-100" style="height: 1px;width: 100%;background: #DDD"></div>
+                        <div class="w-100" style="display: flex;align-items: flex-start;gap: 3px;flex-direction: column;">
+                          <div>總銷售額</div>
+                          <div>${streamingData.amount}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                  `)
+                }
                 return BgWidget.mainCard(html`
                   <div
                     style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;font-size: 16px;font-weight: 400;"
@@ -3069,20 +3743,199 @@ export class LiveCapture {
               }
               return true;
             }
-
             if (getIncompleteFields()) {
               dialog.dataLoading({
                 visible: true,
               });
               ApiLiveInteraction.createScheduled(viewModel.formData).then(response => {
+                viewModel.formData.id = response.response.message.insertId;
                 dialog.dataLoading({
                   visible: false,
                 });
-                vm.type = 'list';
+                if (!group_buy) {
+                  interface Page{
+                    title: string;
+                    name:string;
+                    access_token: string;
+                    id: string;
+                    picture: string;
+                    select: boolean;
+                    live_video:{
+                      data:{
+                        broadcast_start_time:string,
+                        id:string,
+                        title:string,
+                        status:string
+                      }[],
+                      paging:{
+                        cursors:{
+                          before:string,
+                          after:string
+                        }
+                      }
+                    }
+                  }
+                  let pageList:Page[] = []
+                  const formatDateString = (dateStr:string) => {
+                    const date = new Date(dateStr);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+
+                    let hours = date.getHours();
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const ampm = hours >= 12 ? 'pm' : 'am';
+                    hours = hours % 12 || 12;
+
+                    return `${year}-${month}-${day} ${hours}:${minutes}${ampm}`;
+                  };
+
+                  gvc.glitter.innerDialog(gvc => {
+                    return gvc.bindView({
+                      bind: 'pageList',
+                      view: () => {
+                        function togglePageSelection(page:Page, selected:boolean) {
+                          pageList.forEach((page:Page) => page.select = false);
+                          page.select = selected;
+                          gvc.notifyDataChange('pageList');
+                        }
+                        function renderPageItem(page:Page) {
+                          const uncheckbox = html`
+                        <div
+                          style="width: 16px; height: 16px; border-radius: 3px; border: 1px solid #DDD; cursor: pointer;"
+                          onclick="${gvc.event(() => togglePageSelection(page, true))}"
+                        ></div>
+                      `;
+                          const checkbox = html`
+                        <i
+                          class="fa-solid fa-square-check"
+                          style="width: 16px; height: 16px; border-radius: 3px; font-size: 16px; cursor: pointer;"
+                          onclick="${gvc.event(() => togglePageSelection(page, false))}"
+                        ></i>
+                      `;
+
+                          return html`
+                        <div class="d-flex flex-column" style="gap: 20px;">
+                          <div class="d-flex align-items-center" style="gap: 8px">
+                            <img
+                              src="${page.picture}"
+                              style="width: 18px;height: 18px; border-radius: 5px;"
+                              alt="page"
+                            />
+                            <div class="d-flex flex-column" style="font-size: 16px; font-weight: 700;">
+                              <div>${page.name}</div>
+                            </div>
+                          </div>
+                          <div class="d-flex flex-column" style="gap: 10px;">
+                           ${page.live_video.data.map((video)=>{
+                            return html`
+                              <div class="d-flex align-items-center">
+                                <div class="d-flex flex-column" style="font-size: 16px;font-weight: 400;">
+                                  <div>${video.title}<span style="font-size: 14px;font-weight: 400;width: 54px;height: 22px;padding: 4px 6px;border-radius: 7px;background: #D8ECDA;">直播中</span></div>
+                                  <div style="font-size: 14px;">${formatDateString(video.broadcast_start_time)}</div>
+                                </div>
+                                <div class="ms-auto cursor_pointer" style="display: flex;height: 36px;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;background:#393939;font-size: 16px;font-weight: 700;color: #FFF;" onclick="${gvc.event(()=>{
+                              streamingData.page_id = page.id;
+                              streamingData.live_id = video.id;
+                              streamingData.title = page.title;
+                              streamingData.comments = [];
+                              streamingData.orders = 0;
+                              streamingData.accessToken = page.access_token;
+                              viewModel.summaryType = 'streaming';
+
+                              gvc.closeDialog();
+                            })}">
+                                  連接
+                                </div>
+                              </div>
+                             `
+                          }).join('')}
+                          </div>
+                        </div>
+                        
+                      `;
+                        }
+
+                        dialog.dataLoading({
+                          visible: true
+                        })
+                        if (pageLoading){
+                          pageLoading = false
+                          ApiFbService.getPageAuthList().then((response)=>{
+                            pageList = response.response;
+                            gvc.notifyDataChange('pageList');
+                          })
+
+                          return ``
+                        }
+                        dialog.dataLoading({
+                          visible: false
+                        })
+
+                        return html`
+                      <div
+                        style="width: 573px;border-radius: 10px;background: #FFF;"
+                        onclick="${gvc.event(() => {
+                          event!.stopPropagation();
+                          return;
+                        })}"
+                      >
+                        <div
+                          class="w-100"
+                          style="display: inline-flex;padding: 12px 20px;justify-content: center;align-items: center;border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                        >
+                          <div style="font-size: 16px;font-weight: 700;">連接Facebook直播</div>
+                          <i
+                            class="fa-regular fa-xmark-large ms-auto cursor_pointer"
+                            onclick="${gvc.event(() => {
+                          gvc.closeDialog();
+                        })}"
+                          ></i>
+                        </div>
+                        <div class="w-100 d-flex flex-column" style="gap: 12px;padding: 20px;">
+                          <div class="d-flex justify-content-end" style="font-size: 16px;font-weight: 400;">
+                            還沒有看到直播？<span style="color: #4D86DB;cursor: pointer;margin-left:5px;" onclick="${gvc.event(()=>{
+                              pageLoading = true;
+                              gvc.notifyDataChange(`pageList`);
+                            })}">重整<i class="fa-solid fa-repeat"></i></span>
+                          </div>
+                          <div class="d-flex flex-column" style="gap: 12px;">
+                            <div class="d-none" style="font-size: 16px;font-weight: 400;">請選擇要直播的粉絲專頁</div>
+                            ${pageList.map((page:Page) => renderPageItem(page)).join('')}
+                          </div>
+                          <div class="d-none justify-content-end">
+                            ${BgWidget.save(gvc.event(()=>{
+                              const data = pageList.find(page => page.select) || {};
+                              
+                            }),'確認')}
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                      },
+                      divCreate: {
+                        class: 'd-flex align-items-center justify-content-center',
+                        style: 'height: 100vh;width: 100vw;',
+                        option: [
+                          {
+                            key: 'onclick',
+                            value: gvc.event(() => {
+                              gvc.closeDialog();
+                            }),
+                          },
+                        ],
+                      },
+                    });
+                  }, 'pageList');
+                  
+                }else {
+                  vm.type = 'list';
+                }
+                
               });
             }
           }),
-          '舉行團購'
+          group_buy ? '舉行團購' : '建立直播'
         )}
       </div>
       ,
@@ -3794,11 +4647,9 @@ export class LiveCapture {
                                         <div class="d-flex flex-column">
                                           <div class="d-flex align-items-center w-100 " style="">
                                             <div class="d-flex flex-column w-100" style="gap: 8px;">
-                                              
                                               ${item.content.variants
                                                 .map((variant: any) => {
                                                   //todo 這邊前端顯示和設計圖不一致
-                                                  console.log("variant -- ", variant);
                                                   return html`
                                                     <div class="d-flex align-items-center w-100">
                                                       <div
@@ -3815,7 +4666,8 @@ export class LiveCapture {
                                                           class="d-flex align-items-center"
                                                           style="font-size: 16px;font-style: normal;font-weight: 400;"
                                                         >
-                                                          ${Tool.truncateString(item.content.title,8)} / ${variant.specs.join(',')}
+                                                          ${Tool.truncateString(item.content.title, 8)} /
+                                                          ${variant.specs.join(',')}
                                                         </div>
                                                       </div>
                                                       <div
@@ -3943,13 +4795,13 @@ export class LiveCapture {
           ? BgWidget.save(
               gvc.event(async () => {
                 dialog.dataLoading({
-                  visible:true
-                })
+                  visible: true,
+                });
                 await ApiLiveInteraction.closeSchedule(vm.data.id);
                 vm.data.status = 2;
                 dialog.dataLoading({
-                  visible:false
-                })
+                  visible: false,
+                });
                 vm.type = 'replace';
               }),
               '結束團購'
@@ -3959,13 +4811,13 @@ export class LiveCapture {
           ? BgWidget.save(
               gvc.event(async () => {
                 dialog.dataLoading({
-                  visible:true
-                })
+                  visible: true,
+                });
                 await ApiLiveInteraction.finishSchedule(vm.data.id);
                 vm.data.status = 3;
                 dialog.dataLoading({
-                  visible:false
-                })
+                  visible: false,
+                });
                 vm.type = 'replace';
               }),
               '確認收單'

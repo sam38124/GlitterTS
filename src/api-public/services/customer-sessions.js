@@ -32,105 +32,28 @@ class CustomerSessions {
         var _a;
         try {
             const appName = this.app;
-            function generateProductCarousel(products, appName, scheduledID) {
-                const maxOptions = Math.max(...products.map(p => p.options.length));
-                return {
-                    type: "flex",
-                    altText: "團購商品列表",
-                    contents: {
-                        type: "carousel",
-                        contents: products.map((product, index) => ({
-                            type: "bubble",
-                            hero: {
-                                type: "image",
-                                url: product.imageUrl,
-                                size: "full",
-                                aspectRatio: "16:9",
-                                aspectMode: "cover"
-                            },
-                            body: {
-                                type: "box",
-                                layout: "vertical",
-                                spacing: "lg",
-                                height: "120px",
-                                justifyContent: "space-between",
-                                flex: 1,
-                                contents: [
-                                    {
-                                        type: "text",
-                                        text: `${product.name}`,
-                                        weight: "bold",
-                                        size: "xl",
-                                        "wrap": true,
-                                        "maxLines": 2
-                                    },
-                                    {
-                                        type: "text",
-                                        text: `$ ${product.price.toLocaleString()} 起`,
-                                        size: "md",
-                                        "align": "end"
-                                    },
-                                ]
-                            },
-                            footer: {
-                                type: "box",
-                                layout: "vertical",
-                                spacing: "lg",
-                                flex: 1,
-                                justifyContent: "flex-start",
-                                contents: [
-                                    ...product.options.flatMap((option, idx) => [
-                                        {
-                                            type: "text",
-                                            text: (option.label.length > 0) ? option.label : "單一規格",
-                                            size: "sm",
-                                            color: "#0D6EFD",
-                                            align: "center",
-                                            action: {
-                                                type: "postback",
-                                                data: `action=selectSpec&productID=${product.id}&spec=${(option.value.length > 0) ? option.value : "單一規格"}&g-app=${appName}&scheduledID=${scheduledID}&price=${option.price}`,
-                                            }
-                                        },
-                                        ...(idx < product.options.length - 1 ? [{ type: "separator", margin: "sm" }] : [])
-                                    ])
-                                ]
-                            }
-                        }))
-                    }
-                };
-            }
-            function convertToProductFormat(rawData) {
-                return rawData.map(item => {
-                    const id = item.content.id;
-                    const content = item.content;
-                    const name = content.title || "未知商品";
-                    const variants = content.variants || [];
-                    const price = variants.length > 0 ? Math.min(...variants.map(v => v.live_model.live_price)) : 0;
-                    const imageUrl = variants.length > 0 ? variants[0].preview_image : "";
-                    const options = variants.map(v => ({
-                        label: v.spec.length > 0 ? v.spec.join(',') : "",
-                        value: v.spec.length > 0 ? v.spec.join(',') : "",
-                        price: v.live_model.live_price,
-                    }));
-                    return {
-                        id,
-                        name,
-                        price,
-                        imageUrl,
-                        selectedSpec: undefined,
-                        options
-                    };
-                });
-            }
             const { type, name } = data, content = __rest(data, ["type", "name"]);
-            const message = [
-                {
-                    "type": "text",
-                    "text": `📢 團購開始囉！ 🎉\n團購名稱： ${name}\n團購日期： ${content.start_date} ${content.start_time} ~ ${content.end_date} ${content.end_time}\n\n📍 下方查看完整商品清單`
-                }
-            ];
-            const transProducts = convertToProductFormat(content.item_list);
-            await this.sendMessageToGroup(data.lineGroup.groupId, message);
+            let item_list = [];
+            item_list = data.item_list.map(item => {
+                return {
+                    id: item.id,
+                    specs: item.content.specs,
+                    title: item.content.title,
+                    variants: item.content.variants.map((variant) => {
+                        return {
+                            sku: variant.sku,
+                            spec: variant.spec,
+                            sale_price: variant.sale_price,
+                            preview_image: variant.preview_image,
+                            stockList: variant.stockList,
+                            live_model: variant.live_model,
+                            live_keyword: variant.live_keyword,
+                        };
+                    }),
+                    live_model: item.content.live_model,
+                };
+            });
+            content.item_list = item_list;
             const queryData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
                                               SET ?;`, [{
                     type: data.type,
@@ -138,71 +61,171 @@ class CustomerSessions {
                     status: "1",
                     content: JSON.stringify(content)
                 }]);
-            const flexMessage = generateProductCarousel(transProducts, this.app, queryData.insertId);
-            for (const item of content.item_list) {
-                const pdDqlData = (await new shopping_js_1.Shopping(this.app, this.token).getProduct({
-                    page: 0,
-                    limit: 50,
-                    id: item.id,
-                    status: 'inRange',
-                })).data[0];
-                const pd = pdDqlData.content;
-                Promise.all(item.content.variants.map(async (variant, i) => {
-                    const returnData = new stock_js_1.Stock(this.app, this.token).allocateStock(variant.stockList, variant.live_model.available_Qty);
-                    const updateVariant = pd.variants.find((dd) => dd.spec.join('-') === variant.spec.join('-'));
-                    updateVariant.stockList = returnData.stockList;
-                    variant.stockList = {};
-                    Object.entries(returnData.deductionLog).forEach(([key, value]) => {
-                        variant.stockList[key] = {
-                            count: value
+            if (data.type == "group_buy") {
+                function generateProductCarousel(products, appName, scheduledID) {
+                    const maxOptions = Math.max(...products.map(p => p.options.length));
+                    return {
+                        type: "flex",
+                        altText: "團購商品列表",
+                        contents: {
+                            type: "carousel",
+                            contents: products.map((product, index) => ({
+                                type: "bubble",
+                                hero: {
+                                    type: "image",
+                                    url: product.imageUrl,
+                                    size: "full",
+                                    aspectRatio: "16:9",
+                                    aspectMode: "cover"
+                                },
+                                body: {
+                                    type: "box",
+                                    layout: "vertical",
+                                    spacing: "lg",
+                                    height: "120px",
+                                    justifyContent: "space-between",
+                                    flex: 1,
+                                    contents: [
+                                        {
+                                            type: "text",
+                                            text: `${product.name}`,
+                                            weight: "bold",
+                                            size: "xl",
+                                            "wrap": true,
+                                            "maxLines": 2
+                                        },
+                                        {
+                                            type: "text",
+                                            text: `$ ${product.price.toLocaleString()} 起`,
+                                            size: "md",
+                                            "align": "end"
+                                        },
+                                    ]
+                                },
+                                footer: {
+                                    type: "box",
+                                    layout: "vertical",
+                                    spacing: "lg",
+                                    flex: 1,
+                                    justifyContent: "flex-start",
+                                    contents: [
+                                        ...product.options.flatMap((option, idx) => [
+                                            {
+                                                type: "text",
+                                                text: (option.label.length > 0) ? option.label : "單一規格",
+                                                size: "sm",
+                                                color: "#0D6EFD",
+                                                align: "center",
+                                                action: {
+                                                    type: "postback",
+                                                    data: `action=selectSpec&productID=${product.id}&spec=${(option.value.length > 0) ? option.value : "單一規格"}&g-app=${appName}&scheduledID=${scheduledID}&price=${option.price}`,
+                                                }
+                                            },
+                                            ...(idx < product.options.length - 1 ? [{ type: "separator", margin: "sm" }] : [])
+                                        ])
+                                    ]
+                                }
+                            }))
+                        }
+                    };
+                }
+                function convertToProductFormat(rawData) {
+                    return rawData.map(item => {
+                        const id = item.content.id;
+                        const content = item.content;
+                        const name = content.title || "未知商品";
+                        const variants = content.variants || [];
+                        const price = variants.length > 0 ? Math.min(...variants.map(v => v.live_model.live_price)) : 0;
+                        const imageUrl = variants.length > 0 ? variants[0].preview_image : "";
+                        const options = variants.map(v => ({
+                            label: v.spec.length > 0 ? v.spec.join(',') : "",
+                            value: v.spec.length > 0 ? v.spec.join(',') : "",
+                            price: v.live_model.live_price,
+                        }));
+                        return {
+                            id,
+                            name,
+                            price,
+                            imageUrl,
+                            selectedSpec: undefined,
+                            options
                         };
                     });
-                    if (updateVariant.deduction_log) {
-                        delete updateVariant.deduction_log;
+                }
+                const message = [
+                    {
+                        "type": "text",
+                        "text": `📢 團購開始囉！ 🎉\n團購名稱： ${name}\n團購日期： ${content.start_date} ${content.start_time} ~ ${content.end_date} ${content.end_time}\n\n📍 下方查看完整商品清單`
                     }
-                    let newContent = item.content;
-                    await new shopping_js_1.Shopping(this.app, this.token).updateVariantsWithSpec(updateVariant, item.id, variant.spec);
-                })).then(async () => {
-                    var _a;
-                    try {
-                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
+                ];
+                const transProducts = convertToProductFormat(content.item_list);
+                await this.sendMessageToGroup(data.lineGroup.groupId, message);
+                const flexMessage = generateProductCarousel(transProducts, this.app, queryData.insertId);
+                for (const item of content.item_list) {
+                    const pdDqlData = (await new shopping_js_1.Shopping(this.app, this.token).getProduct({
+                        page: 0,
+                        limit: 50,
+                        id: item.id,
+                        status: 'inRange',
+                    })).data[0];
+                    const pd = pdDqlData.content;
+                    Promise.all(item.content.variants.map(async (variant, i) => {
+                        const returnData = new stock_js_1.Stock(this.app, this.token).allocateStock(variant.stockList, variant.live_model.available_Qty);
+                        const updateVariant = pd.variants.find((dd) => dd.spec.join('-') === variant.spec.join('-'));
+                        updateVariant.stockList = returnData.stockList;
+                        variant.stockList = {};
+                        Object.entries(returnData.deductionLog).forEach(([key, value]) => {
+                            variant.stockList[key] = {
+                                count: value
+                            };
+                        });
+                        if (updateVariant.deduction_log) {
+                            delete updateVariant.deduction_log;
+                        }
+                        let newContent = item.content;
+                        await new shopping_js_1.Shopping(this.app, this.token).updateVariantsWithSpec(updateVariant, item.id, variant.spec);
+                    })).then(async () => {
+                        var _a;
+                        try {
+                            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
                              SET content = ?
                              WHERE id = ?
                             `, [JSON.stringify(pd), item.id]);
-                    }
-                    catch (error) {
-                        console.error('發送訊息錯誤:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
-                    }
-                    if (pd.shopee_id) {
-                        await new shopee_js_1.Shopee(this.app, this.token).asyncStockToShopee({
-                            product: pdDqlData,
-                            callback: () => {
-                            },
-                        });
-                    }
-                });
-            }
-            try {
-                const res = await axios_1.default.post("https://api.line.me/v2/bot/message/push", {
-                    to: data.lineGroup.groupId,
-                    messages: [flexMessage]
-                }, {
-                    headers: { Authorization: `Bearer ${shopnex_line_message_1.ShopnexLineMessage.token}` }
-                });
-            }
-            catch (error) {
-                console.error('發送訊息錯誤:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+                        }
+                        catch (error) {
+                            console.error('發送訊息錯誤:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+                        }
+                        if (pd.shopee_id) {
+                            await new shopee_js_1.Shopee(this.app, this.token).asyncStockToShopee({
+                                product: pdDqlData,
+                                callback: () => {
+                                },
+                            });
+                        }
+                    });
+                }
+                try {
+                    const res = await axios_1.default.post("https://api.line.me/v2/bot/message/push", {
+                        to: data.lineGroup.groupId,
+                        messages: [flexMessage]
+                    }, {
+                        headers: { Authorization: `Bearer ${shopnex_line_message_1.ShopnexLineMessage.token}` }
+                    });
+                }
+                catch (error) {
+                    console.error('發送訊息錯誤:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+                }
             }
             return {
                 result: true,
-                message: "OK"
+                message: queryData,
             };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'createScheduled Error:' + e, null);
         }
     }
-    async getScheduled() {
+    async getScheduled(limit, page, type) {
         const appName = this.app;
         function isPastEndTime(end_date, end_time) {
             const now = new Date();
@@ -221,7 +244,8 @@ class CustomerSessions {
                 let data = await database_js_1.default.query(`
                     SELECT *
                     FROM \`${appName}\`.\`t_live_purchase_interactions\`
-                    order by id desc
+                    WHERE type = \'${type}\'
+                    limit ${parseInt(page) * parseInt(limit)}, ${limit}
                 `, []);
                 const expiredItems = data.filter((item) => item.status === 1 && isPastEndTime(item.content.end_date, item.content.end_time));
                 if (expiredItems.length !== 0) {
@@ -247,6 +271,7 @@ class CustomerSessions {
                 return (await database_js_1.default.query(`
                             SELECT count(*)
                             FROM \`${appName}\`.\`t_live_purchase_interactions\`
+                            WHERE type = \'${type}\'
                     `, []))[0]["count(*)"];
             }
             catch (err) {

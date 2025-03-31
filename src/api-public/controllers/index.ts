@@ -31,6 +31,7 @@ import recommend = require('./recommend');
 import stock = require('./stock');
 import shopee = require('./shopee');
 import customer_sessions = require('./customer-sessions');
+import fb = require('./fb-service');
 import { Live_source } from '../../live_source.js';
 import { IToken } from '../models/Auth.js';
 import { ApiPublic } from '../services/public-table-check.js';
@@ -68,6 +69,7 @@ router.use(config.getRoute(config.public_route.sms_points, 'public'), require('.
 router.use(config.getRoute(config.public_route.track, 'public'), require('./track'));
 router.use(config.getRoute(config.public_route.voucher, 'public'), require('./voucher'));
 router.use(config.getRoute(config.public_route.voucher, 'public'), require('./reconciliation'));
+router.use(config.getRoute(config.public_route.fb, 'public'), fb);
 /******************************/
 const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.customer_sessions + '/online_cart', 'public'), method: 'GET' },

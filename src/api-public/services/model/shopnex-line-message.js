@@ -131,7 +131,6 @@ class ShopnexLineMessage {
         var _a, _b, _c, _d;
         const userId = event.source.userId;
         const data = event.postback.data;
-        console.log("data -- ", data);
         const userData = await this.getUserProfile(userId);
         console.log(`🔹 Postback 事件來自: ${userId}, data: ${data}`);
         console.log("saasConfig.SAAS_NAME -- ", config_js_1.saasConfig.SAAS_NAME);
@@ -325,7 +324,6 @@ class ShopnexLineMessage {
                     else {
                         cartData[0].content.cart.push(cart);
                     }
-                    console.log("cartData[0].content -- ", cartData[0].content);
                     calcPrice(cartData[0].content);
                     await updateScheduled(scheduledData.content);
                     await this.sendPrivateMessage(userId, `🛒 您的商品已成功加入購物車，\n\nhttps://${brandAndMemberType.domain}/checkout?source=group_buy&cart_id=${cartData[0].cart_id}\n\n請點擊上方連結查看您的購物車內容！`);

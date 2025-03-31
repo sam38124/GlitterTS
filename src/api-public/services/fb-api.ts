@@ -17,7 +17,6 @@ export class FbApi {
     }
 
     public async config() {
-
         const cf = await new User(this.app_name).getConfigV2({
             key: 'login_fb_setting',
             user_id: 'manager'
@@ -135,5 +134,9 @@ export class FbApi {
         console.error(e)
         throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
     }
+    }
+
+    public async OAuth(url:any){
+        // console.log("url -- " , url);
     }
 }

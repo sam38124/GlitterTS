@@ -12,7 +12,7 @@ export = router;
 router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
         const insertID = await new CustomerSessions(req.get('g-app') as string, req.body.token).createScheduled(req.body.data)
-        return resp.status(httpStatus.OK).send({insertID:123})
+        return resp.status(httpStatus.OK).send(insertID)
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -38,7 +38,7 @@ router.post('/finish', async (req: express.Request, resp: express.Response) => {
 
 router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
-        const data = await new CustomerSessions(req.get('g-app') as string, req.body.token).getScheduled();
+        const data = await new CustomerSessions(req.get('g-app') as string, req.body.token).getScheduled(req.query.limit as string,req.query.page as string, req.query.type as string);
         // const insertID = await new CustomerSessions(req.get('g-app') as string, req.body.token).createScheduled(req.body.data)
         return resp.status(httpStatus.OK).send(data)
     } catch (err) {

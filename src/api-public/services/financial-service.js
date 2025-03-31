@@ -991,7 +991,6 @@ class JKO {
         var _a;
         const secret = this.keyData.SECRET_KEY;
         const digest = this.generateDigest(`platform_order_ids=${transactionId}`, secret);
-        console.log("digest -- ", digest);
         let config = {
             method: 'get',
             url: `${this.BASE_URL}/platform/inquiry?platform_order_ids=${transactionId}`,

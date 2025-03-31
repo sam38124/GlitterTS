@@ -275,6 +275,10 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
         if(query_page === 'shopnex-line-oauth'){
             page='official-router'
         }
+        //當判斷是FB驗證頁面
+        if(query_page === 'shopnex-fb-oauth'){
+            page='official-router'
+        }
         return page;
     }
     public async getPage(config: {

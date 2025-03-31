@@ -628,26 +628,22 @@ export class ApiPublic {
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
  `,
         },
-        //                 {
-        //                     scheme: appName,
-        //                     table: `t_live_comments`,
-        //                     sql: `(
-        //   \`id\` int NOT NULL AUTO_INCREMENT,
-        //   \`comment_id\` varchar(50) NOT NULL,
-        //   \`interaction_id\` varchar(50) NOT NULL,
-        //   \`stream_id\` varchar(50) NOT NULL,
-        //   \`user_id\` varchar(50) NOT NULL,
-        //   \`username\` VARCHAR(255) NOT NULL,
-        //   \`profile_picture\` TEXT NOT NULL,
-        //   \`is_moderator\` BOOLEAN DEFAULT FALSE,
-        //   \`message\` TEXT NOT NULL,
-        //   \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        //   PRIMARY KEY (\`id\`),
-        //   KEY \`index2\` (\`comment_id\`),
-        //   KEY \`index3\` (\`user_id\`)
-        // )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        //  `,
-        //                 },
+                        {
+
+                            scheme: appName,
+                            table: `t_live_comments`,
+                            sql: `(
+          \`id\` int NOT NULL AUTO_INCREMENT COMMENT 'Primary Key: Auto-incremented ID', 
+          \`interaction_id\` varchar(50) NOT NULL COMMENT 'ID that links to t_live_purchase_interactions',
+          \`user_id\` varchar(50) NOT NULL COMMENT 'ID from FB or IG packet which is used to identify the user',
+          \`user_name\` VARCHAR(255) NOT NULL  COMMENT 'name from FB or IG ',
+          \`message\` TEXT NOT NULL,
+          \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (\`id\`),
+          KEY \`index2\` (\`interaction_id\`)
+        )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+         `,
+                        },
         {
           scheme: appName,
           table: `t_check_in_pos`,

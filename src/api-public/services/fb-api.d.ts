@@ -1,3 +1,4 @@
+/// <reference types="cookie-parser" />
 import { Cart } from "./shopping.js";
 import express from "express";
 import { IToken } from "../models/Auth.js";
@@ -11,4 +12,5 @@ export declare class FbApi {
     }>;
     checkOut(data: Cart): Promise<boolean | undefined>;
     post(data: any, req: express.Request): Promise<boolean | undefined>;
+    OAuth(url: any): Promise<void>;
 }

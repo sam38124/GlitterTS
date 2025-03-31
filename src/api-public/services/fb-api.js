@@ -127,6 +127,8 @@ class FbApi {
             throw exception_js_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
         }
     }
+    async OAuth(url) {
+    }
 }
 exports.FbApi = FbApi;
 //# sourceMappingURL=fb-api.js.map

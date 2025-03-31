@@ -68,6 +68,7 @@ const sitemap_1 = require("sitemap");
 const stream_1 = require("stream");
 const seo_config_js_1 = require("./seo-config.js");
 const Language_js_1 = require("./Language.js");
+const fb_api_js_1 = require("./api-public/services/fb-api.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -152,7 +153,10 @@ async function createAPP(dd) {
                 var _a, _b, _c, _d, _e, _f;
                 const og_url = req.headers['x-original-url'];
                 const custom_heads = [];
-                console.log(`req.query.page=>`, req.query.page);
+                const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+                if (req.query.page === 'shopnex-fb-oauth') {
+                    await new fb_api_js_1.FbApi(dd.appName).OAuth(req);
+                }
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';

@@ -29,7 +29,7 @@ export declare class CustomerSessions {
         result: boolean;
         message: string;
     }>;
-    getScheduled(): Promise<{
+    getScheduled(limit: string, page: string, type: string): Promise<{
         data: any;
         total: any;
     }>;

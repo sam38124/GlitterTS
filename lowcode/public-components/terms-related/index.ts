@@ -67,6 +67,12 @@ export class TermsRelated {
                                 (document.querySelector(`.${id}`) as any).outerHTML=res.inputVerificationCode(gvc);
                             });
                         })
+                    }else if(['shopnex-fb-oauth'].includes(page)){
+                        return await new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./cms-plugin/third-party-facebook.js', gvc.glitter.root_path).href, (res) => {
+                                (document.querySelector(`.${id}`) as any).outerHTML=res.drawFacebookAuthRedirect(gvc);
+                            });
+                        })
                     }else{
                         //條款頁面
                         let lan_d = (await ApiUser.getPublicConfig(`terms-related-${page}-${Language.getLanguage()}`, 'manager')).response.value.text

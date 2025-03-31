@@ -998,6 +998,7 @@ class Shopping {
                 count: 0,
                 history: [Date.now()],
             };
+            let scheduledData;
             const checkPoint = (name) => {
                 const t = Date.now();
                 timer.history.push(t);
@@ -1088,7 +1089,6 @@ class Shopping {
                     (data.user_info.phone && (await userClass.getUserData(data.user_info.phone, 'email_or_phone'))) ||
                     {});
             };
-            checkPoint('dwihdi');
             checkPoint('check user auth');
             const userData = await getUserDataAsync(type, this.token, data);
             data.email = ((_e = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _e === void 0 ? void 0 : _e.email) || ((_f = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _f === void 0 ? void 0 : _f.phone) || '';
@@ -1361,9 +1361,31 @@ class Shopping {
                             };
                             variant.shipment_weight = parseInt(variant.shipment_weight || '0', 10);
                             carData.lineItems.push(item);
-                            if (type !== 'manual') {
+                            if (checkOutType == 'group_buy') {
+                                if (!scheduledData) {
+                                    const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
+                                    const scheduledDataQuery = `
+                        SELECT *
+                        FROM \`${this.app}\`.\`t_live_purchase_interactions\`
+                        ${sql});
+                    `;
+                                    scheduledData = (await database_js_1.default.query(scheduledDataQuery, []))[0];
+                                    if (scheduledData) {
+                                        const { content } = scheduledData;
+                                        const productData = content.item_list.find((pb) => pb.id === item.id);
+                                        if (productData) {
+                                            const variantData = productData.content.variants.find((dd) => dd.spec.join('-') === item.spec.join('-'));
+                                            if (variantData) {
+                                                item.sale_price = variantData.live_model.live_price;
+                                                carData.total += item.sale_price * item.count;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else if (type !== 'manual') {
                                 if (content.productType.giveaway) {
-                                    item.sale_price = 0;
+                                    variant.sale_price = 0;
                                 }
                                 else {
                                     carData.total += variant.sale_price * item.count;
@@ -1393,29 +1415,57 @@ class Shopping {
                             saveStockArray.push(() => new Promise(async (resolve, reject) => {
                                 var _a;
                                 try {
-                                    if (content.shopee_id) {
-                                        await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
-                                            product: getProductData,
-                                            callback: () => { },
-                                        });
-                                    }
-                                    if (content.product_category === 'kitchen' && ((_a = variant.spec) === null || _a === void 0 ? void 0 : _a.length)) {
-                                        variant.spec.forEach((d1, index) => {
-                                            const option = content.specs[index].option.find((d2) => d2.title === d1);
-                                            if ((option === null || option === void 0 ? void 0 : option.stock) !== undefined) {
-                                                option.stock = parseInt(option.stock, 10) - item.count;
+                                    if (data.checkOutType == 'group_buy') {
+                                        if (!scheduledData) {
+                                            const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
+                                            const scheduledDataQuery = `
+                              SELECT *
+                              FROM \`${this.app}\`.\`t_live_purchase_interactions\`
+                              ${sql});
+                          `;
+                                            scheduledData = (await database_js_1.default.query(scheduledDataQuery, []))[0];
+                                        }
+                                        if (scheduledData) {
+                                            const { content } = scheduledData;
+                                            const productData = content.item_list.find((pb) => pb.id === item.id);
+                                            if (productData) {
+                                                const variantData = productData.content.variants.find((dd) => dd.spec.join('-') === item.spec.join('-'));
+                                                if (variantData) {
+                                                    const stockService = new stock_1.Stock(this.app, this.token);
+                                                    const { stockList, deductionLog } = stockService.allocateStock(variantData.stockList, item.count);
+                                                    variantData.stockList = stockList;
+                                                    item.deduction_log = deductionLog;
+                                                    carData.scheduled_id = scheduledData.id;
+                                                    await this.updateVariantsForScheduled(content, scheduledData.id);
+                                                }
                                             }
-                                        });
-                                        const store_config = await userClass.getConfigV2({
-                                            key: 'store_manager',
-                                            user_id: 'manager',
-                                        });
-                                        item.deduction_log = { [store_config.list[0].id]: item.count };
+                                        }
                                     }
                                     else {
-                                        await this.updateVariantsWithSpec(variant, item.id, item.spec);
+                                        if (content.shopee_id) {
+                                            await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
+                                                product: getProductData,
+                                                callback: () => { },
+                                            });
+                                        }
+                                        if (content.product_category === 'kitchen' && ((_a = variant.spec) === null || _a === void 0 ? void 0 : _a.length)) {
+                                            variant.spec.forEach((d1, index) => {
+                                                const option = content.specs[index].option.find((d2) => d2.title === d1);
+                                                if ((option === null || option === void 0 ? void 0 : option.stock) !== undefined) {
+                                                    option.stock = parseInt(option.stock, 10) - item.count;
+                                                }
+                                            });
+                                            const store_config = await userClass.getConfigV2({
+                                                key: 'store_manager',
+                                                user_id: 'manager',
+                                            });
+                                            item.deduction_log = { [store_config.list[0].id]: item.count };
+                                        }
+                                        else {
+                                            await this.updateVariantsWithSpec(variant, item.id, item.spec);
+                                        }
+                                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${getProductData.id}`, [{ content: JSON.stringify(content) }]);
                                     }
-                                    await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${getProductData.id}`, [{ content: JSON.stringify(content) }]);
                                     resolve(true);
                                 }
                                 catch (error) {
@@ -3244,6 +3294,21 @@ class Shopping {
                     content: JSON.stringify(data),
                 },
                 product_id,
+            ]);
+        }
+        catch (e) {
+            console.error('error -- ', e);
+        }
+    }
+    async updateVariantsForScheduled(data, scheduled_id) {
+        try {
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_live_purchase_interactions\`
+         SET ?
+         WHERE id = ${scheduled_id}
+        `, [
+                {
+                    content: JSON.stringify(data),
+                },
             ]);
         }
         catch (e) {

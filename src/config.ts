@@ -139,6 +139,7 @@ export const config = {
         customer_sessions: '/customer_sessions',
         voucher: '/voucher',
         reconciliation: '/reconciliation',
+        fb:'/fb'
     },
     route: {
         shopee: '/shopee',

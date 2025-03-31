@@ -320,7 +320,6 @@ class LineMessage {
         var _a, _b;
         try {
             const events = data.events;
-            console.log("data.destination -- ", data.destination);
             if (data.destination == process_1.default.env.line_destination) {
                 console.log("處理shopnex官方機器人事件");
                 for (const event of events) {
