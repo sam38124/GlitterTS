@@ -19,248 +19,21 @@ import { CountryTw } from '../modules/country-language/country-tw.js';
 import { OrderExcel } from './module/order-excel.js';
 import { DeliveryHTML } from './module/delivery-html.js';
 import { OrderSetting } from './module/order-setting.js';
-import { PaymentPage } from './pos-pages/payment-page.js';
 import { PosFunction } from './pos-pages/pos-function.js';
 import { UserList } from './user-list.js';
 import { FilterOptions } from './filter-options.js';
 import { ListHeaderOption } from './list-header-option.js';
 import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
-
-interface VoucherData {
-  id: number;
-  title: string;
-  method: 'percent' | 'fixed';
-  reBackType: 'rebate' | 'discount' | 'shipment_free';
-  trigger: 'auto' | 'code';
-  value: number;
-  for: 'collection' | 'product' | 'all';
-  rule: 'min_price' | 'min_count';
-  forKey: string[];
-  ruleValue: number;
-  startDate: string;
-  startTime: string;
-  endDate?: string;
-  endTime?: string;
-  status: 0 | 1 | -1;
-  type: 'voucher';
-  code?: string;
-  overlay: boolean;
-  bind?: {
-    id: string;
-    spec: string[];
-    count: number;
-    sale_price: number;
-    collection: string[];
-    discount_price: number;
-    rebate: number;
-    shipment_fee: number;
-  }[];
-  start_ISO_Date: string;
-  end_ISO_Date: string;
-  discount_total: number;
-  rebate_total: number;
-  target: string;
-  targetList: string[];
-}
-
-interface ViewModel {
-  id: string;
-  loading: boolean;
-  filterId: string;
-  type: 'list' | 'add' | 'replace' | 'select' | 'createInvoice' | 'viewInvoice' | 'recommend';
-  data: any;
-  invoiceData: any;
-  orderData: any;
-  distributionData: any;
-  dataList: any;
-  query?: string;
-  queryType?: string;
-  orderString?: string;
-  return_order?: boolean;
-  filter?: any;
-  tempOrder?: string;
-  filter_type: 'normal' | 'block' | 'pos' | 'all';
-  apiJSON: any;
-  checkedData: any[];
-  headerConfig: string[];
-}
-
-interface EcCashFlow {
-  HandlingCharge: string;
-  PaymentType: 'ATM_CHINATRUST' | 'Credit_CreditCard';
-  PaymentDate: string;
-  TradeStatus: '0' | '1' | '10200095';
-  TradeAmt: string;
-  TradeNo: string;
-  credit_receipt: any;
-}
-
-interface PayNowCashFlow {
-  amount: number;
-  status: string;
-  payment: {
-    paymentMethod: 'ATM' | 'CreditCard' | 'ConvenienceStore';
-    paidAt: string;
-  };
-}
-
-interface Order {
-  id: number;
-  cart_token: string;
-  status: number;
-  invoice_status:number;
-  email: string;
-  orderData: OrderData;
-  created_time: string;
-  total_received: string;
-  reconciliation_date: string;
-  offset_records: any[];
-}
-
-interface OrderData {
-  cash_flow?: EcCashFlow | PayNowCashFlow;
-  distribution_info?: {
-    code: string;
-    condition: number;
-    link: string;
-    recommend_medium: any;
-    recommend_status: string;
-    recommend_user: any;
-    redirect: string;
-    relative: string;
-    relative_data: any;
-    share_type: string;
-    share_value: number;
-    startDate: string;
-    startTime: string;
-    status: boolean;
-    title: string;
-    voucher: number;
-    voucher_status: string;
-  };
-  archived: 'true' | 'false';
-  customer_info: any;
-  editRecord: any;
-  method: string;
-  shipment_selector: {
-    name: string;
-    value: string;
-    form: any;
-  }[];
-  orderStatus: string;
-  use_wallet: number;
-  email: string;
-  total: number;
-  discount: number;
-  expectDate: string;
-  shipment_fee: number;
-  use_rebate: number;
-  lineItems: {
-    id: number;
-    spec: string[];
-    count: string;
-    sale_price: number;
-    title: string;
-    sku: string;
-  }[];
-  user_info: {
-    name: string;
-    email: string;
-    phone: string;
-    city?: string;
-    area?: string;
-    shipment_date: string;
-    shipment_refer: string;
-    address: string;
-    shipment_number?: string;
-    custom_form_delivery?: any;
-    shipment:
-      | 'normal'
-      | 'FAMIC2C'
-      | 'UNIMARTC2C'
-      | 'HILIFEC2C'
-      | 'OKMARTC2C'
-      | 'now'
-      | 'shop'
-      | 'global_express'
-      | 'UNIMARTFREEZE'
-      | 'black_cat_freezing';
-    CVSStoreName: string;
-    CVSStoreID: string;
-    CVSTelephone: string;
-    MerchantTradeNo: string;
-    CVSAddress: string;
-    note?: string;
-    code_note?: string;
-    shipment_detail?: any;
-  };
-  custom_receipt_form?: any;
-  custom_form_format?: any;
-  custom_form_data?: any;
-  proof_purchase: any;
-  progress: string;
-  // progress: 'finish' | 'wait' | 'shipping' | "returns";
-  order_note: string;
-  voucherList: [
-    {
-      title: string;
-      method: 'percent' | 'fixed';
-      trigger: 'auto' | 'code';
-      value: string;
-      for: 'collection' | 'product';
-      rule: 'min_price' | 'min_count';
-      forKey: string[];
-      ruleValue: number;
-      startDate: string;
-      startTime: string;
-      endDate?: string;
-      endTime?: string;
-      status: 0 | 1 | -1;
-      type: 'voucher';
-      code?: string;
-      overlay: boolean;
-      bind?: {
-        id: string;
-        spec: string[];
-        count: number;
-        sale_price: number;
-        collection: string[];
-        discount_price: number;
-      }[];
-      start_ISO_Date: string;
-      end_ISO_Date: string;
-    },
-  ];
-  orderSource?: string;
-  deliveryData: Record<string, string>;
-  pos_info: {
-    payment: 'cash' | 'credit' | 'line_pay';
-    who: {
-      id: number;
-      user: string;
-      config: {
-        pin: string;
-        auth: any;
-        name: string;
-        phone: string;
-        title: string;
-        come_from: string;
-        member_id: string;
-        verifyEmail: string;
-      };
-      status: 1;
-    };
-  };
-}
+import { OrderModule } from './order/order-module.js';
 
 const html = String.raw;
 
 export class ShoppingOrderManager {
-  public static vm = {
+  static vm = {
     page: 1,
   };
 
-  public static main(
+  static main(
     gvc: GVC,
     query: {
       isPOS?: boolean;
@@ -508,7 +281,7 @@ export class ShoppingOrderManager {
                     if (vm.filter_type !== 'all') {
                       vm.apiJSON.is_pos = vm.filter_type === 'pos';
                     }
-                    
+
                     ApiShop.getOrder(vm.apiJSON).then(data => {
                       function getDatalist() {
                         return data.response.data.map((dd: any) => {
@@ -675,7 +448,7 @@ export class ShoppingOrderManager {
                               {
                                 key: '運送方式',
                                 value: html`<div style="width: 120px;">
-                                  ${OrderInfo.shipmetSelector(dd, ShoppingOrderManager.supportShipmentMethod())}
+                                  ${OrderInfo.shipmetSelector(dd, OrderModule.supportShipmentMethod())}
                                 </div>`,
                               },
                               {
@@ -803,7 +576,7 @@ export class ShoppingOrderManager {
                             return;
                           }
 
-                          this.printStoreOrderInfo({
+                          OrderModule.printStoreOrderInfo({
                             gvc,
                             cart_token: checkArray.map((dd: any) => dd.cart_token).join(','),
                             print: false,
@@ -983,7 +756,7 @@ export class ShoppingOrderManager {
                             return;
                           }
 
-                          return this.printStoreOrderInfo({
+                          return OrderModule.printStoreOrderInfo({
                             gvc,
                             cart_token: checkArray.map((dd: any) => dd.cart_token).join(','),
                             print: true,
@@ -1205,53 +978,7 @@ export class ShoppingOrderManager {
     });
   }
 
-  public static supportShipmentMethod() {
-    return ShipmentConfig.list.map(dd => {
-      return {
-        name: dd.title,
-        value: dd.value,
-      };
-    });
-  }
-
-  public static formatRecord(gvc: GVC, vm: any, orderID: string, record: string): string {
-    // 處理訂單連結
-    const orderNumbers = record.match(/{{order=(\d+)}}/g) || [];
-    orderNumbers.map((order: string) => {
-      const pureOrder = order.replace(/{{order=|}}/g, '');
-      record = record.replace(
-        order,
-        BgWidget.blueNote(
-          `#${pureOrder}`,
-          gvc.event(() => {
-            vm.data.cart_token = pureOrder;
-            vm.type = 'replace';
-          })
-        )
-      );
-    });
-
-    // 處理出貨單連結
-    const shipmentNumbers = record.match(/{{shipment=(.*?)}}/g) || [];
-    shipmentNumbers.map((order: string) => {
-      const pureOrder = order.replace(/{{shipment=|}}/g, '');
-      record = record.replace(
-        order,
-        BgWidget.blueNote(
-          `${pureOrder}`,
-          gvc.event(() => {
-            (window as any).glitter.setUrlParameter('page', 'shipment_list');
-            (window as any).glitter.setUrlParameter('orderID', orderID);
-            gvc.recreateView();
-          })
-        )
-      );
-    });
-
-    return record;
-  }
-
-  public static replaceOrder(gvc: GVC, vm: any, passOrderData?: any, backCallback?: () => any) {
+  static replaceOrder(gvc: GVC, vm: any, passOrderData?: any, backCallback?: () => any) {
     let is_shipment = ['shipment_list_archive', 'shipment_list'].includes(
       (window as any).glitter.getUrlParameter('page')
     );
@@ -1364,12 +1091,11 @@ export class ShoppingOrderManager {
               gvc.notifyDataChange('invoiceView');
             });
             ApiShop.getProduct({
-              limit: 99,
               page: 0,
+              limit: 99,
               productType: 'all',
-              id_list: orderData.orderData.lineItems.map((dd: any) => {
-                return dd.id;
-              }) as any,
+              status: 'inRange',
+              id_list: orderData.orderData.lineItems.map((dd: any) => dd.id) as any,
             }).then(r => {
               productLoading = false;
               productData = r.response.data;
@@ -1541,8 +1267,7 @@ export class ShoppingOrderManager {
                                 <div style="tx_normal">
                                   ${Language.getLanguageCustomText(
                                     ((
-                                      orderData.orderData.shipment_selector ||
-                                      ShoppingOrderManager.supportShipmentMethod()
+                                      orderData.orderData.shipment_selector || OrderModule.supportShipmentMethod()
                                     ).find((dd: any) => {
                                       return dd.value === orderData.orderData.user_info.shipment;
                                     }) || { name: '門市取貨' })!.name
@@ -1581,7 +1306,7 @@ export class ShoppingOrderManager {
                                           : '出貨單取號',
                                       },
                                       event: gvc.event(() => {
-                                        return this.printStoreOrderInfo({
+                                        return OrderModule.printStoreOrderInfo({
                                           gvc,
                                           cart_token: orderData.cart_token,
                                           print: !!orderData.orderData.user_info.shipment_number,
@@ -1868,8 +1593,7 @@ export class ShoppingOrderManager {
                                     return map.join('<div class="w-100 border-top my-1"></div>');
                                   }
                                   const formData: any = (
-                                    orderData.orderData.shipment_selector ||
-                                    ShoppingOrderManager.supportShipmentMethod()
+                                    orderData.orderData.shipment_selector || OrderModule.supportShipmentMethod()
                                   ).find(dd => {
                                     return dd.value === orderData.orderData.user_info.shipment;
                                   });
@@ -2031,9 +1755,7 @@ export class ShoppingOrderManager {
                               let map = [];
 
                               if ((orderData.orderData.user_info as any).invoice_method) {
-                                map.push(`<div class="tx_700">
-                                                                                            發票開立資訊
-                                                                                        </div>`);
+                                map.push(html`<div class="tx_700">發票開立資訊</div>`);
                                 map.push(
                                   `開立時機: ${(() => {
                                     switch ((orderData.orderData.user_info as any).invoice_method) {
@@ -2577,13 +2299,9 @@ export class ShoppingOrderManager {
                                     >
                                       <div class="tx_700">付款方式</div>
                                       <div class="tx_normal">
-                                        ${ShoppingOrderManager.getPaymentMethodText(
-                                          orderData.orderData.method,
-                                          orderData.orderData,
-                                          gvc
-                                        )}
+                                        ${OrderModule.getPaymentMethodText(gvc, orderData.orderData)}
                                       </div>
-                                      ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
+                                      ${OrderModule.getProofPurchaseString(gvc, orderData.orderData)}
                                     </div>`,
                                     (() => {
                                       if (orderData.orderData.customer_info.payment_select === 'ecPay') {
@@ -2662,9 +2380,7 @@ export class ShoppingOrderManager {
                                           </div>
                                         </div>`;
                                       } else if (orderData.orderData.customer_info.payment_select === 'paynow') {
-                                        const cash_flow = ( orderData.orderData.cash_flow as PayNowCashFlow) || {
-                                          
-                                        };
+                                        const cash_flow = (orderData.orderData.cash_flow as PayNowCashFlow) || {};
 
                                         return html`
                                           <div
@@ -2805,7 +2521,6 @@ export class ShoppingOrderManager {
                                   return '';
                                 }
                                 dialog.dataLoading({ visible: false });
-                                
 
                                 return BgWidget.mainCard(html`
                                   <div class="tx_700">發票資訊</div>
@@ -2816,8 +2531,9 @@ export class ShoppingOrderManager {
                                     <div class="col-3 text-center">發票金額</div>
                                     <div class="col-2 text-center">狀態</div>
                                   </div>
-                                  ${invoiceDataList.map((invoiceData:any)=>{
-                                    return `<div class="d-flex" style="height:55px;">
+                                  ${invoiceDataList
+                                    .map((invoiceData: any) => {
+                                      return `<div class="d-flex" style="height:55px;">
                                     <div class="col-3 d-flex align-items-center ">
                                       ${invoiceData.create_date.split('T')[0]}
                                     </div>
@@ -2831,24 +2547,27 @@ export class ShoppingOrderManager {
                                       ${invoiceData.invoice_data.invoiceAmount ?? orderData.orderData.total}
                                     </div>
                                     <div class="col-2 text-center d-flex align-items-center justify-content-center">
-                                      ${invoiceData.status == 1
-                                      ? html` <div style="color:#10931D">已完成</div>`
-                                      : html` <div style="color:#DA1313">已作廢</div>`}
+                                      ${
+                                        invoiceData.status == 1
+                                          ? html` <div style="color:#10931D">已完成</div>`
+                                          : html` <div style="color:#DA1313">已作廢</div>`
+                                      }
                                     </div>
                                     <div class="flex-fill d-flex justify-content-end align-items-center">
                                       <div style="margin-right: 14px;">
                                         ${BgWidget.grayButton(
-                                      '查閱',
-                                      gvc.event(() => {
-                                        vm.invoiceData = invoiceData;
-                                        vm.type = 'viewInvoice';
-                                      }),
-                                      { textStyle: `` }
-                                    )}
+                                          '查閱',
+                                          gvc.event(() => {
+                                            vm.invoiceData = invoiceData;
+                                            vm.type = 'viewInvoice';
+                                          }),
+                                          { textStyle: `` }
+                                        )}
                                       </div>
                                     </div>
-                                  </div>`
-                                  }).join('')}
+                                  </div>`;
+                                    })
+                                    .join('')}
                                 `);
                               },
                               divCreate: {},
@@ -2866,7 +2585,7 @@ export class ShoppingOrderManager {
                                             : -1;
                                         })
                                         .map((r: any) => {
-                                          const record = this.formatRecord(
+                                          const record = OrderModule.formatRecord(
                                             gvc,
                                             vm,
                                             (orderData.orderData as any).orderID,
@@ -3055,19 +2774,13 @@ ${[
                                           }
                                           view.push(html`
                                             <div class="tx_700">付款方式</div>
-                                            <div>
-                                              ${ShoppingOrderManager.getPaymentMethodText(
-                                                orderData.orderData.method,
-                                                orderData.orderData,
-                                                gvc
-                                              )}
-                                            </div>
+                                            <div>${OrderModule.getPaymentMethodText(gvc, orderData.orderData)}</div>
                                             <div class="tx_700">配送方式</div>
                                             <div class="tx_normal" style="line-height: 140%;">
                                               ${Language.getLanguageCustomText(
                                                 (
                                                   orderData.orderData.shipment_selector ||
-                                                  ShoppingOrderManager.supportShipmentMethod()
+                                                  OrderModule.supportShipmentMethod()
                                                 ).find(dd => {
                                                   return dd.value === orderData.orderData.user_info.shipment;
                                                 })?.name ?? ''
@@ -3123,7 +2836,7 @@ ${[
                                                   }
                                                   const formData: any = (
                                                     orderData.orderData.shipment_selector ||
-                                                    ShoppingOrderManager.supportShipmentMethod()
+                                                    OrderModule.supportShipmentMethod()
                                                   ).find(dd => {
                                                     return dd.value === orderData.orderData.user_info.shipment;
                                                   });
@@ -3323,8 +3036,10 @@ ${[
                                       return {
                                         bind: id,
                                         view: () => {
-                                          if ((vc.data.fincial == 'ezpay' || vc.data.fincial == 'ecpay') && (orderData.invoice_status!==1)) {
-                                         
+                                          if (
+                                            (vc.data.fincial == 'ezpay' || vc.data.fincial == 'ecpay') &&
+                                            orderData.invoice_status !== 1
+                                          ) {
                                             return BgWidget.grayButton(
                                               '開立發票',
                                               gvc.event(() => {
@@ -3430,7 +3145,7 @@ ${[
     });
   }
 
-  public static createOrder(gvc: GVC, vm: any) {
+  static createOrder(gvc: GVC, vm: any) {
     const glitter = gvc.glitter;
 
     class OrderDetail {
@@ -3453,7 +3168,7 @@ ${[
         name: string;
         email: string;
         phone: string;
-        payment_select?:string;
+        payment_select?: string;
       };
       user_info: {
         name: string;
@@ -3915,7 +3630,8 @@ ${[
                             newVoucher.method = tempData.method;
                             newVoucher.value = tempData.discount;
                             newVoucher.title = tempData.title;
-                            gvc.notifyDataChange('orderDetail');
+                            orderDetailRefresh = true;
+                            gvc.notifyDataChange(['listProduct', 'orderDetail']);
                           }),
                           '確定'
                         )}
@@ -4090,7 +3806,6 @@ ${[
             let returnHTML = '';
             gvc.notifyDataChange('orderDetail');
             if (newOrder.productCheck.length) {
-              
               newOrder.productCheck.map((product: any, index: number) => {
                 let selectVariant = product.content.variants[parseInt(product.selectIndex ?? 0)];
                 let productIMG =
@@ -4302,9 +4017,10 @@ ${[
                                       if (!searchLoading) {
                                         ApiShop.getProduct({
                                           page: 0,
-                                          limit: 20,
+                                          limit: 50,
                                           search: newOrder.query,
                                           orderBy: newOrder.orderString,
+                                          status: 'inRange',
                                         }).then(data => {
                                           searchLoading = true;
                                           newOrder.productArray = data.response.data;
@@ -5044,49 +4760,52 @@ ${[
         gvc.bindView({
           bind: 'setLogistics',
           view: async () => {
-            orderDetail.pay_status='0';
+            orderDetail.pay_status = '0';
             return html`
               <div class="tx_700">設定金物流</div>
               <div class="d-flex flex-column" style="gap: 18px">
                 <div class="d-flex align-items-center w-100" style="gap:18px;">
                   <div class="row w-100">
-                  ${[
-                    BgWidget.select({
-                      gvc: gvc,
-                      callback: dd => {
-                        orderDetail.customer_info.payment_select=dd
-                      },
-                      title:'付款方式',
-                      default: orderDetail.customer_info.payment_select ?? '',
-                      options: (await PaymentConfig.getSupportPayment()).map((dd)=>{
-                        return {
-                          key:dd.key,value:dd.name
-                        }
+                    ${[
+                      BgWidget.select({
+                        gvc: gvc,
+                        callback: dd => {
+                          orderDetail.customer_info.payment_select = dd;
+                        },
+                        title: '付款方式',
+                        default: orderDetail.customer_info.payment_select ?? '',
+                        options: (await PaymentConfig.getSupportPayment()).map(dd => {
+                          return {
+                            key: dd.key,
+                            value: dd.name,
+                          };
+                        }),
                       }),
-                    }),
-                    BgWidget.select({
-                      gvc: gvc,
-                      title:'配送方式',
-                      callback: dd => {
-                        orderDetail.user_info.shipment = dd;
-                        orderDetailRefresh = true;
-                        gvc.notifyDataChange(['listProduct', 'orderDetail']);
-                      },
-                      default: orderDetail.user_info.shipment,
-                      options: (
-                        await ShipmentConfig.shipmentMethod({
-                          type: 'support',
-                        })
-                      ).map(dd => {
-                        return {
-                          key: dd.key,
-                          value: dd.name,
-                        };
+                      BgWidget.select({
+                        gvc: gvc,
+                        title: '配送方式',
+                        callback: dd => {
+                          orderDetail.user_info.shipment = dd;
+                          orderDetailRefresh = true;
+                          gvc.notifyDataChange(['listProduct', 'orderDetail']);
+                        },
+                        default: orderDetail.user_info.shipment,
+                        options: (
+                          await ShipmentConfig.shipmentMethod({
+                            type: 'support',
+                          })
+                        ).map(dd => {
+                          return {
+                            key: dd.key,
+                            value: dd.name,
+                          };
+                        }),
                       }),
-                    })
-                  ].map((dd)=>{
-                    return `<div class="col-12 col-lg-6">${dd}</div>`
-                  }).join('')}  
+                    ]
+                      .map(dd => {
+                        return `<div class="col-12 col-lg-6">${dd}</div>`;
+                      })
+                      .join('')}
                   </div>
                 </div>
 
@@ -5282,8 +5001,8 @@ ${[
                           style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
                           onclick="${gvc.event(() => {
                             gvc.glitter.closeDiaLog();
-                           
-                            (window.parent as any).glitter.setUrlParameter('orderID',  r.response.data.orderID);
+
+                            (window.parent as any).glitter.setUrlParameter('orderID', r.response.data.orderID);
                             (window.parent as any).location.reload();
                           })}"
                         >
@@ -5328,255 +5047,6 @@ ${[
         )}
       </div>
     `);
-  }
-
-  public static getPaymentMethodText(key: string, orderData: any, gvc: GVC) {
-    if (orderData.orderSource === 'POS') {
-      return `${(() => {
-        if (typeof orderData.pos_info.payment === 'string') {
-          return `門市『 ${(() => {
-            switch (orderData.pos_info.payment) {
-              case 'creditCard':
-                return '信用卡';
-              case 'line':
-                return 'Line Pay';
-              case 'cash':
-                return '現金';
-            }
-          })()} 』付款`;
-        } else {
-          const pay_total = orderData.pos_info.payment
-            .map((dd: any) => {
-              return dd.total;
-            })
-            .reduce((acc: any, val: any) => acc + val, 0);
-          let map_ = orderData.pos_info.payment.map((dd: any) => {
-            return `${(() => {
-              switch (dd.method) {
-                case 'creditCard':
-                  return '信用卡';
-                case 'line':
-                  return 'Line Pay';
-                case 'cash':
-                  return '現金';
-              }
-            })()}付款<span class="fw-500" style="color:#E85757;"> $${dd.total.toLocaleString()}</span>`;
-          });
-          if (pay_total < orderData.total) {
-            map_.push(
-              html` <div class="d-flex align-items-center">
-                <span class="fw-500 text-danger">付款金額不足</span>
-                <div class="mx-1"></div>
-                <span class="fw-500"> $${(orderData.total - pay_total).toLocaleString()}</span>
-                <div class="mx-1"></div>
-                ${BgWidget.customButton({
-                  button: {
-                    color: 'gray',
-                    size: 'sm',
-                  },
-                  text: {
-                    name: '前往結帳',
-                  },
-                  event: gvc.event(() => {
-                    PaymentPage.storeHistory(orderData);
-                    gvc.closeDialog();
-                    localStorage.setItem('show_pos_page', 'payment');
-                    gvc.glitter.share.reloadPosPage();
-                  }),
-                })}
-              </div>`
-            );
-          }
-          return map_.join('<div class="w-100"></div>');
-        }
-      })()}
-            `;
-    }
-    return gvc.bindView(() => {
-      return {
-        bind: gvc.glitter.getUUID(),
-        view: async () => {
-          return (
-            (await PaymentConfig.getSupportPayment()).find(dd => {
-              return dd.key === orderData.customer_info.payment_select;
-            })?.name || '線下付款'
-          );
-        },
-      };
-    });
-  }
-
-  public static getProofPurchaseString(orderData: any, gvc: GVC) {
-    if (orderData.method !== 'off_line' || orderData.customer_info.payment_select === 'cash_on_delivery') {
-      return '';
-    }
-    return html` <div class="tx_700">付款證明回傳</div>
-      <div class="border rounded-3 w-100 p-3 tx_normal">
-        ${(() => {
-          const array: string[] = [];
-
-          // 若使用貨到付款
-          if (orderData.customer_info.payment_select === 'cash_on_delivery') {
-            return '貨到付款';
-          }
-
-          // 若使用ATM付款
-          if (orderData.customer_info.payment_select === 'atm') {
-            ['pay-date', 'bank_name', 'bank_account', 'trasaction_code'].map((dd, index) => {
-              if (orderData.proof_purchase && orderData.proof_purchase[dd]) {
-                array.push(
-                  `${['交易時間', '銀行名稱', '銀行戶名', '銀行帳號後五碼'][index]} : ${orderData.proof_purchase[dd]}`
-                );
-              }
-            });
-          }
-
-          // 若使用line付款
-          if (orderData.customer_info.payment_select === 'line') {
-            ['image'].map(dd => {
-              if (orderData.proof_purchase && orderData.proof_purchase[dd]) {
-                array.push(
-                  BgWidget.imageDialog({
-                    gvc,
-                    image: orderData.proof_purchase[dd],
-                    width: 400,
-                    height: 250,
-                    read: () => {},
-                  })
-                );
-              }
-            });
-          }
-
-          if (!['atm', 'line'].includes(orderData.customer_info.payment_select)) {
-            if (orderData.proof_purchase === undefined || orderData.proof_purchase.paymentForm === undefined) {
-              return '尚未回傳付款證明';
-            }
-
-            // 其他付款方式
-            const paymentFormList = orderData.proof_purchase.paymentForm.list ?? [];
-            paymentFormList.map((item: any) => {
-              array.push(`${item.title} : ${orderData.proof_purchase[item.key]}`);
-            });
-          }
-
-          return array.join(BgWidget.mbContainer(8)) || '尚未回傳付款證明';
-        })()}
-      </div>`;
-  }
-
-  public static printStoreOrderInfo(obj: { gvc: GVC; cart_token: string; print: boolean; callback?: () => void }) {
-    const gvc = obj.gvc;
-    const glitter = gvc.glitter;
-    const dialog = new ShareDialog(gvc.glitter);
-    let shipment_date = gvc.glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd');
-    let shipment_time = gvc.glitter.ut.dateFormat(new Date(), 'hh:mm');
-
-    function next() {
-      dialog.dataLoading({ visible: true, text: '處理中...' });
-      ApiDelivery.getOrderInfo({
-        order_id: obj.cart_token,
-        shipment_date: obj.print ? undefined : new Date(`${shipment_date} ${shipment_time}:00`).toISOString(),
-      }).then(async res => {
-        gvc.notifyDataChange('orderDetailRefresh');
-        dialog.dataLoading({ visible: false });
-        if (!obj.print) {
-          obj.callback?.();
-          return;
-        }
-        if (res.result && res.response.data) {
-          const data = res.response.data;
-          if (data.result) {
-            if (data.link) {
-              if ((window.parent as any).glitter.share.PayConfig.posType === 'SUNMI') {
-                glitter.runJsInterFace(
-                  'print-web-view',
-                  {
-                    url: data.link,
-                  },
-                  () => {}
-                );
-              } else {
-                glitter.openNewTab(data.link);
-              }
-            } else if (data.id) {
-              const url = ApiDelivery.getFormURL(data.id);
-              if ((window.parent as any).glitter.share.PayConfig.posType === 'SUNMI') {
-                glitter.runJsInterFace(
-                  'print-web-view',
-                  {
-                    url: url,
-                  },
-                  () => {}
-                );
-              } else {
-                glitter.openNewTab(url);
-              }
-            } else {
-              dialog.errorMessage({ text: '列印失敗' });
-            }
-          } else {
-            dialog.errorMessage({ text: data.message ?? '發生錯誤' });
-          }
-        } else {
-          dialog.errorMessage({ text: '列印失敗' });
-        }
-      });
-    }
-
-    if (!obj.print) {
-      BgWidget.settingDialog({
-        gvc: gvc,
-        title: '設定出貨日期',
-        innerHTML: (gvc: GVC) => {
-          return [
-            BgWidget.editeInput({
-              gvc: gvc,
-              title: '出貨日期',
-              default: shipment_date,
-              callback: text => {
-                shipment_date = text;
-              },
-              type: 'date',
-              placeHolder: '請輸入出貨日期',
-            }),
-            BgWidget.editeInput({
-              gvc: gvc,
-              title: '出貨時間',
-              default: shipment_time,
-              callback: text => {
-                shipment_time = text;
-              },
-              type: 'time',
-              placeHolder: '請輸入出貨時間',
-            }),
-          ].join('');
-        },
-        footer_html: (gvc: GVC) => {
-          return [
-            BgWidget.cancel(
-              gvc.event(() => {
-                gvc.closeDialog();
-              }),
-              '取消'
-            ),
-            BgWidget.save(
-              gvc.event(() => {
-
-                gvc.closeDialog();
-                next();
-              }),
-              '儲存'
-            ),
-          ].join('');
-        },
-        width: 350,
-      });
-    } else {
-      next();
-    }
-
-    return;
   }
 }
 

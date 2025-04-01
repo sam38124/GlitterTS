@@ -1206,7 +1206,6 @@ export class User {
         WHERE (${whereClause})
         ORDER BY ${orderByClause} ${limitClause}
     `;
-    console.log(sql);
     return sql;
   }
 
@@ -1238,8 +1237,8 @@ export class User {
       query.page = query.page ?? 0;
       query.limit = query.limit ?? 50;
 
-      function sqlDateConvert(dd:string){
-        return dd.replace('T',' ').replace('.000Z','')
+      function sqlDateConvert(dd: string) {
+        return dd.replace('T', ' ').replace('.000Z', '');
       }
       if (query.groupType) {
         const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);

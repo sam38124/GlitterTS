@@ -685,16 +685,17 @@ class ApiPublic {
                     scheme: appName,
                     table: 't_products_sold_history',
                     sql: `(
-  \`id\` INT NOT NULL AUTO_INCREMENT,
-  \`product_id\` VARCHAR(45) NOT NULL,
-  \`order_id\` VARCHAR(45) NOT NULL,
-  \`spec\` VARCHAR(100) NOT NULL,
-  \`count\` FLOAT NOT NULL,
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`product_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`order_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`spec\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`count\` float NOT NULL,
   PRIMARY KEY (\`id\`),
-  INDEX \`index2\` (\`product_id\` ASC) VISIBLE,
-  INDEX \`index3\` (\`order_id\` ASC) VISIBLE,
-  INDEX \`index4\` (\`spec\` ASC) VISIBLE,
-  INDEX \`index5\` (\`count\` ASC) VISIBLE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'V1.1';`,
+  KEY \`index2\` (\`product_id\`),
+  KEY \`index3\` (\`order_id\`),
+  KEY \`index4\` (\`spec\`),
+  KEY \`index5\` (\`count\`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.1'`,
                 },
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {

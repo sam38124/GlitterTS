@@ -2286,7 +2286,7 @@ export class Shopping {
       }
       checkPoint('distribution code');
 
-      // 手動新增訂單的優惠卷設定
+      // 自動新增訂單的優惠卷設定
       if (type !== 'manual' && type !== 'manual-preview') {
         // 過濾加購品與贈品
         carData.lineItems = carData.lineItems.filter(dd => {
@@ -2642,13 +2642,6 @@ export class Shopping {
             );
             customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
           }
-          if (carData.rebate !== 0) {
-            await rebateClass.insertRebate(
-              customerData.userID,
-              carData.rebate,
-              `手動新增訂單 - 優惠券購物金：${tempVoucher.title}`
-            );
-          }
         }
 
         // 手動訂單新增
@@ -2657,16 +2650,10 @@ export class Shopping {
           status: data.pay_status as any,
           app: this.app,
         });
-        checkPoint('manual order done');
-        new ManagerNotify(this.app).checkout({
-          orderData: carData,
-          status: 0,
-        });
-        for (const email of new Set(
-          [carData.customer_info, carData.user_info].map(dd => {
-            return dd && dd.email;
-          })
-        )) {
+
+        new ManagerNotify(this.app).checkout({ orderData: carData, status: 0 });
+        const emailList = new Set([carData.customer_info, carData.user_info].map(dd => dd && dd.email));
+        for (const email of emailList) {
           if (email) {
             AutoSendEmail.customerOrder(
               this.app,
@@ -2677,6 +2664,8 @@ export class Shopping {
             );
           }
         }
+
+        checkPoint('manual order done');
         return {
           data: carData,
         };
@@ -3787,6 +3776,7 @@ export class Shopping {
         orderData: update.orderData,
         app_name: this.app,
       });
+
       // 若符合有效訂單設定，則發放類型為購物金的優惠券
       const orderCountingSQL = await new User(this.app).getCheckoutCountingModeSQL();
       const orderCount = await db.query(
@@ -3798,9 +3788,9 @@ export class Shopping {
         [origin.id]
       );
       if (orderCount[0]) {
-        console.log(`符合有效訂單設定，則發放類型為購物金的優惠券。`)
         await this.shareVoucherRebate(orderCount[0]);
       }
+
       return {
         result: 'success',
         orderData: data.orderData,
@@ -4631,6 +4621,7 @@ export class Shopping {
     const rebateClass = new Rebate(this.app);
     const userClass = new User(this.app);
     const userData = await userClass.getUserData(cartData.email, 'account');
+
     if (order_id && userData && cartData.orderData.rebate > 0) {
       for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
         const orderVoucher = cartData.orderData.voucherList[i];
@@ -4643,27 +4634,36 @@ export class Shopping {
           [orderVoucher.id]
         );
 
-        if (voucherRow[0]) {
-          const usedVoucher = await this. isUsedVoucher(userData.userID, orderVoucher.id, order_id);
-          console.log(`voucherRow.content.rebateEndDay:`,voucherRow[0].content.rebateEndDay);
+        if (orderVoucher.id === 0 || voucherRow[0]) {
+          const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
+          const voucherTitle = orderVoucher.id === 0 ? orderVoucher.title : voucherRow[0].content.title;
+
+          const rebateEndDay = (() => {
+            try {
+              return `${voucherRow[0].content.rebateEndDay}`;
+            } catch (error) {
+              return '0';
+            }
+          })();
 
           if (orderVoucher.rebate_total && !usedVoucher) {
-            const cf:any={
+            const cf: any = {
               voucher_id: orderVoucher.id,
               order_id: order_id,
+            };
+
+            if (parseInt(rebateEndDay, 10)) {
+              const date = new Date();
+              date.setDate(date.getDate() + parseInt(rebateEndDay, 10));
+              cf.deadTime = moment(date).format('YYYY-MM-DD HH:mm:ss');
             }
-            if(parseInt(voucherRow[0].content.rebateEndDay ?? '0',10)){
-              const date=new Date();
-              date.setDate(date.getDate() + parseInt(voucherRow[0].content.rebateEndDay,10));
-              cf.deadTime=moment(date).format('YYYY-MM-DD HH:mm:ss')
-            }
+
             await rebateClass.insertRebate(
               userData.userID,
               orderVoucher.rebate_total,
-              `優惠券購物金：${voucherRow[0].content.title}`,
+              `優惠券購物金：${voucherTitle}`,
               cf
             );
-
           }
         }
       }
