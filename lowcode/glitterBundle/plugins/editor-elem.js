@@ -974,7 +974,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 '|',
                 'formatOL',
                 'emoticons',
-                'html',
+                'html'
             ];
             return {
                 bind: id,
@@ -1043,6 +1043,25 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         catch (e) { }
                                         obj.callback(doc.documentElement.outerHTML);
                                     }
+                                    FroalaEditor.DefineIcon('altManager', {
+                                        "NAME": "commenting",
+                                        "FA5NAME": "comment-alt",
+                                        "SVG_KEY": "imageCaption"
+                                    });
+                                    FroalaEditor.RegisterCommand('altManager', {
+                                        title: 'alt設定',
+                                        icon: 'altManager',
+                                        undo: true,
+                                        focus: true,
+                                        showOnMobile: true,
+                                        refreshAfterCallback: true,
+                                        callback: function () {
+                                            console.log(this.html.get());
+                                        },
+                                        refresh: function () {
+                                            console.log(this.selection.element());
+                                        }
+                                    });
                                     editor = new FroalaEditor('#' + richID, {
                                         enter: FroalaEditor.ENTER_DIV,
                                         language: 'zh_tw',
@@ -1125,6 +1144,10 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 setTimeout(() => {
                                                     initEvent();
                                                 }, 200);
+                                            },
+                                            'mouseup': function () {
+                                                console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
+                                                editor.selection.save();
                                             },
                                         },
                                         key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',

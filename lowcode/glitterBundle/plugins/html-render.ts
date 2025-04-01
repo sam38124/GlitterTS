@@ -326,6 +326,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
                             });
                         },
+                        divCreate:{
+                            class:`customer-message`
+                        }
                     };
                 }));
             }

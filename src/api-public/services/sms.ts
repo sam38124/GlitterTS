@@ -108,7 +108,7 @@ export class SMS {
         await this.usePoints({
           message: obj.data,
           user_count: 1,
-          order_id: obj.order_id + '_' + (await Tool.randomNumber(4)),
+          order_id: (obj.order_id || (await Tool.randomNumber(10))) + '_' + (await Tool.randomNumber(5)),
           phone: obj.phone,
         });
         return new Promise<boolean>((resolve, reject) => {
@@ -362,6 +362,11 @@ export class SMS {
   //判斷餘額是否足夠
   public async checkPoints(message: string, user_count: number) {
     const brandAndMemberType = await App.checkBrandAndMemberType(this.app);
+    console.log('brandAndMemberType-app -- ', this.app);
+    console.log('message -- ', `SELECT sum(money)
+           FROM \`${brandAndMemberType.brand}\`.t_sms_points
+           WHERE status in (1, 2)
+             and userID = ${brandAndMemberType.user_id}`);
     // 判斷錢包是否有餘額
     const sum =
       (

@@ -8,6 +8,7 @@ import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { CheckInput } from '../../modules/checkInput.js';
+import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 
 const html = String.raw;
 const css = String.raw;
@@ -1396,9 +1397,13 @@ export class UMOrder {
                           case 'shipping':
                             return Language.text('shipped');
                           case 'finish':
-                            return Language.text('delivered');
-                          case 'arrived':
                             return Language.text('picked_up');
+                          case 'arrived':
+                            if(ShipmentConfig.supermarketList.includes(orderData.user_info.shipment)){
+                              return Language.text('delivered_stored');
+                            }else{
+                              return Language.text('delivered');
+                            }
                           case 'returns':
                             return Language.text('returned');
                           default:

@@ -169,14 +169,19 @@ export class BgProduct {
                                             },
                                         ],
                                     })}
-                                            <div
-                                              class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex gap-2 cursor_pointer"
-                                              style="text-wrap: auto;"
-                                              onclick="${gvc.event(() => call())}"
-                                            >
-                                              ${obj.show_product_type
+                                            <div class="d-flex flex-column">
+                                              <div
+                                                class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex gap-2 cursor_pointer"
+                                                style="text-wrap: auto;"
+                                                onclick="${gvc.event(() => call())}"
+                                              >
+                                                ${obj.show_product_type
                                         ? BgWidget.infoInsignia(ProductConfig.getName(opt.content))
                                         : ''}${opt.value}
+                                              </div>
+                                              ${opt.sub_title ? `
+                                              <div class="fw-500" style="color:grey;font-size:13px;">${opt.sub_title}</div>
+                                              ` : ``}
                                             </div>
                                           </div>
                                           ${(() => {
@@ -247,14 +252,33 @@ export class BgProduct {
                             filter_visible: obj.filter_visible,
                             status: 'inRange',
                         }).then(data => {
-                            vm.options = data.response.data.map((product) => {
+                            vm.options = [];
+                            data.response.data.map((product) => {
                                 var _a;
-                                return {
-                                    key: product.content.id,
-                                    value: product.content.title,
-                                    content: product.content,
-                                    image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
-                                };
+                                if (obj.with_variants) {
+                                    product.content.variants.map((dd) => {
+                                        var _a;
+                                        vm.options.push({
+                                            key: `${product.content.id}-${dd.spec.join('-')}`,
+                                            value: [(product.content.visible === 'false') ? BgWidget.warningInsignia('隱形商品') : ``, product.content.title].filter((dd) => {
+                                                return dd;
+                                            }).join(''),
+                                            content: product.content,
+                                            sub_title: dd.spec.join('-') ? `規格:${dd.spec.join('-')}` : ``,
+                                            image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
+                                        });
+                                    });
+                                }
+                                else {
+                                    vm.options.push({
+                                        key: product.content.id,
+                                        value: [(product.content.visible === 'false') ? BgWidget.warningInsignia('隱形商品') : ``, product.content.title].filter((dd) => {
+                                            return dd;
+                                        }).join(''),
+                                        content: product.content,
+                                        image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
+                                    });
+                                }
                             });
                             vm.loading = false;
                             gvc.notifyDataChange(vm.id);

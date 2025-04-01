@@ -689,12 +689,12 @@ class ApiPublic {
   \`product_id\` VARCHAR(45) NOT NULL,
   \`order_id\` VARCHAR(45) NOT NULL,
   \`spec\` VARCHAR(100) NOT NULL,
-  \`count\` INT NOT NULL,
+  \`count\` FLOAT NOT NULL,
   PRIMARY KEY (\`id\`),
   INDEX \`index2\` (\`product_id\` ASC) VISIBLE,
   INDEX \`index3\` (\`order_id\` ASC) VISIBLE,
   INDEX \`index4\` (\`spec\` ASC) VISIBLE,
-  INDEX \`index5\` (\`count\` ASC) VISIBLE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  INDEX \`index5\` (\`count\` ASC) VISIBLE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'V1.1';`,
                 },
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {

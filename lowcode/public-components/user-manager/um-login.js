@@ -656,13 +656,11 @@ export class UMLogin {
                                 const FB = window.FB;
                                 if (FB) {
                                     clearInterval(intervalId);
-                                    window.fbAsyncInit = () => {
-                                        FB.init({
-                                            appId: widget.share.fb.id,
-                                            xfbml: true,
-                                            version: 'v19.0',
-                                        });
-                                    };
+                                    FB.init({
+                                        appId: widget.share.fb.id,
+                                        xfbml: true,
+                                        version: 'v22.0'
+                                    });
                                     return;
                                 }
                                 const sdkId = 'facebook-jssdk';

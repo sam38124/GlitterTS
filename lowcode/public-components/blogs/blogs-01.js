@@ -10,9 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { UmClass } from '../user-manager/um-class.js';
 import { Language } from '../../glitter-base/global/language.js';
-import { ApiCart } from "../../glitter-base/route/api-cart.js";
-import { Article } from "../../glitter-base/route/article.js";
-import { GlobalUser } from "../../glitter-base/global/global-user.js";
+import { ApiCart } from '../../glitter-base/route/api-cart.js';
+import { Article } from '../../glitter-base/route/article.js';
+import { GlobalUser } from '../../glitter-base/global/global-user.js';
 export class Blogs01 {
     static main(gvc, subData) {
         if (subData.content.generator !== 'page_editor') {
@@ -25,11 +25,13 @@ ${(dd.language_data && dd.language_data[Language.getLanguage()].text) || dd.text
         }
         else {
             function startRender() {
-                if (subData.content.relative_data && ['shopping', 'hidden'].includes(subData.content.page_type) && localStorage.getItem('block-refresh-cart') !== 'true') {
+                if (subData.content.relative_data &&
+                    ['shopping', 'hidden'].includes(subData.content.page_type) &&
+                    localStorage.getItem('block-refresh-cart') !== 'true') {
                     const clock = gvc.glitter.ut.clock();
                     const interVal = setInterval(() => {
                         if (clock.stop() < 2000) {
-                            (new ApiCart(ApiCart.globalCart)).setCart((cart) => {
+                            new ApiCart(ApiCart.globalCart).setCart(cart => {
                                 subData.content.relative_data.map((dd) => {
                                     const line_item = cart.line_items.find((d1) => {
                                         return `${d1.id}-${d1.spec.join('-')}` === `${dd.product_id}-${dd.variant.spec.join('-')}`;
@@ -45,6 +47,11 @@ ${(dd.language_data && dd.language_data[Language.getLanguage()].text) || dd.text
                             });
                         }
                         else {
+                            gvc.notifyDataChange(['js-cart-count']);
+                            gvc.glitter.share.reloadCartData && gvc.glitter.share.reloadCartData();
+                            if (document.querySelector('.customer-message')) {
+                                document.querySelector('.customer-message').remove();
+                            }
                             clearInterval(interVal);
                         }
                     }, 300);
@@ -57,10 +64,8 @@ ${(dd.language_data && dd.language_data[Language.getLanguage()].text) || dd.text
                     style: `position:relative;`,
                     containerID: gvc.glitter.getUUID(),
                     tag: gvc.glitter.getUUID(),
-                    jsFinish: () => {
-                    },
-                    onCreate: () => {
-                    },
+                    jsFinish: () => { },
+                    onCreate: () => { },
                     document: document,
                 }, {});
             }
@@ -168,9 +173,14 @@ ${(dd.language_data && dd.language_data[Language.getLanguage()].text) || dd.text
                 Article.get({
                     limit: 15,
                     page: 0,
-                    tag: page.substring(page.indexOf('/') + 1, page.length)
-                }).then((res) => {
-                    resolve(Blogs01.main(gvc, res.response.data[0]));
+                    tag: page.substring(page.indexOf('/') + 1, page.length),
+                }).then(res => {
+                    if (!res.response.data[0]) {
+                        gvc.glitter.href = '/index';
+                    }
+                    else {
+                        resolve(Blogs01.main(gvc, res.response.data[0]));
+                    }
                 });
             });
         });

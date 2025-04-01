@@ -35,6 +35,7 @@ export class CheckoutIndex {
         let onlineData = {};
         let apiCart = (() => {
             if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
+                ApiCart.checkoutCart = ApiCart.globalCart;
                 return new ApiCart(ApiCart.globalCart);
             }
             else {
@@ -43,7 +44,7 @@ export class CheckoutIndex {
         })();
         const check_out_sub = JSON.parse((_a = localStorage.getItem('checkout_sub_' + ApiCart.checkoutCart)) !== null && _a !== void 0 ? _a : '{}');
         const ids = {
-            page: glitter.getUUID(),
+            page: 'checkout-index',
             cart: glitter.getUUID(),
             shipping: glitter.getUUID(),
         };
@@ -909,9 +910,14 @@ export class CheckoutIndex {
                                     let tempRebate = 0;
                                     const dialog = new ShareDialog(gvc.glitter);
                                     return html ` <div class="${gClass(['price-row', 'text-2'])}">
-                              <div>${Language.text('special_discount')} : ${vm.rebateConfig.title}</div>
+                              <div>${vm.rebateConfig.title}${Language.text('discount')}</div>
                               <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
                             </div>
+                          <div class="${gClass(['price-row', 'text-2'])}">
+                             <div>${vm.rebateConfig.title}${Language.text('reback_text')}</div>
+                            <div>+ ${vm.cartData.rebate.toLocaleString()}</div>
+                          </div>
+                          
 
                             <div class="${gClass(['price-row', 'text-2'])}">
                               <div
@@ -1057,7 +1063,10 @@ export class CheckoutIndex {
                             return {
                                 bind: ids.cart,
                                 view: () => {
-                                    const padding = (document.body.clientWidth - 1200) / 2;
+                                    let padding = ((document.body.clientWidth - 1200) / 2);
+                                    if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
+                                        padding = 0;
+                                    }
                                     const shipmentSupportSet = new Set(vm.cartData.shipment_support);
                                     const shipmentList = this.getShipmentMethod(vm.cartData).filter((dd) => shipmentSupportSet.has(dd.value));
                                     console.log(`cartData.shipment_selector=>`, vm.cartData.shipment_selector);
@@ -1078,7 +1087,7 @@ export class CheckoutIndex {
                                     return html `
                             <div
                               class="d-flex flex-column flex-md-row justify-content-between w-100"
-                              style="${document.body.clientWidth > 800
+                              style="${(document.body.clientWidth > 800) && gvc.glitter.getUrlParameter('page') === 'checkout'
                                         ? `height:calc(100vh - 150px);overflow-y:auto;`
                                         : `gap:20px;`} padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0
                                         ? padding
@@ -1089,7 +1098,7 @@ export class CheckoutIndex {
                                         ? `width:calc(66% - 10px);`
                                         : `width:calc(100%);`}"
                               >
-                                <div style="padding-top:20px;" class="${gClass('banner-text')} fs-4 mb-3 pt-3">
+                                <div style="padding-top:20px;" class="${gClass('banner-text')} fs-4 mb-3 pt-3 ${(gvc.glitter.getUrlParameter('page') === 'checkout') ? `` : `d-none`}">
                                   ${Language.text(ApiCart.checkoutCart === ApiCart.buyItNow ? 'buy_it_now' : 'your_shopping_cart')}
                                 </div>
                                 <div style="" class="rounded-3 bg-white w-100 ">
@@ -3141,9 +3150,14 @@ export class CheckoutIndex {
                 }),
                 divCreate: {
                     class: `check_out_cart_data text-start`,
-                    style: `background:#f0f0f0;`,
+                    style: gvc.glitter.getUrlParameter('page') === 'checkout' ? `background:#f0f0f0;` : `background:#f0f0f0;padding-top:10px;border-radius:10px;`,
                 },
                 onCreate: () => {
+                    if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
+                        setTimeout(() => {
+                            document.querySelector('footer').remove();
+                        }, 10);
+                    }
                     Ad.gtagEvent('view_cart', {
                         currency: 'TWD',
                         value: vm.cartData.total,
@@ -3171,7 +3185,11 @@ export class CheckoutIndex {
                     });
                 },
             };
-        })()) + `<div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 vw-100 vh-100"></div>`);
+        })()) + (gvc.glitter.getUrlParameter('page') === 'checkout' ? `
+      <div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 vw-100 vh-100"></div>
+      ` : `
+      <div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 w-100"></div>
+      `));
     }
     static checkFormData(gvc, cartData, widget) {
         var _a;

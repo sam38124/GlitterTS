@@ -411,7 +411,7 @@ export class PermissionSetting {
                                     placeHolder: '此信箱將會作為寄送邀請信之信箱',
                                     default: (_a = vm.data.email) !== null && _a !== void 0 ? _a : vm.data.config.verifyEmail,
                                     callback: text => {
-                                        vm.data.email = text;
+                                        vm.data.email = text.toLowerCase();
                                     },
                                     readonly: obj.type === 'replace',
                                 }),

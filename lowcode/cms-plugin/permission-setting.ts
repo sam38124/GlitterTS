@@ -528,7 +528,7 @@ export class PermissionSetting {
                         placeHolder: '此信箱將會作為寄送邀請信之信箱',
                         default: vm.data.email ?? vm.data.config.verifyEmail,
                         callback: text => {
-                          vm.data.email = text;
+                          vm.data.email = text.toLowerCase();
                         },
                         readonly: obj.type === 'replace',
                       }),
@@ -695,6 +695,7 @@ export class PermissionSetting {
                     }
 
                     dialog.dataLoading({ visible: true });
+                    
                     ApiUser.setPermission({
                       email: obj.type === 'add' ? vm.data.email : original.email,
                       config: {

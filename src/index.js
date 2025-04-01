@@ -352,12 +352,15 @@ async function createAPP(dd) {
                                             if (data.tag === 'index') {
                                                 return `https://${brandAndMemberType.domain}`;
                                             }
-                                            else {
+                                            else if (req.query.page === 'blogs') {
+                                                return `https://${brandAndMemberType.domain}/blogs`;
+                                            }
+                                            {
                                                 return `https://${brandAndMemberType.domain}/${data.tag}`;
                                             }
                                         })()}"
                           />
-                          ${data.tag !== req.query.page || req.query.page === 'index-mobile'
+                          ${((data.tag !== req.query.page || req.query.page === 'index-mobile') && req.query.page !== 'blogs')
                                             ? `<meta name="robots" content="noindex">`
                                             : `<meta name="robots" content="index, follow"/>`}
                           <meta name="keywords" content="${(d.keywords || '尚未設定關鍵字').replace(/"/g, '&quot;')}" />

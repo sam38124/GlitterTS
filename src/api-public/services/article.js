@@ -27,9 +27,10 @@ class Article {
         }
     }
     async putArticle(tData) {
+        var _a;
         try {
             tData.content.type = 'article';
-            await database_js_1.default.query(`update \`${this.app_name}\`.t_manager_post set content=? , updated_time=? ,status=? where id=? `, [JSON.stringify(tData.content), new Date(), tData.status || 1, tData.id]);
+            await database_js_1.default.query(`update \`${this.app_name}\`.t_manager_post set content=? , updated_time=? ,status=? where id=? `, [JSON.stringify(tData.content), new Date(), (_a = tData.status) !== null && _a !== void 0 ? _a : 1, tData.id]);
             return true;
         }
         catch (e) {

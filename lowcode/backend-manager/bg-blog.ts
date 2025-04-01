@@ -1801,26 +1801,35 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                                                             ${BgWidget.grayButton(
                                                                                                                     '搜尋商品',
                                                                                                                     gvc.event(() => {
-                                                                                                                        BgProduct.variantsSelector({
+                                                                                                                        BgProduct.productsDialog({
                                                                                                                             gvc: gvc,
-                                                                                                                            filter_variants: vm.data.content.relative_data.map((dd: any) => {
-                                                                                                                                return [dd.product_id].concat(dd.variant.spec).join('-');
+                                                                                                                            default: vm.data.content.relative_data.map((dd:any)=>{
+                                                                                                                                return `${dd.product_id}-${dd.variant.spec.join('-')}`
                                                                                                                             }),
-                                                                                                                            callback: async (value) => {
+                                                                                                                            with_variants:true,
+                                                                                                                            callback: async value => {
                                                                                                                                 vm.data.content.relative_data = vm.data.content.relative_data ?? [];
                                                                                                                                 vm.data.content.relative_data = vm.data.content.relative_data.concat(
-                                                                                                                                        value.map((dd: any) => {
-                                                                                                                                            return {
-                                                                                                                                                variant: dd.variant,
-                                                                                                                                                product_id: dd.product_id,
-                                                                                                                                            };
-                                                                                                                                        })
+                                                                                                                                  value.map((dd: any) => {
+                                                                                                                                      return {
+                                                                                                                                          variant: {
+                                                                                                                                              spec:dd.split('-').filter((dd:any,index:number)=>{
+                                                                                                                                                  return index>0
+                                                                                                                                              })
+                                                                                                                                          },
+                                                                                                                                          product_id: dd.split('-')[0],
+                                                                                                                                      };
+                                                                                                                                  })
                                                                                                                                 );
+
                                                                                                                                 subVM.loading = true;
                                                                                                                                 gvc.notifyDataChange(subVM.id);
                                                                                                                             },
-                                                                                                                            show_mode: 'all',
-                                                                                                                        });
+                                                                                                                        })
+                                                                                                                        /*
+                                                                                                                        * 
+                                                                                                                        * */
+                                                                                                                        
                                                                                                                     }),
                                                                                                                     {textStyle: 'font-weight: 400;'}
                                                                                                             )}

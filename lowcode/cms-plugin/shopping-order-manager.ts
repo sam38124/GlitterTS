@@ -2662,7 +2662,9 @@ export class ShoppingOrderManager {
                                           </div>
                                         </div>`;
                                       } else if (orderData.orderData.customer_info.payment_select === 'paynow') {
-                                        const cash_flow = orderData.orderData.cash_flow as PayNowCashFlow;
+                                        const cash_flow = ( orderData.orderData.cash_flow as PayNowCashFlow) || {
+                                          
+                                        };
 
                                         return html`
                                           <div

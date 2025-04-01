@@ -2754,15 +2754,6 @@ class Shopping {
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
          SET ?
          WHERE id = ?;`, [updateData, origin.id]);
-            const orderCountingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
-            const orderCount = await database_js_1.default.query(`SELECT *
-         FROM \`${this.app}\`.t_checkout
-         WHERE id = ?
-           AND ${orderCountingSQL};
-        `, [origin.id]);
-            if (orderCount[0]) {
-                await this.shareVoucherRebate(orderCount[0]);
-            }
             await Promise.all(origin.orderData.lineItems.map(async (lineItem) => {
                 var _a;
                 const shopping = new Shopping(this.app, this.token);
@@ -2785,6 +2776,16 @@ class Shopping {
                 orderData: update.orderData,
                 app_name: this.app,
             });
+            const orderCountingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
+            const orderCount = await database_js_1.default.query(`SELECT *
+         FROM \`${this.app}\`.t_checkout
+         WHERE id = ?
+           AND ${orderCountingSQL};
+        `, [origin.id]);
+            if (orderCount[0]) {
+                console.log(`符合有效訂單設定，則發放類型為購物金的優惠券。`);
+                await this.shareVoucherRebate(orderCount[0]);
+            }
             return {
                 result: 'success',
                 orderData: data.orderData,
@@ -3418,6 +3419,7 @@ class Shopping {
         }
     }
     async shareVoucherRebate(cartData) {
+        var _a;
         const order_id = cartData.cart_token;
         const rebateClass = new rebate_js_1.Rebate(this.app);
         const userClass = new user_js_1.User(this.app);
@@ -3431,11 +3433,18 @@ class Shopping {
              AND id = ?;`, [orderVoucher.id]);
                 if (voucherRow[0]) {
                     const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
+                    console.log(`voucherRow.content.rebateEndDay:`, voucherRow[0].content.rebateEndDay);
                     if (orderVoucher.rebate_total && !usedVoucher) {
-                        await rebateClass.insertRebate(userData.userID, orderVoucher.rebate_total, `優惠券購物金：${voucherRow[0].content.title}`, {
+                        const cf = {
                             voucher_id: orderVoucher.id,
                             order_id: order_id,
-                        });
+                        };
+                        if (parseInt((_a = voucherRow[0].content.rebateEndDay) !== null && _a !== void 0 ? _a : '0', 10)) {
+                            const date = new Date();
+                            date.setDate(date.getDate() + parseInt(voucherRow[0].content.rebateEndDay, 10));
+                            cf.deadTime = (0, moment_1.default)(date).format('YYYY-MM-DD HH:mm:ss');
+                        }
+                        await rebateClass.insertRebate(userData.userID, orderVoucher.rebate_total, `優惠券購物金：${voucherRow[0].content.title}`, cf);
                     }
                 }
             }

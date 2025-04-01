@@ -679,20 +679,17 @@ export class UMLogin {
                 created: () => {
                     ApiUser.getPublicConfig('login_fb_setting', 'manager').then((dd) => {
                         widget.share.fb = dd.response.value || {};
-
                         const loadFacebookSDK = () => {
                             const intervalId = setInterval(() => {
                                 // 檢查 SDK 是否已載入
                                 const FB = (window as any).FB;
                                 if (FB) {
                                     clearInterval(intervalId); // 清除間隔
-                                    (window as any).fbAsyncInit = () => {
-                                        FB.init({
-                                            appId: widget.share.fb.id,
-                                            xfbml: true,
-                                            version: 'v19.0',
-                                        });
-                                    };
+                                    FB.init({
+                                        appId: widget.share.fb.id,
+                                        xfbml      : true,
+                                        version    : 'v22.0'
+                                    });
                                     return;
                                 }
 

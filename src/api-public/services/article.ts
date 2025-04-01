@@ -28,7 +28,7 @@ export class Article {
     public async putArticle(tData:any){
         try {
             tData.content.type='article'
-            await db.query(`update \`${this.app_name}\`.t_manager_post set content=? , updated_time=? ,status=? where id=? `,[JSON.stringify(tData.content),new Date(),tData.status || 1,tData.id]);
+            await db.query(`update \`${this.app_name}\`.t_manager_post set content=? , updated_time=? ,status=? where id=? `,[JSON.stringify(tData.content),new Date(),tData.status ?? 1,tData.id]);
             return true;
 
         }catch (e:any) {

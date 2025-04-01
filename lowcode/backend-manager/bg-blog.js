@@ -1630,24 +1630,28 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                                                 </div>
                                                                                                             </div>
                                                                                                             ${BgWidget.grayButton('搜尋商品', gvc.event(() => {
-                                                                                BgProduct.variantsSelector({
+                                                                                BgProduct.productsDialog({
                                                                                     gvc: gvc,
-                                                                                    filter_variants: vm.data.content.relative_data.map((dd) => {
-                                                                                        return [dd.product_id].concat(dd.variant.spec).join('-');
+                                                                                    default: vm.data.content.relative_data.map((dd) => {
+                                                                                        return `${dd.product_id}-${dd.variant.spec.join('-')}`;
                                                                                     }),
+                                                                                    with_variants: true,
                                                                                     callback: (value) => __awaiter(this, void 0, void 0, function* () {
                                                                                         var _a;
                                                                                         vm.data.content.relative_data = (_a = vm.data.content.relative_data) !== null && _a !== void 0 ? _a : [];
                                                                                         vm.data.content.relative_data = vm.data.content.relative_data.concat(value.map((dd) => {
                                                                                             return {
-                                                                                                variant: dd.variant,
-                                                                                                product_id: dd.product_id,
+                                                                                                variant: {
+                                                                                                    spec: dd.split('-').filter((dd, index) => {
+                                                                                                        return index > 0;
+                                                                                                    })
+                                                                                                },
+                                                                                                product_id: dd.split('-')[0],
                                                                                             };
                                                                                         }));
                                                                                         subVM.loading = true;
                                                                                         gvc.notifyDataChange(subVM.id);
                                                                                     }),
-                                                                                    show_mode: 'all',
                                                                                 });
                                                                             }), { textStyle: 'font-weight: 400;' })}
                                                                                                         </div>

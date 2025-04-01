@@ -67,7 +67,7 @@ class SMS {
                 await this.usePoints({
                     message: obj.data,
                     user_count: 1,
-                    order_id: obj.order_id + '_' + (await tool_js_1.default.randomNumber(4)),
+                    order_id: (obj.order_id || (await tool_js_1.default.randomNumber(10))) + '_' + (await tool_js_1.default.randomNumber(5)),
                     phone: obj.phone,
                 });
                 return new Promise((resolve, reject) => {
@@ -258,6 +258,11 @@ class SMS {
     }
     async checkPoints(message, user_count) {
         const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(this.app);
+        console.log('brandAndMemberType-app -- ', this.app);
+        console.log('message -- ', `SELECT sum(money)
+           FROM \`${brandAndMemberType.brand}\`.t_sms_points
+           WHERE status in (1, 2)
+             and userID = ${brandAndMemberType.user_id}`);
         const sum = (await database_js_1.default.query(`SELECT sum(money)
            FROM \`${brandAndMemberType.brand}\`.t_sms_points
            WHERE status in (1, 2)

@@ -196,6 +196,19 @@ ADD INDEX \`index24\` (\`shipment_address\` ASC) VISIBLE;
         });
       },
     });
+
+
+
+    //t_products_sold_history 1.0->1.1 版本，將count轉換成float，
+    await UpdatedTableChecked.update({
+      app_name: app_name,
+      table_name: 't_products_sold_history',
+      last_version: ['V1.0',''],
+      new_version: 'V1.1',
+      event: `ALTER TABLE \`${app_name}\`.\`t_products_sold_history\`
+          CHANGE COLUMN \`count\` \`count\` FLOAT NOT NULL;`,
+    });
+
   }
 
   public static async update(obj: {

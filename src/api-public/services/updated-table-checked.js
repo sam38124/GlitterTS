@@ -179,6 +179,14 @@ ADD INDEX \`index24\` (\`shipment_address\` ASC) VISIBLE;
                 });
             },
         });
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_products_sold_history',
+            last_version: ['V1.0'],
+            new_version: 'V1.1',
+            event: `ALTER TABLE \`${app_name}\`.\`t_products_sold_history\`
+          CHANGE COLUMN \`count\` \`count\` FLOAT NOT NULL;`,
+        });
     }
     static async update(obj) {
         var _a;
