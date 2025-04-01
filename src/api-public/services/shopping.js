@@ -1635,11 +1635,9 @@ class Shopping {
             }
             checkPoint('distribution code');
             if (type !== 'manual' && type !== 'manual-preview') {
-                console.log('1-1', carData.lineItems.length);
                 carData.lineItems = carData.lineItems.filter(dd => {
                     return !add_on_items.includes(dd) && !gift_product.includes(dd);
                 });
-                console.log('1-2', carData.lineItems.length);
                 const c_carData = await this.checkVoucher(structuredClone(carData));
                 add_on_items.forEach(dd => {
                     var _a;
