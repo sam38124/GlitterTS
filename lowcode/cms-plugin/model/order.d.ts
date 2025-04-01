@@ -1,17 +1,3 @@
-// TypeScript 介面定義
-
-// 目錄:
-// 1. VoucherData
-// 2. ViewModel
-// 3. EcCashFlow
-// 4. PayNowCashFlow
-// 5. Order
-// 6. CartData
-// 7. OrderData
-
-// -------------------------
-// 1. VoucherData
-// -------------------------
 interface VoucherData {
   id: number;
   title: string;
@@ -49,7 +35,6 @@ interface VoucherData {
   targetList: string[];
 }
 
-// -------------------------
 // 2. ViewModel
 // -------------------------
 interface ViewModel {
@@ -74,7 +59,6 @@ interface ViewModel {
   headerConfig: string[];
 }
 
-// -------------------------
 // 3. EcCashFlow
 // -------------------------
 interface EcCashFlow {
@@ -87,7 +71,6 @@ interface EcCashFlow {
   credit_receipt: any;
 }
 
-// -------------------------
 // 4. PayNowCashFlow
 // -------------------------
 interface PayNowCashFlow {
@@ -99,7 +82,6 @@ interface PayNowCashFlow {
   };
 }
 
-// -------------------------
 // 5. Order
 // -------------------------
 interface Order {
@@ -115,7 +97,6 @@ interface Order {
   offset_records: any[];
 }
 
-// -------------------------
 // 6. CartData
 // -------------------------
 interface CartData {
@@ -127,7 +108,6 @@ interface CartData {
   created_time: string;
 }
 
-// -------------------------
 // 7. OrderData
 // -------------------------
 interface OrderData {
@@ -264,4 +244,10 @@ interface OrderData {
       status: 1;
     };
   };
+}
+
+interface OrderQuery {
+  isPOS?: boolean;
+  isArchived?: boolean;
+  isShipment?: boolean;
 }

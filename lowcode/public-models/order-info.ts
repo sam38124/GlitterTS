@@ -2,10 +2,8 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { GVC } from '../glitterBundle/GVController.js';
 import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 
-const html = String.raw;
-
 export class OrderInfo {
-  //對帳狀態
+  // 對帳狀態
   public static reconciliationStatus(dd: any, text_only: boolean = false) {
     const received_c = (dd.total_received ?? 0) + dd.offset_amount;
     const res_ = (() => {
@@ -30,7 +28,7 @@ export class OrderInfo {
     }
   }
 
-  //付款狀態
+  // 付款狀態
   public static paymentStatus(dd: any, text_only: boolean = false) {
     const res_ = (() => {
       switch (dd.status) {

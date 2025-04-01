@@ -302,4 +302,43 @@ export class OrderModule {
 
     return record;
   }
+
+  static newOrder(gvc: GVC) {
+    const glitter = gvc.glitter;
+    return {
+      id: glitter.getUUID(),
+      productArray: [],
+      productCheck: [],
+      productTemp: [],
+      orderProductArray: [],
+      orderString: '',
+      query: '',
+    };
+  }
+
+  static newVocuher(): VoucherData {
+    return {
+      id: 0,
+      discount_total: 0,
+      end_ISO_Date: '',
+      for: 'all',
+      forKey: [],
+      method: 'percent',
+      overlay: false,
+      reBackType: 'rebate',
+      rebate_total: 0,
+      rule: 'min_price',
+      ruleValue: 0,
+      startDate: '',
+      startTime: '',
+      start_ISO_Date: '',
+      status: 1,
+      target: '',
+      targetList: [],
+      title: '',
+      trigger: 'auto',
+      type: 'voucher',
+      value: 0,
+    };
+  }
 }

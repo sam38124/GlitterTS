@@ -442,7 +442,6 @@ export class ApiShop {
     static orderListFilterString(obj) {
         if (!obj)
             return [];
-        console.log(`obj===>`, obj);
         let list = [];
         if (obj) {
             if (obj.created_time &&

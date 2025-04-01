@@ -3,10 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FacebookService = void 0;
-exports.getFacebookPages = getFacebookPages;
-exports.getFacebookPagePicture = getFacebookPagePicture;
-exports.getFacebookPageLiveVideo = getFacebookPageLiveVideo;
+exports.getFacebookPageLiveVideo = exports.getFacebookPagePicture = exports.getFacebookPages = exports.FacebookService = void 0;
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const process_1 = __importDefault(require("process"));
 const private_config_js_1 = require("../../services/private_config.js");
@@ -151,6 +148,7 @@ async function getFacebookPages(accessToken) {
         throw error;
     }
 }
+exports.getFacebookPages = getFacebookPages;
 async function getFacebookPagePicture(id) {
     const url = `https://graph.facebook.com/v22.0/${id}/picture`;
     try {
@@ -165,6 +163,7 @@ async function getFacebookPagePicture(id) {
         throw error;
     }
 }
+exports.getFacebookPagePicture = getFacebookPagePicture;
 async function getFacebookPageLiveVideo(id, accessToken) {
     const url = `https://graph.facebook.com/v22.0/${id}/live_videos?fields=id,status,broadcast_start_time,title&access_token=${accessToken}&broadcast_status=["LIVE"]`;
     try {
@@ -180,4 +179,5 @@ async function getFacebookPageLiveVideo(id, accessToken) {
         throw error;
     }
 }
+exports.getFacebookPageLiveVideo = getFacebookPageLiveVideo;
 //# sourceMappingURL=fb-service.js.map

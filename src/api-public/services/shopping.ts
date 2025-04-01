@@ -4615,7 +4615,6 @@ export class Shopping {
     }
   }
 
-  //發放購物金區塊
   async shareVoucherRebate(cartData: any) {
     const order_id = cartData.cart_token;
     const rebateClass = new Rebate(this.app);
@@ -4627,10 +4626,8 @@ export class Shopping {
         const orderVoucher = cartData.orderData.voucherList[i];
 
         const voucherRow = await db.query(
-          `SELECT *
-           FROM \`${this.app}\`.t_manager_post
-           WHERE JSON_EXTRACT(content, '$.type') = 'voucher'
-             AND id = ?;`,
+          `SELECT * FROM \`${this.app}\`.t_manager_post
+           WHERE JSON_EXTRACT(content, '$.type') = 'voucher' AND id = ?;`,
           [orderVoucher.id]
         );
 

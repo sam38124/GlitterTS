@@ -3418,10 +3418,8 @@ class Shopping {
         if (order_id && userData && cartData.orderData.rebate > 0) {
             for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
                 const orderVoucher = cartData.orderData.voucherList[i];
-                const voucherRow = await database_js_1.default.query(`SELECT *
-           FROM \`${this.app}\`.t_manager_post
-           WHERE JSON_EXTRACT(content, '$.type') = 'voucher'
-             AND id = ?;`, [orderVoucher.id]);
+                const voucherRow = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_manager_post
+           WHERE JSON_EXTRACT(content, '$.type') = 'voucher' AND id = ?;`, [orderVoucher.id]);
                 if (orderVoucher.id === 0 || voucherRow[0]) {
                     const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
                     const voucherTitle = orderVoucher.id === 0 ? orderVoucher.title : voucherRow[0].content.title;
