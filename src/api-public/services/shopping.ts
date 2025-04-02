@@ -708,9 +708,11 @@ export class Shopping {
                           return dd.spec === variant.spec.join('-') && `${dd.product_id}` === `${content.id}`;
                         })
                         .map((dd: any) => {
-                          return parseInt(dd.count, 10);
+                          return dd.count;
                         })
-                        .reduce((a: number, b: number) => a + b, 0) || 0;
+                        .reduce((a: number, b: number) => {
+                          return Tool.floatAdd(a, b);
+                        }, 0) || 0;
                     variant.preview_image = variant.preview_image ?? '';
                     if (!variant.preview_image.includes('https://')) {
                       variant.preview_image = undefined;
@@ -1141,11 +1143,7 @@ export class Shopping {
       };
     } else {
       const total = await db
-        .query(
-          `SELECT COUNT(*) as count
-           FROM \`${this.app}\`.t_manager_post ${whereClause}`,
-          []
-        )
+        .query(`SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}`, [])
         .then((res: any) => res[0]?.count || 0);
 
       return {
@@ -2045,7 +2043,6 @@ export class Shopping {
 
                         if (variantData) {
                           item.sale_price = variantData.live_model.live_price;
-
                           carData.total += item.sale_price * item.count;
                         }
                       }
@@ -5547,24 +5544,30 @@ export class Shopping {
                 product.preview_image = og_data['content'].preview_image || [];
                 productArray[index] = product;
               } else {
-                console.log(`Product-not-in ==>`, product);
+                console.error('Product id not exist:', product);
               }
             } else {
-              console.log(`No-exist-product-id ==>`, product);
+              console.error('Product has not id:', product);
             }
             resolve(true);
           });
         })
       );
 
-      let max_id =
-        ((
-          await db.query(
-            `select max(id)
-             from \`${this.app}\`.t_manager_post`,
-            []
-          )
-        )[0]['max(id)'] || 0) + 1;
+      async function getNextId(app: string): Promise<number> {
+        const query = `SELECT MAX(id) AS max_id FROM \`${app}\`.t_manager_post`;
+
+        try {
+          const result = await db.query(query, []);
+          const maxId = result?.[0]?.max_id ?? 0; // 安全取得 max_id，若不存在則預設為 0
+          return maxId + 1;
+        } catch (error) {
+          console.error('取得最大 ID 時發生錯誤:', error);
+          return 1; // 若發生錯誤，回傳預設 ID = 1
+        }
+      }
+
+      let max_id = await getNextId(this.app);
 
       productArray.map((product: any) => {
         if (!product.id) {

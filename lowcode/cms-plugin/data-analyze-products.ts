@@ -2,6 +2,7 @@ import { GVC } from '../glitterBundle/GVController.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { DataAnalyzeModuleCart, GlobalStyle } from './data-analyze-module.js';
+import { Tool } from '../modules/tool.js';
 
 const html = String.raw;
 
@@ -135,7 +136,7 @@ export class DataAnalyze {
                                     },
                                     {
                                       key: '銷量',
-                                      value: dd.count,
+                                      value: Tool.floatAdd(dd.count, 0),
                                     },
                                   ];
                                 });

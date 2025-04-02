@@ -114,6 +114,18 @@ const formatDateTime = (dateTimeStr, includeSeconds = false) => {
         ? `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
         : `${year}-${month}-${day} ${hours}:${minutes}`;
 };
+function floatAdd(a, b) {
+    if (typeof a !== 'number' || typeof b !== 'number') {
+        return NaN;
+    }
+    if (a % 1 !== 0 || b % 1 !== 0) {
+        const multiplier = Math.pow(10, 10);
+        return (Math.round(a * multiplier) + Math.round(b * multiplier)) / multiplier;
+    }
+    else {
+        return a + b;
+    }
+}
 exports.default = {
     isNull,
     replaceDatetime,
@@ -126,5 +138,6 @@ exports.default = {
     randomNumber,
     getCurrentDateTime,
     formatDateTime,
+    floatAdd,
 };
 //# sourceMappingURL=tool.js.map

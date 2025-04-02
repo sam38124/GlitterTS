@@ -826,7 +826,7 @@ export class ProductExcel {
                             };
                             return formDataMap[vm.select] || baseFormData;
                         })();
-                        if (['course', 'commodity'].includes(vm.support)) {
+                        if (['course', 'commodity', 'weighing'].includes(vm.support)) {
                             this.exportCommodity(gvc, getFormData);
                         }
                         else if (vm.support === 'kitchen') {

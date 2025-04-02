@@ -204,6 +204,7 @@ class DataAnalyze {
                 (_a = orderData.lineItems) === null || _a === void 0 ? void 0 : _a.forEach((item) => {
                     const existing = productMap.get(item.title);
                     const collections = new Set(item.collection.filter((c) => c.trim().length > 0));
+                    item.count = tool_js_1.default.floatAdd(item.count, 0);
                     if (existing) {
                         existing.count += item.count;
                         existing.sale_price += item.sale_price * item.count;

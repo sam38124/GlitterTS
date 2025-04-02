@@ -2,6 +2,7 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { StockStores } from './stock-stores.js';
+import { Tool } from '../modules/tool.js';
 const html = String.raw;
 const css = String.raw;
 const globalStyle = {
@@ -48,21 +49,26 @@ export const GlobalStyle = globalStyle;
 class GlobalStruct {
     static cardStructure(text, className, color, unit, append) {
         return html ` <div class="bg-white rounded-3" style="padding:20px;">
-            <div class="d-flex align-items-center justify-content-center w-100 mb-3">
-                <h4 class="header-title">${text}</h4>
-                <div class="flex-fill"></div>
-                ${unit ? BgWidget.grayNote(unit) : ''}
-            </div>
-            <div dir="ltr" class="mx-n2">
-                <div id="line-chart-zoomable" class="${className}" data-colors="${color}" style="min-height:${globalStyle.chart_width}px;">
-                    <div class="d-flex align-items-center w-100 flex-column ${className}-loading" style="gap:10px;">
-                        <div class="spinner-border"></div>
-                        載入中...
-                    </div>
-                </div>
-            </div>
-            ${append || ''}
-        </div>`;
+      <div class="d-flex align-items-center justify-content-center w-100 mb-3">
+        <h4 class="header-title">${text}</h4>
+        <div class="flex-fill"></div>
+        ${unit ? BgWidget.grayNote(unit) : ''}
+      </div>
+      <div dir="ltr" class="mx-n2">
+        <div
+          id="line-chart-zoomable"
+          class="${className}"
+          data-colors="${color}"
+          style="min-height:${globalStyle.chart_width}px;"
+        >
+          <div class="d-flex align-items-center w-100 flex-column ${className}-loading" style="gap:10px;">
+            <div class="spinner-border"></div>
+            載入中...
+          </div>
+        </div>
+      </div>
+      ${append || ''}
+    </div>`;
     }
     static getPastDays(numDays, with_date = true, startDate) {
         const days = [];
@@ -125,8 +131,8 @@ export class DataAnalyzeModule {
                 bind: vm.id,
                 view: () => {
                     return GlobalStruct.cardStructure(html `<div class="d-flex flex-column">
-                            <div style="${globalStyle.header_title}">總銷售額</div>
-                            ${gvc.bindView(() => {
+              <div style="${globalStyle.header_title}">總銷售額</div>
+              ${gvc.bindView(() => {
                         return {
                             bind: vm.sum_id,
                             view: () => {
@@ -146,29 +152,29 @@ export class DataAnalyzeModule {
                             },
                         };
                     })}
-                        </div>`, vm.id, '#fa6767,#FFAC46', html `
-                            <div class="${!option.switch ? `d-none` : `d-flex`} align-items-center" style="gap:5px;">
-                                <div
-                                    style="${vm.select === 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
-                                    onclick="${gvc.event(() => {
+            </div>`, vm.id, '#fa6767,#FFAC46', html `
+              <div class="${!option.switch ? `d-none` : `d-flex`} align-items-center" style="gap:5px;">
+                <div
+                  style="${vm.select === 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                  onclick="${gvc.event(() => {
                         vm.select = 'week';
                         gvc.notifyDataChange(vm.id);
                     })}"
-                                >
-                                    一週
-                                </div>
-                                /
-                                <div
-                                    style="${vm.select !== 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
-                                    onclick="${gvc.event(() => {
+                >
+                  一週
+                </div>
+                /
+                <div
+                  style="${vm.select !== 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                  onclick="${gvc.event(() => {
                         vm.select = 'year';
                         gvc.notifyDataChange(vm.id);
                     })}"
-                                >
-                                    一月
-                                </div>
-                            </div>
-                        `, gvc.bindView(() => {
+                >
+                  一月
+                </div>
+              </div>
+            `, gvc.bindView(() => {
                         return {
                             bind: vm.list_id,
                             view: () => {
@@ -177,13 +183,13 @@ export class DataAnalyzeModule {
                                 }
                                 return [
                                     html `<div class="d-flex flex-column">
-                                            <div style="${globalStyle.sub_14}">官網銷售總額</div>
-                                            <div style="${globalStyle.sub_title}">$${vm.sum_web.toLocaleString()}</div>
-                                        </div>`,
+                      <div style="${globalStyle.sub_14}">官網銷售總額</div>
+                      <div style="${globalStyle.sub_title}">$${vm.sum_web.toLocaleString()}</div>
+                    </div>`,
                                     html `<div class="d-flex flex-column">
-                                            <div style="${globalStyle.sub_14}">門市銷售總額</div>
-                                            <div style="${globalStyle.sub_title}">$${vm.sum_pos.toLocaleString()}</div>
-                                        </div>`,
+                      <div style="${globalStyle.sub_14}">門市銷售總額</div>
+                      <div style="${globalStyle.sub_title}">$${vm.sum_pos.toLocaleString()}</div>
+                    </div>`,
                                 ].join(`<div class="w-100 border-top my-2"></div>`);
                             },
                             divCreate: {},
@@ -201,7 +207,7 @@ export class DataAnalyzeModule {
                     };
                     switch (vm.select) {
                         case 'custom':
-                            ApiShop.ecDataAnalyze(['sales_per_month_custom'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['sales_per_month_custom'], queryJsonString()).then(res => {
                                 const startDateObj = new Date(vm.startDate);
                                 const endDateObj = new Date(vm.endDate);
                                 const diffDays = diffDates(startDateObj, endDateObj);
@@ -291,7 +297,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case 'week':
-                            ApiShop.ecDataAnalyze(['sales_per_month_2_week'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['sales_per_month_2_week'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a, _b, _c, _d;
                                     if (window.ApexCharts) {
@@ -301,7 +307,9 @@ export class DataAnalyzeModule {
                                         const array = ((_a = res.response.sales_per_month_2_week.countArray) !== null && _a !== void 0 ? _a : []).slice(0, 7).reverse();
                                         const array_pos = ((_b = res.response.sales_per_month_2_week.countArrayPos) !== null && _b !== void 0 ? _b : []).slice(0, 7).reverse();
                                         const array_web = ((_c = res.response.sales_per_month_2_week.countArrayWeb) !== null && _c !== void 0 ? _c : []).slice(0, 7).reverse();
-                                        const array_store = ((_d = res.response.sales_per_month_2_week.countArrayStore) !== null && _d !== void 0 ? _d : []).slice(0, 7).reverse();
+                                        const array_store = ((_d = res.response.sales_per_month_2_week.countArrayStore) !== null && _d !== void 0 ? _d : [])
+                                            .slice(0, 7)
+                                            .reverse();
                                         vm.sum = array.reduce((acc, val) => acc + val, 0);
                                         vm.sum_pos = array_pos.reduce((acc, val) => acc + val, 0);
                                         vm.sum_web = array_web.reduce((acc, val) => acc + val, 0);
@@ -373,7 +381,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case 'year':
-                            ApiShop.ecDataAnalyze(['sales_per_month_1_year'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['sales_per_month_1_year'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a, _b, _c, _d;
                                     if (window.ApexCharts) {
@@ -383,7 +391,9 @@ export class DataAnalyzeModule {
                                         const array = ((_a = res.response.sales_per_month_1_year.countArray) !== null && _a !== void 0 ? _a : []).slice(0, 12).reverse();
                                         const array_pos = ((_b = res.response.sales_per_month_1_year.countArrayPos) !== null && _b !== void 0 ? _b : []).slice(0, 12).reverse();
                                         const array_web = ((_c = res.response.sales_per_month_1_year.countArrayWeb) !== null && _c !== void 0 ? _c : []).slice(0, 12).reverse();
-                                        const array_store = ((_d = res.response.sales_per_month_1_year.countArrayStore) !== null && _d !== void 0 ? _d : []).slice(0, 12).reverse();
+                                        const array_store = ((_d = res.response.sales_per_month_1_year.countArrayStore) !== null && _d !== void 0 ? _d : [])
+                                            .slice(0, 12)
+                                            .reverse();
                                         vm.sum = array.reduce((acc, val) => acc + val, 0);
                                         vm.sum_pos = array_pos.reduce((acc, val) => acc + val, 0);
                                         vm.sum_web = array_web.reduce((acc, val) => acc + val, 0);
@@ -455,7 +465,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case '1m':
-                            ApiShop.ecDataAnalyze(['sales_per_month_1_month'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['sales_per_month_1_month'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a, _b, _c, _d;
                                     if (window.ApexCharts) {
@@ -580,8 +590,8 @@ export class DataAnalyzeModule {
                 bind: vm.id,
                 view: () => {
                     return GlobalStruct.cardStructure(html `<div class="d-flex flex-column">
-                            <div style="${globalStyle.header_title}">平均訂單金額</div>
-                            ${gvc.bindView(() => {
+              <div style="${globalStyle.header_title}">平均訂單金額</div>
+              ${gvc.bindView(() => {
                         return {
                             bind: vm.sum_id,
                             view: () => {
@@ -601,29 +611,29 @@ export class DataAnalyzeModule {
                             },
                         };
                     })}
-                        </div>`, vm.id, '#fa6767,#FFAC46', html `
-                            <div class="${!option.switch ? `d-none` : `d-flex`} align-items-center" style="gap:5px;">
-                                <div
-                                    style="${vm.select === 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
-                                    onclick="${gvc.event(() => {
+            </div>`, vm.id, '#fa6767,#FFAC46', html `
+              <div class="${!option.switch ? `d-none` : `d-flex`} align-items-center" style="gap:5px;">
+                <div
+                  style="${vm.select === 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                  onclick="${gvc.event(() => {
                         vm.select = 'week';
                         gvc.notifyDataChange(vm.id);
                     })}"
-                                >
-                                    一週
-                                </div>
-                                /
-                                <div
-                                    style="${vm.select !== 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
-                                    onclick="${gvc.event(() => {
+                >
+                  一週
+                </div>
+                /
+                <div
+                  style="${vm.select !== 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                  onclick="${gvc.event(() => {
                         vm.select = 'year';
                         gvc.notifyDataChange(vm.id);
                     })}"
-                                >
-                                    一月
-                                </div>
-                            </div>
-                        `, gvc.bindView(() => {
+                >
+                  一月
+                </div>
+              </div>
+            `, gvc.bindView(() => {
                         return {
                             bind: vm.list_id,
                             view: () => {
@@ -632,13 +642,13 @@ export class DataAnalyzeModule {
                                 }
                                 return [
                                     html `<div class="d-flex flex-column">
-                                            <div style="${globalStyle.sub_14}">官網平均訂單金額</div>
-                                            <div style="${globalStyle.sub_title}">$${vm.sum_web.toLocaleString()}</div>
-                                        </div>`,
+                      <div style="${globalStyle.sub_14}">官網平均訂單金額</div>
+                      <div style="${globalStyle.sub_title}">$${vm.sum_web.toLocaleString()}</div>
+                    </div>`,
                                     html `<div class="d-flex flex-column">
-                                            <div style="${globalStyle.sub_14}">門市平均訂單金額</div>
-                                            <div style="${globalStyle.sub_title}">$${vm.sum_pos.toLocaleString()}</div>
-                                        </div>`,
+                      <div style="${globalStyle.sub_14}">門市平均訂單金額</div>
+                      <div style="${globalStyle.sub_title}">$${vm.sum_pos.toLocaleString()}</div>
+                    </div>`,
                                 ].join(`<div class="w-100 border-top my-2"></div>`);
                             },
                             divCreate: {},
@@ -656,7 +666,7 @@ export class DataAnalyzeModule {
                     };
                     switch (vm.select) {
                         case 'custom':
-                            ApiShop.ecDataAnalyze(['order_avg_sale_price_custom'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['order_avg_sale_price_custom'], queryJsonString()).then(res => {
                                 const startDateObj = new Date(vm.startDate);
                                 const endDateObj = new Date(vm.endDate);
                                 const diffDays = diffDates(startDateObj, endDateObj);
@@ -756,7 +766,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case 'week':
-                            ApiShop.ecDataAnalyze(['order_avg_sale_price'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['order_avg_sale_price'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a, _b, _c, _d;
                                     if (window.ApexCharts) {
@@ -848,7 +858,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case 'year':
-                            ApiShop.ecDataAnalyze(['order_avg_sale_price_year'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['order_avg_sale_price_year'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a, _b, _c, _d;
                                     if (window.ApexCharts) {
@@ -856,9 +866,15 @@ export class DataAnalyzeModule {
                                         const dataColors = $(class_name).data('colors');
                                         dataColors && (colors = dataColors.split(','));
                                         const array = ((_a = res.response.order_avg_sale_price_year.countArray) !== null && _a !== void 0 ? _a : []).slice(0, 12).reverse();
-                                        const array_pos = ((_b = res.response.order_avg_sale_price_year.countArrayPos) !== null && _b !== void 0 ? _b : []).slice(0, 12).reverse();
-                                        const array_web = ((_c = res.response.order_avg_sale_price_year.countArrayWeb) !== null && _c !== void 0 ? _c : []).slice(0, 12).reverse();
-                                        const array_store = ((_d = res.response.order_avg_sale_price_year.countArrayStore) !== null && _d !== void 0 ? _d : []).slice(0, 12).reverse();
+                                        const array_pos = ((_b = res.response.order_avg_sale_price_year.countArrayPos) !== null && _b !== void 0 ? _b : [])
+                                            .slice(0, 12)
+                                            .reverse();
+                                        const array_web = ((_c = res.response.order_avg_sale_price_year.countArrayWeb) !== null && _c !== void 0 ? _c : [])
+                                            .slice(0, 12)
+                                            .reverse();
+                                        const array_store = ((_d = res.response.order_avg_sale_price_year.countArrayStore) !== null && _d !== void 0 ? _d : [])
+                                            .slice(0, 12)
+                                            .reverse();
                                         vm.sum = Math.floor(array.reduce((acc, val) => acc + val, 0) / 12);
                                         vm.sum_pos = Math.floor(array_pos.reduce((acc, val) => acc + val, 0) / 12);
                                         vm.sum_web = Math.floor(array_web.reduce((acc, val) => acc + val, 0) / 12);
@@ -940,7 +956,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case '1m':
-                            ApiShop.ecDataAnalyze(['order_avg_sale_price_month'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['order_avg_sale_price_month'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a, _b, _c, _d;
                                     if (window.ApexCharts) {
@@ -1070,8 +1086,8 @@ export class DataAnalyzeModule {
                 bind: vm.id,
                 view: () => {
                     return GlobalStruct.cardStructure(html `<div class="d-flex flex-column">
-                            <div style="${globalStyle.header_title}">總訂單量</div>
-                            ${gvc.bindView(() => {
+              <div style="${globalStyle.header_title}">總訂單量</div>
+              ${gvc.bindView(() => {
                         return {
                             bind: vm.sum_id,
                             view: () => {
@@ -1091,29 +1107,29 @@ export class DataAnalyzeModule {
                             },
                         };
                     })}
-                        </div>`, vm.id, '#fa6767,#FFAC46', html `
-                            <div class="d-flex align-items-center ${!option.switch ? `d-none` : `d-flex`}" style="gap:5px;">
-                                <div
-                                    style="${vm.select === 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
-                                    onclick="${gvc.event(() => {
+            </div>`, vm.id, '#fa6767,#FFAC46', html `
+              <div class="d-flex align-items-center ${!option.switch ? `d-none` : `d-flex`}" style="gap:5px;">
+                <div
+                  style="${vm.select === 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                  onclick="${gvc.event(() => {
                         vm.select = 'week';
                         gvc.notifyDataChange(vm.id);
                     })}"
-                                >
-                                    一週
-                                </div>
-                                /
-                                <div
-                                    style="${vm.select !== 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
-                                    onclick="${gvc.event(() => {
+                >
+                  一週
+                </div>
+                /
+                <div
+                  style="${vm.select !== 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                  onclick="${gvc.event(() => {
                         vm.select = 'year';
                         gvc.notifyDataChange(vm.id);
                     })}"
-                                >
-                                    一月
-                                </div>
-                            </div>
-                        `, gvc.bindView(() => {
+                >
+                  一月
+                </div>
+              </div>
+            `, gvc.bindView(() => {
                         return {
                             bind: vm.list_id,
                             view: () => {
@@ -1122,13 +1138,13 @@ export class DataAnalyzeModule {
                                 }
                                 return [
                                     html `<div class="d-flex flex-column">
-                                            <div style="${globalStyle.sub_14}">官網總訂單量</div>
-                                            <div style="${globalStyle.sub_title}">${vm.sum_web.toLocaleString()}</div>
-                                        </div>`,
+                      <div style="${globalStyle.sub_14}">官網總訂單量</div>
+                      <div style="${globalStyle.sub_title}">${vm.sum_web.toLocaleString()}</div>
+                    </div>`,
                                     html `<div class="d-flex flex-column">
-                                            <div style="${globalStyle.sub_14}">門市總訂單量</div>
-                                            <div style="${globalStyle.sub_title}">${vm.sum_pos.toLocaleString()}</div>
-                                        </div>`,
+                      <div style="${globalStyle.sub_14}">門市總訂單量</div>
+                      <div style="${globalStyle.sub_title}">${vm.sum_pos.toLocaleString()}</div>
+                    </div>`,
                                 ].join(`<div class="w-100 border-top my-2"></div>`);
                             },
                             divCreate: {},
@@ -1146,7 +1162,7 @@ export class DataAnalyzeModule {
                     };
                     switch (vm.select) {
                         case 'week':
-                            ApiShop.ecDataAnalyze(['orders_per_month_2_week'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['orders_per_month_2_week'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a, _b, _c, _d;
                                     if (window.ApexCharts) {
@@ -1156,7 +1172,9 @@ export class DataAnalyzeModule {
                                         const array = ((_a = res.response.orders_per_month_2_week.countArray) !== null && _a !== void 0 ? _a : []).slice(0, 7).reverse();
                                         const array_pos = ((_b = res.response.orders_per_month_2_week.countArrayPos) !== null && _b !== void 0 ? _b : []).slice(0, 7).reverse();
                                         const array_web = ((_c = res.response.orders_per_month_2_week.countArrayWeb) !== null && _c !== void 0 ? _c : []).slice(0, 7).reverse();
-                                        const array_store = ((_d = res.response.orders_per_month_2_week.countArrayStore) !== null && _d !== void 0 ? _d : []).slice(0, 7).reverse();
+                                        const array_store = ((_d = res.response.orders_per_month_2_week.countArrayStore) !== null && _d !== void 0 ? _d : [])
+                                            .slice(0, 7)
+                                            .reverse();
                                         vm.sum = array.reduce((acc, val) => acc + val, 0);
                                         vm.sum_pos = array_pos.reduce((acc, val) => acc + val, 0);
                                         vm.sum_web = array_web.reduce((acc, val) => acc + val, 0);
@@ -1228,7 +1246,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case 'year':
-                            ApiShop.ecDataAnalyze(['orders_per_month_1_year'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['orders_per_month_1_year'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a, _b, _c, _d;
                                     if (window.ApexCharts) {
@@ -1238,7 +1256,9 @@ export class DataAnalyzeModule {
                                         const array = ((_a = res.response.orders_per_month_1_year.countArray) !== null && _a !== void 0 ? _a : []).slice(0, 12).reverse();
                                         const array_pos = ((_b = res.response.orders_per_month_1_year.countArrayPos) !== null && _b !== void 0 ? _b : []).slice(0, 12).reverse();
                                         const array_web = ((_c = res.response.orders_per_month_1_year.countArrayWeb) !== null && _c !== void 0 ? _c : []).slice(0, 12).reverse();
-                                        const array_store = ((_d = res.response.orders_per_month_1_year.countArrayStore) !== null && _d !== void 0 ? _d : []).slice(0, 12).reverse();
+                                        const array_store = ((_d = res.response.orders_per_month_1_year.countArrayStore) !== null && _d !== void 0 ? _d : [])
+                                            .slice(0, 12)
+                                            .reverse();
                                         vm.sum = array.reduce((acc, val) => acc + val, 0);
                                         vm.sum_pos = array_pos.reduce((acc, val) => acc + val, 0);
                                         vm.sum_web = array_web.reduce((acc, val) => acc + val, 0);
@@ -1310,7 +1330,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case '1m':
-                            ApiShop.ecDataAnalyze(['orders_per_month'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['orders_per_month'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a, _b, _c, _d;
                                     if (window.ApexCharts) {
@@ -1397,7 +1417,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case 'custom':
-                            ApiShop.ecDataAnalyze(['orders_per_month_custom'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['orders_per_month_custom'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a, _b, _c, _d;
                                     if (window.ApexCharts) {
@@ -1521,8 +1541,8 @@ export class DataAnalyzeModule {
                         return '';
                     }
                     return GlobalStruct.cardStructure(html `<div class="d-flex flex-column">
-                            <div style="${globalStyle.header_title}">瀏覽數量</div>
-                            ${gvc.bindView(() => {
+              <div style="${globalStyle.header_title}">瀏覽數量</div>
+              ${gvc.bindView(() => {
                         return {
                             bind: vm.sum_id,
                             view: () => {
@@ -1533,7 +1553,7 @@ export class DataAnalyzeModule {
                             },
                         };
                     })}
-                        </div>`, vm.id, '#39afd1', html ``);
+            </div>`, vm.id, '#39afd1', html ``);
                 },
                 onCreate: () => {
                     if (option.come_from !== 'all' && option.come_from !== 'website') {
@@ -1549,7 +1569,7 @@ export class DataAnalyzeModule {
                     };
                     switch (vm.select) {
                         case 'week':
-                            ApiShop.ecDataAnalyze(['active_recent_2week'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['active_recent_2week'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a;
                                     if (window.ApexCharts) {
@@ -1595,7 +1615,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case '1m':
-                            ApiShop.ecDataAnalyze(['active_recent_month'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['active_recent_month'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a;
                                     if (window.ApexCharts) {
@@ -1646,7 +1666,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case 'year':
-                            ApiShop.ecDataAnalyze(['active_recent_year'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['active_recent_year'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a;
                                     if (window.ApexCharts) {
@@ -1692,7 +1712,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case 'custom':
-                            ApiShop.ecDataAnalyze(['active_recent_custom'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['active_recent_custom'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a;
                                     if (window.ApexCharts) {
@@ -1702,7 +1722,10 @@ export class DataAnalyzeModule {
                                         let colors = ['#ffffff'];
                                         const dataColors = $(class_name).data('colors');
                                         dataColors && (colors = dataColors.split(','));
-                                        const array = ((_a = res.response.active_recent_custom.count_array) !== null && _a !== void 0 ? _a : []).reverse().slice(0, diffDays).reverse();
+                                        const array = ((_a = res.response.active_recent_custom.count_array) !== null && _a !== void 0 ? _a : [])
+                                            .reverse()
+                                            .slice(0, diffDays)
+                                            .reverse();
                                         vm.sum = array.reduce((acc, val) => acc + val, 0);
                                         gvc.notifyDataChange([vm.list_id, vm.sum_id]);
                                         const options = {
@@ -1780,8 +1803,8 @@ export class DataAnalyzeModule {
                         return '';
                     }
                     return GlobalStruct.cardStructure(html `<div class="d-flex flex-column">
-                            <div style="${globalStyle.header_title}">註冊數</div>
-                            ${gvc.bindView(() => {
+              <div style="${globalStyle.header_title}">註冊數</div>
+              ${gvc.bindView(() => {
                         return {
                             bind: vm.sum_id,
                             view: () => {
@@ -1792,7 +1815,7 @@ export class DataAnalyzeModule {
                             },
                         };
                     })}
-                        </div>`, vm.id, '#ff6c02', html ``);
+            </div>`, vm.id, '#ff6c02', html ``);
                 },
                 onCreate: () => {
                     if (option.come_from !== 'all' && option.come_from !== 'website') {
@@ -1808,7 +1831,7 @@ export class DataAnalyzeModule {
                     };
                     switch (vm.select) {
                         case 'custom':
-                            ApiShop.ecDataAnalyze(['recent_register_custom'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['recent_register_custom'], queryJsonString()).then(res => {
                                 const startDateObj = new Date(vm.startDate);
                                 const endDateObj = new Date(vm.endDate);
                                 const diffDays = diffDates(startDateObj, endDateObj);
@@ -1818,7 +1841,10 @@ export class DataAnalyzeModule {
                                         let colors = ['#ffffff'];
                                         const dataColors = $(class_name).data('colors');
                                         dataColors && (colors = dataColors.split(','));
-                                        const array = ((_a = res.response.recent_register_custom.countArray) !== null && _a !== void 0 ? _a : []).reverse().slice(0, diffDays).reverse();
+                                        const array = ((_a = res.response.recent_register_custom.countArray) !== null && _a !== void 0 ? _a : [])
+                                            .reverse()
+                                            .slice(0, diffDays)
+                                            .reverse();
                                         vm.sum = array.reduce((acc, val) => acc + val, 0);
                                         gvc.notifyDataChange([vm.list_id, vm.sum_id]);
                                         const options = {
@@ -1862,14 +1888,17 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case 'week':
-                            ApiShop.ecDataAnalyze(['recent_register_week'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['recent_register_week'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a;
                                     if (window.ApexCharts) {
                                         let colors = ['#ffffff'];
                                         const dataColors = $(class_name).data('colors');
                                         dataColors && (colors = dataColors.split(','));
-                                        const array = ((_a = res.response.recent_register_week.count_2_week_register) !== null && _a !== void 0 ? _a : []).reverse().slice(0, 7).reverse();
+                                        const array = ((_a = res.response.recent_register_week.count_2_week_register) !== null && _a !== void 0 ? _a : [])
+                                            .reverse()
+                                            .slice(0, 7)
+                                            .reverse();
                                         vm.sum = array.reduce((acc, val) => acc + val, 0);
                                         gvc.notifyDataChange([vm.list_id, vm.sum_id]);
                                         const options = {
@@ -1908,14 +1937,17 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case 'year':
-                            ApiShop.ecDataAnalyze(['recent_register_year'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['recent_register_year'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a;
                                     if (window.ApexCharts) {
                                         let colors = ['#ffffff'];
                                         const dataColors = $(class_name).data('colors');
                                         dataColors && (colors = dataColors.split(','));
-                                        const array = ((_a = res.response.recent_register_year.count_register) !== null && _a !== void 0 ? _a : []).reverse().slice(0, 12).reverse();
+                                        const array = ((_a = res.response.recent_register_year.count_register) !== null && _a !== void 0 ? _a : [])
+                                            .reverse()
+                                            .slice(0, 12)
+                                            .reverse();
                                         vm.sum = array.reduce((acc, val) => acc + val, 0);
                                         gvc.notifyDataChange([vm.list_id, vm.sum_id]);
                                         const options = {
@@ -1954,14 +1986,17 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case '1m':
-                            ApiShop.ecDataAnalyze(['recent_register_month'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['recent_register_month'], queryJsonString()).then(res => {
                                 function loop() {
                                     var _a;
                                     if (window.ApexCharts) {
                                         let colors = ['#ffffff'];
                                         const dataColors = $(class_name).data('colors');
                                         dataColors && (colors = dataColors.split(','));
-                                        const array = ((_a = res.response.recent_register_month.countArray) !== null && _a !== void 0 ? _a : []).reverse().slice(0, 30).reverse();
+                                        const array = ((_a = res.response.recent_register_month.countArray) !== null && _a !== void 0 ? _a : [])
+                                            .reverse()
+                                            .slice(0, 30)
+                                            .reverse();
                                         vm.sum = array.reduce((acc, val) => acc + val, 0);
                                         gvc.notifyDataChange([vm.list_id, vm.sum_id]);
                                         const options = {
@@ -2039,8 +2074,8 @@ export class DataAnalyzeModule {
                         return '';
                     }
                     return GlobalStruct.cardStructure(html `<div class="d-flex flex-column">
-                            <div style="${globalStyle.header_title}">轉換率</div>
-                            ${gvc.bindView(() => {
+              <div style="${globalStyle.header_title}">轉換率</div>
+              ${gvc.bindView(() => {
                         return {
                             bind: vm.sum_id,
                             view: () => {
@@ -2051,7 +2086,7 @@ export class DataAnalyzeModule {
                             },
                         };
                     })}
-                        </div>`, vm.id, '#ffbc00', html ``);
+            </div>`, vm.id, '#ffbc00', html ``);
                 },
                 onCreate: () => {
                     if (option.come_from !== 'all' && option.come_from !== 'website') {
@@ -2067,7 +2102,7 @@ export class DataAnalyzeModule {
                     };
                     switch (vm.select) {
                         case 'custom':
-                            ApiShop.ecDataAnalyze(['recent_register_week'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['recent_register_week'], queryJsonString()).then(res => {
                                 const startDateObj = new Date(vm.startDate);
                                 const endDateObj = new Date(vm.endDate);
                                 const diffDays = diffDates(startDateObj, endDateObj);
@@ -2120,7 +2155,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case 'week':
-                            ApiShop.ecDataAnalyze(['recent_register_week'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['recent_register_week'], queryJsonString()).then(res => {
                                 function loop() {
                                     if (window.ApexCharts) {
                                         let colors = ['#ffffff'];
@@ -2165,7 +2200,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case 'year':
-                            ApiShop.ecDataAnalyze(['recent_register_week'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['recent_register_week'], queryJsonString()).then(res => {
                                 function loop() {
                                     if (window.ApexCharts) {
                                         let colors = ['#ffffff'];
@@ -2210,7 +2245,7 @@ export class DataAnalyzeModule {
                             });
                             break;
                         case '1m':
-                            ApiShop.ecDataAnalyze(['recent_register_week'], queryJsonString()).then((res) => {
+                            ApiShop.ecDataAnalyze(['recent_register_week'], queryJsonString()).then(res => {
                                 function loop() {
                                     if (window.ApexCharts) {
                                         let colors = ['#ffffff'];
@@ -2293,34 +2328,34 @@ export class DataAnalyzeModule {
                     try {
                         return BgWidget.card([
                             html `
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div style="${globalStyle.header_title}">暢銷商品</div>
-                                        <div class="d-flex align-items-center" style="gap:5px;">
-                                            <div
-                                                style="${vm.filter_date === 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
-                                                onclick="${gvc.event(() => {
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div style="${globalStyle.header_title}">暢銷商品</div>
+                    <div class="d-flex align-items-center" style="gap:5px;">
+                      <div
+                        style="${vm.filter_date === 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                        onclick="${gvc.event(() => {
                                 vm.filter_date = 'week';
                                 gvc.notifyDataChange(id);
                             })}"
-                                            >
-                                                一週
-                                            </div>
-                                            /
-                                            <div
-                                                style="${vm.filter_date !== 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
-                                                onclick="${gvc.event(() => {
+                      >
+                        一週
+                      </div>
+                      /
+                      <div
+                        style="${vm.filter_date !== 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                        onclick="${gvc.event(() => {
                                 vm.filter_date = '1m';
                                 gvc.notifyDataChange(id);
                             })}"
-                                            >
-                                                一月
-                                            </div>
-                                        </div>
-                                    </div>
-                                `,
+                      >
+                        一月
+                      </div>
+                    </div>
+                  </div>
+                `,
                             BgWidget.tableV3({
                                 gvc: gvc,
-                                getData: (vmi) => {
+                                getData: vmi => {
                                     const limit = 10;
                                     const queryJsonString = () => {
                                         return JSON.stringify({
@@ -2362,14 +2397,14 @@ export class DataAnalyzeModule {
                                                     {
                                                         key: '商品',
                                                         value: html `<div class="d-flex align-items-center" style="gap:10px;">
-                                                                    ${BgWidget.validImageBox({
+                                  ${BgWidget.validImageBox({
                                                             gvc,
                                                             image: dd.preview_image,
                                                             width: 35,
                                                             class: 'rounded-3',
                                                         })}
-                                                                    ${dd.title}
-                                                                </div>`,
+                                  ${dd.title}
+                                </div>`,
                                                     },
                                                     {
                                                         key: '銷售額',
@@ -2377,7 +2412,7 @@ export class DataAnalyzeModule {
                                                     },
                                                     {
                                                         key: '銷量',
-                                                        value: dd.count,
+                                                        value: Tool.floatAdd(dd.count, 0),
                                                     },
                                                 ];
                                             });
@@ -2431,34 +2466,34 @@ export class DataAnalyzeModule {
                     try {
                         return BgWidget.card([
                             html `
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div style="${globalStyle.header_title}">暢銷類別</div>
-                                        <div class="d-flex align-items-center" style="gap:5px;">
-                                            <div
-                                                style="${vm.filter_date === 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
-                                                onclick="${gvc.event(() => {
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div style="${globalStyle.header_title}">暢銷類別</div>
+                    <div class="d-flex align-items-center" style="gap:5px;">
+                      <div
+                        style="${vm.filter_date === 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                        onclick="${gvc.event(() => {
                                 vm.filter_date = 'week';
                                 gvc.notifyDataChange(id);
                             })}"
-                                            >
-                                                一週
-                                            </div>
-                                            /
-                                            <div
-                                                style="${vm.filter_date !== 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
-                                                onclick="${gvc.event(() => {
+                      >
+                        一週
+                      </div>
+                      /
+                      <div
+                        style="${vm.filter_date !== 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                        onclick="${gvc.event(() => {
                                 vm.filter_date = '1m';
                                 gvc.notifyDataChange(id);
                             })}"
-                                            >
-                                                一月
-                                            </div>
-                                        </div>
-                                    </div>
-                                `,
+                      >
+                        一月
+                      </div>
+                    </div>
+                  </div>
+                `,
                             BgWidget.tableV3({
                                 gvc: gvc,
-                                getData: (vmi) => {
+                                getData: vmi => {
                                     const limit = 10;
                                     const queryJsonString = () => {
                                         return JSON.stringify({
@@ -2490,7 +2525,9 @@ export class DataAnalyzeModule {
                                                     },
                                                     {
                                                         key: '類別名稱',
-                                                        value: html `<div class="d-flex align-items-center" style="gap:10px;">${dd.collection}</div>`,
+                                                        value: html `<div class="d-flex align-items-center" style="gap:10px;">
+                                  ${dd.collection}
+                                </div>`,
                                                     },
                                                     {
                                                         key: '銷售額',
@@ -2498,7 +2535,7 @@ export class DataAnalyzeModule {
                                                     },
                                                     {
                                                         key: '銷量',
-                                                        value: dd.count,
+                                                        value: Tool.floatAdd(dd.count, 0),
                                                     },
                                                 ];
                                             });
@@ -2565,14 +2602,14 @@ export class DataAnalyzeModuleCart {
                         });
                     }
                     return html `
-                            <div style="${globalStyle.header_title}">報表篩選條件</div>
-                            <div class="d-flex flex-wrap align-items-end" style="margin-top:18px;gap:18px;">
-                                <div class="d-flex flex-column">
-                                    <div>銷售平台</div>
-                                    ${BgWidget.select({
+              <div style="${globalStyle.header_title}">報表篩選條件</div>
+              <div class="d-flex flex-wrap align-items-end" style="margin-top:18px;gap:18px;">
+                <div class="d-flex flex-column">
+                  <div>銷售平台</div>
+                  ${BgWidget.select({
                         gvc: gvc,
                         default: option.come_from,
-                        callback: (key) => {
+                        callback: key => {
                             option.come_from = key;
                             callback();
                         },
@@ -2581,20 +2618,20 @@ export class DataAnalyzeModuleCart {
                             { key: 'website', value: '官網' },
                             { key: 'store', value: '所有門市' },
                             ...storeList
-                                .filter((item) => item.is_shop)
-                                .map((item) => {
+                                .filter(item => item.is_shop)
+                                .map(item => {
                                 return { key: item.id, value: `[門市]${item.name}` };
                             }),
                         ],
                         style: 'margin: 8px 0;',
                     })}
-                                </div>
-                                <div class="d-flex flex-column">
-                                    <div>統計時間</div>
-                                    ${BgWidget.select({
+                </div>
+                <div class="d-flex flex-column">
+                  <div>統計時間</div>
+                  ${BgWidget.select({
                         gvc: gvc,
                         default: option.filter_date,
-                        callback: (key) => {
+                        callback: key => {
                             option.filter_date = key;
                             gvc.notifyDataChange(dateId);
                             if (key !== 'custom') {
@@ -2609,54 +2646,60 @@ export class DataAnalyzeModuleCart {
                         ],
                         style: 'margin: 8px 0;',
                     })}
-                                </div>
-                                ${gvc.bindView({
+                </div>
+                ${gvc.bindView({
                         bind: dateId,
                         view: () => {
-                            return html ` <div class="d-flex ${document.body.clientWidth < 768 ? 'flex-column' : ''} ${option.filter_date === 'custom' ? '' : 'd-none'}" style="gap: 12px">
-                                            <div class="d-flex flex-column">
-                                                <div>開始日期</div>
-                                                ${BgWidget.editeInput({
+                            return html ` <div
+                      class="d-flex ${document.body.clientWidth < 768 ? 'flex-column' : ''} ${option.filter_date ===
+                                'custom'
+                                ? ''
+                                : 'd-none'}"
+                      style="gap: 12px"
+                    >
+                      <div class="d-flex flex-column">
+                        <div>開始日期</div>
+                        ${BgWidget.editeInput({
                                 gvc: gvc,
                                 title: '',
                                 type: 'date',
                                 style: 'display: block; width: 160px; height: 38px;',
                                 default: option.startDate ? option.startDate.slice(0, 10) : '',
                                 placeHolder: '',
-                                callback: (text) => {
+                                callback: text => {
                                     option.startDate = text ? `${text} 00:00:00` : '';
                                 },
                             })}
-                                            </div>
-                                            <div class="d-flex flex-column">
-                                                <div>結束日期</div>
-                                                ${BgWidget.editeInput({
+                      </div>
+                      <div class="d-flex flex-column">
+                        <div>結束日期</div>
+                        ${BgWidget.editeInput({
                                 gvc: gvc,
                                 title: '',
                                 type: 'date',
                                 style: 'display: block; width: 160px; height: 38px;',
                                 default: option.endDate ? option.endDate.slice(0, 10) : '',
                                 placeHolder: '',
-                                callback: (text) => {
+                                callback: text => {
                                     option.endDate = text ? `${text} 23:59:59` : '';
                                 },
                             })}
-                                            </div>
-                                            <div class="d-flex align-items-center justify-content-center">
-                                                ${BgWidget.grayButton('查詢', gvc.event(() => {
+                      </div>
+                      <div class="d-flex align-items-center justify-content-center">
+                        ${BgWidget.grayButton('查詢', gvc.event(() => {
                                 checkDates(gvc, option.startDate, option.endDate, callback);
                             }))}
-                                            </div>
-                                        </div>`;
+                      </div>
+                    </div>`;
                         },
                     })}
-                            </div>
-                        `;
+              </div>
+            `;
                 },
                 divCreate: {},
                 onCreate: () => {
                     if (loading) {
-                        StockStores.getPublicData().then((data) => {
+                        StockStores.getPublicData().then(data => {
                             if (data.list && data.list.length > 0) {
                                 storeList = data.list;
                             }
@@ -2684,14 +2727,14 @@ export class DataAnalyzeModuleCart {
                         });
                     }
                     return html `
-                            <div style="${globalStyle.header_title}">報表篩選條件</div>
-                            <div class="d-flex flex-wrap align-items-end" style="margin-top:18px;gap:18px;">
-                                <div class="d-flex flex-column">
-                                    <div>銷售平台</div>
-                                    ${BgWidget.select({
+              <div style="${globalStyle.header_title}">報表篩選條件</div>
+              <div class="d-flex flex-wrap align-items-end" style="margin-top:18px;gap:18px;">
+                <div class="d-flex flex-column">
+                  <div>銷售平台</div>
+                  ${BgWidget.select({
                         gvc: gvc,
                         default: option.come_from,
-                        callback: (key) => {
+                        callback: key => {
                             option.come_from = key;
                             gvc.notifyDataChange(dateId);
                             if (key !== 'custom') {
@@ -2703,20 +2746,20 @@ export class DataAnalyzeModuleCart {
                             { key: 'website', value: '官網' },
                             { key: 'store', value: '所有門市' },
                             ...storeList
-                                .filter((item) => item.is_shop)
-                                .map((item) => {
+                                .filter(item => item.is_shop)
+                                .map(item => {
                                 return { key: item.id, value: `[門市]${item.name}` };
                             }),
                         ],
                         style: 'margin: 8px 0;',
                     })}
-                                </div>
-                                <div class="d-flex flex-column">
-                                    <div>統計時間</div>
-                                    ${BgWidget.select({
+                </div>
+                <div class="d-flex flex-column">
+                  <div>統計時間</div>
+                  ${BgWidget.select({
                         gvc: gvc,
                         default: option.filter_date,
-                        callback: (key) => {
+                        callback: key => {
                             option.filter_date = key;
                             callback();
                         },
@@ -2729,54 +2772,60 @@ export class DataAnalyzeModuleCart {
                         ],
                         style: 'margin: 8px 0;',
                     })}
-                                </div>
-                                ${gvc.bindView({
+                </div>
+                ${gvc.bindView({
                         bind: dateId,
                         view: () => {
-                            return html ` <div class="d-flex ${document.body.clientWidth < 768 ? 'flex-column' : ''} ${option.filter_date === 'custom' ? '' : 'd-none'}" style="gap: 12px">
-                                            <div class="d-flex flex-column">
-                                                <div>開始日期</div>
-                                                ${BgWidget.editeInput({
+                            return html ` <div
+                      class="d-flex ${document.body.clientWidth < 768 ? 'flex-column' : ''} ${option.filter_date ===
+                                'custom'
+                                ? ''
+                                : 'd-none'}"
+                      style="gap: 12px"
+                    >
+                      <div class="d-flex flex-column">
+                        <div>開始日期</div>
+                        ${BgWidget.editeInput({
                                 gvc: gvc,
                                 title: '',
                                 type: 'date',
                                 style: 'display: block; width: 160px; height: 38px;',
                                 default: option.startDate ? option.startDate.slice(0, 10) : '',
                                 placeHolder: '',
-                                callback: (text) => {
+                                callback: text => {
                                     option.startDate = text ? `${text} 00:00:00` : '';
                                 },
                             })}
-                                            </div>
-                                            <div class="d-flex flex-column">
-                                                <div>結束日期</div>
-                                                ${BgWidget.editeInput({
+                      </div>
+                      <div class="d-flex flex-column">
+                        <div>結束日期</div>
+                        ${BgWidget.editeInput({
                                 gvc: gvc,
                                 title: '',
                                 type: 'date',
                                 style: 'display: block; width: 160px; height: 38px;',
                                 default: option.endDate ? option.endDate.slice(0, 10) : '',
                                 placeHolder: '',
-                                callback: (text) => {
+                                callback: text => {
                                     option.endDate = text ? `${text} 23:59:59` : '';
                                 },
                             })}
-                                            </div>
-                                            <div class="d-flex align-items-center justify-content-center">
-                                                ${BgWidget.grayButton('查詢', gvc.event(() => {
+                      </div>
+                      <div class="d-flex align-items-center justify-content-center">
+                        ${BgWidget.grayButton('查詢', gvc.event(() => {
                                 checkDates(gvc, option.startDate, option.endDate, callback);
                             }))}
-                                            </div>
-                                        </div>`;
+                      </div>
+                    </div>`;
                         },
                     })}
-                            </div>
-                        `;
+              </div>
+            `;
                 },
                 divCreate: {},
                 onCreate: () => {
                     if (loading) {
-                        StockStores.getPublicData().then((data) => {
+                        StockStores.getPublicData().then(data => {
                             if (data.list && data.list.length > 0) {
                                 storeList = data.list;
                             }

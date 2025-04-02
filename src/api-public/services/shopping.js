@@ -444,9 +444,11 @@ class Shopping {
                                         return dd.spec === variant.spec.join('-') && `${dd.product_id}` === `${content.id}`;
                                     })
                                         .map((dd) => {
-                                        return parseInt(dd.count, 10);
+                                        return dd.count;
                                     })
-                                        .reduce((a, b) => a + b, 0) || 0;
+                                        .reduce((a, b) => {
+                                        return tool_js_1.default.floatAdd(a, b);
+                                    }, 0) || 0;
                                 variant.preview_image = (_a = variant.preview_image) !== null && _a !== void 0 ? _a : '';
                                 if (!variant.preview_image.includes('https://')) {
                                     variant.preview_image = undefined;
@@ -797,8 +799,7 @@ class Shopping {
         }
         else {
             const total = await database_js_1.default
-                .query(`SELECT COUNT(*) as count
-           FROM \`${this.app}\`.t_manager_post ${whereClause}`, [])
+                .query(`SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}`, [])
                 .then((res) => { var _a; return ((_a = res[0]) === null || _a === void 0 ? void 0 : _a.count) || 0; });
             return {
                 data: data.map((dd) => (Object.assign(Object.assign({}, dd), { content: Object.assign(Object.assign({}, dd.content), { id: dd.id }) }))),

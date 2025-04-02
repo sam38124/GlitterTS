@@ -981,7 +981,7 @@ export class ProductExcel {
               })();
 
               // 根據產品類別匯出不同格式
-              if (['course', 'commodity'].includes(vm.support)) {
+              if (['course', 'commodity', 'weighing'].includes(vm.support)) {
                 this.exportCommodity(gvc, getFormData);
               } else if (vm.support === 'kitchen') {
                 this.exportKitchen(gvc, getFormData);
