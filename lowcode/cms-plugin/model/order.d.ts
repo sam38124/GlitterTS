@@ -1,19 +1,47 @@
+type Status = 0 | 1 | -1;
+type VoucherMethod = 'percent' | 'fixed';
+type ReBackType = 'rebate' | 'discount' | 'shipment_free';
+type TriggerType = 'auto' | 'code';
+type VoucherFor = 'collection' | 'product' | 'all';
+type VoucherRule = 'min_price' | 'min_count';
+type FilterType = 'normal' | 'block' | 'pos' | 'all';
+type PaymentMethod = 'ATM' | 'CreditCard' | 'ConvenienceStore';
+type ShipmentMethod =
+  | 'normal'
+  | 'FAMIC2C'
+  | 'UNIMARTC2C'
+  | 'HILIFEC2C'
+  | 'OKMARTC2C'
+  | 'now'
+  | 'shop'
+  | 'global_express'
+  | 'UNIMARTFREEZE'
+  | 'black_cat_freezing'
+  | 'black_cat';
+
+type ViewModelType = 'list' | 'add' | 'replace' | 'select' | 'createInvoice' | 'viewInvoice' | 'recommend';
+
+interface EditRecord {
+  time: string;
+  record: string;
+}
+
 interface VoucherData {
   id: number;
   title: string;
-  method: 'percent' | 'fixed';
-  reBackType: 'rebate' | 'discount' | 'shipment_free';
-  trigger: 'auto' | 'code';
+  method: VoucherMethod;
+  reBackType: ReBackType;
+  trigger: TriggerType;
   value: number | string;
-  for: 'collection' | 'product' | 'all';
-  rule: 'min_price' | 'min_count';
+  for: VoucherFor;
+  rule: VoucherRule;
   forKey: string[];
   ruleValue: number;
   startDate: string;
   startTime: string;
   endDate?: string;
   endTime?: string;
-  status: 0 | 1 | -1;
+  status: Status;
   type: 'voucher';
   code?: string;
   overlay: boolean;
@@ -37,55 +65,6 @@ interface Bind {
   shipment_fee: number;
 }
 
-// 2. ViewModel
-// -------------------------
-interface ViewModel {
-  id: string;
-  loading: boolean;
-  filterId: string;
-  type: 'list' | 'add' | 'replace' | 'select' | 'createInvoice' | 'viewInvoice' | 'recommend';
-  data: any;
-  invoiceData: any;
-  orderData: any;
-  distributionData: any;
-  dataList: any;
-  query?: string;
-  queryType?: string;
-  orderString?: string;
-  return_order?: boolean;
-  filter?: any;
-  tempOrder?: string;
-  filter_type: 'normal' | 'block' | 'pos' | 'all';
-  apiJSON: any;
-  checkedData: any[];
-  headerConfig: string[];
-}
-
-// 3. EcCashFlow
-// -------------------------
-interface EcCashFlow {
-  HandlingCharge: string;
-  PaymentType: 'ATM_CHINATRUST' | 'Credit_CreditCard';
-  PaymentDate: string;
-  TradeStatus: '0' | '1' | '10200095';
-  TradeAmt: string;
-  TradeNo: string;
-  credit_receipt: any;
-}
-
-// 4. PayNowCashFlow
-// -------------------------
-interface PayNowCashFlow {
-  amount: number;
-  status: string;
-  payment: {
-    paymentMethod: 'ATM' | 'CreditCard' | 'ConvenienceStore';
-    paidAt: string;
-  };
-}
-
-// 5. Order
-// -------------------------
 interface Order {
   id: number;
   cart_token: string;
@@ -99,8 +78,6 @@ interface Order {
   offset_records: any[];
 }
 
-// 6. CartData
-// -------------------------
 interface CartData {
   id: number;
   cart_token: string;
@@ -110,14 +87,12 @@ interface CartData {
   created_time: string;
 }
 
-// 7. OrderData
-// -------------------------
 interface OrderData {
-  cash_flow?: EcCashFlow | PayNowCashFlow;
+  cash_flow: PaymentFlow;
+  editRecord: EditRecord[];
   distribution_info?: DistributionInfo;
   archived: 'true' | 'false';
-  customer_info: any;
-  editRecord: any;
+  customer_info: UserInfo;
   method: string;
   shipment_selector: ShipmentSelector[];
   orderStatus: string;
@@ -130,36 +105,40 @@ interface OrderData {
   use_rebate: number;
   lineItems: LineItem[];
   user_info: UserInfo;
-  custom_receipt_form?: any;
-  custom_form_format?: any;
-  custom_form_data?: any;
   proof_purchase: any;
   progress: string;
   order_note: string;
-  voucherList: Voucher[];
+  voucherList: VoucherData[];
   orderSource?: string;
   deliveryData: Record<string, string>;
   pos_info: POSInfo;
+  custom_receipt_form?: any;
+  custom_form_format?: any;
+  custom_form_data?: any;
 }
 
-interface DistributionInfo {
-  code: string;
-  condition: number;
-  link: string;
-  recommend_medium: any;
-  recommend_status: string;
-  recommend_user: any;
-  redirect: string;
-  relative: string;
-  relative_data: any;
-  share_type: string;
-  share_value: number;
-  startDate: string;
-  startTime: string;
-  status: boolean;
-  title: string;
-  voucher: number;
-  voucher_status: string;
+interface PaymentFlow {
+  amount?: number;
+  HandlingCharge?: string;
+  PaymentType: PaymentMethod;
+  PaymentDate?: string;
+  TradeStatus?: '0' | '1' | '10200095';
+  TradeAmt: string;
+  TradeNo: string;
+  credit_receipt?: any;
+  payment: {
+    paymentMethod: PaymentMethod;
+    paidAt: string;
+  };
+  status: string;
+}
+
+interface ShipmentSelector {
+  name: string;
+  value: string;
+  isExcludedByTotal?: boolean;
+  isExcludedByWeight?: boolean;
+  form: any;
 }
 
 interface UserInfo {
@@ -172,37 +151,13 @@ interface UserInfo {
   shipment_refer: string;
   address: string;
   shipment_number?: string;
-  custom_form_delivery?: any;
-  shipment: ShipmentMethod;
-  CVSStoreName: string;
-  CVSStoreID: string;
-  CVSTelephone: string;
-  MerchantTradeNo: string;
-  CVSAddress: string;
-  note?: string;
-  code_note?: string;
-  shipment_detail?: any;
   state: string;
   company: string;
   country: string;
-  gui_number: string;
   postal_code: string;
   invoice_type: string;
   [key: string]: any;
 }
-
-type ShipmentMethod =
-  | 'normal'
-  | 'FAMIC2C'
-  | 'UNIMARTC2C'
-  | 'HILIFEC2C'
-  | 'OKMARTC2C'
-  | 'now'
-  | 'shop'
-  | 'global_express'
-  | 'UNIMARTFREEZE'
-  | 'black_cat_freezing'
-  | 'black_cat';
 
 interface POSInfo {
   payment: 'cash' | 'credit' | 'line_pay';
@@ -225,15 +180,52 @@ interface POSConfig {
   verifyEmail: string;
 }
 
+interface LineItem {
+  id: number;
+  sku: string;
+  spec: string[];
+  count: number;
+  stock: number;
+  title: string;
+  rebate: number;
+  weight: number;
+  is_gift: boolean;
+  sale_price: number;
+  origin_price: number;
+  discount_price: number;
+}
+
 interface OrderQuery {
   isPOS?: boolean;
   isArchived?: boolean;
   isShipment?: boolean;
 }
 
+interface ViewModel {
+  id: string;
+  loading: boolean;
+  filterId: string;
+  type: ViewModelType;
+  data: any;
+  invoiceData: any;
+  orderData: any;
+  distributionData: any;
+  dataList: any;
+  query?: string;
+  queryType?: string;
+  orderString?: string;
+  return_order?: boolean;
+  filter?: any;
+  tempOrder?: string;
+  filter_type: FilterType;
+  apiJSON: any;
+  checkedData: any[];
+  headerConfig: string[];
+}
+
 interface Invoice {
   invoice_no: string;
-  invoice_data: InvoiceData;
+  invoice_data: any;
   invoice_status: number;
   id: number;
   cart_token: string;
@@ -263,213 +255,5 @@ interface Invoice {
   shipment_phone: string;
   shipment_address: string;
   invoice_number: string;
-  user_data: UserData;
-}
-
-interface InvoiceData {
-  response: ResponseData;
-  orderData: OrderData;
-  original_data: OriginalData;
-}
-
-interface ResponseData {
-  RtnMsg: string;
-  RtnCode: number;
-  InvoiceNo: string;
-  InvoiceDate: string;
-  RandomNumber: string;
-}
-
-interface LineItem {
-  id: number;
-  sku: string;
-  spec: string[];
-  count: number;
-  specs: Spec[];
-  stock: number;
-  title: string;
-  rebate: number;
-  weight: number;
-  is_gift: boolean;
-  is_hidden: boolean;
-  stockList: Record<string, StockCount>;
-  collection: string[];
-  sale_price: number;
-  origin_price: number;
-  shipment_obj: ShipmentObject;
-  language_data: LanguageData;
-  preview_image: string;
-  discount_price: number;
-  is_add_on_items: boolean;
-  product_category: string;
-  show_understocking: string;
-  designated_logistics: DesignatedLogistics;
-}
-
-interface Spec {
-  title: string;
-  option: Option[];
-  language_title: Record<string, string>;
-}
-
-interface Option {
-  title: string;
-  expand: boolean;
-  language_title: Record<string, string>;
-}
-
-interface StockCount {
-  count: number;
-}
-
-interface ShipmentObject {
-  type: string;
-  value: number;
-}
-
-interface LanguageData {
-  [key: string]: LanguageContent;
-}
-
-interface LanguageContent {
-  seo: SEO;
-  title: string;
-  content: string;
-  content_array: any[];
-}
-
-interface SEO {
-  title: string;
-  domain: string;
-  content: string;
-  keywords: string;
-}
-
-interface CustomerInfo {
-  name: string;
-  email: string;
-  phone: string;
-  payment_select: string;
-}
-
-interface RebateInfo {
-  point: number;
-  status: boolean;
-}
-
-interface PaymentSetting {
-  key: string;
-  name: string;
-  custome_name?: string;
-}
-
-interface OfflineSupport {
-  atm: boolean;
-  line: boolean;
-  cash_on_delivery: boolean;
-  [key: string]: boolean;
-}
-
-interface PaymentInfoAtm {
-  text: string;
-  bank_code: string;
-  bank_name: string;
-  bank_user: string;
-  bank_account: string;
-  shipmentSupport: string[];
-}
-
-interface ShipmentSelector {
-  name: string;
-  value: string;
-  isExcludedByTotal?: boolean;
-  isExcludedByWeight?: boolean;
-  form: any;
-}
-
-interface PaymentInfoCustom {
-  id: string;
-  name: string;
-  text: string;
-  shipmentSupport: any[];
-}
-
-interface PaymentCustomerForm {
-  id: string;
-  list: CustomerFormField[];
-}
-
-interface CustomerFormField {
-  col: string;
-  key: string;
-  page: string;
-  type: string;
-  group: string;
-  title: string;
-  col_sm: string;
-  toggle: boolean;
-  appName: string;
-  require: boolean;
-  readonly: string;
-  formFormat: string;
-  style_data: StyleData;
-  form_config: FormConfig;
-}
-
-interface StyleData {
-  input: StyleItem;
-  label: StyleItem;
-  container: StyleItem;
-}
-
-interface StyleItem {
-  list: any[];
-  class: string;
-  style: string;
-  version: string;
-}
-
-interface FormConfig {
-  type: string;
-  title: string;
-  input_style: { list: any[]; version: string };
-  title_style: { list: any[]; version: string };
-  place_holder: string;
-}
-
-interface PaymentInfoLinePay {
-  text: string;
-  shipmentSupport: string[];
-}
-
-interface OriginalData {
-  Items: OriginalItem[];
-  Print: string;
-  InvType: string;
-  TaxType: string;
-  Donation: string;
-  LoveCode: string;
-  CarrierNum: string;
-  CustomerID: string;
-  MerchantID: string;
-  CarrierType: string;
-  SalesAmount: number;
-  CustomerAddr: string;
-  CustomerName: string;
-  RelateNumber: string;
-  ClearanceMark: string;
-  CustomerEmail: string;
-  CustomerPhone: string;
-  CustomerIdentifier: string;
-}
-
-interface OriginalItem {
-  ItemSeq: number;
-  ItemName: string;
-  ItemWord: string;
-  ItemCount: number;
-  ItemPrice: number;
-  ItemAmount: number;
-  ItemRemark: string;
-  ItemTaxType: number;
+  user_data: any;
 }

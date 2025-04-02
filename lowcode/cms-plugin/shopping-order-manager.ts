@@ -2352,7 +2352,7 @@ export class ShoppingOrderManager {
                                 </div>`,
                                 (() => {
                                   if (orderData.orderData.customer_info.payment_select === 'ecPay') {
-                                    const cash_flow = (orderData.orderData.cash_flow as EcCashFlow) || {};
+                                    const cash_flow = (orderData.orderData.cash_flow) || {};
                                     return html` <div
                                       style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
                                     >
@@ -2438,7 +2438,7 @@ export class ShoppingOrderManager {
                                       </div>
                                     </div>`;
                                   } else if (orderData.orderData.customer_info.payment_select === 'paynow') {
-                                    const cash_flow = (orderData.orderData.cash_flow as PayNowCashFlow) || {};
+                                    const cash_flow = (orderData.orderData.cash_flow) || {};
                                     return html`
                                       <div
                                         style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
