@@ -4140,17 +4140,29 @@ class Shopping {
                             productArray[index] = product;
                         }
                         else {
-                            console.log(`Product-not-in ==>`, product);
+                            console.error('Product id not exist:', product);
                         }
                     }
                     else {
-                        console.log(`No-exist-product-id ==>`, product);
+                        console.error('Product has not id:', product);
                     }
                     resolve(true);
                 });
             }));
-            let max_id = ((await database_js_1.default.query(`select max(id)
-             from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0) + 1;
+            async function getNextId(app) {
+                var _a, _b;
+                const query = `SELECT MAX(id) AS max_id FROM \`${app}\`.t_manager_post`;
+                try {
+                    const result = await database_js_1.default.query(query, []);
+                    const maxId = (_b = (_a = result === null || result === void 0 ? void 0 : result[0]) === null || _a === void 0 ? void 0 : _a.max_id) !== null && _b !== void 0 ? _b : 0;
+                    return maxId + 1;
+                }
+                catch (error) {
+                    console.error('取得最大 ID 時發生錯誤:', error);
+                    return 1;
+                }
+            }
+            let max_id = await getNextId(this.app);
             productArray.map((product) => {
                 var _a;
                 if (!product.id) {
