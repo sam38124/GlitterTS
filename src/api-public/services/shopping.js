@@ -4585,6 +4585,19 @@ class Shopping {
             result: invoice_response,
         };
     }
+    async batchPostCustomerInvoice(dataArray) {
+        let result = [];
+        const chunk = 10;
+        const chunksCount = Math.ceil(dataArray.length / chunk);
+        for (let i = 0; i < chunksCount; i++) {
+            const arr = dataArray.slice(i * chunk, (i + 1) * chunk);
+            const res = await Promise.all(arr.map(item => {
+                return this.postCustomerInvoice(item);
+            }));
+            result = result.concat(res);
+        }
+        return result;
+    }
     async voidInvoice(obj) {
         var _a, _b;
         const config = await app_1.default.getAdConfig(this.app, 'invoice_setting');

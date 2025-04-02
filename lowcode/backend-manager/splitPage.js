@@ -1,21 +1,22 @@
-'use strict';
+const html = String.raw;
 export class PageSplit {
     constructor(gvc) {
         const glitter = gvc.glitter;
         const $ = window.$;
-        const html = String.raw;
         this.pageSplit = (countPage, nowPage, callback, gotoInput) => {
             const generator = (n) => {
-                return ` <div  class="d-flex align-items-center justify-content-center fw-500" style="width:36px;height: 36px;border-radius: 100%;${(() => {
-                    if (glitter.share.globalValue['theme_color.0.solid-button-bg']) {
-                        return `color:${glitter.share.globalValue['theme_color.0.title']};   `;
-                    }
-                    else {
-                        return `color:black;`;
-                    }
-                })()};cursor: pointer;" onclick="${gvc.event(() => callback(n))}">${n}</div>`;
+                const color = glitter.share.globalValue['theme_color.0.solid-button-bg']
+                    ? `color: ${glitter.share.globalValue['theme_color.0.title']};`
+                    : `color: black;`;
+                return html ` <div
+          class="d-flex align-items-center justify-content-center fw-500"
+          style="width: 36px; height: 36px; border-radius: 100%; cursor: pointer; ${color}"
+          onclick="${gvc.event(() => callback(n))}"
+        >
+          ${n}
+        </div>`;
             };
-            let vm = {
+            const vm = {
                 id: glitter.getUUID(),
                 loading: false,
                 dataList: [],
@@ -24,24 +25,29 @@ export class PageSplit {
                 bind: vm.id,
                 view: () => {
                     if (vm.loading) {
-                        return `<div class="w-100 d-flex align-items-center justify-content-center p-3">
-<div class="spinner-border"></div>
-</div`;
+                        return html `<div class="w-100 d-flex align-items-center justify-content-center p-3">
+              <div class="spinner-border"></div>
+            </div>`;
                     }
                     else {
                         return html `
-                            <nav class="d-flex my-3 justify-content-center">
-                                <ul class="pagination pagination-rounded mb-0">
-                                    <div class="page-item d-flex align-items-center justify-content-center ${(nowPage - 1) > 0 ? '' : 'd-none'}" style="height: 36px;width: 36px;cursor: pointer;">
-                                        <a
-                                            onclick="${gvc.event(() => {
+              <nav class="d-flex my-3 justify-content-center">
+                <ul class="pagination pagination-rounded mb-0">
+                  <div
+                    class="page-item d-flex align-items-center justify-content-center ${nowPage - 1 > 0
+                            ? ''
+                            : 'd-none'}"
+                    style="height: 36px;width: 36px;cursor: pointer;"
+                  >
+                    <a
+                      onclick="${gvc.event(() => {
                             nowPage - 1 > 0 && callback(nowPage - 1);
-                        })}" style=""
-                                        >
-                                            <span aria-hidden="true">&laquo;</span>
-                                        </a>
-                                    </div>
-                                    ${glitter.print(() => {
+                        })}"
+                    >
+                      <span aria-hidden="true">&laquo;</span>
+                    </a>
+                  </div>
+                  ${glitter.print(() => {
                             if (nowPage - 2 > 0) {
                                 return generator(nowPage - 2) + generator(nowPage - 1);
                             }
@@ -49,20 +55,26 @@ export class PageSplit {
                                 return generator(nowPage - 1);
                             }
                             else {
-                                return ``;
+                                return '';
                             }
                         })}
-                                    <div  class="d-flex align-items-center justify-content-center fw-500" style="width:36px;height: 36px;border-radius: 100%;${(() => {
+                  <div
+                    class="d-flex align-items-center justify-content-center fw-500"
+                    style="width: 36px; height: 36px; border-radius: 100%; cursor: pointer; ${(() => {
                             if (glitter.share.globalValue['theme_color.0.solid-button-bg']) {
-                                return `background:${glitter.share.globalValue['theme_color.0.solid-button-bg']};
-                                                    color:${glitter.share.globalValue['theme_color.0.solid-button-text']};`;
+                                return `
+                          background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
+                          color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
+                        `;
                             }
                             else {
-                                return ``;
+                                return '';
                             }
-                        })()};cursor: pointer;">${nowPage}</div>
-                                  
-                                    ${glitter.print(() => {
+                        })()};"
+                  >
+                    ${nowPage}
+                  </div>
+                  ${glitter.print(() => {
                             if (nowPage + 2 <= countPage) {
                                 return generator(nowPage + 1) + generator(nowPage + 2);
                             }
@@ -70,32 +82,37 @@ export class PageSplit {
                                 return generator(nowPage + 1);
                             }
                             else {
-                                return ``;
+                                return '';
                             }
                         })}
-                                    <div class="page-item d-flex align-items-center justify-content-center ${(nowPage + 1 <= countPage) ? '' : 'd-none'}" style="height: 36px;width: 36px;cursor: pointer;">
-                                        <a
-                                                onclick="${gvc.event(() => {
+                  <div
+                    class="page-item d-flex align-items-center justify-content-center ${nowPage + 1 <= countPage
+                            ? ''
+                            : 'd-none'}"
+                    style="height: 36px; width: 36px; cursor: pointer;"
+                  >
+                    <a
+                      onclick="${gvc.event(() => {
                             nowPage + 1 <= countPage && callback(nowPage + 1);
-                        })}" style=""
-                                        >
-                                            <span aria-hidden="true">&raquo;</span>
-                                        </a>
-                                    </div>
-                                </ul>
-                            </nav>
-                            ${glitter.print(() => {
+                        })}"
+                    >
+                      <span aria-hidden="true">&raquo;</span>
+                    </a>
+                  </div>
+                </ul>
+              </nav>
+              ${glitter.print(() => {
                             if (gotoInput) {
                                 return html `
-                                        <div class="d-flex justify-content-center">
-                                            <div class="input-group mb-2 mx-4" style="width: 30%">
-                                                <div class="input-group-text">前往</div>
-                                                <input type="number" class="form-control" id="gotoPage" />
-                                                <div class="input-group-text">頁</div>
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-primary ms-3"
-                                                    onclick="${gvc.event(() => {
+                    <div class="d-flex justify-content-center">
+                      <div class="input-group mb-2 mx-4" style="width: 30%">
+                        <div class="input-group-text">前往</div>
+                        <input type="number" class="form-control" id="gotoPage" />
+                        <div class="input-group-text">頁</div>
+                        <button
+                          type="button"
+                          class="btn btn-primary ms-3"
+                          onclick="${gvc.event(() => {
                                     if (!($(`#gotoPage`).val() === undefined || $(`#gotoPage`).val() == '')) {
                                         let goto = parseInt($(`#gotoPage`).val(), 10);
                                         goto < 1 && (goto = 1);
@@ -103,21 +120,20 @@ export class PageSplit {
                                         callback(goto);
                                     }
                                 })}"
-                                                >
-                                                    GO
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `;
+                        >
+                          GO
+                        </button>
+                      </div>
+                    </div>
+                  `;
                             }
                             else {
-                                return ``;
+                                return '';
                             }
                         })}
-                        `;
+            `;
                     }
                 },
-                divCreate: {},
                 onCreate: () => {
                     if (vm.loading) {
                         vm.loading = false;
@@ -135,128 +151,120 @@ export class PageSplit {
         this.pageSplitV2 = (countPage, nowPage, callback, gotoInput) => {
             const generator = (n) => {
                 return html `<li class="page-item my-0 mx-0">
-                    <div class="page-link-v2" onclick="${gvc.event(() => callback(n))}">${n}</div>
-                </li>`;
+          <div class="page-link-v2" onclick="${gvc.event(() => callback(n))}">${n}</div>
+        </li>`;
             };
-            let vm = {
+            const vm = {
                 id: glitter.getUUID(),
                 loading: false,
                 dataList: [],
             };
             gvc.addStyle(`
-                .page-link-v2 {
-                    display: inline-flex;
-                    height: 32px;
-                    padding: 10px;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                    gap: 10px;
-                    cursor: pointer;
-                    background: #fff;
-                    border:1px solid #393939;
-                    color: #393939;
-                }
+        .page-link-v2 {
+          display: inline-flex;
+          height: 32px;
+          padding: 10px;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          gap: 10px;
+          cursor: pointer;
+          background: #fff;
+          border: 1px solid #393939;
+          color: #393939;
+        }
 
-                .page-link-prev {
-                    border-radius: 7px 0px 0px 7px;
-                    border: 1px solid #d8d8d8;
-                    background: #fff;
-                    color: #393939;
-                }
+        .page-link-prev {
+          border-radius: 7px 0px 0px 7px;
+          border: 1px solid #d8d8d8;
+          background: #fff;
+          color: #393939;
+        }
 
-                .page-link-next {
-                    border-radius: 0px 7px 7px 0px;
-                    border: 1px solid #d8d8d8;
-                    background: #fff;
-                    color: #393939;
-                }
+        .page-link-next {
+          border-radius: 0px 7px 7px 0px;
+          border: 1px solid #d8d8d8;
+          background: #fff;
+          color: #393939;
+        }
 
-                .page-link-active {
-                    background: #393939;
-                    color: #fff;
-                }
+        .page-link-active {
+          background: #393939;
+          color: #fff;
+        }
 
-                .angle-style {
-                    font-size: 12px;
-                    color: #d8d8d8;
-                }
-            `);
+        .angle-style {
+          font-size: 12px;
+          color: #d8d8d8;
+        }
+      `);
             return gvc.bindView({
                 bind: vm.id,
                 view: () => {
                     if (vm.loading) {
                         return html `<div class="w-100 d-flex align-items-center justify-content-center p-3">
-                            <div class="spinner-border"></div>
-                        </div>`;
+              <div class="spinner-border"></div>
+            </div>`;
                     }
                     else {
                         return html `
-                            <nav class="d-flex my-3 justify-content-center">
-                                <ul class="pagination pagination-rounded mb-0">
-                                    <li class="page-item me-0">
-                                        <div
-                                            class="page-link-v2 page-link-prev"
-                                            aria-label="Previous"
-                                            style="cursor:pointer"
-                                            onclick="${gvc.event(() => {
+              <nav class="d-flex my-3 justify-content-center">
+                <ul class="pagination pagination-rounded mb-0">
+                  <li class="page-item me-0">
+                    <div
+                      class="page-link-v2 page-link-prev"
+                      aria-label="Previous"
+                      style="cursor:pointer"
+                      onclick="${gvc.event(() => {
                             nowPage - 1 > 0 && callback(nowPage - 1);
                         })}"
-                                        >
-                                            <i class="fa-solid fa-angle-left angle-style"></i>
-                                        </div>
-                                    </li>
-                                    ${glitter.print(() => {
-                            if (nowPage - 2 > 0) {
-                                return generator(nowPage - 2) + generator(nowPage - 1);
+                    >
+                      <i class="fa-solid fa-angle-left angle-style"></i>
+                    </div>
+                  </li>
+                  ${glitter.print(() => {
+                            let result = '';
+                            for (let i = Math.max(1, nowPage - 4); i < nowPage; i++) {
+                                result += generator(i);
                             }
-                            else if (nowPage - 1 > 0) {
-                                return generator(nowPage - 1);
-                            }
-                            else {
-                                return ``;
-                            }
+                            return result;
                         })}
-                                    <li class="page-item active mx-0" style="border-radius: 100%">
-                                        <div class="page-link-v2 page-link-active">${nowPage}</div>
-                                    </li>
-                                    ${glitter.print(() => {
-                            if (nowPage + 2 <= countPage) {
-                                return generator(nowPage + 1) + generator(nowPage + 2);
+                  <li class="page-item active mx-0" style="border-radius: 100%">
+                    <div class="page-link-v2 page-link-active">${nowPage}</div>
+                  </li>
+                  ${glitter.print(() => {
+                            let result = '';
+                            for (let i = nowPage + 1; i <= Math.min(nowPage + 4, countPage); i++) {
+                                result += generator(i);
                             }
-                            else if (nowPage + 1 <= countPage) {
-                                return generator(nowPage + 1);
-                            }
-                            else {
-                                return ``;
-                            }
+                            return result;
                         })}
-                                    <li class="page-item ms-0">
-                                        <div
-                                            class="page-link-v2 page-link-next"
-                                            aria-label="Next"
-                                            style="cursor:pointer"
-                                            onclick="${gvc.event(() => {
+                  <li class="page-item ms-0">
+                    <div
+                      class="page-link-v2 page-link-next"
+                      aria-label="Next"
+                      style="cursor:pointer"
+                      onclick="${gvc.event(() => {
                             nowPage + 1 <= countPage && callback(nowPage + 1);
                         })}"
-                                        >
-                                            <i class="fa-solid fa-angle-right angle-style"></i>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </nav>
-                            ${glitter.print(() => {
+                    >
+                      <i class="fa-solid fa-angle-right angle-style"></i>
+                    </div>
+                  </li>
+                </ul>
+              </nav>
+              ${glitter.print(() => {
                             if (gotoInput) {
                                 return html `
-                                        <div class="d-flex justify-content-center">
-                                            <div class="input-group mb-2 mx-4" style="width: 30%">
-                                                <div class="input-group-text">前往</div>
-                                                <input type="number" class="form-control" id="gotoPage" />
-                                                <div class="input-group-text">頁</div>
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-primary ms-3"
-                                                    onclick="${gvc.event(() => {
+                    <div class="d-flex justify-content-center">
+                      <div class="input-group mb-2 mx-4" style="width: 30%">
+                        <div class="input-group-text">前往</div>
+                        <input type="number" class="form-control" id="gotoPage" />
+                        <div class="input-group-text">頁</div>
+                        <button
+                          type="button"
+                          class="btn btn-primary ms-3"
+                          onclick="${gvc.event(() => {
                                     if (!($(`#gotoPage`).val() === undefined || $(`#gotoPage`).val() == '')) {
                                         let goto = parseInt($(`#gotoPage`).val(), 10);
                                         goto < 1 && (goto = 1);
@@ -264,21 +272,20 @@ export class PageSplit {
                                         callback(goto);
                                     }
                                 })}"
-                                                >
-                                                    GO
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `;
+                        >
+                          GO
+                        </button>
+                      </div>
+                    </div>
+                  `;
                             }
                             else {
-                                return ``;
+                                return '';
                             }
                         })}
-                        `;
+            `;
                     }
                 },
-                divCreate: {},
                 onCreate: () => {
                     if (vm.loading) {
                         vm.loading = false;

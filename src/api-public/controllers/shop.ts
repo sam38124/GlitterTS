@@ -817,7 +817,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
       }
     }
 
-    if(type === 'jkopay'){
+    if (type === 'jkopay') {
       const jko = new JKO(req.query.appName as string, keyData);
       const data: any = await jko.confirmAndCaptureOrder(req.query.orderID as string);
       if (`${data.transactions[0].status}` === '0') {
@@ -1513,13 +1513,23 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
 // 手動開立發票
 router.post('/customer_invoice', async (req: express.Request, resp: express.Response) => {
   try {
-
     return response.succ(
       resp,
       await new Shopping(req.get('g-app') as string, req.body.token).postCustomerInvoice({
         orderID: req.body.orderID,
         orderData: req.body.orderData,
       })
+    );
+  } catch (err) {
+    return response.fail(resp, err);
+  }
+});
+router.post('/batch_customer_invoice', async (req: express.Request, resp: express.Response) => {
+  try {
+    const dataArray = req.body.array;
+    return response.succ(
+      resp,
+      await new Shopping(req.get('g-app') as string, req.body.token).batchPostCustomerInvoice(dataArray)
     );
   } catch (err) {
     return response.fail(resp, err);

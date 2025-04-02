@@ -350,7 +350,7 @@ export class DeliveryHTML {
                         </td>
                         <td class="text-right">${item.sale_price.toLocaleString()}</td>
                         <td class="text-right">${item.count}</td>
-                        <td class="text-right">$ ${(item.sale_price * parseInt(item.count, 10)).toLocaleString()}</td>
+                        <td class="text-right">$ ${Tool.floatAdd(item.sale_price * item.count, 0).toLocaleString()}</td>
                       </tr>
                     `;
             })
@@ -589,7 +589,7 @@ export class DeliveryHTML {
                         </td>
                         <td class="text-right">${item.sale_price.toLocaleString()}</td>
                         <td class="text-right">${item.count}</td>
-                        <td class="text-right">$ ${(item.sale_price * parseInt(item.count, 10)).toLocaleString()}</td>
+                        <td class="text-right">$ ${Tool.floatAdd(item.sale_price * item.count, 0).toLocaleString()}</td>
                       </tr>
                     `;
             })

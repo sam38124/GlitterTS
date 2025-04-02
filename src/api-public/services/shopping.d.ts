@@ -11,6 +11,15 @@ type BindItem = {
     shipment_fee: number;
     times: number;
 };
+type InvoiceData = {
+    invoiceID: string;
+    allowanceData: any;
+    orderID: string;
+    orderData: any;
+    allowanceInvoiceTotalAmount: string;
+    itemList: any;
+    invoiceDate: string;
+};
 export interface VoucherData {
     id: number;
     title: string;
@@ -552,20 +561,13 @@ export declare class Shopping {
     }): Promise<{
         result: string | boolean | undefined;
     }>;
+    batchPostCustomerInvoice(dataArray: InvoiceData[]): Promise<any>;
     voidInvoice(obj: {
         invoice_no: string;
         reason: string;
         createDate: string;
     }): Promise<void>;
-    allowanceInvoice(obj: {
-        invoiceID: string;
-        allowanceData: any;
-        orderID: string;
-        orderData: any;
-        allowanceInvoiceTotalAmount: string;
-        itemList: any;
-        invoiceDate: string;
-    }): Promise<boolean>;
+    allowanceInvoice(obj: InvoiceData): Promise<boolean>;
     voidAllowance(obj: {
         invoiceNo: string;
         allowanceNo: string;

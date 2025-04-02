@@ -1485,6 +1485,19 @@ export class ApiShop {
     });
   }
 
+  static batchPostInvoice(passData: any) {
+    return BaseApi.create({
+      url: getBaseUrl() + `/api-public/v1/ec/batch_customer_invoice`,
+      type: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'g-app': getConfig().config.appName,
+        Authorization: getConfig().config.token,
+      },
+      data: JSON.stringify({ array: passData }),
+    });
+  }
+
   static voidInvoice(invoiceNo: string, voidReason: string, createDate: string) {
     const passData = {
       invoiceNo: invoiceNo,

@@ -1281,6 +1281,15 @@ router.post('/customer_invoice', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.post('/batch_customer_invoice', async (req, resp) => {
+    try {
+        const dataArray = req.body.array;
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).batchPostCustomerInvoice(dataArray));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.post('/void_invoice', async (req, resp) => {
     try {
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).voidInvoice({

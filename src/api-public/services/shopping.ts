@@ -45,6 +45,16 @@ type BindItem = {
   times: number;
 };
 
+type InvoiceData = {
+  invoiceID: string;
+  allowanceData: any;
+  orderID: string;
+  orderData: any;
+  allowanceInvoiceTotalAmount: string;
+  itemList: any;
+  invoiceDate: string;
+};
+
 export interface VoucherData {
   id: number;
   title: string;
@@ -6063,6 +6073,24 @@ export class Shopping {
     };
   }
 
+  async batchPostCustomerInvoice(dataArray: InvoiceData[]) {
+    let result: any = [];
+    const chunk = 10;
+    const chunksCount = Math.ceil(dataArray.length / chunk);
+
+    for (let i = 0; i < chunksCount; i++) {
+      const arr = dataArray.slice(i * chunk, (i + 1) * chunk);
+      const res = await Promise.all(
+        arr.map(item => {
+          return this.postCustomerInvoice(item);
+        })
+      );
+      result = result.concat(res);
+    }
+
+    return result;
+  }
+
   async voidInvoice(obj: { invoice_no: string; reason: string; createDate: string }) {
     const config = await app.getAdConfig(this.app, 'invoice_setting');
     const passData = {
@@ -6096,15 +6124,7 @@ export class Shopping {
     );
   }
 
-  async allowanceInvoice(obj: {
-    invoiceID: string;
-    allowanceData: any;
-    orderID: string;
-    orderData: any;
-    allowanceInvoiceTotalAmount: string;
-    itemList: any;
-    invoiceDate: string;
-  }) {
+  async allowanceInvoice(obj: InvoiceData) {
     const config = await app.getAdConfig(this.app, 'invoice_setting');
     let invoiceData = await db.query(
       `

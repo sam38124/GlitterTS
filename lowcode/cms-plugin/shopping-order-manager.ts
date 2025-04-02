@@ -629,6 +629,67 @@ export class ShoppingOrderManager {
 
               const normalArray = [
                 {
+                  name: '開立發票',
+                  option: true,
+                  event: (checkArray: any) => {
+                    dialog.dataLoading({ visible: true, text: '取得訂單資料中' });
+                    ApiShop.getOrder({
+                      page: 0,
+                      limit: 9999,
+                      id_list: checkArray.map((order: any) => order.id).join(','),
+                    }).then(r => {
+                      dialog.dataLoading({ visible: false });
+
+                      if (r.result && Array.isArray(r.response.data)) {
+                        const orders: Invoice[] = r.response.data;
+
+                        const hasInvoiceOrder = orders.find(order => order.invoice_number);
+                        if (hasInvoiceOrder) {
+                          dialog.infoMessage({
+                            text: `訂單編號 #${hasInvoiceOrder.cart_token} 已開立發票，請重新選取`,
+                          });
+                          return;
+                        }
+
+                        const hasCancelOrder = orders.find(order => `${order.orderData.orderStatus}` === '-1');
+                        if (hasCancelOrder) {
+                          dialog.infoMessage({
+                            text: `訂單編號 #${hasCancelOrder.cart_token} 已取消，不可開立發票`,
+                          });
+                          return;
+                        }
+
+                        const hasReturnOrder = orders.find(order => `${order.status}` === '-2');
+                        if (hasReturnOrder) {
+                          dialog.infoMessage({
+                            text: `訂單編號 #${hasReturnOrder.cart_token} 已退款，不可開立發票`,
+                          });
+                          return;
+                        }
+
+                        orders.forEach(order => {
+                          order.orderData.user_info.address ??= '無地址';
+                        });
+
+                        dialog.dataLoading({ visible: true, text: '開立發票中' });
+                        return ApiShop.batchPostInvoice(
+                          orders.map(order => {
+                            return { orderID: order.cart_token, orderData: order };
+                          })
+                        ).then(r => {
+                          dialog.dataLoading({ visible: false });
+                          if (r.result) {
+                            dialog.successMessage({ text: '開立成功' });
+                            gvc.notifyDataChange(vm.id);
+                          } else {
+                            dialog.errorMessage({ text: '開立失敗' });
+                          }
+                        });
+                      }
+                    });
+                  },
+                },
+                {
                   name: '合併訂單',
                   option: true,
                   event: (checkArray: any) => {
@@ -652,9 +713,9 @@ export class ShoppingOrderManager {
                   name: '自動生成出貨單',
                   option: true,
                   event: (checkArray: any) => {
-                    const strArray = checkArray.map((dd: any) => {
+                    const strArray = checkArray.map((order: any) => {
                       try {
-                        return dd.orderData.user_info.shipment;
+                        return order.orderData.user_info.shipment;
                       } catch (error) {
                         return undefined;
                       }
@@ -673,7 +734,7 @@ export class ShoppingOrderManager {
 
                     OrderModule.printStoreOrderInfo({
                       gvc,
-                      cart_token: checkArray.map((dd: any) => dd.cart_token).join(','),
+                      cart_token: checkArray.map((order: any) => order.cart_token).join(','),
                       print: false,
                       callback: () => gvc.notifyDataChange(vm.id),
                     });
@@ -705,16 +766,16 @@ export class ShoppingOrderManager {
                             });
                             let index_number = 0;
                             await Promise.all(
-                              checkArray.map((orderData: any) => {
+                              checkArray.map((order: any) => {
                                 return new Promise(async (resolve, reject) => {
-                                  orderData.orderData.user_info.shipment_number = `${new Date().getTime()}${index_number++}`;
-                                  orderData.orderData.user_info.shipment_date = new Date(
+                                  order.orderData.user_info.shipment_number = `${new Date().getTime()}${index_number++}`;
+                                  order.orderData.user_info.shipment_date = new Date(
                                     `${shipment_date} ${shipment_time}:00`
                                   ).toISOString();
 
                                   ApiShop.putOrder({
-                                    id: `${orderData.id}`,
-                                    order_data: orderData.orderData,
+                                    id: `${order.id}`,
+                                    order_data: order.orderData,
                                   }).then(response => {
                                     resolve(true);
                                   });
@@ -791,12 +852,12 @@ export class ShoppingOrderManager {
                     }
                     dialog.dataLoading({ visible: true });
                     await Promise.all(
-                      checkArray.map((orderData: any) => {
+                      checkArray.map((order: any) => {
                         return new Promise(async resolve => {
                           ApiDelivery.cancelOrder({
-                            cart_token: orderData.cart_token,
-                            logistic_number: orderData.orderData.user_info.shipment_number as any,
-                            total_amount: orderData.orderData.total as any,
+                            cart_token: order.cart_token,
+                            logistic_number: order.orderData.user_info.shipment_number as any,
+                            total_amount: order.orderData.total as any,
                           })
                             .then(() => resolve(true))
                             .catch(() => resolve(true));
@@ -840,7 +901,7 @@ export class ShoppingOrderManager {
 
                     return OrderModule.printStoreOrderInfo({
                       gvc,
-                      cart_token: checkArray.map((dd: any) => dd.cart_token).join(','),
+                      cart_token: checkArray.map((order: any) => order.cart_token).join(','),
                       print: true,
                     });
                   },
@@ -912,7 +973,7 @@ export class ShoppingOrderManager {
                       ApiShop.getOrder({
                         page: 0,
                         limit: 1000,
-                        id_list: checkArray.map((data: any) => data.id).join(','),
+                        id_list: checkArray.map((order: any) => order.id).join(','),
                       }).then(d => {
                         dialog.dataLoading({ visible: false });
                         if (d.result && Array.isArray(d.response.data)) {
@@ -2008,7 +2069,7 @@ export class ShoppingOrderManager {
                               {
                                 title: '小計',
                                 description: `${orderData.orderData.lineItems
-                                  .map(dd => parseInt(dd.count, 10))
+                                  .map(dd => dd.count)
                                   .reduce((accumulator, currentValue) => accumulator + currentValue, 0)} 件商品`,
                                 total: `$${(
                                   orderData.orderData.total +
@@ -3126,6 +3187,9 @@ export class ShoppingOrderManager {
               return BgWidget.maintenance();
             }
           },
+          divCreate: {
+            style: vm.filter_type === 'pos' ? 'padding: 0 1.25rem;' : '',
+          },
         });
       } catch (e) {
         console.error(`replaceView error: ${e}`);
@@ -3268,10 +3332,10 @@ export class ShoppingOrderManager {
             // 折扣處理
             if (newVoucher.method === 'percent') {
               // 百分比折扣計算
-              newVoucher.discount_total = Math.round(orderDetail.subtotal * newVoucher.value * 0.01);
+              newVoucher.discount_total = Math.round(orderDetail.subtotal * Number(newVoucher.value) * 0.01);
             } else {
               // 固定金額折扣，不超過消費金額
-              newVoucher.discount_total = Math.min(orderDetail.subtotal, newVoucher.value);
+              newVoucher.discount_total = Math.min(orderDetail.subtotal, Number(newVoucher.value));
             }
 
             // 更新訂單折扣
@@ -3280,11 +3344,11 @@ export class ShoppingOrderManager {
           } else if (newVoucher.reBackType === 'rebate') {
             if (newVoucher.method === 'fixed') {
               // 固定金額回饋
-              newVoucher.rebate_total = Math.min(newVoucher.value, orderDetail.subtotal);
+              newVoucher.rebate_total = Math.min(Number(newVoucher.value), orderDetail.subtotal);
               orderDetail.rebate = newVoucher.rebate_total;
             } else {
               // 百分比回饋計算
-              newVoucher.rebate_total = Math.round(orderDetail.subtotal * newVoucher.value * 0.01);
+              newVoucher.rebate_total = Math.round(orderDetail.subtotal * Number(newVoucher.value) * 0.01);
               orderDetail.rebate = newVoucher.rebate_total;
             }
 
