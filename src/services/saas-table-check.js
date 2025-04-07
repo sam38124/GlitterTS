@@ -3,7 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.compare_sql_table = exports.SaasScheme = void 0;
+exports.SaasScheme = void 0;
+exports.compare_sql_table = compare_sql_table;
 const database_1 = __importDefault(require("../modules/database"));
 const config_1 = require("../config");
 exports.SaasScheme = {
@@ -219,6 +220,16 @@ exports.SaasScheme = {
   UNIQUE KEY \`index2\` (\`type\`,\`bind\`,\`tag\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
             },
+            {
+                scheme: config_1.saasConfig.SAAS_NAME,
+                table: 'error_log',
+                sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`message\` TEXT NULL,
+  \`stack\` TEXT NULL,
+  \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+            },
         ];
         const groupSize = 5;
         for (const b of chunkArray(sqlArray, groupSize)) {
@@ -267,5 +278,4 @@ async function compare_sql_table(scheme, table, sql) {
         return false;
     }
 }
-exports.compare_sql_table = compare_sql_table;
 //# sourceMappingURL=saas-table-check.js.map

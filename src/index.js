@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -68,6 +70,7 @@ const sitemap_1 = require("sitemap");
 const stream_1 = require("stream");
 const seo_config_js_1 = require("./seo-config.js");
 const Language_js_1 = require("./Language.js");
+const caught_error_js_1 = require("./modules/caught-error.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -117,10 +120,15 @@ async function initial(serverPort) {
         }
         web_socket_js_1.WebSocket.start();
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
+        caught_error_js_1.CaughtError.initial();
+        const appName = 't_1739528535198';
+        const keyData = (await private_config_js_1.Private_config.getConfig({
+            appName: appName,
+            key: 'glitter_finance',
+        }))[0].value['newWebPay'];
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -733,7 +741,6 @@ async function createAPP(dd) {
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

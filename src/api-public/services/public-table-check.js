@@ -696,7 +696,7 @@ class ApiPublic {
   KEY \`index4\` (\`spec\`),
   KEY \`index5\` (\`count\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.1'`,
-                },
+                }
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;

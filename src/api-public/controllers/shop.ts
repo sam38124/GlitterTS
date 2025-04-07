@@ -840,17 +840,17 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
         };
       }
       if (type === 'newWebPay') {
-        decodeData = JSON.parse(
-          new EzPay(appName, {
-            HASH_IV: keyData.HASH_IV,
-            HASH_KEY: keyData.HASH_KEY,
-            ActionURL: keyData.ActionURL,
-            NotifyURL: '',
-            ReturnURL: '',
-            MERCHANT_ID: keyData.MERCHANT_ID,
-            TYPE: keyData.TYPE,
-          }).decode(req.body.TradeInfo)
-        );
+        const decode = new EzPay(appName, {
+          HASH_IV: keyData.HASH_IV,
+          HASH_KEY: keyData.HASH_KEY,
+          ActionURL: keyData.ActionURL,
+          NotifyURL: '',
+          ReturnURL: '',
+          MERCHANT_ID: keyData.MERCHANT_ID,
+          TYPE: keyData.TYPE,
+        }).decode(req.body.TradeInfo);
+        //移除跳脫字元
+        decodeData = JSON.parse(decode.replace(/\x1B/g, ''));
       }
       // 執行付款完成之訂單事件
       if (decodeData['Status'] === 'SUCCESS') {
@@ -862,6 +862,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
 
     return response.succ(resp, {});
   } catch (err) {
+    console.log(`notify-error`, req.body);
     console.error(err);
     return response.fail(resp, err);
   }

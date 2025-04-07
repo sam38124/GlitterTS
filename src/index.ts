@@ -45,6 +45,8 @@ import AWS from 'aws-sdk';
 import { extractCols, extractProds, SeoConfig } from './seo-config.js';
 import { Language } from './Language.js';
 import { FbApi } from './api-public/services/fb-api.js';
+import { CaughtError } from './modules/caught-error.js';
+import { EzPay } from './api-public/services/financial-service.js';
 
 export const app = express();
 const logger = new Logger();
@@ -104,6 +106,16 @@ export async function initial(serverPort: number) {
     }
     WebSocket.start();
     logger.info('[Init]', `Server is listening on port: ${serverPort}`);
+    CaughtError.initial();
+    const appName='t_1739528535198'
+    const keyData = (
+      await Private_config.getConfig({
+        appName: appName,
+        key: 'glitter_finance',
+      })
+    )[0].value['newWebPay'];
+
+    // console.log(`decode===>`,JSON.parse(decode.trim().replace(/ /g, '')))
     console.log('Starting up the server now.');
   })();
 }

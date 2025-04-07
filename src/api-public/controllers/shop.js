@@ -697,7 +697,7 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
                 };
             }
             if (type === 'newWebPay') {
-                decodeData = JSON.parse(new financial_service_js_1.EzPay(appName, {
+                const decode = new financial_service_js_1.EzPay(appName, {
                     HASH_IV: keyData.HASH_IV,
                     HASH_KEY: keyData.HASH_KEY,
                     ActionURL: keyData.ActionURL,
@@ -705,7 +705,8 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
                     ReturnURL: '',
                     MERCHANT_ID: keyData.MERCHANT_ID,
                     TYPE: keyData.TYPE,
-                }).decode(req.body.TradeInfo));
+                }).decode(req.body.TradeInfo);
+                decodeData = JSON.parse(decode.replace(/\x1B/g, ''));
             }
             if (decodeData['Status'] === 'SUCCESS') {
                 await new shopping_1.Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
@@ -717,6 +718,7 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
         return response_1.default.succ(resp, {});
     }
     catch (err) {
+        console.log(`notify-error`, req.body);
         console.error(err);
         return response_1.default.fail(resp, err);
     }
