@@ -18,7 +18,9 @@ import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { Currency } from '../../glitter-base/global/currency.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { Animation } from '../../glitterBundle/module/Animation.js';
-import {ApiLiveInteraction} from "../../glitter-base/route/live-purchase-interactions.js";
+import { ApiLiveInteraction } from '../../glitter-base/route/live-purchase-interactions.js';
+import { ApplicationConfig } from '../../application-config.js';
+
 const html = String.raw;
 
 interface UserVoucher extends VoucherContent {
@@ -31,14 +33,17 @@ interface Voucher extends OriginVoucher {
 
 export class CheckoutIndex {
   static main(gvc: GVC, widget: any, subData: any) {
-    console.log(`[CheckoutIndex]:`, gvc);
+
     const glitter = gvc.glitter;
-    let onlineData:any = {}
+    if (glitter.share.is_application && glitter.getUrlParameter('page') !== 'checkout') {
+      return ``;
+    }
+    let onlineData: any = {};
 
     //取得要顯示的購物車
     let apiCart = (() => {
       if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
-        ApiCart.checkoutCart=ApiCart.globalCart;
+        ApiCart.checkoutCart = ApiCart.globalCart;
         return new ApiCart(ApiCart.globalCart);
       } else {
         return new ApiCart(ApiCart.checkoutCart);
@@ -87,7 +92,6 @@ export class CheckoutIndex {
         width: obj?.circle?.width ?? 20,
         borderSize: obj?.circle?.borderSize ?? 16,
       };
-
       const textAttr = {
         value: obj?.text?.value ?? Language.text('loading'),
         visible: obj?.text?.visible === false ? false : true,
@@ -505,12 +509,16 @@ export class CheckoutIndex {
           });
         }).then(data => {
           vm.cartData = data;
-          if (onlineData.interaction){
+          if (onlineData.interaction) {
             let newTotal = 0;
-            (data as any).lineItems.forEach((lineItem:any) => {
-              let product = onlineData.interaction.content.item_list.find((item:any) => {return item.id == lineItem.id});
-              let variant = product.content.variants.find((item:any) => {return item.spec.join(',') == lineItem.spec.join(',')});
-              lineItem.sale_price =  parseInt(variant.live_model.live_price);
+            (data as any).lineItems.forEach((lineItem: any) => {
+              let product = onlineData.interaction.content.item_list.find((item: any) => {
+                return item.id == lineItem.id;
+              });
+              let variant = product.content.variants.find((item: any) => {
+                return item.spec.join(',') == lineItem.spec.join(',');
+              });
+              lineItem.sale_price = parseInt(variant.live_model.live_price);
               newTotal += lineItem.sale_price * lineItem.count;
             });
             (data as any).total = newTotal + (data as any).shipment_fee;
@@ -624,14 +632,14 @@ export class CheckoutIndex {
       return dd;
     }
 
-    if (gvc.glitter.getUrlParameter('source') == 'group_buy' && gvc.glitter.getUrlParameter('cart_id')){
+    if (gvc.glitter.getUrlParameter('source') == 'group_buy' && gvc.glitter.getUrlParameter('cart_id')) {
       const cart_id = glitter.getUrlParameter('cart_id');
       const online_cart = new ApiCart(cart_id);
       online_cart.clearCart();
       ApiLiveInteraction.getOnlineCart(cart_id).then(r => {
-        r.response.cartData.content.cart.forEach((item:any)=>{
-          online_cart.addToCart(item.id , item.spec.split(',') , item.count);
-        })
+        r.response.cartData.content.cart.forEach((item: any) => {
+          online_cart.addToCart(item.id, item.spec.split(','), item.count);
+        });
         onlineData = r.response;
         apiCart = online_cart;
 
@@ -639,8 +647,8 @@ export class CheckoutIndex {
         glitter.share.reloadCartData = () => {
           refreshCartData();
         };
-      })
-    }else {
+      });
+    } else {
       refreshCartData();
       glitter.share.reloadCartData = () => {
         refreshCartData();
@@ -1003,11 +1011,10 @@ export class CheckoutIndex {
                               <div>${vm.rebateConfig.title}${Language.text('discount')}</div>
                               <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
                             </div>
-                          <div class="${gClass(['price-row', 'text-2'])}">
-                             <div>${vm.rebateConfig.title}${Language.text('reback_text')}</div>
-                            <div>+ ${vm.cartData.rebate.toLocaleString()}</div>
-                          </div>
-                          
+                            <div class="${gClass(['price-row', 'text-2'])}">
+                              <div>${vm.rebateConfig.title}${Language.text('reback_text')}</div>
+                              <div>+ ${vm.cartData.rebate.toLocaleString()}</div>
+                            </div>
 
                             <div class="${gClass(['price-row', 'text-2'])}">
                               <div
@@ -1160,9 +1167,9 @@ export class CheckoutIndex {
                       return {
                         bind: ids.cart,
                         view: () => {
-                          let padding = ((document.body.clientWidth - 1200) / 2);
-                          if(gvc.glitter.getUrlParameter('page')!=='checkout') {
-                            padding=0
+                          let padding = (document.body.clientWidth - 1200) / 2;
+                          if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
+                            padding = 0;
                           }
                           const shipmentSupportSet = new Set(vm.cartData.shipment_support);
 
@@ -1186,7 +1193,8 @@ export class CheckoutIndex {
                           return html`
                             <div
                               class="d-flex flex-column flex-md-row justify-content-between w-100"
-                              style="${(document.body.clientWidth > 800) && gvc.glitter.getUrlParameter('page')==='checkout'
+                              style="${document.body.clientWidth > 800 &&
+                              gvc.glitter.getUrlParameter('page') === 'checkout'
                                 ? `height:calc(100vh - 150px);overflow-y:auto;`
                                 : `gap:20px;`} padding-left:${padding > 0 ? padding : 10}px;padding-right:${padding > 0
                                 ? padding
@@ -1197,7 +1205,14 @@ export class CheckoutIndex {
                                   ? `width:calc(66% - 10px);`
                                   : `width:calc(100%);`}"
                               >
-                                <div style="padding-top:20px;" class="${gClass('banner-text')} fs-4 mb-3 pt-3 ${ (gvc.glitter.getUrlParameter('page')==='checkout') ? ``:`d-none`}">
+                                <div
+                                  style="padding-top:20px;"
+                                  class="${gClass('banner-text')} fs-4 mb-3 pt-3 ${gvc.glitter.getUrlParameter(
+                                    'page'
+                                  ) === 'checkout'
+                                    ? ``
+                                    : `d-none`}"
+                                >
                                   ${Language.text(
                                     ApiCart.checkoutCart === ApiCart.buyItNow ? 'buy_it_now' : 'your_shopping_cart'
                                   )}
@@ -2120,27 +2135,31 @@ export class CheckoutIndex {
                                             <button
                                               class="${gClass('button-bgr')}"
                                               onclick="${gvc.event(() => {
-                                                // ApiDelivery.storeMaps({
-                                                //     returnURL: location.href,
-                                                //     logistics: vm.cartData.user_info.shipment,
-                                                // }).then(async (res) => {
-                                                //     console.log(res.response)
-                                                //     $('body').html(` <form  action="https://logistic.paynow.com.tw/Member/Order/Choselogistics" method="post" enctype="application/x-www-form-urlencoded"
-                                                // accept="text/html">
-                                                //      <input type="hidden" name="CheckMacValue" id="CheckMacValue"
-                                                //       value="${json.checkMacValue}"/>
-                                                // <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
-                                                // hidden></button>
-                                                // </form>`);
-                                                //     (document.querySelector('#submit') as any).click();
-                                                // });
-
                                                 ApiDelivery.storeMaps({
-                                                  returnURL: location.href,
+                                                  returnURL: (()=>{
+                                                    if(ApplicationConfig.device_type==='ios'){
+                                                      const url=new URL(location.href);
+                                                      url.searchParams.set("select_map_finish","true");
+                                                      return url.href;
+                                                    }else{
+                                                      return location.href;
+                                                    }
+                                                  })(),
                                                   logistics: vm.cartData.user_info.shipment,
                                                 }).then(async res => {
-                                                  $('body').html(res.response.form);
-                                                  (document.querySelector('#submit') as any).click();
+                                                  if (ApplicationConfig.device_type === 'ios') {
+                                                    glitter.runJsInterFace(
+                                                      'post_form',
+                                                      {
+                                                        form: res.response.form,
+                                                      },
+                                                      () => {}
+                                                    );
+                                                  } else {
+                                                    const form_id = gvc.glitter.getUUID();
+                                                    $('body').append(`<div id="${form_id}">${res.response.form}</div>`);
+                                                    (document.querySelector(`#${form_id} #submit`) as any).click();
+                                                  }
                                                 });
                                               })}"
                                             >
@@ -3200,7 +3219,11 @@ export class CheckoutIndex {
                                                       const urlObject = new URL(originalUrl);
                                                       urlObject.searchParams.set('EndCheckout', '1');
                                                       const newUrl = urlObject.toString();
-                                                      return newUrl;
+                                                      if ((ApplicationConfig.device_type === 'ios') && ['jkopay','line_pay'].includes(vm.cartData.customer_info.payment_select)) {
+                                                        return `${ApplicationConfig.bundle_id}://?path=${encodeURIComponent(newUrl)}`;
+                                                      } else {
+                                                        return newUrl;
+                                                      }
                                                     })(),
                                                     user_info: vm.cartData.user_info,
                                                     code: apiCart.cart.code,
@@ -3231,11 +3254,14 @@ export class CheckoutIndex {
                                                               >
                                                                 ${document.body.clientWidth < 800
                                                                   ? `
-                                                                            <div class="pt-5  bg-white position-relative vw-100" style="height: ${window.innerHeight}px;overflow-y: auto;">
+                                                                            <div class="bg-white position-relative vw-100" style="height: ${window.innerHeight}px;overflow-y: auto;
+                                                                            padding-top:${50 + glitter.share.top_inset}px;
+                                                                            ">
                                                                             `
                                                                   : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
                                                                 <div
-                                                                  style="position: absolute; right: 15px;top:15px;z-index:1;"
+                                                                  style="position: absolute; right: 15px;top:${15 +
+                                                                  glitter.share.top_inset}px;z-index:1;"
                                                                   onclick="${gvc.event(() => {
                                                                     gvc.closeDialog();
                                                                   })}"
@@ -3341,17 +3367,34 @@ export class CheckoutIndex {
                                                         res.response.returnCode == '0000' &&
                                                         vm.cartData.customer_info.payment_select == 'line_pay'
                                                       ) {
-                                                        console.log(
-                                                          'res.response.form.info.paymentUrl.web -- ',
-                                                          res.response.info.paymentUrl.web
-                                                        );
-                                                        location.href = res.response.info.paymentUrl.web;
+                                                        if (glitter.share.is_application) {
+                                                          gvc.glitter.runJsInterFace(
+                                                            'intent_url',
+                                                            {
+                                                              url: res.response.info.paymentUrl.app,
+                                                            },
+                                                            () => {}
+                                                          );
+                                                          // location.href = res.response.info.paymentUrl.app;
+                                                        } else {
+                                                          location.href = res.response.info.paymentUrl.web;
+                                                        }
                                                         // todo 手機跳轉用這個
                                                         //     location.href = res.response.form.info.paymentUrl.app;
                                                       } else if (res.response.approveLink) {
                                                         location.href = res.response.approveLink;
                                                       } else if (vm.cartData.customer_info.payment_select == 'jkopay') {
-                                                        location.href = res.response.result_object.payment_url;
+                                                        if (glitter.share.is_application) {
+                                                          gvc.glitter.runJsInterFace(
+                                                            'intent_url',
+                                                            {
+                                                              url: res.response.result_object.payment_url,
+                                                            },
+                                                            () => {}
+                                                          );
+                                                        } else {
+                                                          location.href = res.response.result_object.payment_url;
+                                                        }
                                                       } else {
                                                         const id = gvc.glitter.getUUID();
                                                         $('body').append(
@@ -3438,13 +3481,16 @@ export class CheckoutIndex {
             },
             divCreate: {
               class: `check_out_cart_data text-start`,
-              style: gvc.glitter.getUrlParameter('page')==='checkout' ? `background:#f0f0f0;`:`background:#f0f0f0;padding-top:10px;border-radius:10px;`,
+              style:
+                gvc.glitter.getUrlParameter('page') === 'checkout'
+                  ? `background:#f0f0f0;`
+                  : `background:#f0f0f0;padding-top:10px;border-radius:10px;`,
             },
             onCreate: () => {
-              if(gvc.glitter.getUrlParameter('page')!=='checkout'){
-                setTimeout(()=>{
-                  document.querySelector('footer')!.remove()
-                },10)
+              if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
+                setTimeout(() => {
+                  document.querySelector('footer')!.remove();
+                }, 10);
               }
               Ad.gtagEvent('view_cart', {
                 currency: 'TWD',
@@ -3474,9 +3520,12 @@ export class CheckoutIndex {
             },
           };
         })()
-      ) + (gvc.glitter.getUrlParameter('page')==='checkout' ? `
+      ) +
+      (gvc.glitter.getUrlParameter('page') === 'checkout'
+        ? `
       <div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 vw-100 vh-100"></div>
-      `:`
+      `
+        : `
       <div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 w-100"></div>
       `)
     );
@@ -3532,10 +3581,9 @@ export class CheckoutIndex {
         if (ship_method && ship_method.system_form) {
           return (ship_method.system_form ?? []).includes('tw-address-selector');
         }
-        return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(subData['shipment']);
+        return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice','global_express'].includes(subData['shipment']);
       })()
     ) {
-      console.log(`subData===>`, subData);
       if (!subData['address'] || subData['address'] === '') {
         dialog.errorMessage({
           text: `${Language.text('please_enter')}「${Language.text('shipping_address')}」`,

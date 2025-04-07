@@ -1,12 +1,22 @@
+export interface AppReleaseConfig {
+    logo: string;
+    name: string;
+    status: string;
+    keywords: string;
+    copy_right: string;
+    store_name: string;
+    description: string;
+    privacy_url: string;
+    promote_img: string;
+    support_url: string;
+    landing_page: string;
+    contact_email: string;
+    contact_phone: string;
+    store_sub_title: string;
+    app_store_promote: string;
+    google_play_promote: string;
+}
 export declare class Release {
-    static ios(cf: {
-        appName: string;
-        bundleID: string;
-        appDomain: string;
-        project_router: string;
-        glitter_domain: string;
-        domain_url: string;
-    }): Promise<void>;
     static android(cf: {
         appName: string;
         bundleID: string;

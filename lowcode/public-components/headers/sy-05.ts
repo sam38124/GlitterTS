@@ -263,7 +263,8 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
         },
         mobile:()=>{
           return HeaderMobile.mian({
-            gvc:gvc
+            gvc:gvc,
+            widget:widget
           })
         },
         gvc:gvc

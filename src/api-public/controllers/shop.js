@@ -20,6 +20,7 @@ const data_analyze_1 = require("../services/data-analyze");
 const rebate_1 = require("../services/rebate");
 const pos_js_1 = require("../services/pos.js");
 const shopnex_line_message_1 = require("../services/model/shopnex-line-message");
+const caught_error_js_1 = require("../../modules/caught-error.js");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
@@ -706,7 +707,11 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
                     MERCHANT_ID: keyData.MERCHANT_ID,
                     TYPE: keyData.TYPE,
                 }).decode(req.body.TradeInfo);
-                decodeData = JSON.parse(decode.replace(/\x1B/g, ''));
+                decodeData = JSON.parse(decode.replace(/[\u0000-\u001F]+/g, '')
+                    .replace(/[\u007F-\u009F]/g, '')
+                    .replace(/\\'/g, "'")
+                    .replace(/[\r\n]+/g, '\\n'));
+                console.log(`decodeData==>`, decodeData);
             }
             if (decodeData['Status'] === 'SUCCESS') {
                 await new shopping_1.Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
@@ -720,6 +725,7 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
     catch (err) {
         console.log(`notify-error`, req.body);
         console.error(err);
+        caught_error_js_1.CaughtError.warning(`checkout-notify`, `${err}`, `${err}`);
         return response_1.default.fail(resp, err);
     }
 });

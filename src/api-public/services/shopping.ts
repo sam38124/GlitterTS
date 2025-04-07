@@ -214,7 +214,6 @@ export type Cart = {
   fbc: string;
   fbp: string;
   scheduled_id?: string;
-  shipmentSupport?: string[];
   editRecord: { time: string; record: string }[];
   combineOrderID?: number;
 };
@@ -1153,7 +1152,11 @@ export class Shopping {
       };
     } else {
       const total = await db
-        .query(`SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}`, [])
+        .query(
+          `SELECT COUNT(*) as count
+                FROM \`${this.app}\`.t_manager_post ${whereClause}`,
+          []
+        )
         .then((res: any) => res[0]?.count || 0);
 
       return {
@@ -2407,16 +2410,18 @@ export class Shopping {
       checkPoint('set payment');
 
       // 線下付款
-      (keyData as any).cash_on_delivery = (keyData as any).cash_on_delivery ?? { support: [] };
+      (keyData as any).cash_on_delivery = (keyData as any).cash_on_delivery ?? { shipmentSupport: [] };
       (carData as any).payment_info_line_pay = keyData.payment_info_line_pay;
       (carData as any).payment_info_atm = keyData.payment_info_atm;
-
       const defaultPayArray = onlinePayArray.map(item => item.key);
-
+      (keyData as any).cash_on_delivery.shipmentSupport = (keyData as any).cash_on_delivery.shipmentSupport ?? [];
+      console.log(`checkoutPayment=>`,checkoutPayment)
       // 透過特定金流，取得指定物流
-      carData.shipmentSupport = checkoutPayment
+      carData.shipment_support = checkoutPayment
         ? ((() => {
-            if (defaultPayArray.includes(checkoutPayment) || checkoutPayment === 'cash_on_delivery') {
+            if (checkoutPayment === 'cash_on_delivery') {
+              return (keyData as any).cash_on_delivery;
+            } else if (defaultPayArray.includes(checkoutPayment)) {
               return keyData[checkoutPayment];
             } else if (checkoutPayment === 'atm') {
               return keyData.payment_info_atm;
@@ -2429,6 +2434,8 @@ export class Shopping {
             }
           })().shipmentSupport ?? [])
         : [];
+
+
 
       // 防止帶入購物金時，總計小於0
       let subtotal = 0;
@@ -2541,9 +2548,9 @@ export class Shopping {
       });
 
       // 物流是否可使用判斷
-      if (Array.isArray(carData.shipmentSupport)) {
+      if (Array.isArray(carData.shipment_support)) {
         await Promise.all(
-          carData.shipmentSupport.map(async sup => {
+          carData.shipment_support.map(async sup => {
             return await userClass
               .getConfigV2({ key: 'shipment_config_' + sup, user_id: 'manager' })
               .then(r => {
@@ -2554,7 +2561,7 @@ export class Shopping {
               });
           })
         ).then(dataArray => {
-          carData.shipmentSupport = carData.shipmentSupport?.filter((_, index) => dataArray[index]);
+          carData.shipment_support = carData.shipment_support?.filter((_, index) => dataArray[index]);
         });
       }
 
@@ -4633,8 +4640,10 @@ export class Shopping {
         const orderVoucher = cartData.orderData.voucherList[i];
 
         const voucherRow = await db.query(
-          `SELECT * FROM \`${this.app}\`.t_manager_post
-           WHERE JSON_EXTRACT(content, '$.type') = 'voucher' AND id = ?;`,
+          `SELECT *
+           FROM \`${this.app}\`.t_manager_post
+           WHERE JSON_EXTRACT(content, '$.type') = 'voucher'
+             AND id = ?;`,
           [orderVoucher.id]
         );
 
@@ -5565,7 +5574,8 @@ export class Shopping {
       );
 
       async function getNextId(app: string): Promise<number> {
-        const query = `SELECT MAX(id) AS max_id FROM \`${app}\`.t_manager_post`;
+        const query = `SELECT MAX(id) AS max_id
+                       FROM \`${app}\`.t_manager_post`;
 
         try {
           const result = await db.query(query, []);

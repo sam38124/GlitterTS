@@ -471,7 +471,8 @@ border-radius: 5px;"
             },
             mobile: () => {
                 return HeaderMobile.mian({
-                    gvc: gvc
+                    gvc: gvc,
+                    widget: widget
                 });
             },
             gvc: gvc

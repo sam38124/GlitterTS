@@ -81,11 +81,16 @@ class User {
     }
     async findAuthUser(email) {
         try {
-            const authData = (await database_1.default.query(`SELECT *
+            if (['shopnex'].includes(this.app)) {
+                const authData = (await database_1.default.query(`SELECT *
            FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
            WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
           `, [email || '-21']))[0];
-            return authData;
+                return authData;
+            }
+            else {
+                return undefined;
+            }
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'checkAuthUser Error:' + e, null);

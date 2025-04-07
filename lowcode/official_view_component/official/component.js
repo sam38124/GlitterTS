@@ -14,6 +14,7 @@ import { BaseApi } from '../../glitterBundle/api/base.js';
 import { GlobalWidget } from '../../glitterBundle/html-component/global-widget.js';
 import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 import { RenderValue } from '../../glitterBundle/html-component/render-value.js';
+import { ApplicationConfig } from '../../application-config.js';
 export const component = Plugin.createComponent(import.meta.url, (glitter, editMode) => {
     return {
         render: (gvc, widget, setting, hoverID, subData, htmlGenerate, doc) => {
@@ -32,12 +33,16 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                     widget[dd].data.refer_app = widget.data.refer_app;
                 });
             }
+            const app_editor = (['index-app'].includes(gvc.glitter.getUrlParameter('page')) || ApplicationConfig.is_application);
             initialReferData(widget);
             let viewConfig = undefined;
             const html = String.raw;
             const view_container_id = widget.id;
             return {
                 view: () => {
+                    if (app_editor) {
+                        widget.mobile_editable = [];
+                    }
                     let data = undefined;
                     let tag = widget.data.tag;
                     let carryData = widget.data.carryData;
@@ -1078,7 +1083,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                     return true;
                                                                                                                 });
                                                                                                                 try {
-                                                                                                                    const global_setting_view = [
+                                                                                                                    let global_setting_view = [
                                                                                                                         `<div class="mx-3 guide-user-editor-6 "
                                                                                                                                              style=" height: 40px; padding: 6px 18px;background: #393939; border-radius: 10px; overflow: hidden;width: calc(100% - 30px);justify-content: center; align-items: center; gap: 8px; display: inline-flex;cursor: pointer;"
                                                                                                                                              onclick="${gvc.event(() => {
@@ -1158,6 +1163,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                                         </div>`,
                                                                                                                         ` <div class="mx-n3" style="background: #DDD;height: 1px;"></div>`,
                                                                                                                     ].join(`<div style="height:18px;"></div>`);
+                                                                                                                    if (app_editor) {
+                                                                                                                        global_setting_view = ``;
+                                                                                                                    }
                                                                                                                     if (vm.page === 'editor') {
                                                                                                                         const array_items = yield filterFormat(dd => {
                                                                                                                             return (dd.page !== 'color_theme' &&

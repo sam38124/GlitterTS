@@ -1,5 +1,4 @@
-/// <reference types="cookie-parser" />
-import * as core from "express-serve-static-core";
+import * as core from 'express-serve-static-core';
 import express from 'express';
 export declare class GlitterUtil {
     static set_frontend(express: core.Express, rout: {

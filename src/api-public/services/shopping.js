@@ -799,7 +799,8 @@ class Shopping {
         }
         else {
             const total = await database_js_1.default
-                .query(`SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}`, [])
+                .query(`SELECT COUNT(*) as count
+                FROM \`${this.app}\`.t_manager_post ${whereClause}`, [])
                 .then((res) => { var _a; return ((_a = res[0]) === null || _a === void 0 ? void 0 : _a.count) || 0; });
             return {
                 data: data.map((dd) => (Object.assign(Object.assign({}, dd), { content: Object.assign(Object.assign({}, dd.content), { id: dd.id }) }))),
@@ -1044,7 +1045,7 @@ class Shopping {
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10;
         try {
             const timer = {
                 count: 0,
@@ -1722,13 +1723,18 @@ class Shopping {
                 }
             });
             checkPoint('set payment');
-            keyData.cash_on_delivery = (_3 = keyData.cash_on_delivery) !== null && _3 !== void 0 ? _3 : { support: [] };
+            keyData.cash_on_delivery = (_3 = keyData.cash_on_delivery) !== null && _3 !== void 0 ? _3 : { shipmentSupport: [] };
             carData.payment_info_line_pay = keyData.payment_info_line_pay;
             carData.payment_info_atm = keyData.payment_info_atm;
             const defaultPayArray = glitter_finance_js_1.onlinePayArray.map(item => item.key);
-            carData.shipmentSupport = checkoutPayment
-                ? ((_4 = (() => {
-                    if (defaultPayArray.includes(checkoutPayment) || checkoutPayment === 'cash_on_delivery') {
+            keyData.cash_on_delivery.shipmentSupport = (_4 = keyData.cash_on_delivery.shipmentSupport) !== null && _4 !== void 0 ? _4 : [];
+            console.log(`checkoutPayment=>`, checkoutPayment);
+            carData.shipment_support = checkoutPayment
+                ? ((_5 = (() => {
+                    if (checkoutPayment === 'cash_on_delivery') {
+                        return keyData.cash_on_delivery;
+                    }
+                    else if (defaultPayArray.includes(checkoutPayment)) {
                         return keyData[checkoutPayment];
                     }
                     else if (checkoutPayment === 'atm') {
@@ -1741,7 +1747,7 @@ class Shopping {
                         const customPay = keyData.payment_info_custom.find((c) => c.id === checkoutPayment);
                         return customPay !== null && customPay !== void 0 ? customPay : {};
                     }
-                })().shipmentSupport) !== null && _4 !== void 0 ? _4 : [])
+                })().shipmentSupport) !== null && _5 !== void 0 ? _5 : [])
                 : [];
             let subtotal = 0;
             carData.lineItems.map(item => {
@@ -1811,7 +1817,7 @@ class Shopping {
                 }
                 return dd.type !== 'pos';
             });
-            carData.off_line_support = (_5 = keyData.off_line_support) !== null && _5 !== void 0 ? _5 : {};
+            carData.off_line_support = (_6 = keyData.off_line_support) !== null && _6 !== void 0 ? _6 : {};
             Object.entries(carData.off_line_support).map(([key, value]) => {
                 if (!value)
                     return;
@@ -1829,8 +1835,8 @@ class Shopping {
                     carData.off_line_support[key] = getCartFormulaPass(customPay !== null && customPay !== void 0 ? customPay : {});
                 }
             });
-            if (Array.isArray(carData.shipmentSupport)) {
-                await Promise.all(carData.shipmentSupport.map(async (sup) => {
+            if (Array.isArray(carData.shipment_support)) {
+                await Promise.all(carData.shipment_support.map(async (sup) => {
                     return await userClass
                         .getConfigV2({ key: 'shipment_config_' + sup, user_id: 'manager' })
                         .then(r => {
@@ -1841,7 +1847,7 @@ class Shopping {
                     });
                 })).then(dataArray => {
                     var _a;
-                    carData.shipmentSupport = (_a = carData.shipmentSupport) === null || _a === void 0 ? void 0 : _a.filter((_, index) => dataArray[index]);
+                    carData.shipment_support = (_a = carData.shipment_support) === null || _a === void 0 ? void 0 : _a.filter((_, index) => dataArray[index]);
                 });
             }
             checkPoint('return preview');
@@ -1899,7 +1905,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_6 = data.total) !== null && _6 !== void 0 ? _6 : 0;
+                carData.total = (_7 = data.total) !== null && _7 !== void 0 ? _7 : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1937,7 +1943,7 @@ class Shopping {
                 if (checkOutType === 'POS' && Array.isArray(data.voucherList)) {
                     const manualVoucher = data.voucherList.find((item) => item.id === 0);
                     if (manualVoucher) {
-                        manualVoucher.discount = (_7 = manualVoucher.discount_total) !== null && _7 !== void 0 ? _7 : 0;
+                        manualVoucher.discount = (_8 = manualVoucher.discount_total) !== null && _8 !== void 0 ? _8 : 0;
                         carData.total -= manualVoucher.discount;
                         carData.discount += manualVoucher.discount;
                         carData.voucherList.push(manualVoucher);
@@ -1972,7 +1978,7 @@ class Shopping {
                 await trans.commit();
                 await trans.release();
                 await Promise.all(saveStockArray.map(dd => dd()));
-                await this.releaseCheckout((_8 = data.pay_status) !== null && _8 !== void 0 ? _8 : 0, carData.orderID);
+                await this.releaseCheckout((_9 = data.pay_status) !== null && _9 !== void 0 ? _9 : 0, carData.orderID);
                 checkPoint('release pos checkout');
                 for (const email of new Set([carData.customer_info, carData.user_info].map(dd => {
                     return dd && dd.email;
@@ -2020,7 +2026,7 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                let kd = (_9 = keyData[carData.customer_info.payment_select]) !== null && _9 !== void 0 ? _9 : {
+                let kd = (_10 = keyData[carData.customer_info.payment_select]) !== null && _10 !== void 0 ? _10 : {
                     ReturnURL: '',
                     NotifyURL: '',
                 };
@@ -3419,8 +3425,10 @@ class Shopping {
         if (order_id && userData && cartData.orderData.rebate > 0) {
             for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
                 const orderVoucher = cartData.orderData.voucherList[i];
-                const voucherRow = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_manager_post
-           WHERE JSON_EXTRACT(content, '$.type') = 'voucher' AND id = ?;`, [orderVoucher.id]);
+                const voucherRow = await database_js_1.default.query(`SELECT *
+           FROM \`${this.app}\`.t_manager_post
+           WHERE JSON_EXTRACT(content, '$.type') = 'voucher'
+             AND id = ?;`, [orderVoucher.id]);
                 if (orderVoucher.id === 0 || voucherRow[0]) {
                     const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
                     const voucherTitle = orderVoucher.id === 0 ? orderVoucher.title : voucherRow[0].content.title;
@@ -4151,7 +4159,8 @@ class Shopping {
             }));
             async function getNextId(app) {
                 var _a, _b;
-                const query = `SELECT MAX(id) AS max_id FROM \`${app}\`.t_manager_post`;
+                const query = `SELECT MAX(id) AS max_id
+                       FROM \`${app}\`.t_manager_post`;
                 try {
                     const result = await database_js_1.default.query(query, []);
                     const maxId = (_b = (_a = result === null || result === void 0 ? void 0 : result[0]) === null || _a === void 0 ? void 0 : _a.max_id) !== null && _b !== void 0 ? _b : 0;

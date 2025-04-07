@@ -10,7 +10,6 @@ class FilterProtectData {
                     data['message_token'] = undefined;
                     break;
                 case 'login_fb_setting':
-                    data['secret'] = undefined;
                     data['fans_token'] = undefined;
                     data['fans_id'] = undefined;
                     break;

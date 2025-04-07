@@ -2402,8 +2402,7 @@ HtmlGenerate.changePage = (obj) => {
     var _a, _b;
     const glitter = Glitter.glitter;
     if (obj.tag === 'backend_manager') {
-        glitter.setUrlParameter('page', 'backend_manager');
-        location.reload();
+        location.href = glitter.root_path + 'backend_manager';
         return;
     }
     console.log(`changePage-time:`, window.renderClock.stop());

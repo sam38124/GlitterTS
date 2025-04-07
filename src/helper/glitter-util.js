@@ -11,11 +11,11 @@ class GlitterUtil {
             express.use(dd.rout, async (req, resp, next) => {
                 let path = req.path;
                 if (path === '/') {
-                    path = "/index.html";
+                    path = '/index.html';
                 }
                 if ((dd.path + path).indexOf('index.html') !== -1) {
                     const seo = await dd.seoManager(req, resp);
-                    let fullPath = dd.path + "/index.html";
+                    let fullPath = dd.path + '/index.html';
                     const data = fs_1.default.readFileSync(fullPath, 'utf8');
                     resp.header('Content-Type', 'text/html; charset=UTF-8');
                     return resp.send(data.replace(data.substring(data.indexOf(`<head>`) + 6, data.indexOf(`</head>`)), seo));
@@ -62,7 +62,7 @@ class GlitterUtil {
                         resp.redirect(301, seo.redirect);
                         return;
                     }
-                    let fullPath = dd.path + "/index.html";
+                    let fullPath = dd.path + '/index.html';
                     const data = fs_1.default.readFileSync(fullPath, 'utf8');
                     resp.header('Content-Type', 'text/html; charset=UTF-8');
                     let meta_info = [

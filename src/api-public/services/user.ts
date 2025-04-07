@@ -120,16 +120,22 @@ export class User {
 
   public async findAuthUser(email?: string) {
     try {
-      const authData = (
-        await db.query(
-          `SELECT *
+      //SAAS 平台才需要檢查是否有邀請
+      if(['shopnex'].includes(this.app)){
+        const authData = (
+          await db.query(
+            `SELECT *
            FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
            WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
           `,
-          [email || '-21']
-        )
-      )[0];
-      return authData;
+            [email || '-21']
+          )
+        )[0];
+        return authData;
+      }else{
+        return  undefined
+      }
+
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'checkAuthUser Error:' + e, null);
     }

@@ -9,14 +9,23 @@ const database_1 = __importDefault(require("../modules/database"));
 class CaughtError {
     static initial() {
         process_1.default.on('uncaughtException', async (err) => {
-            console.error('Uncaught Exception:', err);
-            console.error('uncaughtException', err.message, err.stack);
-            await database_1.default.query(`insert into \`${process_1.default.env.GLITTER_DB}\`.error_log (message, stack) values (?, ?)`, [
-                err.message,
-                err.stack
-            ]);
-            process_1.default.exit(1);
+            if (process_1.default.env.is_local !== 'true') {
+                console.error('Uncaught Exception:', err);
+                console.error('uncaughtException', err.message, err.stack);
+                await database_1.default.query(`insert into \`${process_1.default.env.GLITTER_DB}\`.error_log (message, stack)
+                        values (?, ?)`, [err.message, err.stack]);
+                process_1.default.exit(1);
+            }
+            else {
+                console.error('Uncaught Exception:', err);
+                console.error('uncaughtException', err.message, err.stack);
+                process_1.default.exit(1);
+            }
         });
+    }
+    static warning(tag, message, stack) {
+        database_1.default.query(`insert into \`${process_1.default.env.GLITTER_DB}\`.warning_log (tag, message, stack)
+              values (?, ?, ?)`, [tag, message, stack]);
     }
 }
 exports.CaughtError = CaughtError;

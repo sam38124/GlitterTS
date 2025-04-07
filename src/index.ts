@@ -107,17 +107,8 @@ export async function initial(serverPort: number) {
     WebSocket.start();
     logger.info('[Init]', `Server is listening on port: ${serverPort}`);
     CaughtError.initial();
-    const appName='t_1739528535198'
-    const keyData = (
-      await Private_config.getConfig({
-        appName: appName,
-        key: 'glitter_finance',
-      })
-    )[0].value['newWebPay'];
-
-    // console.log(`decode===>`,JSON.parse(decode.trim().replace(/ /g, '')))
-    console.log('Starting up the server now.');
   })();
+  console.log('Starting up the server now.');
 }
 
 function createContext(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -263,6 +254,9 @@ export async function createAPP(dd: any) {
             let home_page_data = await (async () => {
               return await Seo.getPageInfo(appName, 'index', language);
             })();
+            if(`${req.query.page}`.startsWith('products/') && !data){
+              data=home_page_data
+            }
             if (data && data.page_config) {
               data.page_config = data.page_config ?? {};
               const d = data.page_config.seo ?? {};

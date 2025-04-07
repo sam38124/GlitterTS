@@ -12,6 +12,7 @@ import { TriggerEvent } from './trigger-event.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { FirstBanner } from '../../public-components/banner/first-banner.js';
 import { Language } from '../../glitter-base/global/language.js';
+import { ApplicationConfig } from '../../application-config.js';
 init(import.meta.url, (gvc, glitter, gBundle) => {
     var _a, _b, _c, _d;
     glitter.share.htmlExtension = (_a = glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
@@ -287,6 +288,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         'functionality_storage': 'granted'
                     });
                 }
+            }
+            if (ApplicationConfig.is_application) {
+                localStorage.setItem('cookie_accept', 'true');
             }
             if ((localStorage.getItem('cookie_accept') == 'true')) {
                 acceptAd();

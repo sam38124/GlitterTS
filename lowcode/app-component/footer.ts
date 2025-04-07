@@ -8,9 +8,13 @@ import { Storage } from '../glitterBundle/helper/storage.js';
 
 const html = String.raw;
 
+
 export class Footer {
   public static main(cf: { gvc: GVC; formData: any; widget: any; key: string; callback: (data: any) => void }) {
     const gvc = cf.gvc;
+    if (cf.gvc.glitter.getUrlParameter('page') === 'checkout'){
+      return  ``
+    }
     return html` <div style="height: ${gvc.glitter.share.bottom_inset / 2}px;"></div>
       <div
         class="position-fixed bottom-0 d-flex shadow vw-100 start-0"
@@ -26,7 +30,7 @@ padding-bottom: ${gvc.glitter.share.bottom_inset / 2}px;;
               cf.gvc.glitter.href = '/index-app' + location.search;
             }),
             select: () => {
-              return cf.gvc.glitter.getUrlParameter('page') === 'index-app';
+              return ['index-app','index'].includes(cf.gvc.glitter.getUrlParameter('page')) ;
             },
           },
           {
@@ -44,56 +48,57 @@ padding-bottom: ${gvc.glitter.share.bottom_inset / 2}px;;
             icon: '<i class="fa-regular fa-cart-shopping"></i>',
             event: cf.gvc.event(() => {
               ApiCart.checkoutCart = ApiCart.globalCart;
-              gvc.glitter.innerDialog(
-                (gvc: GVC) => {
-                  return gvc.bindView(() => {
-                    const id = gvc.glitter.getUUID();
-                    return {
-                      bind: id,
-                      view: () => {
-                        return [
-                          html` <div
-                            class="w-100 d-flex align-items-center justify-content-center fw-bold position-fixed top-0 start-0"
-                            style="height: calc(50px + ${gvc.glitter.share.top_inset}px);
-                          padding-top: ${gvc.glitter.share.top_inset}px;
-                              background: ${gvc.glitter.share.globalValue['theme_color.0.solid-button-bg']};
-                              color:${gvc.glitter.share.globalValue['theme_color.0.solid-button-text']};
-                              z-index: 999;
-                              "
-                          >
-                            <div class="d-flex position-relative align-items-center justify-content-center w-100 py-3">
-                              ${Language.text('cart')}
-                              <div
-                                class="position-absolute  d-flex align-items-center justify-content-center"
-                                style="top:50%;transform: translateY(-50%);
-width:50px;height: 50px;
-right:0px;
-"
-                                onclick="${gvc.event(() => {
-                                  gvc.closeDialog();
-                                })}"
-                              >
-                                <i class="fa-solid fa-xmark"></i>
-                              </div>
-                            </div>
-                          </div>`,
-                          `  <div style="height: calc(50px + ${gvc.glitter.share.top_inset}px);"></div>`,
-                          CheckoutIndex.main(gvc, cf.widget, {}),
-                        ].join('');
-                      },
-                      divCreate: {
-                        class: `h-100  w-100`,
-                        style: `overflow-y: auto;background:#f0f0f0;`,
-                      },
-                    };
-                  });
-                },
-                'checkout',
-                {
-                  animation: Animation.popup,
-                }
-              );
+//               gvc.glitter.innerDialog(
+//                 (gvc: GVC) => {
+//                   return gvc.bindView(() => {
+//                     const id = gvc.glitter.getUUID();
+//                     return {
+//                       bind: id,
+//                       view: () => {
+//                         return [
+//                           html` <div
+//                             class="w-100 d-flex align-items-center justify-content-center fw-bold position-fixed top-0 start-0"
+//                             style="height: calc(50px + ${gvc.glitter.share.top_inset}px);
+//                           padding-top: ${gvc.glitter.share.top_inset}px;
+//                               background: ${gvc.glitter.share.globalValue['theme_color.0.solid-button-bg']};
+//                               color:${gvc.glitter.share.globalValue['theme_color.0.solid-button-text']};
+//                               z-index: 999;
+//                               "
+//                           >
+//                             <div class="d-flex position-relative align-items-center justify-content-center w-100 py-3">
+//                               ${Language.text('cart')}
+//                               <div
+//                                 class="position-absolute  d-flex align-items-center justify-content-center"
+//                                 style="top:50%;transform: translateY(-50%);
+// width:50px;height: 50px;
+// right:0px;
+// "
+//                                 onclick="${gvc.event(() => {
+//                                   gvc.closeDialog();
+//                                 })}"
+//                               >
+//                                 <i class="fa-solid fa-xmark"></i>
+//                               </div>
+//                             </div>
+//                           </div>`,
+//                           `  <div style="height: calc(50px + ${gvc.glitter.share.top_inset}px);"></div>`,
+//                           CheckoutIndex.main(gvc, cf.widget, {}),
+//                         ].join('');
+//                       },
+//                       divCreate: {
+//                         class: `h-100  w-100`,
+//                         style: `overflow-y: auto;background:#f0f0f0;`,
+//                       },
+//                     };
+//                   });
+//                 },
+//                 'checkout',
+//                 {
+//                   animation: Animation.popup,
+//                 }
+//               );
               // ApiCart.toCheckOutPage(ApiCart.globalCart);
+              gvc.glitter.href='/checkout'
             }),
             select: () => {
               return cf.gvc.glitter.getUrlParameter('page') === 'checkout';
@@ -106,6 +111,10 @@ right:0px;
                   title: '訊息',
                   icon: '<i class="fa-sharp fa-solid fa-headset"></i>',
                   event: cf.gvc.event(() => {
+                    if(!GlobalUser.token){
+                      cf.gvc.glitter.href = '/login'
+                      return
+                    }
                     const userID = (() => {
                       if (GlobalUser.token) {
                         return GlobalUser.parseJWT(GlobalUser.token).payload.userID;
@@ -150,7 +159,7 @@ right:0px;
               ? cf.gvc.glitter.share.globalValue['theme_color.0.border-button-text']
               : '#8D8D8D';
             return html` <div
-              class="d-flex flex-column align-items-center justify-content-center"
+              class="d-flex flex-column align-items-center justify-content-center flex-fill"
               style="height:63px;gap: 2px;cursor: pointer;"
               onclick="${dd.event}"
             >

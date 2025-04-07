@@ -3,6 +3,7 @@ import admin from "firebase-admin";
 import {ConfigSetting} from "../config";
 import db from "../modules/database";
 import {WebSocket} from "../services/web-socket.js";
+import { CaughtError } from './caught-error.js';
 
 export class Firebase {
     public app: string = ''
@@ -120,34 +121,39 @@ export class Firebase {
             }
             if (Array.isArray(cf.token)) {
                 for (const token of cf.token) {
-                    admin.apps.find((dd) => {
-                        return dd?.name === 'glitter'
-                    })!.messaging().send({
-                        notification: {
-                            title: cf.title,
-                            body: cf.body.replace(/<br>/g,''),
-                        },
-                        android: {
+                    try {
+                        admin.apps.find((dd) => {
+                            return dd?.name === 'glitter'
+                        })!.messaging().send({
                             notification: {
-                                sound: 'default'
+                                title: cf.title,
+                                body: cf.body.replace(/<br>/g,''),
                             },
-                        },
-                        apns: {
-                            payload: {
-                                aps: {
+                            android: {
+                                notification: {
                                     sound: 'default'
                                 },
                             },
-                        },
-                        data: {
-                            link: cf.link
-                        },
-                        "token": token!
-                    }).then((response: any) => {
-                        console.log('成功發送推播：', response);
-                    }).catch((error: any) => {
-                        console.error('發送推播時發生錯誤：', error);
-                    })
+                            apns: {
+                                payload: {
+                                    aps: {
+                                        sound: 'default'
+                                    },
+                                },
+                            },
+                            data: {
+                                link: `${cf.link || ''}`
+                            },
+                            "token": token!
+                        }).then((response: any) => {
+                            console.log('成功發送推播：', response);
+                        }).catch((error: any) => {
+                            console.error('發送推播時發生錯誤：', error);
+                        })
+                    }catch (e:any) {
+                        CaughtError.warning('fcm',`firebase->74`,`${e}`)
+                    }
+
                 }
             }
             resolve(true)

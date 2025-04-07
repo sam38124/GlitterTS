@@ -324,8 +324,13 @@ export class Template {
       page = 'all-product';
     }
     //當判斷是商品頁時
-    if (query_page.split('/')[0] === 'products' && query_page.split('/')[1] && appName !== '3131_shop') {
-      page = 'official-router';
+    if (query_page.split('/')[0] === 'products' && query_page.split('/')[1] ) {
+      if(appName === '3131_shop'){
+        page = 'products';
+      }else{
+        page = 'official-router';
+      }
+
     }
     //當判斷是CMS頁面時
     if (query_page === 'cms') {

@@ -52,6 +52,7 @@ export class Glitter {
         this.elementCallback = {};
         this.html = String.raw;
         this.promiseValueMap = {};
+        this.waiting_push_state = () => { };
         this.hidePageView = PageManager.hidePageView;
         this.showPageView = PageManager.showPageView;
         this.setHome = PageManager.setHome;
@@ -565,9 +566,11 @@ export class Glitter {
             if (this.getUrlParameter('appName')) {
                 link.searchParams.set('appName', this.getUrlParameter('appName'));
             }
-            window.history.pushState({}, document.title, link.href);
+            this.waiting_push_state = () => {
+                window.history.pushState({}, document.title, link.href);
+            };
             this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
-                cl.changePage(link.searchParams.get('page') || location.pathname.substring(1), 'page', {});
+                cl.changePage(link.searchParams.get('page') || link.pathname.substring(1), 'page', {});
             });
         }
         else {
@@ -659,7 +662,7 @@ export class Glitter {
         var _a;
         const glitter = this;
         let id = this.callBackId += 1;
-        this.callBackList.set(id, callBack);
+        window.parent.glitter.callBackList.set(id, callBack);
         let map = {
             functionName: functionName,
             callBackId: id,
@@ -765,6 +768,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 window.history.replaceState({}, title || document.title, url.href);
             }
             catch (e) {
+                console.log(e);
             }
         }
         else {
@@ -777,6 +781,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 window.history.replaceState({}, title || document.title, url.href);
             }
             catch (e) {
+                console.log(e);
             }
         }
     }

@@ -224,6 +224,18 @@ export const SaasScheme = {
   \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
             },
+            {
+                scheme: saasConfig.SAAS_NAME as string,
+                table: 'warning_log',
+                sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`message\` TEXT NULL,
+   \`tag\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`stack\` TEXT NULL,
+  \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY \`index2\` (\`tag\`),
+  PRIMARY KEY (\`id\`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+            },
         ];
         const groupSize = 5;
         for (const b of chunkArray(sqlArray, groupSize)) {

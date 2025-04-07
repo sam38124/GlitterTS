@@ -66,7 +66,7 @@ export class ProductDetail {
         ProductDetail.titleFontColor = gvc.glitter.share.globalValue['theme_color.0.title'] ?? '#333333';
         const css = String.raw;
         const product_id = gvc.glitter.getUrlParameter('product_id');
-
+        // console.log(`tttt->`,gvc.glitter.getUrlParameter('page'))
         //移除所有查詢
         const url = new URL(location.href);
         for (const b of url.searchParams.keys()) {

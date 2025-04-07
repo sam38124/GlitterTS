@@ -822,6 +822,9 @@ export class PdClass {
                     class="rounded-3 d-flex flex-column align-items-center justify-content-center fs-6 add-cart-btn fw-bold "
                     style="height:44px;width:44px;"
                     onclick="${gvc.event(() => {
+                                if (!GlobalUser.token) {
+                                    gvc.glitter.href = '/login';
+                                }
                                 const userID = (() => {
                                     if (GlobalUser.token) {
                                         return GlobalUser.parseJWT(GlobalUser.token).payload.userID;

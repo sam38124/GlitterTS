@@ -253,7 +253,8 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
             },
             mobile: () => {
                 return HeaderMobile.mian({
-                    gvc: gvc
+                    gvc: gvc,
+                    widget: widget
                 });
             },
             gvc: gvc

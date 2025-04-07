@@ -7,6 +7,7 @@ import { BaseApi } from '../../glitterBundle/api/base.js';
 import { GlobalWidget } from '../../glitterBundle/html-component/global-widget.js';
 import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 import { RenderValue } from '../../glitterBundle/html-component/render-value.js';
+import { ApplicationConfig } from '../../application-config.js';
 
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
   return {
@@ -25,13 +26,16 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
           widget[dd].data.refer_app = widget.data.refer_app;
         });
       }
-
+const app_editor=(['index-app'].includes(gvc.glitter.getUrlParameter('page')) || ApplicationConfig.is_application)
       initialReferData(widget);
       let viewConfig: any = undefined;
       const html = String.raw;
       const view_container_id = widget.id;
       return {
         view: () => {
+          if(app_editor){
+            widget.mobile_editable=[]
+          }
           let data: any = undefined;
           let tag = widget.data.tag;
           let carryData = widget.data.carryData;
@@ -1176,7 +1180,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                               return true;
                                                             });
                                                             try {
-                                                              const global_setting_view = [
+                                                              let global_setting_view = [
                                                                 `<div class="mx-3 guide-user-editor-6 "
                                                                                                                                              style=" height: 40px; padding: 6px 18px;background: #393939; border-radius: 10px; overflow: hidden;width: calc(100% - 30px);justify-content: center; align-items: center; gap: 8px; display: inline-flex;cursor: pointer;"
                                                                                                                                              onclick="${gvc.event(
@@ -1310,6 +1314,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                                         </div>`,
                                                                 ` <div class="mx-n3" style="background: #DDD;height: 1px;"></div>`,
                                                               ].join(`<div style="height:18px;"></div>`);
+                                                              if(app_editor){
+                                                                global_setting_view=``
+                                                              }
                                                               if (vm.page === 'editor') {
                                                                 const array_items: any = await filterFormat(dd => {
                                                                   return (

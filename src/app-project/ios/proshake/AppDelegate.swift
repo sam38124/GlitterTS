@@ -3,17 +3,20 @@ import Glitter_IOS
 import Firebase
 import UserNotifications
 import FirebaseMessaging
+import FacebookCore
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate,UNUserNotificationCenterDelegate {
     public static var fireBaseToken=""
     
+
     
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         Notification.createShareInterface()
         GetInset.createShareInterface()
         BasicUtil.createShareInterface()
-        FirebaseApp.configure()
+        FirebaseApp.configure();
+        Ecommerce.createShareInterface()
         //註冊推播
         Messaging.messaging().delegate = self
         if #available(iOS 10.0, *) {
@@ -32,6 +35,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate,UNUserNotificationCenterDe
         application.registerForRemoteNotifications()
         let settings = UIUserNotificationSettings(types: [.sound, .alert, .badge], categories: nil)
         application.registerUserNotificationSettings(settings)
+        ApplicationDelegate.shared.application(
+            application,
+            didFinishLaunchingWithOptions: launchOptions
+        )
+        
+    
+
         return true
     }
     
@@ -64,11 +74,11 @@ extension AppDelegate {
         print("點擊推播通知：\(userInfo["link"] )")
         ViewController.redirect=userInfo["link"] as! String
         if(userInfo["link"] != nil){
-            if((ViewController.vc != nil) && ViewController.vc!.webView.webView != nil){
-                ViewController.vc!.webView.webView!.evaluateJavaScript("""
-location.href=new URL("\(ViewController.redirect)",location.href)
-""")
-            }
+//            if((ViewController.vc != nil) && ViewController.vc!.webView.webView != nil){
+//                ViewController.vc!.webView.webView!.evaluateJavaScript("""
+//location.href=new URL("\(ViewController.redirect)",location.href)
+//""")
+//            }
         }
         completionHandler()
     }

@@ -528,7 +528,7 @@ export class Glitter {
     setUrlParameter(tag, value) {
         var search = this.setSearchParam(this.removeSearchParam(window.location.search, tag), tag, value);
         try {
-            window.history.pushState({}, document.title, search);
+            window.history.replaceState({}, document.title, search);
         }
         catch (e) {
         }

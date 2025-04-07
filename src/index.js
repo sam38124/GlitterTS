@@ -121,13 +121,8 @@ async function initial(serverPort) {
         web_socket_js_1.WebSocket.start();
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         caught_error_js_1.CaughtError.initial();
-        const appName = 't_1739528535198';
-        const keyData = (await private_config_js_1.Private_config.getConfig({
-            appName: appName,
-            key: 'glitter_finance',
-        }))[0].value['newWebPay'];
-        console.log('Starting up the server now.');
     })();
+    console.log('Starting up the server now.');
 }
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
@@ -240,6 +235,9 @@ async function createAPP(dd) {
                     let home_page_data = await (async () => {
                         return await seo_js_1.Seo.getPageInfo(appName, 'index', language);
                     })();
+                    if (`${req.query.page}`.startsWith('products/') && !data) {
+                        data = home_page_data;
+                    }
                     if (data && data.page_config) {
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};

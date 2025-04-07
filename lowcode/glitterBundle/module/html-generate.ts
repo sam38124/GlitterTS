@@ -592,8 +592,8 @@ export class HtmlGenerate {
         const glitter = Glitter.glitter;
         //複寫back_manager的頁面，避免堆棧問題
         if(obj.tag==='backend_manager'){
-            glitter.setUrlParameter('page','backend_manager')
-            location.reload()
+
+            location.href=glitter.root_path+'backend_manager'
             return
         }
 

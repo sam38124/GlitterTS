@@ -7,18 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CA12898C2D9D4CF800796132 /* IQKeyboardManagerSwift in Frameworks */ = {isa = PBXBuildFile; productRef = CA12898B2D9D4CF800796132 /* IQKeyboardManagerSwift */; };
+		CA3A68752D8FE34A00C260FA /* FacebookCore in Frameworks */ = {isa = PBXBuildFile; productRef = CA3A68742D8FE34A00C260FA /* FacebookCore */; };
+		CA3A68772D8FE34A00C260FA /* FacebookLogin in Frameworks */ = {isa = PBXBuildFile; productRef = CA3A68762D8FE34A00C260FA /* FacebookLogin */; };
+		CA3A687A2D8FE37800C260FA /* LineSDK in Frameworks */ = {isa = PBXBuildFile; productRef = CA3A68792D8FE37800C260FA /* LineSDK */; };
+		CA3A687C2D8FE37800C260FA /* LineSDKObjC in Frameworks */ = {isa = PBXBuildFile; productRef = CA3A687B2D8FE37800C260FA /* LineSDKObjC */; };
+		CA3A68832D8FE95400C260FA /* MainView.xib in Resources */ = {isa = PBXBuildFile; fileRef = CA3A68822D8FE95400C260FA /* MainView.xib */; };
+		CA3A68852D8FE96000C260FA /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3A68842D8FE96000C260FA /* MainView.swift */; };
 		CA6D465C2A5A936100DBA4F3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D465B2A5A936100DBA4F3 /* AppDelegate.swift */; };
 		CA6D465E2A5A936100DBA4F3 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D465D2A5A936100DBA4F3 /* SceneDelegate.swift */; };
 		CA6D46602A5A936100DBA4F3 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D465F2A5A936100DBA4F3 /* ViewController.swift */; };
 		CA6D46632A5A936100DBA4F3 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA6D46612A5A936100DBA4F3 /* Main.storyboard */; };
 		CA6D46652A5A936200DBA4F3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CA6D46642A5A936200DBA4F3 /* Assets.xcassets */; };
 		CA6D46682A5A936200DBA4F3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA6D46662A5A936200DBA4F3 /* LaunchScreen.storyboard */; };
-		CA6D46712A5A943400DBA4F3 /* Glitter_IOS in Frameworks */ = {isa = PBXBuildFile; productRef = CA6D46702A5A943400DBA4F3 /* Glitter_IOS */; };
 		CA6D46762A5A95AF00DBA4F3 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = CA6D46752A5A95AF00DBA4F3 /* SnapKit */; };
-		CA6D467A2A5A9D8C00DBA4F3 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = CA6D46792A5A9D8C00DBA4F3 /* FirebaseAuth */; };
-		CA6D467C2A5A9D8C00DBA4F3 /* FirebaseInAppMessaging-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = CA6D467B2A5A9D8C00DBA4F3 /* FirebaseInAppMessaging-Beta */; };
-		CA6D467E2A5A9D8C00DBA4F3 /* FirebaseInAppMessagingSwift-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = CA6D467D2A5A9D8C00DBA4F3 /* FirebaseInAppMessagingSwift-Beta */; };
-		CA6D46802A5A9D8C00DBA4F3 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = CA6D467F2A5A9D8C00DBA4F3 /* FirebaseMessaging */; };
 		CA6D468A2A5AAF6100DBA4F3 /* GetInset.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D46892A5AAF6100DBA4F3 /* GetInset.swift */; };
 		CA88EEBD2B240279003BC9F9 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA88EEBC2B240279003BC9F9 /* Notification.swift */; };
 		CA88EEBF2B2402A3003BC9F9 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CA88EEBE2B2402A2003BC9F9 /* GoogleService-Info.plist */; };
@@ -29,9 +31,18 @@
 		CAC5EE102B249BF3008E695D /* Fastfile in Resources */ = {isa = PBXBuildFile; fileRef = CAC5EE0F2B249BF3008E695D /* Fastfile */; };
 		CAC5EE132B249DFE008E695D /* Deliverfile in Resources */ = {isa = PBXBuildFile; fileRef = CAC5EE112B249DFE008E695D /* Deliverfile */; };
 		CAC5EE142B249DFE008E695D /* Appfile in Resources */ = {isa = PBXBuildFile; fileRef = CAC5EE122B249DFE008E695D /* Appfile */; };
+		CACE60202D9D27C50071FCBD /* Ecommerce.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE601F2D9D27C50071FCBD /* Ecommerce.swift */; };
+		CACE60242D9D29130071FCBD /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = CACE60232D9D29130071FCBD /* GoogleSignIn */; };
+		CACE60262D9D29130071FCBD /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = CACE60252D9D29130071FCBD /* GoogleSignInSwift */; };
+		CACE60352D9D4A290071FCBD /* Glitter_IOS in Frameworks */ = {isa = PBXBuildFile; productRef = CACE60342D9D4A290071FCBD /* Glitter_IOS */; };
+		CACE60382D9D4ADA0071FCBD /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CACE60372D9D4ADA0071FCBD /* FirebaseAnalytics */; };
+		CACE603A2D9D4ADA0071FCBD /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = CACE60392D9D4ADA0071FCBD /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		CA12898D2D9D4DA100796132 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CA3A68822D8FE95400C260FA /* MainView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainView.xib; sourceTree = "<group>"; };
+		CA3A68842D8FE96000C260FA /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		CA6D46582A5A936100DBA4F3 /* proshake.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = proshake.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA6D465B2A5A936100DBA4F3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CA6D465D2A5A936100DBA4F3 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -39,7 +50,6 @@
 		CA6D46622A5A936100DBA4F3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		CA6D46642A5A936200DBA4F3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CA6D46672A5A936200DBA4F3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		CA6D46692A5A936200DBA4F3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CA6D46772A5A97C100DBA4F3 /* proshake.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = proshake.entitlements; sourceTree = "<group>"; };
 		CA6D46892A5AAF6100DBA4F3 /* GetInset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetInset.swift; sourceTree = "<group>"; };
 		CA88EEBC2B240279003BC9F9 /* Notification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
@@ -51,6 +61,7 @@
 		CAC5EE0F2B249BF3008E695D /* Fastfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Fastfile; path = fastlane/Fastfile; sourceTree = SOURCE_ROOT; };
 		CAC5EE112B249DFE008E695D /* Deliverfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Deliverfile; path = fastlane/Deliverfile; sourceTree = SOURCE_ROOT; };
 		CAC5EE122B249DFE008E695D /* Appfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Appfile; path = fastlane/Appfile; sourceTree = SOURCE_ROOT; };
+		CACE601F2D9D27C50071FCBD /* Ecommerce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ecommerce.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,18 +69,32 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA6D46802A5A9D8C00DBA4F3 /* FirebaseMessaging in Frameworks */,
-				CA6D46712A5A943400DBA4F3 /* Glitter_IOS in Frameworks */,
-				CA6D467A2A5A9D8C00DBA4F3 /* FirebaseAuth in Frameworks */,
-				CA6D467E2A5A9D8C00DBA4F3 /* FirebaseInAppMessagingSwift-Beta in Frameworks */,
+				CA3A68772D8FE34A00C260FA /* FacebookLogin in Frameworks */,
+				CACE60242D9D29130071FCBD /* GoogleSignIn in Frameworks */,
+				CACE603A2D9D4ADA0071FCBD /* FirebaseMessaging in Frameworks */,
+				CACE60262D9D29130071FCBD /* GoogleSignInSwift in Frameworks */,
+				CA3A687A2D8FE37800C260FA /* LineSDK in Frameworks */,
+				CA3A68752D8FE34A00C260FA /* FacebookCore in Frameworks */,
+				CA3A687C2D8FE37800C260FA /* LineSDKObjC in Frameworks */,
 				CA6D46762A5A95AF00DBA4F3 /* SnapKit in Frameworks */,
-				CA6D467C2A5A9D8C00DBA4F3 /* FirebaseInAppMessaging-Beta in Frameworks */,
+				CACE60352D9D4A290071FCBD /* Glitter_IOS in Frameworks */,
+				CA12898C2D9D4CF800796132 /* IQKeyboardManagerSwift in Frameworks */,
+				CACE60382D9D4ADA0071FCBD /* FirebaseAnalytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CA3A687D2D8FE8E000C260FA /* view-controler */ = {
+			isa = PBXGroup;
+			children = (
+				CA3A68822D8FE95400C260FA /* MainView.xib */,
+				CA3A68842D8FE96000C260FA /* MainView.swift */,
+			);
+			path = "view-controler";
+			sourceTree = "<group>";
+		};
 		CA6D464F2A5A936100DBA4F3 = {
 			isa = PBXGroup;
 			children = (
@@ -89,6 +114,7 @@
 		CA6D465A2A5A936100DBA4F3 /* proshake */ = {
 			isa = PBXGroup;
 			children = (
+				CA3A687D2D8FE8E000C260FA /* view-controler */,
 				CAA358BD2C1740C1002D815E /* extension */,
 				CAC5EE122B249DFE008E695D /* Appfile */,
 				CAC5EE112B249DFE008E695D /* Deliverfile */,
@@ -103,7 +129,7 @@
 				CA6D46612A5A936100DBA4F3 /* Main.storyboard */,
 				CA6D46642A5A936200DBA4F3 /* Assets.xcassets */,
 				CA6D46662A5A936200DBA4F3 /* LaunchScreen.storyboard */,
-				CA6D46692A5A936200DBA4F3 /* Info.plist */,
+				CA12898D2D9D4DA100796132 /* Info.plist */,
 			);
 			path = proshake;
 			sourceTree = "<group>";
@@ -114,6 +140,7 @@
 				CA88EEBC2B240279003BC9F9 /* Notification.swift */,
 				CA6D46892A5AAF6100DBA4F3 /* GetInset.swift */,
 				CAA358BB2C173F69002D815E /* BasicUtil.swift */,
+				CACE601F2D9D27C50071FCBD /* Ecommerce.swift */,
 			);
 			path = "glitter-interface";
 			sourceTree = "<group>";
@@ -144,12 +171,17 @@
 			);
 			name = proshake;
 			packageProductDependencies = (
-				CA6D46702A5A943400DBA4F3 /* Glitter_IOS */,
 				CA6D46752A5A95AF00DBA4F3 /* SnapKit */,
-				CA6D46792A5A9D8C00DBA4F3 /* FirebaseAuth */,
-				CA6D467B2A5A9D8C00DBA4F3 /* FirebaseInAppMessaging-Beta */,
-				CA6D467D2A5A9D8C00DBA4F3 /* FirebaseInAppMessagingSwift-Beta */,
-				CA6D467F2A5A9D8C00DBA4F3 /* FirebaseMessaging */,
+				CA3A68742D8FE34A00C260FA /* FacebookCore */,
+				CA3A68762D8FE34A00C260FA /* FacebookLogin */,
+				CA3A68792D8FE37800C260FA /* LineSDK */,
+				CA3A687B2D8FE37800C260FA /* LineSDKObjC */,
+				CACE60232D9D29130071FCBD /* GoogleSignIn */,
+				CACE60252D9D29130071FCBD /* GoogleSignInSwift */,
+				CACE60342D9D4A290071FCBD /* Glitter_IOS */,
+				CACE60372D9D4ADA0071FCBD /* FirebaseAnalytics */,
+				CACE60392D9D4ADA0071FCBD /* FirebaseMessaging */,
+				CA12898B2D9D4CF800796132 /* IQKeyboardManagerSwift */,
 			);
 			productName = proshake;
 			productReference = CA6D46582A5A936100DBA4F3 /* proshake.app */;
@@ -180,9 +212,13 @@
 			);
 			mainGroup = CA6D464F2A5A936100DBA4F3;
 			packageReferences = (
-				CA6D466F2A5A943400DBA4F3 /* XCRemoteSwiftPackageReference "GlitterForIOS" */,
 				CA6D46742A5A95AF00DBA4F3 /* XCRemoteSwiftPackageReference "SnapKit" */,
-				CA6D46782A5A9D8C00DBA4F3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				CA3A68732D8FE34A00C260FA /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
+				CA3A68782D8FE37800C260FA /* XCRemoteSwiftPackageReference "line-sdk-ios-swift" */,
+				CACE60222D9D29130071FCBD /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				CACE60332D9D4A290071FCBD /* XCRemoteSwiftPackageReference "GlitterForIOS" */,
+				CACE60362D9D4ADA0071FCBD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				CA12898A2D9D4CF800796132 /* XCRemoteSwiftPackageReference "IQKeyboardManager" */,
 			);
 			productRefGroup = CA6D46592A5A936100DBA4F3 /* ProductsPage */;
 			projectDirPath = "";
@@ -201,6 +237,7 @@
 				CAC5EE142B249DFE008E695D /* Appfile in Resources */,
 				CAC5EE102B249BF3008E695D /* Fastfile in Resources */,
 				CA6D46682A5A936200DBA4F3 /* LaunchScreen.storyboard in Resources */,
+				CA3A68832D8FE95400C260FA /* MainView.xib in Resources */,
 				CA88EEC62B2409E0003BC9F9 /* GlitterUI in Resources */,
 				CA6D46652A5A936200DBA4F3 /* Assets.xcassets in Resources */,
 				CA6D46632A5A936100DBA4F3 /* Main.storyboard in Resources */,
@@ -216,7 +253,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CACE60202D9D27C50071FCBD /* Ecommerce.swift in Sources */,
 				CA6D46602A5A936100DBA4F3 /* ViewController.swift in Sources */,
+				CA3A68852D8FE96000C260FA /* MainView.swift in Sources */,
 				CA88EEBD2B240279003BC9F9 /* Notification.swift in Sources */,
 				CA6D468A2A5AAF6100DBA4F3 /* GetInset.swift in Sources */,
 				CA6D465C2A5A936100DBA4F3 /* AppDelegate.swift in Sources */,
@@ -374,19 +413,19 @@
 				CURRENT_PROJECT_VERSION = 28;
 				DEVELOPMENT_TEAM = UMT5SK6MNZ;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = proshake/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/proshake/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Proshake媒合平台";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.1;
-				PRODUCT_BUNDLE_IDENTIFIER = Jianzhi.wang.cleander;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.shopnex.t-1725992531001";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -410,19 +449,19 @@
 				CURRENT_PROJECT_VERSION = 28;
 				DEVELOPMENT_TEAM = UMT5SK6MNZ;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = proshake/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/proshake/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Proshake媒合平台";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.1;
-				PRODUCT_BUNDLE_IDENTIFIER = Jianzhi.wang.cleander;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.shopnex.t-1725992531001";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -459,61 +498,118 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		CA6D466F2A5A943400DBA4F3 /* XCRemoteSwiftPackageReference "GlitterForIOS" */ = {
+		CA12898A2D9D4CF800796132 /* XCRemoteSwiftPackageReference "IQKeyboardManager" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sam38124/GlitterForIOS";
+			repositoryURL = "https://github.com/hackiftekhar/IQKeyboardManager";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.0;
+				minimumVersion = 8.0.1;
+			};
+		};
+		CA3A68732D8FE34A00C260FA /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/facebook/facebook-ios-sdk";
+			requirement = {
+				kind = exactVersion;
+				version = 14.1.0;
+			};
+		};
+		CA3A68782D8FE37800C260FA /* XCRemoteSwiftPackageReference "line-sdk-ios-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/line/line-sdk-ios-swift";
+			requirement = {
+				kind = exactVersion;
+				version = 5.12.0;
 			};
 		};
 		CA6D46742A5A95AF00DBA4F3 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
+				kind = exactVersion;
+				version = 5.0.0;
 			};
 		};
-		CA6D46782A5A9D8C00DBA4F3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+		CACE60222D9D29130071FCBD /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = exactVersion;
+				version = 8.0.0;
+			};
+		};
+		CACE60332D9D4A290071FCBD /* XCRemoteSwiftPackageReference "GlitterForIOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sam38124/GlitterForIOS";
+			requirement = {
+				kind = exactVersion;
+				version = 2.6.3;
+			};
+		};
+		CACE60362D9D4ADA0071FCBD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 10.0.0;
+				minimumVersion = 11.3.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CA6D46702A5A943400DBA4F3 /* Glitter_IOS */ = {
+		CA12898B2D9D4CF800796132 /* IQKeyboardManagerSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CA6D466F2A5A943400DBA4F3 /* XCRemoteSwiftPackageReference "GlitterForIOS" */;
-			productName = Glitter_IOS;
+			package = CA12898A2D9D4CF800796132 /* XCRemoteSwiftPackageReference "IQKeyboardManager" */;
+			productName = IQKeyboardManagerSwift;
+		};
+		CA3A68742D8FE34A00C260FA /* FacebookCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA3A68732D8FE34A00C260FA /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookCore;
+		};
+		CA3A68762D8FE34A00C260FA /* FacebookLogin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA3A68732D8FE34A00C260FA /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookLogin;
+		};
+		CA3A68792D8FE37800C260FA /* LineSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA3A68782D8FE37800C260FA /* XCRemoteSwiftPackageReference "line-sdk-ios-swift" */;
+			productName = LineSDK;
+		};
+		CA3A687B2D8FE37800C260FA /* LineSDKObjC */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA3A68782D8FE37800C260FA /* XCRemoteSwiftPackageReference "line-sdk-ios-swift" */;
+			productName = LineSDKObjC;
 		};
 		CA6D46752A5A95AF00DBA4F3 /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CA6D46742A5A95AF00DBA4F3 /* XCRemoteSwiftPackageReference "SnapKit" */;
 			productName = SnapKit;
 		};
-		CA6D46792A5A9D8C00DBA4F3 /* FirebaseAuth */ = {
+		CACE60232D9D29130071FCBD /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CA6D46782A5A9D8C00DBA4F3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAuth;
+			package = CACE60222D9D29130071FCBD /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
 		};
-		CA6D467B2A5A9D8C00DBA4F3 /* FirebaseInAppMessaging-Beta */ = {
+		CACE60252D9D29130071FCBD /* GoogleSignInSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CA6D46782A5A9D8C00DBA4F3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = "FirebaseInAppMessaging-Beta";
+			package = CACE60222D9D29130071FCBD /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
-		CA6D467D2A5A9D8C00DBA4F3 /* FirebaseInAppMessagingSwift-Beta */ = {
+		CACE60342D9D4A290071FCBD /* Glitter_IOS */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CA6D46782A5A9D8C00DBA4F3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = "FirebaseInAppMessagingSwift-Beta";
+			package = CACE60332D9D4A290071FCBD /* XCRemoteSwiftPackageReference "GlitterForIOS" */;
+			productName = Glitter_IOS;
 		};
-		CA6D467F2A5A9D8C00DBA4F3 /* FirebaseMessaging */ = {
+		CACE60372D9D4ADA0071FCBD /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CA6D46782A5A9D8C00DBA4F3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = CACE60362D9D4ADA0071FCBD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		CACE60392D9D4ADA0071FCBD /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CACE60362D9D4ADA0071FCBD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */

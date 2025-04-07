@@ -5,6 +5,7 @@ import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { FirstBanner } from '../../public-components/banner/first-banner.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { Ad } from '../../public-components/public/ad.js';
+import { ApplicationConfig } from '../../application-config.js';
 
 init(import.meta.url, (gvc, glitter, gBundle) => {
     glitter.share.htmlExtension = glitter.share.htmlExtension ?? {};
@@ -274,6 +275,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         'functionality_storage': 'granted' // 允許功能性 Cookie（如登入狀態）
                     });
                 }
+            }
+            //如果是APP預設追蹤
+            if(ApplicationConfig.is_application){
+                localStorage.setItem('cookie_accept', 'true');
             }
             if((localStorage.getItem('cookie_accept') == 'true')){
                 acceptAd();

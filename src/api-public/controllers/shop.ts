@@ -17,6 +17,7 @@ import { Rebate, IRebateSearch } from '../services/rebate';
 import { Pos } from '../services/pos.js';
 import { FbApi } from '../services/fb-api.js';
 import { ShopnexLineMessage } from '../services/model/shopnex-line-message';
+import { CaughtError } from '../../modules/caught-error.js';
 
 const router: express.Router = express.Router();
 export = router;
@@ -849,8 +850,12 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
           MERCHANT_ID: keyData.MERCHANT_ID,
           TYPE: keyData.TYPE,
         }).decode(req.body.TradeInfo);
-        //移除跳脫字元
-        decodeData = JSON.parse(decode.replace(/\x1B/g, ''));
+
+        decodeData = JSON.parse(decode.replace(/[\u0000-\u001F]+/g, '') // 控制字元
+          .replace(/[\u007F-\u009F]/g, '')  // 非ASCII控制字元
+          .replace(/\\'/g, "'")             // 修正單引號轉義
+          .replace(/[\r\n]+/g, '\\n'));
+        console.log(`decodeData==>`,decodeData)
       }
       // 執行付款完成之訂單事件
       if (decodeData['Status'] === 'SUCCESS') {
@@ -864,6 +869,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
   } catch (err) {
     console.log(`notify-error`, req.body);
     console.error(err);
+    CaughtError.warning(`checkout-notify`,`${err}`,`${err}`)
     return response.fail(resp, err);
   }
 });

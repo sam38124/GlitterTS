@@ -789,7 +789,7 @@ export class ProductList {
                   onclick="${gvc.event(() => {
                     glitter.setDrawer(
                       html`<div class="p-3">
-                        <div class="fw-500 mb-3" style="font-size: 24px; color: ${fontColor}">
+                        <div class="fw-500 mb-3" style="font-size: 24px; color: ${fontColor};padding-top:${gvc.glitter.share.top_inset}px !important;">
                           ${Language.text('product_categories')}
                         </div>
                         ${getCollectionHTML()}
