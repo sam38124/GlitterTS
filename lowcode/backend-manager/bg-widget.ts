@@ -2630,8 +2630,8 @@ ${obj.default ?? ''}</textarea
   }
 
   static inlineCheckBox(obj: {
-    title: string;
     gvc: any;
+    title: string;
     def: string | string[];
     array: string[] | { title: string; value: string; innerHtml?: string }[];
     callback: (text: string | string[]) => void;
