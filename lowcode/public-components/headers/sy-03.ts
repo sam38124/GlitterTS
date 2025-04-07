@@ -206,7 +206,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                   >
                     <img
                       src="${widget.formData.logo}"
-                      style="${document.body.clientWidth < 800
+                      style="${(document.body.clientWidth < 800  || (gvc.glitter.getUrlParameter('page')==='checkout'))
                         ? `max-height: 100%;max-width:200px;max-height:60px;`
                         : `height: ${(() => {
                           try {
