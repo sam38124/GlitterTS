@@ -299,6 +299,12 @@ export declare class Shopping {
     }[]>;
     getPostAddressData(address: string): Promise<any>;
     updateExhibitionActiveStock(exh_id: string, v_id: number, count: number): Promise<void>;
+    getShipmentRefer(user_info: any): Promise<any>;
+    calculateShipment(dataList: {
+        key: string;
+        value: string;
+    }[], value: number | string): number;
+    getShipmentFee(user_info: any, lineItems: CartItem[], shipment: any): number;
     toCheckout(data: {
         line_items: CartItem[];
         customer_info?: any;

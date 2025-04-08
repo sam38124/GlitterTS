@@ -1781,7 +1781,23 @@ export class ShoppingOrderManager {
                                             })}
                             </div>
                           </div>
-                          <div class="tx_700 my-3">訂單明細</div>
+                          <div class="d-flex align-items-center justify-content-between mt-3 mb-2">
+                            <div class="tx_700">訂單明細</div>
+                            ${BgWidget.customButton({
+                                            button: {
+                                                color: 'gray',
+                                                size: 'sm',
+                                            },
+                                            text: {
+                                                name: '編輯明細',
+                                            },
+                                            event: gvc.event(() => {
+                                                OrderModule.editOrderLineItems(gvc, structuredClone(orderData), () => {
+                                                    gvc.notifyDataChange(vm.id);
+                                                });
+                                            }),
+                                        })}
+                          </div>
                           ${BgWidget.horizontalLine()}
                           <div class="d-flex flex-column">
                             ${orderData.orderData.lineItems
@@ -1791,11 +1807,7 @@ export class ShoppingOrderManager {
                                                 view: () => {
                                                     function showTag(color, text) {
                                                         return html `
-                                        <div
-                                          style="background:${color};display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;font-size: 14px;font-style: normal;font-weight: 400;white-space: nowrap;"
-                                        >
-                                          ${text}
-                                        </div>
+                                        <div class="product-show-tag" style="background:${color};">${text}</div>
                                       `;
                                                     }
                                                     return html ` <div
@@ -2148,7 +2160,7 @@ export class ShoppingOrderManager {
                                                 (() => {
                                                     var _a, _b;
                                                     if (orderData.orderData.customer_info.payment_select === 'ecPay') {
-                                                        const cash_flow = (orderData.orderData.cash_flow) || {};
+                                                        const cash_flow = orderData.orderData.cash_flow || {};
                                                         return html ` <div
                                       style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
                                     >
@@ -2230,7 +2242,7 @@ export class ShoppingOrderManager {
                                     </div>`;
                                                     }
                                                     else if (orderData.orderData.customer_info.payment_select === 'paynow') {
-                                                        const cash_flow = (orderData.orderData.cash_flow) || {};
+                                                        const cash_flow = orderData.orderData.cash_flow || {};
                                                         return html `
                                       <div
                                         style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"

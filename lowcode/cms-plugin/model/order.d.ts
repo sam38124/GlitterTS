@@ -193,6 +193,7 @@ interface LineItem {
   sale_price: number;
   origin_price: number;
   discount_price: number;
+  deduction_log: any;
 }
 
 interface OrderQuery {

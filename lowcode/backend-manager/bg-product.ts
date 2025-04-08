@@ -13,7 +13,7 @@ export type OptionsItem = {
   value: string;
   image: string;
   note?: string;
-  sub_title?:string,
+  sub_title?: string;
   content?: any;
 };
 
@@ -74,7 +74,7 @@ export class BgProduct {
     productType?: string;
     single?: boolean;
     filter_visible?: string;
-    with_variants?:boolean
+    with_variants?: boolean;
     show_product_type?: boolean;
   }) {
     const glitter = (window.parent as any).glitter;
@@ -228,9 +228,13 @@ export class BgProduct {
                                                   ? BgWidget.infoInsignia(ProductConfig.getName(opt.content))
                                                   : ''}${opt.value}
                                               </div>
-                                              ${opt.sub_title ? `
-                                              <div class="fw-500" style="color:grey;font-size:13px;">${opt.sub_title}</div>
-                                              `:``}
+                                              ${opt.sub_title
+                                                ? html`
+                                                    <div class="fw-500" style="color:grey;font-size:13px;">
+                                                      ${opt.sub_title}
+                                                    </div>
+                                                  `
+                                                : ''}
                                             </div>
                                           </div>
                                           ${(() => {
@@ -321,31 +325,37 @@ export class BgProduct {
                 filter_visible: obj.filter_visible,
                 status: 'inRange',
               }).then(data => {
-                vm.options=[]
-                 data.response.data.map(
-                  (product: { content: { id: number; title: string; preview_image: string[] ;variants:any;visible:string} }) => {
-                    if(obj.with_variants){
-                    
-                      product.content.variants.map((dd:any)=>{
+                vm.options = [];
+                data.response.data.map(
+                  (product: {
+                    content: { id: number; title: string; preview_image: string[]; variants: any; visible: string };
+                  }) => {
+                    const image = product.content.preview_image[0] ?? BgWidget.noImageURL;
+                    const value = [
+                      product.content.visible === 'false' ? BgWidget.warningInsignia('隱形商品') : '',
+                      product.content.title,
+                    ]
+                      .filter(Boolean)
+                      .join('');
+
+                    if (obj.with_variants) {
+                      product.content.variants.map((variant: any) => {
                         vm.options.push({
-                          key: `${product.content.id}-${dd.spec.join('-')}`,
-                          value: [(product.content.visible==='false') ? BgWidget.warningInsignia('隱形商品'):``,product.content.title].filter((dd)=>{
-                            return dd}).join(''),
+                          key: `${product.content.id}-${variant.spec.join('-')}`,
+                          sub_title: variant.spec.join('-') ? `規格:${variant.spec.join('-')}` : '',
+                          value: value,
                           content: product.content,
-                          sub_title:dd.spec.join('-') ? `規格:${dd.spec.join('-')}`:``,
-                          image: product.content.preview_image[0] ?? BgWidget.noImageURL,
+                          image: image,
                         });
-                      })
-                    }else{
+                      });
+                    } else {
                       vm.options.push({
                         key: product.content.id,
-                        value: [(product.content.visible==='false') ? BgWidget.warningInsignia('隱形商品'):``,product.content.title].filter((dd)=>{
-                          return dd}).join(''),
+                        value: value,
                         content: product.content,
-                        image: product.content.preview_image[0] ?? BgWidget.noImageURL,
+                        image: image,
                       });
                     }
-                
                   }
                 );
                 vm.loading = false;

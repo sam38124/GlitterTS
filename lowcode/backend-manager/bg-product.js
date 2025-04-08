@@ -179,9 +179,13 @@ export class BgProduct {
                                         ? BgWidget.infoInsignia(ProductConfig.getName(opt.content))
                                         : ''}${opt.value}
                                               </div>
-                                              ${opt.sub_title ? `
-                                              <div class="fw-500" style="color:grey;font-size:13px;">${opt.sub_title}</div>
-                                              ` : ``}
+                                              ${opt.sub_title
+                                        ? html `
+                                                    <div class="fw-500" style="color:grey;font-size:13px;">
+                                                      ${opt.sub_title}
+                                                    </div>
+                                                  `
+                                        : ''}
                                             </div>
                                           </div>
                                           ${(() => {
@@ -255,28 +259,30 @@ export class BgProduct {
                             vm.options = [];
                             data.response.data.map((product) => {
                                 var _a;
+                                const image = (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL;
+                                const value = [
+                                    product.content.visible === 'false' ? BgWidget.warningInsignia('隱形商品') : '',
+                                    product.content.title,
+                                ]
+                                    .filter(Boolean)
+                                    .join('');
                                 if (obj.with_variants) {
-                                    product.content.variants.map((dd) => {
-                                        var _a;
+                                    product.content.variants.map((variant) => {
                                         vm.options.push({
-                                            key: `${product.content.id}-${dd.spec.join('-')}`,
-                                            value: [(product.content.visible === 'false') ? BgWidget.warningInsignia('隱形商品') : ``, product.content.title].filter((dd) => {
-                                                return dd;
-                                            }).join(''),
+                                            key: `${product.content.id}-${variant.spec.join('-')}`,
+                                            sub_title: variant.spec.join('-') ? `規格:${variant.spec.join('-')}` : '',
+                                            value: value,
                                             content: product.content,
-                                            sub_title: dd.spec.join('-') ? `規格:${dd.spec.join('-')}` : ``,
-                                            image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
+                                            image: image,
                                         });
                                     });
                                 }
                                 else {
                                     vm.options.push({
                                         key: product.content.id,
-                                        value: [(product.content.visible === 'false') ? BgWidget.warningInsignia('隱形商品') : ``, product.content.title].filter((dd) => {
-                                            return dd;
-                                        }).join(''),
+                                        value: value,
                                         content: product.content,
-                                        image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
+                                        image: image,
                                     });
                                 }
                             });
