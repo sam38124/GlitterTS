@@ -45,6 +45,8 @@ import AWS from 'aws-sdk';
 import { extractCols, extractProds, SeoConfig } from './seo-config.js';
 import { Language } from './Language.js';
 import { FbApi } from './api-public/services/fb-api.js';
+import { CaughtError } from './modules/caught-error.js';
+import { EzPay } from './api-public/services/financial-service.js';
 
 export const app = express();
 const logger = new Logger();
@@ -104,8 +106,9 @@ export async function initial(serverPort: number) {
     }
     WebSocket.start();
     logger.info('[Init]', `Server is listening on port: ${serverPort}`);
-    console.log('Starting up the server now.');
+    CaughtError.initial();
   })();
+  console.log('Starting up the server now.');
 }
 
 function createContext(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -251,6 +254,9 @@ export async function createAPP(dd: any) {
             let home_page_data = await (async () => {
               return await Seo.getPageInfo(appName, 'index', language);
             })();
+            if(`${req.query.page}`.startsWith('products/') && !data){
+              data=home_page_data
+            }
             if (data && data.page_config) {
               data.page_config = data.page_config ?? {};
               const d = data.page_config.seo ?? {};
@@ -374,12 +380,14 @@ export async function createAPP(dd: any) {
                             href="${(() => {
                               if (data.tag === 'index') {
                                 return `https://${brandAndMemberType.domain}`;
-                              } else {
+                              } else if (req.query.page === 'blogs') {
+                                return `https://${brandAndMemberType.domain}/blogs`;
+                              } {
                                 return `https://${brandAndMemberType.domain}/${data.tag}`;
                               }
                             })()}"
                           />
-                          ${data.tag !== req.query.page || req.query.page === 'index-mobile'
+                          ${((data.tag !== req.query.page || req.query.page === 'index-mobile') && req.query.page !== 'blogs')
                             ? `<meta name="robots" content="noindex">`
                             : `<meta name="robots" content="index, follow"/>`}
                           <meta name="keywords" content="${(d.keywords || '尚未設定關鍵字').replace(/"/g, '&quot;')}" />

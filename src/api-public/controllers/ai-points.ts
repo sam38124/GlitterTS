@@ -264,6 +264,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
         }
         return response.succ(resp, {});
     } catch (err) {
+        console.error(err);
         return response.fail(resp, err);
     }
 });

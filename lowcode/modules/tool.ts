@@ -81,4 +81,21 @@ export class Tool {
     }
     return true;
   }
+
+  static floatAdd(a: number, b: number) {
+    // 檢查 a 和 b 是否為數字
+    if (typeof a !== 'number' || typeof b !== 'number') {
+      return NaN; // 如果其中一個不是數字，則返回 NaN（Not a Number）
+    }
+
+    // 檢查 a 和 b 是否為浮點數
+    if (a % 1 !== 0 || b % 1 !== 0) {
+      // 如果是浮點數，則進行精確計算
+      const multiplier = Math.pow(10, 10); // 假設需要精確到小數點後 10 位
+      return (Math.round(a * multiplier) + Math.round(b * multiplier)) / multiplier;
+    } else {
+      // 如果是整數，則直接相加
+      return a + b;
+    }
+  }
 }

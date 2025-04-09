@@ -99,12 +99,12 @@ export class PaymentPage {
                             dialog.dataLoading({ visible: true });
                             const userInfo = obj.ogOrderData.user_info || {};
                             userInfo.shipment = userInfo.shipment || 'now';
-                            const orderDetail = yield this.checkout({
+                            const orderDetail = (yield this.checkout({
                                 line_items: obj.ogOrderData.lineItems,
                                 user_info: userInfo,
                                 code_array: obj.ogOrderData.code_array || [],
                                 use_rebate: obj.ogOrderData.use_rebate,
-                            });
+                            })) || {};
                             obj.ogOrderData.voucherList = obj.ogOrderData.voucherList || [];
                             obj.ogOrderData.voucherList.forEach((item) => {
                                 if (!orderDetail.voucherList.some((v) => v.id === item.id)) {

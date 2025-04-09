@@ -83,7 +83,7 @@ export class ShoppingDiscountSetting {
                                                     },
                                                     {
                                                         key: '狀態',
-                                                        value: html `<div style="min-width: 80px;">
+                                                        value: html ` <div style="min-width: 80px;">
                                     ${dd.content.status
                                                             ? BgWidget.successInsignia('啟用中')
                                                             : BgWidget.secondaryInsignia('已停用')}
@@ -1262,7 +1262,54 @@ export class ShoppingDiscountSetting {
                                                         voucherData.microLimited = 0;
                                                     }
                                                 }, { single: true })}`,
-                                                html ` <div class="tx_700">有效日期</div>
+                                                ...(() => {
+                                                    var _a, _b;
+                                                    if (voucherData.reBackType === 'rebate') {
+                                                        return [[
+                                                                `<div class="tx_700">購物金有效天數</div>`,
+                                                                BgWidget.multiCheckboxContainer(gvc, [
+                                                                    {
+                                                                        key: 'noEnd',
+                                                                        name: '無期限',
+                                                                    },
+                                                                    {
+                                                                        key: 'withEnd',
+                                                                        name: '有效期限',
+                                                                        innerHtml: html ` <div
+                                        class="d-flex mt-0 mt-md-3 ${document.body.clientWidth < 768
+                                                                            ? 'flex-column'
+                                                                            : ''}"
+                                        style="gap: 12px"
+                                      >
+                                        <div class="d-flex align-items-center" style="gap:10px;">
+                                          ${BgWidget.editeInput({
+                                                                            gvc: gvc,
+                                                                            title: '',
+                                                                            type: 'number',
+                                                                            style: inputStyle,
+                                                                            default: `${(_a = voucherData.rebateEndDay) !== null && _a !== void 0 ? _a : ''}`,
+                                                                            placeHolder: '0則為無期限',
+                                                                            callback: text => {
+                                                                                voucherData.rebateEndDay = text;
+                                                                                gvc.notifyDataChange(id);
+                                                                            },
+                                                                        })}
+                                          <span class="tx_normal me-2">天</span>
+                                        </div>
+                                      </div>`,
+                                                                    },
+                                                                ], [parseInt((_b = voucherData.rebateEndDay) !== null && _b !== void 0 ? _b : '0', 10) ? `withEnd` : `noEnd`], text => {
+                                                                    if (text[0] === 'noEnd') {
+                                                                        voucherData.rebateEndDay = '0';
+                                                                    }
+                                                                }, { single: true })
+                                                            ].join('<div class="my-2"></div>')];
+                                                    }
+                                                    else {
+                                                        return [];
+                                                    }
+                                                })(),
+                                                html ` <div class="tx_700">優惠券有效日期</div>
                                 <div
                                   class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
                                   style="gap: 12px"
@@ -1346,7 +1393,11 @@ export class ShoppingDiscountSetting {
                                                         voucherData.endTime = undefined;
                                                     }
                                                 }, { single: true })}`,
-                                            ].join(BgWidget.horizontalLine());
+                                            ]
+                                                .filter(dd => {
+                                                return dd;
+                                            })
+                                                .join(BgWidget.horizontalLine());
                                         },
                                     };
                                 })),

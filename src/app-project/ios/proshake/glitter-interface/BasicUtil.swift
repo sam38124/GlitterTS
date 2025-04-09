@@ -31,6 +31,14 @@ class BasicUtil{
             })
         )
         
+        GlitterActivity.sharedInterFace.append(
+            JavaScriptInterFace(functionName: "is_application", function: {
+                request in
+                request.responseValue["is_application"]=true
+                request.finish()
+            })
+        )
+        
     }
 }
 

@@ -111,12 +111,13 @@ export class PaymentPage {
               const userInfo = obj.ogOrderData.user_info || {};
               userInfo.shipment = userInfo.shipment || 'now';
 
-              const orderDetail = await this.checkout({
+              const orderDetail = (await this.checkout({
                 line_items: obj.ogOrderData.lineItems,
                 user_info: userInfo,
                 code_array: obj.ogOrderData.code_array || [],
                 use_rebate: obj.ogOrderData.use_rebate,
-              });
+              }))||{};
+
 
               // 確保 voucherList 存在
               obj.ogOrderData.voucherList = obj.ogOrderData.voucherList || [];

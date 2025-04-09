@@ -68,6 +68,7 @@ const sitemap_1 = require("sitemap");
 const stream_1 = require("stream");
 const seo_config_js_1 = require("./seo-config.js");
 const Language_js_1 = require("./Language.js");
+const caught_error_js_1 = require("./modules/caught-error.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -117,8 +118,9 @@ async function initial(serverPort) {
         }
         web_socket_js_1.WebSocket.start();
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
-        console.log('Starting up the server now.');
+        caught_error_js_1.CaughtError.initial();
     })();
+    console.log('Starting up the server now.');
 }
 exports.initial = initial;
 function createContext(req, res, next) {
@@ -232,6 +234,9 @@ async function createAPP(dd) {
                     let home_page_data = await (async () => {
                         return await seo_js_1.Seo.getPageInfo(appName, 'index', language);
                     })();
+                    if (`${req.query.page}`.startsWith('products/') && !data) {
+                        data = home_page_data;
+                    }
                     if (data && data.page_config) {
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
@@ -352,12 +357,15 @@ async function createAPP(dd) {
                                             if (data.tag === 'index') {
                                                 return `https://${brandAndMemberType.domain}`;
                                             }
-                                            else {
+                                            else if (req.query.page === 'blogs') {
+                                                return `https://${brandAndMemberType.domain}/blogs`;
+                                            }
+                                            {
                                                 return `https://${brandAndMemberType.domain}/${data.tag}`;
                                             }
                                         })()}"
                           />
-                          ${data.tag !== req.query.page || req.query.page === 'index-mobile'
+                          ${((data.tag !== req.query.page || req.query.page === 'index-mobile') && req.query.page !== 'blogs')
                                             ? `<meta name="robots" content="noindex">`
                                             : `<meta name="robots" content="index, follow"/>`}
                           <meta name="keywords" content="${(d.keywords || '尚未設定關鍵字').replace(/"/g, '&quot;')}" />

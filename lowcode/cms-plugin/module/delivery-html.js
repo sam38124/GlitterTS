@@ -350,7 +350,7 @@ export class DeliveryHTML {
                         </td>
                         <td class="text-right">${item.sale_price.toLocaleString()}</td>
                         <td class="text-right">${item.count}</td>
-                        <td class="text-right">$ ${(item.sale_price * parseInt(item.count, 10)).toLocaleString()}</td>
+                        <td class="text-right">$ ${Tool.floatAdd(item.sale_price * Number(item.count), 0).toLocaleString()}</td>
                       </tr>
                     `;
             })
@@ -581,6 +581,7 @@ export class DeliveryHTML {
               <tbody>
                 ${orderData.lineItems
                 .map((item, index) => {
+                var _a;
                 return html `
                       <tr>
                         <td class="text-left">${index + 1}</td>
@@ -589,7 +590,7 @@ export class DeliveryHTML {
                         </td>
                         <td class="text-right">${item.sale_price.toLocaleString()}</td>
                         <td class="text-right">${item.count}</td>
-                        <td class="text-right">$ ${(item.sale_price * parseInt(item.count, 10)).toLocaleString()}</td>
+                        <td class="text-right">$ ${Tool.floatAdd((_a = item.sale_price * Number(item.count)) !== null && _a !== void 0 ? _a : 0, 0).toLocaleString()}</td>
                       </tr>
                     `;
             })

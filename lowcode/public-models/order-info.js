@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { PaymentConfig } from '../glitter-base/global/payment-config.js';
-const html = String.raw;
 export class OrderInfo {
     static reconciliationStatus(dd, text_only = false) {
         var _a;

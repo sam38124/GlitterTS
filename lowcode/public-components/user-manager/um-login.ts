@@ -656,19 +656,23 @@ export class UMLogin {
                     localStorage.setItem('google_redirect', redirect_url);
 
                     if (glitter.deviceType === glitter.deviceTypeEnum.Ios) {
-                        gvc.glitter.runJsInterFace(
-                            'google_login',
-                            {
-                                app_id: widget.share.google.app_id,
-                            },
-                            (response) => {
-                                if (response.result) {
-                                    gvc.glitter.setUrlParameter('state', 'google_login');
-                                    gvc.glitter.setUrlParameter('code', response.code);
-                                    gvc.recreateView();
-                                }
-                            }
-                        );
+                        ApiUser.getPublicConfig('login_google_setting', 'manager').then((dd) => {
+                            widget.share.google = dd.response.value || {};
+                            gvc.glitter.runJsInterFace(
+                              'google_login',
+                              {
+                                  app_id: widget.share.google.app_id,
+                              },
+                              (response) => {
+                                  if (response.result) {
+                                      gvc.glitter.setUrlParameter('state', 'google_login');
+                                      gvc.glitter.setUrlParameter('code', response.code);
+                                      gvc.recreateView();
+                                  }
+                              }
+                            );
+                        });
+
                     } else {
                         gvc.glitter.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${widget.share.google.id}&redirect_uri=${redirect_url}&state=google_login&response_type=code&scope=profile+email`;
                     }
@@ -679,20 +683,17 @@ export class UMLogin {
                 created: () => {
                     ApiUser.getPublicConfig('login_fb_setting', 'manager').then((dd) => {
                         widget.share.fb = dd.response.value || {};
-
                         const loadFacebookSDK = () => {
                             const intervalId = setInterval(() => {
                                 // 檢查 SDK 是否已載入
                                 const FB = (window as any).FB;
                                 if (FB) {
                                     clearInterval(intervalId); // 清除間隔
-                                    (window as any).fbAsyncInit = () => {
-                                        FB.init({
-                                            appId: widget.share.fb.id,
-                                            xfbml: true,
-                                            version: 'v19.0',
-                                        });
-                                    };
+                                    FB.init({
+                                        appId: widget.share.fb.id,
+                                        xfbml      : true,
+                                        version    : 'v22.0'
+                                    });
                                     return;
                                 }
 
@@ -713,8 +714,13 @@ export class UMLogin {
                 },
                 call: () => {
                     return new Promise(async (resolve, reject) => {
+                        console.log('call fb',widget.share.fb)
+
                         if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
-                            gvc.glitter.runJsInterFace('facebook_login', {}, (response) => {
+                            gvc.glitter.runJsInterFace('facebook_login', {
+                                app_id:widget.share.fb.id,
+                                secret:widget.share.fb.secret
+                            }, (response) => {
                                 if (response.result) {
                                     ApiUser.login({
                                         login_type: 'fb',
@@ -785,7 +791,7 @@ export class UMLogin {
                     AppleID.auth.init({
                         clientId: widget.share.apple.id,
                         scope: 'name email',
-                        redirectURI: 'https://shopnex.tw/login',
+                        redirectURI: `https://${document.domain}/login`,
                         usePopup: false,
                     });
                     AppleID.auth.signIn();

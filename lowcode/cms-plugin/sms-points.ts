@@ -149,7 +149,7 @@ export class SmsPoints {
                                                         },
                                                         {
                                                             key: '異動原因',
-                                                            value: `${dd.money > 0 ? `加值服務` : `使用簡訊發送`}`,
+                                                            value: `${dd.money > 0 ? `加值服務` : `簡訊發送至${(dd.note && dd.note.phone )  || '-'}`}`,
                                                         },
                                                         {
                                                             key: '異動時間',

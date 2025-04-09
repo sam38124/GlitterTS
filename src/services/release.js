@@ -11,32 +11,8 @@ const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const config_js_1 = __importDefault(require("../config.js"));
 const exception_js_1 = __importDefault(require("../modules/exception.js"));
 const firebase_js_1 = require("../modules/firebase.js");
-const ios_project_js_1 = require("./ios-project.js");
 const android_project_js_1 = require("./android-project.js");
 class Release {
-    static async ios(cf) {
-        try {
-            await firebase_js_1.Firebase.appRegister({
-                appName: cf.appDomain,
-                appID: cf.bundleID,
-                type: 'ios',
-            });
-            let data = fs_1.default.readFileSync(cf.project_router, 'utf8');
-            data = data
-                .replace(/PRODUCT_BUNDLE_IDENTIFIER([\s\S]*?);/g, `PRODUCT_BUNDLE_IDENTIFIER = ${cf.bundleID};`)
-                .replace(/INFOPLIST_KEY_CFBundleDisplayName([\s\S]*?);/g, `INFOPLIST_KEY_CFBundleDisplayName = "${cf.appName}";`);
-            fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/Info.plist'), data);
-            fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/ViewController.swift'), ios_project_js_1.IosProject.getViewController(cf.domain_url));
-            fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/GoogleService-Info.plist'), (await firebase_js_1.Firebase.getConfig({
-                appID: cf.bundleID,
-                type: 'ios',
-                appDomain: cf.appDomain,
-            })));
-        }
-        catch (e) {
-            console.log(e);
-        }
-    }
     static async android(cf) {
         try {
             await firebase_js_1.Firebase.appRegister({
@@ -57,7 +33,9 @@ class Release {
             });
             fs_1.default.renameSync(path_1.default.resolve(cf.project_router, './app/src/main/java/com/ncdesign/kenda'), path_1.default.resolve(cf.project_router, 'temp_file'));
             Release.deleteFolder(path_1.default.resolve(cf.project_router, './app/src/main/java/com'));
-            fs_1.default.mkdirSync(path_1.default.resolve(cf.project_router, `./app/src/main/java/${cf.bundleID.split('.').join('/')}`), { recursive: true });
+            fs_1.default.mkdirSync(path_1.default.resolve(cf.project_router, `./app/src/main/java/${cf.bundleID.split('.').join('/')}`), {
+                recursive: true,
+            });
             fs_1.default.renameSync(path_1.default.resolve(cf.project_router, 'temp_file'), path_1.default.resolve(cf.project_router, `./app/src/main/java/${cf.bundleID.split('.').join('/')}`));
         }
         catch (e) {
@@ -73,7 +51,7 @@ class Release {
                 }
                 if (data.includes(cf.targetString)) {
                     const result = data.replace(new RegExp(cf.targetString, 'g'), cf.replacementString);
-                    fs_1.default.writeFile(filePath, result, 'utf8', (err) => {
+                    fs_1.default.writeFile(filePath, result, 'utf8', err => {
                         if (err) {
                             console.error(`Error writing file ${filePath}:`, err);
                         }
@@ -90,7 +68,7 @@ class Release {
                     console.error(`Error reading directory ${dir}:`, err);
                     return;
                 }
-                files.forEach((file) => {
+                files.forEach(file => {
                     const fullPath = path_1.default.join(dir, file.name);
                     if (file.isDirectory()) {
                         traverseDirectory(fullPath);
@@ -432,7 +410,7 @@ ${'<script>\n' +
             fs_1.default.mkdirSync(target);
         }
         const files = fs_1.default.readdirSync(source);
-        files.forEach((file) => {
+        files.forEach(file => {
             const sourcePath = path_1.default.join(source, file);
             const targetPath = path_1.default.join(target, file);
             if (fs_1.default.statSync(sourcePath).isDirectory()) {
@@ -445,7 +423,7 @@ ${'<script>\n' +
     }
     static removeAllFilesInFolder(folderPath) {
         const files = fs_1.default.readdirSync(folderPath);
-        files.forEach((file) => {
+        files.forEach(file => {
             const filePath = path_1.default.join(folderPath, file);
             if (fs_1.default.statSync(filePath).isFile()) {
                 fs_1.default.unlinkSync(filePath);

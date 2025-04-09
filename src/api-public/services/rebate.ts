@@ -80,10 +80,9 @@ export class Rebate {
     );
   }
 
-  static nowTime = (timeZone?: string) =>
-    moment()
-      .tz(timeZone ?? 'Asia/Taipei')
-      .format('YYYY-MM-DD HH:mm:ss');
+  static nowTime = (timeZone?: string) => {
+    return moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+  };
 
   // 取得購物金基本設置
   async getConfig() {

@@ -121,6 +121,8 @@ export declare class User {
         create_date: string;
     };
     getLevelConfig(): Promise<any>;
+    private filterMemberUpdates;
+    private setLevelData;
     getUserLevel(data: {
         userId?: string;
         email?: string;

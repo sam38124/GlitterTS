@@ -1,3 +1,4 @@
+import { ApiUser } from '../route/user.js';
 export class GlobalUser {
     static getWindow() {
         if (window.glitter.getUrlParameter('cms') === 'true') {
@@ -29,6 +30,39 @@ export class GlobalUser {
     }
     static set token(value) {
         GlobalUser.getWindow().glitter.setCookie(GlobalUser.getTag('token'), value);
+        if (value) {
+            GlobalUser.registerFCM(value);
+        }
+        else {
+            GlobalUser.unregisterFCM();
+        }
+    }
+    static registerFCM(value) {
+        if (value) {
+            try {
+                window.glitter.runJsInterFace('getFireBaseToken', {}, (response) => {
+                    if (response.token) {
+                        ApiUser.registerFCM(GlobalUser.parseJWT(value).payload.userID, response.token);
+                    }
+                }, {
+                    webFunction(data, callback) {
+                        callback({});
+                    },
+                });
+            }
+            catch (e) { }
+        }
+    }
+    static unregisterFCM() {
+        try {
+            window.glitter.runJsInterFace('deleteFireBaseToken', {}, (response) => {
+            }, {
+                webFunction(data, callback) {
+                    callback({});
+                },
+            });
+        }
+        catch (e) { }
     }
     static get language() {
         return GlobalUser.getWindow().glitter.getCookieByName(GlobalUser.getTag('language'));

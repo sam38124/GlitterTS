@@ -1966,7 +1966,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static container(htmlString, obj) {
         var _a;
         return html ` <div
-      class=" mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0'}"
+      class="mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0'}"
       style="max-width: 100%; width: ${this.getContainerWidth()}px; ${(_a = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _a !== void 0 ? _a : ''}"
     >
       ${htmlString}
@@ -4168,7 +4168,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 >
                   <div
                     class=" w-100"
-                    style="height: 191px; padding-top: 59px; padding-bottom: 58px; background: white; border-top-left-radius: 10px; border-top-right-radius: 10px; overflow: hidden;  justify-content: center; align-items: center; display: flex;position: relative;  "
+                    style="height: 191px; padding-top: 59px; padding-bottom: 58px; background: whitesmoke; border-top-left-radius: 10px; border-top-right-radius: 10px; overflow: hidden;  justify-content: center; align-items: center; display: flex;position: relative;  "
                   >
                     <img style="position: absolute;max-width: 100%;height: calc(100% - 10px);  " src="${image}" />
                   </div>

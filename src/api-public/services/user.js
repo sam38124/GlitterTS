@@ -81,11 +81,16 @@ class User {
     }
     async findAuthUser(email) {
         try {
-            const authData = (await database_1.default.query(`SELECT *
+            if (['shopnex'].includes(this.app)) {
+                const authData = (await database_1.default.query(`SELECT *
            FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
            WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
           `, [email || '-21']))[0];
-            return authData;
+                return authData;
+            }
+            else {
+                return undefined;
+            }
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'checkAuthUser Error:' + e, null);
@@ -671,8 +676,10 @@ class User {
                 data.pwd = undefined;
                 data.member = await this.checkMember(data, true);
                 const userLevel = (await this.getUserLevel([{ userId: data.userID }]))[0];
-                data.member_level = userLevel.data;
-                data.member_level_status = userLevel.status;
+                if (userLevel) {
+                    data.member_level = userLevel.data;
+                    data.member_level_status = userLevel.status;
+                }
                 const n = data.member.findIndex((item) => {
                     return data.member_level.id === item.id;
                 });
@@ -993,7 +1000,6 @@ class User {
         WHERE (${whereClause})
         ORDER BY ${orderByClause} ${limitClause}
     `;
-        console.log(sql);
         return sql;
     }
     getOrderByClause(orderBy) {
@@ -1350,7 +1356,7 @@ or
                         buyingList[index].count++;
                     }
                 });
-                const usuallyBuyingStandard = 4.5;
+                const usuallyBuyingStandard = 9.9;
                 const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
                 const neverBuyingData = await database_1.default.query(`SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
            FROM \`${this.app}\`.t_user
@@ -1418,18 +1424,52 @@ or
         levelList.push(this.normalMember);
         return levelList;
     }
-    async getUserLevel(data) {
-        const dataList = [];
-        const idList = data.filter(item => item.userId !== undefined).map(item => item.userId);
-        const emailList = data.filter(item => item.email !== undefined).map(item => `"${item.email}"`);
-        const idSQL = idList.length > 0 ? idList.join(',') : -1111;
-        const emailSQL = emailList.length > 0 ? emailList.join(',') : -1111;
-        const users = await database_1.default.query(`SELECT *
-       FROM \`${this.app}\`.t_user
-       WHERE userID in (${idSQL})
-          OR JSON_EXTRACT(userData, '$.email') in (${emailSQL})
-      `, []);
-        const levelList = await this.getLevelConfig();
+    async filterMemberUpdates(idList) {
+        try {
+            const memberUpdates = [];
+            if (idList.length > 10000) {
+                const idSetArray = [...new Set(idList)];
+                const idMap = new Map();
+                const getMember = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user_public_config WHERE \`key\` = 'member_update'
+          `, []);
+                const memberMap = new Map(getMember.map((item) => [`${item.user_id}`, item]));
+                idSetArray.map(id => {
+                    const getResultData = memberMap.get(`${id}`);
+                    getResultData && idMap.set(id, getResultData);
+                });
+                return Object.values(idMap);
+            }
+            else {
+                const batchSize = 300;
+                const batches = [];
+                for (let i = 0; i < idList.length; i += batchSize) {
+                    const slice = idList.slice(i, i + batchSize);
+                    const placeholders = slice.map(() => '?').join(',');
+                    const query = `
+            SELECT * FROM \`${this.app}\`.t_user_public_config
+            WHERE \`key\` = 'member_update'
+            AND user_id IN (${placeholders});
+          `;
+                    batches.push({ query, params: slice });
+                }
+                const results = await Promise.all(batches.map(({ query, params }) => {
+                    return database_1.default.query(query, params);
+                }));
+                for (const result of results) {
+                    memberUpdates.push(...result);
+                }
+            }
+            return memberUpdates;
+        }
+        catch (error) {
+            console.error(`filterMemberUpdates error: ${error}`);
+            return [];
+        }
+    }
+    async setLevelData(user, memberUpdates, levelConfig) {
+        const { userID, userData } = user;
+        const { level_status, level_default, email } = userData;
+        const levelList = levelConfig !== null && levelConfig !== void 0 ? levelConfig : (await this.getLevelConfig());
         const normalData = {
             id: this.normalMember.id,
             og: this.normalMember,
@@ -1437,47 +1477,61 @@ or
             tag_name: this.normalMember.tag_name,
             dead_line: '',
         };
-        if (users.length > 0) {
-            const memberUpdates = await database_1.default.query(`SELECT *
-         FROM \`${this.app}\`.t_user_public_config
-         WHERE \`key\` = 'member_update'
-           AND user_id in (${idSQL});`, []);
-            for (const user of users) {
-                if (user.userData.level_status === 'manual') {
-                    const member_level = levelList.find((item) => {
-                        return item.id === user.userData.level_default;
-                    });
-                    dataList.push({
-                        id: user.userID,
-                        email: user.userData.email,
-                        status: user.userData.level_status,
-                        data: member_level !== null && member_level !== void 0 ? member_level : normalData,
-                    });
-                    continue;
-                }
-                if (memberUpdates.length > 0) {
-                    const memberUpdate = await this.checkMember(user, false);
-                    if (memberUpdate.length > 0) {
-                        const member_level = memberUpdate.find((v) => v.trigger);
-                        if (member_level) {
-                            dataList.push({
-                                id: user.userID,
-                                email: user.userData.email,
-                                status: 'auto',
-                                data: member_level,
-                            });
-                            continue;
-                        }
-                    }
-                }
-                dataList.push({
-                    id: user.userID,
-                    email: user.userData.email,
+        if (level_status === 'manual') {
+            const matchedLevel = levelList.find((item) => item.id === level_default);
+            return {
+                id: userID,
+                email,
+                status: 'manual',
+                data: matchedLevel !== null && matchedLevel !== void 0 ? matchedLevel : normalData,
+            };
+        }
+        if (memberUpdates.length > 0) {
+            const matchedUpdates = await this.checkMember(user, false);
+            const triggeredLevel = matchedUpdates.find((v) => v.trigger);
+            if (triggeredLevel) {
+                return {
+                    id: userID,
+                    email,
                     status: 'auto',
-                    data: normalData,
-                });
+                    data: triggeredLevel,
+                };
             }
         }
+        return {
+            id: userID,
+            email,
+            status: 'auto',
+            data: normalData,
+        };
+    }
+    async getUserLevel(data) {
+        const idList = data
+            .filter(item => Boolean(item.userId))
+            .map(item => `${item.userId}`)
+            .concat(['-1111']);
+        const emailList = data
+            .filter(item => Boolean(item.email))
+            .map(item => `"${item.email}"`)
+            .concat(['-1111']);
+        const users = await database_1.default.query(`
+          SELECT * FROM \`${this.app}\`.t_user
+          WHERE userID in (${idList.join(',')})
+          OR JSON_EXTRACT(userData, '$.email') in (${emailList.join(',')})
+        `, []);
+        if (!users || users.length == 0)
+            return [];
+        const chunk = 50;
+        const chunkArray = [];
+        const dataList = [];
+        const levelConfig = await this.getLevelConfig();
+        const memberUpdates = await this.filterMemberUpdates(idList);
+        for (let i = 0; i < users.length; i += chunk) {
+            chunkArray.push(users.slice(i * chunk, (i + 1) * chunk));
+        }
+        await Promise.all(chunkArray.map(async (userArray) => {
+            await Promise.all(userArray.map((user) => this.setLevelData(user, memberUpdates, levelConfig).then(userData => dataList.push(userData))));
+        }));
         return dataList;
     }
     async subscribe(email, tag) {

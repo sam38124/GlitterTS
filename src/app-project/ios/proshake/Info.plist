@@ -4,17 +4,56 @@
 <dict>
 	<key>CFBundleAllowMixedLocalizations</key>
 	<true/>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>使用定位追蹤您的場景掃描路徑</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>取得你的位置來發布貼文</string>
-	<key>NSCameraUsageDescription</key>
-	<string>使用相機來拍攝照片</string>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.215644290249-ah46nt9gsh3fhb3c6cqcmnumdo8rh87p</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fb591945996522192</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>line3rdp.com.shopnex.t-1725992531001</string>
+			</array>
+		</dict>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>com.shopnex.t-1725992531001</string>
+            </array>
+        </dict>
+	</array>
+	<key>FacebookAppID</key>
+	<string>591945996522192</string>
+	<key>FacebookClientToken</key>
+	<string>b301936fa07ad2dfac864a741a506653</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>fbapi</string>
+		<string>fb-messenger-share-api</string>
+		<string>fbauth2</string>
+        <string>line</string>
+		<string>fbshareextension</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>

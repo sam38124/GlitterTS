@@ -12,8 +12,9 @@ class ViewController: UIViewController {
     
     public static var vc:ViewController? = nil
     public static var redirect:String = ""
-    public let webView = GlitterActivity.create(glitterConfig: GlitterActivity.GlitterConfig(parameters:"?page=index",projectRout: URL(string: "https://proshake.tw/index")! )).initWkWebView()
-//    public let webView = GlitterActivity.create(glitterConfig: GlitterActivity.GlitterConfig(parameters:"?page=index",projectRout: Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "GlitterUI")! )).initWkWebView()
+    
+    public let webView = GlitterActivity.create(glitterConfig: GlitterActivity.GlitterConfig(parameters:"?appName=t_1725992531001",projectRout: URL(string: "https://4e98f416344c.ngrok.app/shopnex/index-app")! )).initWkWebView()
+    
     override func viewDidLoad() {
         webView.webView!.allowsBackForwardNavigationGestures = true;
         NotificationCenter.default.addObserver(self, selector: #selector(keyBoardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
@@ -24,9 +25,10 @@ class ViewController: UIViewController {
 location.href=new URL("\(ViewController.redirect)",location.href)
 """)
         }
+        self.view.backgroundColor = .white
         super.viewDidLoad()
     }
-    
+ 
     override func viewWillAppear(_ animated: Bool) {
         self.view.addSubview(self.webView.view)
     }

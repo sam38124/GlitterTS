@@ -36,10 +36,7 @@ export class ApiApp {
         })
     }
 
-    public static downloadIOSRelease(json: {
-        "app_name":string,
-        "bundle_id":string
-    }) {
+    public static downloadIOSRelease() {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/app/release/ios/download`,
             "type": "POST",
@@ -48,7 +45,7 @@ export class ApiApp {
                 "g-app": getConfig().config.appName,
                 "Authorization": getConfig().config.token
             },
-            data: JSON.stringify(json)
+            data: JSON.stringify({})
         })
     }
 

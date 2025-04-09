@@ -1140,7 +1140,7 @@ ${gvc.glitter.share.top_inset ? `padding-top:${gvc.glitter.share.top_inset }px !
                                                        },
                                                        divCreate: {
                                                            class: `chatContainer p-3 d-flex flex-column `,
-                                                           style: `overflow-y: auto;height: calc(100% - 150px);background: white;padding-bottom:${cf.hideBar ? `80` : `0`}px !important;`,
+                                                           style: `overflow-y: auto;height: calc(100% - ${150 + parseInt(`${gvc.glitter.share.top_inset / 2}`,10)}px);background: white;padding-bottom:${cf.hideBar ? `80` : `0`}px !important;`,
                                                        },
                                                        onCreate: () => {
                                                            vm.close = false;
@@ -1447,8 +1447,13 @@ ${gvc.glitter.share.top_inset ? `padding-top:${gvc.glitter.share.top_inset }px !
                         <div class="card rounded-3">
                             <div class="p-3 rounded-top"
                                  style="width: 100%;white-space: normal;background: ${CustomerMessageUser.config.color};">
-                                <div class="text-white fw-bold" style=" font-size: 20px;">
+                                <div class="text-white fw-bold d-flex align-items-center" style=" font-size: 20px;">
                                     ${CustomerMessageUser.config.title ?? ''}
+                                    <div class="flex-fill"></div>
+                                    <i class="fa-regular fa-circle-xmark text-white d-md-none " onclick="${gvc.event(() => {
+                                        document.body.style.removeProperty('overflow-y');
+                                        gvc.closeDialog();
+                                    })}"></i>
                                 </div>
                                 <p class=" text-white mt-2 mb-4"
                                    style=" font-size: 16px;line-height: 22px;font-weight: 400;">
@@ -1459,6 +1464,7 @@ ${gvc.glitter.share.top_inset ? `padding-top:${gvc.glitter.share.top_inset }px !
                                     onclick="${gvc.event(() => {
                                         if(!GlobalUser.token){
                                             GlobalUser.loginRedirect = location.href;
+                                            gvc.closeDialog();
                                             gvc.glitter.href='/login';
                                         }else{
                                             goToChat('');

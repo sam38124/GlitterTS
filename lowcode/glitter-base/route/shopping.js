@@ -442,14 +442,18 @@ export class ApiShop {
     static orderListFilterString(obj) {
         if (!obj)
             return [];
-        console.log(`obj===>`, obj);
         let list = [];
         if (obj) {
             if (obj.created_time &&
                 obj.created_time.length > 1 &&
                 (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 &&
                 (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
-                list.push(`created_time=${new Date(`${obj.created_time[0]} 00:00:00`).toISOString()},${new Date(`${obj.created_time[1]} 23:59:59`).toISOString()}`);
+                if (obj.created_time[0].includes('T')) {
+                    list.push(`created_time=${new Date(obj.created_time[0]).toISOString()},${new Date(obj.created_time[1]).toISOString()}`);
+                }
+                else {
+                    list.push(`created_time=${new Date(`${obj.created_time[0]} 00:00:00`).toISOString()},${new Date(`${obj.created_time[1]} 23:59:59`).toISOString()}`);
+                }
             }
             if (obj.reconciliation_status) {
                 list.push(`reconciliation_status=${obj.reconciliation_status.join(',')}`);
@@ -1171,6 +1175,18 @@ export class ApiShop {
                 Authorization: getConfig().config.token,
             },
             data: JSON.stringify(passData),
+        });
+    }
+    static batchPostInvoice(passData) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/batch_customer_invoice`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({ array: passData }),
         });
     }
     static voidInvoice(invoiceNo, voidReason, createDate) {

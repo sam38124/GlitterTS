@@ -25,6 +25,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     ].join(`<div class="my-2"></div>`)
                 },
                 event: () => {
+
                     return new Promise(async (resolve, reject) => {
                         if(!GlobalUser.token){
                             GlobalUser.token = ''

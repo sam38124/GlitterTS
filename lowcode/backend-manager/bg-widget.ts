@@ -2355,7 +2355,7 @@ ${obj.default ?? ''}</textarea
     }
   ) {
     return html` <div
-      class=" mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0'}"
+      class="mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0'}"
       style="max-width: 100%; width: ${this.getContainerWidth()}px; ${obj?.style ?? ''}"
     >
       ${htmlString}
@@ -2636,8 +2636,8 @@ ${obj.default ?? ''}</textarea
   }
 
   static inlineCheckBox(obj: {
-    title: string;
     gvc: any;
+    title: string;
     def: string | string[];
     array: string[] | { title: string; value: string; innerHtml?: string }[];
     callback: (text: string | string[]) => void;
@@ -4917,7 +4917,7 @@ ${obj.default ?? ''}</textarea
                 >
                   <div
                     class=" w-100"
-                    style="height: 191px; padding-top: 59px; padding-bottom: 58px; background: white; border-top-left-radius: 10px; border-top-right-radius: 10px; overflow: hidden;  justify-content: center; align-items: center; display: flex;position: relative;  "
+                    style="height: 191px; padding-top: 59px; padding-bottom: 58px; background: whitesmoke; border-top-left-radius: 10px; border-top-right-radius: 10px; overflow: hidden;  justify-content: center; align-items: center; display: flex;position: relative;  "
                   >
                     <img style="position: absolute;max-width: 100%;height: calc(100% - 10px);  " src="${image}" />
                   </div>

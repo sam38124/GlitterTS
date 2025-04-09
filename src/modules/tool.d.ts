@@ -7,6 +7,7 @@ interface requestBody {
 declare function getMaskObj(obj: any): requestBody;
 declare function hashPwd(pwd: string): Promise<string>;
 declare function createOrderId(): string;
+declare function floatAdd(a: number, b: number): number;
 declare const _default: {
     isNull: typeof isNull;
     replaceDatetime: typeof replaceDatetime;
@@ -18,9 +19,10 @@ declare const _default: {
     compareHash: (pwd: string, has: string) => Promise<boolean>;
     randomNumber: (max: number) => string;
     getCurrentDateTime: (json?: {
-        inputDate?: string | undefined;
-        addSeconds?: number | undefined;
-    } | undefined) => string;
-    formatDateTime: (dateTimeStr?: string | undefined, includeSeconds?: boolean) => string;
+        inputDate?: string;
+        addSeconds?: number;
+    }) => string;
+    formatDateTime: (dateTimeStr?: string, includeSeconds?: boolean) => string;
+    floatAdd: typeof floatAdd;
 };
 export default _default;

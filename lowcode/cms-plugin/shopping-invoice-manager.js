@@ -1767,7 +1767,7 @@ ${reason}</textarea
                               <div class="col-2 text-center">${(_a = item.spec.join(',')) !== null && _a !== void 0 ? _a : '單一規格'}</div>
                               <div class="col-1 text-center">${sale_price}</div>
                               <div class="col-1 text-center">${item.count}</div>
-                              <div class="col-1 text-end">${item.count * sale_price}</div>
+                              <div class="col-1 text-end">${Tool.floatAdd(item.count * sale_price, 0)}</div>
                             </div>
                           `;
                                     });

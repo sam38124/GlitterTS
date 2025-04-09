@@ -2,34 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IosProject = void 0;
 class IosProject {
-    static getInfoPlist() {
-        return `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>UIApplicationSceneManifest</key>
-	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
-		<false/>
-		<key>UISceneConfigurations</key>
-		<dict>
-			<key>UIWindowSceneSessionRoleApplication</key>
-			<array>
-				<dict>
-					<key>UISceneConfigurationName</key>
-					<string>Default Configuration</string>
-					<key>UISceneDelegateClassName</key>
-					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
-					<key>UISceneStoryboardFile</key>
-					<string>Main</string>
-				</dict>
-			</array>
-		</dict>
-	</dict>
-</dict>
-</plist>
-`;
-    }
     static getViewController(domain) {
         return `//
 //  ViewController.swift
@@ -45,7 +17,8 @@ class ViewController: UIViewController {
     
     public static var vc:ViewController? = nil
     public static var redirect:String = ""
-    public let webView = GlitterActivity.create(glitterConfig: GlitterActivity.GlitterConfig(parameters:"?a=1",projectRout: URL(string: "https://${domain}")! )).initWkWebView()
+    public let webView = GlitterActivity.create(glitterConfig: GlitterActivity.GlitterConfig(parameters:"?a=1",projectRout: URL(string: "${domain}/index-app")! )).initWkWebView()
+    
     override func viewDidLoad() {
         webView.webView!.allowsBackForwardNavigationGestures = true;
         NotificationCenter.default.addObserver(self, selector: #selector(keyBoardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
@@ -53,12 +26,13 @@ class ViewController: UIViewController {
         ViewController.vc=self
         if(ViewController.redirect != ""){
             webView.webView!.evaluateJavaScript("""
-location.href=new URL("\\(ViewController.redirect)",location.href)
+location.href=new URL("\(ViewController.redirect)",location.href)
 """)
         }
+        self.view.backgroundColor = .white
         super.viewDidLoad()
     }
-    
+ 
     override func viewWillAppear(_ animated: Bool) {
         self.view.addSubview(self.webView.view)
     }
@@ -96,6 +70,7 @@ extension UIViewController {
         child.removeFromParent()
     }
 }
+
 `;
     }
 }

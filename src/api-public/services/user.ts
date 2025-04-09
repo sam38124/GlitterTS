@@ -29,6 +29,7 @@ import { TermsCheck } from './terms-check.js';
 import { App as GeneralApp } from '../../services/app.js';
 import { UserUpdate } from './user-update.js';
 import { ApiPublic } from './public-table-check.js';
+import { UtTimer } from '../utils/ut-timer';
 
 interface UserQuery {
   page?: number;
@@ -120,16 +121,21 @@ export class User {
 
   public async findAuthUser(email?: string) {
     try {
-      const authData = (
-        await db.query(
-          `SELECT *
+      //SAAS 平台才需要檢查是否有邀請
+      if (['shopnex'].includes(this.app)) {
+        const authData = (
+          await db.query(
+            `SELECT *
            FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
            WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
           `,
-          [email || '-21']
-        )
-      )[0];
-      return authData;
+            [email || '-21']
+          )
+        )[0];
+        return authData;
+      } else {
+        return undefined;
+      }
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'checkAuthUser Error:' + e, null);
     }
@@ -837,8 +843,10 @@ export class User {
         data.pwd = undefined;
         data.member = await this.checkMember(data, true);
         const userLevel = (await this.getUserLevel([{ userId: data.userID }]))[0];
-        data.member_level = userLevel.data;
-        data.member_level_status = userLevel.status;
+        if (userLevel) {
+          data.member_level = userLevel.data;
+          data.member_level_status = userLevel.status;
+        }
         const n = data.member.findIndex((item: { id: string; trigger: boolean }) => {
           return data.member_level.id === item.id;
         });
@@ -1206,7 +1214,6 @@ export class User {
         WHERE (${whereClause})
         ORDER BY ${orderByClause} ${limitClause}
     `;
-    console.log(sql);
     return sql;
   }
 
@@ -1238,8 +1245,8 @@ export class User {
       query.page = query.page ?? 0;
       query.limit = query.limit ?? 50;
 
-      function sqlDateConvert(dd:string){
-        return dd.replace('T',' ').replace('.000Z','')
+      function sqlDateConvert(dd: string) {
+        return dd.replace('T', ' ').replace('.000Z', '');
       }
       if (query.groupType) {
         const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
@@ -1629,6 +1636,7 @@ or
                 \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`,
           []
         );
+
         dataList.push({ type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList });
       }
 
@@ -1643,6 +1651,7 @@ or
            WHERE c.status = 1;`,
           []
         );
+
         buyingData.map((item1: { userID: number; email: string }) => {
           const index = buyingList.findIndex(item2 => item2.userID === item1.userID);
           if (index === -1) {
@@ -1653,7 +1662,7 @@ or
         });
 
         // 經常購買者清單
-        const usuallyBuyingStandard = 4.5;
+        const usuallyBuyingStandard = 9.9;
         const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
         const neverBuyingData = await db.query(
           `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
@@ -1702,6 +1711,7 @@ or
             return { userId: item.userID };
           })
         );
+
         for (const levelItem of levelItems) {
           const n = dataList.findIndex(item => item.tag === levelItem.data.id);
           if (n > -1) {
@@ -1747,6 +1757,110 @@ or
     return levelList;
   }
 
+  private async filterMemberUpdates(idList: string[]): Promise<any[]> {
+    try {
+      const memberUpdates: any[] = [];
+
+      if (idList.length > 10000) {
+        const idSetArray = [...new Set(idList)];
+        const idMap = new Map();
+
+        const getMember = await db.query(
+          `SELECT * FROM \`${this.app}\`.t_user_public_config WHERE \`key\` = 'member_update'
+          `,
+          []
+        );
+
+        const memberMap = new Map(getMember.map((item: any) => [`${item.user_id}`, item]));
+
+        idSetArray.map(id => {
+          const getResultData = memberMap.get(`${id}`);
+          getResultData && idMap.set(id, getResultData);
+        });
+
+        return Object.values(idMap);
+      } else {
+        const batchSize = 300;
+        const batches = [];
+
+        for (let i = 0; i < idList.length; i += batchSize) {
+          const slice = idList.slice(i, i + batchSize);
+          const placeholders = slice.map(() => '?').join(',');
+          const query = `
+            SELECT * FROM \`${this.app}\`.t_user_public_config
+            WHERE \`key\` = 'member_update'
+            AND user_id IN (${placeholders});
+          `;
+          batches.push({ query, params: slice });
+        }
+
+        const results = await Promise.all(
+          batches.map(({ query, params }) => {
+            return db.query(query, params);
+          })
+        );
+
+        for (const result of results) {
+          memberUpdates.push(...result);
+        }
+      }
+
+      return memberUpdates;
+    } catch (error) {
+      console.error(`filterMemberUpdates error: ${error}`);
+      return [];
+    }
+  }
+
+  private async setLevelData(user: any, memberUpdates: any, levelConfig?: any) {
+    const { userID, userData } = user;
+    const { level_status, level_default, email } = userData;
+
+    const levelList = levelConfig ?? (await this.getLevelConfig());
+
+    const normalData = {
+      id: this.normalMember.id,
+      og: this.normalMember,
+      trigger: true,
+      tag_name: this.normalMember.tag_name,
+      dead_line: '',
+    };
+
+    // 優先處理手動等級
+    if (level_status === 'manual') {
+      const matchedLevel = levelList.find((item: { id: string }) => item.id === level_default);
+      return {
+        id: userID,
+        email,
+        status: 'manual',
+        data: matchedLevel ?? normalData,
+      };
+    }
+
+    // 處理自動等級
+    if (memberUpdates.length > 0) {
+      const matchedUpdates = await this.checkMember(user, false);
+      const triggeredLevel = matchedUpdates.find((v: { trigger: boolean }) => v.trigger);
+
+      if (triggeredLevel) {
+        return {
+          id: userID,
+          email,
+          status: 'auto',
+          data: triggeredLevel,
+        };
+      }
+    }
+
+    // 預設回傳一般會員
+    return {
+      id: userID,
+      email,
+      status: 'auto',
+      data: normalData,
+    };
+  }
+
   public async getUserLevel(
     data: {
       userId?: string;
@@ -1760,77 +1874,46 @@ or
       status: 'auto' | 'manual';
     }[]
   > {
-    const dataList: any = [];
-    const idList = data.filter(item => item.userId !== undefined).map(item => item.userId);
-    const emailList = data.filter(item => item.email !== undefined).map(item => `"${item.email}"`);
-    const idSQL = idList.length > 0 ? idList.join(',') : -1111;
-    const emailSQL = emailList.length > 0 ? emailList.join(',') : -1111;
+    const idList: string[] = data
+      .filter(item => Boolean(item.userId))
+      .map(item => `${item.userId}`)
+      .concat(['-1111']);
+
+    const emailList: string[] = data
+      .filter(item => Boolean(item.email))
+      .map(item => `"${item.email}"`)
+      .concat(['-1111']);
 
     const users = await db.query(
-      `SELECT *
-       FROM \`${this.app}\`.t_user
-       WHERE userID in (${idSQL})
-          OR JSON_EXTRACT(userData, '$.email') in (${emailSQL})
-      `,
+      `
+          SELECT * FROM \`${this.app}\`.t_user
+          WHERE userID in (${idList.join(',')})
+          OR JSON_EXTRACT(userData, '$.email') in (${emailList.join(',')})
+        `,
       []
     );
 
-    const levelList = await this.getLevelConfig();
-    const normalData = {
-      id: this.normalMember.id,
-      og: this.normalMember,
-      trigger: true,
-      tag_name: this.normalMember.tag_name,
-      dead_line: '',
-    };
+    if (!users || users.length == 0) return [];
 
-    if (users.length > 0) {
-      const memberUpdates = await db.query(
-        `SELECT *
-         FROM \`${this.app}\`.t_user_public_config
-         WHERE \`key\` = 'member_update'
-           AND user_id in (${idSQL});`,
-        []
-      );
-      for (const user of users) {
-        if (user.userData.level_status === 'manual') {
-          const member_level = levelList.find((item: { id: string }) => {
-            return item.id === user.userData.level_default;
-          });
-          dataList.push({
-            id: user.userID,
-            email: user.userData.email,
-            status: user.userData.level_status,
-            data: member_level ?? normalData,
-          });
-          continue;
-        }
+    const chunk = 50;
+    const chunkArray = [];
+    const dataList: any = [];
+    const levelConfig = await this.getLevelConfig();
+    const memberUpdates = await this.filterMemberUpdates(idList);
 
-        if (memberUpdates.length > 0) {
-          const memberUpdate = await this.checkMember(user, false);
-          if (memberUpdate.length > 0) {
-            const member_level = memberUpdate.find((v: { trigger: boolean }) => v.trigger);
-            if (member_level) {
-              dataList.push({
-                id: user.userID,
-                email: user.userData.email,
-                status: 'auto',
-                data: member_level,
-              });
-              continue;
-            }
-          }
-        }
-
-        dataList.push({
-          id: user.userID,
-          email: user.userData.email,
-          status: 'auto',
-          data: normalData,
-        });
-      }
+    for (let i = 0; i < users.length; i += chunk) {
+      chunkArray.push(users.slice(i * chunk, (i + 1) * chunk));
     }
 
+    await Promise.all(
+      chunkArray.map(async userArray => {
+        await Promise.all(
+          userArray.map((user: any) =>
+            this.setLevelData(user, memberUpdates, levelConfig).then(userData => dataList.push(userData))
+          )
+        );
+      })
+    );
     return dataList;
   }
 

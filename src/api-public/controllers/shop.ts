@@ -15,8 +15,9 @@ import { Shopping, VoucherData } from '../services/shopping';
 import { DataAnalyze } from '../services/data-analyze';
 import { Rebate, IRebateSearch } from '../services/rebate';
 import { Pos } from '../services/pos.js';
-import { FbApi } from '../services/fb-api.js';
-import { ShopnexLineMessage } from '../services/model/shopnex-line-message.js';
+
+import { ShopnexLineMessage } from '../services/model/shopnex-line-message';
+import { CaughtError } from '../../modules/caught-error.js';
 
 const router: express.Router = express.Router();
 export = router;
@@ -830,7 +831,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
       }
     }
 
-    if(type === 'jkopay'){
+    if (type === 'jkopay') {
       const jko = new JKO(req.query.appName as string, keyData);
       const data: any = await jko.confirmAndCaptureOrder(req.query.orderID as string);
       if (`${data.transactions[0].status}` === '0') {
@@ -853,17 +854,21 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
         };
       }
       if (type === 'newWebPay') {
-        decodeData = JSON.parse(
-          new EzPay(appName, {
-            HASH_IV: keyData.HASH_IV,
-            HASH_KEY: keyData.HASH_KEY,
-            ActionURL: keyData.ActionURL,
-            NotifyURL: '',
-            ReturnURL: '',
-            MERCHANT_ID: keyData.MERCHANT_ID,
-            TYPE: keyData.TYPE,
-          }).decode(req.body.TradeInfo)
-        );
+        const decode = new EzPay(appName, {
+          HASH_IV: keyData.HASH_IV,
+          HASH_KEY: keyData.HASH_KEY,
+          ActionURL: keyData.ActionURL,
+          NotifyURL: '',
+          ReturnURL: '',
+          MERCHANT_ID: keyData.MERCHANT_ID,
+          TYPE: keyData.TYPE,
+        }).decode(req.body.TradeInfo);
+
+        decodeData = JSON.parse(decode.replace(/[\u0000-\u001F]+/g, '') // 控制字元
+          .replace(/[\u007F-\u009F]/g, '')  // 非ASCII控制字元
+          .replace(/\\'/g, "'")             // 修正單引號轉義
+          .replace(/[\r\n]+/g, '\\n'));
+        console.log(`decodeData==>`,decodeData)
       }
       // 執行付款完成之訂單事件
       if (decodeData['Status'] === 'SUCCESS') {
@@ -875,7 +880,9 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
 
     return response.succ(resp, {});
   } catch (err) {
+    console.log(`notify-error`, req.body);
     console.error(err);
+    CaughtError.warning(`checkout-notify`,`${err}`,`${err}`)
     return response.fail(resp, err);
   }
 });
@@ -1526,13 +1533,23 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
 // 手動開立發票
 router.post('/customer_invoice', async (req: express.Request, resp: express.Response) => {
   try {
-
     return response.succ(
       resp,
       await new Shopping(req.get('g-app') as string, req.body.token).postCustomerInvoice({
         orderID: req.body.orderID,
         orderData: req.body.orderData,
       })
+    );
+  } catch (err) {
+    return response.fail(resp, err);
+  }
+});
+router.post('/batch_customer_invoice', async (req: express.Request, resp: express.Response) => {
+  try {
+    const dataArray = req.body.array;
+    return response.succ(
+      resp,
+      await new Shopping(req.get('g-app') as string, req.body.token).batchPostCustomerInvoice(dataArray)
     );
   } catch (err) {
     return response.fail(resp, err);

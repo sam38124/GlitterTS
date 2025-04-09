@@ -1125,12 +1125,13 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
         'insertTable',
         'insertLink',
         'insertImage',
+        // 'altManager',
         'insertVideo',
         'insertHR',
         '|',
         'formatOL',
         'emoticons',
-        'html',
+        'html'
       ];
 
       return {
@@ -1180,7 +1181,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
           let loading = true;
           let delay = true;
           let loadingView = false;
-
           const interval = setInterval(() => {
             if ((glitter.window as any).FroalaEditor && !glitter.share.richTextRendering) {
               clearInterval(interval);
@@ -1205,6 +1205,26 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     } catch (e) {}
                     obj.callback(doc.documentElement.outerHTML);
                   }
+
+                  FroalaEditor.DefineIcon('altManager',{
+                    "NAME": "commenting",
+                    "FA5NAME": "comment-alt",
+                    "SVG_KEY": "imageCaption"
+                  })
+                  FroalaEditor.RegisterCommand('altManager', {
+                    title: 'alt設定',
+                    icon: 'altManager',
+                    undo: true,
+                    focus: true,
+                    showOnMobile: true,
+                    refreshAfterCallback: true,
+                    callback: function () {
+                      console.log (this.html.get());
+                    },
+                    refresh: function () {
+                      console.log (this.selection.element());
+                    }
+                  })
 
                   editor = new FroalaEditor('#' + richID, {
                     enter: FroalaEditor.ENTER_DIV,
@@ -1314,10 +1334,13 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                       //     console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
                       //     editor.selection.save()
                       // },
+                      'mouseup': function () {
+                          console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
+                          editor.selection.save()
+                      },
                       // // 當編輯器獲得焦點時觸發
                       // 'focus': function () {
                       //     console.log('光標位置改變 (焦點獲得):', editor.selection.get());
-                      //     editor.selection.save()
                       // }
                     },
                     key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',

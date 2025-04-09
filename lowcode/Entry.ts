@@ -10,119 +10,123 @@ import { Language } from './glitter-base/global/language.js';
 import { PayConfig } from './cms-plugin/pos-pages/pay-config.js';
 import { ApiCart } from './glitter-base/route/api-cart.js';
 import { ApiUser } from './glitter-base/route/user.js';
+import { ApplicationConfig } from './application-config.js';
 
 export class Entry {
   // 建立初始函式
   public static onCreate(glitter: Glitter) {
-    if ((window.parent as any).glitter.getUrlParameter('device') === 'mobile') {
-      glitter.share.is_application = true;
-    } else {
-      glitter.runJsInterFace('is_application', {}, res => {
-        glitter.share.is_application = res.is_application;
-      });
-    }
-    //判斷結帳成功清空購物車紀錄
-    if (glitter.getUrlParameter('EndCheckout') === '1') {
-      try {
-        const lineItemIds = JSON.parse(localStorage.getItem('clear_cart_items') as string);
-        const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && cartKeys.some(cartKey => key?.includes(cartKey))) {
-            const formatKey = key?.replace((window as any).appName, '');
-            const cart = new ApiCart(formatKey);
-            cart.setCart(cartItem => {
-              cartItem.line_items = cartItem.line_items.filter(item => !lineItemIds.includes(item.id));
-            });
-          }
-        }
-        localStorage.removeItem('clear_cart_items');
-      } catch (e) {}
-    }
-    //設定API Cart
-    glitter.share.ApiCart = ApiCart;
-    //設定API USER
-    glitter.share.ApiUser = ApiUser;
-    //判斷是否有hash則跳轉
-    const clock = glitter.ut.clock();
-    const hashLoop = setInterval(() => {
-      try {
-        if (document.querySelector(`${location.hash}`)) {
-          location.href = `${location.hash}`;
-          clearInterval(hashLoop);
-          const clock2 = glitter.ut.clock();
-          const interVal = setInterval(() => {
-            location.href = `${location.hash}`;
-            if (clock2.stop() > 2000) {
-              clearInterval(interVal);
-            }
-          }, 100);
-        } else if (clock.stop() > 5000) {
-          clearInterval(hashLoop);
-        }
-      } catch (e) {
-        clearInterval(hashLoop);
-      }
-    }, 100);
+    const originalReplaceState = history.replaceState
+    let last_replace=''
+    window.history.replaceState = function(data: any, unused: string, url?: string | URL | null) {
+      if(last_replace!==url){
+        last_replace=`${url}`
 
-    //預設為購物網站
-    (window as any).store_info.web_type = (window as any).store_info.web_type ?? ['shop'];
-    const shopp = localStorage.getItem('shopee');
-    if (shopp) {
-      localStorage.removeItem('shopee');
-      localStorage.setItem(
-        'shopeeCode',
-        JSON.stringify({
-          code: glitter.getUrlParameter('code'),
-          shop_id: glitter.getUrlParameter('shop_id'),
-        })
-      );
-      location.href = shopp;
-      return;
-    }
-    if ((window as any).language !== Language.getLanguage()) {
-      const url = new URL(
-        `${glitter.root_path}${Language.getLanguageLinkPrefix()}${(window as any).glitter_page}${new URL(location.href).search}`
-      );
-      if (glitter.getUrlParameter('appName')) {
-        url.searchParams.set('appName', glitter.getUrlParameter('appName'));
+        //@ts-ignore
+        return originalReplaceState.apply(history, arguments);
       }
-      location.href = url.href;
-      return;
-    }
-    glitter.share.reload = (page: string, app_name: string) => {
-      (window as any).appName = app_name || (window as any).appName;
-      (window as any).glitter_page = page;
-      location.reload();
     };
-    glitter.share.updated_form_data = {};
-    glitter.share.top_inset = 0;
-    glitter.share.bottom_inset = 0;
-    glitter.share.reload_code_hash = function () {
-      const hashCode = (window as any).preloadData.eval_code_hash || {};
-      Object.keys(hashCode).map(dd => {
-        if (typeof hashCode[dd] === 'string') {
-          try {
-            hashCode[dd] = new Function(`return {
+    function next(){
+      //判斷結帳成功清空購物車紀錄
+      if (glitter.getUrlParameter('EndCheckout') === '1') {
+        try {
+          const lineItemIds = JSON.parse(localStorage.getItem('clear_cart_items') as string);
+          const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && cartKeys.some(cartKey => key?.includes(cartKey))) {
+              const formatKey = key?.replace((window as any).appName, '');
+              const cart = new ApiCart(formatKey);
+              cart.setCart(cartItem => {
+                cartItem.line_items = cartItem.line_items.filter(item => !lineItemIds.includes(item.id));
+              });
+            }
+          }
+          localStorage.removeItem('clear_cart_items');
+        } catch (e) {}
+      }
+      //設定API Cart
+      glitter.share.ApiCart = ApiCart;
+      //設定API USER
+      glitter.share.ApiUser = ApiUser;
+      //判斷是否有hash則跳轉
+      const clock = glitter.ut.clock();
+      const hashLoop = setInterval(() => {
+        try {
+          if (document.querySelector(`${location.hash}`)) {
+            location.href = `${location.hash}`;
+            clearInterval(hashLoop);
+            const clock2 = glitter.ut.clock();
+            const interVal = setInterval(() => {
+              location.href = `${location.hash}`;
+              if (clock2.stop() > 2000) {
+                clearInterval(interVal);
+              }
+            }, 100);
+          } else if (clock.stop() > 5000) {
+            clearInterval(hashLoop);
+          }
+        } catch (e) {
+          clearInterval(hashLoop);
+        }
+      }, 100);
+      //預設為購物網站
+      (window as any).store_info.web_type = (window as any).store_info.web_type ?? ['shop'];
+      const shopp = localStorage.getItem('shopee');
+      if (shopp) {
+        localStorage.removeItem('shopee');
+        localStorage.setItem(
+          'shopeeCode',
+          JSON.stringify({
+            code: glitter.getUrlParameter('code'),
+            shop_id: glitter.getUrlParameter('shop_id'),
+          })
+        );
+        location.href = shopp;
+        return;
+      }
+      if ((window as any).language !== Language.getLanguage()) {
+        const url = new URL(
+          `${glitter.root_path}${Language.getLanguageLinkPrefix()}${(window as any).glitter_page}${new URL(location.href).search}`
+        );
+        if (glitter.getUrlParameter('appName')) {
+          url.searchParams.set('appName', glitter.getUrlParameter('appName'));
+        }
+        location.href = url.href;
+        return;
+      }
+      glitter.share.reload = (page: string, app_name: string) => {
+        (window as any).appName = app_name || (window as any).appName;
+        (window as any).glitter_page = page;
+        location.reload();
+      };
+      glitter.share.updated_form_data = {};
+      glitter.share.top_inset = 0;
+      glitter.share.bottom_inset = 0;
+      glitter.share.reload_code_hash = function () {
+        const hashCode = (window as any).preloadData.eval_code_hash || {};
+        Object.keys(hashCode).map(dd => {
+          if (typeof hashCode[dd] === 'string') {
+            try {
+              hashCode[dd] = new Function(`return {
               execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
                 return (() => { ${hashCode[dd]} })()
               }
             }`)().execute;
-          } catch (e) {
-            console.error(`reload_code_hash error: ` + e);
+            } catch (e) {
+              console.error(`reload_code_hash error: ` + e);
+            }
           }
-        }
-      });
-    };
-    glitter.share.reload_code_hash();
-    glitter.share.editor_util = { baseApi: BaseApi };
-    glitter.page = (window as any).glitter_page;
-    glitter.share.GlobalUser = GlobalUser;
-    if (glitter.getUrlParameter('page') !== 'backend_manager') {
-      Entry.checkRedirectPage(glitter);
-    }
-    glitter.share.logID = glitter.getUUID();
-    glitter.addStyle(`
+        });
+      };
+      glitter.share.reload_code_hash();
+      glitter.share.editor_util = { baseApi: BaseApi };
+      glitter.page = (window as any).glitter_page;
+      glitter.share.GlobalUser = GlobalUser;
+      if (glitter.getUrlParameter('page') !== 'backend_manager') {
+        Entry.checkRedirectPage(glitter);
+      }
+      glitter.share.logID = glitter.getUUID();
+      glitter.addStyle(`
       @media (prefers-reduced-motion: no-preference) {
         :root {
           scroll-behavior: auto !important;
@@ -135,25 +139,24 @@ export class Entry {
         left: -1000px !important;
       }
     `);
-    if (glitter.getUrlParameter('appName')) {
-      (window as any).appName = glitter.getUrlParameter('appName');
-    }
-    (window as any).renderClock = (window as any).renderClock ?? createClock();
-    console.log(`Entry-time:`, (window as any).renderClock.stop());
-    glitter.share.editerVersion = 'V_19.6.9';
-    glitter.share.start = new Date();
-    const vm = { appConfig: [] };
-    (window as any).saasConfig = {
-      config: ((window as any).config = config),
-      api: ApiPageConfig,
-      appConfig: undefined,
-    };
-    // 設定SAAS管理員請求API
-    config.token = GlobalUser.saas_token;
-
-    // 資源初始化
-    Entry.resourceInitial(glitter, vm, async dd => {
-      glitter.addStyle(`
+      if (glitter.getUrlParameter('appName')) {
+        (window as any).appName = glitter.getUrlParameter('appName');
+      }
+      (window as any).renderClock = (window as any).renderClock ?? createClock();
+      console.log(`Entry-time:`, (window as any).renderClock.stop());
+      glitter.share.editerVersion = 'V_20.2.7';
+      glitter.share.start = new Date();
+      const vm = { appConfig: [] };
+      (window as any).saasConfig = {
+        config: ((window as any).config = config),
+        api: ApiPageConfig,
+        appConfig: undefined,
+      };
+      // 設定SAAS管理員請求API
+      config.token = GlobalUser.saas_token;
+      // 資源初始化
+      Entry.resourceInitial(glitter, vm, async dd => {
+        glitter.addStyle(`
         ${
           parseInt((window.parent as any).glitter.share.bottom_inset, 10)
             ? `
@@ -240,71 +243,96 @@ export class Entry {
           list-style: none;
         }
       `);
-      // 載入全域資源
-      await Entry.globalStyle(glitter, dd);
-      if (glitter.getUrlParameter('type') === 'editor') {
-        const dialog = new ShareDialog(glitter);
-        dialog.dataLoading({ visible: true, text: '後台載入中' });
-        // 頁面編輯器
-        Entry.toBackendEditor(glitter, () => {});
-      } else if (glitter.getUrlParameter('type') === 'htmlEditor') {
-        // Iframe預覽區塊
-        Entry.toHtmlEditor(glitter, vm, () => Entry.checkIframe(glitter));
-      } else if (glitter.getUrlParameter('page') === 'backend_manager') {
-        if (!GlobalUser.token) {
-          glitter.setUrlParameter('page', 'login');
-          location.reload();
-        } else {
-          try {
-            const appList = (await ApiPageConfig.getAppList(undefined, GlobalUser.token)).response.result;
-            localStorage.setItem('select_item', '0');
-            if (appList.length === 0) {
-              glitter.getModule(new URL('./view-model/saas-view-model.js', location.href).href, SaasViewModel => {
-                glitter.innerDialog(gvc => {
-                  return gvc.bindView(() => {
-                    return {
-                      bind: gvc.glitter.getUUID(),
-                      view: () => SaasViewModel.createShop(gvc, true),
-                    };
-                  });
-                }, 'change_app');
-              });
-            } else {
-              let appName = appList[0].appName;
-              if (appList.find((dd: any) => dd.appName === localStorage.getItem('select_app_name'))) {
-                appName = localStorage.getItem('select_app_name');
-              }
-              glitter.setUrlParameter('page', 'index');
-              glitter.setUrlParameter('type', 'editor');
-              glitter.setUrlParameter('appName', appName);
-              glitter.setUrlParameter('function', 'backend-manger');
-              location.reload();
-            }
-          } catch (e) {
-            console.error(e);
+        // 載入全域資源
+        await Entry.globalStyle(glitter, dd);
+        if (glitter.getUrlParameter('type') === 'editor') {
+          const dialog = new ShareDialog(glitter);
+          dialog.dataLoading({ visible: true, text: '後台載入中' });
+          // 頁面編輯器
+          Entry.toBackendEditor(glitter, () => {});
+        } else if (glitter.getUrlParameter('type') === 'htmlEditor') {
+          // Iframe預覽區塊
+          Entry.toHtmlEditor(glitter, vm, () => Entry.checkIframe(glitter));
+        } else if (glitter.getUrlParameter('page') === 'backend_manager') {
+          if (!GlobalUser.token) {
             glitter.setUrlParameter('page', 'login');
             location.reload();
+          } else {
+            try {
+              const appList = (await ApiPageConfig.getAppList(undefined, GlobalUser.token)).response.result;
+              localStorage.setItem('select_item', '0');
+              if (appList.length === 0) {
+                glitter.getModule(new URL('./view-model/saas-view-model.js', location.href).href, SaasViewModel => {
+                  glitter.innerDialog(gvc => {
+                    return gvc.bindView(() => {
+                      return {
+                        bind: gvc.glitter.getUUID(),
+                        view: () => SaasViewModel.createShop(gvc, true),
+                      };
+                    });
+                  }, 'change_app');
+                });
+              } else {
+                let appName = appList[0].appName;
+                if (appList.find((dd: any) => dd.appName === localStorage.getItem('select_app_name'))) {
+                  appName = localStorage.getItem('select_app_name');
+                }
+                glitter.setUrlParameter('page', 'index');
+                glitter.setUrlParameter('type', 'editor');
+                glitter.setUrlParameter('appName', appName);
+                glitter.setUrlParameter('function', 'backend-manger');
+                location.reload();
+              }
+            } catch (e) {
+              console.error(e);
+              glitter.setUrlParameter('page', 'login');
+              location.reload();
+            }
           }
+        } else {
+          // 一般頁面
+          Entry.toNormalRender(glitter, vm, () => Entry.checkIframe(glitter));
         }
-      } else {
-        // 一般頁面
-        Entry.toNormalRender(glitter, vm, () => Entry.checkIframe(glitter));
+      });
+      glitter.share.LanguageApi = Language;
+      //當前方案
+      glitter.share.plan_text = () => GlobalUser.getPlan().title;
+      // 監聽視窗大小變化
+      window.addEventListener('resize', () => {
+        const width = window.innerWidth; // 視窗的寬度
+        const height = window.innerHeight; // 視窗的高度
+        for (const b of document.querySelectorAll(`.glitter-dialog`)) {
+          (b as any).style.height = `${height}px`;
+          (b as any).style.minHeight = `${height}px`;
+        }
+        console.log(`視窗大小變化: 寬度=${width}px, 高度=${height}px`);
+      });
+    }
+    if (((window.parent as any).glitter.getUrlParameter('device') === 'mobile')) {
+      glitter.share.is_application = true;
+      next()
+    } else {
+      if(glitter.deviceType===glitter.deviceTypeEnum.Web){
+        //網頁版本
+        next()
+      }else{
+        //APP應用程式
+        glitter.runJsInterFace('is_application', {}, res => {
+          glitter.share.is_application = res.is_application;
+          if (glitter.share.is_application) {
+            ApplicationConfig.is_application = res.is_application;
+            ApplicationConfig.bundle_id = res.bundle_id;
+            ApplicationConfig.device_type = res.device_type;
+            ApplicationConfig.initial(glitter)
+            if(res.redirect){
+              location.href = res.redirect;
+            }
+            (window as any).is_application=true;
+          }
+          next()
+        })
       }
-    });
-    glitter.share.LanguageApi = Language;
-    //當前方案
-    glitter.share.plan_text = () => GlobalUser.getPlan().title;
-    // 監聽視窗大小變化
-    window.addEventListener('resize', () => {
-      const width = window.innerWidth; // 視窗的寬度
-      const height = window.innerHeight; // 視窗的高度
-      for (const b of document.querySelectorAll(`.glitter-dialog`)) {
-        (b as any).style.height = `${height}px`;
-        (b as any).style.minHeight = `${height}px`;
-      }
-      console.log(`視窗大小變化: 寬度=${width}px, 高度=${height}px`);
-    });
-
+    }
 
   }
 
@@ -548,10 +576,14 @@ export class Entry {
       () => {},
       () => {}
     );
+
     if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
       GlobalUser.token = glitter.getUrlParameter('token');
       glitter.setUrlParameter('token');
       glitter.setUrlParameter('return_type');
+    }
+    if (GlobalUser.token) {
+      GlobalUser.registerFCM(GlobalUser.token);
     }
     glitter.share.evalPlace = (evals: string) => eval(evals);
     console.log(`exePlugin-time:`, (window as any).renderClock.stop());

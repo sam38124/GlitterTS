@@ -11,6 +11,15 @@ type BindItem = {
     shipment_fee: number;
     times: number;
 };
+type InvoiceData = {
+    invoiceID: string;
+    allowanceData: any;
+    orderID: string;
+    orderData: any;
+    allowanceInvoiceTotalAmount: string;
+    itemList: any;
+    invoiceDate: string;
+};
 export interface VoucherData {
     id: number;
     title: string;
@@ -247,7 +256,6 @@ export type Cart = {
     fbc: string;
     fbp: string;
     scheduled_id?: string;
-    shipmentSupport?: string[];
     editRecord: {
         time: string;
         record: string;
@@ -374,6 +382,12 @@ export declare class Shopping {
     }[]>;
     getPostAddressData(address: string): Promise<any>;
     updateExhibitionActiveStock(exh_id: string, v_id: number, count: number): Promise<void>;
+    getShipmentRefer(user_info: any): Promise<any>;
+    calculateShipment(dataList: {
+        key: string;
+        value: string;
+    }[], value: number | string): number;
+    getShipmentFee(user_info: any, lineItems: CartItem[], shipment: any): number;
     toCheckout(data: {
         line_items: CartItem[];
         customer_info?: any;
@@ -639,20 +653,13 @@ export declare class Shopping {
     }): Promise<{
         result: string | boolean | undefined;
     }>;
+    batchPostCustomerInvoice(dataArray: InvoiceData[]): Promise<any>;
     voidInvoice(obj: {
         invoice_no: string;
         reason: string;
         createDate: string;
     }): Promise<void>;
-    allowanceInvoice(obj: {
-        invoiceID: string;
-        allowanceData: any;
-        orderID: string;
-        orderData: any;
-        allowanceInvoiceTotalAmount: string;
-        itemList: any;
-        invoiceDate: string;
-    }): Promise<boolean>;
+    allowanceInvoice(obj: InvoiceData): Promise<boolean>;
     voidAllowance(obj: {
         invoiceNo: string;
         allowanceNo: string;

@@ -545,6 +545,7 @@ export class ShoppingInformation {
                                 { title: '授課網站', value: 'teaching' },
                                 { title: '預約系統', value: 'reserve' },
                                 { title: '餐飲組合', value: 'kitchen' },
+                                { title: '秤重交易', value: 'weighing' },
                             ],
                             callback: (array) => {
                                 vm.data.web_type = array;

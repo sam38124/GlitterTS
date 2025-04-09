@@ -4,6 +4,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { Tool } from '../../modules/tool.js';
 import { OrderDetail } from './data.js';
+import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
 const html = String.raw;
 export class OrderSetting {
     static getPaymentMethodText(orderData) {
@@ -78,11 +79,12 @@ export class OrderSetting {
     }
     static getShippmentOpt() {
         return [
+            { title: '未出貨', value: 'wait' },
+            { title: '備貨中', value: 'in_stock' },
             { title: '已出貨', value: 'shipping' },
-            { title: '未出貨 / 備貨中', value: 'wait' },
+            { title: '已到貨', value: 'arrived' },
             { title: '已取貨', value: 'finish' },
             { title: '已退貨', value: 'returns' },
-            { title: '已到貨', value: 'arrived' },
         ].map(item => {
             return {
                 key: item.value,
@@ -1125,7 +1127,7 @@ export class OrderSetting {
                 topGVC.glitter.closeDiaLog();
             }
             function getDatalist() {
-                return vm.orders.map((dd) => {
+                return vm.orders.map((dd, index) => {
                     return [
                         {
                             key: '訂單編號',
@@ -1159,6 +1161,27 @@ export class OrderSetting {
                             value: `$ ${dd.orderData.total.toLocaleString()}`,
                         },
                         {
+                            key: '出貨單號碼',
+                            value: html `<div style="width: 200px;">
+                ${BgWidget.grayNote(dd.orderData.user_info.shipment_number
+                                ? `#${dd.orderData.user_info.shipment_number}`
+                                : dd.orderData.orderSource === 'POS'
+                                    ? 'POS 訂單'
+                                    : '')}
+              </div>`,
+                        },
+                        {
+                            key: '訂單狀態',
+                            value: BgWidget.select({
+                                gvc,
+                                callback: (value) => {
+                                    dd.orderData.orderStatus = value;
+                                },
+                                default: `${dd.orderData.orderStatus || 0}`,
+                                options: OrderSetting.getOrderStatusOpt(),
+                            }),
+                        },
+                        {
                             key: '付款狀態',
                             value: BgWidget.select({
                                 gvc,
@@ -1172,26 +1195,82 @@ export class OrderSetting {
                         },
                         {
                             key: '出貨狀態',
-                            value: BgWidget.select({
-                                gvc,
-                                callback: (value) => {
-                                    dd.orderData.progress = value;
-                                },
-                                default: dd.orderData.progress || 'wait',
-                                options: OrderSetting.getShippmentOpt(),
-                                style: 'min-width: 180px;',
-                            }),
-                        },
-                        {
-                            key: '訂單狀態',
-                            value: BgWidget.select({
-                                gvc,
-                                callback: (value) => {
-                                    dd.orderData.orderStatus = value;
-                                },
-                                default: `${dd.orderData.orderStatus || 0}`,
-                                options: OrderSetting.getOrderStatusOpt(),
-                            }),
+                            value: gvc.bindView((() => {
+                                const divView = {
+                                    id: gvc.glitter.getUUID(),
+                                    checkbox: 'auto',
+                                    hasShipmentNumber: Boolean(dd.orderData.user_info.shipment_number),
+                                };
+                                if (divView.hasShipmentNumber) {
+                                    dd.orderData.progress = 'in_stock';
+                                }
+                                return {
+                                    bind: divView.id,
+                                    view: () => {
+                                        var _a;
+                                        const htmlArray = [
+                                            BgWidget.select({
+                                                gvc,
+                                                callback: (value) => {
+                                                    dd.orderData.progress = value;
+                                                    if (['wait', 'returns', undefined].includes(value)) {
+                                                        dd.orderData.user_info.shipment_number = '';
+                                                    }
+                                                    gvc.notifyDataChange(divView.id);
+                                                },
+                                                default: dd.orderData.progress || 'wait',
+                                                options: OrderSetting.getShippmentOpt(),
+                                                style: 'max-width: 180px;',
+                                            }),
+                                            (() => {
+                                                var _a;
+                                                if (!divView.hasShipmentNumber &&
+                                                    ['wait', 'returns', undefined].includes(cloneOrders[index].orderData.progress) &&
+                                                    ['arrived', 'finish', 'shipping', 'in_stock'].includes(dd.orderData.progress)) {
+                                                    (_a = dd.orderData.user_info).shipment_number || (_a.shipment_number = new Date().getTime());
+                                                    return EditorElem.radio({
+                                                        gvc: gvc,
+                                                        title: '',
+                                                        def: divView.checkbox,
+                                                        array: [
+                                                            {
+                                                                title: '自動選號',
+                                                                value: 'auto',
+                                                            },
+                                                            {
+                                                                title: '手動輸入',
+                                                                value: 'manual',
+                                                            },
+                                                        ],
+                                                        callback: text => {
+                                                            divView.checkbox = text;
+                                                            gvc.notifyDataChange(divView.id);
+                                                        },
+                                                        oneLine: true,
+                                                    });
+                                                }
+                                                return '';
+                                            })(),
+                                            divView.checkbox === 'manual'
+                                                ? BgWidget.editeInput({
+                                                    gvc,
+                                                    title: '',
+                                                    default: `${(_a = dd.orderData.user_info.shipment_number) !== null && _a !== void 0 ? _a : ''}`,
+                                                    placeHolder: '為空則為自動選號',
+                                                    callback: text => {
+                                                        dd.orderData.user_info.shipment_number = text;
+                                                        gvc.notifyDataChange(divView.id);
+                                                    },
+                                                })
+                                                : '',
+                                        ].filter(Boolean);
+                                        return html `<div class="d-flex align-items-center gap-2">${htmlArray.join('')}</div>`;
+                                    },
+                                    divCreate: {
+                                        style: 'min-width: 580px;',
+                                    },
+                                };
+                            })()),
                         },
                     ];
                 });
@@ -1333,6 +1412,23 @@ export class OrderSetting {
               <div class="w-100 d-flex justify-content-end" style="padding: 14px 16px; gap: 14px;">
                 ${BgWidget.cancel(gvc.event(() => closeEvent()))}
                 ${BgWidget.save(gvc.event(() => {
+                        for (let i = 0; i < vm.orders.length; i++) {
+                            const order = vm.orders[i];
+                            const cloneOrder = cloneOrders[i];
+                            if (['wait', 'returns', undefined].includes(cloneOrder.orderData.progress) &&
+                                ['arrived', 'finish', 'shipping', 'in_stock'].includes(order.orderData.progress) &&
+                                !order.orderData.user_info.shipment_number) {
+                                dialog.errorMessage({
+                                    text: `訂單編號 #${order.cart_token} 未輸入出貨單號碼`,
+                                });
+                                return;
+                            }
+                        }
+                        vm.orders.forEach((order) => {
+                            if (order.orderData.progress === 'in_stock') {
+                                order.orderData.progress = 'wait';
+                            }
+                        });
                         obj.callback(vm.orders);
                         topGVC.glitter.closeDiaLog();
                     }))}
@@ -1794,7 +1890,7 @@ export class OrderSetting {
               <div class="d-flex w-100">
                 ${dataRaws
                             .map((dataRaw, dataRowIndex) => {
-                            var _a;
+                            var _a, _b;
                             switch (dataRaw.key) {
                                 case 'name': {
                                     const spec = item.spec.length > 0 ? Tool.truncateString(item.spec.join(''), 5) : '單一規格';
@@ -1803,10 +1899,10 @@ export class OrderSetting {
                             <img class="${gClass('product-preview-img')}" src="${item.preview_image}" alt="產品圖片" />
                             <div class="d-flex flex-column flex-grow-1" style="gap:2px;">
                               <div class="tx_normal_14" style="white-space: normal;line-height: normal;">
-                                ${Tool.truncateString(item.title, 10)} -${spec}
+                                ${Tool.truncateString((_a = item.title) !== null && _a !== void 0 ? _a : "", 10)} -${spec}
                               </div>
                               <div class="tx_normal_14 ${gClass('font-gray')}">
-                                存貨單位 (SKU): ${(_a = item.sku) !== null && _a !== void 0 ? _a : '無SKU'}
+                                存貨單位 (SKU): ${(_b = item.sku) !== null && _b !== void 0 ? _b : '無SKU'}
                               </div>
                             </div>
                           </div>`);

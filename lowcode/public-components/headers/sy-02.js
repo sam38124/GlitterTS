@@ -25,9 +25,12 @@ export class Sy02 {
             <nav
                 class="navbar navbar-expand-lg vw-100 header header-place shadow  position-fixed top-0 left-0  py-0"
                 style="background:  ${(_a = widget.formData.theme_color['background']) !== null && _a !== void 0 ? _a : '#000'} !important;height: 76px;z-index:9999;
+              
 "
             >
-                <div class="container header-place  h-100">
+                <div class="mx-auto header-place  h-100" style="max-width: 100% !important; ${document.body.clientWidth > 1300 ? `min-width: 1280px !important;` : `width:100%;
+                padding-left: 10px;padding-right: 10px;
+                `}">
                     <!--LOGO顯示區塊-->
                     <div class="d-flex align-items-center justify-content-center h-100 w-100 gap-2">
                         <!--手機版選單-->
@@ -246,7 +249,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                                                         <li class="nav-item dropdown">
                                                             <a
                                                                 class="nav-link header-link "
-                                                                style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;cursor: pointer;"
+                                                                style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;cursor: pointer;font-size: 15px;"
                                                                 onclick="${gvc.event(() => {
                                         if (dd.link) {
                                             gvc.glitter.href = dd.link;
@@ -432,7 +435,7 @@ padding-bottom: 2px;
                 })}
                                 </li>
                                 <li
-                                    class="nav-item d-flex align-items-center justify-content-center ms-3 ms-sm-4"
+                                    class="nav-item d-flex align-items-center justify-content-center ms-3 "
                                     style=""
                                     onclick="${gvc.event(() => {
                     if (GlobalUser.token) {
@@ -468,7 +471,8 @@ border-radius: 5px;"
             },
             mobile: () => {
                 return HeaderMobile.mian({
-                    gvc: gvc
+                    gvc: gvc,
+                    widget: widget
                 });
             },
             gvc: gvc

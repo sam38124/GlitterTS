@@ -406,7 +406,7 @@ class Rebate {
     }
 }
 exports.Rebate = Rebate;
-Rebate.nowTime = (timeZone) => (0, moment_timezone_1.default)()
-    .tz(timeZone !== null && timeZone !== void 0 ? timeZone : 'Asia/Taipei')
-    .format('YYYY-MM-DD HH:mm:ss');
+Rebate.nowTime = (timeZone) => {
+    return (0, moment_timezone_1.default)(new Date()).format('YYYY-MM-DD HH:mm:ss');
+};
 //# sourceMappingURL=rebate.js.map

@@ -66,7 +66,7 @@ export class Glitter {
     } = {}
     public html = String.raw
     public promiseValueMap: any = {}
-
+    public waiting_push_state?:(()=>void) = ()=>{}
     get href() {
         return location.href
     }
@@ -82,9 +82,11 @@ export class Glitter {
             if(this.getUrlParameter('appName')){
                 link.searchParams.set('appName',this.getUrlParameter('appName'))
             }
-            window.history.pushState({}, document.title, link.href);
+            this.waiting_push_state=()=>{
+                window.history.pushState({}, document.title, link.href);
+            }
             this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
-                cl.changePage(link.searchParams.get('page') || location.pathname.substring(1), 'page', {})
+                cl.changePage(link.searchParams.get('page') || link.pathname.substring(1), 'page', {})
             })
         } else {
             location.href = value;
@@ -223,7 +225,7 @@ export class Glitter {
     } = {}) {
         const glitter = this
         let id = this.callBackId += 1;
-        this.callBackList.set(id, callBack);
+        (window.parent as any).glitter.callBackList.set(id, callBack);
         let map = {
             functionName: functionName,
             callBackId: id,
@@ -337,17 +339,20 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 url.searchParams.delete('page')
                 window.history.replaceState({}, title || document.title, url.href);
             } catch (e) {
+                console.log(e)
             }
 
         } else {
             const url = new URL(location.href)
             url.searchParams.delete(tag)
+
             if (value) {
                 url.searchParams.set(tag, value)
             }
             try {
                 window.history.replaceState({},title ||  document.title, url.href);
             } catch (e) {
+                console.log(e)
             }
         }
     }

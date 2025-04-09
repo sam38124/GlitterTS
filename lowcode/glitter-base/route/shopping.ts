@@ -502,7 +502,6 @@ export class ApiShop {
 
   static orderListFilterString(obj: any): string[] {
     if (!obj) return [];
-    console.log(`obj===>`,obj)
     let list = [] as string[];
     if (obj) {
       if (
@@ -511,11 +510,19 @@ export class ApiShop {
         obj?.created_time[0].length > 0 &&
         obj?.created_time[1].length > 0
       ) {
-        list.push(`created_time=${new Date(`${obj.created_time[0]} 00:00:00`).toISOString()},${
-          new Date(`${obj.created_time[1]} 23:59:59`).toISOString()
-        }`);
+        if (obj.created_time[0].includes('T')) {
+          list.push(
+            `created_time=${new Date(obj.created_time[0]).toISOString()},${new Date(obj.created_time[1]).toISOString()}`
+          );
+        } else {
+          list.push(
+            `created_time=${new Date(`${obj.created_time[0]} 00:00:00`).toISOString()},${new Date(
+              `${obj.created_time[1]} 23:59:59`
+            ).toISOString()}`
+          );
+        }
       }
-      if(obj.reconciliation_status){
+      if (obj.reconciliation_status) {
         list.push(`reconciliation_status=${obj.reconciliation_status.join(',')}`);
       }
       if (
@@ -524,10 +531,11 @@ export class ApiShop {
         obj?.shipment_time[0].length > 0 &&
         obj?.shipment_time[1].length > 0
       ) {
-
-        list.push(`shipment_time=${new Date(`${obj.shipment_time[0]} 00:00:00`).toISOString()},${
-          new Date(`${obj.shipment_time[1]} 23:59:59`).toISOString()
-        }`);
+        list.push(
+          `shipment_time=${new Date(`${obj.shipment_time[0]} 00:00:00`).toISOString()},${new Date(
+            `${obj.shipment_time[1]} 23:59:59`
+          ).toISOString()}`
+        );
       }
       if (obj.shipment && obj.shipment.length > 0) {
         list.push(`shipment=${obj.shipment.join(',')}`);
@@ -544,7 +552,6 @@ export class ApiShop {
       if (obj.payment_select && obj.payment_select.length > 0) {
         list.push(`payment_select=${obj.payment_select.join(',')}`);
       }
-
     }
 
     return list;
@@ -946,15 +953,13 @@ export class ApiShop {
       },
     });
   }
-  static printInvoice(json: {
-    order_id: string;
-  }) {
+  static printInvoice(json: { order_id: string }) {
     return BaseApi.create({
       url:
         getBaseUrl() +
         `/api-public/v1/invoice/print?${(() => {
           let par = [`order_id=${json.order_id}`];
-         
+
           return par.join('&');
         })()}`,
       type: 'POST',
@@ -1132,7 +1137,7 @@ export class ApiShop {
     line_items: {
       id: number;
       spec: string[];
-      count: number;
+      count: string;
     }[];
     user_info: {
       shipment: string;
@@ -1490,6 +1495,19 @@ export class ApiShop {
         Authorization: getConfig().config.token,
       },
       data: JSON.stringify(passData),
+    });
+  }
+
+  static batchPostInvoice(passData: any) {
+    return BaseApi.create({
+      url: getBaseUrl() + `/api-public/v1/ec/batch_customer_invoice`,
+      type: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'g-app': getConfig().config.appName,
+        Authorization: getConfig().config.token,
+      },
+      data: JSON.stringify({ array: passData }),
     });
   }
 

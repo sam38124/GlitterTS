@@ -20,7 +20,13 @@ export class ProductExcel {
         this.lineName = lineName;
     }
     checkString(value) {
-        return CheckInput.isEmpty(value) ? '' : value;
+        if (CheckInput.isEmpty(value)) {
+            return '';
+        }
+        if (typeof value === 'string' || typeof value === 'number') {
+            return `${value}`;
+        }
+        return '';
     }
     checkNumber(value) {
         return CheckInput.isEmpty(value) || !CheckInput.isNumberString(`${value}`) ? 0 : value;
@@ -826,7 +832,7 @@ export class ProductExcel {
                             };
                             return formDataMap[vm.select] || baseFormData;
                         })();
-                        if (['course', 'commodity'].includes(vm.support)) {
+                        if (['course', 'commodity', 'weighing'].includes(vm.support)) {
                             this.exportCommodity(gvc, getFormData);
                         }
                         else if (vm.support === 'kitchen') {
@@ -914,14 +920,20 @@ export class ProductExcel {
                     data.forEach((row, index) => {
                         var _a, _b;
                         row.forEach((rowData, i) => {
+                            var _a;
                             let text = '';
-                            if (rowData && rowData.richText) {
-                                rowData.richText.map((item) => {
-                                    text += item.text;
-                                });
-                            }
-                            else {
-                                text = rowData !== null && rowData !== void 0 ? rowData : '';
+                            if (rowData) {
+                                if (rowData.richText) {
+                                    rowData.richText.map((item) => {
+                                        text += item.text;
+                                    });
+                                }
+                                else if (rowData.hyperlink) {
+                                    text = (_a = rowData.text) !== null && _a !== void 0 ? _a : rowData.hyperlink;
+                                }
+                                else {
+                                    text = rowData;
+                                }
                             }
                             row[i] = text;
                         });
@@ -1153,7 +1165,7 @@ export class ProductExcel {
                                 });
                                 variantData.preview_image = row[4];
                                 variantData.sku = this.checkString(row[14]);
-                                variantData.cost = this.checkString(row[15]);
+                                variantData.cost = this.checkNumber(row[15]);
                                 variantData.sale_price = this.checkNumber(row[16]);
                                 variantData.compare_price = this.checkNumber(row[17]);
                                 variantData.profit = this.checkNumber(row[18]);

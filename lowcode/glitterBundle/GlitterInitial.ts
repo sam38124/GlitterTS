@@ -279,7 +279,7 @@ function traverseHTML(element: any, document: any) {
 glitter.share.traverseHTML = traverseHTML;
 if ((window as any).GL !== undefined) {
     glitter.deviceType = glitter.deviceTypeEnum.Android;
-} else if (navigator.userAgent === 'iosGlitter') {
+} else if (navigator.userAgent.includes('iosGlitter') ) {
     glitter.deviceType = glitter.deviceTypeEnum.Ios;
 }
 listenElementChange(`#glitterPage`);

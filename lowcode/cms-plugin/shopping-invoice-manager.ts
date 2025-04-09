@@ -1472,7 +1472,7 @@ ${invoiceData.invoice_data?.remark?.voidReason ?? ''}</textarea
                                                             const dialog = new ShareDialog(gvc.glitter);
                                                             if (!(reason ?? '').trim()) {
                                                               dialog.errorMessage({ text: '請填寫作廢原因' });
-                                                              return
+                                                              return;
                                                             }
                                                             dialog.dataLoading({ visible: true });
                                                             ApiShop.voidInvoice(
@@ -2016,7 +2016,7 @@ ${reason}</textarea
                               <div class="col-2 text-center">${item.spec.join(',') ?? '單一規格'}</div>
                               <div class="col-1 text-center">${sale_price}</div>
                               <div class="col-1 text-center">${item.count}</div>
-                              <div class="col-1 text-end">${item.count * sale_price}</div>
+                              <div class="col-1 text-end">${Tool.floatAdd(item.count * sale_price, 0)}</div>
                             </div>
                           `;
                         });

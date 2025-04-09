@@ -32,6 +32,7 @@ import { ShipmentConfig as Shipment_support_config } from '../config/shipment-co
 import { PayNowLogistics } from './paynow-logistics.js';
 import { CheckoutService } from './checkout.js';
 import { ProductInitial } from './product-initial.js';
+import { UtTimer } from '../utils/ut-timer.js';
 
 
 type BindItem = {
@@ -44,6 +45,16 @@ type BindItem = {
   rebate: number;
   shipment_fee: number;
   times: number;
+};
+
+type InvoiceData = {
+  invoiceID: string;
+  allowanceData: any;
+  orderID: string;
+  orderData: any;
+  allowanceInvoiceTotalAmount: string;
+  itemList: any;
+  invoiceDate: string;
 };
 
 export interface VoucherData {
@@ -362,7 +373,6 @@ export type Cart = {
   fbc: string;
   fbp: string;
   scheduled_id?: string;
-  shipmentSupport?: string[];
   editRecord: { time: string; record: string }[];
   combineOrderID?: number;
 };
@@ -866,17 +876,37 @@ export class Shopping {
                           return dd.spec === variant.spec.join('-') && `${dd.product_id}` === `${content.id}`;
                         })
                         .map((dd: any) => {
-                          return parseInt(dd.count, 10);
+                          return dd.count;
                         })
-                        .reduce((a: number, b: number) => a + b, 0) || 0;
+                        .reduce((a: number, b: number) => {
+                          return Tool.floatAdd(a, b);
+                        }, 0) || 0;
                     variant.preview_image = variant.preview_image ?? '';
-                    if (!variant.preview_image.includes('https://')) {
-                      variant.preview_image = undefined;
+
+                    if (variant.preview_image) {
+                      const img = variant.preview_image;
+                      let temp = '';
+                      if (typeof img === 'object') {
+                        if (img.richText) {
+                          img.richText.map((item: any) => {
+                            temp += item.text;
+                          });
+                        } else if (img.hyperlink) {
+                          temp = img.text ?? img.hyperlink;
+                        }
+                      } else if (!img.includes('https://')) {
+                        temp = '';
+                      } else {
+                        temp = img;
+                      }
+                      variant.preview_image = temp;
                     }
+
                     variant.preview_image =
                       variant[`preview_image_${language}`] ||
                       variant.preview_image ||
                       'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+
                     if (content.min_price > variant.sale_price) {
                       content.min_price = variant.sale_price;
                     }
@@ -1301,7 +1331,7 @@ export class Shopping {
       const total = await db
         .query(
           `SELECT COUNT(*) as count
-           FROM \`${this.app}\`.t_manager_post ${whereClause}`,
+                FROM \`${this.app}\`.t_manager_post ${whereClause}`,
           []
         )
         .then((res: any) => res[0]?.count || 0);
@@ -1621,6 +1651,103 @@ export class Shopping {
     }
   }
 
+  async getShipmentRefer(user_info: any) {
+    user_info = user_info || {};
+    let def = (
+      (
+        await Private_config.getConfig({
+          appName: this.app,
+          key: 'glitter_shipment',
+        })
+      )[0] ?? {
+        value: {
+          volume: [],
+          weight: [],
+          selectCalc: 'volume',
+        },
+      }
+    ).value;
+
+    // 參照運費設定
+    const refer =
+      user_info.shipment === 'global_express'
+        ? (
+            (
+              await Private_config.getConfig({
+                appName: this.app,
+                key: 'glitter_shipment_global_' + user_info.country,
+              })
+            )[0] ?? {
+              value: {
+                volume: [],
+                weight: [],
+                selectCalc: 'volume',
+              },
+            }
+          ).value
+        : (
+            (
+              await Private_config.getConfig({
+                appName: this.app,
+                key: 'glitter_shipment_' + user_info.shipment,
+              })
+            )[0] ?? {
+              value: {
+                volume: [],
+                weight: [],
+                selectCalc: 'def',
+              },
+            }
+          ).value;
+
+    if (refer.selectCalc !== 'def') {
+      def = refer;
+    }
+    return def;
+  }
+
+  calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
+    if (value === 0) {
+      return 0;
+    }
+
+    const productValue = parseFloat(`${value}`);
+    if (isNaN(productValue) || dataList.length === 0) {
+      return 0;
+    }
+
+    for (let i = 0; i < dataList.length; i++) {
+      const currentKey = parseFloat(dataList[i].key);
+      const currentValue = parseFloat(dataList[i].value);
+      if (productValue < currentKey) {
+        return i === 0 ? 0 : parseFloat(dataList[i - 1].value);
+      } else if (productValue === currentKey) {
+        return currentValue;
+      }
+    }
+
+    // 如果商品值大於所有的key，返回最後一個value
+    return parseInt(dataList[dataList.length - 1].value);
+  }
+
+  getShipmentFee(user_info: any, lineItems: CartItem[], shipment: any) {
+    if (user_info?.shipment === 'now') return 0;
+
+    let total_volume = 0;
+    let total_weight = 0;
+    lineItems.map(item => {
+      if (item.shipment_obj.type === 'volume') {
+        total_volume += item.shipment_obj.value;
+      }
+      if (item.shipment_obj.type === 'weight') {
+        total_weight += item.shipment_obj.value;
+      }
+    });
+    return (
+      this.calculateShipment(shipment.volume, total_volume) + this.calculateShipment(shipment.weight, total_weight)
+    );
+  }
+
   async toCheckout(
     data: {
       line_items: CartItem[];
@@ -1664,25 +1791,8 @@ export class Shopping {
     replace_order_id?: string
   ) {
     try {
-      const timer = {
-        count: 0,
-        history: [Date.now()],
-      };
-      const checkPoint = (name: string) => {
-        const t = Date.now();
-        timer.history.push(t);
-
-        const spendTime = t - timer.history[timer.count]; // 計算與上一個檢查點的時間差
-        const totalTime = t - timer.history[0]; // 計算從開始到現在的總時間
-
-        timer.count++;
-        const n = timer.count.toString().padStart(2, '0');
-
-        console.log(`TO-CHECKOUT-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
-          totalTime,
-          spendTime,
-        });
-      };
+      const utTimer = new UtTimer('TO-CHECKOUT');
+      const checkPoint = utTimer.checkPoint;
 
       const userClass = new User(this.app);
       const rebateClass = new Rebate(this.app);
@@ -1873,60 +1983,7 @@ export class Shopping {
       checkPoint('check rebate');
 
       // 運費設定
-      const shipment: ShipmentConfig = await (async () => {
-        data.user_info = data.user_info || {};
-        let def = (
-          (
-            await Private_config.getConfig({
-              appName: this.app,
-              key: 'glitter_shipment',
-            })
-          )[0] ?? {
-            value: {
-              volume: [],
-              weight: [],
-              selectCalc: 'volume',
-            },
-          }
-        ).value;
-
-        // 參照運費設定
-        const refer =
-          data.user_info.shipment === 'global_express'
-            ? (
-                (
-                  await Private_config.getConfig({
-                    appName: this.app,
-                    key: 'glitter_shipment_global_' + data.user_info.country,
-                  })
-                )[0] ?? {
-                  value: {
-                    volume: [],
-                    weight: [],
-                    selectCalc: 'volume',
-                  },
-                }
-              ).value
-            : (
-                (
-                  await Private_config.getConfig({
-                    appName: this.app,
-                    key: 'glitter_shipment_' + data.user_info.shipment,
-                  })
-                )[0] ?? {
-                  value: {
-                    volume: [],
-                    weight: [],
-                    selectCalc: 'def',
-                  },
-                }
-              ).value;
-
-        if (refer.selectCalc !== 'def') {
-          def = refer;
-        }
-        return def;
-      })();
+      const shipment: ShipmentConfig = await this.getShipmentRefer(data.user_info);
 
       // 物流設定
       const shipment_setting: any = await (async () => {
@@ -2023,33 +2080,13 @@ export class Shopping {
         editRecord: [],
       };
 
-      if (!data.user_info.name && userData && userData.userData) {
-        carData.user_info.name = userData.userData.name;
-        carData.user_info.phone = userData.userData.phone;
-      }
-
-      function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
-        if (value === 0) {
-          return 0;
-        }
-
-        const productValue = parseFloat(`${value}`);
-        if (isNaN(productValue) || dataList.length === 0) {
-          return 0;
-        }
-
-        for (let i = 0; i < dataList.length; i++) {
-          const currentKey = parseFloat(dataList[i].key);
-          const currentValue = parseFloat(dataList[i].value);
-          if (productValue < currentKey) {
-            return i === 0 ? 0 : parseFloat(dataList[i - 1].value);
-          } else if (productValue === currentKey) {
-            return currentValue;
-          }
-        }
-
-        // 如果商品值大於所有的key，返回最後一個value
-        return parseInt(dataList[dataList.length - 1].value);
+      if (!data.user_info?.name && userData && userData.userData) {
+        const { name, phone } = userData.userData;
+        carData.user_info = {
+          ...carData.user_info,
+          name,
+          phone,
+        };
       }
 
       const add_on_items: any[] = [];
@@ -2203,7 +2240,6 @@ export class Shopping {
 
                         if (variantData) {
                           item.sale_price = variantData.live_model.live_price;
-
                           carData.total += item.sale_price * item.count;
                         }
                       }
@@ -2396,22 +2432,7 @@ export class Shopping {
 
       checkPoint('set max product');
 
-      carData.shipment_fee = (() => {
-        if (data.user_info.shipment === 'now') return 0;
-
-        let total_volume = 0;
-        let total_weight = 0;
-        carData.lineItems.map(item => {
-          if (item.shipment_obj.type === 'volume') {
-            total_volume += item.shipment_obj.value;
-          }
-          if (item.shipment_obj.type === 'weight') {
-            total_weight += item.shipment_obj.value;
-          }
-        });
-        return calculateShipment(shipment.volume, total_volume) + calculateShipment(shipment.weight, total_weight);
-      })();
-
+      carData.shipment_fee = this.getShipmentFee(data.user_info, carData.lineItems, shipment);
       carData.total += carData.shipment_fee;
       const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
       carData.useRebateInfo = f_rebate;
@@ -2444,7 +2465,7 @@ export class Shopping {
       }
       checkPoint('distribution code');
 
-      // 手動新增訂單的優惠卷設定
+      // 自動新增訂單的優惠卷設定
       if (type !== 'manual' && type !== 'manual-preview') {
         // 過濾加購品與贈品
         carData.lineItems = carData.lineItems.filter(dd => {
@@ -2558,16 +2579,18 @@ export class Shopping {
       checkPoint('set payment');
 
       // 線下付款
-      (keyData as any).cash_on_delivery = (keyData as any).cash_on_delivery ?? { support: [] };
+      (keyData as any).cash_on_delivery = (keyData as any).cash_on_delivery ?? { shipmentSupport: [] };
       (carData as any).payment_info_line_pay = keyData.payment_info_line_pay;
       (carData as any).payment_info_atm = keyData.payment_info_atm;
-
       const defaultPayArray = onlinePayArray.map(item => item.key);
+      (keyData as any).cash_on_delivery.shipmentSupport = (keyData as any).cash_on_delivery.shipmentSupport ?? [];
 
       // 透過特定金流，取得指定物流
-      carData.shipmentSupport = checkoutPayment
+      carData.shipment_support = checkoutPayment
         ? ((() => {
-            if (defaultPayArray.includes(checkoutPayment) || checkoutPayment === 'cash_on_delivery') {
+            if (checkoutPayment === 'cash_on_delivery') {
+              return (keyData as any).cash_on_delivery;
+            } else if (defaultPayArray.includes(checkoutPayment)) {
               return keyData[checkoutPayment];
             } else if (checkoutPayment === 'atm') {
               return keyData.payment_info_atm;
@@ -2692,9 +2715,9 @@ export class Shopping {
       });
 
       // 物流是否可使用判斷
-      if (Array.isArray(carData.shipmentSupport)) {
+      if (Array.isArray(carData.shipment_support)) {
         await Promise.all(
-          carData.shipmentSupport.map(async sup => {
+          carData.shipment_support.map(async sup => {
             return await userClass
               .getConfigV2({ key: 'shipment_config_' + sup, user_id: 'manager' })
               .then(r => {
@@ -2705,7 +2728,7 @@ export class Shopping {
               });
           })
         ).then(dataArray => {
-          carData.shipmentSupport = carData.shipmentSupport?.filter((_, index) => dataArray[index]);
+          carData.shipment_support = carData.shipment_support?.filter((_, index) => dataArray[index]);
         });
       }
 
@@ -2800,13 +2823,6 @@ export class Shopping {
             );
             customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
           }
-          if (carData.rebate !== 0) {
-            await rebateClass.insertRebate(
-              customerData.userID,
-              carData.rebate,
-              `手動新增訂單 - 優惠券購物金：${tempVoucher.title}`
-            );
-          }
         }
 
         // 手動訂單新增
@@ -2815,16 +2831,10 @@ export class Shopping {
           status: data.pay_status as any,
           app: this.app,
         });
-        checkPoint('manual order done');
-        new ManagerNotify(this.app).checkout({
-          orderData: carData,
-          status: 0,
-        });
-        for (const email of new Set(
-          [carData.customer_info, carData.user_info].map(dd => {
-            return dd && dd.email;
-          })
-        )) {
+
+        new ManagerNotify(this.app).checkout({ orderData: carData, status: 0 });
+        const emailList = new Set([carData.customer_info, carData.user_info].map(dd => dd && dd.email));
+        for (const email of emailList) {
           if (email) {
             AutoSendEmail.customerOrder(
               this.app,
@@ -2835,6 +2845,8 @@ export class Shopping {
             );
           }
         }
+
+        checkPoint('manual order done');
         return {
           data: carData,
         };
@@ -3036,18 +3048,18 @@ export class Shopping {
             )) {
               let sns = new SMS(this.app);
               await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
-              console.log('訂單簡訊寄送成功');
+              console.info('訂單簡訊寄送成功');
             }
 
             if (carData.customer_info.lineID) {
               let line = new LineMessage(this.app);
               await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
-              console.log('訂單line訊息寄送成功');
+              console.info('訂單line訊息寄送成功');
             }
             // if (carData.customer_info.fb_id) {
             //     let fb = new FbMessage(this.app)
             //     await fb.sendCustomerFB('auto-fb-order-create', carData.orderID, carData.customer_info.fb_id);
-            //     console.log('訂單FB訊息寄送成功');
+            //     console.info('訂單FB訊息寄送成功');
             // }
             for (const email of new Set(
               [carData.customer_info, carData.user_info].map(dd => {
@@ -3368,6 +3380,18 @@ export class Shopping {
 
   async splitOrder(obj:{orderData: Cart, splitOrderArray:OrderDetail[]}) {
     try {
+      function generateOrderIds(orderId: string, arrayLength: number): string[] {
+        const orderIdArray: string[] = [];
+        const startChar = 'A'.charCodeAt(0); // 取得 'A' 的 ASCII 碼
+
+        for (let i = 0; i < arrayLength; i++) {
+          const charCode = startChar + i;
+          const nextChar = String.fromCharCode(charCode); // ASCII 碼轉換成字元
+          orderIdArray.push(orderId + nextChar);
+        }
+
+        return orderIdArray;
+      }
       //整理原本訂單的總價 優惠卷
       function refreshOrder(orderData:Cart , splitOrderArray:OrderDetail[]){
         const { newTotal, newDiscount } = splitOrderArray.reduce((acc, order) => {
@@ -3829,28 +3853,15 @@ export class Shopping {
     try {
       const update: any = {};
       const storeConfig = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
-      let origin = undefined;
+      let origin: any;
 
-      if (data.id) {
-        origin = (
-          await db.query(
-            `SELECT *
-             FROM \`${this.app}\`.t_checkout
-             WHERE id = ?;`,
-            [data.id]
-          )
-        )[0];
-      }
+      const whereClause = data.cart_token ? 'cart_token = ?' : data.id ? 'id = ?' : null;
+      const value = data.cart_token ?? data.id;
 
-      if (data.cart_token) {
-        origin = (
-          await db.query(
-            `SELECT *
-             FROM \`${this.app}\`.t_checkout
-             WHERE cart_token = ?;`,
-            [data.cart_token]
-          )
-        )[0];
+      if (whereClause && value) {
+        const query = `SELECT * FROM \`${this.app}\`.t_checkout WHERE ${whereClause};`;
+        const result = await db.query(query, [value]);
+        origin = result[0];
       }
 
       if (!origin) {
@@ -3866,19 +3877,20 @@ export class Shopping {
 
       // lineItems 庫存修正
       const resetLineItems = (lineItems: any[]) => {
-        return lineItems.map(item => ({
-          ...item,
-          stockList: undefined,
-          deduction_log: Object.keys(item.deduction_log || {}).length
-            ? item.deduction_log
-            : { [storeConfig.list[0].id]: item.count },
-        }));
+        return lineItems.map(item => {
+          return {
+            ...item,
+            stockList: undefined,
+            deduction_log: Object.keys(item.deduction_log || {}).length
+              ? item.deduction_log
+              : { [storeConfig.list[0].id]: item.count },
+          };
+        });
       };
 
       if (data.orderData) {
         const orderData = data.orderData;
         update.orderData = structuredClone(orderData);
-        const updateProgress = update.orderData.progress;
 
         // 恢復取消訂單的庫存
         orderData.lineItems = resetLineItems(orderData.lineItems);
@@ -3889,7 +3901,7 @@ export class Shopping {
 
         // 當訂單變成已取消時，執行庫存回填
         const prevStatus = origin.orderData.orderStatus;
-        const prevProgress = origin.orderData.progress;
+        const prevProgress = origin.orderData.progress || 'wait';
 
         //變成已取消加回庫存
         if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
@@ -3922,6 +3934,7 @@ export class Shopping {
         }
 
         // 當訂單出貨狀態變更，觸發通知事件
+        const updateProgress = update.orderData.progress;
         if (prevProgress !== updateProgress) {
           if (updateProgress === 'shipping') {
             await this.sendNotifications(orderData, 'shipment');
@@ -3939,6 +3952,7 @@ export class Shopping {
         }
       }
 
+      update.orderData.lineItems = update.orderData.lineItems.filter((item: any) => item.count > 0);
       this.writeRecord(origin, update);
 
       // ======= 更新訂單 =======
@@ -3950,25 +3964,10 @@ export class Shopping {
         {}
       );
       await db.query(
-        `UPDATE \`${this.app}\`.t_checkout
-         SET ?
-         WHERE id = ?;`,
+        `UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
+        `,
         [updateData, origin.id]
       );
-
-      // 若符合有效訂單設定，則發放類型為購物金的優惠券
-      const orderCountingSQL = await new User(this.app).getCheckoutCountingModeSQL();
-      const orderCount = await db.query(
-        `SELECT *
-         FROM \`${this.app}\`.t_checkout
-         WHERE id = ?
-           AND ${orderCountingSQL};
-        `,
-        [origin.id]
-      );
-      if (orderCount[0]) {
-        await this.shareVoucherRebate(orderCount[0]);
-      }
 
       // 同步蝦皮商品
       await Promise.all(
@@ -3998,6 +3997,20 @@ export class Shopping {
         orderData: update.orderData,
         app_name: this.app,
       });
+
+      // 若符合有效訂單設定，則發放類型為購物金的優惠券
+      const orderCountingSQL = await new User(this.app).getCheckoutCountingModeSQL();
+      const orderCount = await db.query(
+        `SELECT *
+         FROM \`${this.app}\`.t_checkout
+         WHERE id = ?
+           AND ${orderCountingSQL};
+        `,
+        [origin.id]
+      );
+      if (orderCount[0]) {
+        await this.shareVoucherRebate(orderCount[0]);
+      }
 
       return {
         result: 'success',
@@ -4101,21 +4114,37 @@ export class Shopping {
   }
 
   private async resetStore(lineItems: any[], plus_or_minus: 'plus' | 'minus' = 'plus') {
-    const stockUpdates = lineItems.map(async item => {
+    const shoppingClass = new Shopping(this.app, this.token);
+    const calcMap = new Map();
+
+    function updateCalcData(calc: number, stock_id: string, product_id: string, spec: string[]) {
+      const getCalc = calcMap.get(product_id);
+      calcMap.set(product_id, [...(getCalc ?? []), { calc, stock_id, product_id, spec }]);
+    }
+
+    lineItems.map(item => {
       if (item.product_category === 'kitchen' && item.spec?.length) {
-        return new Shopping(this.app, this.token).calcVariantsStock(item.count, '', item.id, item.spec);
+        updateCalcData(item.count, '', item.id, item.spec);
+        return;
       }
-      return Promise.all(
-        Object.entries(item.deduction_log).map(([location, count]) => {
-          let intCount = parseInt(`${count || 0}`, 10);
-          if (plus_or_minus === 'minus') {
-            intCount = intCount * -1;
-          }
-          return new Shopping(this.app, this.token).calcVariantsStock(intCount, location, item.id, item.spec);
-        })
-      );
+
+      Object.entries(item.deduction_log).map(([location, count]) => {
+        let intCount = parseInt(`${count || 0}`, 10);
+        if (plus_or_minus === 'minus') {
+          intCount = intCount * -1;
+        }
+        updateCalcData(intCount, location, item.id, item.spec);
+      });
     });
-    await Promise.all(stockUpdates);
+
+    return await Promise.all(
+      [...calcMap.values()].map(async dataArray => {
+        for (const data of dataArray) {
+          const { calc, stock_id, product_id, spec } = data;
+          await shoppingClass.calcVariantsStock(calc, stock_id, product_id, spec);
+        }
+      })
+    );
   }
 
   /**
@@ -4159,25 +4188,53 @@ export class Shopping {
   }
 
   private async adjustStock(origin: any, orderData: any) {
-    if (orderData.orderStatus === '-1') return;
+    try {
+      if (orderData.orderStatus === '-1') return;
 
-    const stockAdjustments = orderData.lineItems.map(async (newItem: any) => {
-      const originalItem = origin.lineItems.find(
-        (item: any) => item.id === newItem.id && item.spec.join('') === newItem.spec.join('')
+      const shoppingClass = new Shopping(this.app, this.token);
+      const calcMap = new Map();
+
+      function updateCalcData(calc: number, stock_id: string, product_id: string, spec: string[]) {
+        const getCalc = calcMap.get(product_id);
+        calcMap.set(product_id, [...(getCalc ?? []), { calc, stock_id, product_id, spec }]);
+      }
+
+      orderData.lineItems.map((newItem: any) => {
+        if (newItem.product_category === 'kitchen' && newItem.spec?.length) {
+          updateCalcData(newItem.count, '', newItem.id, newItem.spec);
+          return;
+        }
+
+        const originalItem = origin.lineItems.find(
+          (item: any) => item.id === newItem.id && item.spec.join('') === newItem.spec.join('')
+        );
+
+        Object.entries(newItem.deduction_log).map(([location, newCount]) => {
+          const parsedNewCount = Number(newCount || 0);
+          const formatNewCount = isNaN(parsedNewCount) ? 0 : parsedNewCount;
+
+          if (!originalItem) {
+            updateCalcData(formatNewCount * -1, location, newItem.id, newItem.spec);
+            return;
+          }
+
+          const originalCount = originalItem.deduction_log[location] || 0;
+          const delta = formatNewCount - originalCount;
+          updateCalcData(delta * -1, location, newItem.id, newItem.spec);
+        });
+      });
+
+      return await Promise.all(
+        [...calcMap.values()].map(async dataArray => {
+          for (const data of dataArray) {
+            const { calc, stock_id, product_id, spec } = data;
+            await shoppingClass.calcVariantsStock(calc, stock_id, product_id, spec);
+          }
+        })
       );
-
-      if (newItem.product_category === 'kitchen' && newItem.spec?.length) {
-        return new Shopping(this.app, this.token).calcVariantsStock(newItem.count, '', newItem.id, newItem.spec);
-      }
-
-      for (const [location, newCount] of Object.entries(newItem.deduction_log)) {
-        const originalCount = originalItem.deduction_log[location] || 0;
-        const parsedNewCount = Number(newCount || 0);
-        const delta = (isNaN(parsedNewCount) ? 0 : parsedNewCount) - originalCount;
-        await new Shopping(this.app, this.token).calcVariantsStock(delta * -1, location, newItem.id, newItem.spec);
-      }
-    });
-    await Promise.all(stockAdjustments);
+    } catch (error) {
+      console.error(`adjustStock has error: ${error}`);
+    }
   }
 
   async manualCancelOrder(order_id: string) {
@@ -4280,13 +4337,13 @@ export class Shopping {
       )) {
         let sns = new SMS(this.app);
         await sns.sendCustomerSns('sns-proof-purchase', order_id, phone);
-        console.log('訂單待核款簡訊寄送成功');
+        console.info('訂單待核款簡訊寄送成功');
       }
 
       if (orderData.customer_info.lineID) {
         let line = new LineMessage(this.app);
         await line.sendCustomerLine('line-proof-purchase', order_id, orderData.customer_info.lineID);
-        console.log('付款成功line訊息寄送成功');
+        console.info('付款成功line訊息寄送成功');
       }
       await this.putOrder({
         orderData: orderData,
@@ -4797,7 +4854,7 @@ export class Shopping {
         )) {
           let sns = new SMS(this.app);
           await sns.sendCustomerSns('auto-sns-payment-successful', order_id, phone);
-          console.log('付款成功簡訊寄送成功');
+          console.info('付款成功簡訊寄送成功');
         }
 
         if (cartData.orderData.customer_info.lineID) {
@@ -4807,7 +4864,7 @@ export class Shopping {
             order_id,
             cartData.orderData.customer_info.lineID
           );
-          console.log('付款成功line訊息寄送成功');
+          console.info('付款成功line訊息寄送成功');
         }
 
         const userData = await new User(this.app).getUserData(cartData.email, 'account');
@@ -4829,6 +4886,7 @@ export class Shopping {
     const rebateClass = new Rebate(this.app);
     const userClass = new User(this.app);
     const userData = await userClass.getUserData(cartData.email, 'account');
+
     if (order_id && userData && cartData.orderData.rebate > 0) {
       for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
         const orderVoucher = cartData.orderData.voucherList[i];
@@ -4841,17 +4899,35 @@ export class Shopping {
           [orderVoucher.id]
         );
 
-        if (voucherRow[0]) {
+        if (orderVoucher.id === 0 || voucherRow[0]) {
           const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
+          const voucherTitle = orderVoucher.id === 0 ? orderVoucher.title : voucherRow[0].content.title;
+
+          const rebateEndDay = (() => {
+            try {
+              return `${voucherRow[0].content.rebateEndDay}`;
+            } catch (error) {
+              return '0';
+            }
+          })();
+
           if (orderVoucher.rebate_total && !usedVoucher) {
+            const cf: any = {
+              voucher_id: orderVoucher.id,
+              order_id: order_id,
+            };
+
+            if (parseInt(rebateEndDay, 10)) {
+              const date = new Date();
+              date.setDate(date.getDate() + parseInt(rebateEndDay, 10));
+              cf.deadTime = moment(date).format('YYYY-MM-DD HH:mm:ss');
+            }
+
             await rebateClass.insertRebate(
               userData.userID,
               orderVoucher.rebate_total,
-              `優惠券購物金：${voucherRow[0].content.title}`,
-              {
-                voucher_id: orderVoucher.id,
-                order_id: order_id,
-              }
+              `優惠券購物金：${voucherTitle}`,
+              cf
             );
           }
         }
@@ -5001,6 +5077,7 @@ export class Shopping {
       const storeConfig = await _user.getConfigV2({ key: 'store_manager', user_id: 'manager' });
 
       const sourceMap: Record<string, string> = {};
+
       const insertPromises = content.variants.map(async (variant: any) => {
         content.total_sales += variant.sold_out ?? 0;
         content.min_price = Math.min(content.min_price ?? variant.sale_price, variant.sale_price);
@@ -5018,8 +5095,8 @@ export class Shopping {
         }
 
         const insertData = await db.query(
-          `INSERT INTO \`${this.app}\`.t_variants
-           SET ?`,
+          `INSERT INTO \`${this.app}\`.t_variants SET ?
+          `,
           [
             {
               content: JSON.stringify(variant),
@@ -5126,6 +5203,7 @@ export class Shopping {
           is_manger: true,
         })
       ).data.content;
+
       const variant_s: any = pd_data.variants.find((dd: any) => {
         return dd.spec.join('-') === spec.join('-');
       });
@@ -5739,24 +5817,31 @@ export class Shopping {
                 product.preview_image = og_data['content'].preview_image || [];
                 productArray[index] = product;
               } else {
-                console.log(`Product-not-in ==>`, product);
+                console.error('Product id not exist:', product);
               }
             } else {
-              console.log(`No-exist-product-id ==>`, product);
+              console.error('Product has not id:', product);
             }
             resolve(true);
           });
         })
       );
 
-      let max_id =
-        ((
-          await db.query(
-            `select max(id)
-             from \`${this.app}\`.t_manager_post`,
-            []
-          )
-        )[0]['max(id)'] || 0) + 1;
+      async function getNextId(app: string): Promise<number> {
+        const query = `SELECT MAX(id) AS max_id
+                       FROM \`${app}\`.t_manager_post`;
+
+        try {
+          const result = await db.query(query, []);
+          const maxId = result?.[0]?.max_id ?? 0; // 安全取得 max_id，若不存在則預設為 0
+          return maxId + 1;
+        } catch (error) {
+          console.error('取得最大 ID 時發生錯誤:', error);
+          return 1; // 若發生錯誤，回傳預設 ID = 1
+        }
+      }
+
+      let max_id = await getNextId(this.app);
 
       productArray.map((product: any) => {
         if (!product.id) {
@@ -6252,6 +6337,24 @@ export class Shopping {
     };
   }
 
+  async batchPostCustomerInvoice(dataArray: InvoiceData[]) {
+    let result: any = [];
+    const chunk = 10;
+    const chunksCount = Math.ceil(dataArray.length / chunk);
+
+    for (let i = 0; i < chunksCount; i++) {
+      const arr = dataArray.slice(i * chunk, (i + 1) * chunk);
+      const res = await Promise.all(
+        arr.map(item => {
+          return this.postCustomerInvoice(item);
+        })
+      );
+      result = result.concat(res);
+    }
+
+    return result;
+  }
+
   async voidInvoice(obj: { invoice_no: string; reason: string; createDate: string }) {
     const config = await app.getAdConfig(this.app, 'invoice_setting');
     const passData = {
@@ -6285,15 +6388,7 @@ export class Shopping {
     );
   }
 
-  async allowanceInvoice(obj: {
-    invoiceID: string;
-    allowanceData: any;
-    orderID: string;
-    orderData: any;
-    allowanceInvoiceTotalAmount: string;
-    itemList: any;
-    invoiceDate: string;
-  }) {
+  async allowanceInvoice(obj: InvoiceData) {
     const config = await app.getAdConfig(this.app, 'invoice_setting');
     let invoiceData = await db.query(
       `

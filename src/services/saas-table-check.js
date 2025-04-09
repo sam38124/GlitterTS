@@ -8,8 +8,7 @@ const database_1 = __importDefault(require("../modules/database"));
 const config_1 = require("../config");
 exports.SaasScheme = {
     createScheme: async () => {
-        const sql = String.raw;
-        await database_1.default.query(`SET GLOBAL max_prepared_stmt_count = 163820`, []);
+        await database_1.default.query(`SET GLOBAL max_prepared_stmt_count = 262112`, []);
         await database_1.default.execute(`CREATE SCHEMA if not exists \`${config_1.saasConfig.SAAS_NAME}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
         await database_1.default.execute(`CREATE SCHEMA if not exists \`${config_1.saasConfig.SAAS_NAME}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
         const sqlArray = [
@@ -21,7 +20,7 @@ exports.SaasScheme = {
   \`ip\` VARCHAR(45) NOT NULL,
   \`data\` JSON NULL,
   PRIMARY KEY (\`id\`),
-  UNIQUE INDEX \`index2\` (\`ip\` ASC) VISIBLE)`
+  UNIQUE INDEX \`index2\` (\`ip\` ASC) VISIBLE)`,
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
@@ -42,7 +41,7 @@ exports.SaasScheme = {
   KEY \`index5\` (\`created_time\`),
   KEY \`index6\` (\`req_type\`),
   KEY \`index7\` (\`app_name\`,\`req_type\`)
-) ENGINE=InnoDB AUTO_INCREMENT=3969739 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=3969739 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
@@ -53,7 +52,7 @@ exports.SaasScheme = {
   \`updated\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`updated\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
@@ -219,11 +218,33 @@ exports.SaasScheme = {
   UNIQUE KEY \`index2\` (\`type\`,\`bind\`,\`tag\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
             },
+            {
+                scheme: config_1.saasConfig.SAAS_NAME,
+                table: 'error_log',
+                sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`message\` TEXT NULL,
+  \`stack\` TEXT NULL,
+  \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+            },
+            {
+                scheme: config_1.saasConfig.SAAS_NAME,
+                table: 'warning_log',
+                sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`message\` TEXT NULL,
+   \`tag\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`stack\` TEXT NULL,
+  \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY \`index2\` (\`tag\`),
+  PRIMARY KEY (\`id\`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+            },
         ];
         const groupSize = 5;
         for (const b of chunkArray(sqlArray, groupSize)) {
             let check = b.length;
-            await new Promise((resolve) => {
+            await new Promise(resolve => {
                 for (const d of b) {
                     function try_execute() {
                         try {

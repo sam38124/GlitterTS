@@ -108,9 +108,9 @@ export interface LineItem {
     spec: string[];
     count: string;
     sale_price: number;
-    title: string;
+    title?: string;
     sku: string;
-    preview_image:string;
+    preview_image?:string;
 }
 
 interface CustomerInfo {

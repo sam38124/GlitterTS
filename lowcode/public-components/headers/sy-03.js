@@ -202,7 +202,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                   >
                     <img
                       src="${widget.formData.logo}"
-                      style="${document.body.clientWidth < 800
+                      style="${(document.body.clientWidth < 800 || (gvc.glitter.getUrlParameter('page') === 'checkout'))
                     ? `max-height: 100%;max-width:200px;max-height:60px;`
                     : `height: ${(() => {
                         try {
@@ -440,7 +440,8 @@ padding-bottom: 2px;
             },
             mobile: () => {
                 return HeaderMobile.mian({
-                    gvc: gvc
+                    gvc: gvc,
+                    widget: widget
                 });
             },
             gvc: gvc

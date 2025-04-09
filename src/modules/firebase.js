@@ -9,6 +9,7 @@ const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const config_1 = require("../config");
 const database_1 = __importDefault(require("../modules/database"));
 const web_socket_js_1 = require("../services/web-socket.js");
+const caught_error_js_1 = require("./caught-error.js");
 class Firebase {
     constructor(app) {
         this.app = '';
@@ -105,34 +106,39 @@ class Firebase {
             }
             if (Array.isArray(cf.token)) {
                 for (const token of cf.token) {
-                    firebase_admin_1.default.apps.find((dd) => {
-                        return (dd === null || dd === void 0 ? void 0 : dd.name) === 'glitter';
-                    }).messaging().send({
-                        notification: {
-                            title: cf.title,
-                            body: cf.body.replace(/<br>/g, ''),
-                        },
-                        android: {
+                    try {
+                        firebase_admin_1.default.apps.find((dd) => {
+                            return (dd === null || dd === void 0 ? void 0 : dd.name) === 'glitter';
+                        }).messaging().send({
                             notification: {
-                                sound: 'default'
+                                title: cf.title,
+                                body: cf.body.replace(/<br>/g, ''),
                             },
-                        },
-                        apns: {
-                            payload: {
-                                aps: {
+                            android: {
+                                notification: {
                                     sound: 'default'
                                 },
                             },
-                        },
-                        data: {
-                            link: cf.link
-                        },
-                        "token": token
-                    }).then((response) => {
-                        console.log('成功發送推播：', response);
-                    }).catch((error) => {
-                        console.error('發送推播時發生錯誤：', error);
-                    });
+                            apns: {
+                                payload: {
+                                    aps: {
+                                        sound: 'default'
+                                    },
+                                },
+                            },
+                            data: {
+                                link: `${cf.link || ''}`
+                            },
+                            "token": token
+                        }).then((response) => {
+                            console.log('成功發送推播：', response);
+                        }).catch((error) => {
+                            console.error('發送推播時發生錯誤：', error);
+                        });
+                    }
+                    catch (e) {
+                        caught_error_js_1.CaughtError.warning('fcm', `firebase->74`, `${e}`);
+                    }
                 }
             }
             resolve(true);
