@@ -396,76 +396,103 @@ export class OrderModule {
                                     style: 'width: 64px;',
                                 });
                             }
-                            return html `<div class="d-flex align-items-center gap-1">
-                    <div
+                            function renderImage() {
+                                return html `<div
                       class="d-flex flex-column align-items-center justify-content-center"
                       style="gap: 5px; margin-right: 12px;"
                     >
                       ${BgWidget.validImageBox({
-                                gvc,
-                                image: dd.preview_image,
-                                width: 60,
-                                class: 'border rounded',
-                                style: '',
-                            })}
-                    </div>
-                    <div class="d-flex flex-column">
-                      ${dd.is_hidden
-                                ? html `<div style="width:auto;">${BgWidget.secondaryInsignia('隱形商品')}</div>`
-                                : ''}
-                      <div class="tx_700 d-flex align-items-center" style="gap:4px;">
-                        <div>${dd.title}</div>
-                        ${dd.is_gift ? html `<div>${showTag('#FFE9B2', '贈品')}</div>` : ''}
-                        ${dd.is_add_on_items ? html `<div>${showTag('#D8E7EC', '加購品')}</div>` : ''}
-                        ${dd.pre_order ? html `<div>${showTag('#D8E7EC', '預購')}</div>` : ''}
-                      </div>
-                      ${dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : ''}
-                      ${BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`)}
-                    </div>
-                    <div class="flex-fill"></div>
-                    <div class="tx_normal_16 d-none d-lg-flex justify-content-end" style="min-width: 80px;">
+                                    gvc,
+                                    image: dd.preview_image,
+                                    width: 60,
+                                    class: 'border rounded',
+                                    style: '',
+                                })}
+                    </div>`;
+                            }
+                            function renderTrash() {
+                                return html `<div
+                      class="hoverBtn d-flex align-items-center justify-content-center fs-6"
+                      style="width: 24px;"
+                      onclick="${gvc.event(() => {
+                                    const findData = orderData.orderData.lineItems.find(item => {
+                                        return item.id === dd.id && item.spec.join('') === dd.spec.join('');
+                                    });
+                                    if (findData) {
+                                        findData.count = 0;
+                                        Object.keys(findData.deduction_log).map(key => {
+                                            findData.deduction_log[key] = 0;
+                                        });
+                                    }
+                                    gvc.notifyDataChange(id);
+                                })}"
+                    >
+                      <i class="fa-sharp fa-regular fa-trash"></i>
+                    </div>`;
+                            }
+                            function isHiddenProduct() {
+                                return dd.is_hidden
+                                    ? html `<div class="w-auto">${BgWidget.secondaryInsignia('隱形商品')}</div>`
+                                    : '';
+                            }
+                            function webPriceCount() {
+                                return html `<div class="d-none d-lg-flex justify-content-end tx_normal_16" style="min-width: 80px;">
                       <div class="d-flex align-items-center gap-2">
                         $${dd.sale_price.toLocaleString()} × ${countInput()}
                       </div>
-                    </div>
-                    <div
-                      class="tx_normal d-sm-none d-flex flex-column"
-                      style="display: flex;justify-content: end;${document.body.clientWidth > 800
-                                ? 'width: 110px'
-                                : 'width: 140px'}"
-                    >
-                      <div>$${dd.sale_price.toLocaleString()} × ${countInput()}</div>
-                    </div>
-                    <div
-                      class="tx_normal d-none d-sm-flex"
-                      style="display: flex;justify-content: end;${document.body.clientWidth > 800
-                                ? 'width: 110px'
-                                : ''}"
+                    </div>`;
+                            }
+                            function renderSubtotal() {
+                                return html `<div
+                      class="d-flex justify-content-end align-items-center tx_normal"
+                      style="width: 110px;"
                     >
                       $${(dd.sale_price * dd.count).toLocaleString()}
+                    </div>`;
+                            }
+                            function mobPriceCount() {
+                                return html `<div class="d-sm-none d-flex align-items-center gap-2 tx_normal">
+                      $${dd.sale_price.toLocaleString()} × ${countInput()}
+                    </div>`;
+                            }
+                            function renderSKU() {
+                                return BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`);
+                            }
+                            function renderTitleInfo() {
+                                return html `<div class="tx_700 d-flex align-items-center gap-1">
+                      <div style="white-space: normal;">${dd.title}</div>
+                      ${dd.is_gift ? html `<div>${showTag('#FFE9B2', '贈品')}</div>` : ''}
+                      ${dd.is_add_on_items ? html `<div>${showTag('#D8E7EC', '加購品')}</div>` : ''}
+                      ${dd.pre_order ? html `<div>${showTag('#D8E7EC', '預購')}</div>` : ''}
+                    </div>`;
+                            }
+                            function renderSpec() {
+                                return dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : '';
+                            }
+                            if (document.body.clientWidth > 768) {
+                                return html `<div class="d-flex align-items-center gap-1">
+                      ${renderImage()}
+                      <div class="d-flex flex-column">
+                        ${isHiddenProduct()} ${renderTitleInfo()} ${renderSpec()} ${renderSKU()}
+                      </div>
+                      <div class="flex-fill"></div>
+                      ${webPriceCount()} ${renderSubtotal()} ${renderTrash()}
+                    </div>`;
+                            }
+                            return html `<div class="d-flex flex-column gap-1 mt-2">
+                    <div class="d-flex gap-2">
+                      ${renderImage()}
+                      <div class="d-flex flex-column">
+                        ${isHiddenProduct()} ${renderTitleInfo()} ${renderSpec()} ${renderSKU()}
+                      </div>
                     </div>
-                    <div
-                      class="hoverBtn d-flex align-items-center justify-content-center fs-6"
-                      style="width: 24px; height: 24px;"
-                      onclick="${gvc.event(() => {
-                                const findData = orderData.orderData.lineItems.find(item => {
-                                    return item.id === dd.id && item.spec.join('') === dd.spec.join('');
-                                });
-                                if (findData) {
-                                    findData.count = 0;
-                                    Object.keys(findData.deduction_log).map(key => {
-                                        findData.deduction_log[key] = 0;
-                                    });
-                                }
-                                gvc.notifyDataChange(id);
-                            })}"
-                    >
-                      <i class="fa-sharp fa-regular fa-trash"></i>
+                    <div class="d-flex gap-2 justify-content-between">
+                      ${mobPriceCount()} ${renderSubtotal()} ${renderTrash()}
                     </div>
                   </div>`;
                         })
                             .join(html ` <div style="margin-top: 12px;"></div>`)}
-              <div class="d-flex align-items-center justify-content-center">
+              <div class="d-flex align-items-center justify-content-center mt-1">
                 <div style="width: 50px;">
                   ${BgWidget.plusButton({
                             title: '新增商品',
