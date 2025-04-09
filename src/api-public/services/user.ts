@@ -1662,7 +1662,7 @@ or
         });
 
         // 經常購買者清單
-        const usuallyBuyingStandard = 0.01;
+        const usuallyBuyingStandard = 9.9;
         const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
         const neverBuyingData = await db.query(
           `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email

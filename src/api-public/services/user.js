@@ -1356,7 +1356,7 @@ or
                         buyingList[index].count++;
                     }
                 });
-                const usuallyBuyingStandard = 0.01;
+                const usuallyBuyingStandard = 9.9;
                 const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
                 const neverBuyingData = await database_1.default.query(`SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
            FROM \`${this.app}\`.t_user
