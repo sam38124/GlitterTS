@@ -30,6 +30,7 @@ import { App as GeneralApp } from '../../services/app.js';
 import { UserUpdate } from './user-update.js';
 import { ApiPublic } from './public-table-check.js';
 import { UtTimer } from '../utils/ut-timer';
+import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
 
 interface UserQuery {
   page?: number;
@@ -1244,7 +1245,25 @@ export class User {
       const noRegisterUsers: any[] = [];
       query.page = query.page ?? 0;
       query.limit = query.limit ?? 50;
+      const timer = {
+        count: 0,
+        history: [Date.now()],
+      };
+      const checkPoint = (name: string) => {
+        const t = Date.now();
+        timer.history.push(t);
 
+        const spendTime = t - timer.history[timer.count]; // 計算與上一個檢查點的時間差
+        const totalTime = t - timer.history[0]; // 計算從開始到現在的總時間
+
+        timer.count++;
+        const n = timer.count.toString().padStart(2, '0');
+
+        console.info(`GET-USER-LIST-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
+          totalTime,
+          spendTime,
+        });
+      };
       function sqlDateConvert(dd: string) {
         return dd.replace('T', ' ').replace('.000Z', '');
       }
@@ -1491,13 +1510,15 @@ or
         return dd;
       });
 
+
+      checkPoint("get-user-data-finish")
       // 建立 userID 對應的 Map，加快查找
       const userMap = new Map(userData.map((user: any) => [String(user.userID), user]));
 
       // 會員等級 Map
       const levels = await this.getUserLevel(userData.map((user: any) => ({ userId: user.userID })));
       const levelMap = new Map(levels.map(lv => [lv.id, lv.data.dead_line ?? '']));
-
+      checkPoint("levelMap-finish")
       const queryResult = await db.query(
         `
             SELECT *
@@ -1507,7 +1528,7 @@ or
         `,
         []
       );
-
+      checkPoint("queryResult-finish")
       // 更新 userData
       for (const b of queryResult) {
         const tag = levels.find(dd => {
@@ -1573,7 +1594,7 @@ or
         )[0];
         user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
       };
-
+      checkPoint("processUserData-finish")
       // 批次處理會員資料
       if (Array.isArray(userData) && userData.length > 0) {
         const chunkSize = 20; // 每次最多處理人數
@@ -2584,9 +2605,9 @@ or
           data.value = (await that.checkLeakData(config.key, data.value)) || data.value; // 資料存在則進行異常數據檢查
         } else if (config.key === 'store-information') {
           return { language_setting: { def: 'zh-TW', support: ['zh-TW'] } }; // store-information 預設回傳
-        }
+        };
 
-        return (data && data.value) || {};
+        return (await that.checkLeakData(config.key, (data && data.value) || {}));
       }
 
       if (config.key.includes(',')) {
@@ -2649,7 +2670,11 @@ or
       case 'login_config':
         value = FormCheck.initialLoginConfig(value);
         break;
+      case 'auto_fcm':
+        value = AutoFcm.initial(value)
+        break
     }
+    return value
   }
 
   public async checkEmailExists(email: string) {

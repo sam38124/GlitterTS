@@ -318,7 +318,7 @@ export class ApiUser {
     });
   }
 
-  public static getUserList(json: { limit: number; page: number; search?: string; id?: string; search_type?: string }) {
+  public static getUserList(json: { limit: number; page: number; search?: string; id?: string; search_type?: string,only_id?:string }) {
     return BaseApi.create({
       url:
         getBaseUrl() +

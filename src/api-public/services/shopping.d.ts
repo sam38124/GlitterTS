@@ -482,6 +482,7 @@ export declare class Shopping {
         cart_token?: string;
         orderData: any;
         status: any;
+        spiltOrder?: string[];
     }): Promise<{
         result: string;
         message: string;

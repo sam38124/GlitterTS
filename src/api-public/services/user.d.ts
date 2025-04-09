@@ -195,11 +195,7 @@ export declare class User {
         key: string;
         user_id: string;
     }): Promise<any>;
-    checkLeakData(key: string, value: any): Promise<{
-        'zh-TW': any[];
-        'en-US': never[];
-        'zh-CN': never[];
-    } | undefined>;
+    checkLeakData(key: string, value: any): Promise<any>;
     checkEmailExists(email: string): Promise<any>;
     checkPhoneExists(phone: string): Promise<any>;
     getUnreadCount(): Promise<{

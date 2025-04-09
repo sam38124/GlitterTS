@@ -248,7 +248,7 @@ class BackendService {
                     const server = [];
                     try {
                         for (const b of conf.nginx.server) {
-                            if (b.server_name.toString().indexOf(config.domain) === -1) {
+                            if (b.server_name.toString().indexOf(config.domain.replace('www.', '')) === -1) {
                                 console.log(b.server_name.toString());
                                 server.push(b);
                             }
@@ -269,11 +269,27 @@ class BackendService {
        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
     }
 }`;
+            if (config.domain.startsWith('www.')) {
+                result += `\n\nserver {
+    listen 80;
+    server_name ${config.domain.replace('www.', '')};
+    # 自動重定向 HTTP 到 HTTPS
+    return 301 https://www.$host$request_uri;
+}`;
+            }
             const url = await ssh_js_1.Ssh.uploadFile(result, new Date().getTime().toString(), 'data');
             const response = await new Promise((resolve, reject) => {
                 ssh_js_1.Ssh.exec([
                     `sudo curl -o /etc/nginx/sites-enabled/default ${url}`,
                     `sudo certbot --nginx -d ${config.domain} --non-interactive --agree-tos -m sam38124@gmail.com`,
+                    ...(() => {
+                        if (config.domain.startsWith('www.')) {
+                            return [`sudo certbot --nginx -d ${config.domain.replace('www.', '')} --non-interactive --agree-tos -m sam38124@gmail.com`];
+                        }
+                        else {
+                            return [];
+                        }
+                    })(),
                     `sudo nginx -s reload`
                 ], ip).then((res) => {
                     resolve(res && res.join('').indexOf('Successfully') !== -1);

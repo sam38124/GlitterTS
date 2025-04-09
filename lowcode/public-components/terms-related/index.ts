@@ -65,6 +65,7 @@ export class TermsRelated {
               'shipment_list_archive',
               'reconciliation_area',
               'app-design',
+              'auto_fcm_push','auto_fcm_advertise'
             ].includes(glitter.getUrlParameter('page'))
           ) {
             return await new Promise((resolve, reject) => {

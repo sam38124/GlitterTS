@@ -56,6 +56,7 @@ const terms_check_js_1 = require("./terms-check.js");
 const app_js_2 = require("../../services/app.js");
 const user_update_js_1 = require("./user-update.js");
 const public_table_check_js_1 = require("./public-table-check.js");
+const auto_fcm_js_1 = require("../../public-config-initial/auto-fcm.js");
 class User {
     constructor(app, token) {
         this.normalMember = {
@@ -1028,6 +1029,22 @@ class User {
             const noRegisterUsers = [];
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
+            const timer = {
+                count: 0,
+                history: [Date.now()],
+            };
+            const checkPoint = (name) => {
+                const t = Date.now();
+                timer.history.push(t);
+                const spendTime = t - timer.history[timer.count];
+                const totalTime = t - timer.history[0];
+                timer.count++;
+                const n = timer.count.toString().padStart(2, '0');
+                console.info(`GET-USER-LIST-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
+                    totalTime,
+                    spendTime,
+                });
+            };
             function sqlDateConvert(dd) {
                 return dd.replace('T', ' ').replace('.000Z', '');
             }
@@ -1250,15 +1267,18 @@ or
                 dd.tag_name = '一般會員';
                 return dd;
             });
+            checkPoint("get-user-data-finish");
             const userMap = new Map(userData.map((user) => [String(user.userID), user]));
             const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
             const levelMap = new Map(levels.map(lv => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
+            checkPoint("levelMap-finish");
             const queryResult = await database_1.default.query(`
             SELECT *
             FROM \`${this.app}\`.t_user_public_config
             WHERE \`key\` = 'member_update'
               AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
         `, []);
+            checkPoint("queryResult-finish");
             for (const b of queryResult) {
                 const tag = levels.find(dd => {
                     return `${dd.id}` === `${b.user_id}`;
@@ -1301,6 +1321,7 @@ or
                                                  and ${orderCountingSQL} `, []))[0];
                 user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
             };
+            checkPoint("processUserData-finish");
             if (Array.isArray(userData) && userData.length > 0) {
                 const chunkSize = 20;
                 const chunkedUserData = [];
@@ -2047,7 +2068,8 @@ or
                 else if (config.key === 'store-information') {
                     return { language_setting: { def: 'zh-TW', support: ['zh-TW'] } };
                 }
-                return (data && data.value) || {};
+                ;
+                return (await that.checkLeakData(config.key, (data && data.value) || {}));
             }
             if (config.key.includes(',')) {
                 return Promise.all(config.key.split(',').map(async (dd) => ({
@@ -2107,7 +2129,11 @@ or
             case 'login_config':
                 value = form_check_js_1.FormCheck.initialLoginConfig(value);
                 break;
+            case 'auto_fcm':
+                value = auto_fcm_js_1.AutoFcm.initial(value);
+                break;
         }
+        return value;
     }
     async checkEmailExists(email) {
         try {

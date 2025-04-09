@@ -11,6 +11,8 @@ const firebase_1 = require("../../modules/firebase");
 const router = express_1.default.Router();
 router.post('/', async (req, resp) => {
     try {
+        console.log(`req==>`, req.body);
+        return response_1.default.succ(resp, { result: true });
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
             const app = req.get('g-app');
             let device_token_stack = [];

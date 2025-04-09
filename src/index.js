@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -122,7 +124,6 @@ async function initial(serverPort) {
     })();
     console.log('Starting up the server now.');
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -153,7 +154,6 @@ async function createAPP(dd) {
             seoManager: async (req) => {
                 var _a, _b, _c, _d, _e, _f;
                 const og_url = req.headers['x-original-url'];
-                console.log(`req.query.page=>`, req.query.page);
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -333,7 +333,9 @@ async function createAPP(dd) {
                             await seo_config_js_1.SeoConfig.collectionSeo({ appName, language, data, page: req.query.page });
                         }
                         if (FBCode) {
-                            seo_content.push(seo_config_js_1.SeoConfig.fbCode(FBCode));
+                            if (!(req.headers['user-agent'].includes('iosGlitter') && !(req.headers['user-agent'].includes('allow_track')))) {
+                                seo_content.push(seo_config_js_1.SeoConfig.fbCode(FBCode));
+                            }
                         }
                         const home_seo = home_page_data.page_config.seo || {};
                         const head = [
@@ -488,6 +490,10 @@ async function createAPP(dd) {
                                     return ``;
                                 }
                                 else {
+                                    if (req.headers['user-agent'].includes('iosGlitter') && !(req.headers['user-agent'].includes('allow_track'))) {
+                                        customCode.ga4 = [];
+                                        customCode.g_tag = [];
+                                    }
                                     return html `
                                   ${seo_config_js_1.SeoConfig.gA4(customCode.ga4)} ${seo_config_js_1.SeoConfig.gTag(customCode.g_tag)}
                                   ${seo_content
@@ -738,7 +744,6 @@ async function createAPP(dd) {
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

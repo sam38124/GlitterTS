@@ -962,7 +962,10 @@ export class App {
                     const server: any = [];
                     for (const b of conf!.nginx.server as any) {
                         if ((!b.server_name) || (!b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`))) {
-                            server.push(b);
+                            if((!config.domain.startsWith('www.')) || ((!b.server_name) || (!b.server_name.toString().includes(`server_name ${config.domain.replace('www.','')};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`)))){
+                                server.push(b);
+                            }
+
                         }
                     }
                     conf!.nginx.server = server;
@@ -979,11 +982,26 @@ export class App {
        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
     }
 }`;
+            if(config.domain.startsWith('www.')){
+                result += `\n\nserver {
+    listen 80;
+    server_name ${config.domain.replace('www.','')};
+    # 自動重定向 HTTP 到 HTTPS
+    return 301 https://www.$host$request_uri;
+}`
+            }
             fs.writeFileSync('/nginx.config', result);
             const response = await new Promise((resolve, reject) => {
                 Ssh.exec([
                     `sudo docker cp $(sudo docker ps --filter "expose=3080" --format "{{.ID}}"):/nginx.config /etc/nginx/sites-enabled/default.conf`,
                     `sudo certbot --nginx -d ${config.domain} --non-interactive --agree-tos -m sam38124@gmail.com`,
+                    ...(()=>{
+                        if(config.domain.startsWith('www.')){
+                            return [`sudo certbot --nginx -d ${config.domain.replace('www.','')} --non-interactive --agree-tos -m sam38124@gmail.com`]
+                        }else{
+                            return []
+                        }
+                    })(),
                     `sudo nginx -s reload`,
                 ]).then((res: any) => {
                     console.log(`response-ssh->`, res && res.join(''));

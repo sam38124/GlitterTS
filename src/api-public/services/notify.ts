@@ -357,6 +357,7 @@ export class ManagerNotify {
         const saas = await this.getSaasAPP();
         const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=order_list`;
         const body = html`顧客已上傳付款證明，您有一筆新增的待核款訂單，訂單編號 『 ${cf.orderData.orderID} 』。`;
+
         new Firebase(saas.brand).sendMessage({
             title: '待核款訂單',
             userID: saas.user,

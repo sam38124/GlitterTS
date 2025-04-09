@@ -60,6 +60,70 @@ const paynow_logistics_js_1 = require("./paynow-logistics.js");
 const checkout_js_1 = require("./checkout.js");
 const product_initial_js_1 = require("./product-initial.js");
 const ut_timer_js_1 = require("../utils/ut-timer.js");
+const auto_fcm_js_1 = require("../../public-config-initial/auto-fcm.js");
+class OrderDetail {
+    constructor(subtotal, shipment) {
+        this.discount = 0;
+        this.rebate = 0;
+        this.cart_token = '';
+        this.tag = 'manual';
+        this.lineItems = [];
+        this.subtotal = subtotal;
+        this.shipment = shipment;
+        this.customer_info = this.initCustomerInfo();
+        this.user_info = this.initUserInfo();
+        this.total = 0;
+        this.pay_status = "0";
+        this.voucher = this.initVoucher();
+    }
+    initCustomerInfo() {
+        return {
+            name: '',
+            phone: '',
+            email: '',
+        };
+    }
+    initUserInfo() {
+        return {
+            CVSAddress: '',
+            CVSStoreID: '',
+            CVSStoreName: '',
+            CVSTelephone: '',
+            MerchantTradeNo: '',
+            address: '',
+            email: '',
+            name: '',
+            note: '',
+            phone: '',
+            shipment: 'normal',
+        };
+    }
+    initVoucher() {
+        return {
+            id: 0,
+            discount_total: 0,
+            end_ISO_Date: '',
+            for: "product",
+            forKey: [],
+            method: "fixed",
+            overlay: false,
+            reBackType: "rebate",
+            rebate_total: 0,
+            rule: "min_count",
+            ruleValue: 0,
+            startDate: '',
+            startTime: '',
+            start_ISO_Date: '',
+            status: 1,
+            target: '',
+            targetList: [],
+            title: '',
+            trigger: "auto",
+            type: 'voucher',
+            value: "0"
+        };
+    }
+}
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -79,14 +143,14 @@ class Shopping {
             query.show_hidden = (_c = query.show_hidden) !== null && _c !== void 0 ? _c : 'true';
             const orderMapping = {
                 title: `ORDER BY JSON_EXTRACT(content, '$.title')`,
-                max_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED) DESC`,
-                min_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED) ASC`,
+                max_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED) DESC , id DESC`,
+                min_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED) ASC , id DESC`,
                 created_time_desc: `ORDER BY created_time DESC`,
                 created_time_asc: `ORDER BY created_time ASC`,
                 updated_time_desc: `ORDER BY updated_time DESC`,
                 updated_time_asc: `ORDER BY updated_time ASC`,
-                sales_desc: `ORDER BY content->>'$.total_sales' DESC`,
-                default: `ORDER BY content->>'$.sort_weight' DESC`,
+                sales_desc: `ORDER BY content->>'$.total_sales' DESC , id DESC`,
+                default: `ORDER BY content->>'$.sort_weight' DESC , id DESC`,
                 stock_desc: '',
                 stock_asc: '',
             };
@@ -1937,6 +2001,12 @@ class Shopping {
                 const emailList = new Set([carData.customer_info, carData.user_info].map(dd => dd && dd.email));
                 for (const email of emailList) {
                     if (email) {
+                        await auto_fcm_js_1.AutoFcm.orderChangeInfo({
+                            app: this.app,
+                            tag: 'order-create',
+                            order_id: carData.orderID,
+                            phone_email: email
+                        });
                         auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
                     }
                 }
@@ -1991,6 +2061,12 @@ class Shopping {
                     return dd && dd.email;
                 }))) {
                     if (email) {
+                        await auto_fcm_js_1.AutoFcm.orderChangeInfo({
+                            app: this.app,
+                            tag: 'order-create',
+                            order_id: carData.orderID,
+                            phone_email: email
+                        });
                         auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
                     }
                 }
@@ -2117,6 +2193,12 @@ class Shopping {
                             return dd && dd.email;
                         }))) {
                             if (email) {
+                                await auto_fcm_js_1.AutoFcm.orderChangeInfo({
+                                    app: this.app,
+                                    tag: 'order-create',
+                                    order_id: carData.orderID,
+                                    phone_email: email
+                                });
                                 auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
                             }
                         }
@@ -2330,6 +2412,47 @@ class Shopping {
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'combineOrder Error:' + e, null);
+        }
+    }
+    async splitOrder(obj) {
+        try {
+            function generateOrderIds(orderId, arrayLength) {
+                const orderIdArray = [];
+                const startChar = 'A'.charCodeAt(0);
+                for (let i = 0; i < arrayLength; i++) {
+                    const charCode = startChar + i;
+                    const nextChar = String.fromCharCode(charCode);
+                    orderIdArray.push(orderId + nextChar);
+                }
+                return orderIdArray;
+            }
+            function refreshOrder(orderData, splitOrderArray) {
+                const { newTotal, newDiscount } = splitOrderArray.reduce((acc, order) => {
+                    return {
+                        newTotal: acc.newTotal + order.total,
+                        newDiscount: acc.newDiscount + order.discount,
+                    };
+                }, { newTotal: 0, newDiscount: 0 });
+                orderData.total = newTotal;
+                orderData.discount = newDiscount;
+            }
+            const orderData = obj.orderData;
+            const splitOrderArray = obj.splitOrderArray;
+            refreshOrder(orderData, splitOrderArray);
+            try {
+                await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
+         SET orderData = ?
+         WHERE cart_token = ?;`, [JSON.stringify(orderData), orderData.orderID]);
+            }
+            catch (e) {
+                console.error(e);
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
+            }
+            const currentTime = new Date().toISOString();
+            return true;
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'splitOrder Error:' + e, null);
         }
     }
     async formatUseRebate(total, useRebate) {
@@ -2727,6 +2850,12 @@ class Shopping {
                     const emailList = new Set([origin.orderData.customer_info, origin.orderData.user_info].map(user => user === null || user === void 0 ? void 0 : user.email));
                     for (const email of emailList) {
                         if (email) {
+                            await auto_fcm_js_1.AutoFcm.orderChangeInfo({
+                                app: this.app,
+                                tag: 'order-cancel-success',
+                                order_id: orderData.orderID,
+                                phone_email: email
+                            });
                             await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', orderData.orderID, email, orderData.language);
                         }
                     }
@@ -2914,6 +3043,12 @@ class Shopping {
             return dd && dd.email;
         }))) {
             if (email) {
+                await auto_fcm_js_1.AutoFcm.orderChangeInfo({
+                    app: this.app,
+                    tag: type,
+                    order_id: orderData.orderID,
+                    phone_email: email
+                });
                 messages.push(auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, `auto-email-${typeMap[type]}`, orderData.orderID, email, orderData.language));
             }
         }
@@ -3031,6 +3166,12 @@ class Shopping {
                 return dd && dd.email;
             }))) {
                 if (email) {
+                    await auto_fcm_js_1.AutoFcm.orderChangeInfo({
+                        app: this.app,
+                        tag: 'proof-purchase',
+                        order_id: order_id,
+                        phone_email: email
+                    });
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, email, orderData.language);
                 }
             }
@@ -3429,6 +3570,12 @@ class Shopping {
                     return dd && dd.email;
                 }))) {
                     if (email) {
+                        await auto_fcm_js_1.AutoFcm.orderChangeInfo({
+                            app: this.app,
+                            tag: 'payment-successful',
+                            order_id: order_id,
+                            phone_email: email
+                        });
                         await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, email, cartData.orderData.language);
                     }
                 }

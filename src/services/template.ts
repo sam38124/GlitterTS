@@ -287,6 +287,10 @@ export class Template {
         'shipment_list_archive',
         'reconciliation_area',
         'app-design',
+        'auto_fcm_push',
+        'auto_fcm_advertise',
+        'auto_fcm_template',
+        'notify_message_list'
       ].includes(query_page)
     ) {
       return 'official-router';

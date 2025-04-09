@@ -155,7 +155,6 @@ export async function createAPP(dd: any) {
         seoManager: async req => {
           const og_url = req.headers['x-original-url'];
 
-          console.log(`req.query.page=>`, req.query.page);
           try {
             if (req.query.state === 'google_login') {
               req.query.page = 'login';
@@ -359,7 +358,10 @@ export async function createAPP(dd: any) {
               }
               //FB像素
               if (FBCode) {
-                seo_content.push(SeoConfig.fbCode(FBCode));
+                //IOS系統必須同意後才可追蹤
+                if(!((req.headers['user-agent'] as string).includes('iosGlitter') && !((req.headers['user-agent'] as string).includes('allow_track')))){
+                  seo_content.push(SeoConfig.fbCode(FBCode));
+                }
               }
 
               const home_seo = home_page_data.page_config.seo || {};
@@ -512,6 +514,11 @@ export async function createAPP(dd: any) {
                               if (req.query.type === 'editor') {
                                 return ``;
                               } else {
+                                //IOS系統必須同意後才可追蹤
+                                if((req.headers['user-agent'] as string).includes('iosGlitter') && !((req.headers['user-agent'] as string).includes('allow_track'))){
+                                  customCode.ga4=[];
+                                  customCode.g_tag=[];
+                                }
                                 return html`
                                   ${SeoConfig.gA4(customCode.ga4)} ${SeoConfig.gTag(customCode.g_tag)}
                                   ${seo_content

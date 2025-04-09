@@ -33,8 +33,7 @@ import { PayNowLogistics } from './paynow-logistics.js';
 import { CheckoutService } from './checkout.js';
 import { ProductInitial } from './product-initial.js';
 import { UtTimer } from '../utils/ut-timer.js';
-
-
+import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
 type BindItem = {
   id: string;
   spec: string[];
@@ -440,14 +439,14 @@ export class Shopping {
 
       const orderMapping: Record<string, string> = {
         title: `ORDER BY JSON_EXTRACT(content, '$.title')`,
-        max_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED) DESC`,
-        min_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED) ASC`,
+        max_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED) DESC , id DESC`,
+        min_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED) ASC , id DESC`,
         created_time_desc: `ORDER BY created_time DESC`,
         created_time_asc: `ORDER BY created_time ASC`,
         updated_time_desc: `ORDER BY updated_time DESC`,
         updated_time_asc: `ORDER BY updated_time ASC`,
-        sales_desc: `ORDER BY content->>'$.total_sales' DESC`,
-        default: `ORDER BY content->>'$.sort_weight' DESC`,
+        sales_desc: `ORDER BY content->>'$.total_sales' DESC , id DESC`,
+        default: `ORDER BY content->>'$.sort_weight' DESC , id DESC`,
         stock_desc: '',
         stock_asc: '',
       };
@@ -710,6 +709,7 @@ export class Shopping {
           `(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price' <= ${query.max_price}))`
         );
       }
+
 
       // 取得產品查詢結果
       const products = await this.querySql(querySql, query);
@@ -1322,6 +1322,7 @@ export class Shopping {
        FROM (${sql}) AS subquery LIMIT ?, ?`,
       [offset, Number(query.limit)]
     );
+
     if (query.id) {
       return {
         data: data[0] || {},
@@ -2836,6 +2837,12 @@ export class Shopping {
         const emailList = new Set([carData.customer_info, carData.user_info].map(dd => dd && dd.email));
         for (const email of emailList) {
           if (email) {
+            await AutoFcm.orderChangeInfo({
+              app:this.app,
+              tag:'order-create',
+              order_id:carData.orderID,
+              phone_email:email
+            })
             AutoSendEmail.customerOrder(
               this.app,
               'auto-email-order-create',
@@ -2901,6 +2908,12 @@ export class Shopping {
           })
         )) {
           if (email) {
+            await AutoFcm.orderChangeInfo({
+              app:this.app,
+              tag:'order-create',
+              order_id:carData.orderID,
+              phone_email:email
+            })
             AutoSendEmail.customerOrder(
               this.app,
               'auto-email-order-create',
@@ -3067,6 +3080,12 @@ export class Shopping {
               })
             )) {
               if (email) {
+                await AutoFcm.orderChangeInfo({
+                  app:this.app,
+                  tag:'order-create',
+                  order_id:carData.orderID,
+                  phone_email:email
+                })
                 AutoSendEmail.customerOrder(
                   this.app,
                   'auto-email-order-create',
@@ -3912,6 +3931,12 @@ export class Shopping {
           );
           for (const email of emailList) {
             if (email) {
+              await AutoFcm.orderChangeInfo({
+                app:this.app,
+                tag:'order-cancel-success',
+                order_id:orderData.orderID,
+                phone_email:email
+              })
               await AutoSendEmail.customerOrder(
                 this.app,
                 'auto-email-order-cancel-success',
@@ -4169,6 +4194,12 @@ export class Shopping {
       })
     )) {
       if (email) {
+        await AutoFcm.orderChangeInfo({
+          app:this.app,
+          tag:type,
+          order_id:orderData.orderID,
+          phone_email:email
+        });
         messages.push(
           AutoSendEmail.customerOrder(
             this.app,
@@ -4327,6 +4358,12 @@ export class Shopping {
         })
       )) {
         if (email) {
+          await AutoFcm.orderChangeInfo({
+            app:this.app,
+            tag:'proof-purchase',
+            order_id:order_id,
+            phone_email:email
+          })
           await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, email, orderData.language);
         }
       }
@@ -4837,6 +4874,12 @@ export class Shopping {
           })
         )) {
           if (email) {
+            await AutoFcm.orderChangeInfo({
+              app:this.app,
+              tag:'payment-successful',
+              order_id:order_id,
+              phone_email:email
+            })
             await AutoSendEmail.customerOrder(
               this.app,
               'auto-email-payment-successful',

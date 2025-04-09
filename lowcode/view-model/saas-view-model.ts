@@ -926,7 +926,7 @@ export class SaasViewModel {
         `);
         gvc.glitter.addStyleLink(gvc.glitter.root_path + `/css/editor.css`);
         const hr = html`
-            <div style="${(document.body.clientWidth<800) ? `width: 100%;`:`width: 600px;max-width: calc(100vw - 20px); overflow-y: auto;max-height: 100vh;`}"
+            <div style="${(document.body.clientWidth<800) ? `width: 100%;`:`width: 600px;max-width: calc(100vw - 20px); overflow-y: auto;max-height: calc(100vh - 50px);`}"
                  class="bg-white shadow ${(document.body.clientWidth>800) ? `rounded-3`:``}">
                 <div class="w-100 d-flex align-items-center p-3 border-bottom">
                     <div class="fw-500 color39" style="padding-top: ${gvc.glitter.share.top_inset}px;">建立您的商店</div>

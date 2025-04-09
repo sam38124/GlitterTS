@@ -1,3 +1,4 @@
+import { SaasOffer } from './saas-offer.js';
 export class EditorConfig {
     static get editor_layout() {
         switch (window.glitterBase) {
@@ -14,7 +15,7 @@ export class EditorConfig {
         }
     }
     static paymentInfo(gvc) {
-        if (EditorConfig.backend_page() !== 'backend-manger') {
+        if ((EditorConfig.backend_page() !== 'backend-manger') || SaasOffer.is_dealer) {
             return ``;
         }
         let bg_color = '#FEAD20';

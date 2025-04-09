@@ -15,6 +15,8 @@ export = router;
 
 router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
+        console.log(`req==>`,req.body)
+        return  response.succ(resp,{result:true})
         if (await UtPermission.isManager(req)) {
             const app=req.get('g-app') as string
             let device_token_stack:any=[];
@@ -76,6 +78,7 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
+
 
 function chunkArray(array: any, groupSize: number) {
     const result = [];

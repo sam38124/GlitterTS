@@ -246,6 +246,11 @@ export class UMOrder {
                         return html ` <section class="o-h2">${Language.text('order_not_found')}</section> `;
                     }
                     const orderData = vm.data.orderData;
+                    if (window.store_info.pickup_mode) {
+                        dialog.infoMessage({
+                            text: `取貨時請核對您的取貨號碼，您的取貨號碼為<br><div class="fw-bold fs-5 text-danger">『 ${vm.data.shipment_number} 號 』</div>`
+                        });
+                    }
                     const showUploadProof = orderData.method === 'off_line' &&
                         orderData.customer_info.payment_select !== 'cash_on_delivery' &&
                         `${orderData.orderStatus}` != '-1';
@@ -831,7 +836,7 @@ export class UMOrder {
                         }
                         if (vm.data.orderData.user_info.shipment_number) {
                             arr.push({
-                                title: Language.text('shipment_number'),
+                                title: window.store_info.pickup_mode ? `取貨號碼` : Language.text('shipment_number'),
                                 value: vm.data.orderData.user_info.shipment_number,
                             });
                         }

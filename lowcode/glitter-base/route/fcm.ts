@@ -7,12 +7,7 @@ export class ApiFcm {
     constructor() {
     }
 
-    public static send(json: {
-        "device_token":string[],
-        "title":string,
-        "content":string,
-        link:string
-    }) {
+    public static send(json: any) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/fcm`,
             "type": "POST",
@@ -24,6 +19,7 @@ export class ApiFcm {
             data: JSON.stringify(json)
         })
     }
+
 
 }
 

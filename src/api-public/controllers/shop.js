@@ -489,6 +489,19 @@ router.post('/combineOrder', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.post('/splitOrder', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).splitOrder(req.body));
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/voucher', async (req, resp) => {
     try {
         let query = [`(content->>'$.type'='voucher')`];
