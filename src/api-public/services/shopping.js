@@ -431,7 +431,7 @@ class Shopping {
                                            WHERE ${count_sql})
                     `, []);
                             (content.variants || []).forEach((variant) => {
-                                var _a, _b;
+                                var _a, _b, _c;
                                 if (content.variants.length === 1) {
                                     variant.preview_image = undefined;
                                     variant[`preview_image_${language}`] = undefined;
@@ -450,8 +450,26 @@ class Shopping {
                                         return tool_js_1.default.floatAdd(a, b);
                                     }, 0) || 0;
                                 variant.preview_image = (_a = variant.preview_image) !== null && _a !== void 0 ? _a : '';
-                                if (!variant.preview_image.includes('https://')) {
-                                    variant.preview_image = undefined;
+                                if (variant.preview_image) {
+                                    const img = variant.preview_image;
+                                    let temp = '';
+                                    if (typeof img === 'object') {
+                                        if (img.richText) {
+                                            img.richText.map((item) => {
+                                                temp += item.text;
+                                            });
+                                        }
+                                        else if (img.hyperlink) {
+                                            temp += (_b = img.text) !== null && _b !== void 0 ? _b : img.hyperlink;
+                                        }
+                                    }
+                                    else if (!img.includes('https://')) {
+                                        temp = '';
+                                    }
+                                    else {
+                                        temp = img;
+                                    }
+                                    variant.preview_image = temp;
                                 }
                                 variant.preview_image =
                                     variant[`preview_image_${language}`] ||
@@ -465,7 +483,7 @@ class Shopping {
                                 }
                                 if (variant.preview_image ===
                                     'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
-                                    variant.preview_image = (_b = content.preview_image) === null || _b === void 0 ? void 0 : _b[0];
+                                    variant.preview_image = (_c = content.preview_image) === null || _c === void 0 ? void 0 : _c[0];
                                 }
                                 Object.entries(variant.stockList || {}).forEach(([storeId, stockData]) => {
                                     if (!store_config.list.some((store) => store.id === storeId) || !(stockData === null || stockData === void 0 ? void 0 : stockData.count)) {
@@ -2938,13 +2956,11 @@ class Shopping {
                     const parsedNewCount = Number(newCount || 0);
                     const formatNewCount = isNaN(parsedNewCount) ? 0 : parsedNewCount;
                     if (!originalItem) {
-                        console.log(false, newItem.spec, formatNewCount * -1);
                         updateCalcData(formatNewCount * -1, location, newItem.id, newItem.spec);
                         return;
                     }
                     const originalCount = originalItem.deduction_log[location] || 0;
                     const delta = formatNewCount - originalCount;
-                    console.log(true, newItem.spec, delta * -1);
                     updateCalcData(delta * -1, location, newItem.id, newItem.spec);
                 });
             });

@@ -83,8 +83,14 @@ export class ProductExcel {
     this.lineName = lineName;
   }
 
-  checkString(value: any) {
-    return CheckInput.isEmpty(value) ? '' : value;
+  checkString(value: any): string {
+    if (CheckInput.isEmpty(value)) {
+      return '';
+    }
+    if (typeof value === 'string' || typeof value === 'number') {
+      return `${value}`;
+    }
+    return '';
   }
 
   checkNumber(value: any) {
@@ -1102,13 +1108,19 @@ export class ProductExcel {
         data.forEach((row: any, index: number) => {
           row.forEach((rowData: any, i: number) => {
             let text = '';
-            if (rowData && rowData.richText) {
-              rowData.richText.map((item: any) => {
-                text += item.text;
-              });
-            } else {
-              text = rowData ?? '';
+
+            if (rowData) {
+              if (rowData.richText) {
+                rowData.richText.map((item: any) => {
+                  text += item.text;
+                });
+              } else if (rowData.hyperlink) {
+                text += rowData.text ?? rowData.hyperlink;
+              } else {
+                text = rowData;
+              }
             }
+
             row[i] = text;
           });
           const variantData = getVariantData();
@@ -1372,7 +1384,7 @@ export class ProductExcel {
               });
               variantData.preview_image = row[4];
               variantData.sku = this.checkString(row[14]);
-              variantData.cost = this.checkString(row[15]);
+              variantData.cost = this.checkNumber(row[15]);
               variantData.sale_price = this.checkNumber(row[16]);
               variantData.compare_price = this.checkNumber(row[17]);
               variantData.profit = this.checkNumber(row[18]);

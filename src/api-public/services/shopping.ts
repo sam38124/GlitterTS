@@ -723,13 +723,31 @@ export class Shopping {
                           return Tool.floatAdd(a, b);
                         }, 0) || 0;
                     variant.preview_image = variant.preview_image ?? '';
-                    if (!variant.preview_image.includes('https://')) {
-                      variant.preview_image = undefined;
+
+                    if (variant.preview_image) {
+                      const img = variant.preview_image;
+                      let temp = '';
+                      if (typeof img === 'object') {
+                        if (img.richText) {
+                          img.richText.map((item: any) => {
+                            temp += item.text;
+                          });
+                        } else if (img.hyperlink) {
+                          temp += img.text ?? img.hyperlink;
+                        }
+                      } else if (!img.includes('https://')) {
+                        temp = '';
+                      } else {
+                        temp = img;
+                      }
+                      variant.preview_image = temp;
                     }
+
                     variant.preview_image =
                       variant[`preview_image_${language}`] ||
                       variant.preview_image ||
                       'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+
                     if (content.min_price > variant.sale_price) {
                       content.min_price = variant.sale_price;
                     }
