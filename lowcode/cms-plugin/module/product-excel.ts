@@ -1115,7 +1115,7 @@ export class ProductExcel {
                   text += item.text;
                 });
               } else if (rowData.hyperlink) {
-                text += rowData.text ?? rowData.hyperlink;
+                text = rowData.text ?? rowData.hyperlink;
               } else {
                 text = rowData;
               }

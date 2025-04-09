@@ -929,7 +929,7 @@ export class ProductExcel {
                                     });
                                 }
                                 else if (rowData.hyperlink) {
-                                    text += (_a = rowData.text) !== null && _a !== void 0 ? _a : rowData.hyperlink;
+                                    text = (_a = rowData.text) !== null && _a !== void 0 ? _a : rowData.hyperlink;
                                 }
                                 else {
                                     text = rowData;

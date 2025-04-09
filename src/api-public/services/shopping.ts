@@ -32,6 +32,7 @@ import { ShipmentConfig as Shipment_support_config } from '../config/shipment-co
 import { PayNowLogistics } from './paynow-logistics.js';
 import { CheckoutService } from './checkout.js';
 import { ProductInitial } from './product-initial.js';
+import { UtTimer } from '../utils/ut-timer.js';
 
 type BindItem = {
   id: string;
@@ -733,7 +734,7 @@ export class Shopping {
                             temp += item.text;
                           });
                         } else if (img.hyperlink) {
-                          temp += img.text ?? img.hyperlink;
+                          temp = img.text ?? img.hyperlink;
                         }
                       } else if (!img.includes('https://')) {
                         temp = '';
@@ -1572,7 +1573,7 @@ export class Shopping {
   }
 
   getShipmentFee(user_info: any, lineItems: CartItem[], shipment: any) {
-    if (user_info.shipment === 'now') return 0;
+    if (user_info?.shipment === 'now') return 0;
 
     let total_volume = 0;
     let total_weight = 0;
@@ -1632,25 +1633,8 @@ export class Shopping {
     replace_order_id?: string
   ) {
     try {
-      const timer = {
-        count: 0,
-        history: [Date.now()],
-      };
-      const checkPoint = (name: string) => {
-        const t = Date.now();
-        timer.history.push(t);
-
-        const spendTime = t - timer.history[timer.count]; // 計算與上一個檢查點的時間差
-        const totalTime = t - timer.history[0]; // 計算從開始到現在的總時間
-
-        timer.count++;
-        const n = timer.count.toString().padStart(2, '0');
-
-        console.info(`TO-CHECKOUT-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
-          totalTime,
-          spendTime,
-        });
-      };
+      const utTimer = new UtTimer('TO-CHECKOUT');
+      const checkPoint = utTimer.checkPoint;
 
       const userClass = new User(this.app);
       const rebateClass = new Rebate(this.app);
@@ -1938,9 +1922,13 @@ export class Shopping {
         editRecord: [],
       };
 
-      if (!data.user_info.name && userData && userData.userData) {
-        carData.user_info.name = userData.userData.name;
-        carData.user_info.phone = userData.userData.phone;
+      if (!data.user_info?.name && userData && userData.userData) {
+        const { name, phone } = userData.userData;
+        carData.user_info = {
+          ...carData.user_info,
+          name,
+          phone,
+        };
       }
 
       const add_on_items: any[] = [];

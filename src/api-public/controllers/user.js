@@ -90,12 +90,12 @@ router.get('/level', async (req, resp) => {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
             const user = new user_1.User(req.get('g-app'));
             const emails = req.query.email
-                ? `${req.query.email}`.split(',').map((item) => {
+                ? `${req.query.email}`.split(',').map(item => {
                     return { email: item };
                 })
                 : [];
             const ids = req.query.id
-                ? `${req.query.id}`.split(',').map((item) => {
+                ? `${req.query.id}`.split(',').map(item => {
                     return { userId: item };
                 })
                 : [];
@@ -178,9 +178,11 @@ router.post('/manager/register', async (req, resp) => {
         let tempTags = [];
         for (const batch of chunkedUserData) {
             const checks = await Promise.all(batch.map(checkUser));
-            const errorResult = checks.find((item) => !item.pass);
+            const errorResult = checks.find(item => !item.pass);
             if (errorResult) {
-                throw exception_1.default.BadRequestError('BAD_REQUEST', (_a = errorResult.msg) !== null && _a !== void 0 ? _a : 'User already exists', { data: errorResult.checkData });
+                throw exception_1.default.BadRequestError('BAD_REQUEST', (_a = errorResult.msg) !== null && _a !== void 0 ? _a : 'User already exists', {
+                    data: errorResult.checkData,
+                });
             }
             const createUserPromises = checks.map(async (check) => {
                 var _a;
@@ -189,7 +191,7 @@ router.post('/manager/register', async (req, resp) => {
                 return user.createUser(passUser.account, tool_1.default.randomString(8), passUser.userData, {}, true);
             });
             const createResults = await Promise.allSettled(createUserPromises);
-            createResults.forEach((result) => {
+            createResults.forEach(result => {
                 if (result.status === 'fulfilled') {
                     responseList.push({ pass: true, type: result.value.verify, needVerify: result.value.verify });
                 }

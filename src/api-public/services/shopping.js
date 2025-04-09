@@ -59,6 +59,7 @@ const shipment_config_js_1 = require("../config/shipment-config.js");
 const paynow_logistics_js_1 = require("./paynow-logistics.js");
 const checkout_js_1 = require("./checkout.js");
 const product_initial_js_1 = require("./product-initial.js");
+const ut_timer_js_1 = require("../utils/ut-timer.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -460,7 +461,7 @@ class Shopping {
                                             });
                                         }
                                         else if (img.hyperlink) {
-                                            temp += (_b = img.text) !== null && _b !== void 0 ? _b : img.hyperlink;
+                                            temp = (_b = img.text) !== null && _b !== void 0 ? _b : img.hyperlink;
                                         }
                                     }
                                     else if (!img.includes('https://')) {
@@ -1122,7 +1123,7 @@ class Shopping {
         return parseInt(dataList[dataList.length - 1].value);
     }
     getShipmentFee(user_info, lineItems, shipment) {
-        if (user_info.shipment === 'now')
+        if ((user_info === null || user_info === void 0 ? void 0 : user_info.shipment) === 'now')
             return 0;
         let total_volume = 0;
         let total_weight = 0;
@@ -1137,24 +1138,10 @@ class Shopping {
         return (this.calculateShipment(shipment.volume, total_volume) + this.calculateShipment(shipment.weight, total_weight));
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11;
         try {
-            const timer = {
-                count: 0,
-                history: [Date.now()],
-            };
-            const checkPoint = (name) => {
-                const t = Date.now();
-                timer.history.push(t);
-                const spendTime = t - timer.history[timer.count];
-                const totalTime = t - timer.history[0];
-                timer.count++;
-                const n = timer.count.toString().padStart(2, '0');
-                console.info(`TO-CHECKOUT-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
-                    totalTime,
-                    spendTime,
-                });
-            };
+            const utTimer = new ut_timer_js_1.UtTimer('TO-CHECKOUT');
+            const checkPoint = utTimer.checkPoint;
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
             const checkoutPayment = (_a = data.user_info) === null || _a === void 0 ? void 0 : _a.payment;
@@ -1344,9 +1331,10 @@ class Shopping {
                 fbp: data.fbp,
                 editRecord: [],
             };
-            if (!data.user_info.name && userData && userData.userData) {
-                carData.user_info.name = userData.userData.name;
-                carData.user_info.phone = userData.userData.phone;
+            if (!((_x = data.user_info) === null || _x === void 0 ? void 0 : _x.name) && userData && userData.userData) {
+                const { name, phone } = userData.userData;
+                carData.user_info = Object.assign(Object.assign({}, carData.user_info), { name,
+                    phone });
             }
             const add_on_items = [];
             const gift_product = [];
@@ -1603,7 +1591,7 @@ class Shopping {
                 const cartTokenSQL = `
             SELECT cart_token
             FROM \`${this.app}\`.t_checkout
-            WHERE email IN (${[-99, (_x = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _x === void 0 ? void 0 : _x.email, (_y = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _y === void 0 ? void 0 : _y.phone]
+            WHERE email IN (${[-99, (_y = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _y === void 0 ? void 0 : _y.email, (_z = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _z === void 0 ? void 0 : _z.phone]
                     .filter(Boolean)
                     .map(item => database_js_1.default.escape(item))
                     .join(',')})
@@ -1618,7 +1606,7 @@ class Shopping {
                 const purchaseHistory = new Map();
                 for (const history of soldHistory) {
                     const pid = Number(history.product_id);
-                    purchaseHistory.set(pid, ((_z = purchaseHistory.get(pid)) !== null && _z !== void 0 ? _z : 0) + history.count);
+                    purchaseHistory.set(pid, ((_0 = purchaseHistory.get(pid)) !== null && _0 !== void 0 ? _0 : 0) + history.count);
                 }
                 for (const item of data.line_items) {
                     if (maxProductMap.has(item.id)) {
@@ -1681,7 +1669,7 @@ class Shopping {
                 await this.checkVoucher(carData);
                 checkPoint('check voucher');
                 let can_add_gift = [];
-                (_0 = carData.voucherList) === null || _0 === void 0 ? void 0 : _0.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
+                (_1 = carData.voucherList) === null || _1 === void 0 ? void 0 : _1.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
                 gift_product.forEach(dd => {
                     const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
                     if (dd.count <= max_count) {
@@ -1692,7 +1680,7 @@ class Shopping {
                     }
                 });
                 for (const giveawayData of carData.voucherList.filter(dd => dd.reBackType === 'giveaway')) {
-                    if (!((_1 = giveawayData.add_on_products) === null || _1 === void 0 ? void 0 : _1.length))
+                    if (!((_2 = giveawayData.add_on_products) === null || _2 === void 0 ? void 0 : _2.length))
                         continue;
                     const productPromises = giveawayData.add_on_products.map(async (id) => {
                         const getGiveawayData = (await this.getProduct({
@@ -1713,7 +1701,7 @@ class Shopping {
                 appName: this.app,
                 key: 'glitter_finance',
             });
-            const keyData = (_2 = configData[0]) === null || _2 === void 0 ? void 0 : _2.value;
+            const keyData = (_3 = configData[0]) === null || _3 === void 0 ? void 0 : _3.value;
             if (keyData) {
                 carData.payment_info_custom = keyData.payment_info_custom;
             }
@@ -1743,13 +1731,13 @@ class Shopping {
                 }
             });
             checkPoint('set payment');
-            keyData.cash_on_delivery = (_3 = keyData.cash_on_delivery) !== null && _3 !== void 0 ? _3 : { shipmentSupport: [] };
+            keyData.cash_on_delivery = (_4 = keyData.cash_on_delivery) !== null && _4 !== void 0 ? _4 : { shipmentSupport: [] };
             carData.payment_info_line_pay = keyData.payment_info_line_pay;
             carData.payment_info_atm = keyData.payment_info_atm;
             const defaultPayArray = glitter_finance_js_1.onlinePayArray.map(item => item.key);
-            keyData.cash_on_delivery.shipmentSupport = (_4 = keyData.cash_on_delivery.shipmentSupport) !== null && _4 !== void 0 ? _4 : [];
+            keyData.cash_on_delivery.shipmentSupport = (_5 = keyData.cash_on_delivery.shipmentSupport) !== null && _5 !== void 0 ? _5 : [];
             carData.shipment_support = checkoutPayment
-                ? ((_5 = (() => {
+                ? ((_6 = (() => {
                     if (checkoutPayment === 'cash_on_delivery') {
                         return keyData.cash_on_delivery;
                     }
@@ -1766,7 +1754,7 @@ class Shopping {
                         const customPay = keyData.payment_info_custom.find((c) => c.id === checkoutPayment);
                         return customPay !== null && customPay !== void 0 ? customPay : {};
                     }
-                })().shipmentSupport) !== null && _5 !== void 0 ? _5 : [])
+                })().shipmentSupport) !== null && _6 !== void 0 ? _6 : [])
                 : [];
             let subtotal = 0;
             carData.lineItems.map(item => {
@@ -1836,7 +1824,7 @@ class Shopping {
                 }
                 return dd.type !== 'pos';
             });
-            carData.off_line_support = (_6 = keyData.off_line_support) !== null && _6 !== void 0 ? _6 : {};
+            carData.off_line_support = (_7 = keyData.off_line_support) !== null && _7 !== void 0 ? _7 : {};
             Object.entries(carData.off_line_support).map(([key, value]) => {
                 if (!value)
                     return;
@@ -1924,7 +1912,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_7 = data.total) !== null && _7 !== void 0 ? _7 : 0;
+                carData.total = (_8 = data.total) !== null && _8 !== void 0 ? _8 : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1962,7 +1950,7 @@ class Shopping {
                 if (checkOutType === 'POS' && Array.isArray(data.voucherList)) {
                     const manualVoucher = data.voucherList.find((item) => item.id === 0);
                     if (manualVoucher) {
-                        manualVoucher.discount = (_8 = manualVoucher.discount_total) !== null && _8 !== void 0 ? _8 : 0;
+                        manualVoucher.discount = (_9 = manualVoucher.discount_total) !== null && _9 !== void 0 ? _9 : 0;
                         carData.total -= manualVoucher.discount;
                         carData.discount += manualVoucher.discount;
                         carData.voucherList.push(manualVoucher);
@@ -1997,7 +1985,7 @@ class Shopping {
                 await trans.commit();
                 await trans.release();
                 await Promise.all(saveStockArray.map(dd => dd()));
-                await this.releaseCheckout((_9 = data.pay_status) !== null && _9 !== void 0 ? _9 : 0, carData.orderID);
+                await this.releaseCheckout((_10 = data.pay_status) !== null && _10 !== void 0 ? _10 : 0, carData.orderID);
                 checkPoint('release pos checkout');
                 for (const email of new Set([carData.customer_info, carData.user_info].map(dd => {
                     return dd && dd.email;
@@ -2045,7 +2033,7 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                let kd = (_10 = keyData[carData.customer_info.payment_select]) !== null && _10 !== void 0 ? _10 : {
+                let kd = (_11 = keyData[carData.customer_info.payment_select]) !== null && _11 !== void 0 ? _11 : {
                     ReturnURL: '',
                     NotifyURL: '',
                 };
