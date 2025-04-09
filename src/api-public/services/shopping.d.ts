@@ -63,6 +63,89 @@ interface seo {
         content: string;
     };
 }
+interface LineItem {
+    id: number;
+    spec: string[];
+    count: string;
+    sale_price: number;
+    title: string;
+    sku: string;
+    preview_image: string;
+}
+interface CustomerInfo {
+    name: string;
+    email: string;
+    phone: string;
+    payment_select?: string;
+}
+interface orderVoucherData {
+    id: number;
+    discount_total: number;
+    title: string;
+    method: 'percent' | 'fixed';
+    trigger: 'auto' | 'code';
+    value: string;
+    for: 'collection' | 'product';
+    rule: 'min_price' | 'min_count';
+    forKey: string[];
+    ruleValue: number;
+    startDate: string;
+    startTime: string;
+    endDate?: string;
+    endTime?: string;
+    status: 0 | 1 | -1;
+    type: 'voucher';
+    code?: string;
+    overlay: boolean;
+    bind?: {
+        id: string;
+        spec: string[];
+        count: number;
+        sale_price: number;
+        collection: string[];
+        discount_price: number;
+    }[];
+    start_ISO_Date: string;
+    end_ISO_Date: string;
+    reBackType: string;
+    rebate_total: number;
+    target: string;
+    targetList: string[];
+}
+declare class OrderDetail {
+    subtotal: number;
+    shipment: number;
+    total: number;
+    discount: number;
+    rebate: number;
+    cart_token: string;
+    tag: 'manual';
+    voucher: orderVoucherData;
+    lineItems: LineItem[];
+    customer_info: CustomerInfo;
+    user_info: {
+        name: string;
+        email: string;
+        city?: string;
+        area?: string;
+        phone: string;
+        address: string;
+        custom_form_delivery?: any;
+        shipment: "normal" | "FAMIC2C" | "black_cat_freezing" | "UNIMARTC2C" | "HILIFEC2C" | "OKMARTC2C" | "now" | "shop" | "global_express" | "black_cat" | "UNIMARTFREEZE";
+        CVSStoreName: string;
+        CVSStoreID: string;
+        CVSTelephone: string;
+        MerchantTradeNo: string;
+        CVSAddress: string;
+        note?: string;
+        code_note?: string;
+    };
+    pay_status: string;
+    constructor(subtotal: number, shipment: number);
+    private initCustomerInfo;
+    private initUserInfo;
+    private initVoucher;
+}
 type Collection = {
     title: string;
     array: Collection[];
@@ -369,6 +452,10 @@ export declare class Shopping {
         orders: Order[];
         targetID: string;
     }>): Promise<boolean>;
+    splitOrder(obj: {
+        orderData: Cart;
+        splitOrderArray: OrderDetail[];
+    }): Promise<boolean>;
     formatUseRebate(total: number, useRebate: number): Promise<{
         status: boolean;
         point: number;

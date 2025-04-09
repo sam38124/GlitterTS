@@ -16,7 +16,7 @@ import { DataAnalyze } from '../services/data-analyze';
 import { Rebate, IRebateSearch } from '../services/rebate';
 import { Pos } from '../services/pos.js';
 import { FbApi } from '../services/fb-api.js';
-import { ShopnexLineMessage } from '../services/model/shopnex-line-message';
+import { ShopnexLineMessage } from '../services/model/shopnex-line-message.js';
 
 const router: express.Router = express.Router();
 export = router;
@@ -569,6 +569,19 @@ router.post('/combineOrder', async (req: express.Request, resp: express.Response
   try {
     if (await UtPermission.isManager(req)) {
       return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).combineOrder(req.body));
+    } else {
+      return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+    }
+  } catch (err) {
+    return response.fail(resp, err);
+  }
+});
+
+// 拆分訂單
+router.post('/splitOrder', async (req: express.Request, resp: express.Response) => {
+  try {
+    if (await UtPermission.isManager(req)) {
+      return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).splitOrder(req.body));
     } else {
       return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
     }

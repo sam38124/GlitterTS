@@ -34,6 +34,7 @@ import { FilterOptions } from './filter-options.js';
 import { ListHeaderOption } from './list-header-option.js';
 import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
 const html = String.raw;
+const css = String.raw;
 export class ShoppingOrderManager {
     static main(gvc, query) {
         const glitter = gvc.glitter;
@@ -1121,6 +1122,34 @@ export class ShoppingOrderManager {
                       ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}${OrderInfo.reconciliationStatus(orderData)}
                     </div>`;
                                     }
+                                    function funcBTN() {
+                                        const btns = [
+                                            html `<div></div>`
+                                        ];
+                                    }
+                                    const funBTN = () => {
+                                        gvc.addStyle(css `
+                      .funInsignia{
+                          border-radius: 10px;
+                          background: #EAEAEA;
+                          display: flex;
+                          padding: 6px 18px;
+                          justify-content: center;
+                          align-items: center;
+                          gap: 8px;
+                          font-size: 16px;
+                          font-weight: 700;
+                          cursor: pointer;
+                      }
+                    `);
+                                        return {
+                                            splitOrder: () => {
+                                                return html `<div class="funInsignia" style="" onclick="${gvc.event(() => {
+                                                    OrderSetting.splitOrder(gvc, orderData.orderData, () => gvc.notifyDataChange(vm.id));
+                                                })}">拆分訂單</div>`;
+                                            },
+                                        };
+                                    };
                                     const shipment_card = BgWidget.mainCard((() => {
                                         let loading = true;
                                         let deliveryConfig = {};
@@ -1754,6 +1783,10 @@ export class ShoppingOrderManager {
                         ${document.body.clientWidth > 768 ? getBadgeList() : ''}
                       </div>
                       ${document.body.clientWidth > 768 ? '' : html ` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
+                      <div class="d-flex justify-content-end">
+                        ${funBTN().splitOrder()}
+                      </div>
+                      <div></div>
                       ${BgWidget.container1x2({
                                         html: [
                                             !is_shipment ? `` : shipment_card,
@@ -4614,6 +4647,8 @@ ${[
             delete passData.tag;
             const dialog = new ShareDialog(glitter);
             passData.line_items = passData.lineItems;
+            console.log("passData -- ", passData);
+            return;
             dialog.dataLoading({ visible: true });
             if (checkOrderEmpty(passData)) {
                 ApiShop.toManualCheckout(passData).then(r => {

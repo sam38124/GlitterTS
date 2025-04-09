@@ -25,6 +25,7 @@ import { UserList } from './user-list.js';
 import { FilterOptions } from './filter-options.js';
 import { ListHeaderOption } from './list-header-option.js';
 import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
+import { CartData, OrderDetail, LineItem } from './module/data.js';
 
 interface VoucherData {
   id: number;
@@ -155,14 +156,7 @@ interface OrderData {
   expectDate: string;
   shipment_fee: number;
   use_rebate: number;
-  lineItems: {
-    id: number;
-    spec: string[];
-    count: string;
-    sale_price: number;
-    title: string;
-    sku: string;
-  }[];
+  lineItems: LineItem[];
   user_info: {
     name: string;
     email: string;
@@ -254,6 +248,7 @@ interface OrderData {
 }
 
 const html = String.raw;
+const css = String.raw;
 
 export class ShoppingOrderManager {
   public static vm = {
@@ -1454,7 +1449,36 @@ export class ShoppingOrderManager {
                       )}
                     </div>`;
                   }
+                  function funcBTN(){
+                    const btns = [
+                      html`<div></div>`
+                    ]
 
+                  }
+                  const funBTN = ()=>{
+                    gvc.addStyle(css`
+                      .funInsignia{
+                          border-radius: 10px;
+                          background: #EAEAEA;
+                          display: flex;
+                          padding: 6px 18px;
+                          justify-content: center;
+                          align-items: center;
+                          gap: 8px;
+                          font-size: 16px;
+                          font-weight: 700;
+                          cursor: pointer;
+                      }
+                    `)
+                    return {
+                      splitOrder : ()=>{
+                        return html`<div class="funInsignia" style="" onclick="${gvc.event(()=>{
+                          
+                          OrderSetting.splitOrder(gvc, orderData.orderData, () => gvc.notifyDataChange(vm.id));
+                        })}">拆分訂單</div>`
+                      },
+                    }
+                  }
                   const shipment_card = BgWidget.mainCard(
                     (() => {
                       let loading = true;
@@ -2157,6 +2181,10 @@ export class ShoppingOrderManager {
                         ${document.body.clientWidth > 768 ? getBadgeList() : ''}
                       </div>
                       ${document.body.clientWidth > 768 ? '' : html` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
+                      <div class="d-flex justify-content-end">
+                        ${funBTN().splitOrder()}
+                      </div>
+                      <div></div>
                       ${BgWidget.container1x2(
                         {
                           html: [
@@ -3499,7 +3527,6 @@ ${[
         this.total = 0;
       }
     }
-
     let newVoucher: VoucherData;
     let shipmentFree = false;
     let newOrder: any = {
@@ -5261,8 +5288,11 @@ ${[
             delete passData.tag;
             const dialog = new ShareDialog(glitter);
             passData.line_items = passData.lineItems;
+            console.log("passData -- " , passData);
+            return
             dialog.dataLoading({ visible: true });
             if (checkOrderEmpty(passData)) {
+              
               ApiShop.toManualCheckout(passData).then(r => {
                 dialog.dataLoading({ visible: false });
                 (window.parent as any).glitter.innerDialog(

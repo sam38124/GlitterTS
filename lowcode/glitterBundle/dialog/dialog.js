@@ -18,7 +18,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         var _a, _b;
         return html `
     <div class="dialog-box">
-      <div class="dialog-content" style="width: ${(_a = config.width) !== null && _a !== void 0 ? _a : 280}px;">
+      <div class="dialog-content" style="${config.auto ? '' : `width: ${(_a = config.width) !== null && _a !== void 0 ? _a : 280}px;`} ">
         ${(_b = config.icon) !== null && _b !== void 0 ? _b : ''}
         <div class="mt-3 mb-3 fs-6 text-center w-100" style="white-space: normal;word-break: break-all;">
           ${config.content}
@@ -89,7 +89,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
   `);
     return {
         onCreateView: () => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
             try {
                 switch (gBundle.type) {
                     case 'dataLoading':
@@ -153,6 +153,20 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 event: () => { var _a; return (_a = gBundle.callback) === null || _a === void 0 ? void 0 : _a.call(gBundle, false); },
                             },
                             width: 420,
+                        });
+                    case 'checkYesOrNotWithCustomWidth':
+                        return createDialogBox({
+                            icon: icons.info,
+                            content: (_o = gBundle.title) !== null && _o !== void 0 ? _o : '',
+                            confirm: {
+                                title: (_p = gBundle.yesString) !== null && _p !== void 0 ? _p : Language.text('okay'),
+                                event: () => { var _a; return (_a = gBundle.callback) === null || _a === void 0 ? void 0 : _a.call(gBundle, true); },
+                            },
+                            cancel: {
+                                title: (_q = gBundle.notString) !== null && _q !== void 0 ? _q : Language.text('cancel'),
+                                event: () => { var _a; return (_a = gBundle.callback) === null || _a === void 0 ? void 0 : _a.call(gBundle, false); },
+                            },
+                            width: 600
                         });
                     default:
                         return '';

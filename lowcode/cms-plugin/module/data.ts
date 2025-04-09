@@ -39,12 +39,12 @@ export interface OrderData {
     user_info: {
         name: string;
         email: string;
-        city?: string;
-        area?: string;
+        city?:string;
+        area?:string;
         phone: string;
         address: string;
         custom_form_delivery?: any;
-        shipment: 'normal' | 'FAMIC2C' | 'black_cat_freezing' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop' | 'global_express' | 'black_cat' | 'UNIMARTFREEZE';
+        shipment: 'normal' | 'FAMIC2C' | 'black_cat_freezing' |'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop' | 'global_express' | 'black_cat' | 'UNIMARTFREEZE';
         CVSStoreName: string;
         CVSStoreID: string;
         CVSTelephone: string;
@@ -58,6 +58,7 @@ export interface OrderData {
     custom_form_data?: any;
     proof_purchase: any;
     progress: string;
+    // progress: 'finish' | 'wait' | 'shipping' | "returns";
     order_note: string;
     voucherList: [
         {
@@ -87,11 +88,12 @@ export interface OrderData {
             }[];
             start_ISO_Date: string;
             end_ISO_Date: string;
-        }
+        },
     ];
     orderSource?: string;
     deliveryData: Record<string, string>;
 }
+
 export interface CartData {
     id: number;
     cart_token: string;
@@ -100,6 +102,7 @@ export interface CartData {
     orderData: OrderData;
     created_time: string;
 }
+
 export interface LineItem {
     id: number;
     spec: string[];
@@ -107,17 +110,33 @@ export interface LineItem {
     sale_price: number;
     title: string;
     sku: string;
-    preview_image: string;
+    preview_image:string;
 }
+
 interface CustomerInfo {
     name: string;
     email: string;
     phone: string;
     payment_select?: string;
 }
+
+interface UserInfo {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C';
+    CVSStoreName: string;
+    CVSStoreID: string;
+    CVSTelephone: string;
+    MerchantTradeNo: string;
+    CVSAddress: string;
+    note: string;
+}
+
 interface VoucherData {
-    id: number;
-    discount_total: number;
+    id:number;
+    discount_total:number;
     title: string;
     method: 'percent' | 'fixed';
     trigger: 'auto' | 'code';
@@ -144,21 +163,22 @@ interface VoucherData {
     }[];
     start_ISO_Date: string;
     end_ISO_Date: string;
-    reBackType: string;
-    rebate_total: number;
-    target: string;
-    targetList: string[];
+    reBackType:string;
+    rebate_total:number;
+    target:string;
+    targetList:string[];
 }
-export declare class OrderDetail {
+
+export class OrderDetail {
     subtotal: number;
     shipment: number;
     total: number;
-    discount: number;
-    rebate: number;
-    cart_token: string;
-    tag: 'manual';
+    discount: number = 0;
+    rebate: number = 0;
+    cart_token: string = '';
+    tag: 'manual' = 'manual';
     voucher: VoucherData;
-    lineItems: LineItem[];
+    lineItems: LineItem[] = [];
     customer_info: CustomerInfo;
     user_info: {
         name: string;
@@ -175,12 +195,67 @@ export declare class OrderDetail {
         MerchantTradeNo: string;
         CVSAddress: string;
         note?: string;
-        code_note?: string;
+        code_note?: string
     };
     pay_status: string;
-    constructor(subtotal: number, shipment: number);
-    private initCustomerInfo;
-    private initUserInfo;
-    private initVoucher;
+
+    constructor(subtotal: number, shipment: number) {
+        this.subtotal = subtotal;
+        this.shipment = shipment;
+        this.customer_info = this.initCustomerInfo();
+        this.user_info = this.initUserInfo();
+        this.total = 0;
+        this.pay_status = "0";
+        this.voucher = this.initVoucher();
+    }
+
+    private initCustomerInfo(): CustomerInfo {
+        return {
+            name: '',
+            phone: '',
+            email: '',
+        };
+    }
+
+    private initUserInfo(): UserInfo {
+        return {
+            CVSAddress: '',
+            CVSStoreID: '',
+            CVSStoreName: '',
+            CVSTelephone: '',
+            MerchantTradeNo: '',
+            address: '',
+            email: '',
+            name: '',
+            note: '',
+            phone: '',
+            shipment: 'normal',
+        };
+    }
+
+    private initVoucher(): VoucherData {
+        return  {
+            id: 0,
+            discount_total: 0,
+            end_ISO_Date: '',
+            for: "product",
+            forKey: [],
+            method: "fixed",
+            overlay: false,
+            reBackType: "rebate",
+            rebate_total: 0,
+            rule: "min_count",
+            ruleValue: 0,
+            startDate: '',
+            startTime: '',
+            start_ISO_Date: '',
+            status: 1,
+            target: '',
+            targetList: [],
+            title: '',
+            trigger: "auto",
+            type: 'voucher',
+            value: "0"
+        };
+    }
 }
-export {};

@@ -19,7 +19,7 @@ const shopping_1 = require("../services/shopping");
 const data_analyze_1 = require("../services/data-analyze");
 const rebate_1 = require("../services/rebate");
 const pos_js_1 = require("../services/pos.js");
-const shopnex_line_message_1 = require("../services/model/shopnex-line-message");
+const shopnex_line_message_js_1 = require("../services/model/shopnex-line-message.js");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
@@ -479,6 +479,19 @@ router.post('/combineOrder', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).combineOrder(req.body));
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/splitOrder', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).splitOrder(req.body));
         }
         else {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
@@ -1417,7 +1430,7 @@ router.delete('/ec-pay/payments/brush-back', async (req, resp) => {
 });
 router.get('/verification-code', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.generateVerificationCode(req.get('g-app')));
+        return response_1.default.succ(resp, await shopnex_line_message_js_1.ShopnexLineMessage.generateVerificationCode(req.get('g-app')));
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -1425,7 +1438,7 @@ router.get('/verification-code', async (req, resp) => {
 });
 router.post('/verification-code', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.verifyVerificationCode(req.body));
+        return response_1.default.succ(resp, await shopnex_line_message_js_1.ShopnexLineMessage.verifyVerificationCode(req.body));
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -1433,7 +1446,7 @@ router.post('/verification-code', async (req, resp) => {
 });
 router.get('/line_group', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.getLineGroup(req.get('g-app')));
+        return response_1.default.succ(resp, await shopnex_line_message_js_1.ShopnexLineMessage.getLineGroup(req.get('g-app')));
     }
     catch (err) {
         return response_1.default.fail(resp, err);

@@ -109,7 +109,12 @@ export class BgWidget {
     </button>`;
     }
     static save(event, text = '儲存', customClass) {
-        return html ` <button class="btn btn-black ${customClass !== null && customClass !== void 0 ? customClass : ``}" type="button" onclick="${event}">
+        return html ` <button class="btn btn-black ${customClass !== null && customClass !== void 0 ? customClass : ``}" type="button" onclick="${event}" >
+      <span class="tx_700_white">${text}</span>
+    </button>`;
+    }
+    static disableSave(text = '儲存', customClass) {
+        return html ` <button class="btn btn-black ${customClass !== null && customClass !== void 0 ? customClass : ``}" style="background: #B0B0B0;color: #FFF;" type="button" disabled>
       <span class="tx_700_white">${text}</span>
     </button>`;
     }

@@ -728,6 +728,18 @@ export class ApiShop {
             data: JSON.stringify(json),
         });
     }
+    static splitOrder(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/splitOrder`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
     static setCollection(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,

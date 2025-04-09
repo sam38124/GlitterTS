@@ -42,6 +42,9 @@ export class ShareDialog {
         this.customCheck = (obj) => {
             this.openConfirmDialog('input_text', obj);
         };
+        this.checkYesOrNotWithCustomWidth = (obj) => {
+            this.openConfirmDialog('checkYesOrNotWithCustomWidth', obj);
+        };
     }
     openConfirmDialog(type, obj) {
         this.glitter.openDiaLog('glitterBundle/dialog/dialog.js', type, {

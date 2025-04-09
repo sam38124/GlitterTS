@@ -2,6 +2,8 @@ import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
+import { Tool } from '../../modules/tool.js';
+import { OrderDetail } from './data.js';
 const html = String.raw;
 export class OrderSetting {
     static getPaymentMethodText(orderData) {
@@ -385,7 +387,7 @@ export class OrderSetting {
                         });
                         if (hasError) {
                             dialog.errorMessage({
-                                text: html `<div class="d-flex flex-column">出貨數量異常</div>`,
+                                text: html ` <div class="d-flex flex-column">出貨數量異常</div>`,
                             });
                         }
                         else {
@@ -520,7 +522,7 @@ export class OrderSetting {
         };
         const renderHeader = (gvc) => gvc.bindView({
             bind: ids.header,
-            view: () => html `<div class="${gClass('back-btn')}" onclick="${gvc.event(closeDialog)}">
+            view: () => html ` <div class="${gClass('back-btn')}" onclick="${gvc.event(closeDialog)}">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M13.79 4.96L8.03 10.72C7.69 11.06 7.5 11.52 7.5 12s.19.94.53 1.28l5.76 5.76c.3.3.7.46 1.12.46.88 0 1.59-.71 1.59-1.59V15h6c.83 0 1.5-.67 1.5-1.5v-3c0-.83-.67-1.5-1.5-1.5h-6V6.09c0-.88-.71-1.59-1.59-1.59-.42 0-.82.16-1.12.46ZM7.5 19.5h-3c-.83 0-1.5-.67-1.5-1.5V6c0-.83.67-1.5 1.5-1.5h3C8.33 4.5 9 3.83 9 3s-.67-1.5-1.5-1.5h-3C2.02 1.5 0 3.52 0 6v12c0 2.48 2.02 4.5 4.5 4.5h3c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5Z"
@@ -655,7 +657,7 @@ export class OrderSetting {
                     return resultMap[data.status];
                 };
                 const alertText = () => {
-                    return html `<div style="color: ${fontColor[data.status]}; white-space: break-spaces;">${data.note}</div>`;
+                    return html ` <div style="color: ${fontColor[data.status]}; white-space: break-spaces;">${data.note}</div>`;
                 };
                 const checkInfoBtn = () => {
                     if (data.status !== 'normal') {
@@ -695,7 +697,7 @@ export class OrderSetting {
                                         { title: '配送地址' },
                                     ]
                                         .map((item, i) => {
-                                        return html `<div
+                                        return html ` <div
                                 class="tx_700"
                                 style="width: ${styles[i].width}%; text-align: ${styles[i].align};"
                               >
@@ -745,7 +747,7 @@ export class OrderSetting {
                                         ]
                                             .map((item, i) => {
                                             var _a;
-                                            return html `<div
+                                            return html ` <div
                                     class="tx_normal"
                                     style="width: ${styles[i].width}%; text-align: ${styles[i].align};"
                                   >
@@ -845,7 +847,7 @@ export class OrderSetting {
                         { width: 10, align: 'center' },
                         { width: 5, align: 'center' },
                     ];
-                    return html `<div class="${gClass('box')} mt-2" style="${isDesktop ? '' : 'width: 1200px'}">
+                    return html ` <div class="${gClass('box')} mt-2" style="${isDesktop ? '' : 'width: 1200px'}">
             <div class="d-flex">
               ${[
                         { title: '訂單編號' },
@@ -858,7 +860,7 @@ export class OrderSetting {
                         { title: '' },
                     ]
                         .map((item, i) => {
-                        return html `<div class="tx_700" style="width: ${styles[i].width}%; text-align: ${styles[i].align};">
+                        return html ` <div class="tx_700" style="width: ${styles[i].width}%; text-align: ${styles[i].align};">
                     ${item.title}
                   </div>`;
                     })
@@ -905,7 +907,7 @@ export class OrderSetting {
                         ]
                             .map((item, i) => {
                             var _a;
-                            return html `<div
+                            return html ` <div
                         class="tx_normal"
                         style="width: ${styles[i].width}%; text-align: ${styles[i].align};"
                       >
@@ -931,7 +933,7 @@ export class OrderSetting {
                 <ul class="mt-2 ms-4">
                   ${hits
                 .map(hit => {
-                return html `<li class="${gClass('list')}">${hit}</li>`;
+                return html ` <li class="${gClass('list')}">${hit}</li>`;
             })
                 .join('')}
                 </ul>
@@ -945,7 +947,7 @@ export class OrderSetting {
                 bind: ids.dashboard,
                 view: () => getDashboardData()
                     .map(item => {
-                    return html `<div class="col-6 col-lg-3 px-0 px-lg-2">${dashboardItemHTML(item)}</div>`;
+                    return html ` <div class="col-6 col-lg-3 px-0 px-lg-2">${dashboardItemHTML(item)}</div>`;
                 })
                     .join(''),
                 divCreate: {
@@ -1144,7 +1146,7 @@ export class OrderSetting {
                         },
                         {
                             key: '訂單日期',
-                            value: html `<div style="width: 120px;">
+                            value: html ` <div style="width: 120px;">
                 ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd')}
               </div>`,
                         },
@@ -1340,5 +1342,707 @@ export class OrderSetting {
                 },
             });
         }, 'batchEditOrders');
+    }
+    static splitOrder(topGVC, orderData, callback) {
+        var _a, _b;
+        function assignOrder(orderCreateUnit) {
+            orderCreateUnit.cart_token = orderData.orderID;
+            orderCreateUnit.customer_info = orderData.user_info;
+            orderCreateUnit.user_info = orderData.user_info;
+            orderCreateUnit.voucher = orderData.voucherList;
+            orderCreateUnit.lineItems = structuredClone(orderData.lineItems);
+            orderCreateUnit.lineItems.forEach((lineItem) => {
+                lineItem.count = '0';
+            });
+        }
+        orderData.orderSource = 'split';
+        const dataArray = orderData.lineItems;
+        const parentPageConfig = (_b = (_a = window.parent) === null || _a === void 0 ? void 0 : _a.glitter) === null || _b === void 0 ? void 0 : _b.pageConfig;
+        const latestPageConfig = parentPageConfig === null || parentPageConfig === void 0 ? void 0 : parentPageConfig[parentPageConfig.length - 1];
+        const ogvc = (latestPageConfig === null || latestPageConfig === void 0 ? void 0 : latestPageConfig.gvc) || topGVC;
+        const glitter = ogvc.glitter;
+        const dialog = new ShareDialog(glitter);
+        const orderCreateUnit = new OrderDetail(0, 0);
+        assignOrder(orderCreateUnit);
+        const splitOrderArray = [structuredClone(orderCreateUnit)];
+        const passData = structuredClone(orderCreateUnit);
+        const isDesktop = document.body.clientWidth > 768;
+        const vm = {
+            dataObject: {},
+            originDataObject: {},
+            prefix: 'split-orders',
+            splitCount: 1,
+        };
+        const ids = {
+            show: '',
+            page: glitter.getUUID(),
+            header: glitter.getUUID(),
+            dashboard: glitter.getUUID(),
+            itemList: glitter.getUUID(),
+            block: glitter.getUUID(),
+            summary: glitter.getUUID(),
+            footer: glitter.getUUID(),
+        };
+        const gClass = (name) => `${vm.prefix}-${name}`;
+        const applyClass = () => {
+            ogvc.addStyle(`
+        .scrollbar-appear::-webkit-scrollbar {
+          width: 10px;
+          height: 10px;
+        }
+        .scrollbar-appear::-webkit-scrollbar-thumb {
+          background: #666;
+          border-radius: 20px;
+        }
+        .scrollbar-appear::-webkit-scrollbar-track {
+          border-radius: 20px;
+          background: #d8d8d8;
+        }
+        .${vm.prefix}-full-screen {
+          width: 100vw;
+          height: 100vh;
+          position: absolute;
+          left: 0;
+          top: 0;
+          background-color: white;
+          z-index: 1;
+        }
+        .${vm.prefix}-header {
+          height: 60px;
+          border-bottom: 1px solid #ddd;
+          font-size: 16px;
+          font-weight: 700;
+          color: #393939;
+          background-color: white;
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+        .${vm.prefix}-back-btn {
+          padding: 19px 32px;
+          gap: 8px;
+          cursor: pointer;
+          border-right: 1px solid #ddd;
+          display: flex;
+          align-items: center;
+        }
+        .${vm.prefix}-title {
+          padding: 19px 32px;
+        }
+        .${vm.prefix}-footer {
+          display: flex;
+          justify-content: flex-end;
+          padding: 14px 16px;
+          gap: 14px;
+          background-color: white;
+          position: sticky;
+          bottom: 0;
+          z-index: 10;
+        }
+        .${vm.prefix}-dashboard-gray {
+          color: #8d8d8d;
+          font-size: 16px;
+          font-weight: 400;
+        }
+        .${vm.prefix}-update {
+          width: 80px;
+          color: #4d86db;
+          font-weight: 400;
+          gap: 8px;
+          cursor: pointer;
+        }
+        .${vm.prefix}-list {
+          list-style: disc;
+          white-space: break-spaces;
+        }
+        .${vm.prefix}-box {
+          border-radius: 10px;
+          padding: 6px 10px;
+        }
+        .${vm.prefix}-check-info-box {
+          position: absolute;
+          width: 1000px;
+          overflow: auto;
+        }
+        .${vm.prefix}-order-row {
+          display: flex;
+          align-items: center;
+          min-height: 80px;
+        }
+        .${vm.prefix}-split-rule {
+          color: #4D86DB;
+          font-size: 16px;
+          font-weight: 400;text-decoration-line: underline;
+          text-decoration-style: solid;
+          text-decoration-skip-ink: none;
+          text-decoration-thickness: auto;
+          text-underline-offset: auto;
+          text-underline-position: from-font;
+          cursor: pointer;
+        }
+        .${vm.prefix}-product-preview-img{
+          width: 42px;
+          height: 42px;
+          border-radius: 5px;
+        }
+        .${vm.prefix}-font-gray{
+          color: #8d8d8d;
+        }
+        .${vm.prefix}-font-blue{
+          color: #4D86DB;
+        }
+        .${vm.prefix}-product-input{
+          border-radius: 10px;
+          border: 1px solid #DDD;
+          background: #FFF;
+          padding: 9px 18px;
+        }
+        .${vm.prefix}-split-BTN{
+          height:26px;
+          color:#4D86DB;
+          gap: 6px;
+          padding-left:18px;
+          display: flex;
+          align-items: start;
+          cursor:pointer;
+        }
+        .${vm.prefix}-minusQty{
+          color: #4D86DB;
+          font-size: 16px;
+          font-weight: 400;
+        }
+        .${vm.prefix}-itemList-section{
+          min-width: 100%;
+          padding-top:24px;
+          gap:5px;
+          display: flex;
+        }
+        .${vm.prefix}-summary-section{
+          border-top: 1px solid #DDD;
+          border-bottom: 1px solid #DDD;
+        }
+        .${vm.prefix}-summary-title{
+          width:606px;
+          flex-shrink:0;
+          border-right: 1px solid #DDD;
+          padding-left:18px;
+          padding:9px 18px;
+          display: flex;
+          justify-content: end;
+          align-items: center;
+        }
+        .${vm.prefix}-summary-oriSummary{
+          width:152px;
+          border-right: 1px solid #DDD;
+          flex-shrink:0;
+        }
+        .${vm.prefix}-summary-subSummary{
+          width:155px;
+          border-right: 1px solid #DDD;
+          flex-shrink:0;
+        }
+        .${vm.prefix}-summary-raw-BG1{
+          background: #F7F7F7;
+        }
+        .${vm.prefix}-summary-raw{
+          display: flex;
+          font-size: 16px;
+          align-items: center;
+          justify-content:start;
+          padding-left:18px;
+        }
+        .${vm.prefix}-summary-raw1{
+          display: flex;
+          font-size: 16px;
+          font-weight: 700;
+          align-items: end;
+          justify-content:start;
+          padding-left:18px;
+          padding-bottom:9px;
+        }
+        .${vm.prefix}-summary-right{
+          margin:0 6px;
+        }
+        
+        .${vm.prefix}-dialog-ul{
+          padding:6px ;
+          list-style:disc;
+          
+        }
+        .${vm.prefix}-dialog-ul li{
+          list-style:disc;
+          text-align:left;
+          list-style-position: inside;
+        }
+      `);
+        };
+        const closeDialog = () => glitter.closeDiaLog();
+        const renderHeader = (gvc) => gvc.bindView({
+            bind: ids.header,
+            view: () => html ` <div class="${gClass('back-btn')}" onclick="${gvc.event(closeDialog)}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M13.79 4.96L8.03 10.72C7.69 11.06 7.5 11.52 7.5 12s.19.94.53 1.28l5.76 5.76c.3.3.7.46 1.12.46.88 0 1.59-.71 1.59-1.59V15h6c.83 0 1.5-.67 1.5-1.5v-3c0-.83-.67-1.5-1.5-1.5h-6V6.09c0-.88-.71-1.59-1.59-1.59-.42 0-.82.16-1.12.46ZM7.5 19.5h-3c-.83 0-1.5-.67-1.5-1.5V6c0-.83.67-1.5 1.5-1.5h3C8.33 4.5 9 3.83 9 3s-.67-1.5-1.5-1.5h-3C2.02 1.5 0 3.52 0 6v12c0 2.48 2.02 4.5 4.5 4.5h3c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5Z"
+                  fill="#393939"
+                />
+              </svg>
+              返回
+            </div>
+            <div class="flex-fill ${gClass('title')}">拆分訂單</div>`,
+            divCreate: {
+                class: `d-flex align-items-center ${gClass('header')}`,
+            },
+        });
+        const handleSave = () => {
+            const alertHTML = html `
+      <div class="d-flex flex-column">
+        <div class="tx_normal text-start">您即將拆分訂單，系統將產生 ${splitOrderArray.length} 筆子訂單，拆分後：</div>
+        <ul class="${gClass('dialog-ul')}">
+          <li>原訂單調整金額與折扣，運費及附加費維持不變。子訂單按比例分配優惠。</li>
+          <li>子訂單繼承母訂單設定，發票需手動作廢與重開。 </li>
+          <li>代收金額更新，已建立的出貨單需取消並重新建立。</li>
+        </ul>
+      </div>
+      `;
+            dialog.checkYesOrNotWithCustomWidth({
+                callback: bool => {
+                    if (bool) {
+                        orderData.lineItems.forEach((lineItem, index) => {
+                            let count = 0;
+                            count = splitOrderArray.reduce((total, order) => { return total += Number(order.lineItems[index].count); }, 0);
+                            lineItem.count -= count;
+                        });
+                        const passData = {
+                            orderData: orderData,
+                            splitOrderArray: splitOrderArray
+                        };
+                        console.log("passData -- ", passData);
+                        ApiShop.splitOrder(passData).then(r => {
+                            console.log("r -- ", r);
+                        });
+                    }
+                },
+                text: alertHTML,
+            });
+        };
+        const renderFooter = (gvc) => gvc.bindView({
+            bind: ids.footer,
+            view: () => {
+                const allOrdersHaveZeroItems = splitOrderArray.every(order => order.lineItems.every(item => Number(item.count) === 0));
+                let checkBTN = ``;
+                if (!allOrdersHaveZeroItems) {
+                    checkBTN = BgWidget.save(gvc.event(handleSave), '拆分訂單');
+                }
+                else {
+                    checkBTN = BgWidget.disableSave('拆分訂單');
+                }
+                return html `
+          ${BgWidget.cancel(gvc.event(closeDialog))} ${checkBTN}
+        `;
+            }, divCreate: { class: `${gClass('footer')}` }
+        });
+        const renderHint = (gvc) => {
+            const phoneCardStyle = isDesktop
+                ? ''
+                : 'border-radius: 10px; padding: 12px; background: #fff; box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);';
+            const fontColor = {
+                success: '#10931D',
+                error: '#DA1313',
+                normal: '#393939',
+            };
+            const hits = [
+                '原訂單將保留剩餘商品，訂單金額與折扣將調整；子訂單將包含選定商品，並按比例分配優惠折扣',
+                '拆單後，運費及附加費用不變，將保留於原訂單內，若需要，請手動編輯訂單新增費用',
+            ];
+            return html `
+        <div class="row">
+          <div class="col-12 ">
+            ${BgWidget.mainCard(html `
+              <div style="${phoneCardStyle}">
+                <span class="tx_700">拆單需知</span>
+                <div class="w-100 d-flex">
+                  <ul class="mt-2 ms-4">
+                    ${hits
+                .map(hit => {
+                return html ` <li class="${gClass('list')}">${hit}</li>`;
+            })
+                .join('')}
+                  </ul>
+                  <div class="${gClass('split-rule')} ms-auto d-flex align-items-end" onclick="${gvc.event(() => {
+                BgWidget.settingDialog({
+                    gvc: gvc,
+                    title: '拆單需知',
+                    width: 766,
+                    innerHTML: gvc => {
+                        return html `
+                          <ul class="${gClass('dialog-ul')}">
+                            <li>原訂單將保留剩餘商品，訂單金額與折扣將調整；子訂單將包含選定商品，並按比例分配優惠折扣</li>
+                            <li>拆單後運費及附加費用不變，將保留於原訂單內，如需更改，請手動編輯訂單新增費用</li>
+                            <li>子訂單會預設繼承母訂單的配送與付款方式，如需更改，請手動編輯訂單內容</li>
+                            <li>子訂單若要重新開立發票，請至發票頁面手動建立</li>
+                            <li>若發票已開立，系統不會自動作廢，需至訂單頁面手動作廢並重新開立</li>
+                            <li>代收金額將更新，已建立的出貨單需取消並重新建立</li>
+                          </ul>`;
+                    },
+                    footer_html: (gvc) => {
+                        return '';
+                    },
+                });
+            })}">詳細拆單規則</div>
+                </div>
+              </div>
+            `)}
+          </div>
+        </div>
+      `;
+        };
+        const renderItemList = (gvc) => {
+            function newSplitOrder() {
+                splitOrderArray.push(structuredClone(orderCreateUnit));
+                gvc.notifyDataChange([ids.itemList, ids.summary, ids.footer]);
+            }
+            function drawSplitOrder() {
+                const titleDom = {
+                    title: '子訂單數量',
+                    key: 'subOrder',
+                    width: '150px',
+                    style: 'padding-left:18px;padding-right:18px;border-right:1px solid #ddd;',
+                    htmlArray: [],
+                };
+                return splitOrderArray
+                    .map((order, index) => {
+                    var _a, _b;
+                    return html `
+              <div class="d-flex flex-column">
+                <div class="${commonClass}" style="width: ${titleDom.width};${(_a = titleDom === null || titleDom === void 0 ? void 0 : titleDom.style) !== null && _a !== void 0 ? _a : ''}">
+                  <div class="tx_700">${titleDom.title}${index + 1}</div>
+                  <div class="flex-fill"></div>
+                </div>
+                <div
+                  class="d-flex flex-column"
+                  style="width: ${titleDom.width};gap:16px;padding-top: 24px;${(_b = titleDom === null || titleDom === void 0 ? void 0 : titleDom.style) !== null && _b !== void 0 ? _b : ''}"
+                >
+                  ${splitOrderArray[index].lineItems
+                        .map((item, itemIndex) => {
+                        return html `
+                        <input
+                          class="${gClass('product-input')} d-flex tx_normal w-100"
+                          style="${commonHeight};"
+                          type="number"
+                          value="${parseInt(item.count)}"
+                          min="0"
+                          onchange="${gvc.event(e => {
+                            const temp = structuredClone(item.count);
+                            item.count = e.value;
+                            let nowQty = 0;
+                            splitOrderArray.forEach((order, index) => {
+                                nowQty += Number(order.lineItems[itemIndex].count);
+                            });
+                            if (Number(dataArray[itemIndex].count) >= nowQty) {
+                            }
+                            else {
+                                item.count = temp;
+                            }
+                            gvc.notifyDataChange([ids.itemList, ids.summary, ids.footer]);
+                        })}"
+                        />
+                      `;
+                    })
+                        .join('')}
+                </div>
+              </div>
+            `;
+                })
+                    .join('');
+            }
+            const commonClass = 'd-flex align-items-center';
+            const commonHeight = 'height:40px;';
+            const addBTN = html `
+        <div
+          class="tx_700 ${gClass('split-BTN')}"
+          onclick="${gvc.event(() => {
+                newSplitOrder();
+            })}"
+        >
+          <div class="${commonClass}">新增訂單<i class="fa-solid fa-plus"></i></div>
+        </div>
+      `;
+            return gvc.bindView({
+                bind: ids.itemList,
+                view: () => {
+                    const dataRaws = [
+                        { title: '商品', key: 'name', width: '320px', htmlArray: [] },
+                        { title: '出貨庫存', key: 'stock', width: '120px', htmlArray: [] },
+                        { title: '單價', key: 'price', width: '100px', htmlArray: [] },
+                        {
+                            title: '總數',
+                            key: 'totalQty',
+                            width: '51px',
+                            style: 'padding-right:18px;border-right:1px solid #ddd;',
+                            htmlArray: [],
+                        },
+                        {
+                            title: '原單數量',
+                            key: 'oriQty',
+                            width: '147px',
+                            style: 'padding-left:18px;padding-right:18px;border-right:1px solid #ddd;',
+                            htmlArray: [],
+                        },
+                    ];
+                    dataArray.forEach((item, lineItemIndex) => {
+                        return html `
+              <div class="d-flex w-100">
+                ${dataRaws
+                            .map((dataRaw, dataRowIndex) => {
+                            var _a;
+                            switch (dataRaw.key) {
+                                case 'name': {
+                                    const spec = item.spec.length > 0 ? Tool.truncateString(item.spec.join(''), 5) : '單一規格';
+                                    const sku = '';
+                                    dataRaw.htmlArray.push(html ` <div class="${commonClass}" style="width: ${dataRaw.width};gap:12px;${commonHeight}">
+                            <img class="${gClass('product-preview-img')}" src="${item.preview_image}" alt="產品圖片" />
+                            <div class="d-flex flex-column flex-grow-1" style="gap:2px;">
+                              <div class="tx_normal_14" style="white-space: normal;line-height: normal;">
+                                ${Tool.truncateString(item.title, 10)} -${spec}
+                              </div>
+                              <div class="tx_normal_14 ${gClass('font-gray')}">
+                                存貨單位 (SKU): ${(_a = item.sku) !== null && _a !== void 0 ? _a : '無SKU'}
+                              </div>
+                            </div>
+                          </div>`);
+                                    break;
+                                }
+                                case 'stock': {
+                                    dataRaw.htmlArray.push(html `
+                          <div
+                            class="tx_normal ${commonClass} justify-content-start"
+                            style="width: ${dataRaw.width};${commonHeight}"
+                          >
+                            AA倉庫
+                          </div>
+                        `);
+                                    break;
+                                }
+                                case 'price': {
+                                    dataRaw.htmlArray.push(html `
+                          <div
+                            class="tx_normal ${commonClass} justify-content-start"
+                            style="width: ${dataRaw.width};${commonHeight}"
+                          >
+                            ${item.sale_price}
+                          </div>
+                        `);
+                                    break;
+                                }
+                                case 'totalQty': {
+                                    dataRaw.htmlArray.push(html `
+                          <div
+                            class="tx_normal ${commonClass} justify-content-start"
+                            style="width: ${dataRaw.width};${commonHeight}"
+                          >
+                            ${item.count}
+                          </div>
+                        `);
+                                    break;
+                                }
+                                case 'oriQty': {
+                                    let splitQty = 0;
+                                    splitOrderArray.forEach(order => {
+                                        splitQty += Number(order.lineItems[lineItemIndex].count);
+                                    });
+                                    const minusQtyClass = `${gClass('minusQty')} ${splitQty > 0 ? '' : 'd-none'}`;
+                                    dataRaw.htmlArray.push(html `
+                          <div
+                            class="tx_normal ${commonClass} justify-content-start"
+                            style="width: ${dataRaw.width};${commonHeight}"
+                          >
+                            ${item.count} <span class="${minusQtyClass}"> -> ${Number(item.count) - splitQty}</span>
+                          </div>
+                        `);
+                                    break;
+                                }
+                            }
+                            return html ``;
+                        })
+                            .join('')}
+              </div>
+            `;
+                    });
+                    return html `
+            ${dataRaws
+                        .map(item => {
+                        var _a, _b;
+                        return html `
+                  <div class="d-flex flex-column">
+                    <div class="${commonClass}" style="width: ${item.width};${(_a = item === null || item === void 0 ? void 0 : item.style) !== null && _a !== void 0 ? _a : ''}">
+                      <div class="tx_700">${item.title}</div>
+                      <div class="flex-fill"></div>
+                    </div>
+                    <div
+                      class="d-flex flex-column"
+                      style="width: ${item.width};gap:16px;padding-top: 24px;${(_b = item === null || item === void 0 ? void 0 : item.style) !== null && _b !== void 0 ? _b : ''}"
+                    >
+                      ${item.htmlArray.join('')}
+                    </div>
+                  </div>
+                `;
+                    })
+                        .join('')}
+            ${drawSplitOrder()} ${addBTN}
+          `;
+                },
+                divCreate: { style: '', class: `${gClass('itemList-section')}` },
+            });
+        };
+        const renderBlock = (gvc) => {
+            const subBlock = splitOrderArray.map((order, index) => {
+                return html `<div class="${gClass('summary-subSummary')}"></div>`;
+            }).join('');
+            return html `
+        <div class="d-flex" style="height:27px;">
+          <div class="${gClass('summary-title')}"></div>
+          <div class="${gClass('summary-oriSummary')}"></div>
+          ${subBlock}
+        </div>
+      `;
+        };
+        const renderSummary = (gvc) => {
+            return gvc.bindView({
+                bind: ids.summary,
+                view: () => {
+                    function drawSubTitle() {
+                        return splitOrderArray
+                            .map((order, index) => {
+                            return html `
+                  <div class="${gClass('summary-subSummary')} ${gClass('summary-raw1')}">子訂單${index + 1}</div>
+                `;
+                        })
+                            .join('');
+                    }
+                    function drawOriData(index) {
+                        const sale_price = dataArray.reduce((total, data) => total + data.sale_price * Number(data.count), 0);
+                        const split_price = splitOrderArray.reduce((total, order) => total +
+                            order.lineItems.reduce((subTotal, lineItem) => subTotal + lineItem.sale_price * Number(lineItem.count), 0), 0);
+                        const rate = 1 - split_price / (sale_price + orderData.shipment_fee);
+                        const discount = Math.round(orderData.discount * rate);
+                        switch (index) {
+                            case 1:
+                                if (split_price) {
+                                    return html `
+                    <div class="d-flex align-items-center">
+                      <span class="text-decoration-line-through">${sale_price}</span
+                      ><i class="fa-solid fa-arrow-right ${gClass('font-blue')} ${gClass('summary-right')}"></i
+                      ><span class="${gClass('font-blue')}">${sale_price - split_price}</span>
+                    </div>
+                  `;
+                                }
+                                return sale_price;
+                            case 2:
+                                return orderData.shipment_fee;
+                            case 3:
+                                if (split_price) {
+                                    return html `
+                    <div class="d-flex align-items-center">
+                      <span class="text-decoration-line-through">-${orderData.discount}</span
+                      ><i class="fa-solid fa-arrow-right ${gClass('font-blue')} ${gClass('summary-right')}"></i
+                      ><span class="${gClass('font-blue')}">-${discount}</span>
+                    </div>
+                  `;
+                                }
+                                return -orderData.discount;
+                            default:
+                                if (split_price) {
+                                    return html `
+                    <div class="d-flex align-items-center">
+                      <span class="text-decoration-line-through">${orderData.total}</span
+                      ><i class="fa-solid fa-arrow-right ${gClass('font-blue')} ${gClass('summary-right')}"></i
+                      ><span class="${gClass('font-blue')}">${sale_price - split_price - discount + orderData.shipment_fee}</span>
+                    </div>
+                  `;
+                                }
+                                return orderData.total;
+                        }
+                    }
+                    function drawSplitData(rawIndex) {
+                        function drawUnit(order, lineIndex) {
+                            const total = order.lineItems.reduce((total, lineItem) => total + lineItem.sale_price * Number(lineItem.count), 0);
+                            const rate = total / orderData.total;
+                            order.discount = Math.round(orderData.discount * rate);
+                            order.total = total - order.discount;
+                            switch (rawIndex) {
+                                case 1:
+                                    return total;
+                                case 2:
+                                    return 0;
+                                case 3:
+                                    return -order.discount;
+                                default:
+                                    return order.total;
+                            }
+                        }
+                        return splitOrderArray
+                            .map((order, lineIndex) => {
+                            return html `
+                  <div class="${gClass('summary-subSummary')} d-flex ${gClass('summary-raw1')}">
+                    ${drawUnit(order, lineIndex)}
+                  </div>
+                `;
+                        })
+                            .join('');
+                    }
+                    const titleRaw = [
+                        { title: '', style: 'height:58px;' },
+                        { title: '小計總額' },
+                        { title: '運費' },
+                        { title: '折扣' },
+                        { title: '總金額' },
+                    ];
+                    return titleRaw
+                        .map((raw, index) => {
+                        if (index == 0) {
+                            return html `
+                  <div class="d-flex" style="height:58px;">
+                    <div class="${gClass('summary-title')}"></div>
+                    <div class="${gClass('summary-oriSummary')} d-flex ${gClass('summary-raw1')}">原訂單</div>
+                    ${drawSubTitle()}
+                  </div>
+                `;
+                        }
+                        return html `
+                <div class="d-flex ${gClass('summary-raw-BG' + (index % 2))}">
+                  <div class="${gClass('summary-title')} ">${raw.title}</div>
+                  <div class="${gClass('summary-oriSummary')} d-flex ${gClass('summary-raw')}">
+                    ${drawOriData(index)}
+                  </div>
+                  ${drawSplitData(index)}
+                </div>
+              `;
+                    })
+                        .join('');
+                },
+                divCreate: {
+                    class: `${gClass('summary-section')}`,
+                },
+            });
+        };
+        glitter.innerDialog((gvc) => {
+            const temp = {};
+            applyClass();
+            return gvc.bindView({
+                bind: ids.page,
+                view: () => html `
+          <div class="d-flex flex-column ${gClass('full-screen')}">
+            ${renderHeader(gvc)}
+            <div
+              class="flex-fill scrollbar-appear"
+              style="${isDesktop ? 'padding: 24px 32px;' : 'padding: 0;'} overflow: hidden auto;"
+            >
+              ${renderHint(gvc)} ${renderItemList(gvc)} ${renderBlock(gvc)} ${renderSummary(gvc)}
+            </div>
+            ${renderFooter(gvc)}
+          </div>
+        `,
+            });
+        }, 'splitOrder');
     }
 }

@@ -12,9 +12,11 @@ interface DialogConfig {
   cancel?: ButtonConfig;
   confirm?: ButtonConfig;
   width?: number;
+  auto?:boolean;
 }
 
 interface Bundle {
+  width: number;
   type: string;
   obj?: {
     text?: string;
@@ -46,7 +48,7 @@ init(import.meta.url, (gvc, glitter, gBundle: Bundle) => {
 
   const createDialogBox = (config: DialogConfig): string => html`
     <div class="dialog-box">
-      <div class="dialog-content" style="width: ${config.width ?? 280}px;">
+      <div class="dialog-content" style="${config.auto ? '' : `width: ${config.width ?? 280}px;`} ">
         ${config.icon ?? ''}
         <div class="mt-3 mb-3 fs-6 text-center w-100" style="white-space: normal;word-break: break-all;">
           ${config.content}
@@ -185,6 +187,21 @@ init(import.meta.url, (gvc, glitter, gBundle: Bundle) => {
                 event: () => gBundle.callback?.(false),
               },
               width: 420,
+            });
+
+          case 'checkYesOrNotWithCustomWidth':
+            return createDialogBox({
+              icon: icons.info,
+              content: gBundle.title ?? '',
+              confirm: {
+                title: gBundle.yesString ?? Language.text('okay'),
+                event: () => gBundle.callback?.(true),
+              },
+              cancel: {
+                title: gBundle.notString ?? Language.text('cancel'),
+                event: () => gBundle.callback?.(false),
+              },
+              width:600
             });
 
           default:

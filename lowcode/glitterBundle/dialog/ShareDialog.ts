@@ -1,5 +1,4 @@
 import { Glitter } from '../Glitter.js';
-import { Animation, AnimationConfig } from '../../glitterBundle/module/Animation.js';
 
 
 interface DataLoadingOptions {
@@ -25,6 +24,7 @@ interface ConfirmDialogOptions {
   notString?: string;
 }
 
+
 export class ShareDialog {
   public dataLoading: (obj: DataLoadingOptions) => void;
   public infoMessage: (obj: MessageOptions) => void;
@@ -32,6 +32,7 @@ export class ShareDialog {
   public successMessage: (obj: MessageOptions) => void;
   public warningMessage: (obj: ConfirmDialogOptions) => void;
   public checkYesOrNot: (obj: ConfirmDialogOptions) => void;
+  public checkYesOrNotWithCustomWidth: (obj: ConfirmDialogOptions) => void;
   public customCheck: (obj: ConfirmDialogOptions) => void;
 
   constructor(private glitter: Glitter) {
@@ -81,6 +82,10 @@ export class ShareDialog {
 
     this.customCheck = (obj: ConfirmDialogOptions): void => {
       this.openConfirmDialog('input_text', obj);
+    };
+
+    this.checkYesOrNotWithCustomWidth = (obj: ConfirmDialogOptions): void => {
+      this.openConfirmDialog('checkYesOrNotWithCustomWidth', obj);
     };
   }
 

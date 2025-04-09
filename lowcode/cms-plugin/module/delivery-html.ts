@@ -2,6 +2,7 @@ import { GVC } from '../../glitterBundle/GVController.js';
 import { Tool } from '../../modules/tool.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
+import { CartData, OrderData } from './data.js';
 
 const html = String.raw;
 
