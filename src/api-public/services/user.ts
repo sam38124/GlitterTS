@@ -53,6 +53,7 @@ interface UserQuery {
   groupTag?: string;
   filter_type?: string;
   tags?: string;
+  all_result?: boolean;
 }
 
 interface GroupUserItem {
@@ -1492,137 +1493,150 @@ export class User {
         querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
       }
 
-      const dataSQL = await this.getUserAndOrderSQL({
-        select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
-        where: querySql,
-        orderBy: query.order_string ?? '',
-        page: query.page,
-        limit: query.limit,
-      });
-
       const countSQL = await this.getUserAndOrderSQL({
         select: 'count(1)',
         where: querySql,
         orderBy: query.order_string ?? '',
       });
 
-      const userData = (await db.query(dataSQL, [])).map((dd: any) => {
-        dd.pwd = undefined;
-        dd.tag_name = '一般會員';
-        return dd;
-      });
-
-      checkPoint('get-user-data-finish');
-      // 建立 userID 對應的 Map，加快查找
-      const userMap = new Map(userData.map((user: any) => [String(user.userID), user]));
-
-      // 會員等級 Map
-      const levels = await this.getUserLevel(userData.map((user: any) => ({ userId: user.userID })));
-      const levelMap = new Map(levels.map(lv => [lv.id, lv.data.dead_line ?? '']));
-      checkPoint('levelMap-finish');
-      const queryResult = await db.query(
-        `
-            SELECT *
-            FROM \`${this.app}\`.t_user_public_config
-            WHERE \`key\` = 'member_update'
-              AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
-        `,
-        []
-      );
-      checkPoint('queryResult-finish');
-      // 更新 userData
-      for (const b of queryResult) {
-        const tag = levels.find(dd => {
-          return `${dd.id}` === `${b.user_id}`;
+      const getUserQuery = async (param?: { page?: number; limit?: number }) => {
+        const dataSQL = await this.getUserAndOrderSQL({
+          select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
+          where: querySql,
+          orderBy: query.order_string ?? '',
+          page: param?.page,
+          limit: param?.limit,
         });
-        if (tag && tag.data && tag.data.tag_name) {
-          const user = userMap.get(String(b.user_id)) as any;
-          if (user) {
-            user.tag_name = tag.data.tag_name; // 確保 user 不是 undefined，並設定 tag_name
+
+        const userData = (await db.query(dataSQL, [])).map((dd: any) => {
+          dd.pwd = undefined;
+          dd.tag_name = '一般會員';
+          return dd;
+        });
+
+        checkPoint('get-user-data-finish');
+
+        // 建立 userID 對應的 Map，加快查找
+        const userMap = new Map(userData.map((user: any) => [String(user.userID), user]));
+
+        // 會員等級 Map
+        const levels = await this.getUserLevel(userData.map((user: any) => ({ userId: user.userID })));
+        const levelMap = new Map(levels.map(lv => [lv.id, lv.data.dead_line ?? '']));
+        checkPoint('levelMap-finish');
+
+        const queryResult = await db.query(
+          `
+              SELECT *
+              FROM \`${this.app}\`.t_user_public_config
+              WHERE \`key\` = 'member_update'
+                AND user_id IN (${[...userMap.keys(), '-1111'].join(',')})
+          `,
+          []
+        );
+        checkPoint('queryResult-finish');
+
+        // 更新 userData
+        for (const b of queryResult) {
+          const tag = levels.find(dd => {
+            return `${dd.id}` === `${b.user_id}`;
+          });
+          if (tag && tag.data && tag.data.tag_name) {
+            const user = userMap.get(String(b.user_id)) as any;
+            if (user) {
+              user.tag_name = tag.data.tag_name; // 確保 user 不是 undefined，並設定 tag_name
+            }
           }
         }
-      }
 
-      const processUserData = async (user: any) => {
-        const phone = user.userData.phone || 'asnhsauh';
-        const email = user.userData.email || 'asnhsauh';
-        // 取得購物金餘額
-        const _rebate = new Rebate(this.app);
-        const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
-        user.rebate = userRebate ? userRebate.point : 0;
-        // 取得會員等級截止日
-        user.member_deadline = levelMap.get(user.userID) ?? '';
-        user.latest_order_date = (
-          await db.query(
-            `select created_time
-                                                  from \`${this.app}\`.t_checkout
-                                                  where email in ('${email}', '${phone}')
-                                                    and ${orderCountingSQL}
-                                                  order by created_time desc limit 0,1`,
-            []
-          )
-        )[0];
-        user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
-        user.latest_order_total = (
-          await db.query(
-            `select total
-                                                   from \`${this.app}\`.t_checkout
-                                                   where email in ('${email}', '${phone}')
-                                                     and ${orderCountingSQL}
-                                                   order by created_time desc limit 0,1`,
-            []
-          )
-        )[0];
-        user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
-        user.checkout_total = (
-          await db.query(
-            `select sum(total)
-                                               from \`${this.app}\`.t_checkout
-                                               where email in ('${email}', '${phone}')
-                                                 and ${orderCountingSQL} `,
-            []
-          )
-        )[0];
-        user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
-        user.checkout_count = (
-          await db.query(
-            `select count(1)
-                                               from \`${this.app}\`.t_checkout
-                                               where email in ('${email}', '${phone}')
-                                                 and ${orderCountingSQL} `,
-            []
-          )
-        )[0];
-        user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
-      };
-      checkPoint('processUserData-finish');
-      // 批次處理會員資料
-      if (Array.isArray(userData) && userData.length > 0) {
-        const chunkSize = 20; // 每次最多處理人數
-
-        const chunkedUserData: any[][] = [];
-        for (let i = 0; i < userData.length; i += chunkSize) {
-          chunkedUserData.push(userData.slice(i, i + chunkSize));
-        }
-
-        // 依序處理每個批次
-        for (const batch of chunkedUserData) {
-          await Promise.all(
-            batch.map(async (user: any) => {
-              await processUserData(user);
-            })
-          );
-        }
-      }
-
-      return {
-        // 所有註冊會員的詳細資料
-        data: userData.map((user: any) => {
+        const processUserData = async (user: any) => {
+          const phone = user.userData.phone || 'asnhsauh';
+          const email = user.userData.email || 'asnhsauh';
+          // 取得購物金餘額
+          const _rebate = new Rebate(this.app);
+          const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
+          user.rebate = userRebate ? userRebate.point : 0;
+          // 取得會員等級截止日
+          user.member_deadline = levelMap.get(user.userID) ?? '';
+          user.latest_order_date = (
+            await db.query(
+              `select created_time
+                                                    from \`${this.app}\`.t_checkout
+                                                    where email in ('${email}', '${phone}')
+                                                      and ${orderCountingSQL}
+                                                    order by created_time desc limit 0,1`,
+              []
+            )
+          )[0];
+          user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
+          user.latest_order_total = (
+            await db.query(
+              `select total
+                                                     from \`${this.app}\`.t_checkout
+                                                     where email in ('${email}', '${phone}')
+                                                       and ${orderCountingSQL}
+                                                     order by created_time desc limit 0,1`,
+              []
+            )
+          )[0];
+          user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
+          user.checkout_total = (
+            await db.query(
+              `select sum(total)
+                                                 from \`${this.app}\`.t_checkout
+                                                 where email in ('${email}', '${phone}')
+                                                   and ${orderCountingSQL} `,
+              []
+            )
+          )[0];
+          user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
+          user.checkout_count = (
+            await db.query(
+              `select count(1)
+                                                 from \`${this.app}\`.t_checkout
+                                                 where email in ('${email}', '${phone}')
+                                                   and ${orderCountingSQL} `,
+              []
+            )
+          )[0];
+          user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
           user.order_count = user.order_count || 0;
           user.total_amount = user.total_amount || 0;
-          return user;
-        }),
-        // 所有註冊會員的數量
+        };
+        checkPoint('processUserData-finish');
+
+        // 批次處理會員資料
+        if (Array.isArray(userData) && userData.length > 0) {
+          const chunkSize = 20; // 每次最多處理人數
+
+          const chunkedUserData: any[][] = [];
+          for (let i = 0; i < userData.length; i += chunkSize) {
+            chunkedUserData.push(userData.slice(i, i + chunkSize));
+          }
+
+          // 依序處理每個批次
+          for (const batch of chunkedUserData) {
+            await Promise.all(
+              batch.map(async (user: any) => {
+                await processUserData(user);
+              })
+            );
+          }
+        }
+
+        return userData;
+      };
+
+      const [pageUsers, allUsers] = await Promise.all([
+        getUserQuery({ page: query.page, limit: query.limit }),
+        query.all_result ? getUserQuery() : [],
+      ]);
+
+      return {
+        // 指定頁數和符合篩選條件的會員資料
+        data: pageUsers,
+        // 所有符合篩選條件的會員資料
+        ...(allUsers.length > 0 ? { allUsers } : {}),
+        // 所有符合篩選條件的會員數量
         total: (await db.query(countSQL, []))[0]['count(1)'],
         // 額外資料（例如未註冊的訂閱者資料）
         extra: {
@@ -2113,15 +2127,20 @@ export class User {
   }
 
   public async updateUserData(userID: string, par: any, manager: boolean = false) {
+    const userData = await (async () => {
+      const getUser = await db.query(
+        `select * from \`${this.app}\`.\`t_user\` where userID = ${db.escape(userID)}
+        `,
+        []
+      );
+      return getUser[0] ?? {};
+    })();
+
     try {
-      const userData = (
-        await db.query(
-          `select *
-           from \`${this.app}\`.\`t_user\`
-           where userID = ${db.escape(userID)}`,
-          []
-        )
-      )[0];
+      if (!userData.userData) {
+        return { data: {} };
+      }
+
       const login_config = await this.getConfigV2({
         key: 'login_config',
         user_id: 'manager',
@@ -2130,9 +2149,10 @@ export class User {
         key: 'custom_form_register',
         user_id: 'manager',
       });
+
       register_form.list = register_form.list ?? [];
       FormCheck.initialRegisterForm(register_form.list);
-      //更改密碼
+
       if (par.userData.pwd) {
         if ((await redis.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
           await db.query(
@@ -2147,6 +2167,7 @@ export class User {
           });
         }
       }
+
       if (par.userData.email && par.userData.email !== userData.userData.email) {
         const count = (
           await db.query(
@@ -2174,6 +2195,7 @@ export class User {
           });
         }
       }
+
       if (par.userData.phone && par.userData.phone !== userData.userData.phone) {
         const count = (
           await db.query(
@@ -2201,8 +2223,10 @@ export class User {
           });
         }
       }
+
       const blockCheck = par.userData.type == 'block';
       par.status = blockCheck ? 0 : 1;
+
       if (par.userData.phone) {
         await db.query(
           `update \`${this.app}\`.t_checkout
@@ -2213,6 +2237,7 @@ export class User {
         );
         userData.account = par.userData.phone;
       }
+
       if (par.userData.email) {
         await db.query(
           `update \`${this.app}\`.t_checkout
@@ -2223,20 +2248,25 @@ export class User {
         );
         userData.account = par.userData.email;
       }
+
       par.userData = await this.checkUpdate({
         updateUserData: par.userData,
         userID: userID,
         manager: manager,
       });
+
       delete par.userData.verify_code;
+
       par = {
         account: userData.account,
         userData: JSON.stringify(par.userData),
         status: par.status,
       };
+
       if (!par.account) {
         delete par.account;
       }
+
       const data = (await db.query(
         `update \`${this.app}\`.t_user
          SET ?
@@ -2247,11 +2277,11 @@ export class User {
 
       await UserUpdate.update(this.app, userID);
 
-      return {
-        data: data,
-      };
+      return { data };
     } catch (e: any) {
-      throw exception.BadRequestError((e as any).code || 'BAD_REQUEST', (e as any).message, e.data);
+      delete userData.pwd;
+      delete userData.userData.verify_code;
+      throw exception.BadRequestError(e.code || 'BAD_REQUEST', e.message, { data: userData });
     }
   }
 

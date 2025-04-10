@@ -109,12 +109,17 @@ export class BgWidget {
     </button>`;
     }
     static save(event, text = '儲存', customClass) {
-        return html ` <button class="btn btn-black ${customClass !== null && customClass !== void 0 ? customClass : ``}" type="button" onclick="${event}" >
+        return html ` <button class="btn btn-black ${customClass !== null && customClass !== void 0 ? customClass : ``}" type="button" onclick="${event}">
       <span class="tx_700_white">${text}</span>
     </button>`;
     }
     static disableSave(text = '儲存', customClass) {
-        return html ` <button class="btn btn-black ${customClass !== null && customClass !== void 0 ? customClass : ``}" style="background: #B0B0B0;color: #FFF;" type="button" disabled>
+        return html ` <button
+      class="btn btn-black ${customClass !== null && customClass !== void 0 ? customClass : ``}"
+      style="background: #B0B0B0;color: #FFF;"
+      type="button"
+      disabled
+    >
       <span class="tx_700_white">${text}</span>
     </button>`;
     }
@@ -1656,11 +1661,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 pageSize: 0,
                 tableData: [],
                 originalData: [],
+                allResultData: [],
                 callback: () => {
                     vm.loading = false;
                     gvc.notifyDataChange(ids.container);
                 },
                 checkedArray: [],
+                limit: 0,
             };
             return {
                 bind: ids.container,
@@ -1675,7 +1682,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         function renderRowCheckbox(result) {
                             var _a;
                             const checkboxSelector = result ? 'i.fa-square' : 'i.fa-square-check';
-                            vm.originalData.forEach((_, index) => {
+                            vm.originalData.forEach((item, index) => {
                                 const checkboxParent = gvc.glitter.document.querySelector(`[gvc-checkbox="checkbox${index}"]`);
                                 const checkboxIcon = checkboxParent === null || checkboxParent === void 0 ? void 0 : checkboxParent.querySelector(checkboxSelector);
                                 checkboxIcon === null || checkboxIcon === void 0 ? void 0 : checkboxIcon.click();
@@ -1684,22 +1691,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             (_a = obj.itemSelect) === null || _a === void 0 ? void 0 : _a.call(obj);
                             changeHeaderStyle();
                         }
-                        function checkAllBox(changeView) {
-                            return EditorElem.checkBoxOnly({
-                                gvc: gvc,
-                                def: vm.originalData.every((item) => item.checked),
-                                callback: result => renderRowCheckbox(result),
-                                stopChangeView: changeView,
-                                style: 'justify-content: end !important;',
-                            });
-                        }
                         function changeHeaderStyle() {
                             var _a;
                             const key = `[gvc-id="${gvc.id(ids.header)}"]`;
                             const target = ((_a = obj.windowTarget) !== null && _a !== void 0 ? _a : window).document.querySelector(key);
                             if (!target)
                                 return;
-                            const checked = vm.originalData.find((dd) => dd.checked);
+                            const checked = vm.originalData.some((dd) => dd.checked);
                             target.style.position = checked ? 'sticky' : 'relative';
                             target.style.top = checked ? '0' : '';
                             target.style.left = checked ? '0' : '';
@@ -1712,6 +1710,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             });
                             if (!created.checkbox) {
                                 if (obj.filter.length > 0) {
+                                    const checked = vm.originalData.every((dd) => dd.checked);
                                     function checkEvent(index, result) {
                                         vm.originalData[index] = Object.assign(Object.assign({}, vm.originalData[index]), { checked: result });
                                         gvc.notifyDataChange(ids.filter);
@@ -1722,7 +1721,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         var _a;
                                         Object.assign(item, [
                                             {
-                                                key: checkAllBox(true),
+                                                key: EditorElem.checkBoxOnly({
+                                                    gvc: gvc,
+                                                    def: false,
+                                                    callback: result => renderRowCheckbox(result),
+                                                    stopChangeView: true,
+                                                    style: 'justify-content: end !important;',
+                                                }),
                                                 value: EditorElem.checkBoxOnly({
                                                     gvc: gvc,
                                                     def: (_a = checkedMap.get(`${vm.page}-${index}`)) === null || _a === void 0 ? void 0 : _a.checked,
@@ -1739,10 +1744,31 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             }
                         }
                         initCheckData();
+                        const selectAllObject = {
+                            gvc,
+                            event: () => {
+                                if (vm.limit > 0) {
+                                    vm.checkedArray = vm.allResultData.map((item, i) => {
+                                        const index = i % vm.limit;
+                                        const page = Math.ceil(i / vm.limit) + (Boolean(index) ? 0 : 1);
+                                        item.dataPin = `${page}-${index}`;
+                                        item.checked = true;
+                                        return item;
+                                    });
+                                    vm.originalData.forEach((item) => {
+                                        item.checked = true;
+                                    });
+                                    renderRowCheckbox(true);
+                                }
+                            },
+                        };
                         const cancelAllObject = {
                             gvc,
                             event: () => {
                                 vm.checkedArray = [];
+                                vm.originalData.forEach((item) => {
+                                    item.checked = false;
+                                });
                                 renderRowCheckbox(false);
                             },
                         };
@@ -1768,7 +1794,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         if (vm.checkedArray.length > 0) {
                                             if (document.body.clientWidth < 768) {
                                                 return BgWidget.selNavbar({
-                                                    checkbox: checkAllBox(false),
+                                                    checkbox: EditorElem.checkBoxOnly({
+                                                        gvc: gvc,
+                                                        def: vm.originalData.every((item) => item.checked),
+                                                        callback: result => renderRowCheckbox(result),
+                                                        style: 'justify-content: end !important;',
+                                                    }),
                                                     count: vm.checkedArray.length,
                                                     buttonList: [
                                                         BgWidget.selEventDropmenu({
@@ -1782,6 +1813,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                             text: '',
                                                         }),
                                                     ],
+                                                    allSelectCallback: vm.allResultData.length > 0 ? selectAllObject : undefined,
                                                     cancelCallback: cancelAllObject,
                                                 });
                                             }
@@ -1804,9 +1836,15 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                 return BgWidget.selEventButton(item.name, gvc.event(() => item.event(vm.checkedArray)));
                                             });
                                             return BgWidget.selNavbar({
-                                                checkbox: checkAllBox(false),
+                                                checkbox: EditorElem.checkBoxOnly({
+                                                    gvc: gvc,
+                                                    def: vm.originalData.every((item) => item.checked),
+                                                    callback: result => renderRowCheckbox(result),
+                                                    style: 'justify-content: end !important;',
+                                                }),
                                                 count: vm.checkedArray.length,
                                                 buttonList: [...inList, ...outList],
+                                                allSelectCallback: vm.allResultData.length > 0 ? selectAllObject : undefined,
                                                 cancelCallback: cancelAllObject,
                                             });
                                         }
@@ -2367,11 +2405,18 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         <div style="display: flex; align-items: center; font-size: 14px; color: #393939;">
           ${(_a = data.checkbox) !== null && _a !== void 0 ? _a : ''}
           <span style="margin-left: 0.5rem; font-weight: 700;">已選取${data.count}項</span>
+          ${data.allSelectCallback
+            ? html `<span
+                style="margin-left: 0.75rem; cursor: pointer; color: #4D86DB;"
+                onclick="${data.allSelectCallback.gvc.event(() => { var _a; return (_a = data.allSelectCallback) === null || _a === void 0 ? void 0 : _a.event(); })}"
+                >全選</span
+              >`
+            : ''}
           ${data.cancelCallback
             ? html `<span
-                style="margin-left: 0.5rem; cursor: pointer; color: #4D86DB;"
+                style="margin-left: 0.75rem; cursor: pointer; color: #4D86DB;"
                 onclick="${data.cancelCallback.gvc.event(() => { var _a; return (_a = data.cancelCallback) === null || _a === void 0 ? void 0 : _a.event(); })}"
-                >全部取消選取</span
+                >取消選取</span
               >`
             : ''}
         </div>

@@ -20,6 +20,7 @@ interface UserQuery {
     groupTag?: string;
     filter_type?: string;
     tags?: string;
+    all_result?: boolean;
 }
 interface GroupUserItem {
     userID: number;
@@ -92,11 +93,12 @@ export declare class User {
     }): Promise<string>;
     private getOrderByClause;
     getUserList(query: UserQuery): Promise<{
-        data: any;
         total: any;
         extra: {
             noRegisterUsers: any[] | undefined;
         };
+        allUsers?: any;
+        data: any;
     }>;
     getUserGroups(type?: string[], tag?: string, hide_level?: boolean): Promise<{
         result: false;

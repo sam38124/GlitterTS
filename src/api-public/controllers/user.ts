@@ -18,22 +18,27 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
   try {
     const user = new User(req.get('g-app') as string);
     const isManager = await UtPermission.isManager(req);
-    const { type, email, search } = req.query;
+    const query: any = {
+      ...req.query,
+      all_result: req.query.all_result === 'true',
+    };
+    const { type, email, search } = query;
+
     const actionMap: Record<string, () => Promise<any>> = {
       list: async () => {
         if (!isManager) throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
-        return await user.getUserList(req.query as any);
+        return await user.getUserList(query);
       },
       account: async () => {
         if (!isManager) throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
-        return await user.getUserData(email as string, 'account');
+        return await user.getUserData(email, 'account');
       },
       email: async () => {
         if (!isManager) throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
-        return await user.getUserData(email as string, 'email_or_phone');
+        return await user.getUserData(email, 'email_or_phone');
       },
       email_or_phone: async () => {
-        return await user.getUserData(search as string, 'email_or_phone');
+        return await user.getUserData(search, 'email_or_phone');
       },
       default: async () => {
         return await user.getUserData(req.body.token.userID);

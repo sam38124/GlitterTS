@@ -16,6 +16,7 @@ import { BgNotify } from '../backend-manager/bg-notify.js';
 import { UserExcel } from './module/user-excel.js';
 import { GlobalUser } from '../glitter-base/global/global-user.js';
 import { ListHeaderOption } from './list-header-option.js';
+import { UserModule } from './user/user-module.js';
 
 const html = String.raw;
 
@@ -42,68 +43,11 @@ type ViewModel = {
 };
 
 export class UserList {
-  public static vm = {
+  static vm = {
     page: 1,
   };
 
-  public static setUserTags(gvc: GVC, arr: string[]) {
-    const dialog = new ShareDialog(gvc.glitter);
-    const list = [...new Set(arr)];
-    dialog.dataLoading({ visible: true });
-    ApiUser.setPublicConfig({
-      key: 'user_general_tags',
-      value: { list },
-      user_id: 'manager',
-    }).then(() => {
-      dialog.dataLoading({ visible: false });
-    });
-  }
-
-  public static printOption(gvc: GVC, vmt: { id: string; postData: string[] }, opt: OptionsItem) {
-    const id = `user-tag-${opt.key}`;
-    opt.key = `${opt.key}`;
-
-    function call() {
-      if (vmt.postData.includes(opt.key)) {
-        vmt.postData = vmt.postData.filter(item => item !== opt.key);
-      } else {
-        vmt.postData.push(opt.key);
-      }
-      gvc.notifyDataChange(vmt.id);
-    }
-
-    return html`<div class="d-flex align-items-center gap-3 mb-3">
-      ${gvc.bindView({
-        bind: id,
-        view: () => {
-          return html`<input
-            class="form-check-input mt-0 ${BgWidget.getCheckedClass(gvc)}"
-            type="checkbox"
-            id="${opt.key}"
-            name="radio_${opt.key}"
-            onclick="${gvc.event(() => call())}"
-            ${vmt.postData.includes(opt.key) ? 'checked' : ''}
-          />`;
-        },
-        divCreate: {
-          class: 'd-flex align-items-center justify-content-center',
-        },
-      })}
-      <div class="form-check-label c_updown_label cursor_pointer" onclick="${gvc.event(() => call())}">
-        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-        ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-      </div>
-    </div>`;
-  }
-
-  public static renderOptions(gvc: GVC, vmt: { id: string; postData: string[]; dataList: any }) {
-    if (vmt.dataList.length === 0) {
-      return html`<div class="d-flex justify-content-center fs-5">查無標籤</div>`;
-    }
-    return vmt.dataList.map((item: any) => UserList.printOption(gvc, vmt, { key: item, value: item })).join('');
-  }
-
-  public static main(
+  static main(
     gvc: GVC,
     obj?: {
       group?: { type: string; title: string };
@@ -319,7 +263,7 @@ export class UserList {
                   vm.filter_type = text as any;
                   gvc.notifyDataChange(vm.id);
                 },
-                `margin:0;margin-top:24px;`
+                'margin: 0; margin-top: 24px;'
               )}
             </div>
             ${BgWidget.container(
@@ -416,28 +360,24 @@ export class UserList {
                             return '';
                           }
 
-                          async function batchUpdateUser(gvcSp: GVC, checkedData: any) {
-                            dialog.dataLoading({ visible: true });
-
+                          async function batchUpdateUser(checkedData: any) {
                             try {
-                              // 更新所有用戶數據
-                              const results = await Promise.all(
-                                checkedData.map((item: any) => ApiUser.updateUserDataManager(item, item.userID))
-                              );
+                              dialog.dataLoading({ visible: true });
+
+                              // 執行批次處理
+                              const results = await UserModule.batchProcess(checkedData, 100);
 
                               // 檢查是否有失敗
                               const failedUpdates = results.filter((r: any) => !r.result);
+
                               if (failedUpdates.length > 0) {
-                                dialog.errorMessage({
-                                  text: `部分用戶更新失敗 (${failedUpdates.length}/${checkedData.length})`,
-                                });
+                                UserModule.failedUpdateDialog(gvc, failedUpdates, checkedData.length);
                               } else {
                                 dialog.successMessage({ text: '更新成功' });
                               }
 
                               // 隱藏 loading 並關閉對話框
                               dialog.dataLoading({ visible: false });
-                              gvcSp.closeDialog();
 
                               // 更新 UI
                               gvc.notifyDataChange(vm.id);
@@ -463,11 +403,14 @@ export class UserList {
                                 filter: vm.filter,
                                 filter_type: vm.filter_type,
                                 group: vm.group,
+                                all_result: true,
                               };
                               ApiUser.getUserListOrders(vm.apiJSON).then(data => {
                                 vm.dataList = data.response.data;
                                 vmi.pageSize = Math.ceil(data.response.total / limit);
                                 vmi.originalData = vm.dataList;
+                                vmi.allResultData = data.response.allUsers ?? [];
+                                vmi.limit = limit;
                                 vmi.tableData = getUserlist();
                                 vmi.loading = false;
                                 if (vmi.pageSize != 0 && vmi.page > vmi.pageSize) {
@@ -477,7 +420,7 @@ export class UserList {
                                 vmi.callback();
                               });
                             },
-                            rowClick: (data, index) => {
+                            rowClick: (_, index) => {
                               vm.data = vm.dataList[index];
                               vm.type = 'replace';
                             },
@@ -486,83 +429,10 @@ export class UserList {
                                 name: '新增標籤',
                                 option: true,
                                 event: (dataArray: any) => {
-                                  const vmt = {
-                                    id: gvc.glitter.getUUID(),
-                                    loading: true,
-                                    dataList: [] as string[],
-                                    postData: JSON.parse(JSON.stringify([])) as string[],
-                                    search: '',
-                                  };
-
-                                  BgWidget.settingDialog({
+                                  UserModule.addTags({
                                     gvc,
-                                    title: '批量新增標籤',
-                                    innerHTML: gvc2 => {
-                                      return gvc2.bindView({
-                                        bind: vmt.id,
-                                        view: () => {
-                                          if (vmt.loading) {
-                                            return BgWidget.spinner();
-                                          } else {
-                                            return [
-                                              BgWidget.searchPlace(
-                                                gvc2.event(e => {
-                                                  vmt.search = e.value;
-                                                  vmt.loading = true;
-                                                  gvc2.notifyDataChange(vmt.id);
-                                                }),
-                                                vmt.search,
-                                                '搜尋標籤',
-                                                '0',
-                                                '0'
-                                              ),
-                                              BgWidget.grayNote('勾選的標籤，將會從已選取顧客的資料中新增'),
-                                              UserList.renderOptions(gvc2, vmt),
-                                            ].join(BgWidget.mbContainer(18));
-                                          }
-                                        },
-                                        onCreate: () => {
-                                          if (vmt.loading) {
-                                            ApiUser.getPublicConfig('user_general_tags', 'manager').then((dd: any) => {
-                                              if (dd.result && dd.response?.value?.list) {
-                                                vmt.dataList = dd.response.value.list.filter((item: string) =>
-                                                  item.includes(vmt.search)
-                                                );
-                                                vmt.loading = false;
-                                                gvc2.notifyDataChange(vmt.id);
-                                              } else {
-                                                UserList.setUserTags(gvc2, []);
-                                              }
-                                            });
-                                          }
-                                        },
-                                      });
-                                    },
-                                    footer_html: gvc2 => {
-                                      return [
-                                        html`<div
-                                          style="color: #393939; text-decoration-line: underline; cursor: pointer"
-                                          onclick="${gvc2.event(() => {
-                                            vmt.postData = [];
-                                            vmt.loading = true;
-                                            gvc2.notifyDataChange(vmt.id);
-                                          })}"
-                                        >
-                                          清除全部
-                                        </div>`,
-                                        BgWidget.cancel(gvc2.event(() => gvc2.closeDialog())),
-                                        BgWidget.save(
-                                          gvc2.event(async () => {
-                                            dataArray.forEach((item: any) => {
-                                              item.userData.tags = item.userData.tags
-                                                ? [...new Set([...item.userData.tags, ...vmt.postData])]
-                                                : vmt.postData;
-                                            });
-                                            await batchUpdateUser(gvc2, dataArray);
-                                          })
-                                        ),
-                                      ].join('');
-                                    },
+                                    dataArray,
+                                    saveEvent: result => batchUpdateUser(result),
                                   });
                                 },
                               },
@@ -570,84 +440,10 @@ export class UserList {
                                 name: '移除標籤',
                                 option: true,
                                 event: (dataArray: any) => {
-                                  const vmt = {
-                                    id: gvc.glitter.getUUID(),
-                                    loading: true,
-                                    dataList: [] as string[],
-                                    postData: JSON.parse(JSON.stringify([])) as string[],
-                                    tagJoinList: {} as Record<string, boolean>,
-                                  };
-
-                                  dataArray.forEach((item: any) => {
-                                    const tags = item.userData.tags || [];
-                                    tags.forEach((tag: string) => {
-                                      vmt.tagJoinList[tag] = true;
-                                    });
-                                  });
-
-                                  BgWidget.settingDialog({
+                                  UserModule.removeTags({
                                     gvc,
-                                    title: '批量刪除標籤',
-                                    innerHTML: gvc2 => {
-                                      return gvc2.bindView({
-                                        bind: vmt.id,
-                                        view: () => {
-                                          if (vmt.loading) {
-                                            return BgWidget.spinner();
-                                          } else {
-                                            return [
-                                              BgWidget.grayNote('勾選的標籤，將會從已選取顧客的資料中移除'),
-                                              UserList.renderOptions(gvc2, vmt),
-                                            ].join(BgWidget.mbContainer(18));
-                                          }
-                                        },
-                                        divCreate: {},
-                                        onCreate: () => {
-                                          if (vmt.loading) {
-                                            ApiUser.getPublicConfig('user_general_tags', 'manager').then((dd: any) => {
-                                              if (dd.result && dd.response?.value?.list) {
-                                                vmt.dataList = dd.response.value.list.filter(
-                                                  (item: string) => vmt.tagJoinList[item]
-                                                );
-                                                vmt.loading = false;
-                                                gvc2.notifyDataChange(vmt.id);
-                                              } else {
-                                                UserList.setUserTags(gvc2, []);
-                                              }
-                                            });
-                                          }
-                                        },
-                                      });
-                                    },
-                                    footer_html: gvc2 => {
-                                      return [
-                                        html`<div
-                                          style="color: #393939; text-decoration-line: underline; cursor: pointer"
-                                          onclick="${gvc2.event(() => {
-                                            vmt.postData = [];
-                                            vmt.loading = true;
-                                            gvc2.notifyDataChange(vmt.id);
-                                          })}"
-                                        >
-                                          清除全部
-                                        </div>`,
-                                        BgWidget.cancel(gvc2.event(() => gvc2.closeDialog())),
-                                        BgWidget.save(
-                                          gvc2.event(async () => {
-                                            const postMap: Map<string, boolean> = new Map(
-                                              vmt.postData.map(tag => [tag, true])
-                                            );
-
-                                            dataArray.forEach((item: any) => {
-                                              item.userData.tags = item.userData.tags
-                                                ? item.userData.tags.filter((tag: string) => !postMap.get(tag))
-                                                : [];
-                                            });
-                                            await batchUpdateUser(gvc2, dataArray);
-                                          })
-                                        ),
-                                      ].join('');
-                                    },
+                                    dataArray,
+                                    saveEvent: result => batchUpdateUser(result),
                                   });
                                 },
                               },
@@ -655,107 +451,28 @@ export class UserList {
                                 name: '手動調整等級',
                                 option: true,
                                 event: (dataArray: any) => {
-                                  const levelVM = {
-                                    id: gvc.glitter.getUUID(),
-                                    loading: true,
-                                    options: [] as { key: string; value: string }[],
-                                    level: '',
-                                  };
-
-                                  BgWidget.settingDialog({
+                                  UserModule.manualSetLevel({
                                     gvc,
-                                    title: '手動調整等級',
-                                    innerHTML: gvc2 => {
-                                      return gvc2.bindView({
-                                        bind: levelVM.id,
-                                        view: () => {
-                                          if (levelVM.loading) {
-                                            return BgWidget.spinner();
-                                          } else {
-                                            return html`
-                                              ${BgWidget.grayNote('此功能針對特殊會員，手動調整後將無法自動升級')}
-                                              ${BgWidget.select({
-                                                gvc: gvc2,
-                                                default: levelVM.options[0].key,
-                                                callback: key => {
-                                                  levelVM.level = key;
-                                                },
-                                                options: levelVM.options,
-                                                style: 'margin: 8px 0;',
-                                              })}
-                                            `;
-                                          }
-                                        },
-                                        onCreate: () => {
-                                          if (levelVM.loading) {
-                                            ApiUser.getPublicConfig('member_level_config', 'manager').then(
-                                              (dd: any) => {
-                                                if (dd.result && dd.response?.value?.levels) {
-                                                  levelVM.options = dd.response.value.levels.map(
-                                                    (item: { id: string; tag_name: string }) => {
-                                                      return {
-                                                        key: `${item.id}`,
-                                                        value: item.tag_name,
-                                                      };
-                                                    }
-                                                  );
-                                                  levelVM.loading = false;
-                                                  gvc2.notifyDataChange(levelVM.id);
-                                                }
-                                              }
-                                            );
-                                          }
-                                        },
-                                      });
-                                    },
-                                    footer_html: gvc2 => {
-                                      return [
-                                        BgWidget.cancel(gvc2.event(() => gvc2.closeDialog())),
-                                        BgWidget.save(
-                                          gvc2.event(async () => {
-                                            dataArray.forEach((item: any) => {
-                                              item.userData.level_status = 'manual';
-                                              item.userData.level_default = levelVM.level;
-                                            });
-                                            await batchUpdateUser(gvc2, dataArray);
-                                          })
-                                        ),
-                                      ].join('');
-                                    },
+                                    dataArray,
+                                    saveEvent: result => batchUpdateUser(result),
                                   });
                                 },
                               },
                               {
                                 name: '批量刪除',
                                 event: (dataArray: any) => {
-                                  dialog.warningMessage({
-                                    text: '您即將批量刪除所選顧客的所有資料<br />此操作無法復原。確定要刪除嗎？',
-                                    callback: response => {
-                                      if (response) {
-                                        dialog.dataLoading({ visible: true });
-                                        ApiUser.deleteUser({
-                                          id: dataArray.map((dd: any) => dd.id).join(','),
-                                        }).then(res => {
-                                          dialog.dataLoading({ visible: false });
-                                          if (res.result) {
-                                            vm.dataList = undefined;
-                                            gvc.notifyDataChange(vm.id);
-                                          } else {
-                                            dialog.errorMessage({
-                                              text: '刪除失敗',
-                                            });
-                                          }
-                                        });
-                                      }
+                                  UserModule.deleteUsers({
+                                    gvc,
+                                    dataArray,
+                                    callback: () => {
+                                      vm.dataList = undefined;
+                                      gvc.notifyDataChange(vm.id);
                                     },
                                   });
                                 },
                               },
                             ].filter(item => {
-                              if (item.name === '手動調整等級' && !(vm.plan > 1)) {
-                                return false;
-                              }
-                              return true;
+                              return !Boolean(vm.plan <= 1 && item.name === '手動調整等級');
                             }),
                             defPage: UserList.vm.page,
                             filterCallback: (dataArray: any) => {
@@ -797,7 +514,7 @@ export class UserList {
     });
   }
 
-  public static posSelect(
+  static posSelect(
     gvc: GVC,
     obj?: {
       group?: { type: string; title: string };
@@ -834,7 +551,6 @@ export class UserList {
 
     function getDatalist() {
       return vm.dataList.map((dd: any) => {
-
         return [
           {
             key: '顧客名稱',
@@ -1005,7 +721,7 @@ export class UserList {
     });
   }
 
-  public static async setUserForm(gvc: GVC, callback: () => void) {
+  static async setUserForm(gvc: GVC, callback: () => void) {
     const dialog = new ShareDialog(gvc.glitter);
     const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
 
@@ -1103,7 +819,7 @@ export class UserList {
     }
   }
 
-  public static userInformationDetail(cf: {
+  static userInformationDetail(cf: {
     userID: string;
     gvc: GVC;
     callback: () => void;
@@ -1516,7 +1232,7 @@ export class UserList {
                                                             '0',
                                                             '0'
                                                           ),
-                                                          UserList.renderOptions(gvc2, vmt),
+                                                          UserModule.renderOptions(gvc2, vmt),
                                                         ].join(BgWidget.mbContainer(18));
                                                       }
                                                     },
@@ -1532,7 +1248,7 @@ export class UserList {
                                                               vmt.loading = false;
                                                               gvc2.notifyDataChange(vmt.id);
                                                             } else {
-                                                              UserList.setUserTags(gvc2, []);
+                                                              UserModule.setUserTags(gvc2, []);
                                                             }
                                                           }
                                                         );
@@ -2200,9 +1916,9 @@ export class UserList {
                       gvc.event(() => {
                         ApiUser.getPublicConfig('user_general_tags', 'manager').then(dd => {
                           if (dd.result && dd.response?.value?.list) {
-                            UserList.setUserTags(gvc, [...dd.response.value.list, ...vm.data.userData.tags]);
+                            UserModule.setUserTags(gvc, [...dd.response.value.list, ...vm.data.userData.tags]);
                           } else {
-                            UserList.setUserTags(gvc, vm.data.userData.tags);
+                            UserModule.setUserTags(gvc, vm.data.userData.tags);
                           }
                         });
 
@@ -2231,7 +1947,7 @@ export class UserList {
     });
   }
 
-  public static createUser(gvc: GVC, vm: any) {
+  static createUser(gvc: GVC, vm: any) {
     const viewID = gvc.glitter.getUUID();
     const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
     let userData: any = vm.initial_data || {
@@ -2430,7 +2146,7 @@ export class UserList {
     });
   }
 
-  public static userManager(gvc: GVC, type: 'select' | 'list' = 'list', callback: (list: any[]) => void = () => {}) {
+  static userManager(gvc: GVC, type: 'select' | 'list' = 'list', callback: (list: any[]) => void = () => {}) {
     const glitter = gvc.glitter;
     const vm: {
       type: 'list' | 'add' | 'replace' | 'select';

@@ -372,6 +372,7 @@ export class ApiUser {
                 searchType: (_c = json.searchType) !== null && _c !== void 0 ? _c : '',
                 order_string: (_d = json.orderString) !== null && _d !== void 0 ? _d : '',
                 filter_type: (_e = json.filter_type) !== null && _e !== void 0 ? _e : '',
+                all_result: json.all_result ? `${json.all_result}` : '',
             }).toString();
             const extraQuery = [...filterString, ...groupString].join('&');
             const finalQuery = extraQuery ? `${baseQuery}&${extraQuery}` : baseQuery;
@@ -391,6 +392,7 @@ export class ApiUser {
                     };
                 }
                 const array = data.response.data;
+                const allUsers = data.response.allUsers;
                 if (array.length > 0) {
                     yield Promise.allSettled(array.map((item) => __awaiter(this, void 0, void 0, function* () {
                         const firstShipment = (yield ApiShop.getOrder({
@@ -413,6 +415,7 @@ export class ApiUser {
                 return {
                     response: {
                         data: array,
+                        allUsers,
                         total: data.response.total,
                         extra: data.response.extra,
                     },

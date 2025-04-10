@@ -18,12 +18,13 @@ router.get('/', async (req, resp) => {
     try {
         const user = new user_1.User(req.get('g-app'));
         const isManager = await ut_permission_js_1.UtPermission.isManager(req);
-        const { type, email, search } = req.query;
+        const query = Object.assign(Object.assign({}, req.query), { all_result: req.query.all_result === 'true' });
+        const { type, email, search } = query;
         const actionMap = {
             list: async () => {
                 if (!isManager)
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
-                return await user.getUserList(req.query);
+                return await user.getUserList(query);
             },
             account: async () => {
                 if (!isManager)

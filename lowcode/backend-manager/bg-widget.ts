@@ -45,6 +45,8 @@ type TableV3 = {
   originalData: any;
   callback: () => void;
   checkedArray: any[];
+  allResultData: any[];
+  limit: number;
 };
 
 type TableV3Filter = {
@@ -180,13 +182,18 @@ export class BgWidget {
   }
 
   static save(event: string, text: string = '儲存', customClass?: string) {
-    return html` <button class="btn btn-black ${customClass ?? ``}" type="button" onclick="${event}" >
+    return html` <button class="btn btn-black ${customClass ?? ``}" type="button" onclick="${event}">
       <span class="tx_700_white">${text}</span>
     </button>`;
   }
 
-  static disableSave( text: string = '儲存', customClass?: string) {
-    return html` <button class="btn btn-black ${customClass ?? ``}" style="background: #B0B0B0;color: #FFF;" type="button" disabled>
+  static disableSave(text: string = '儲存', customClass?: string) {
+    return html` <button
+      class="btn btn-black ${customClass ?? ``}"
+      style="background: #B0B0B0;color: #FFF;"
+      type="button"
+      disabled
+    >
       <span class="tx_700_white">${text}</span>
     </button>`;
   }
@@ -1974,11 +1981,13 @@ ${obj.default ?? ''}</textarea
         pageSize: 0,
         tableData: [],
         originalData: [],
+        allResultData: [],
         callback: () => {
           vm.loading = false;
           gvc.notifyDataChange(ids.container);
         },
         checkedArray: [],
+        limit: 0,
       };
 
       return {
@@ -1996,7 +2005,7 @@ ${obj.default ?? ''}</textarea
             function renderRowCheckbox(result: boolean) {
               const checkboxSelector = result ? 'i.fa-square' : 'i.fa-square-check';
 
-              vm.originalData.forEach((_: any, index: number) => {
+              vm.originalData.forEach((item: any, index: number) => {
                 const checkboxParent = gvc.glitter.document.querySelector(`[gvc-checkbox="checkbox${index}"]`);
                 const checkboxIcon = checkboxParent?.querySelector(checkboxSelector) as HTMLElement | null;
 
@@ -2008,24 +2017,13 @@ ${obj.default ?? ''}</textarea
               changeHeaderStyle();
             }
 
-            // 表頭全選按鈕
-            function checkAllBox(changeView: boolean) {
-              return EditorElem.checkBoxOnly({
-                gvc: gvc,
-                def: vm.originalData.every((item: any) => item.checked),
-                callback: result => renderRowCheckbox(result),
-                stopChangeView: changeView,
-                style: 'justify-content: end !important;',
-              });
-            }
-
             // 表頭位置設定
             function changeHeaderStyle() {
               const key = `[gvc-id="${gvc.id(ids.header)}"]`;
               const target = (obj.windowTarget ?? window).document.querySelector(key) as HTMLElement;
               if (!target) return;
 
-              const checked = vm.originalData.find((dd: any) => dd.checked);
+              const checked = vm.originalData.some((dd: any) => dd.checked);
               target.style.position = checked ? 'sticky' : 'relative';
               target.style.top = checked ? '0' : '';
               target.style.left = checked ? '0' : '';
@@ -2043,6 +2041,8 @@ ${obj.default ?? ''}</textarea
               // 判斷是否添加行爲按鈕
               if (!created.checkbox) {
                 if (obj.filter.length > 0) {
+                  const checked = vm.originalData.every((dd: any) => dd.checked);
+
                   // 資料勾選框事件
                   function checkEvent(index: number, result: boolean) {
                     vm.originalData[index] = {
@@ -2057,7 +2057,13 @@ ${obj.default ?? ''}</textarea
                   vm.tableData.forEach((item, index: number) => {
                     Object.assign(item, [
                       {
-                        key: checkAllBox(true),
+                        key: EditorElem.checkBoxOnly({
+                          gvc: gvc,
+                          def: false,
+                          callback: result => renderRowCheckbox(result),
+                          stopChangeView: true,
+                          style: 'justify-content: end !important;',
+                        }),
                         value: EditorElem.checkBoxOnly({
                           gvc: gvc,
                           def: checkedMap.get(`${vm.page}-${index}`)?.checked,
@@ -2077,11 +2083,34 @@ ${obj.default ?? ''}</textarea
 
             initCheckData();
 
-            // 全部取消勾選物件
+            // 全選物件
+            const selectAllObject = {
+              gvc,
+              event: () => {
+                if (vm.limit > 0) {
+                  vm.checkedArray = vm.allResultData.map((item, i) => {
+                    const index = i % vm.limit;
+                    const page = Math.ceil(i / vm.limit) + (Boolean(index) ? 0 : 1);
+                    item.dataPin = `${page}-${index}`;
+                    item.checked = true;
+                    return item;
+                  });
+                  vm.originalData.forEach((item: any) => {
+                    item.checked = true;
+                  });
+                  renderRowCheckbox(true);
+                }
+              },
+            };
+
+            // 取消勾選物件
             const cancelAllObject = {
               gvc,
               event: () => {
                 vm.checkedArray = [];
+                vm.originalData.forEach((item: any) => {
+                  item.checked = false;
+                });
                 renderRowCheckbox(false);
               },
             };
@@ -2114,7 +2143,12 @@ ${obj.default ?? ''}</textarea
                           // 顯示行為列(手機版)
                           if (document.body.clientWidth < 768) {
                             return BgWidget.selNavbar({
-                              checkbox: checkAllBox(false),
+                              checkbox: EditorElem.checkBoxOnly({
+                                gvc: gvc,
+                                def: vm.originalData.every((item: any) => item.checked),
+                                callback: result => renderRowCheckbox(result),
+                                style: 'justify-content: end !important;',
+                              }),
                               count: vm.checkedArray.length,
                               buttonList: [
                                 BgWidget.selEventDropmenu({
@@ -2128,6 +2162,7 @@ ${obj.default ?? ''}</textarea
                                   text: '',
                                 }),
                               ],
+                              allSelectCallback: vm.allResultData.length > 0 ? selectAllObject : undefined,
                               cancelCallback: cancelAllObject,
                             });
                           }
@@ -2158,9 +2193,15 @@ ${obj.default ?? ''}</textarea
                           });
 
                           return BgWidget.selNavbar({
-                            checkbox: checkAllBox(false),
+                            checkbox: EditorElem.checkBoxOnly({
+                              gvc: gvc,
+                              def: vm.originalData.every((item: any) => item.checked),
+                              callback: result => renderRowCheckbox(result),
+                              style: 'justify-content: end !important;',
+                            }),
                             count: vm.checkedArray.length,
                             buttonList: [...inList, ...outList],
+                            allSelectCallback: vm.allResultData.length > 0 ? selectAllObject : undefined,
                             cancelCallback: cancelAllObject,
                           });
                         }
@@ -2821,6 +2862,10 @@ ${obj.default ?? ''}</textarea
     checkbox?: string;
     count: number;
     buttonList: string[];
+    allSelectCallback?: {
+      gvc: GVC;
+      event: () => void;
+    };
     cancelCallback?: {
       gvc: GVC;
       event: () => void;
@@ -2846,11 +2891,18 @@ ${obj.default ?? ''}</textarea
         <div style="display: flex; align-items: center; font-size: 14px; color: #393939;">
           ${data.checkbox ?? ''}
           <span style="margin-left: 0.5rem; font-weight: 700;">已選取${data.count}項</span>
+          ${data.allSelectCallback
+            ? html`<span
+                style="margin-left: 0.75rem; cursor: pointer; color: #4D86DB;"
+                onclick="${data.allSelectCallback.gvc.event(() => data.allSelectCallback?.event())}"
+                >全選</span
+              >`
+            : ''}
           ${data.cancelCallback
             ? html`<span
-                style="margin-left: 0.5rem; cursor: pointer; color: #4D86DB;"
+                style="margin-left: 0.75rem; cursor: pointer; color: #4D86DB;"
                 onclick="${data.cancelCallback.gvc.event(() => data.cancelCallback?.event())}"
-                >全部取消選取</span
+                >取消選取</span
               >`
             : ''}
         </div>

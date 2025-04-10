@@ -1023,7 +1023,7 @@ class User {
         return orderByMap[orderBy] || 'u.id DESC';
     }
     async getUserList(query) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         try {
             const checkPoint = new ut_timer_1.UtTimer('GET-USER-LIST').checkPoint;
             const orderCountingSQL = await this.getCheckoutCountingModeSQL();
@@ -1246,101 +1246,103 @@ class User {
             if (query.filter_type !== 'excel') {
                 querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
             }
-            const dataSQL = await this.getUserAndOrderSQL({
-                select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
-                where: querySql,
-                orderBy: (_c = query.order_string) !== null && _c !== void 0 ? _c : '',
-                page: query.page,
-                limit: query.limit,
-            });
             const countSQL = await this.getUserAndOrderSQL({
                 select: 'count(1)',
                 where: querySql,
-                orderBy: (_d = query.order_string) !== null && _d !== void 0 ? _d : '',
+                orderBy: (_c = query.order_string) !== null && _c !== void 0 ? _c : '',
             });
-            const userData = (await database_1.default.query(dataSQL, [])).map((dd) => {
-                dd.pwd = undefined;
-                dd.tag_name = '一般會員';
-                return dd;
-            });
-            checkPoint('get-user-data-finish');
-            const userMap = new Map(userData.map((user) => [String(user.userID), user]));
-            const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
-            const levelMap = new Map(levels.map(lv => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
-            checkPoint('levelMap-finish');
-            const queryResult = await database_1.default.query(`
-            SELECT *
-            FROM \`${this.app}\`.t_user_public_config
-            WHERE \`key\` = 'member_update'
-              AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
-        `, []);
-            checkPoint('queryResult-finish');
-            for (const b of queryResult) {
-                const tag = levels.find(dd => {
-                    return `${dd.id}` === `${b.user_id}`;
+            const getUserQuery = async (param) => {
+                var _a;
+                const dataSQL = await this.getUserAndOrderSQL({
+                    select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
+                    where: querySql,
+                    orderBy: (_a = query.order_string) !== null && _a !== void 0 ? _a : '',
+                    page: param === null || param === void 0 ? void 0 : param.page,
+                    limit: param === null || param === void 0 ? void 0 : param.limit,
                 });
-                if (tag && tag.data && tag.data.tag_name) {
-                    const user = userMap.get(String(b.user_id));
-                    if (user) {
-                        user.tag_name = tag.data.tag_name;
+                const userData = (await database_1.default.query(dataSQL, [])).map((dd) => {
+                    dd.pwd = undefined;
+                    dd.tag_name = '一般會員';
+                    return dd;
+                });
+                checkPoint('get-user-data-finish');
+                const userMap = new Map(userData.map((user) => [String(user.userID), user]));
+                const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
+                const levelMap = new Map(levels.map(lv => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
+                checkPoint('levelMap-finish');
+                const queryResult = await database_1.default.query(`
+              SELECT *
+              FROM \`${this.app}\`.t_user_public_config
+              WHERE \`key\` = 'member_update'
+                AND user_id IN (${[...userMap.keys(), '-1111'].join(',')})
+          `, []);
+                checkPoint('queryResult-finish');
+                for (const b of queryResult) {
+                    const tag = levels.find(dd => {
+                        return `${dd.id}` === `${b.user_id}`;
+                    });
+                    if (tag && tag.data && tag.data.tag_name) {
+                        const user = userMap.get(String(b.user_id));
+                        if (user) {
+                            user.tag_name = tag.data.tag_name;
+                        }
                     }
                 }
-            }
-            const processUserData = async (user) => {
-                var _a;
-                const phone = user.userData.phone || 'asnhsauh';
-                const email = user.userData.email || 'asnhsauh';
-                const _rebate = new rebate_js_1.Rebate(this.app);
-                const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
-                user.rebate = userRebate ? userRebate.point : 0;
-                user.member_deadline = (_a = levelMap.get(user.userID)) !== null && _a !== void 0 ? _a : '';
-                user.latest_order_date = (await database_1.default.query(`select created_time
-                                                  from \`${this.app}\`.t_checkout
-                                                  where email in ('${email}', '${phone}')
-                                                    and ${orderCountingSQL}
-                                                  order by created_time desc limit 0,1`, []))[0];
-                user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
-                user.latest_order_total = (await database_1.default.query(`select total
-                                                   from \`${this.app}\`.t_checkout
-                                                   where email in ('${email}', '${phone}')
-                                                     and ${orderCountingSQL}
-                                                   order by created_time desc limit 0,1`, []))[0];
-                user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
-                user.checkout_total = (await database_1.default.query(`select sum(total)
-                                               from \`${this.app}\`.t_checkout
-                                               where email in ('${email}', '${phone}')
-                                                 and ${orderCountingSQL} `, []))[0];
-                user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
-                user.checkout_count = (await database_1.default.query(`select count(1)
-                                               from \`${this.app}\`.t_checkout
-                                               where email in ('${email}', '${phone}')
-                                                 and ${orderCountingSQL} `, []))[0];
-                user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
-            };
-            checkPoint('processUserData-finish');
-            if (Array.isArray(userData) && userData.length > 0) {
-                const chunkSize = 20;
-                const chunkedUserData = [];
-                for (let i = 0; i < userData.length; i += chunkSize) {
-                    chunkedUserData.push(userData.slice(i, i + chunkSize));
-                }
-                for (const batch of chunkedUserData) {
-                    await Promise.all(batch.map(async (user) => {
-                        await processUserData(user);
-                    }));
-                }
-            }
-            return {
-                data: userData.map((user) => {
+                const processUserData = async (user) => {
+                    var _a;
+                    const phone = user.userData.phone || 'asnhsauh';
+                    const email = user.userData.email || 'asnhsauh';
+                    const _rebate = new rebate_js_1.Rebate(this.app);
+                    const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
+                    user.rebate = userRebate ? userRebate.point : 0;
+                    user.member_deadline = (_a = levelMap.get(user.userID)) !== null && _a !== void 0 ? _a : '';
+                    user.latest_order_date = (await database_1.default.query(`select created_time
+                                                    from \`${this.app}\`.t_checkout
+                                                    where email in ('${email}', '${phone}')
+                                                      and ${orderCountingSQL}
+                                                    order by created_time desc limit 0,1`, []))[0];
+                    user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
+                    user.latest_order_total = (await database_1.default.query(`select total
+                                                     from \`${this.app}\`.t_checkout
+                                                     where email in ('${email}', '${phone}')
+                                                       and ${orderCountingSQL}
+                                                     order by created_time desc limit 0,1`, []))[0];
+                    user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
+                    user.checkout_total = (await database_1.default.query(`select sum(total)
+                                                 from \`${this.app}\`.t_checkout
+                                                 where email in ('${email}', '${phone}')
+                                                   and ${orderCountingSQL} `, []))[0];
+                    user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
+                    user.checkout_count = (await database_1.default.query(`select count(1)
+                                                 from \`${this.app}\`.t_checkout
+                                                 where email in ('${email}', '${phone}')
+                                                   and ${orderCountingSQL} `, []))[0];
+                    user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
                     user.order_count = user.order_count || 0;
                     user.total_amount = user.total_amount || 0;
-                    return user;
-                }),
-                total: (await database_1.default.query(countSQL, []))[0]['count(1)'],
-                extra: {
-                    noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
-                },
+                };
+                checkPoint('processUserData-finish');
+                if (Array.isArray(userData) && userData.length > 0) {
+                    const chunkSize = 20;
+                    const chunkedUserData = [];
+                    for (let i = 0; i < userData.length; i += chunkSize) {
+                        chunkedUserData.push(userData.slice(i, i + chunkSize));
+                    }
+                    for (const batch of chunkedUserData) {
+                        await Promise.all(batch.map(async (user) => {
+                            await processUserData(user);
+                        }));
+                    }
+                }
+                return userData;
             };
+            const [pageUsers, allUsers] = await Promise.all([
+                getUserQuery({ page: query.page, limit: query.limit }),
+                query.all_result ? getUserQuery() : [],
+            ]);
+            return Object.assign(Object.assign({ data: pageUsers }, (allUsers.length > 0 ? { allUsers } : {})), { total: (await database_1.default.query(countSQL, []))[0]['count(1)'], extra: {
+                    noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
+                } });
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'getUserList Error:' + e, null);
@@ -1375,14 +1377,14 @@ class User {
                 });
                 const usuallyBuyingStandard = 9.99;
                 const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
-                const neverBuyingData = await database_1.default.query(`SELECT userID, account AS email
+                const neverBuyingData = await database_1.default.query(`SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
            FROM \`${this.app}\`.t_user
            WHERE userID not in (${buyingList
                     .map(item => item.userID)
                     .concat([-1111])
                     .join(',')})`, []);
                 dataList = dataList.concat([
-                    { type: 'neverBuying', title: '未成立有效訂單的顧客', users: neverBuyingData },
+                    { type: 'neverBuying', title: '尚未成立有效訂單的顧客', users: neverBuyingData },
                     { type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList },
                 ]);
             }
@@ -1693,10 +1695,16 @@ class User {
     }
     async updateUserData(userID, par, manager = false) {
         var _a;
+        const userData = await (async () => {
+            var _a;
+            const getUser = await database_1.default.query(`select * from \`${this.app}\`.\`t_user\` where userID = ${database_1.default.escape(userID)}
+        `, []);
+            return (_a = getUser[0]) !== null && _a !== void 0 ? _a : {};
+        })();
         try {
-            const userData = (await database_1.default.query(`select *
-           from \`${this.app}\`.\`t_user\`
-           where userID = ${database_1.default.escape(userID)}`, []))[0];
+            if (!userData.userData) {
+                return { data: {} };
+            }
             const login_config = await this.getConfigV2({
                 key: 'login_config',
                 user_id: 'manager',
@@ -1794,12 +1802,12 @@ class User {
          WHERE 1 = 1
            and userID = ?`, [par, userID]));
             await user_update_js_1.UserUpdate.update(this.app, userID);
-            return {
-                data: data,
-            };
+            return { data };
         }
         catch (e) {
-            throw exception_1.default.BadRequestError(e.code || 'BAD_REQUEST', e.message, e.data);
+            delete userData.pwd;
+            delete userData.userData.verify_code;
+            throw exception_1.default.BadRequestError(e.code || 'BAD_REQUEST', e.message, { data: userData });
         }
     }
     async clearUselessData(userData, manager) {

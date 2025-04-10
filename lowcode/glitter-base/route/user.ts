@@ -318,7 +318,14 @@ export class ApiUser {
     });
   }
 
-  public static getUserList(json: { limit: number; page: number; search?: string; id?: string; search_type?: string,only_id?:string }) {
+  public static getUserList(json: {
+    limit: number;
+    page: number;
+    search?: string;
+    id?: string;
+    search_type?: string;
+    only_id?: string;
+  }) {
     return BaseApi.create({
       url:
         getBaseUrl() +
@@ -395,6 +402,7 @@ export class ApiUser {
     group?: any;
     filter_type?: string;
     with_level?: boolean;
+    all_result?: boolean;
   }) {
     const filterString = this.formatFilterString(json.filter);
     const groupString = this.userListGroupString(json.group);
@@ -408,6 +416,7 @@ export class ApiUser {
       searchType: json.searchType ?? '',
       order_string: json.orderString ?? '',
       filter_type: json.filter_type ?? '',
+      all_result: json.all_result ? `${json.all_result}` : '',
     }).toString();
 
     const extraQuery = [...filterString, ...groupString].join('&');
@@ -431,6 +440,7 @@ export class ApiUser {
       }
 
       const array = data.response.data;
+      const allUsers = data.response.allUsers;
 
       if (array.length > 0) {
         await Promise.allSettled(
@@ -459,6 +469,7 @@ export class ApiUser {
       return {
         response: {
           data: array,
+          allUsers,
           total: data.response.total,
           extra: data.response.extra,
         },

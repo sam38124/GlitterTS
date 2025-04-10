@@ -67,7 +67,7 @@ class App {
             else if (devDependencies[libraryName]) {
                 return devDependencies[libraryName];
             }
-            else {
+            else if (libraryName !== 'ts-glitter') {
                 throw new Error(`Library ${libraryName} is not listed in dependencies or devDependencies`);
             }
         }
@@ -116,7 +116,10 @@ class App {
                                                                      template_config)
                  values (?, ?, ?, ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
                          ${database_1.default.escape((_b = cf.brand) !== null && _b !== void 0 ? _b : config_1.saasConfig.SAAS_NAME)},
-                         ${database_1.default.escape(JSON.stringify((_c = (copyAppData && copyAppData.theme_config)) !== null && _c !== void 0 ? _c : { name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name }))},
+                         ${database_1.default.escape(JSON.stringify((_c = (copyAppData && copyAppData.theme_config)) !== null && _c !== void 0 ? _c : {
+                name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) ||
+                    cf.name,
+            }))},
                          ${cf.theme ? database_1.default.escape(cf.theme) : 'null'},
                          ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`, [this.token.userID, cf.appName, addDays(new Date(), config_1.saasConfig.DEF_DEADLINE)]);
             await this.putSubDomain({
@@ -168,7 +171,15 @@ class App {
                 for (const dd of await database_1.default.query(`SELECT *
                      FROM \`${cf.copyApp}\`.t_user_public_config`, [])) {
                     dd.value = dd.value && JSON.stringify(dd.value);
-                    if (dd.userID !== 'manager' && !['custom_form_checkout', 'custom_form_register', 'customer_form_user_setting', 'robot_auto_reply', 'image-manager', 'message_setting'].includes(dd.key)) {
+                    if (dd.userID !== 'manager' &&
+                        ![
+                            'custom_form_checkout',
+                            'custom_form_register',
+                            'customer_form_user_setting',
+                            'robot_auto_reply',
+                            'image-manager',
+                            'message_setting',
+                        ].includes(dd.key)) {
                         await trans.execute(`
                                 insert
                                 ignore into \`${cf.appName}\`.t_user_public_config
@@ -375,7 +386,7 @@ class App {
                 query.template_from === 'me' && sql.push(`template_type in (3,2)`);
                 query.template_from === 'all' && sql.push(`template_type = 2`);
                 return sql
-                    .map((dd) => {
+                    .map(dd => {
                     return `(${dd})`;
                 })
                     .join(' and ');
@@ -544,7 +555,7 @@ class App {
         });
         console.log(`preload-4==>`, (new Date().getTime() - start) / 1000);
         if (match1) {
-            match1.map((d1) => {
+            match1.map(d1 => {
                 if (!preloadData.event.find((dd) => {
                     return event_[JSON.parse(d1)['route']] === dd;
                 })) {
@@ -679,7 +690,7 @@ class App {
                      where domain =?
                        and user !=?`, [config.domain, this.token.userID]))['count(1)'] > 0;
         if (checkExists ||
-            config.domain.split('.').find((dd) => {
+            config.domain.split('.').find(dd => {
                 return !dd;
             })) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'this domain already on use.', null);
@@ -715,8 +726,13 @@ class App {
                 nginx_conf_1.NginxConfFile.createFromSource(data, (err, conf) => {
                     const server = [];
                     for (const b of conf.nginx.server) {
-                        if ((!b.server_name) || (!b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`))) {
-                            if ((!config.domain.startsWith('www.')) || ((!b.server_name) || (!b.server_name.toString().includes(`server_name ${config.domain.replace('www.', '')};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`)))) {
+                        if (!b.server_name ||
+                            (!b.server_name.toString().includes(`server_name ${config.domain};`) &&
+                                !b.server_name.toString().includes(`server_name ${config.original_domain};`))) {
+                            if (!config.domain.startsWith('www.') ||
+                                !b.server_name ||
+                                (!b.server_name.toString().includes(`server_name ${config.domain.replace('www.', '')};`) &&
+                                    !b.server_name.toString().includes(`server_name ${config.original_domain};`))) {
                                 server.push(b);
                             }
                         }
@@ -749,7 +765,9 @@ class App {
                     `sudo certbot --nginx -d ${config.domain} --non-interactive --agree-tos -m sam38124@gmail.com`,
                     ...(() => {
                         if (config.domain.startsWith('www.')) {
-                            return [`sudo certbot --nginx -d ${config.domain.replace('www.', '')} --non-interactive --agree-tos -m sam38124@gmail.com`];
+                            return [
+                                `sudo certbot --nginx -d ${config.domain.replace('www.', '')} --non-interactive --agree-tos -m sam38124@gmail.com`,
+                            ];
                         }
                         else {
                             return [];
@@ -786,8 +804,7 @@ class App {
             try {
                 await new backend_service_js_1.BackendService(config.appName).stopServer();
             }
-            catch (e) {
-            }
+            catch (e) { }
             await database_1.default.execute(`delete
                  from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                  where appName = ${database_1.default.escape(config.appName)}
