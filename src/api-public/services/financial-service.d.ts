@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Encoding } from 'crypto';
 import axios from 'axios';
 interface KeyData {
