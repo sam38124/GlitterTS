@@ -106,10 +106,6 @@ export class MemberTypeList {
                         });
                     }
                 },
-                divCreate: {
-                    class: `mx-auto`,
-                    style: `max-width:100%;width:960px;`,
-                },
             };
         });
     }

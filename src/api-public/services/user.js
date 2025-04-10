@@ -56,6 +56,7 @@ const terms_check_js_1 = require("./terms-check.js");
 const app_js_2 = require("../../services/app.js");
 const user_update_js_1 = require("./user-update.js");
 const public_table_check_js_1 = require("./public-table-check.js");
+const ut_timer_1 = require("../utils/ut-timer");
 const auto_fcm_js_1 = require("../../public-config-initial/auto-fcm.js");
 class User {
     constructor(app, token) {
@@ -1024,30 +1025,12 @@ class User {
     async getUserList(query) {
         var _a, _b, _c, _d;
         try {
+            const checkPoint = new ut_timer_1.UtTimer('GET-USER-LIST').checkPoint;
             const orderCountingSQL = await this.getCheckoutCountingModeSQL();
             const querySql = ['1=1'];
             const noRegisterUsers = [];
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
-            const timer = {
-                count: 0,
-                history: [Date.now()],
-            };
-            const checkPoint = (name) => {
-                const t = Date.now();
-                timer.history.push(t);
-                const spendTime = t - timer.history[timer.count];
-                const totalTime = t - timer.history[0];
-                timer.count++;
-                const n = timer.count.toString().padStart(2, '0');
-                console.info(`GET-USER-LIST-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
-                    totalTime,
-                    spendTime,
-                });
-            };
-            function sqlDateConvert(dd) {
-                return dd.replace('T', ' ').replace('.000Z', '');
-            }
             if (query.groupType) {
                 const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
                 if (getGroup.result && getGroup.data[0]) {
@@ -1130,33 +1113,46 @@ class User {
                 querySql.push(`(u.userID in (${query.id}))`);
             }
             if (query.created_time) {
-                const created_time = query.created_time.split(',');
-                if (created_time.length > 1) {
-                    querySql.push(`
-                        (u.created_time BETWEEN ${database_1.default.escape(`${created_time[0]} 00:00:00`)} 
-                        AND ${database_1.default.escape(`${created_time[1]} 23:59:59`)})
-                    `);
+                const createdTimeRange = query.created_time.split(',');
+                if (createdTimeRange.length > 1) {
+                    const startTime = database_1.default.escape(`${createdTimeRange[0]} 00:00:00`);
+                    const endTime = database_1.default.escape(`${createdTimeRange[1]} 23:59:59`);
+                    querySql.push(`(u.created_time BETWEEN ${startTime} AND ${endTime})`);
                 }
             }
+            function sqlDateConvert(dd) {
+                return dd.replace('T', ' ').replace('.000Z', '');
+            }
             if (query.last_order_time) {
-                const last_time = query.last_order_time.split(',');
-                if (last_time.length > 1) {
-                    querySql.push(`
-                        (lo.last_order_time BETWEEN ${database_1.default.escape(`${sqlDateConvert(last_time[0])}`)} 
-                        AND ${database_1.default.escape(`${sqlDateConvert(last_time[1])}`)})
-                    `);
+                const lastOrderRange = query.last_order_time.split(',');
+                if (lastOrderRange.length > 1) {
+                    const startTime = database_1.default.escape(sqlDateConvert(lastOrderRange[0]));
+                    const endTime = database_1.default.escape(sqlDateConvert(lastOrderRange[1]));
+                    querySql.push(`(lo.last_order_time BETWEEN ${startTime} AND ${endTime})`);
                 }
             }
             if (query.last_shipment_date) {
                 const last_time = query.last_shipment_date.split(',');
                 if (last_time.length > 1) {
-                    querySql.push(`
-(((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.phone' and ${orderCountingSQL})  between ${database_1.default.escape(sqlDateConvert(last_time[0]))} and ${database_1.default.escape(sqlDateConvert(last_time[1]))})
-
-)   
-or
-((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.email' and ${orderCountingSQL})  between ${database_1.default.escape(sqlDateConvert(last_time[0]))} and ${database_1.default.escape(sqlDateConvert(last_time[1]))})                    
-                    `);
+                    const startDate = database_1.default.escape(sqlDateConvert(last_time[0]));
+                    const endDate = database_1.default.escape(sqlDateConvert(last_time[1]));
+                    const maxShipmentByPhone = `
+            (
+              SELECT MAX(shipment_date)
+              FROM \`${this.app}\`.t_checkout
+              WHERE email = u.userData->>'$.phone' AND ${orderCountingSQL}
+            )
+            BETWEEN ${startDate} AND ${endDate}
+          `;
+                    const maxShipmentByEmail = `
+            (
+              SELECT MAX(shipment_date)
+              FROM \`${this.app}\`.t_checkout
+              WHERE email = u.userData->>'$.email' AND ${orderCountingSQL}
+            )
+            BETWEEN ${startDate} AND ${endDate}
+          `;
+                    querySql.push(`(${maxShipmentByPhone} OR ${maxShipmentByEmail})`);
                 }
             }
             if (query.birth && query.birth.length > 0) {
@@ -1267,18 +1263,18 @@ or
                 dd.tag_name = '一般會員';
                 return dd;
             });
-            checkPoint("get-user-data-finish");
+            checkPoint('get-user-data-finish');
             const userMap = new Map(userData.map((user) => [String(user.userID), user]));
             const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
             const levelMap = new Map(levels.map(lv => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
-            checkPoint("levelMap-finish");
+            checkPoint('levelMap-finish');
             const queryResult = await database_1.default.query(`
             SELECT *
             FROM \`${this.app}\`.t_user_public_config
             WHERE \`key\` = 'member_update'
               AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
         `, []);
-            checkPoint("queryResult-finish");
+            checkPoint('queryResult-finish');
             for (const b of queryResult) {
                 const tag = levels.find(dd => {
                     return `${dd.id}` === `${b.user_id}`;
@@ -1321,7 +1317,7 @@ or
                                                  and ${orderCountingSQL} `, []))[0];
                 user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
             };
-            checkPoint("processUserData-finish");
+            checkPoint('processUserData-finish');
             if (Array.isArray(userData) && userData.length > 0) {
                 const chunkSize = 20;
                 const chunkedUserData = [];
@@ -1377,16 +1373,16 @@ or
                         buyingList[index].count++;
                     }
                 });
-                const usuallyBuyingStandard = 9.9;
+                const usuallyBuyingStandard = 9.99;
                 const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
-                const neverBuyingData = await database_1.default.query(`SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
+                const neverBuyingData = await database_1.default.query(`SELECT userID, account AS email
            FROM \`${this.app}\`.t_user
            WHERE userID not in (${buyingList
                     .map(item => item.userID)
-                    .concat([-1312])
+                    .concat([-1111])
                     .join(',')})`, []);
                 dataList = dataList.concat([
-                    { type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData },
+                    { type: 'neverBuying', title: '未成立有效訂單的顧客', users: neverBuyingData },
                     { type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList },
                 ]);
             }
@@ -1407,8 +1403,7 @@ or
                         users: [],
                     });
                 }
-                const users = await database_1.default.query(`SELECT userID
-           FROM \`${this.app}\`.t_user;`, []);
+                const users = await database_1.default.query(`SELECT userID FROM \`${this.app}\`.t_user;`, []);
                 const levelItems = await this.getUserLevel(users.map((item) => {
                     return { userId: item.userID };
                 }));
@@ -1442,8 +1437,15 @@ or
     async getLevelConfig() {
         const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
         const levelList = levelData.levels || [];
-        levelList.push(this.normalMember);
-        return levelList;
+        if (levelList.length === 0) {
+            return [this.normalMember];
+        }
+        const existNormalTag = levelList.find((level) => level.tag_name === this.normalMember.tag_name);
+        const existZeroValue = levelList.find((level) => level.condition.value === 0);
+        if (existNormalTag || existZeroValue) {
+            return levelList;
+        }
+        return [this.normalMember, ...levelList];
     }
     async filterMemberUpdates(idList) {
         try {
@@ -1488,14 +1490,16 @@ or
         }
     }
     async setLevelData(user, memberUpdates, levelConfig) {
+        var _a;
         const { userID, userData } = user;
         const { level_status, level_default, email } = userData;
         const levelList = levelConfig !== null && levelConfig !== void 0 ? levelConfig : (await this.getLevelConfig());
+        const normalMember = (_a = levelList[0]) !== null && _a !== void 0 ? _a : this.normalMember;
         const normalData = {
-            id: this.normalMember.id,
-            og: this.normalMember,
+            id: normalMember.id,
+            og: normalMember,
             trigger: true,
-            tag_name: this.normalMember.tag_name,
+            tag_name: normalMember.tag_name,
             dead_line: '',
         };
         if (level_status === 'manual') {
@@ -1548,10 +1552,13 @@ or
         const levelConfig = await this.getLevelConfig();
         const memberUpdates = await this.filterMemberUpdates(idList);
         for (let i = 0; i < users.length; i += chunk) {
-            chunkArray.push(users.slice(i * chunk, (i + 1) * chunk));
+            chunkArray.push(users.slice(i, i + chunk));
         }
         await Promise.all(chunkArray.map(async (userArray) => {
-            await Promise.all(userArray.map((user) => this.setLevelData(user, memberUpdates, levelConfig).then(userData => dataList.push(userData))));
+            await Promise.all(userArray.map(async (user) => {
+                const userData = await this.setLevelData(user, memberUpdates, levelConfig);
+                dataList.push(userData);
+            }));
         }));
         return dataList;
     }
@@ -2068,8 +2075,7 @@ or
                 else if (config.key === 'store-information') {
                     return { language_setting: { def: 'zh-TW', support: ['zh-TW'] } };
                 }
-                ;
-                return (await that.checkLeakData(config.key, (data && data.value) || {}));
+                return await that.checkLeakData(config.key, (data && data.value) || {});
             }
             if (config.key.includes(',')) {
                 return Promise.all(config.key.split(',').map(async (dd) => ({

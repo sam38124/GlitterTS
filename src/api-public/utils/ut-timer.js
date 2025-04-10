@@ -6,11 +6,11 @@ class UtTimer {
         this.checkPoint = (name) => {
             const t = Date.now();
             this.history.push(t);
-            const spendTime = t - this.history[this.count];
-            const totalTime = t - this.history[0];
+            const spendTime = (t - this.history[this.count]) / 1000;
+            const totalTime = (t - this.history[0]) / 1000;
             this.count++;
             const n = this.count.toString().padStart(2, '0');
-            console.info(`${this.timerName}-${n} [${name}] `.padEnd(40, '=') + '>', {
+            console.info(`${this.timerName}-${n} [${name}] `.padEnd(50, '-') + '>', {
                 totalTime,
                 spendTime,
             });

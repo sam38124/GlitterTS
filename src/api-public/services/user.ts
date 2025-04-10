@@ -1240,33 +1240,14 @@ export class User {
 
   public async getUserList(query: UserQuery) {
     try {
+      const checkPoint = new UtTimer('GET-USER-LIST').checkPoint;
       const orderCountingSQL = await this.getCheckoutCountingModeSQL();
       const querySql: string[] = ['1=1'];
       const noRegisterUsers: any[] = [];
+
       query.page = query.page ?? 0;
       query.limit = query.limit ?? 50;
-      const timer = {
-        count: 0,
-        history: [Date.now()],
-      };
-      const checkPoint = (name: string) => {
-        const t = Date.now();
-        timer.history.push(t);
 
-        const spendTime = t - timer.history[timer.count]; // 計算與上一個檢查點的時間差
-        const totalTime = t - timer.history[0]; // 計算從開始到現在的總時間
-
-        timer.count++;
-        const n = timer.count.toString().padStart(2, '0');
-
-        console.info(`GET-USER-LIST-TIME-${n} [${name}] `.padEnd(40, '=') + '>', {
-          totalTime,
-          spendTime,
-        });
-      };
-      function sqlDateConvert(dd: string) {
-        return dd.replace('T', ' ').replace('.000Z', '');
-      }
       if (query.groupType) {
         const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
         if (getGroup.result && getGroup.data[0]) {
@@ -1352,35 +1333,57 @@ export class User {
       }
 
       if (query.created_time) {
-        const created_time = query.created_time.split(',');
-        if (created_time.length > 1) {
-          querySql.push(`
-                        (u.created_time BETWEEN ${db.escape(`${created_time[0]} 00:00:00`)} 
-                        AND ${db.escape(`${created_time[1]} 23:59:59`)})
-                    `);
+        const createdTimeRange = query.created_time.split(',');
+
+        if (createdTimeRange.length > 1) {
+          const startTime = db.escape(`${createdTimeRange[0]} 00:00:00`);
+          const endTime = db.escape(`${createdTimeRange[1]} 23:59:59`);
+
+          querySql.push(`(u.created_time BETWEEN ${startTime} AND ${endTime})`);
         }
       }
 
+      function sqlDateConvert(dd: string) {
+        return dd.replace('T', ' ').replace('.000Z', '');
+      }
+
       if (query.last_order_time) {
-        const last_time = query.last_order_time.split(',');
-        if (last_time.length > 1) {
-          querySql.push(`
-                        (lo.last_order_time BETWEEN ${db.escape(`${sqlDateConvert(last_time[0])}`)} 
-                        AND ${db.escape(`${sqlDateConvert(last_time[1])}`)})
-                    `);
+        const lastOrderRange = query.last_order_time.split(',');
+
+        if (lastOrderRange.length > 1) {
+          const startTime = db.escape(sqlDateConvert(lastOrderRange[0]));
+          const endTime = db.escape(sqlDateConvert(lastOrderRange[1]));
+
+          querySql.push(`(lo.last_order_time BETWEEN ${startTime} AND ${endTime})`);
         }
       }
 
       if (query.last_shipment_date) {
         const last_time = query.last_shipment_date.split(',');
-        if (last_time.length > 1) {
-          querySql.push(`
-(((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.phone' and ${orderCountingSQL})  between ${db.escape(sqlDateConvert(last_time[0]))} and ${db.escape(sqlDateConvert(last_time[1]))})
 
-)   
-or
-((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.email' and ${orderCountingSQL})  between ${db.escape(sqlDateConvert(last_time[0]))} and ${db.escape(sqlDateConvert(last_time[1]))})                    
-                    `);
+        if (last_time.length > 1) {
+          const startDate = db.escape(sqlDateConvert(last_time[0]));
+          const endDate = db.escape(sqlDateConvert(last_time[1]));
+
+          const maxShipmentByPhone = `
+            (
+              SELECT MAX(shipment_date)
+              FROM \`${this.app}\`.t_checkout
+              WHERE email = u.userData->>'$.phone' AND ${orderCountingSQL}
+            )
+            BETWEEN ${startDate} AND ${endDate}
+          `;
+
+          const maxShipmentByEmail = `
+            (
+              SELECT MAX(shipment_date)
+              FROM \`${this.app}\`.t_checkout
+              WHERE email = u.userData->>'$.email' AND ${orderCountingSQL}
+            )
+            BETWEEN ${startDate} AND ${endDate}
+          `;
+
+          querySql.push(`(${maxShipmentByPhone} OR ${maxShipmentByEmail})`);
         }
       }
 
@@ -1489,7 +1492,6 @@ or
         querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
       }
 
-      // 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time'
       const dataSQL = await this.getUserAndOrderSQL({
         select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
         where: querySql,
@@ -1510,15 +1512,14 @@ or
         return dd;
       });
 
-
-      checkPoint("get-user-data-finish")
+      checkPoint('get-user-data-finish');
       // 建立 userID 對應的 Map，加快查找
       const userMap = new Map(userData.map((user: any) => [String(user.userID), user]));
 
       // 會員等級 Map
       const levels = await this.getUserLevel(userData.map((user: any) => ({ userId: user.userID })));
       const levelMap = new Map(levels.map(lv => [lv.id, lv.data.dead_line ?? '']));
-      checkPoint("levelMap-finish")
+      checkPoint('levelMap-finish');
       const queryResult = await db.query(
         `
             SELECT *
@@ -1528,7 +1529,7 @@ or
         `,
         []
       );
-      checkPoint("queryResult-finish")
+      checkPoint('queryResult-finish');
       // 更新 userData
       for (const b of queryResult) {
         const tag = levels.find(dd => {
@@ -1594,7 +1595,7 @@ or
         )[0];
         user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
       };
-      checkPoint("processUserData-finish")
+      checkPoint('processUserData-finish');
       // 批次處理會員資料
       if (Array.isArray(userData) && userData.length > 0) {
         const chunkSize = 20; // 每次最多處理人數
@@ -1683,20 +1684,20 @@ or
         });
 
         // 經常購買者清單
-        const usuallyBuyingStandard = 9.9;
+        const usuallyBuyingStandard = 9.99;
         const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
         const neverBuyingData = await db.query(
           `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
            FROM \`${this.app}\`.t_user
            WHERE userID not in (${buyingList
              .map(item => item.userID)
-             .concat([-1312])
+             .concat([-1111])
              .join(',')})`,
           []
         );
 
         dataList = dataList.concat([
-          { type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData },
+          { type: 'neverBuying', title: '尚未成立有效訂單的顧客', users: neverBuyingData },
           { type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList },
         ]);
       }
@@ -1721,11 +1722,7 @@ or
           });
         }
 
-        const users = await db.query(
-          `SELECT userID
-           FROM \`${this.app}\`.t_user;`,
-          []
-        );
+        const users = await db.query(`SELECT userID FROM \`${this.app}\`.t_user;`, []);
 
         const levelItems = await this.getUserLevel(
           users.map((item: { userID: number }) => {
@@ -1774,8 +1771,18 @@ or
   public async getLevelConfig() {
     const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
     const levelList = levelData.levels || [];
-    levelList.push(this.normalMember);
-    return levelList;
+
+    if (levelList.length === 0) {
+      return [this.normalMember];
+    }
+
+    const existNormalTag = levelList.find((level: any) => level.tag_name === this.normalMember.tag_name);
+    const existZeroValue = levelList.find((level: any) => level.condition.value === 0);
+
+    if (existNormalTag || existZeroValue) {
+      return levelList;
+    }
+    return [this.normalMember, ...levelList];
   }
 
   private async filterMemberUpdates(idList: string[]): Promise<any[]> {
@@ -1839,11 +1846,13 @@ or
 
     const levelList = levelConfig ?? (await this.getLevelConfig());
 
+    const normalMember = levelList[0] ?? this.normalMember;
+
     const normalData = {
-      id: this.normalMember.id,
-      og: this.normalMember,
+      id: normalMember.id,
+      og: normalMember,
       trigger: true,
-      tag_name: this.normalMember.tag_name,
+      tag_name: normalMember.tag_name,
       dead_line: '',
     };
 
@@ -1923,18 +1932,20 @@ or
     const memberUpdates = await this.filterMemberUpdates(idList);
 
     for (let i = 0; i < users.length; i += chunk) {
-      chunkArray.push(users.slice(i * chunk, (i + 1) * chunk));
+      chunkArray.push(users.slice(i, i + chunk));
     }
 
     await Promise.all(
       chunkArray.map(async userArray => {
         await Promise.all(
-          userArray.map((user: any) =>
-            this.setLevelData(user, memberUpdates, levelConfig).then(userData => dataList.push(userData))
-          )
+          userArray.map(async (user: any) => {
+            const userData = await this.setLevelData(user, memberUpdates, levelConfig);
+            dataList.push(userData);
+          })
         );
       })
     );
+
     return dataList;
   }
 
@@ -2605,9 +2616,9 @@ or
           data.value = (await that.checkLeakData(config.key, data.value)) || data.value; // 資料存在則進行異常數據檢查
         } else if (config.key === 'store-information') {
           return { language_setting: { def: 'zh-TW', support: ['zh-TW'] } }; // store-information 預設回傳
-        };
+        }
 
-        return (await that.checkLeakData(config.key, (data && data.value) || {}));
+        return await that.checkLeakData(config.key, (data && data.value) || {});
       }
 
       if (config.key.includes(',')) {
@@ -2671,10 +2682,10 @@ or
         value = FormCheck.initialLoginConfig(value);
         break;
       case 'auto_fcm':
-        value = AutoFcm.initial(value)
-        break
+        value = AutoFcm.initial(value);
+        break;
     }
-    return value
+    return value;
   }
 
   public async checkEmailExists(email: string) {
