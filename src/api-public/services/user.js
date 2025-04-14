@@ -58,6 +58,7 @@ const user_update_js_1 = require("./user-update.js");
 const public_table_check_js_1 = require("./public-table-check.js");
 const ut_timer_1 = require("../utils/ut-timer");
 const auto_fcm_js_1 = require("../../public-config-initial/auto-fcm.js");
+const phone_verify_js_1 = require("./phone-verify.js");
 class User {
     constructor(app, token) {
         this.normalMember = {
@@ -119,6 +120,14 @@ class User {
     }
     async phoneVerify(account) {
         const time = await redis_js_1.default.getValue(`verify-phone-${account}-last-time`);
+        let last_count = parseInt(`${(await redis_js_1.default.getValue(`verify-phone-${account}-last-count`)) || '0'}`, 10);
+        last_count++;
+        if (last_count > 3) {
+            return {
+                out_limit: true,
+            };
+        }
+        await redis_js_1.default.setValue(`verify-phone-${account}-last-count`, last_count);
         if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
             await redis_js_1.default.setValue(`verify-phone-${account}-last-time`, new Date().toISOString());
             const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-phone-verify-update', 'zh-TW');
@@ -183,7 +192,7 @@ class User {
                     });
                 }
                 if (login_config.phone_verify &&
-                    userData.verify_code_phone !== (await redis_js_1.default.getValue(`verify-phone-${userData.phone}`)) &&
+                    !(await phone_verify_js_1.PhoneVerify.verify(userData.phone, userData.verify_code_phone)) &&
                     register_form.list.find((dd) => {
                         return dd.key === 'phone' && `${dd.hidden}` !== 'true';
                     })) {
@@ -1701,10 +1710,11 @@ class User {
                     });
                 }
                 if (login_config.phone_verify &&
-                    par.userData.verify_code_phone !== (await redis_js_1.default.getValue(`verify-phone-${par.userData.phone}`)) &&
-                    register_form.list.find((dd) => {
-                        return dd.key === 'phone' && `${dd.hidden}` !== 'true';
-                    })) {
+                    !(await phone_verify_js_1.PhoneVerify.verify(par.userData.phone, par.userData.verify_code_phone))
+                    &&
+                        register_form.list.find((dd) => {
+                            return dd.key === 'phone' && `${dd.hidden}` !== 'true';
+                        })) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
                         msg: 'phone-verify-false',
                     });

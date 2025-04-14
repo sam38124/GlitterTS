@@ -144,7 +144,7 @@ export class Entry {
             }
             window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : createClock();
             console.log(`Entry-time:`, window.renderClock.stop());
-            glitter.share.editerVersion = 'V_20.4.2';
+            glitter.share.editerVersion = 'V_20.4.6';
             glitter.share.start = new Date();
             const vm = { appConfig: [] };
             window.saasConfig = {
@@ -332,6 +332,28 @@ export class Entry {
         Entry.checkSeoInfo(glitter);
     }
     static checkSeoInfo(glitter) {
+        var _a, _b, _c;
+        glitter.share.last_seo_config = (_a = glitter.share.last_seo_config) !== null && _a !== void 0 ? _a : {
+            title: document.title,
+            description: (_b = document.querySelector('meta[name="description"]')) === null || _b === void 0 ? void 0 : _b.getAttribute('content'),
+            ogImage: (_c = document.querySelector('meta[property="og:image"]')) === null || _c === void 0 ? void 0 : _c.getAttribute('content')
+        };
+        window.glitterInitialHelper.getPageData(glitter.getUrlParameter('page'), (data) => {
+            var _a, _b;
+            if ((data.response.seo_config && (data.response.seo_config.title && data.response.seo_config.content)) && ([data.response.seo_config.title, data.response.seo_config.content].join('') !== [
+                glitter.share.last_seo_config.title,
+                glitter.share.last_seo_config.description,
+            ].join(''))) {
+                glitter.share.last_seo_config.title = data.response.seo_config.title;
+                glitter.share.last_seo_config.description = data.response.seo_config.content;
+                (_a = document.querySelector('meta[name="description"]')) === null || _a === void 0 ? void 0 : _a.setAttribute('content', data.response.seo_config.content);
+                (_b = document.querySelector('meta[name="og:description"]')) === null || _b === void 0 ? void 0 : _b.setAttribute('content', data.response.seo_config.content);
+                document.title = data.response.seo_config.title;
+            }
+            setTimeout(() => {
+                Entry.checkSeoInfo(glitter);
+            }, 500);
+        });
     }
     static checkIframe(glitter) {
         if (glitter.getUrlParameter('isIframe') === 'true') {

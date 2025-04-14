@@ -106,6 +106,11 @@ class Schedule {
                         for (const user of users) {
                             await new user_1.User(app).checkMember(user, true);
                             await user_update_js_1.UserUpdate.update(app, user.userID);
+                            await new Promise((resolve, reject) => {
+                                setTimeout(() => {
+                                    resolve(true);
+                                }, 50);
+                            });
                         }
                     }
                     console.log(`renewMemberLevel-finish->`, app);

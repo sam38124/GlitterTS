@@ -146,7 +146,7 @@ export class Entry {
       }
       (window as any).renderClock = (window as any).renderClock ?? createClock();
       console.log(`Entry-time:`, (window as any).renderClock.stop());
-      glitter.share.editerVersion = 'V_20.4.2';
+      glitter.share.editerVersion = 'V_20.4.6';
       glitter.share.start = new Date();
       const vm = { appConfig: [] };
       (window as any).saasConfig = {
@@ -340,18 +340,26 @@ export class Entry {
 
   //定期確認SEO資訊並更新
   public static checkSeoInfo(glitter:Glitter){
-    // glitter.share.last_seo_config=glitter.share.last_seo_config ?? {
-    //   title:document.title,
-    //   description:document.querySelector('meta[name="description"]')?.getAttribute('content'),
-    //   ogImage:document.querySelector('meta[property="og:image"]')?.getAttribute('content')
-    // };
-    // (window as any).glitterInitialHelper.getPageData(glitter.getUrlParameter('page'), (data: any) => {
-    //   console.log(`seo_config==>`,data.response.seo_config)
-    //   if([data.response.seo_config,data.response.seo_config])
-    //   setTimeout(()=>{
-    //     Entry.checkSeoInfo(glitter)
-    //   },500)
-    // })
+    glitter.share.last_seo_config=glitter.share.last_seo_config ?? {
+      title:document.title,
+      description:document.querySelector('meta[name="description"]')?.getAttribute('content'),
+      ogImage:document.querySelector('meta[property="og:image"]')?.getAttribute('content')
+    };
+    (window as any).glitterInitialHelper.getPageData(glitter.getUrlParameter('page'), (data: any) => {
+      if((data.response.seo_config && (data.response.seo_config.title && data.response.seo_config.content)) && ([data.response.seo_config.title,data.response.seo_config.content].join('') !== [
+        glitter.share.last_seo_config.title,
+        glitter.share.last_seo_config.description,
+      ].join(''))){
+        glitter.share.last_seo_config.title=data.response.seo_config.title;
+        glitter.share.last_seo_config.description=data.response.seo_config.content;
+        document.querySelector('meta[name="description"]')?.setAttribute('content',data.response.seo_config.content);
+        document.querySelector('meta[name="og:description"]')?.setAttribute('content',data.response.seo_config.content);
+        document.title=data.response.seo_config.title;
+      }
+      setTimeout(()=>{
+        Entry.checkSeoInfo(glitter)
+      },500)
+    })
   }
 
   // 判斷是否為 Iframe 來覆寫 Glitter 代碼

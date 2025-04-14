@@ -60,7 +60,11 @@ export declare class User {
         result: boolean;
     }>;
     phoneVerify(account: string): Promise<{
+        out_limit: boolean;
+        result?: undefined;
+    } | {
         result: boolean;
+        out_limit?: undefined;
     }>;
     createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean): Promise<any>;
     createUserHook(userID: string): Promise<void>;

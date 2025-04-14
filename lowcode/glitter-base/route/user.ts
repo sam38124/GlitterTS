@@ -1,6 +1,7 @@
 import { BaseApi } from '../../glitterBundle/api/base.js';
 import { GlobalUser } from '../global/global-user.js';
 import { ApiShop } from './shopping.js';
+import { ShareDialog } from '../../dialog/ShareDialog.js';
 
 export class ApiUser {
   public static register(json: { account: string; pwd: string; userData: any }) {
@@ -219,17 +220,28 @@ export class ApiUser {
   }
 
   public static phoneVerify(phone_number: string) {
-    return BaseApi.create({
-      url: getBaseUrl() + `/api-public/v1/user/phone-verify`,
-      type: 'POST',
-      headers: {
-        'g-app': getConfig().config.appName,
-        'Content-Type': 'application/json',
-      },
-      data: JSON.stringify({
-        phone_number: phone_number,
-      }),
-    });
+    return new Promise<{result:boolean,response:any}>((resolve, reject) => {
+      BaseApi.create({
+        url: getBaseUrl() + `/api-public/v1/user/phone-verify`,
+        type: 'POST',
+        headers: {
+          'g-app': getConfig().config.appName,
+          'Content-Type': 'application/json',
+        },
+        data: JSON.stringify({
+          phone_number: phone_number,
+        }),
+      }).then((res)=>{
+        if(res.response.out_limit){
+         const dialog=new ShareDialog((window as any).glitter);
+         dialog.errorMessage({
+           text:'連續驗證失敗超過三次，請聯絡客服進行修改'
+         })
+        }else{
+          resolve(res)
+        }
+      })
+    })
   }
 
   public static registerFCM(userID: string, deviceToken: string, app_name?: string) {

@@ -56,7 +56,6 @@ router.delete('/', async (req, resp) => {
 router.get('/', async (req, resp) => {
     try {
         req.headers['x-original-url'] = '';
-        console.log(`req.query.tag.is=>`, req.query.tag);
         req.query.page = req.query.tag;
         const seo = await seo_config_js_1.SeoConfig.seoDetail(req.query.appName, req, resp);
         let language = req.headers['language'];

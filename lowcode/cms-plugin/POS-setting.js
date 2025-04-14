@@ -106,7 +106,7 @@ export class POSSetting {
                     onclick="${gvc.event(() => {
                         dialog.dataLoading({ visible: true });
                         ApiUser.login({
-                            app_name: 'shopnex',
+                            app_name: window.glitterBase,
                             account: vm.account,
                             pwd: vm.pwd,
                         }).then((r) => __awaiter(this, void 0, void 0, function* () {
@@ -206,7 +206,12 @@ export class POSSetting {
         POSSetting.initialStyle(gvc);
         gvc.glitter.share.NormalPageEditor = NormalPageEditor;
         gvc.glitter.addStyleLink('./css/editor.css');
-        window.glitterBase = 'shopnex';
+        if (window.location.href.includes('smartshop')) {
+            window.glitterBase = 'hd_saas';
+        }
+        else {
+            window.glitterBase = 'shopnex';
+        }
         window.appName = gvc.glitter.getUrlParameter('app-id');
         window.saasConfig.config.token = GlobalUser.saas_token;
         localStorage.setItem('on-pos', 'true');
@@ -278,7 +283,7 @@ export class POSSetting {
                                         dialog.dataLoading({ visible: true });
                                         localStorage.removeItem('on-pos');
                                         window.parent.history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
-                                        glitter.share.reload('cms', 'shopnex');
+                                        glitter.share.reload('cms', window.glitterBase);
                                     },
                                 });
                                 return '';
@@ -303,7 +308,7 @@ export class POSSetting {
                         dialog.dataLoading({ visible: true });
                         localStorage.removeItem('on-pos');
                         window.parent.history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
-                        glitter.share.reload('cms', 'shopnex');
+                        glitter.share.reload('cms', window.glitterBase);
                         return '';
                     }
                 }),
@@ -977,8 +982,8 @@ export class POSSetting {
                   >
                     ${document.body.offsetWidth < 800
                             ? ''
-                            : html `<div class="d-flex align-items-center h-100 border-end pe-4" style="gap:10px;">
-                         <img src="${SaasOffer.saas_logo}" style="max-width:150px;">
+                            : html ` <div class="d-flex align-items-center h-100 border-end pe-4" style="gap:10px;">
+                          <img src="${SaasOffer.saas_logo}" style="max-width:150px;" />
                           <div
                             style="text-align: center; color: #8D8D8D; font-size: 38px; font-family: Lilita One; font-weight: 400; word-wrap: break-word"
                           >
@@ -1195,7 +1200,7 @@ export class POSSetting {
                                 class: `h-100`,
                             },
                         })}
-                    ${document.body.clientWidth < 800 ? html `<div class="flex-fill"></div>` : ''}
+                    ${document.body.clientWidth < 800 ? html ` <div class="flex-fill"></div>` : ''}
                     <div class="h-100 d-flex align-items-center border-start ps-1">
                       <div
                         style="width:50px;height: 100%;cursor: pointer;"
@@ -1218,7 +1223,7 @@ export class POSSetting {
                       </div>
                       ${document.body.clientWidth > 800 || vm.type !== 'menu'
                             ? ''
-                            : html `<div style="width:50px;" class="d-flex align-items-center justify-content-center">
+                            : html ` <div style="width:50px;" class="d-flex align-items-center justify-content-center">
                             ${cartBtn}
                           </div>`}
                       ${gvc.bindView({
@@ -1306,7 +1311,7 @@ export class POSSetting {
                                         dialog.dataLoading({ visible: true });
                                         localStorage.removeItem('on-pos');
                                         window.parent.history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
-                                        glitter.share.reload('cms', 'shopnex');
+                                        glitter.share.reload('cms', window.glitterBase);
                                     })}"
                                   ><i
                                     class="fa-solid fa-angle-left d-flex align-items-center justify-content-center"
@@ -1346,12 +1351,12 @@ export class POSSetting {
                                             });
                                         }
                                         else if (vm.type === 'order') {
-                                            return html `<div class="vw-100 px-lg-3" style="overflow-y: scroll;">
+                                            return html ` <div class="vw-100 px-lg-3" style="overflow-y: scroll;">
                             ${ShoppingOrderManager.main(gvc, { isPOS: true })}
                           </div>`;
                                         }
                                         else if (vm.type === 'member') {
-                                            return html `<div class="vw-100 px-lg-3" style="overflow-y: scroll;">
+                                            return html ` <div class="vw-100 px-lg-3" style="overflow-y: scroll;">
                             ${UserList.main(gvc)}
                           </div>`;
                                         }
@@ -1371,7 +1376,7 @@ export class POSSetting {
                                     }
                                 })();
                                 if (document.body.clientWidth < 768) {
-                                    view += html `<div style="height: 100px;"></div>`;
+                                    view += html ` <div style="height: 100px;"></div>`;
                                 }
                                 return view;
                             }),

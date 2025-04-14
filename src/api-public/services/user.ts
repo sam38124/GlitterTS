@@ -31,6 +31,7 @@ import { UserUpdate } from './user-update.js';
 import { ApiPublic } from './public-table-check.js';
 import { UtTimer } from '../utils/ut-timer';
 import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
+import { PhoneVerify } from './phone-verify.js';
 
 interface UserQuery {
   page?: number;
@@ -165,6 +166,14 @@ export class User {
 
   public async phoneVerify(account: string) {
     const time: any = await redis.getValue(`verify-phone-${account}-last-time`);
+    let last_count: any = parseInt(`${(await redis.getValue(`verify-phone-${account}-last-count`)) || '0'}`,10);
+    last_count++;
+    if(last_count>3){
+      return {
+        out_limit: true,
+      };
+    }
+    await redis.setValue(`verify-phone-${account}-last-count`, last_count);
     //超過30秒可在次發送
     if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
       await redis.setValue(`verify-phone-${account}-last-time`, new Date().toISOString());
@@ -172,7 +181,6 @@ export class User {
       const code = Tool.randomNumber(6);
       await redis.setValue(`verify-phone-${account}`, code);
       data.content = data.content.replace(`@{{code}}`, code);
-
       const sns = new SMS(this.app, this.token);
       await sns.sendSNS({ data: data.content as string, phone: account }, () => {});
       return {
@@ -238,7 +246,7 @@ export class User {
         }
         if (
           login_config.phone_verify &&
-          userData.verify_code_phone !== (await redis.getValue(`verify-phone-${userData.phone}`)) &&
+          !(await PhoneVerify.verify(userData.phone, userData.verify_code_phone)) &&
           register_form.list.find((dd: any) => {
             return dd.key === 'phone' && `${dd.hidden}` !== 'true';
           })
@@ -2111,7 +2119,8 @@ export class User {
         }
         if (
           login_config.phone_verify &&
-          par.userData.verify_code_phone !== (await redis.getValue(`verify-phone-${par.userData.phone}`)) &&
+          !(await PhoneVerify.verify(par.userData.phone, par.userData.verify_code_phone))
+           &&
           register_form.list.find((dd: any) => {
             return dd.key === 'phone' && `${dd.hidden}` !== 'true';
           })

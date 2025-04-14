@@ -120,6 +120,12 @@ export class Schedule {
                         for (const user of users) {
                             await new User(app).checkMember(user, true);
                             await UserUpdate.update(app,user.userID)
+                            //限制速率每秒最多100筆更新
+                            await new Promise((resolve, reject)=>{
+                                setTimeout(()=>{
+                                    resolve(true)
+                                },50)
+                            });
                         }
                     }
                     console.log(`renewMemberLevel-finish->`,app)
