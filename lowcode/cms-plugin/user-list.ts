@@ -464,21 +464,21 @@ export class UserList {
                                 name: '新增標籤',
                                 option: true,
                                 event: (dataArray: any) => {
-                                  UserModule.addTags({ gvc, notifyId: vm.progressId, dataArray });
+                                  UserModule.addTags({ gvc, vm, dataArray });
                                 },
                               },
                               {
                                 name: '移除標籤',
                                 option: true,
                                 event: (dataArray: any) => {
-                                  UserModule.removeTags({ gvc, notifyId: vm.progressId, dataArray });
+                                  UserModule.removeTags({ gvc, vm, dataArray });
                                 },
                               },
                               {
                                 name: '手動調整等級',
                                 option: true,
                                 event: (dataArray: any) => {
-                                  UserModule.manualSetLevel({ gvc, notifyId: vm.progressId, dataArray });
+                                  UserModule.manualSetLevel({ gvc, vm, dataArray });
                                 },
                               },
                               {

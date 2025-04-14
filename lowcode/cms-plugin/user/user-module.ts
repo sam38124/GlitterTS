@@ -63,7 +63,7 @@ export class UserModule {
     return vmt.dataList.map((item: any) => this.printOption(gvc, vmt, { key: item, value: item })).join('');
   }
 
-  static addTags(obj: { gvc: GVC; notifyId: string; dataArray: any }) {
+  static addTags(obj: { gvc: GVC; vm: any; dataArray: any }) {
     const gvc = obj.gvc;
     const dataArray = obj.dataArray;
     const dialog = new ShareDialog(gvc.glitter);
@@ -135,10 +135,11 @@ export class UserModule {
               const ids = dataArray.map((data: any) => data.userID).filter(Boolean);
               ApiUser.batchAddTag({ userId: ids, tags: vmt.postData }).then(() => {
                 dialog.successMessage({ text: '「新增標籤」更新完成' });
+                gvc.notifyDataChange(obj.vm.id);
               });
               gvc2.closeDialog();
               dialog.successMessage({ text: '準備開始更新資料，請稍後' });
-              gvc.notifyDataChange(obj.notifyId);
+              gvc.notifyDataChange(obj.vm.progressId);
             })
           ),
         ].join('');
@@ -146,7 +147,7 @@ export class UserModule {
     });
   }
 
-  static removeTags(obj: { gvc: GVC; notifyId: string; dataArray: any }) {
+  static removeTags(obj: { gvc: GVC; vm: any; dataArray: any }) {
     const gvc = obj.gvc;
     const dataArray = obj.dataArray;
     const dialog = new ShareDialog(gvc.glitter);
@@ -207,10 +208,11 @@ export class UserModule {
               const ids = dataArray.map((data: any) => data.userID).filter(Boolean);
               ApiUser.batchRemoveTag({ userId: ids, tags: vmt.postData }).then(() => {
                 dialog.successMessage({ text: '「移除標籤」更新完成' });
+                gvc.notifyDataChange(obj.vm.id);
               });
               gvc2.closeDialog();
               dialog.successMessage({ text: '準備開始更新資料，請稍後' });
-              gvc.notifyDataChange(obj.notifyId);
+              gvc.notifyDataChange(obj.vm.progressId);
             })
           ),
         ].join('');
@@ -218,7 +220,7 @@ export class UserModule {
     });
   }
 
-  static manualSetLevel(obj: { gvc: GVC; notifyId: string; dataArray: any }) {
+  static manualSetLevel(obj: { gvc: GVC; vm: any; dataArray: any }) {
     const gvc = obj.gvc;
     const dataArray = obj.dataArray;
     const dialog = new ShareDialog(gvc.glitter);
@@ -239,11 +241,12 @@ export class UserModule {
             if (levelVM.loading) {
               return BgWidget.spinner();
             } else {
+              levelVM.level = levelVM.options[0].key;
               return html`
                 ${BgWidget.grayNote('此功能針對特殊會員，手動調整後將無法自動升級')}
                 ${BgWidget.select({
                   gvc: gvc2,
-                  default: levelVM.options[0].key,
+                  default: levelVM.level,
                   callback: key => {
                     levelVM.level = key;
                   },
@@ -279,10 +282,11 @@ export class UserModule {
               const ids = dataArray.map((data: any) => data.userID).filter(Boolean);
               ApiUser.batchManualLevel({ userId: ids, level: levelVM.level }).then(() => {
                 dialog.successMessage({ text: '「手動修改會員標籤」更新完成' });
+                gvc.notifyDataChange(obj.vm.id);
               });
               gvc2.closeDialog();
               dialog.successMessage({ text: '準備開始更新資料，請稍後' });
-              gvc.notifyDataChange(obj.notifyId);
+              gvc.notifyDataChange(obj.vm.progressId);
             })
           ),
         ].join('');
