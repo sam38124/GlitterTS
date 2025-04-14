@@ -137,6 +137,7 @@ export class UserModule {
                 dialog.successMessage({ text: '「新增標籤」更新完成' });
               });
               gvc2.closeDialog();
+              dialog.successMessage({ text: '準備開始更新資料，請稍後' });
               gvc.notifyDataChange(obj.notifyId);
             })
           ),
@@ -208,6 +209,7 @@ export class UserModule {
                 dialog.successMessage({ text: '「移除標籤」更新完成' });
               });
               gvc2.closeDialog();
+              dialog.successMessage({ text: '準備開始更新資料，請稍後' });
               gvc.notifyDataChange(obj.notifyId);
             })
           ),
@@ -279,6 +281,7 @@ export class UserModule {
                 dialog.successMessage({ text: '「手動修改會員標籤」更新完成' });
               });
               gvc2.closeDialog();
+              dialog.successMessage({ text: '準備開始更新資料，請稍後' });
               gvc.notifyDataChange(obj.notifyId);
             })
           ),
