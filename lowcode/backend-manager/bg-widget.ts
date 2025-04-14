@@ -45,7 +45,7 @@ type TableV3 = {
   originalData: any;
   callback: () => void;
   checkedArray: any[];
-  allResultData: any[];
+  allResult?: () => Promise<any[]>;
   limit: number;
 };
 
@@ -1981,7 +1981,6 @@ ${obj.default ?? ''}</textarea
         pageSize: 0,
         tableData: [],
         originalData: [],
-        allResultData: [],
         callback: () => {
           vm.loading = false;
           gvc.notifyDataChange(ids.container);
@@ -2086,19 +2085,22 @@ ${obj.default ?? ''}</textarea
             // 全選物件
             const selectAllObject = {
               gvc,
-              event: () => {
-                if (vm.limit > 0) {
-                  vm.checkedArray = vm.allResultData.map((item, i) => {
-                    const index = i % vm.limit;
-                    const page = Math.ceil(i / vm.limit) + (Boolean(index) ? 0 : 1);
-                    item.dataPin = `${page}-${index}`;
-                    item.checked = true;
-                    return item;
-                  });
-                  vm.originalData.forEach((item: any) => {
-                    item.checked = true;
-                  });
-                  renderRowCheckbox(true);
+              event: async () => {
+                if (vm.limit > 0 && vm.allResult) {
+                  const allResultArray = await vm.allResult();
+                  if (Array.isArray(allResultArray) && allResultArray.length > 0) {
+                    vm.checkedArray = allResultArray.map((item, i) => {
+                      const index = i % vm.limit;
+                      const page = Math.ceil(i / vm.limit) + (Boolean(index) ? 0 : 1);
+                      item.dataPin = `${page}-${index}`;
+                      item.checked = true;
+                      return item;
+                    });
+                    vm.originalData.forEach((item: any) => {
+                      item.checked = true;
+                    });
+                    renderRowCheckbox(true);
+                  }
                 }
               },
             };
@@ -2162,7 +2164,7 @@ ${obj.default ?? ''}</textarea
                                   text: '',
                                 }),
                               ],
-                              allSelectCallback: vm.allResultData.length > 0 ? selectAllObject : undefined,
+                              allSelectCallback: vm.allResult ? selectAllObject : undefined,
                               cancelCallback: cancelAllObject,
                             });
                           }
@@ -2201,7 +2203,7 @@ ${obj.default ?? ''}</textarea
                             }),
                             count: vm.checkedArray.length,
                             buttonList: [...inList, ...outList],
-                            allSelectCallback: vm.allResultData.length > 0 ? selectAllObject : undefined,
+                            allSelectCallback: vm.allResult ? selectAllObject : undefined,
                             cancelCallback: cancelAllObject,
                           });
                         }

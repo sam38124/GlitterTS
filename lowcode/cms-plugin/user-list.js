@@ -303,7 +303,7 @@ export class UserList {
                                             return __awaiter(this, void 0, void 0, function* () {
                                                 try {
                                                     dialog.dataLoading({ visible: true });
-                                                    const results = yield UserModule.batchProcess(checkedData, 100);
+                                                    const results = yield UserModule.batchProcess(checkedData, 200);
                                                     const failedUpdates = results.filter((r) => !r.result);
                                                     if (failedUpdates.length > 0) {
                                                         UserModule.failedUpdateDialog(gvc, failedUpdates, checkedData.length);
@@ -336,21 +336,25 @@ export class UserList {
                                                     filter: vm.filter,
                                                     filter_type: vm.filter_type,
                                                     group: vm.group,
-                                                    all_result: true,
                                                 };
                                                 ApiUser.getUserListOrders(vm.apiJSON).then(data => {
-                                                    var _a;
                                                     vm.dataList = data.response.data;
+                                                    vmi.limit = limit;
                                                     vmi.pageSize = Math.ceil(data.response.total / limit);
                                                     vmi.originalData = vm.dataList;
-                                                    vmi.allResultData = (_a = data.response.allUsers) !== null && _a !== void 0 ? _a : [];
-                                                    vmi.limit = limit;
                                                     vmi.tableData = getUserlist();
-                                                    vmi.loading = false;
+                                                    vmi.allResult = () => __awaiter(this, void 0, void 0, function* () {
+                                                        dialog.dataLoading({ visible: true });
+                                                        return ApiUser.getUserListOrders(Object.assign(Object.assign({}, vm.apiJSON), { all_result: true })).then(data => {
+                                                            dialog.dataLoading({ visible: false });
+                                                            return data.response.allUsers;
+                                                        });
+                                                    });
                                                     if (vmi.pageSize != 0 && vmi.page > vmi.pageSize) {
                                                         UserList.vm.page = 1;
                                                         gvc.notifyDataChange(vm.id);
                                                     }
+                                                    vmi.loading = false;
                                                     vmi.callback();
                                                 });
                                             },

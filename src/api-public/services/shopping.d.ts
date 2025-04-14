@@ -140,7 +140,7 @@ declare class OrderDetail {
         phone: string;
         address: string;
         custom_form_delivery?: any;
-        shipment: "normal" | "FAMIC2C" | "black_cat_freezing" | "UNIMARTC2C" | "HILIFEC2C" | "OKMARTC2C" | "now" | "shop" | "global_express" | "black_cat" | "UNIMARTFREEZE";
+        shipment: 'normal' | 'FAMIC2C' | 'black_cat_freezing' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop' | 'global_express' | 'black_cat' | 'UNIMARTFREEZE';
         CVSStoreName: string;
         CVSStoreID: string;
         CVSTelephone: string;

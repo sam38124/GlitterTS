@@ -71,14 +71,19 @@ class Rebate {
         let point = 0;
         let recycle = 0;
         let pending = 0;
-        if (obj.user_id && !isNaN(obj.user_id)) {
+        if (obj.quickPass && obj.user_id) {
             user_id = obj.user_id;
         }
-        else if (obj.email) {
-            const user = await database_1.default.query(`SELECT userID FROM \`${this.app}\`.t_user 
-                    WHERE account = '${obj.email}' OR JSON_EXTRACT(userData, '$.email') = '${obj.email}'`, []);
-            if (user[0]) {
-                user_id = user[0].userID;
+        else {
+            if (obj.user_id && !isNaN(obj.user_id)) {
+                user_id = obj.user_id;
+            }
+            else if (obj.email) {
+                const user = await database_1.default.query(`SELECT userID FROM \`${this.app}\`.t_user 
+          WHERE account = '${obj.email}' OR JSON_EXTRACT(userData, '$.email') = '${obj.email}'`, []);
+                if (user[0]) {
+                    user_id = user[0].userID;
+                }
             }
         }
         if (user_id === 0) {
@@ -150,13 +155,15 @@ class Rebate {
         const low = (_c = query.low) !== null && _c !== void 0 ? _c : 0;
         const high = (_d = query.high) !== null && _d !== void 0 ? _d : 10000000000;
         let rebateSearchSQL = '';
-        const getUsersSQL = (query.email_or_phone) ? `
+        const getUsersSQL = query.email_or_phone
+            ? `
         SELECT userID, JSON_EXTRACT(userData, '$.name') as name
         FROM \`${this.app}\`.t_user
         WHERE
             (JSON_EXTRACT(userData, '$.phone') = ${database_1.default.escape(query.email_or_phone)}
             OR JSON_EXTRACT(userData, '$.email') = ${database_1.default.escape(query.email_or_phone)});
-    ` : `
+    `
+            : `
             SELECT userID, JSON_EXTRACT(userData, '$.name') as name 
             FROM \`${this.app}\`.t_user 
             WHERE 

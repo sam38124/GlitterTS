@@ -166,9 +166,9 @@ export class User {
 
   public async phoneVerify(account: string) {
     const time: any = await redis.getValue(`verify-phone-${account}-last-time`);
-    let last_count: any = parseInt(`${(await redis.getValue(`verify-phone-${account}-last-count`)) || '0'}`,10);
+    let last_count: any = parseInt(`${(await redis.getValue(`verify-phone-${account}-last-count`)) || '0'}`, 10);
     last_count++;
-    if(last_count>3){
+    if (last_count > 3) {
       return {
         out_limit: true,
       };
@@ -1250,6 +1250,12 @@ export class User {
   public async getUserList(query: UserQuery) {
     try {
       const checkPoint = new UtTimer('GET-USER-LIST').checkPoint;
+
+      // if (this.app === 't_1725992531001') {
+      //   await new InitialFakeData('t_1725992531001').run();
+      //   checkPoint('Run InitialFakeData');
+      // }
+
       const orderCountingSQL = await this.getCheckoutCountingModeSQL();
       const querySql: string[] = ['1=1'];
       const noRegisterUsers: any[] = [];
@@ -1507,31 +1513,135 @@ export class User {
         orderBy: query.order_string ?? '',
       });
 
-      const dataSQL = await this.getUserAndOrderSQL({
-        select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
-        where: querySql,
-        orderBy: query.order_string ?? '',
-        page: query?.page,
-        limit: query?.limit,
-      });
-      const levelData = (await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' })).levels ?? [];
-      const userData = (await db.query(dataSQL, [])).map((dd: any) => {
-        dd.pwd = undefined;
-        const find_level=levelData.find((d1:any)=>{
-          return dd.member_level===d1.id;
+      const processChunk = 1000;
+
+      const getUserQuery = async (param?: { page?: number; limit?: number }) => {
+        const dataSQL = await this.getUserAndOrderSQL({
+          select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
+          where: querySql,
+          orderBy: query.order_string ?? '',
+          page: param?.page,
+          limit: param?.limit,
         });
-        dd.tag_name = (find_level) ? find_level.tag_name:'一般會員';
-        return dd;
-      });
-      //補空值
-      userData.map((dd:any) => {
-        dd.last_order_total = dd.last_order_total || 0;
-        dd.order_count = dd.order_count || 0;
-        dd.total_amount = dd.total_amount || 0;
-      });
+
+        const levelData = (await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' })).levels ?? [];
+
+        const getUsers = (await db.query(dataSQL, [])).map((dd: any) => {
+          dd.pwd = undefined;
+          const find_level = levelData.find((d1: any) => {
+            return dd.member_level === d1.id;
+          });
+          dd.tag_name = find_level ? find_level.tag_name : '一般會員';
+          return dd;
+        });
+        checkPoint('getUsers');
+
+        const dataArray = [];
+
+        for (let i = 0; i < getUsers.length; i += processChunk) {
+          const data = await processUserData(getUsers.slice(i, i + processChunk));
+          dataArray.push(data);
+          checkPoint(`processUserData ${i}`);
+        }
+
+        return dataArray.flat();
+      };
+
+      const processUserData = async (userData: any) => {
+        // 會員等級 Map
+        const levels = await this.getUserLevel(userData.map((user: any) => ({ userId: user.userID })));
+        const levelMap = new Map(levels.map(lv => [lv.id, lv.data.dead_line ?? '']));
+        checkPoint('levels');
+
+        const mapUser = async (user: any) => {
+          const phone = user.userData.phone || 'asnhsauh';
+          const email = user.userData.email || 'asnhsauh';
+
+          // 取得購物金餘額
+          const userRebate = await new Rebate(this.app).getOneRebate({
+            user_id: user.userID,
+            quickPass: true,
+          });
+          user.rebate = userRebate ? userRebate.point : 0;
+
+          // 取得會員等級截止日
+          user.member_deadline = levelMap.get(user.userID) ?? '';
+          user.latest_order_date = (
+            await db.query(
+              `select created_time
+                                                    from \`${this.app}\`.t_checkout
+                                                    where email in ('${email}', '${phone}')
+                                                      and ${orderCountingSQL}
+                                                    order by created_time desc limit 0,1`,
+              []
+            )
+          )[0];
+          user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
+          user.latest_order_total = (
+            await db.query(
+              `select total
+                                                     from \`${this.app}\`.t_checkout
+                                                     where email in ('${email}', '${phone}')
+                                                       and ${orderCountingSQL}
+                                                     order by created_time desc limit 0,1`,
+              []
+            )
+          )[0];
+          user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
+          user.checkout_total = (
+            await db.query(
+              `select sum(total)
+                                                 from \`${this.app}\`.t_checkout
+                                                 where email in ('${email}', '${phone}')
+                                                   and ${orderCountingSQL} `,
+              []
+            )
+          )[0];
+          user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
+          user.checkout_count = (
+            await db.query(
+              `select count(1)
+                                                 from \`${this.app}\`.t_checkout
+                                                 where email in ('${email}', '${phone}')
+                                                   and ${orderCountingSQL} `,
+              []
+            )
+          )[0];
+          user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
+          user.last_order_total = user.last_order_total || 0;
+          user.order_count = user.order_count || 0;
+          user.total_amount = user.total_amount || 0;
+        };
+
+        // 批次處理會員資料
+        if (Array.isArray(userData) && userData.length > 0) {
+          const chunkSize = 100;
+
+          for (let i = 0; i < userData.length; i += chunkSize) {
+            const batch = userData.slice(i, i + chunkSize);
+            await Promise.all(
+              batch.map(async (user: any) => {
+                await mapUser(user);
+                checkPoint('mapUser');
+              })
+            );
+          }
+        }
+
+        return userData;
+      };
+
+      const [pageUsers, allUsers] = await Promise.all([
+        getUserQuery({ page: query.page, limit: query.limit }),
+        query.all_result ? getUserQuery() : [],
+      ]);
+      checkPoint('return data');
+
       return {
         // 指定頁數和符合篩選條件的會員資料
-        data: userData,
+        data: pageUsers,
+        // 所有符合篩選條件的會員資料
+        ...(allUsers.length > 0 ? { allUsers } : {}),
         // 所有符合篩選條件的會員數量
         total: (await db.query(countSQL, []))[0]['count(1)'],
         // 額外資料（例如未註冊的訂閱者資料）
@@ -1696,12 +1806,21 @@ export class User {
     if (existNormalTag || existZeroValue) {
       return levelList;
     }
-    return [this.normalMember, ...levelList];
+
+    const formatLevelList = levelList.map((item: any) => {
+      item.index++;
+      return item;
+    });
+    return [this.normalMember, ...formatLevelList];
   }
 
   private async filterMemberUpdates(idList: string[]): Promise<any[]> {
     try {
       const memberUpdates: any[] = [];
+
+      if (idList.length === 0) {
+        return [];
+      }
 
       if (idList.length > 10000) {
         const idSetArray = [...new Set(idList)];
@@ -1757,14 +1876,11 @@ export class User {
     }
   }
 
-  private async setLevelData(user: any, memberUpdates: any, levelConfig?: any) {
+  private async setLevelData(user: any, quickPass: boolean, memberUpdates: any, levelList: any) {
     const { userID, userData } = user;
     const { level_status, level_default, email } = userData;
 
-    const levelList = levelConfig ?? (await this.getLevelConfig());
-
     const normalMember = levelList[0] ?? this.normalMember;
-
     const normalData = {
       id: normalMember.id,
       og: normalMember,
@@ -1781,6 +1897,35 @@ export class User {
         email,
         status: 'manual',
         data: matchedLevel ?? normalData,
+      };
+    }
+
+    // 啟用快速通關處理會員等級
+    if (quickPass) {
+      const index = user.member_level ? levelList.findIndex((level: any) => level.id === user.member_level) : 0;
+      const getLevel = levelList[index];
+
+      const formatData = {
+        id: getLevel.id,
+        og: {
+          id: getLevel.id,
+          index: index,
+          duration: getLevel.duration,
+          tag_name: getLevel.tag_name,
+          condition: getLevel.condition,
+          dead_line: getLevel.dead_line,
+          create_date: getLevel.create_date,
+        },
+        trigger: true,
+        tag_name: getLevel.tag_name,
+        dead_line: '',
+      };
+
+      return {
+        id: userID,
+        email,
+        status: 'auto',
+        data: formatData,
       };
     }
 
@@ -1821,6 +1966,8 @@ export class User {
       status: 'auto' | 'manual';
     }[]
   > {
+    const utTimer = new UtTimer('getUserLevel');
+
     const idList: string[] = data
       .filter(item => Boolean(item.userId))
       .map(item => `${item.userId}`)
@@ -1843,26 +1990,20 @@ export class User {
 
     if (!users || users.length == 0) return [];
 
-    const chunk = 50;
-    const chunkArray = [];
+    const chunk = 20;
     const dataList: any = [];
     const levelConfig = await this.getLevelConfig();
     const memberUpdates = await this.filterMemberUpdates(idList);
 
     for (let i = 0; i < users.length; i += chunk) {
-      chunkArray.push(users.slice(i, i + chunk));
+      const userArray = users.slice(i, i + chunk);
+      await Promise.all(
+        userArray.map(async (user: any) => {
+          const userData = await this.setLevelData(user, users.length > 100, memberUpdates, levelConfig);
+          dataList.push(userData);
+        })
+      );
     }
-
-    await Promise.all(
-      chunkArray.map(async userArray => {
-        await Promise.all(
-          userArray.map(async (user: any) => {
-            const userData = await this.setLevelData(user, memberUpdates, levelConfig);
-            dataList.push(userData);
-          })
-        );
-      })
-    );
 
     return dataList;
   }
@@ -2119,8 +2260,7 @@ export class User {
         }
         if (
           login_config.phone_verify &&
-          !(await PhoneVerify.verify(par.userData.phone, par.userData.verify_code_phone))
-           &&
+          !(await PhoneVerify.verify(par.userData.phone, par.userData.verify_code_phone)) &&
           register_form.list.find((dd: any) => {
             return dd.key === 'phone' && `${dd.hidden}` !== 'true';
           })

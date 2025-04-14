@@ -19,6 +19,7 @@
   "types": "index.d.ts",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.47.0",
+    "@faker-js/faker": "^9.6.0",
     "@lottiefiles/lottie-player": "^2.0.12",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@paypal/paypal-server-sdk": "^0.6.0",
@@ -42,6 +43,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "express-session": "^1.18.0",
+    "fake-data-generator-taiwan": "^1.0.4",
     "firebase-admin": "^11.11.1",
     "form-data": "^4.0.0",
     "google-auth-library": "^9.10.0",

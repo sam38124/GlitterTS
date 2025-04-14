@@ -1260,6 +1260,7 @@ class User {
                 where: querySql,
                 orderBy: (_c = query.order_string) !== null && _c !== void 0 ? _c : '',
             });
+<<<<<<< HEAD
             const dataSQL = await this.getUserAndOrderSQL({
                 select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
                 where: querySql,
@@ -1285,6 +1286,89 @@ class User {
                 data: userData,
                 total: (await database_1.default.query(countSQL, []))[0]['count(1)'],
                 extra: {
+=======
+            const processChunk = 1000;
+            const getUserQuery = async (param) => {
+                var _a;
+                const dataSQL = await this.getUserAndOrderSQL({
+                    select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
+                    where: querySql,
+                    orderBy: (_a = query.order_string) !== null && _a !== void 0 ? _a : '',
+                    page: param === null || param === void 0 ? void 0 : param.page,
+                    limit: param === null || param === void 0 ? void 0 : param.limit,
+                });
+                const getUsers = (await database_1.default.query(dataSQL, [])).map((dd) => {
+                    dd.pwd = undefined;
+                    dd.tag_name = '一般會員';
+                    return dd;
+                });
+                checkPoint('getUsers');
+                const dataArray = [];
+                for (let i = 0; i < getUsers.length; i += processChunk) {
+                    const data = await processUserData(getUsers.slice(i, i + processChunk));
+                    dataArray.push(data);
+                    checkPoint(`processUserData ${i}`);
+                }
+                return dataArray.flat();
+            };
+            const processUserData = async (userData) => {
+                const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
+                const levelMap = new Map(levels.map(lv => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
+                checkPoint('levels');
+                const mapUser = async (user) => {
+                    var _a;
+                    const phone = user.userData.phone || 'asnhsauh';
+                    const email = user.userData.email || 'asnhsauh';
+                    const userRebate = await new rebate_js_1.Rebate(this.app).getOneRebate({
+                        user_id: user.userID,
+                        quickPass: true,
+                    });
+                    user.rebate = userRebate ? userRebate.point : 0;
+                    user.member_deadline = (_a = levelMap.get(user.userID)) !== null && _a !== void 0 ? _a : '';
+                    user.latest_order_date = (await database_1.default.query(`select created_time
+                                                    from \`${this.app}\`.t_checkout
+                                                    where email in ('${email}', '${phone}')
+                                                      and ${orderCountingSQL}
+                                                    order by created_time desc limit 0,1`, []))[0];
+                    user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
+                    user.latest_order_total = (await database_1.default.query(`select total
+                                                     from \`${this.app}\`.t_checkout
+                                                     where email in ('${email}', '${phone}')
+                                                       and ${orderCountingSQL}
+                                                     order by created_time desc limit 0,1`, []))[0];
+                    user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
+                    user.checkout_total = (await database_1.default.query(`select sum(total)
+                                                 from \`${this.app}\`.t_checkout
+                                                 where email in ('${email}', '${phone}')
+                                                   and ${orderCountingSQL} `, []))[0];
+                    user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
+                    user.checkout_count = (await database_1.default.query(`select count(1)
+                                                 from \`${this.app}\`.t_checkout
+                                                 where email in ('${email}', '${phone}')
+                                                   and ${orderCountingSQL} `, []))[0];
+                    user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
+                    user.order_count = user.order_count || 0;
+                    user.total_amount = user.total_amount || 0;
+                };
+                if (Array.isArray(userData) && userData.length > 0) {
+                    const chunkSize = 100;
+                    for (let i = 0; i < userData.length; i += chunkSize) {
+                        const batch = userData.slice(i, i + chunkSize);
+                        await Promise.all(batch.map(async (user) => {
+                            await mapUser(user);
+                            checkPoint('mapUser');
+                        }));
+                    }
+                }
+                return userData;
+            };
+            const [pageUsers, allUsers] = await Promise.all([
+                getUserQuery({ page: query.page, limit: query.limit }),
+                query.all_result ? getUserQuery() : [],
+            ]);
+            checkPoint('return data');
+            return Object.assign(Object.assign({ data: pageUsers }, (allUsers.length > 0 ? { allUsers } : {})), { total: (await database_1.default.query(countSQL, []))[0]['count(1)'], extra: {
+>>>>>>> 55932361 (fix: all select batch users)
                     noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
                 },
             };
@@ -1393,11 +1477,18 @@ class User {
         if (existNormalTag || existZeroValue) {
             return levelList;
         }
-        return [this.normalMember, ...levelList];
+        const formatLevelList = levelList.map((item) => {
+            item.index++;
+            return item;
+        });
+        return [this.normalMember, ...formatLevelList];
     }
     async filterMemberUpdates(idList) {
         try {
             const memberUpdates = [];
+            if (idList.length === 0) {
+                return [];
+            }
             if (idList.length > 10000) {
                 const idSetArray = [...new Set(idList)];
                 const idMap = new Map();
@@ -1440,11 +1531,10 @@ class User {
             return [];
         }
     }
-    async setLevelData(user, memberUpdates, levelConfig) {
+    async setLevelData(user, quickPass, memberUpdates, levelList) {
         var _a;
         const { userID, userData } = user;
         const { level_status, level_default, email } = userData;
-        const levelList = levelConfig !== null && levelConfig !== void 0 ? levelConfig : (await this.getLevelConfig());
         const normalMember = (_a = levelList[0]) !== null && _a !== void 0 ? _a : this.normalMember;
         const normalData = {
             id: normalMember.id,
@@ -1460,6 +1550,31 @@ class User {
                 email,
                 status: 'manual',
                 data: matchedLevel !== null && matchedLevel !== void 0 ? matchedLevel : normalData,
+            };
+        }
+        if (quickPass) {
+            const index = user.member_level ? levelList.findIndex((level) => level.id === user.member_level) : 0;
+            const getLevel = levelList[index];
+            const formatData = {
+                id: getLevel.id,
+                og: {
+                    id: getLevel.id,
+                    index: index,
+                    duration: getLevel.duration,
+                    tag_name: getLevel.tag_name,
+                    condition: getLevel.condition,
+                    dead_line: getLevel.dead_line,
+                    create_date: getLevel.create_date,
+                },
+                trigger: true,
+                tag_name: getLevel.tag_name,
+                dead_line: '',
+            };
+            return {
+                id: userID,
+                email,
+                status: 'auto',
+                data: formatData,
             };
         }
         if (memberUpdates.length > 0) {
@@ -1482,6 +1597,7 @@ class User {
         };
     }
     async getUserLevel(data) {
+        const utTimer = new ut_timer_1.UtTimer('getUserLevel');
         const idList = data
             .filter(item => Boolean(item.userId))
             .map(item => `${item.userId}`)
@@ -1498,20 +1614,17 @@ class User {
       `, []);
         if (!users || users.length == 0)
             return [];
-        const chunk = 50;
-        const chunkArray = [];
+        const chunk = 20;
         const dataList = [];
         const levelConfig = await this.getLevelConfig();
         const memberUpdates = await this.filterMemberUpdates(idList);
         for (let i = 0; i < users.length; i += chunk) {
-            chunkArray.push(users.slice(i, i + chunk));
-        }
-        await Promise.all(chunkArray.map(async (userArray) => {
+            const userArray = users.slice(i, i + chunk);
             await Promise.all(userArray.map(async (user) => {
-                const userData = await this.setLevelData(user, memberUpdates, levelConfig);
+                const userData = await this.setLevelData(user, users.length > 100, memberUpdates, levelConfig);
                 dataList.push(userData);
             }));
-        }));
+        }
         return dataList;
     }
     async subscribe(email, tag) {

@@ -1661,7 +1661,6 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 pageSize: 0,
                 tableData: [],
                 originalData: [],
-                allResultData: [],
                 callback: () => {
                     vm.loading = false;
                     gvc.notifyDataChange(ids.container);
@@ -1746,21 +1745,24 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         initCheckData();
                         const selectAllObject = {
                             gvc,
-                            event: () => {
-                                if (vm.limit > 0) {
-                                    vm.checkedArray = vm.allResultData.map((item, i) => {
-                                        const index = i % vm.limit;
-                                        const page = Math.ceil(i / vm.limit) + (Boolean(index) ? 0 : 1);
-                                        item.dataPin = `${page}-${index}`;
-                                        item.checked = true;
-                                        return item;
-                                    });
-                                    vm.originalData.forEach((item) => {
-                                        item.checked = true;
-                                    });
-                                    renderRowCheckbox(true);
+                            event: () => __awaiter(this, void 0, void 0, function* () {
+                                if (vm.limit > 0 && vm.allResult) {
+                                    const allResultArray = yield vm.allResult();
+                                    if (Array.isArray(allResultArray) && allResultArray.length > 0) {
+                                        vm.checkedArray = allResultArray.map((item, i) => {
+                                            const index = i % vm.limit;
+                                            const page = Math.ceil(i / vm.limit) + (Boolean(index) ? 0 : 1);
+                                            item.dataPin = `${page}-${index}`;
+                                            item.checked = true;
+                                            return item;
+                                        });
+                                        vm.originalData.forEach((item) => {
+                                            item.checked = true;
+                                        });
+                                        renderRowCheckbox(true);
+                                    }
                                 }
-                            },
+                            }),
                         };
                         const cancelAllObject = {
                             gvc,
@@ -1813,7 +1815,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                             text: '',
                                                         }),
                                                     ],
-                                                    allSelectCallback: vm.allResultData.length > 0 ? selectAllObject : undefined,
+                                                    allSelectCallback: vm.allResult ? selectAllObject : undefined,
                                                     cancelCallback: cancelAllObject,
                                                 });
                                             }
@@ -1844,7 +1846,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                 }),
                                                 count: vm.checkedArray.length,
                                                 buttonList: [...inList, ...outList],
-                                                allSelectCallback: vm.allResultData.length > 0 ? selectAllObject : undefined,
+                                                allSelectCallback: vm.allResult ? selectAllObject : undefined,
                                                 cancelCallback: cancelAllObject,
                                             });
                                         }

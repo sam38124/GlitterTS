@@ -102,6 +102,11 @@ export declare class User {
         extra: {
             noRegisterUsers: any[] | undefined;
         };
+<<<<<<< HEAD
+=======
+        allUsers?: any[] | never[] | undefined;
+        data: any[];
+>>>>>>> 55932361 (fix: all select batch users)
     }>;
     getUserGroups(type?: string[], tag?: string, hide_level?: boolean): Promise<{
         result: false;

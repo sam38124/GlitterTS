@@ -164,7 +164,7 @@ class Schedule {
                                     return { userId: item.userID };
                                 }));
                                 for (const user of users) {
-                                    const member = usersLevel.find((item) => item.id == user.userID);
+                                    const member = usersLevel.find(item => item.id == user.userID);
                                     if (member && member.data.id === '') {
                                         continue;
                                     }
@@ -308,7 +308,7 @@ class Schedule {
         console.log(`autoSendLine-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
     }
     async initialSampleApp(sec) {
-        await new initial_fake_data_js_1.InitialFakeData(`t_1725992531001`).run();
+        await new initial_fake_data_js_1.InitialFakeData('t_1725992531001').run();
         setTimeout(() => this.initialSampleApp(sec), sec * 1000);
     }
     async currenciesUpdate(sec) {
@@ -326,7 +326,10 @@ class Schedule {
             axios_1.default
                 .request(config)
                 .then(async (response) => {
-                await database_1.default.query(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.currency_config (\`json\`,updated) values (?,?)`, [JSON.stringify(response.data), date_index]);
+                await database_1.default.query(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.currency_config (\`json\`,updated) values (?,?)`, [
+                    JSON.stringify(response.data),
+                    date_index,
+                ]);
                 setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
             })
                 .catch((error) => {
@@ -351,7 +354,7 @@ class Schedule {
             { second: 30, status: true, func: 'autoCancelOrder', desc: '自動取消未付款未出貨訂單' },
         ];
         try {
-            scheduleList.forEach((schedule) => {
+            scheduleList.forEach(schedule => {
                 if (schedule.status && typeof this[schedule.func] === 'function') {
                     this[schedule.func](schedule.second);
                 }

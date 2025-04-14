@@ -73,7 +73,7 @@ class OrderDetail {
         this.customer_info = this.initCustomerInfo();
         this.user_info = this.initUserInfo();
         this.total = 0;
-        this.pay_status = "0";
+        this.pay_status = '0';
         this.voucher = this.initVoucher();
     }
     initCustomerInfo() {
@@ -103,13 +103,13 @@ class OrderDetail {
             id: 0,
             discount_total: 0,
             end_ISO_Date: '',
-            for: "product",
+            for: 'product',
             forKey: [],
-            method: "fixed",
+            method: 'fixed',
             overlay: false,
-            reBackType: "rebate",
+            reBackType: 'rebate',
             rebate_total: 0,
-            rule: "min_count",
+            rule: 'min_count',
             ruleValue: 0,
             startDate: '',
             startTime: '',
@@ -118,9 +118,9 @@ class OrderDetail {
             target: '',
             targetList: [],
             title: '',
-            trigger: "auto",
+            trigger: 'auto',
             type: 'voucher',
-            value: "0"
+            value: '0',
         };
     }
 }
@@ -139,6 +139,7 @@ class Shopping {
             const exh_config = await userClass.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
             const userID = (_a = query.setUserID) !== null && _a !== void 0 ? _a : (this.token ? `${this.token.userID}` : '');
             const querySql = [`(content->>'$.type'='product')`];
+            const idStr = query.id_list ? query.id_list.split(',').filter(Boolean).join(',') : '';
             query.language = (_b = query.language) !== null && _b !== void 0 ? _b : store_info.language_setting.def;
             query.show_hidden = (_c = query.show_hidden) !== null && _c !== void 0 ? _c : 'true';
             const orderMapping = {
@@ -298,7 +299,12 @@ class Shopping {
                 querySql.push(`(content->>'$.hideIndex' IS NULL OR content->>'$.hideIndex' = 'false')`);
             }
             if (query.id_list) {
-                query.order_by = ` ORDER BY FIELD (id,${query.id_list})`;
+                if (idStr.length > 0) {
+                    query.order_by = ` ORDER BY FIELD (id, ${idStr})`;
+                }
+                else {
+                    query.order_by = ' ORDER BY id';
+                }
             }
             if (!query.is_manger && !query.status) {
                 query.status = 'inRange';
@@ -364,8 +370,8 @@ class Shopping {
                     querySql.push(`(content->>'$.channel' IS NULL ${channelJoin})`);
                 }
             }
-            if (query.id_list) {
-                querySql.push(`(id in (${query.id_list}))`);
+            if (query.id_list && idStr) {
+                querySql.push(`(id in (${idStr}))`);
             }
             if (query.min_price) {
                 querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price' >= ${query.min_price}))`);
@@ -868,12 +874,9 @@ class Shopping {
         const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
         const orderClause = query.order_by || 'ORDER BY id DESC';
         const offset = query.page * query.limit;
-        let sql = `
-        SELECT *
-        FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}
-    `;
-        const data = await database_js_1.default.query(`SELECT *
-       FROM (${sql}) AS subquery LIMIT ?, ?`, [offset, Number(query.limit)]);
+        let sql = `SELECT * FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}`;
+        const data = await database_js_1.default.query(`SELECT * FROM (${sql}) AS subquery LIMIT ?, ?
+      `, [offset, Number(query.limit)]);
         if (query.id) {
             return {
                 data: data[0] || {},
@@ -882,8 +885,8 @@ class Shopping {
         }
         else {
             const total = await database_js_1.default
-                .query(`SELECT COUNT(*) as count
-                FROM \`${this.app}\`.t_manager_post ${whereClause}`, [])
+                .query(`SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}
+          `, [])
                 .then((res) => { var _a; return ((_a = res[0]) === null || _a === void 0 ? void 0 : _a.count) || 0; });
             return {
                 data: data.map((dd) => (Object.assign(Object.assign({}, dd), { content: Object.assign(Object.assign({}, dd.content), { id: dd.id }) }))),
@@ -2005,7 +2008,7 @@ class Shopping {
                             app: this.app,
                             tag: 'order-create',
                             order_id: carData.orderID,
-                            phone_email: email
+                            phone_email: email,
                         });
                         auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
                     }
@@ -2065,7 +2068,7 @@ class Shopping {
                             app: this.app,
                             tag: 'order-create',
                             order_id: carData.orderID,
-                            phone_email: email
+                            phone_email: email,
                         });
                         auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
                     }
@@ -2197,7 +2200,7 @@ class Shopping {
                                     app: this.app,
                                     tag: 'order-create',
                                     order_id: carData.orderID,
-                                    phone_email: email
+                                    phone_email: email,
                                 });
                                 auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
                             }
@@ -2854,7 +2857,7 @@ class Shopping {
                                 app: this.app,
                                 tag: 'order-cancel-success',
                                 order_id: orderData.orderID,
-                                phone_email: email
+                                phone_email: email,
                             });
                             await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', orderData.orderID, email, orderData.language);
                         }
@@ -3047,7 +3050,7 @@ class Shopping {
                     app: this.app,
                     tag: type,
                     order_id: orderData.orderID,
-                    phone_email: email
+                    phone_email: email,
                 });
                 messages.push(auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, `auto-email-${typeMap[type]}`, orderData.orderID, email, orderData.language));
             }
@@ -3170,7 +3173,7 @@ class Shopping {
                         app: this.app,
                         tag: 'proof-purchase',
                         order_id: order_id,
-                        phone_email: email
+                        phone_email: email,
                     });
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, email, orderData.language);
                 }
@@ -3574,7 +3577,7 @@ class Shopping {
                             app: this.app,
                             tag: 'payment-successful',
                             order_id: order_id,
-                            phone_email: email
+                            phone_email: email,
                         });
                         await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, email, cartData.orderData.language);
                     }

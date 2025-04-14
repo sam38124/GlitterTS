@@ -124,7 +124,7 @@ interface LineItem {
   sale_price: number;
   title: string;
   sku: string;
-  preview_image:string;
+  preview_image: string;
 }
 
 interface CustomerInfo {
@@ -149,8 +149,8 @@ interface UserInfo {
 }
 
 interface orderVoucherData {
-  id:number;
-  discount_total:number;
+  id: number;
+  discount_total: number;
   title: string;
   method: 'percent' | 'fixed';
   trigger: 'auto' | 'code';
@@ -177,10 +177,10 @@ interface orderVoucherData {
   }[];
   start_ISO_Date: string;
   end_ISO_Date: string;
-  reBackType:string;
-  rebate_total:number;
-  target:string;
-  targetList:string[];
+  reBackType: string;
+  rebate_total: number;
+  target: string;
+  targetList: string[];
 }
 
 class OrderDetail {
@@ -202,14 +202,25 @@ class OrderDetail {
     phone: string;
     address: string;
     custom_form_delivery?: any;
-    shipment: "normal" | "FAMIC2C" | "black_cat_freezing" | "UNIMARTC2C" | "HILIFEC2C" | "OKMARTC2C" | "now" | "shop" | "global_express" | "black_cat" | "UNIMARTFREEZE";
+    shipment:
+      | 'normal'
+      | 'FAMIC2C'
+      | 'black_cat_freezing'
+      | 'UNIMARTC2C'
+      | 'HILIFEC2C'
+      | 'OKMARTC2C'
+      | 'now'
+      | 'shop'
+      | 'global_express'
+      | 'black_cat'
+      | 'UNIMARTFREEZE';
     CVSStoreName: string;
     CVSStoreID: string;
     CVSTelephone: string;
     MerchantTradeNo: string;
     CVSAddress: string;
     note?: string;
-    code_note?: string
+    code_note?: string;
   };
   pay_status: string;
 
@@ -219,7 +230,7 @@ class OrderDetail {
     this.customer_info = this.initCustomerInfo();
     this.user_info = this.initUserInfo();
     this.total = 0;
-    this.pay_status = "0";
+    this.pay_status = '0';
     this.voucher = this.initVoucher();
   }
 
@@ -248,17 +259,17 @@ class OrderDetail {
   }
 
   private initVoucher(): orderVoucherData {
-    return  {
+    return {
       id: 0,
       discount_total: 0,
       end_ISO_Date: '',
-      for: "product",
+      for: 'product',
       forKey: [],
-      method: "fixed",
+      method: 'fixed',
       overlay: false,
-      reBackType: "rebate",
+      reBackType: 'rebate',
       rebate_total: 0,
-      rule: "min_count",
+      rule: 'min_count',
       ruleValue: 0,
       startDate: '',
       startTime: '',
@@ -267,9 +278,9 @@ class OrderDetail {
       target: '',
       targetList: [],
       title: '',
-      trigger: "auto",
+      trigger: 'auto',
       type: 'voucher',
-      value: "0"
+      value: '0',
     };
   }
 }
@@ -434,6 +445,7 @@ export class Shopping {
       const exh_config = await userClass.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
       const userID = query.setUserID ?? (this.token ? `${this.token.userID}` : '');
       const querySql = [`(content->>'$.type'='product')`];
+      const idStr = query.id_list ? query.id_list.split(',').filter(Boolean).join(',') : '';
       query.language = query.language ?? store_info.language_setting.def;
       query.show_hidden = query.show_hidden ?? 'true';
 
@@ -618,7 +630,11 @@ export class Shopping {
       }
 
       if (query.id_list) {
-        query.order_by = ` ORDER BY FIELD (id,${query.id_list})`;
+        if (idStr.length > 0) {
+          query.order_by = ` ORDER BY FIELD (id, ${idStr})`;
+        } else {
+          query.order_by = ' ORDER BY id';
+        }
       }
 
       if (!query.is_manger && !query.status) {
@@ -694,8 +710,8 @@ export class Shopping {
         }
       }
 
-      if (query.id_list) {
-        querySql.push(`(id in (${query.id_list}))`);
+      if (query.id_list && idStr) {
+        querySql.push(`(id in (${idStr}))`);
       }
 
       if (query.min_price) {
@@ -709,7 +725,6 @@ export class Shopping {
           `(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price' <= ${query.max_price}))`
         );
       }
-
 
       // 取得產品查詢結果
       const products = await this.querySql(querySql, query);
@@ -1312,14 +1327,11 @@ export class Shopping {
     const orderClause = query.order_by || 'ORDER BY id DESC';
     const offset = query.page * query.limit;
 
-    let sql = `
-        SELECT *
-        FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}
-    `;
+    let sql = `SELECT * FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}`;
 
     const data = await db.query(
-      `SELECT *
-       FROM (${sql}) AS subquery LIMIT ?, ?`,
+      `SELECT * FROM (${sql}) AS subquery LIMIT ?, ?
+      `,
       [offset, Number(query.limit)]
     );
 
@@ -1331,8 +1343,8 @@ export class Shopping {
     } else {
       const total = await db
         .query(
-          `SELECT COUNT(*) as count
-                FROM \`${this.app}\`.t_manager_post ${whereClause}`,
+          `SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}
+          `,
           []
         )
         .then((res: any) => res[0]?.count || 0);
@@ -2838,11 +2850,11 @@ export class Shopping {
         for (const email of emailList) {
           if (email) {
             await AutoFcm.orderChangeInfo({
-              app:this.app,
-              tag:'order-create',
-              order_id:carData.orderID,
-              phone_email:email
-            })
+              app: this.app,
+              tag: 'order-create',
+              order_id: carData.orderID,
+              phone_email: email,
+            });
             AutoSendEmail.customerOrder(
               this.app,
               'auto-email-order-create',
@@ -2909,11 +2921,11 @@ export class Shopping {
         )) {
           if (email) {
             await AutoFcm.orderChangeInfo({
-              app:this.app,
-              tag:'order-create',
-              order_id:carData.orderID,
-              phone_email:email
-            })
+              app: this.app,
+              tag: 'order-create',
+              order_id: carData.orderID,
+              phone_email: email,
+            });
             AutoSendEmail.customerOrder(
               this.app,
               'auto-email-order-create',
@@ -3081,11 +3093,11 @@ export class Shopping {
             )) {
               if (email) {
                 await AutoFcm.orderChangeInfo({
-                  app:this.app,
-                  tag:'order-create',
-                  order_id:carData.orderID,
-                  phone_email:email
-                })
+                  app: this.app,
+                  tag: 'order-create',
+                  order_id: carData.orderID,
+                  phone_email: email,
+                });
                 AutoSendEmail.customerOrder(
                   this.app,
                   'auto-email-order-create',
@@ -3397,7 +3409,7 @@ export class Shopping {
     }
   }
 
-  async splitOrder(obj:{orderData: Cart, splitOrderArray:OrderDetail[]}) {
+  async splitOrder(obj: { orderData: Cart; splitOrderArray: OrderDetail[] }) {
     try {
       function generateOrderIds(orderId: string, arrayLength: number): string[] {
         const orderIdArray: string[] = [];
@@ -3412,21 +3424,23 @@ export class Shopping {
         return orderIdArray;
       }
       //整理原本訂單的總價 優惠卷
-      function refreshOrder(orderData:Cart , splitOrderArray:OrderDetail[]){
-        const { newTotal, newDiscount } = splitOrderArray.reduce((acc, order) => {
-          return {
-            newTotal: acc.newTotal + order.total,
-            newDiscount: acc.newDiscount + order.discount,
-          };
-        }, { newTotal: 0, newDiscount: 0 });
+      function refreshOrder(orderData: Cart, splitOrderArray: OrderDetail[]) {
+        const { newTotal, newDiscount } = splitOrderArray.reduce(
+          (acc, order) => {
+            return {
+              newTotal: acc.newTotal + order.total,
+              newDiscount: acc.newDiscount + order.discount,
+            };
+          },
+          { newTotal: 0, newDiscount: 0 }
+        );
 
         orderData.total = newTotal;
         orderData.discount = newDiscount;
-
       }
       const orderData = obj.orderData;
       const splitOrderArray = obj.splitOrderArray;
-      refreshOrder(orderData , splitOrderArray);
+      refreshOrder(orderData, splitOrderArray);
 
       try {
         await db.query(
@@ -3435,7 +3449,7 @@ export class Shopping {
          WHERE cart_token = ?;`,
           [JSON.stringify(orderData), orderData.orderID]
         );
-      }catch (e:any){
+      } catch (e: any) {
         console.error(e);
         throw exception.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
       }
@@ -3868,7 +3882,7 @@ export class Shopping {
     return cart;
   }
 
-  async putOrder(data: { id?: string; cart_token?: string; orderData: any; status: any ; spiltOrder?:string[]}) {
+  async putOrder(data: { id?: string; cart_token?: string; orderData: any; status: any; spiltOrder?: string[] }) {
     try {
       const update: any = {};
       const storeConfig = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
@@ -3932,11 +3946,11 @@ export class Shopping {
           for (const email of emailList) {
             if (email) {
               await AutoFcm.orderChangeInfo({
-                app:this.app,
-                tag:'order-cancel-success',
-                order_id:orderData.orderID,
-                phone_email:email
-              })
+                app: this.app,
+                tag: 'order-cancel-success',
+                order_id: orderData.orderID,
+                phone_email: email,
+              });
               await AutoSendEmail.customerOrder(
                 this.app,
                 'auto-email-order-cancel-success',
@@ -4046,7 +4060,6 @@ export class Shopping {
       throw exception.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
     }
   }
-
 
   private writeRecord(origin: any, update: any): void {
     const editArray: Array<{ time: string; record: string }> = [];
@@ -4195,10 +4208,10 @@ export class Shopping {
     )) {
       if (email) {
         await AutoFcm.orderChangeInfo({
-          app:this.app,
-          tag:type,
-          order_id:orderData.orderID,
-          phone_email:email
+          app: this.app,
+          tag: type,
+          order_id: orderData.orderID,
+          phone_email: email,
         });
         messages.push(
           AutoSendEmail.customerOrder(
@@ -4359,11 +4372,11 @@ export class Shopping {
       )) {
         if (email) {
           await AutoFcm.orderChangeInfo({
-            app:this.app,
-            tag:'proof-purchase',
-            order_id:order_id,
-            phone_email:email
-          })
+            app: this.app,
+            tag: 'proof-purchase',
+            order_id: order_id,
+            phone_email: email,
+          });
           await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, email, orderData.language);
         }
       }
@@ -4875,11 +4888,11 @@ export class Shopping {
         )) {
           if (email) {
             await AutoFcm.orderChangeInfo({
-              app:this.app,
-              tag:'payment-successful',
-              order_id:order_id,
-              phone_email:email
-            })
+              app: this.app,
+              tag: 'payment-successful',
+              order_id: order_id,
+              phone_email: email,
+            });
             await AutoSendEmail.customerOrder(
               this.app,
               'auto-email-payment-successful',

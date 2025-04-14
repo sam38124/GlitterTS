@@ -8,6 +8,15 @@ const database_js_1 = __importDefault(require("../../modules/database.js"));
 class CheckoutService {
     static async updateAndMigrateToTableColumn(obj) {
         var _a, _b, _c;
+        const originSearchSQL = (() => {
+            if (obj.id) {
+                return `id = ${obj.id}`;
+            }
+            if (obj.cart_token) {
+                return `cart_token = '${obj.cart_token}'`;
+            }
+            return '1=0';
+        })();
         const update_object = {};
         const json = obj.orderData;
         json.progress = (_a = json.progress) !== null && _a !== void 0 ? _a : 'wait';
@@ -52,13 +61,14 @@ class CheckoutService {
             update_object.shipment_name = json.user_info.name;
             update_object.shipment_phone = json.user_info.phone;
             update_object.shipment_email = json.user_info.email;
-            update_object.shipment_address = [json.user_info.city, json.user_info.area, json.user_info.address].filter((dd) => {
+            update_object.shipment_address = [json.user_info.city, json.user_info.area, json.user_info.address]
+                .filter(dd => {
                 return dd;
-            }).join('');
+            })
+                .join('');
         }
-        await database_js_1.default.query(`update \`${obj.app_name}\`.t_checkout
-       set ?
-       where id = ${obj.id}`, [update_object]);
+        await database_js_1.default.query(`UPDATE \`${obj.app_name}\`.t_checkout SET ? WHERE ${originSearchSQL}
+      `, [update_object]);
         try {
             await database_js_1.default.query(`delete
                       from \`${obj.app_name}\`.t_products_sold_history
@@ -70,7 +80,7 @@ class CheckoutService {
                         product_id: (_c = b.id) !== null && _c !== void 0 ? _c : -1,
                         order_id: obj.orderData.orderID,
                         spec: (b.spec || []).join('-'),
-                        count: b.count
+                        count: b.count,
                     },
                 ]);
             }

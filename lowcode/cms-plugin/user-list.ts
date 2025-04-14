@@ -365,7 +365,7 @@ export class UserList {
                               dialog.dataLoading({ visible: true });
 
                               // 執行批次處理
-                              const results = await UserModule.batchProcess(checkedData, 100);
+                              const results = await UserModule.batchProcess(checkedData, 200);
 
                               // 檢查是否有失敗
                               const failedUpdates = results.filter((r: any) => !r.result);
@@ -403,20 +403,31 @@ export class UserList {
                                 filter: vm.filter,
                                 filter_type: vm.filter_type,
                                 group: vm.group,
-                                all_result: true,
                               };
                               ApiUser.getUserListOrders(vm.apiJSON).then(data => {
                                 vm.dataList = data.response.data;
+                                vmi.limit = limit;
                                 vmi.pageSize = Math.ceil(data.response.total / limit);
                                 vmi.originalData = vm.dataList;
-                                vmi.allResultData = data.response.allUsers ?? [];
-                                vmi.limit = limit;
                                 vmi.tableData = getUserlist();
-                                vmi.loading = false;
+
+                                vmi.allResult = async () => {
+                                  dialog.dataLoading({ visible: true });
+                                  return ApiUser.getUserListOrders({
+                                    ...vm.apiJSON,
+                                    all_result: true,
+                                  }).then(data => {
+                                    dialog.dataLoading({ visible: false });
+                                    return data.response.allUsers;
+                                  });
+                                };
+
                                 if (vmi.pageSize != 0 && vmi.page > vmi.pageSize) {
                                   UserList.vm.page = 1;
                                   gvc.notifyDataChange(vm.id);
                                 }
+
+                                vmi.loading = false;
                                 vmi.callback();
                               });
                             },
