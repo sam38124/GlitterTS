@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { BaseApi } from '../../glitterBundle/api/base.js';
 import { GlobalUser } from '../global/global-user.js';
 import { ApiShop } from './shopping.js';
-import { ShareDialog } from '../../dialog/ShareDialog.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 export class ApiUser {
     static register(json) {
         return BaseApi.create({
