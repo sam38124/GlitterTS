@@ -10,7 +10,6 @@ import contollers = require('./controllers');
 import public_contollers = require('./api-public/controllers');
 import database from './modules/database';
 import { SaasScheme } from './services/saas-table-check';
-
 import db from './modules/database';
 import { createBucket, listBuckets } from './modules/AWSLib';
 import { Live_source } from './live_source';
@@ -30,23 +29,17 @@ import compression from 'compression';
 import { User } from './api-public/services/user.js';
 import { Schedule } from './api-public/services/schedule.js';
 import { Private_config } from './services/private_config.js';
-import moment from 'moment/moment.js';
 import xmlFormatter from 'xml-formatter';
 import { SystemSchedule } from './services/system-schedule';
 import { Ai } from './services/ai.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import { Monitor } from './api-public/services/monitor.js';
-import { UpdateScript } from './update-script.js';
-import { Manager } from './api-public/services/manager.js';
 import { SitemapStream, streamToPromise } from 'sitemap';
 import { Readable } from 'stream';
-import AWS from 'aws-sdk';
-import { extractCols, extractProds, SeoConfig } from './seo-config.js';
+import { extractCols, SeoConfig } from './seo-config.js';
 import { Language } from './Language.js';
-import { FbApi } from './api-public/services/fb-api.js';
 import { CaughtError } from './modules/caught-error.js';
-import { EzPay } from './api-public/services/financial-service.js';
 
 export const app = express();
 const logger = new Logger();
@@ -152,8 +145,8 @@ export async function createAPP(dd: any) {
         path: file_path,
         app_name: dd.appName,
         root_path: '/' + encodeURI(dd.appName) + '/',
-        seoManager: async (req, resp)=>{
-          return await SeoConfig.seoDetail(dd.appName as string,req,resp)
+        seoManager: async (req, resp) => {
+          return await SeoConfig.seoDetail(dd.appName as string, req, resp);
         },
         sitemap: async (req, resp) => {
           let appName = dd.appName;
@@ -421,8 +414,6 @@ export async function createAPP(dd: any) {
     })
   );
 }
-
-
 
 async function getSeoSiteMap(appName: string, req: any) {
   const sqlData = await Private_config.getConfig({

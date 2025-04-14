@@ -58,7 +58,11 @@ const user_update_js_1 = require("./user-update.js");
 const public_table_check_js_1 = require("./public-table-check.js");
 const ut_timer_1 = require("../utils/ut-timer");
 const auto_fcm_js_1 = require("../../public-config-initial/auto-fcm.js");
+<<<<<<< HEAD
 const phone_verify_js_1 = require("./phone-verify.js");
+=======
+const update_progress_track_js_1 = require("../../update-progress-track.js");
+>>>>>>> 87b6007d (feat: user list batch update event & progress api)
 class User {
     constructor(app, token) {
         this.normalMember = {
@@ -1303,13 +1307,16 @@ class User {
                     return dd;
                 });
                 checkPoint('getUsers');
-                const dataArray = [];
-                for (let i = 0; i < getUsers.length; i += processChunk) {
-                    const data = await processUserData(getUsers.slice(i, i + processChunk));
-                    dataArray.push(data);
-                    checkPoint(`processUserData ${i}`);
+                if (param) {
+                    const dataArray = [];
+                    for (let i = 0; i < getUsers.length; i += processChunk) {
+                        const data = await processUserData(getUsers.slice(i, i + processChunk));
+                        dataArray.push(data);
+                        checkPoint(`processUserData ${i}`);
+                    }
+                    return dataArray.flat();
                 }
-                return dataArray.flat();
+                return getUsers.map((user) => ({ userID: user.userID }));
             };
             const processUserData = async (userData) => {
                 const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
@@ -1874,6 +1881,117 @@ class User {
             delete userData.pwd;
             delete userData.userData.verify_code;
             throw exception_1.default.BadRequestError(e.code || 'BAD_REQUEST', e.message, { data: userData });
+        }
+    }
+    async batchGetUser(userId) {
+        try {
+            const sql = `SELECT * FROM \`${this.app}\`.t_user WHERE userID = ?`;
+            const dataArray = [];
+            const stack = {
+                appName: this.app,
+                taskId: tool_js_1.default.randomString(12),
+                taskTag: 'batchGetUser',
+                progress: 0,
+            };
+            update_progress_track_js_1.StackTracker.stack.push(stack);
+            if (Array.isArray(userId) && userId.length > 0) {
+                const chunkSize = 100;
+                for (let i = 0; i < userId.length; i += chunkSize) {
+                    const size = i + chunkSize;
+                    const batch = userId.slice(i, size);
+                    await Promise.all(batch.map(async (id) => {
+                        const results = await database_1.default.query(sql, [database_1.default.escape(id)]);
+                        results.forEach((result) => delete result.pwd);
+                        dataArray.push(results);
+                    }));
+                    update_progress_track_js_1.StackTracker.setProgress(stack.taskId, update_progress_track_js_1.StackTracker.calcPercentage(size, userId.length));
+                }
+            }
+            update_progress_track_js_1.StackTracker.clearProgress(stack.taskId);
+            return dataArray.flat();
+        }
+        catch (error) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Batch get userData:' + error, null);
+        }
+    }
+    async batchUpdateUserData(trackName, users) {
+        try {
+            const stack = {
+                appName: this.app,
+                taskId: tool_js_1.default.randomString(12),
+                taskTag: trackName,
+                progress: 0,
+            };
+            update_progress_track_js_1.StackTracker.stack.push(stack);
+            if (Array.isArray(users) && users.length > 0) {
+                const chunkSize = 200;
+                for (let i = 0; i < users.length; i += chunkSize) {
+                    const size = i + chunkSize;
+                    const batch = users.slice(i, size);
+                    update_progress_track_js_1.StackTracker.setProgress(stack.taskId, update_progress_track_js_1.StackTracker.calcPercentage(size, users.length));
+                    await Promise.all(batch.map(async (user) => {
+                        await new Promise(async (resolve) => {
+                            await this.updateUserData(user.id, user.data);
+                            setTimeout(() => resolve(true), 200);
+                        });
+                    }));
+                }
+            }
+            update_progress_track_js_1.StackTracker.clearProgress(stack.taskId);
+            return;
+        }
+        catch (error) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Batch update userData:' + error, null);
+        }
+    }
+    async batchAddtag(userId, tags) {
+        try {
+            const users = await this.batchGetUser(userId);
+            const updateData = users.map((item) => {
+                item.userData.tags = item.userData.tags ? [...new Set([...item.userData.tags, ...tags])] : tags;
+                return {
+                    id: item.userID,
+                    data: item,
+                };
+            });
+            await this.batchUpdateUserData('batchAddtag', updateData);
+        }
+        catch (error) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Batch add tag:' + error, null);
+        }
+    }
+    async batchRemovetag(userId, tags) {
+        try {
+            const users = await this.batchGetUser(userId);
+            const postMap = new Map(tags.map(tag => [tag, true]));
+            const updateData = users.map((item) => {
+                item.userData.tags = item.userData.tags ? item.userData.tags.filter((tag) => !postMap.get(tag)) : [];
+                return {
+                    id: item.userID,
+                    data: item,
+                };
+            });
+            await this.batchUpdateUserData('batchRemovetag', updateData);
+        }
+        catch (error) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Batch remove tag:' + error, null);
+        }
+    }
+    async batchManualLevel(userId, level) {
+        try {
+            const users = await this.batchGetUser(userId);
+            const updateData = users.map((item) => {
+                item.userData.level_status = 'manual';
+                item.userData.level_default = level;
+                return {
+                    id: item.userID,
+                    data: item,
+                };
+            });
+            await this.batchUpdateUserData('batchManualLevel', updateData);
+        }
+        catch (error) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Batch manual level:' + error, null);
         }
     }
     async clearUselessData(userData, manager) {

@@ -7,11 +7,14 @@ const response_1 = __importDefault(require("../../modules/response"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const redis_1 = __importDefault(require("../../modules/redis"));
 const database_1 = __importDefault(require("../../modules/database"));
-const config_1 = require("../../config");
-const router = express_1.default.Router();
+const exception_1 = __importDefault(require("../../modules/exception"));
 const logger_1 = __importDefault(require("../../modules/logger"));
 const underscore_1 = __importDefault(require("underscore"));
-const exception_1 = __importDefault(require("../../modules/exception"));
+const config_1 = require("../../config");
+const live_source_js_1 = require("../../live_source.js");
+const public_table_check_js_1 = require("../services/public-table-check.js");
+const monitor_js_1 = require("../services/monitor.js");
+const language_setting_js_1 = require("../services/language-setting.js");
 const userRouter = require("./user");
 const postRouter = require("./post");
 const messageRouter = require("./chat");
@@ -35,10 +38,7 @@ const stock = require("./stock");
 const shopee = require("./shopee");
 const customer_sessions = require("./customer-sessions");
 const fb = require("./fb-service");
-const live_source_js_1 = require("../../live_source.js");
-const public_table_check_js_1 = require("../services/public-table-check.js");
-const monitor_js_1 = require("../services/monitor.js");
-const language_setting_js_1 = require("../services/language-setting.js");
+const router = express_1.default.Router();
 router.use('/api-public/*', doAuthAction);
 router.use(config_1.config.getRoute(config_1.config.public_route.user, 'public'), userRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.post, 'public'), postRouter);
@@ -70,6 +70,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.track, 'public'
 router.use(config_1.config.getRoute(config_1.config.public_route.voucher, 'public'), require('./voucher'));
 router.use(config_1.config.getRoute(config_1.config.public_route.fb, 'public'), fb);
 router.use(config_1.config.getRoute(config_1.config.public_route.reconciliation, 'public'), require('./reconciliation'));
+router.use(config_1.config.getRoute(config_1.config.public_route.progress, 'public'), require('./progress'));
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.customer_sessions + '/online_cart', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.shopee, 'public'), method: 'POST' },
@@ -168,7 +169,7 @@ async function doAuthAction(req, resp, next_step) {
         return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_APP', 'invalid app'));
     }
     await public_table_check_js_1.ApiPublic.createScheme((_b = req.get('g-app')) !== null && _b !== void 0 ? _b : req.query['g-app']);
-    const refer_app = public_table_check_js_1.ApiPublic.checkedApp.find((dd) => {
+    const refer_app = public_table_check_js_1.ApiPublic.checkedApp.find(dd => {
         return dd.app_name === req.headers['g-app'];
     });
     req.headers['g-app'] = (refer_app && refer_app.refer_app) || ((_c = req.get('g-app')) !== null && _c !== void 0 ? _c : req.query['g-app']);

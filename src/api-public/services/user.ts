@@ -32,6 +32,8 @@ import { ApiPublic } from './public-table-check.js';
 import { UtTimer } from '../utils/ut-timer';
 import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
 import { PhoneVerify } from './phone-verify.js';
+import { StackTracker, Stack } from '../../update-progress-track.js';
+import { InitialFakeData } from './initial-fake-data.js';
 
 interface UserQuery {
   page?: number;
@@ -1536,15 +1538,19 @@ export class User {
         });
         checkPoint('getUsers');
 
-        const dataArray = [];
+        if (param) {
+          const dataArray = [];
 
-        for (let i = 0; i < getUsers.length; i += processChunk) {
-          const data = await processUserData(getUsers.slice(i, i + processChunk));
-          dataArray.push(data);
-          checkPoint(`processUserData ${i}`);
+          for (let i = 0; i < getUsers.length; i += processChunk) {
+            const data = await processUserData(getUsers.slice(i, i + processChunk));
+            dataArray.push(data);
+            checkPoint(`processUserData ${i}`);
+          }
+
+          return dataArray.flat();
         }
 
-        return dataArray.flat();
+        return getUsers.map((user: any) => ({ userID: user.userID }));
       };
 
       const processUserData = async (userData: any) => {
@@ -1614,6 +1620,7 @@ export class User {
         };
 
         // 批次處理會員資料
+
         if (Array.isArray(userData) && userData.length > 0) {
           const chunkSize = 100;
 
@@ -2329,6 +2336,139 @@ export class User {
       delete userData.pwd;
       delete userData.userData.verify_code;
       throw exception.BadRequestError(e.code || 'BAD_REQUEST', e.message, { data: userData });
+    }
+  }
+
+  public async batchGetUser(userId: string[]) {
+    try {
+      const sql = `SELECT * FROM \`${this.app}\`.t_user WHERE userID = ?`;
+      const dataArray: any = [];
+
+      const stack: Stack = {
+        appName: this.app,
+        taskId: Tool.randomString(12),
+        taskTag: 'batchGetUser',
+        progress: 0,
+      };
+
+      StackTracker.stack.push(stack);
+
+      if (Array.isArray(userId) && userId.length > 0) {
+        const chunkSize = 100;
+        for (let i = 0; i < userId.length; i += chunkSize) {
+          const size = i + chunkSize;
+          const batch = userId.slice(i, size);
+          await Promise.all(
+            batch.map(async id => {
+              const results = await db.query(sql, [db.escape(id)]);
+              results.forEach((result: any) => delete result.pwd);
+              dataArray.push(results);
+            })
+          );
+          StackTracker.setProgress(stack.taskId, StackTracker.calcPercentage(size, userId.length));
+        }
+      }
+
+      StackTracker.clearProgress(stack.taskId);
+
+      return dataArray.flat();
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Batch get userData:' + error, null);
+    }
+  }
+
+  public async batchUpdateUserData(trackName: string, users: { id: string; data: any }[]) {
+    try {
+      const stack: Stack = {
+        appName: this.app as string,
+        taskId: Tool.randomString(12),
+        taskTag: trackName,
+        progress: 0,
+      };
+
+      StackTracker.stack.push(stack);
+
+      if (Array.isArray(users) && users.length > 0) {
+        const chunkSize = 200;
+        for (let i = 0; i < users.length; i += chunkSize) {
+          const size = i + chunkSize;
+          const batch = users.slice(i, size);
+          StackTracker.setProgress(stack.taskId, StackTracker.calcPercentage(size, users.length));
+          await Promise.all(
+            batch.map(async user => {
+              await new Promise(async resolve => {
+                await this.updateUserData(user.id, user.data);
+                setTimeout(() => resolve(true), 200);
+              });
+            })
+          );
+        }
+      }
+
+      StackTracker.clearProgress(stack.taskId);
+
+      return;
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Batch update userData:' + error, null);
+    }
+  }
+
+  public async batchAddtag(userId: string[], tags: string[]) {
+    try {
+      const users = await this.batchGetUser(userId);
+
+      const updateData = users.map((item: any) => {
+        item.userData.tags = item.userData.tags ? [...new Set([...item.userData.tags, ...tags])] : tags;
+
+        return {
+          id: item.userID,
+          data: item,
+        };
+      });
+
+      await this.batchUpdateUserData('batchAddtag', updateData);
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Batch add tag:' + error, null);
+    }
+  }
+
+  public async batchRemovetag(userId: string[], tags: string[]) {
+    try {
+      const users = await this.batchGetUser(userId);
+      const postMap: Map<string, boolean> = new Map(tags.map(tag => [tag, true]));
+
+      const updateData = users.map((item: any) => {
+        item.userData.tags = item.userData.tags ? item.userData.tags.filter((tag: string) => !postMap.get(tag)) : [];
+
+        return {
+          id: item.userID,
+          data: item,
+        };
+      });
+
+      await this.batchUpdateUserData('batchRemovetag', updateData);
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Batch remove tag:' + error, null);
+    }
+  }
+
+  public async batchManualLevel(userId: string[], level: string[]) {
+    try {
+      const users = await this.batchGetUser(userId);
+
+      const updateData = users.map((item: any) => {
+        item.userData.level_status = 'manual';
+        item.userData.level_default = level;
+
+        return {
+          id: item.userID,
+          data: item,
+        };
+      });
+
+      await this.batchUpdateUserData('batchManualLevel', updateData);
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Batch manual level:' + error, null);
     }
   }
 

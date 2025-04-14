@@ -29,4 +29,5 @@ export declare class ManagerNotify {
     formSubmit(cf: {
         user_id: string;
     }): Promise<void>;
+    addTagProgress(percentage: number): Promise<void>;
 }

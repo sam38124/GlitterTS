@@ -16,7 +16,8 @@ const filter_protect_data_js_1 = require("../services/filter-protect-data.js");
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
-        const user = new user_1.User(req.get('g-app'));
+        const app = req.get('g-app');
+        const user = new user_1.User(app, req.body.token);
         const isManager = await ut_permission_js_1.UtPermission.isManager(req);
         const query = Object.assign(Object.assign({}, req.query), { all_result: req.query.all_result === 'true' });
         const { type, email, search } = query;
@@ -611,6 +612,51 @@ router.get('/ip/info', async (req, resp) => {
     try {
         const ip = req.query.ip || req.headers['x-real-ip'] || req.ip;
         return resp.send(await user_1.User.ipInfo(ip));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/batch/tag', async (req, resp) => {
+    try {
+        const app = req.get('g-app');
+        const user = new user_1.User(app, req.body.token);
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await user.batchAddtag(req.body.userId, req.body.tags));
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.delete('/batch/tag', async (req, resp) => {
+    try {
+        const app = req.get('g-app');
+        const user = new user_1.User(app, req.body.token);
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await user.batchRemovetag(req.body.userId, req.body.tags));
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/batch/manualLevel', async (req, resp) => {
+    try {
+        const app = req.get('g-app');
+        const user = new user_1.User(app, req.body.token);
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await user.batchManualLevel(req.body.userId, req.body.level));
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
     }
     catch (err) {
         return response_1.default.fail(resp, err);

@@ -69,6 +69,7 @@ export class UserModule {
     static addTags(obj) {
         const gvc = obj.gvc;
         const dataArray = obj.dataArray;
+        const dialog = new ShareDialog(gvc.glitter);
         const vmt = {
             id: gvc.glitter.getUUID(),
             loading: true,
@@ -128,15 +129,14 @@ export class UserModule {
             清除全部
           </div>`,
                     BgWidget.cancel(gvc2.event(() => gvc2.closeDialog())),
-                    BgWidget.save(gvc2.event(() => __awaiter(this, void 0, void 0, function* () {
-                        dataArray.forEach((item) => {
-                            item.userData.tags = item.userData.tags
-                                ? [...new Set([...item.userData.tags, ...vmt.postData])]
-                                : vmt.postData;
+                    BgWidget.save(gvc2.event(() => {
+                        const ids = dataArray.map((data) => data.userID).filter(Boolean);
+                        ApiUser.batchAddTag({ userId: ids, tags: vmt.postData }).then(() => {
+                            dialog.successMessage({ text: '「新增標籤」更新完成' });
                         });
-                        obj.saveEvent(dataArray);
                         gvc2.closeDialog();
-                    }))),
+                        gvc.notifyDataChange(obj.notifyId);
+                    })),
                 ].join('');
             },
         });
@@ -144,19 +144,13 @@ export class UserModule {
     static removeTags(obj) {
         const gvc = obj.gvc;
         const dataArray = obj.dataArray;
+        const dialog = new ShareDialog(gvc.glitter);
         const vmt = {
             id: gvc.glitter.getUUID(),
             loading: true,
             dataList: [],
             postData: JSON.parse(JSON.stringify([])),
-            tagJoinList: {},
         };
-        dataArray.forEach((item) => {
-            const tags = item.userData.tags || [];
-            tags.forEach((tag) => {
-                vmt.tagJoinList[tag] = true;
-            });
-        });
         BgWidget.settingDialog({
             gvc,
             title: '批量刪除標籤',
@@ -180,7 +174,7 @@ export class UserModule {
                             ApiUser.getPublicConfig('user_general_tags', 'manager').then((dd) => {
                                 var _b, _c;
                                 if (dd.result && ((_c = (_b = dd.response) === null || _b === void 0 ? void 0 : _b.value) === null || _c === void 0 ? void 0 : _c.list)) {
-                                    vmt.dataList = dd.response.value.list.filter((item) => vmt.tagJoinList[item]);
+                                    vmt.dataList = dd.response.value.list;
                                     vmt.loading = false;
                                     gvc2.notifyDataChange(vmt.id);
                                 }
@@ -205,16 +199,14 @@ export class UserModule {
             清除全部
           </div>`,
                     BgWidget.cancel(gvc2.event(() => gvc2.closeDialog())),
-                    BgWidget.save(gvc2.event(() => __awaiter(this, void 0, void 0, function* () {
-                        const postMap = new Map(vmt.postData.map(tag => [tag, true]));
-                        dataArray.forEach((item) => {
-                            item.userData.tags = item.userData.tags
-                                ? item.userData.tags.filter((tag) => !postMap.get(tag))
-                                : [];
+                    BgWidget.save(gvc2.event(() => {
+                        const ids = dataArray.map((data) => data.userID).filter(Boolean);
+                        ApiUser.batchRemoveTag({ userId: ids, tags: vmt.postData }).then(() => {
+                            dialog.successMessage({ text: '「移除標籤」更新完成' });
                         });
-                        obj.saveEvent(dataArray);
                         gvc2.closeDialog();
-                    }))),
+                        gvc.notifyDataChange(obj.notifyId);
+                    })),
                 ].join('');
             },
         });
@@ -222,6 +214,7 @@ export class UserModule {
     static manualSetLevel(obj) {
         const gvc = obj.gvc;
         const dataArray = obj.dataArray;
+        const dialog = new ShareDialog(gvc.glitter);
         const levelVM = {
             id: gvc.glitter.getUUID(),
             loading: true,
@@ -276,12 +269,12 @@ export class UserModule {
                 return [
                     BgWidget.cancel(gvc2.event(() => gvc2.closeDialog())),
                     BgWidget.save(gvc2.event(() => __awaiter(this, void 0, void 0, function* () {
-                        dataArray.forEach((item) => {
-                            item.userData.level_status = 'manual';
-                            item.userData.level_default = levelVM.level;
+                        const ids = dataArray.map((data) => data.userID).filter(Boolean);
+                        ApiUser.batchManualLevel({ userId: ids, level: levelVM.level }).then(() => {
+                            dialog.successMessage({ text: '「手動修改會員標籤」更新完成' });
                         });
-                        obj.saveEvent(dataArray);
                         gvc2.closeDialog();
+                        gvc.notifyDataChange(obj.notifyId);
                     }))),
                 ].join('');
             },

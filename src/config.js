@@ -136,7 +136,8 @@ exports.config = {
         customer_sessions: '/customer_sessions',
         voucher: '/voucher',
         reconciliation: '/reconciliation',
-        fb: '/fb'
+        fb: '/fb',
+        progress: '/progress',
     },
     route: {
         shopee: '/shopee',

@@ -15,6 +15,7 @@ import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FormWidget } from '../official_view_component/official/form.js';
 import { ApiWallet } from '../glitter-base/route/wallet.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
+import { ApiProgress } from '../glitter-base/route/progress.js';
 import { ShoppingOrderManager } from './shopping-order-manager.js';
 import { FilterOptions } from './filter-options.js';
 import { ShoppingRebate } from './shopping-rebate.js';
@@ -44,6 +45,7 @@ export class UserList {
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
             barId: glitter.getUUID(),
+            progressId: glitter.getUUID(),
             initial_data: {},
             group: obj && obj.group ? obj.group : undefined,
             plan: GlobalUser.getPlan().id,
@@ -171,6 +173,46 @@ export class UserList {
                         }
                         return BgWidget.title('顧客列表');
                     })()}
+              ${gvc.bindView((() => {
+                        let dataList = [];
+                        return {
+                            bind: vm.progressId,
+                            view: () => {
+                                if (dataList.length == 0) {
+                                    return '';
+                                }
+                                const progressMap = {
+                                    batchGetUser: '資料處理中',
+                                    batchAddtag: '新增標籤中',
+                                    batchRemovetag: '移除標籤中',
+                                    batchManualLevel: '手動修改會員等級中',
+                                };
+                                return dataList
+                                    .map((item) => {
+                                    const { taskTag, progress } = item;
+                                    if (Number(progress) === 100) {
+                                        return '';
+                                    }
+                                    const toFixProgress = Number(progress).toFixed(1);
+                                    return BgWidget.notifyInsignia(`${progressMap[taskTag]}: ${toFixProgress}%`);
+                                })
+                                    .join('');
+                            },
+                            divCreate: {
+                                class: 'ms-2',
+                            },
+                            onCreate: () => {
+                                setTimeout(() => {
+                                    ApiProgress.getAllProgress().then(t => {
+                                        dataList = t.result && Array.isArray(t.response) ? t.response : [];
+                                        if (dataList.length > 0) {
+                                            gvc.notifyDataChange(vm.progressId);
+                                        }
+                                    });
+                                }, 2500);
+                            },
+                        };
+                    })())}
               <div class="flex-fill"></div>
               <div class="d-flex align-items-center" style="gap: 10px;">
                 ${BgWidget.grayButton('匯入', gvc.event(() => UserExcel.importDialog(gvc, () => gvc.notifyDataChange(vm.id))))}
@@ -299,28 +341,6 @@ export class UserList {
                                         if (vm.loading) {
                                             return '';
                                         }
-                                        function batchUpdateUser(checkedData) {
-                                            return __awaiter(this, void 0, void 0, function* () {
-                                                try {
-                                                    dialog.dataLoading({ visible: true });
-                                                    const results = yield UserModule.batchProcess(checkedData, 200);
-                                                    const failedUpdates = results.filter((r) => !r.result);
-                                                    if (failedUpdates.length > 0) {
-                                                        UserModule.failedUpdateDialog(gvc, failedUpdates, checkedData.length);
-                                                    }
-                                                    else {
-                                                        dialog.successMessage({ text: '更新成功' });
-                                                    }
-                                                    dialog.dataLoading({ visible: false });
-                                                    gvc.notifyDataChange(vm.id);
-                                                }
-                                                catch (error) {
-                                                    console.error('更新失敗:', error);
-                                                    dialog.dataLoading({ visible: false });
-                                                    dialog.errorMessage({ text: '更新失敗，請稍後再試' });
-                                                }
-                                            });
-                                        }
                                         return BgWidget.tableV3({
                                             gvc: gvc,
                                             getData: vd => {
@@ -367,33 +387,21 @@ export class UserList {
                                                     name: '新增標籤',
                                                     option: true,
                                                     event: (dataArray) => {
-                                                        UserModule.addTags({
-                                                            gvc,
-                                                            dataArray,
-                                                            saveEvent: result => batchUpdateUser(result),
-                                                        });
+                                                        UserModule.addTags({ gvc, notifyId: vm.progressId, dataArray });
                                                     },
                                                 },
                                                 {
                                                     name: '移除標籤',
                                                     option: true,
                                                     event: (dataArray) => {
-                                                        UserModule.removeTags({
-                                                            gvc,
-                                                            dataArray,
-                                                            saveEvent: result => batchUpdateUser(result),
-                                                        });
+                                                        UserModule.removeTags({ gvc, notifyId: vm.progressId, dataArray });
                                                     },
                                                 },
                                                 {
                                                     name: '手動調整等級',
                                                     option: true,
                                                     event: (dataArray) => {
-                                                        UserModule.manualSetLevel({
-                                                            gvc,
-                                                            dataArray,
-                                                            saveEvent: result => batchUpdateUser(result),
-                                                        });
+                                                        UserModule.manualSetLevel({ gvc, notifyId: vm.progressId, dataArray });
                                                     },
                                                 },
                                                 {
@@ -466,6 +474,7 @@ export class UserList {
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
             barId: glitter.getUUID(),
+            progressId: glitter.getUUID(),
             group: obj && obj.group ? obj.group : undefined,
             plan: 0,
             headerConfig: [],

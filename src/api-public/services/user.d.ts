@@ -103,10 +103,15 @@ export declare class User {
             noRegisterUsers: any[] | undefined;
         };
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         allUsers?: any[] | never[] | undefined;
         data: any[];
 >>>>>>> 55932361 (fix: all select batch users)
+=======
+        allUsers?: any;
+        data: any;
+>>>>>>> 02092ffb (feat: user list batch update event & progress api)
     }>;
     getUserGroups(type?: string[], tag?: string, hide_level?: boolean): Promise<{
         result: false;
@@ -169,6 +174,14 @@ export declare class User {
     updateUserData(userID: string, par: any, manager?: boolean): Promise<{
         data: any;
     }>;
+    batchGetUser(userId: string[]): Promise<any>;
+    batchUpdateUserData(trackName: string, users: {
+        id: string;
+        data: any;
+    }[]): Promise<void>;
+    batchAddtag(userId: string[], tags: string[]): Promise<void>;
+    batchRemovetag(userId: string[], tags: string[]): Promise<void>;
+    batchManualLevel(userId: string[], level: string[]): Promise<void>;
     clearUselessData(userData: any, manager: boolean): Promise<void>;
     checkUpdate(cf: {
         updateUserData: any;

@@ -871,6 +871,45 @@ export class ApiUser {
       data: JSON.stringify({ email: email }),
     });
   }
+
+  public static batchAddTag(json: { userId: string[]; tags: string[] }) {
+    return BaseApi.create({
+      url: getBaseUrl() + `/api-public/v1/user/batch/tag`,
+      type: 'POST',
+      headers: {
+        'g-app': getConfig().config.appName,
+        'Content-Type': 'application/json',
+        Authorization: getConfig().config.token,
+      },
+      data: JSON.stringify(json),
+    });
+  }
+
+  public static batchRemoveTag(json: { userId: string[]; tags: string[] }) {
+    return BaseApi.create({
+      url: getBaseUrl() + `/api-public/v1/user/batch/tag`,
+      type: 'DELETE',
+      headers: {
+        'g-app': getConfig().config.appName,
+        'Content-Type': 'application/json',
+        Authorization: getConfig().config.token,
+      },
+      data: JSON.stringify(json),
+    });
+  }
+
+  public static batchManualLevel(json: { userId: string[]; level: string }) {
+    return BaseApi.create({
+      url: getBaseUrl() + `/api-public/v1/user/batch/manualLevel`,
+      type: 'POST',
+      headers: {
+        'g-app': getConfig().config.appName,
+        'Content-Type': 'application/json',
+        Authorization: getConfig().config.token,
+      },
+      data: JSON.stringify(json),
+    });
+  }
 }
 
 function getConfig() {
