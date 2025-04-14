@@ -58,11 +58,8 @@ const user_update_js_1 = require("./user-update.js");
 const public_table_check_js_1 = require("./public-table-check.js");
 const ut_timer_1 = require("../utils/ut-timer");
 const auto_fcm_js_1 = require("../../public-config-initial/auto-fcm.js");
-<<<<<<< HEAD
 const phone_verify_js_1 = require("./phone-verify.js");
-=======
 const update_progress_track_js_1 = require("../../update-progress-track.js");
->>>>>>> 87b6007d (feat: user list batch update event & progress api)
 class User {
     constructor(app, token) {
         this.normalMember = {
@@ -1036,7 +1033,7 @@ class User {
         return orderByMap[orderBy] || 'u.id DESC';
     }
     async getUserList(query) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c;
         try {
             const checkPoint = new ut_timer_1.UtTimer('GET-USER-LIST').checkPoint;
             const orderCountingSQL = await this.getCheckoutCountingModeSQL();
@@ -1264,36 +1261,9 @@ class User {
                 where: querySql,
                 orderBy: (_c = query.order_string) !== null && _c !== void 0 ? _c : '',
             });
-<<<<<<< HEAD
-            const dataSQL = await this.getUserAndOrderSQL({
-                select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
-                where: querySql,
-                orderBy: (_d = query.order_string) !== null && _d !== void 0 ? _d : '',
-                page: query === null || query === void 0 ? void 0 : query.page,
-                limit: query === null || query === void 0 ? void 0 : query.limit,
-            });
-            const levelData = (_e = (await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' })).levels) !== null && _e !== void 0 ? _e : [];
-            const userData = (await database_1.default.query(dataSQL, [])).map((dd) => {
-                dd.pwd = undefined;
-                const find_level = levelData.find((d1) => {
-                    return dd.member_level === d1.id;
-                });
-                dd.tag_name = (find_level) ? find_level.tag_name : '一般會員';
-                return dd;
-            });
-            userData.map((dd) => {
-                dd.last_order_total = dd.last_order_total || 0;
-                dd.order_count = dd.order_count || 0;
-                dd.total_amount = dd.total_amount || 0;
-            });
-            return {
-                data: userData,
-                total: (await database_1.default.query(countSQL, []))[0]['count(1)'],
-                extra: {
-=======
             const processChunk = 1000;
             const getUserQuery = async (param) => {
-                var _a;
+                var _a, _b;
                 const dataSQL = await this.getUserAndOrderSQL({
                     select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
                     where: querySql,
@@ -1301,9 +1271,13 @@ class User {
                     page: param === null || param === void 0 ? void 0 : param.page,
                     limit: param === null || param === void 0 ? void 0 : param.limit,
                 });
+                const levelData = (_b = (await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' })).levels) !== null && _b !== void 0 ? _b : [];
                 const getUsers = (await database_1.default.query(dataSQL, [])).map((dd) => {
                     dd.pwd = undefined;
-                    dd.tag_name = '一般會員';
+                    const find_level = levelData.find((d1) => {
+                        return dd.member_level === d1.id;
+                    });
+                    dd.tag_name = find_level ? find_level.tag_name : '一般會員';
                     return dd;
                 });
                 checkPoint('getUsers');
@@ -1354,6 +1328,7 @@ class User {
                                                  where email in ('${email}', '${phone}')
                                                    and ${orderCountingSQL} `, []))[0];
                     user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
+                    user.last_order_total = user.last_order_total || 0;
                     user.order_count = user.order_count || 0;
                     user.total_amount = user.total_amount || 0;
                 };
@@ -1375,10 +1350,8 @@ class User {
             ]);
             checkPoint('return data');
             return Object.assign(Object.assign({ data: pageUsers }, (allUsers.length > 0 ? { allUsers } : {})), { total: (await database_1.default.query(countSQL, []))[0]['count(1)'], extra: {
->>>>>>> 55932361 (fix: all select batch users)
                     noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
-                },
-            };
+                } });
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'getUserList Error:' + e, null);
@@ -1830,11 +1803,10 @@ class User {
                     });
                 }
                 if (login_config.phone_verify &&
-                    !(await phone_verify_js_1.PhoneVerify.verify(par.userData.phone, par.userData.verify_code_phone))
-                    &&
-                        register_form.list.find((dd) => {
-                            return dd.key === 'phone' && `${dd.hidden}` !== 'true';
-                        })) {
+                    !(await phone_verify_js_1.PhoneVerify.verify(par.userData.phone, par.userData.verify_code_phone)) &&
+                    register_form.list.find((dd) => {
+                        return dd.key === 'phone' && `${dd.hidden}` !== 'true';
+                    })) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
                         msg: 'phone-verify-false',
                     });

@@ -439,14 +439,6 @@ class ManagerNotify {
                 }
                 return text;
             })()}」`;
-        console.log(`fireBase==>`, {
-            title: `收到客服訊息`,
-            userID: saas.user,
-            tag: 'message',
-            link: link,
-            body: message,
-            pass_store: true,
-        });
         await new firebase_js_1.Firebase(saas.brand).sendMessage({
             title: `收到客服訊息`,
             userID: saas.user,
@@ -517,17 +509,6 @@ class ManagerNotify {
                 lineID: saas.userData.lineID,
             }, () => { });
         }
-    }
-    async addTagProgress(percentage) {
-        const saas = await this.getSaasAPP();
-        const body = percentage === 100 ? '「新增標籤」正在更新' : '「新增標籤」更新完成';
-        new firebase_js_1.Firebase(saas.brand).sendMessage({
-            title: '背景執行',
-            userID: saas.user,
-            tag: 'addTagProgress',
-            link: '',
-            body: body,
-        });
     }
 }
 exports.ManagerNotify = ManagerNotify;

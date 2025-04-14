@@ -97,21 +97,12 @@ export declare class User {
     }): Promise<string>;
     private getOrderByClause;
     getUserList(query: UserQuery): Promise<{
-        data: any;
         total: any;
         extra: {
             noRegisterUsers: any[] | undefined;
         };
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        allUsers?: any[] | never[] | undefined;
-        data: any[];
->>>>>>> 55932361 (fix: all select batch users)
-=======
         allUsers?: any;
         data: any;
->>>>>>> 02092ffb (feat: user list batch update event & progress api)
     }>;
     getUserGroups(type?: string[], tag?: string, hide_level?: boolean): Promise<{
         result: false;
