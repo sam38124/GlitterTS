@@ -2,6 +2,15 @@ import db from './modules/database.js';
 import { Manager } from './api-public/services/manager.js';
 import { UtDatabase } from './api-public/utils/ut-database.js';
 import { Shopping } from './api-public/services/shopping.js';
+import { config, ConfigSetting, saasConfig } from './config.js';
+import { ApiPublic } from './api-public/services/public-table-check.js';
+import { App } from './services/app.js';
+import { User } from './api-public/services/user.js';
+import { Monitor } from './api-public/services/monitor.js';
+import { Seo } from './services/seo.js';
+import { Language } from './Language.js';
+import express from 'express';
+import { Private_config } from './services/private_config.js';
 
 const html = String.raw;
 
@@ -82,9 +91,12 @@ export class SeoConfig {
     data: any;
     language: string;
   }) {
-    const redURL = new URL(`https://127.0.0.1${cf.url}`);
+    const redURL = new URL(cf.url.includes('http') ? cf.url : `https://127.0.0.1${cf.url}`);
+    console.log(`redURL:${redURL.href}`);
     const rec = await db.query(
-      `SELECT * FROM \`${cf.appName}\`.t_recommend_links WHERE content ->>'$.link' = ?;
+      `SELECT *
+       FROM \`${cf.appName}\`.t_recommend_links
+       WHERE content ->>'$.link' = ?;
       `,
       [(cf.page as string).split('/')[1]]
     );
@@ -107,6 +119,17 @@ export class SeoConfig {
           cf.data.page_config.seo.content = article.data[0].content.seo.content;
           cf.data.page_config.seo.keywords = article.data[0].content.seo.keywords;
         }
+      }
+      console.log(`cf.link_prefix=>`,cf.link_prefix)
+      console.log(`page.redirect=>`,page.redirect)
+      console.log(`redURL.search=>`,redURL.search)
+      if(page.redirect.includes('?')){
+        if(redURL.search.includes('?')){
+          redURL.search += `&${page.redirect.split('?')[1]}`
+        }else{
+          redURL.search += `?${page.redirect.split('?')[1]}`
+        }
+        page.redirect=page.redirect.split('?')[0]
       }
       return html`localStorage.setItem('distributionCode','${page.code}'); location.href =
       '${cf.link_prefix ? `/` : ``}${cf.link_prefix}${page.redirect}${redURL.search}'; `;
@@ -369,6 +392,410 @@ export class SeoConfig {
       })
       .join('');
   }
+
+  // 所有內容
+  public static async seoDetail(in_app:string,req: express.Request, resp: express.Response){
+    const og_url = req.headers['x-original-url'];
+    try {
+      if (req.query.state === 'google_login') {
+        req.query.page = 'login';
+      }
+      let appName:any = in_app;
+      if (req.query.appName) {
+        appName = req.query.appName;
+      } else if (og_url) {
+        const new_app = (
+          await db.query(
+            `SELECT *
+                   FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                   where LOWER(domain) = ?`,
+            [og_url]
+          )
+        )[0];
+        if (new_app && new_app.appName) {
+          appName = new_app && new_app.appName;
+        } else {
+          return {
+            head: '',
+            body: `<script>window.location.href='https://shopnex.tw'</script>`,
+          };
+        }
+      }
+      req.headers['g-app'] = appName;
+      const start = new Date().getTime();
+      console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
+      //要進行initial避免找不到DB
+      await ApiPublic.createScheme(appName);
+      const find_app = ApiPublic.app301.find(dd => {
+        return dd.app_name === appName;
+      });
+      if (find_app) {
+        const router = find_app.router.find(dd => {
+          if (dd.legacy_url.startsWith('/')) {
+            dd.legacy_url = dd.legacy_url.substring(1);
+          }
+          if (dd.new_url.startsWith('/')) {
+            dd.new_url = dd.new_url.substring(1);
+          }
+          return dd.legacy_url === req.query.page;
+        });
+        if (router) {
+          return {
+            redirect: `https://${(await App.checkBrandAndMemberType(appName)).domain}/${router.new_url}`,
+          };
+        }
+      }
+      //SEO內容
+      let seo_content: string[] = [];
+      let [
+        customCode,
+        FBCode,
+        store_info,
+        language_label,
+        check_schema,
+        brandAndMemberType,
+        login_config,
+        ip_country,
+      ] = await Promise.all([
+        new User(appName).getConfigV2({
+          key: 'ga4_config',
+          user_id: 'manager',
+        }),
+        new User(appName).getConfigV2({
+          key: 'login_fb_setting',
+          user_id: 'manager',
+        }),
+        new User(appName).getConfigV2({
+          key: 'store-information',
+          user_id: 'manager',
+        }),
+        new User(appName).getConfigV2({
+          key: 'language-label',
+          user_id: 'manager',
+        }),
+        ApiPublic.createScheme(appName),
+        App.checkBrandAndMemberType(appName),
+        new User(req.get('g-app') as string, req.body.token).getConfigV2({
+          key: 'login_config',
+          user_id: 'manager',
+        }),
+        User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip) as string),
+      ]);
+      //取得多國語言
+      const language: any = await SeoConfig.language(store_info, req);
+      //插入瀏覽紀錄
+      Monitor.insertHistory({
+        req_type: 'file',
+        req: req,
+      });
+      console.log(`app_info==>`,{
+        page:req.query.page,
+        appName:appName
+      })
+      //取得SEO頁面資訊
+      let data = await Seo.getPageInfo(appName, req.query.page as string, language);
+      //首頁SEO
+      let home_page_data = await (async () => {
+        return await Seo.getPageInfo(appName, 'index', language);
+      })();
+      if(`${req.query.page}`.startsWith('products/') && !data){
+        data=home_page_data
+      }
+      if (data && data.page_config) {
+        data.page_config = data.page_config ?? {};
+        const d = data.page_config.seo ?? {};
+        //商品搜索
+        if (`${req.query.page}`.startsWith('products/')) {
+          await SeoConfig.productSEO({
+            data,
+            language,
+            appName,
+            product_id: req.query.product_id as any,
+            page: req.query.page as any,
+          });
+        } else if (`${req.query.page}` === 'blogs') {
+          //網誌目錄
+          const seo = await new User(req.get('g-app') as string, req.body.token).getConfigV2({
+            key: 'article_seo_data_' + language,
+            user_id: 'manager',
+          });
+          data.page_config.seo.title = seo.title || data.page_config.seo.title;
+          data.page_config.seo.content = seo.content || data.page_config.seo.content;
+          data.page_config.seo.keywords = seo.keywords || data.page_config.seo.keywords;
+          data.page_config.seo.image = seo.image || data.page_config.seo.image;
+          data.page_config.seo.logo = seo.logo || data.page_config.seo.logo;
+        } else if (`${req.query.page}`.startsWith('blogs/')) {
+          //網誌搜索
+          data.page_config.seo = await SeoConfig.articleSeo({
+            article: req.query.article as any,
+            page: req.query.page as any,
+            language,
+            appName,
+            data,
+          });
+        } else if (`${req.query.page}`.startsWith('pages/')) {
+          //頁面搜索
+          await SeoConfig.articleSeo({
+            article: req.query.article as any,
+            page: req.query.page as any,
+            language,
+            appName,
+            data,
+          });
+        } else if (['privacy', 'term', 'refund', 'delivery'].includes(`${req.query.page}`)) {
+          data.page_config.seo = {
+            title: Language.text(`${req.query.page}`, language),
+            content: Language.text(`${req.query.page}`, language),
+          };
+        } else if (d.type !== 'custom') {
+          data = home_page_data;
+        }
+        const preload =
+          req.query.isIframe === 'true'
+            ? {}
+            : await App.preloadPageData(appName, req.query.page as any, language);
+        data.page_config = data.page_config ?? {};
+        data.page_config.seo = data.page_config.seo ?? {};
+        const seo_detail = await getSeoDetail(appName, req);
+        if (seo_detail) {
+          Object.keys(seo_detail).map(dd => {
+            data.page_config.seo[dd] = seo_detail[dd];
+          });
+        }
+        let link_prefix = req.originalUrl.split('/')[1];
+        if (link_prefix.includes('?')) {
+          link_prefix = link_prefix.substring(0, link_prefix.indexOf('?'));
+        }
+        if (ConfigSetting.is_local) {
+          if (link_prefix !== 'shopnex' && link_prefix !== 'codenex_v2') {
+            link_prefix = '';
+          }
+        } else {
+          link_prefix = '';
+        }
+        let distribution_code = '';
+        req.query.page = req.query.page || 'index';
+        if ((req.query.page as string).split('/')[0] === 'order_detail' && req.query.EndCheckout === '1') {
+          distribution_code = `
+                                    localStorage.setItem('distributionCode','');
+                                `;
+        }
+        console.log(`req.query.page`,req.query.page)
+        //分銷連結頁面SEO
+        if (
+          (req.query.page as string).split('/')[0] === 'distribution' &&
+          (req.query.page as string).split('/')[1]
+        ) {
+          distribution_code = await SeoConfig.distributionSEO({
+            appName: appName,
+            url: req.url,
+            page: req.query.page as string,
+            link_prefix: link_prefix,
+            data,
+            language,
+          });
+        }
+        //分類頁面SEO
+        if (
+          (req.query.page as string).split('/')[0] === 'collections' &&
+          (req.query.page as string).split('/')[1]
+        ) {
+          await SeoConfig.collectionSeo({ appName, language, data, page: req.query.page as string });
+        }
+        //FB像素
+        if (FBCode) {
+          //IOS系統必須同意後才可追蹤
+          if(!((req.headers['user-agent'] as string).includes('iosGlitter') && !((req.headers['user-agent'] as string).includes('allow_track')))){
+            seo_content.push(SeoConfig.fbCode(FBCode));
+          }
+        }
+
+        const home_seo = home_page_data.page_config.seo || {};
+        const seo:any = data.page_config.seo;
+        const head = [
+          (() => {
+            return html`
+                    ${(() => {
+              if (req.query.type === 'editor') {
+                return SeoConfig.editorSeo;
+              } else {
+                const d=seo
+                return html`<title>
+                            ${[home_seo.title_prefix || '', d.title || '', home_seo.title_suffix || ''].join('') ||
+                '尚未設定標題'}
+                          </title>
+                          <link
+                            rel="canonical"
+                            href="${(() => {
+                  if (data.tag === 'index') {
+                    return `https://${brandAndMemberType.domain}`;
+                  } else if (req.query.page === 'blogs') {
+                    return `https://${brandAndMemberType.domain}/blogs`;
+                  } {
+                    return `https://${brandAndMemberType.domain}/${data.tag}`;
+                  }
+                })()}"
+                          />
+                          ${((data.tag !== req.query.page || req.query.page === 'index-mobile') && req.query.page !== 'blogs')
+                  ? `<meta name="robots" content="noindex">`
+                  : `<meta name="robots" content="index, follow"/>`}
+                          <meta name="keywords" content="${(d.keywords || '尚未設定關鍵字').replace(/"/g, '&quot;')}" />
+                          <link
+                            id="appImage"
+                            rel="shortcut icon"
+                            href="${d.logo || home_seo.logo || ''}"
+                            type="image/x-icon"
+                          />
+                          <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128" />
+                          <meta property="og:image" content="${d.image || home_seo.image || ''}" />
+                          <meta
+                            property="og:title"
+                            content="${(d.title ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}"
+                          />
+                          <meta
+                            name="description"
+                            content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}"
+                          />
+                          <meta
+                            name="og:description"
+                            content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}"
+                          />
+
+                          ${[{ src: 'css/front-end.css', type: 'text/css' }]
+                  .map(dd => {
+                    return html`
+                              <link href="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"
+                                    rel="stylesheet"></link>`;
+                  })
+                  .join('')} `;
+              }
+            })()}
+                    ${d.code ?? ''}
+                    ${(() => {
+              if (req.query.type === 'editor') {
+                return ``;
+              } else {
+                return `${(data.config.globalStyle ?? [])
+                  .map((dd: any) => {
+                    try {
+                      if (dd.data.elem === 'link') {
+                        return html` <link
+                                  type="text/css"
+                                  rel="stylesheet"
+                                  href="${dd.data.attr.find((dd: any) => {
+                          return dd.attr === 'href';
+                        }).value}"
+                                />`;
+                      }
+                    } catch (e) {
+                      return ``;
+                    }
+                  })
+                  .join('')}`;
+              }
+            })()}
+                  `;
+          })(),
+          `<script>
+                                ${[
+            (req.query.type !== 'editor' && d.custom_script) ?? '',
+            `window.login_config = ${JSON.stringify(login_config)};`,
+            `window.appName = '${appName}';`,
+            `window.glitterBase = '${brandAndMemberType.brand}';`,
+            `window.memberType = '${brandAndMemberType.memberType}';`,
+            `window.glitterBackend = '${config.domain}';`,
+            `window.preloadData = ${JSON.stringify(preload)
+              .replace(/<\/script>/g, 'sdjuescript_prepand')
+              .replace(/<script>/g, 'sdjuescript_prefix')};`,
+            `window.glitter_page = '${req.query.page}';`,
+            `window.store_info = ${JSON.stringify(store_info)};`,
+            `window.server_execute_time = ${(new Date().getTime() - start) / 1000};`,
+            `window.language = '${language}';`,
+            `${distribution_code}`,
+            `window.ip_country = '${ip_country.country || 'TW'}';`,
+            `window.currency_covert = ${JSON.stringify(await Shopping.currencyCovert((req.query.base || 'TWD') as string))};`,
+            `window.language_list = ${JSON.stringify(language_label.label)};`,
+            `window.home_seo=${JSON.stringify(home_seo)
+              .replace(/<\/script>/g, 'sdjuescript_prepand')
+              .replace(/<script>/g, 'sdjuescript_prefix')};`,
+          ]
+            .map(dd => {
+              return (dd || '').trim();
+            })
+            .filter(dd => {
+              return dd;
+            })
+            .join(';\n')}
+                            </script>
+                            ${[
+            { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
+            { src: 'glitterBundle/module/html-generate.js', type: 'module' },
+            { src: 'glitterBundle/html-component/widget.js', type: 'module' },
+            { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
+            { src: 'api/pageConfig.js', type: 'module' },
+          ]
+            .map(dd => {
+              return html` <script
+                                  src="/${link_prefix && `${link_prefix}/`}${dd.src}"
+                                  type="${dd.type}"
+                                ></script>`;
+            })
+            .join('')}
+                            ${(preload.event ?? [])
+            .filter((dd: any) => {
+              return dd;
+            })
+            .map((dd: any) => {
+              const link = dd.fun.replace(
+                `TriggerEvent.setEventRouter(import.meta.url, '.`,
+                'official_event'
+              );
+              return link.substring(0, link.length - 2);
+            })
+            .map(
+              (dd: any) =>
+                html` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`
+            )
+            .join('')}
+                            ${(() => {
+            if (req.query.type === 'editor') {
+              return ``;
+            } else {
+              //IOS系統必須同意後才可追蹤
+              if((req.headers['user-agent'] as string).includes('iosGlitter') && !((req.headers['user-agent'] as string).includes('allow_track'))){
+                customCode.ga4=[];
+                customCode.g_tag=[];
+              }
+              return html`
+                                  ${SeoConfig.gA4(customCode.ga4)} ${SeoConfig.gTag(customCode.g_tag)}
+                                  ${seo_content
+                .map(dd => {
+                  return dd.trim();
+                })
+                .join('\n')}
+                                `;
+            }
+          })()}`,
+        ].join('');
+        return {
+          head: head,
+          body: ``,
+          seo_detail:seo
+        };
+      } else {
+        return {
+          head: await Seo.redirectToHomePage(appName, req),
+          body: ``,
+        };
+      }
+    } catch (e: any) {
+      console.error(e);
+      return {
+        head: ``,
+        body: `${e}`,
+      };
+    }
+  }
 }
 
 export function extractCols(data: { value: any[]; updated_at: Date }) {
@@ -422,4 +849,54 @@ function isCurrentTimeWithinRange(data: {
   } else {
     return now >= startDateTime;
   }
+}
+
+
+async function getSeoDetail(appName: string, req: any) {
+  const sqlData = await Private_config.getConfig({
+    appName: appName,
+    key: 'seo_webhook',
+  });
+  if (!sqlData[0] || !sqlData[0].value) {
+    return undefined;
+  }
+  const html = String.raw;
+  return await db.queryLambada(
+    {
+      database: appName,
+    },
+    async db => {
+      (db as any).execute = (db as any).query;
+      const functionValue: { key: string; data: () => any }[] = [
+        {
+          key: 'db',
+          data: () => {
+            return db;
+          },
+        },
+        {
+          key: 'req',
+          data: () => {
+            return req;
+          },
+        },
+      ];
+      const evalString = `
+                return {
+                execute:(${functionValue
+        .map(d2 => {
+          return d2.key;
+        })
+        .join(',')})=>{
+                try {
+                ${sqlData[0].value.value.replace(
+        /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
+        'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
+      )}
+                }catch (e) { console.log(e) } } }
+            `;
+      const myFunction = new Function(evalString);
+      return await myFunction().execute(functionValue[0].data(), functionValue[1].data());
+    }
+  );
 }

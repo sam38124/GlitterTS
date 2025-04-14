@@ -93,12 +93,11 @@ export declare class User {
     }): Promise<string>;
     private getOrderByClause;
     getUserList(query: UserQuery): Promise<{
+        data: any;
         total: any;
         extra: {
             noRegisterUsers: any[] | undefined;
         };
-        allUsers?: any;
-        data: any;
     }>;
     getUserGroups(type?: string[], tag?: string, hide_level?: boolean): Promise<{
         result: false;

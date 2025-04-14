@@ -320,12 +320,13 @@ export class PageManager {
             if (['home', 'page'].find((dd) => {
                 return dd === type
             })) {
+
                 if(glitter.waiting_push_state){
                     glitter.waiting_push_state()
                     glitter.waiting_push_state=undefined
                 }else {
                     window.history.pushState({}, glitter.document.title, (glitter.root_path + Language.getLanguageLinkPrefix()+tag + glitter.window.location.search));
-                }
+                     }
                 glitter.pageConfig[glitter.pageConfig.length - 1].search = glitter.root_path + Language.getLanguageLinkPrefix()+tag + glitter.window.location.search;
             }
 

@@ -6,6 +6,7 @@ import {Template} from "../services/template";
 import {App} from "../services/app.js";
 import { UtPermission } from '../api-public/utils/ut-permission.js';
 import exception from '../modules/exception.js';
+import { SeoConfig } from '../seo-config.js';
 
 const router: express.Router = express.Router();
 export = router;
@@ -52,6 +53,9 @@ router.delete('/', async (req: express.Request, resp: express.Response) => {
 
 router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
+        req.headers['x-original-url']='';
+        req.query.page=req.query.tag;
+        const seo=await SeoConfig.seoDetail(req.query.appName as string ,req,resp);
         let language:'zh-TW' | 'zh-CN' | 'en-US'=req.headers['language'] as any;
         req.query.language=language;
         const result = (await (new Template(req.body.token).getPage(req.query as any)));
@@ -85,7 +89,8 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         return response.succ(resp, {
             result: result,
             redirect: redirect,
-            preload_data: preload_data
+            preload_data: preload_data,
+            seo_config:seo.seo_detail
         });
     } catch (err) {
         console.log(err)

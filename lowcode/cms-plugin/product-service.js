@@ -1,6 +1,5 @@
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { ShoppingProductSetting } from './shopping-product-setting.js';
-import { CheckInput } from '../modules/checkInput.js';
 export class ProductService {
     static checkData(postMD, obj, vm, refresh) {
         const gvc = obj.gvc;
@@ -64,10 +63,6 @@ export class ProductService {
                 {
                     check: (data) => !data.seo.domain,
                     errorMessage: '未設定商品連結',
-                },
-                {
-                    check: (data) => !CheckInput.isChineseEnglishNumberHyphen(data.seo.domain),
-                    errorMessage: '連結僅限使用中英文數字與連接號',
                 },
             ];
             for (const languageCode of supportedLanguages) {

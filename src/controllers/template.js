@@ -10,6 +10,7 @@ const template_1 = require("../services/template");
 const app_js_1 = require("../services/app.js");
 const ut_permission_js_1 = require("../api-public/utils/ut-permission.js");
 const exception_js_1 = __importDefault(require("../modules/exception.js"));
+const seo_config_js_1 = require("../seo-config.js");
 const router = express_1.default.Router();
 router.post('/', async (req, resp) => {
     try {
@@ -54,6 +55,10 @@ router.delete('/', async (req, resp) => {
 });
 router.get('/', async (req, resp) => {
     try {
+        req.headers['x-original-url'] = '';
+        console.log(`req.query.tag.is=>`, req.query.tag);
+        req.query.page = req.query.tag;
+        const seo = await seo_config_js_1.SeoConfig.seoDetail(req.query.appName, req, resp);
         let language = req.headers['language'];
         req.query.language = language;
         const result = (await (new template_1.Template(req.body.token).getPage(req.query)));
@@ -88,7 +93,8 @@ router.get('/', async (req, resp) => {
         return response_1.default.succ(resp, {
             result: result,
             redirect: redirect,
-            preload_data: preload_data
+            preload_data: preload_data,
+            seo_config: seo.seo_detail
         });
     }
     catch (err) {

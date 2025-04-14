@@ -246,7 +246,12 @@ class Template {
                 const page = (await database_1.default.query(`SELECT *
              from \`${appName}\`.t_recommend_links
              where content ->>'$.link'=?`, [query_page.split('/')[1]]))[0].content;
-                return await Template.getRealPage(page.redirect.substring(1), appName);
+                if (page.redirect.startsWith('/products')) {
+                    return 'official-router';
+                }
+                else {
+                    return await Template.getRealPage(page.redirect.substring(1), appName);
+                }
             }
             catch (error) {
                 console.error(`distribution 路徑錯誤 code: ${query_page.split('/')[1]}`);

@@ -8,6 +8,7 @@ import { GlobalUser } from '../../glitter-base/global/global-user.js';
 
 export class Blogs01 {
   static main(gvc: GVC, subData: any) {
+
     if (subData.content.generator !== 'page_editor') {
       const dd = subData.content;
       return `<div class="container mx-auto fr-view mb-5" style="max-width: 1100px;font-family: 'Source Sans Pro', 'Open Sans', 'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', 'STHeiti', 'WenQuanYi Micro Hei', SimSun, sans-serif;">

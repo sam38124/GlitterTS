@@ -20,6 +20,7 @@ class ChangePage {
             url.searchParams.set('page', link);
             const saasConfig = window.saasConfig;
             window.glitterInitialHelper.getPageData(link, (data) => {
+                console.log(`seo_config==>`, data.response.seo_config);
                 if (data.response.result.length === 0) {
                     const url = new URL("./", location.href);
                     url.searchParams.set('page', data.response.redirect);

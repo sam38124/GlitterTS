@@ -77,10 +77,10 @@ export class ProductService {
           check: (data: LanguageData) => !data.seo.domain,
           errorMessage: '未設定商品連結',
         },
-        {
-          check: (data: LanguageData) => !CheckInput.isChineseEnglishNumberHyphen(data.seo.domain),
-          errorMessage: '連結僅限使用中英文數字與連接號',
-        },
+        // {
+        //   check: (data: LanguageData) => !CheckInput.isChineseEnglishNumberHyphen(data.seo.domain),
+        //   errorMessage: '連結僅限使用中英文數字與連接號',
+        // },
       ];
 
       // 遍歷支持的語言並進行驗證

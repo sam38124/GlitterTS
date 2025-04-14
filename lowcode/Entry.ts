@@ -25,6 +25,8 @@ export class Entry {
         return originalReplaceState.apply(history, arguments);
       }
     };
+    //進入時就要提供堆棧，避免頁面返回問題
+    window.history.pushState({}, glitter.document.title,location.href);
     function next(){
       //判斷結帳成功清空購物車紀錄
       if (glitter.getUrlParameter('EndCheckout') === '1') {
@@ -144,7 +146,7 @@ export class Entry {
       }
       (window as any).renderClock = (window as any).renderClock ?? createClock();
       console.log(`Entry-time:`, (window as any).renderClock.stop());
-      glitter.share.editerVersion = 'V_20.3.6';
+      glitter.share.editerVersion = 'V_20.4.2';
       glitter.share.start = new Date();
       const vm = { appConfig: [] };
       (window as any).saasConfig = {
@@ -333,7 +335,23 @@ export class Entry {
         })
       }
     }
+    Entry.checkSeoInfo(glitter)
+  }
 
+  //定期確認SEO資訊並更新
+  public static checkSeoInfo(glitter:Glitter){
+    // glitter.share.last_seo_config=glitter.share.last_seo_config ?? {
+    //   title:document.title,
+    //   description:document.querySelector('meta[name="description"]')?.getAttribute('content'),
+    //   ogImage:document.querySelector('meta[property="og:image"]')?.getAttribute('content')
+    // };
+    // (window as any).glitterInitialHelper.getPageData(glitter.getUrlParameter('page'), (data: any) => {
+    //   console.log(`seo_config==>`,data.response.seo_config)
+    //   if([data.response.seo_config,data.response.seo_config])
+    //   setTimeout(()=>{
+    //     Entry.checkSeoInfo(glitter)
+    //   },500)
+    // })
   }
 
   // 判斷是否為 Iframe 來覆寫 Glitter 代碼

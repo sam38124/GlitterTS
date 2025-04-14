@@ -3465,11 +3465,11 @@ class Shopping {
                                     return 'wait';
                                 case '0101':
                                 case '4000':
+                                case '4019':
                                 case '0102':
                                 case '9411':
                                     return 'shipping';
                                 case '0103':
-                                case '4019':
                                 case '4033':
                                 case '4031':
                                 case '4032':
@@ -4585,6 +4585,9 @@ class Shopping {
                     case 'sku':
                         querySql.push(`(UPPER(JSON_EXTRACT(v.content, '$.sku')) LIKE UPPER('%${query.search}%'))`);
                         break;
+                    case 'barcode':
+                        querySql.push(`(UPPER(JSON_EXTRACT(v.content, '$.barcode')) LIKE UPPER('%${query.search}%'))`);
+                        break;
                 }
             }
             query.id && querySql.push(`(v.id = ${query.id})`);
@@ -4758,6 +4761,12 @@ class Shopping {
                 await database_js_1.default.query(`UPDATE \`${this.app}\`.t_variants
            SET ?
            WHERE id = ?`, [{ content: JSON.stringify(data.variant_content) }, data.id]);
+                let variants = (await database_js_1.default.query(`SELECT *
+           FROM \`${this.app}\`.t_variants
+           WHERE product_id = ?`, [data.product_id])).map((dd) => {
+                    return dd.content;
+                });
+                data.product_content.variants = variants;
                 await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post
            SET ?
            WHERE id = ?`, [{ content: JSON.stringify(data.product_content) }, data.product_id]);

@@ -128,9 +128,9 @@ export class User {
         const authData = (
           await db.query(
             `SELECT *
-           FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
-           WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
-          `,
+             FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+             WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
+            `,
             [email || '-21']
           )
         )[0];
@@ -1499,143 +1499,31 @@ export class User {
         orderBy: query.order_string ?? '',
       });
 
-      const getUserQuery = async (param?: { page?: number; limit?: number }) => {
-        const dataSQL = await this.getUserAndOrderSQL({
-          select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
-          where: querySql,
-          orderBy: query.order_string ?? '',
-          page: param?.page,
-          limit: param?.limit,
+      const dataSQL = await this.getUserAndOrderSQL({
+        select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
+        where: querySql,
+        orderBy: query.order_string ?? '',
+        page: query?.page,
+        limit: query?.limit,
+      });
+      const levelData = (await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' })).levels ?? [];
+      const userData = (await db.query(dataSQL, [])).map((dd: any) => {
+        dd.pwd = undefined;
+        const find_level=levelData.find((d1:any)=>{
+          return dd.member_level===d1.id;
         });
-
-        const userData = (await db.query(dataSQL, [])).map((dd: any) => {
-          dd.pwd = undefined;
-          dd.tag_name = '一般會員';
-          return dd;
-        });
-
-        checkPoint('get-user-data-finish');
-
-        // 建立 userID 對應的 Map，加快查找
-        const userMap = new Map(userData.map((user: any) => [String(user.userID), user]));
-
-        // 會員等級 Map
-        const levels = await this.getUserLevel(userData.map((user: any) => ({ userId: user.userID })));
-        const levelMap = new Map(levels.map(lv => [lv.id, lv.data.dead_line ?? '']));
-        checkPoint('levelMap-finish');
-
-        const queryResult = await db.query(
-          `
-              SELECT *
-              FROM \`${this.app}\`.t_user_public_config
-              WHERE \`key\` = 'member_update'
-                AND user_id IN (${[...userMap.keys(), '-1111'].join(',')})
-          `,
-          []
-        );
-        checkPoint('queryResult-finish');
-
-        // 更新 userData
-        for (const b of queryResult) {
-          const tag = levels.find(dd => {
-            return `${dd.id}` === `${b.user_id}`;
-          });
-          if (tag && tag.data && tag.data.tag_name) {
-            const user = userMap.get(String(b.user_id)) as any;
-            if (user) {
-              user.tag_name = tag.data.tag_name; // 確保 user 不是 undefined，並設定 tag_name
-            }
-          }
-        }
-
-        const processUserData = async (user: any) => {
-          const phone = user.userData.phone || 'asnhsauh';
-          const email = user.userData.email || 'asnhsauh';
-          // 取得購物金餘額
-          const _rebate = new Rebate(this.app);
-          const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
-          user.rebate = userRebate ? userRebate.point : 0;
-          // 取得會員等級截止日
-          user.member_deadline = levelMap.get(user.userID) ?? '';
-          user.latest_order_date = (
-            await db.query(
-              `select created_time
-                                                    from \`${this.app}\`.t_checkout
-                                                    where email in ('${email}', '${phone}')
-                                                      and ${orderCountingSQL}
-                                                    order by created_time desc limit 0,1`,
-              []
-            )
-          )[0];
-          user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
-          user.latest_order_total = (
-            await db.query(
-              `select total
-                                                     from \`${this.app}\`.t_checkout
-                                                     where email in ('${email}', '${phone}')
-                                                       and ${orderCountingSQL}
-                                                     order by created_time desc limit 0,1`,
-              []
-            )
-          )[0];
-          user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
-          user.checkout_total = (
-            await db.query(
-              `select sum(total)
-                                                 from \`${this.app}\`.t_checkout
-                                                 where email in ('${email}', '${phone}')
-                                                   and ${orderCountingSQL} `,
-              []
-            )
-          )[0];
-          user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
-          user.checkout_count = (
-            await db.query(
-              `select count(1)
-                                                 from \`${this.app}\`.t_checkout
-                                                 where email in ('${email}', '${phone}')
-                                                   and ${orderCountingSQL} `,
-              []
-            )
-          )[0];
-          user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
-          user.order_count = user.order_count || 0;
-          user.total_amount = user.total_amount || 0;
-        };
-        checkPoint('processUserData-finish');
-
-        // 批次處理會員資料
-        if (Array.isArray(userData) && userData.length > 0) {
-          const chunkSize = 20; // 每次最多處理人數
-
-          const chunkedUserData: any[][] = [];
-          for (let i = 0; i < userData.length; i += chunkSize) {
-            chunkedUserData.push(userData.slice(i, i + chunkSize));
-          }
-
-          // 依序處理每個批次
-          for (const batch of chunkedUserData) {
-            await Promise.all(
-              batch.map(async (user: any) => {
-                await processUserData(user);
-              })
-            );
-          }
-        }
-
-        return userData;
-      };
-
-      const [pageUsers, allUsers] = await Promise.all([
-        getUserQuery({ page: query.page, limit: query.limit }),
-        query.all_result ? getUserQuery() : [],
-      ]);
-
+        dd.tag_name = (find_level) ? find_level.tag_name:'一般會員';
+        return dd;
+      });
+      //補空值
+      userData.map((dd:any) => {
+        dd.last_order_total = dd.last_order_total || 0;
+        dd.order_count = dd.order_count || 0;
+        dd.total_amount = dd.total_amount || 0;
+      });
       return {
         // 指定頁數和符合篩選條件的會員資料
-        data: pageUsers,
-        // 所有符合篩選條件的會員資料
-        ...(allUsers.length > 0 ? { allUsers } : {}),
+        data: userData,
         // 所有符合篩選條件的會員數量
         total: (await db.query(countSQL, []))[0]['count(1)'],
         // 額外資料（例如未註冊的訂閱者資料）
@@ -1736,7 +1624,11 @@ export class User {
           });
         }
 
-        const users = await db.query(`SELECT userID FROM \`${this.app}\`.t_user;`, []);
+        const users = await db.query(
+          `SELECT userID
+                                      FROM \`${this.app}\`.t_user;`,
+          []
+        );
 
         const levelItems = await this.getUserLevel(
           users.map((item: { userID: number }) => {
@@ -1808,7 +1700,9 @@ export class User {
         const idMap = new Map();
 
         const getMember = await db.query(
-          `SELECT * FROM \`${this.app}\`.t_user_public_config WHERE \`key\` = 'member_update'
+          `SELECT *
+           FROM \`${this.app}\`.t_user_public_config
+           WHERE \`key\` = 'member_update'
           `,
           []
         );
@@ -1829,9 +1723,10 @@ export class User {
           const slice = idList.slice(i, i + batchSize);
           const placeholders = slice.map(() => '?').join(',');
           const query = `
-            SELECT * FROM \`${this.app}\`.t_user_public_config
-            WHERE \`key\` = 'member_update'
-            AND user_id IN (${placeholders});
+              SELECT *
+              FROM \`${this.app}\`.t_user_public_config
+              WHERE \`key\` = 'member_update'
+                AND user_id IN (${placeholders});
           `;
           batches.push({ query, params: slice });
         }
@@ -1930,10 +1825,11 @@ export class User {
 
     const users = await db.query(
       `
-          SELECT * FROM \`${this.app}\`.t_user
+          SELECT *
+          FROM \`${this.app}\`.t_user
           WHERE userID in (${idList.join(',')})
-          OR JSON_EXTRACT(userData, '$.email') in (${emailList.join(',')})
-        `,
+             OR JSON_EXTRACT(userData, '$.email') in (${emailList.join(',')})
+      `,
       []
     );
 
@@ -2129,7 +2025,9 @@ export class User {
   public async updateUserData(userID: string, par: any, manager: boolean = false) {
     const userData = await (async () => {
       const getUser = await db.query(
-        `select * from \`${this.app}\`.\`t_user\` where userID = ${db.escape(userID)}
+        `select *
+         from \`${this.app}\`.\`t_user\`
+         where userID = ${db.escape(userID)}
         `,
         []
       );

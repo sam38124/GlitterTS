@@ -85,9 +85,9 @@ class User {
         try {
             if (['shopnex'].includes(this.app)) {
                 const authData = (await database_1.default.query(`SELECT *
-           FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
-           WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
-          `, [email || '-21']))[0];
+             FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
+             WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
+            `, [email || '-21']))[0];
                 return authData;
             }
             else {
@@ -1023,7 +1023,7 @@ class User {
         return orderByMap[orderBy] || 'u.id DESC';
     }
     async getUserList(query) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e;
         try {
             const checkPoint = new ut_timer_1.UtTimer('GET-USER-LIST').checkPoint;
             const orderCountingSQL = await this.getCheckoutCountingModeSQL();
@@ -1251,98 +1251,34 @@ class User {
                 where: querySql,
                 orderBy: (_c = query.order_string) !== null && _c !== void 0 ? _c : '',
             });
-            const getUserQuery = async (param) => {
-                var _a;
-                const dataSQL = await this.getUserAndOrderSQL({
-                    select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
-                    where: querySql,
-                    orderBy: (_a = query.order_string) !== null && _a !== void 0 ? _a : '',
-                    page: param === null || param === void 0 ? void 0 : param.page,
-                    limit: param === null || param === void 0 ? void 0 : param.limit,
+            const dataSQL = await this.getUserAndOrderSQL({
+                select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
+                where: querySql,
+                orderBy: (_d = query.order_string) !== null && _d !== void 0 ? _d : '',
+                page: query === null || query === void 0 ? void 0 : query.page,
+                limit: query === null || query === void 0 ? void 0 : query.limit,
+            });
+            const levelData = (_e = (await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' })).levels) !== null && _e !== void 0 ? _e : [];
+            const userData = (await database_1.default.query(dataSQL, [])).map((dd) => {
+                dd.pwd = undefined;
+                const find_level = levelData.find((d1) => {
+                    return dd.member_level === d1.id;
                 });
-                const userData = (await database_1.default.query(dataSQL, [])).map((dd) => {
-                    dd.pwd = undefined;
-                    dd.tag_name = '一般會員';
-                    return dd;
-                });
-                checkPoint('get-user-data-finish');
-                const userMap = new Map(userData.map((user) => [String(user.userID), user]));
-                const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
-                const levelMap = new Map(levels.map(lv => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
-                checkPoint('levelMap-finish');
-                const queryResult = await database_1.default.query(`
-              SELECT *
-              FROM \`${this.app}\`.t_user_public_config
-              WHERE \`key\` = 'member_update'
-                AND user_id IN (${[...userMap.keys(), '-1111'].join(',')})
-          `, []);
-                checkPoint('queryResult-finish');
-                for (const b of queryResult) {
-                    const tag = levels.find(dd => {
-                        return `${dd.id}` === `${b.user_id}`;
-                    });
-                    if (tag && tag.data && tag.data.tag_name) {
-                        const user = userMap.get(String(b.user_id));
-                        if (user) {
-                            user.tag_name = tag.data.tag_name;
-                        }
-                    }
-                }
-                const processUserData = async (user) => {
-                    var _a;
-                    const phone = user.userData.phone || 'asnhsauh';
-                    const email = user.userData.email || 'asnhsauh';
-                    const _rebate = new rebate_js_1.Rebate(this.app);
-                    const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
-                    user.rebate = userRebate ? userRebate.point : 0;
-                    user.member_deadline = (_a = levelMap.get(user.userID)) !== null && _a !== void 0 ? _a : '';
-                    user.latest_order_date = (await database_1.default.query(`select created_time
-                                                    from \`${this.app}\`.t_checkout
-                                                    where email in ('${email}', '${phone}')
-                                                      and ${orderCountingSQL}
-                                                    order by created_time desc limit 0,1`, []))[0];
-                    user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
-                    user.latest_order_total = (await database_1.default.query(`select total
-                                                     from \`${this.app}\`.t_checkout
-                                                     where email in ('${email}', '${phone}')
-                                                       and ${orderCountingSQL}
-                                                     order by created_time desc limit 0,1`, []))[0];
-                    user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
-                    user.checkout_total = (await database_1.default.query(`select sum(total)
-                                                 from \`${this.app}\`.t_checkout
-                                                 where email in ('${email}', '${phone}')
-                                                   and ${orderCountingSQL} `, []))[0];
-                    user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
-                    user.checkout_count = (await database_1.default.query(`select count(1)
-                                                 from \`${this.app}\`.t_checkout
-                                                 where email in ('${email}', '${phone}')
-                                                   and ${orderCountingSQL} `, []))[0];
-                    user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
-                    user.order_count = user.order_count || 0;
-                    user.total_amount = user.total_amount || 0;
-                };
-                checkPoint('processUserData-finish');
-                if (Array.isArray(userData) && userData.length > 0) {
-                    const chunkSize = 20;
-                    const chunkedUserData = [];
-                    for (let i = 0; i < userData.length; i += chunkSize) {
-                        chunkedUserData.push(userData.slice(i, i + chunkSize));
-                    }
-                    for (const batch of chunkedUserData) {
-                        await Promise.all(batch.map(async (user) => {
-                            await processUserData(user);
-                        }));
-                    }
-                }
-                return userData;
-            };
-            const [pageUsers, allUsers] = await Promise.all([
-                getUserQuery({ page: query.page, limit: query.limit }),
-                query.all_result ? getUserQuery() : [],
-            ]);
-            return Object.assign(Object.assign({ data: pageUsers }, (allUsers.length > 0 ? { allUsers } : {})), { total: (await database_1.default.query(countSQL, []))[0]['count(1)'], extra: {
+                dd.tag_name = (find_level) ? find_level.tag_name : '一般會員';
+                return dd;
+            });
+            userData.map((dd) => {
+                dd.last_order_total = dd.last_order_total || 0;
+                dd.order_count = dd.order_count || 0;
+                dd.total_amount = dd.total_amount || 0;
+            });
+            return {
+                data: userData,
+                total: (await database_1.default.query(countSQL, []))[0]['count(1)'],
+                extra: {
                     noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
-                } });
+                },
+            };
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'getUserList Error:' + e, null);
@@ -1405,7 +1341,8 @@ class User {
                         users: [],
                     });
                 }
-                const users = await database_1.default.query(`SELECT userID FROM \`${this.app}\`.t_user;`, []);
+                const users = await database_1.default.query(`SELECT userID
+                                      FROM \`${this.app}\`.t_user;`, []);
                 const levelItems = await this.getUserLevel(users.map((item) => {
                     return { userId: item.userID };
                 }));
@@ -1455,7 +1392,9 @@ class User {
             if (idList.length > 10000) {
                 const idSetArray = [...new Set(idList)];
                 const idMap = new Map();
-                const getMember = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user_public_config WHERE \`key\` = 'member_update'
+                const getMember = await database_1.default.query(`SELECT *
+           FROM \`${this.app}\`.t_user_public_config
+           WHERE \`key\` = 'member_update'
           `, []);
                 const memberMap = new Map(getMember.map((item) => [`${item.user_id}`, item]));
                 idSetArray.map(id => {
@@ -1471,9 +1410,10 @@ class User {
                     const slice = idList.slice(i, i + batchSize);
                     const placeholders = slice.map(() => '?').join(',');
                     const query = `
-            SELECT * FROM \`${this.app}\`.t_user_public_config
-            WHERE \`key\` = 'member_update'
-            AND user_id IN (${placeholders});
+              SELECT *
+              FROM \`${this.app}\`.t_user_public_config
+              WHERE \`key\` = 'member_update'
+                AND user_id IN (${placeholders});
           `;
                     batches.push({ query, params: slice });
                 }
@@ -1542,10 +1482,11 @@ class User {
             .map(item => `"${item.email}"`)
             .concat(['-1111']);
         const users = await database_1.default.query(`
-          SELECT * FROM \`${this.app}\`.t_user
+          SELECT *
+          FROM \`${this.app}\`.t_user
           WHERE userID in (${idList.join(',')})
-          OR JSON_EXTRACT(userData, '$.email') in (${emailList.join(',')})
-        `, []);
+             OR JSON_EXTRACT(userData, '$.email') in (${emailList.join(',')})
+      `, []);
         if (!users || users.length == 0)
             return [];
         const chunk = 50;
@@ -1697,7 +1638,9 @@ class User {
         var _a;
         const userData = await (async () => {
             var _a;
-            const getUser = await database_1.default.query(`select * from \`${this.app}\`.\`t_user\` where userID = ${database_1.default.escape(userID)}
+            const getUser = await database_1.default.query(`select *
+         from \`${this.app}\`.\`t_user\`
+         where userID = ${database_1.default.escape(userID)}
         `, []);
             return (_a = getUser[0]) !== null && _a !== void 0 ? _a : {};
         })();
