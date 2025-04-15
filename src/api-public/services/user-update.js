@@ -13,13 +13,17 @@ class UserUpdate {
             return `${dd.id}` === `${userID}`;
         });
         if (dd_ === null || dd_ === void 0 ? void 0 : dd_.data.id) {
-            {
-                await database_js_1.default.query(`update \`${app_name}\`.t_user set member_level=? where userID=?`, [
-                    dd_ === null || dd_ === void 0 ? void 0 : dd_.data.id,
-                    userID
-                ]);
-            }
+            await database_js_1.default.query(`update \`${app_name}\`.t_user set member_level=? where userID=?`, [
+                dd_ === null || dd_ === void 0 ? void 0 : dd_.data.id,
+                userID
+            ]);
         }
+        await database_js_1.default.query(`UPDATE \`${app_name}\`.t_user
+                    SET
+                        phone = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.phone')),
+                        email = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email'))  where userID>?`, [
+            userID
+        ]);
     }
 }
 exports.UserUpdate = UserUpdate;

@@ -3322,6 +3322,8 @@ class Shopping {
         try {
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
+            const timer = new ut_timer_js_1.UtTimer("get-checkout-info");
+            timer.checkPoint("start");
             if (query.search && query.searchType) {
                 switch (query.searchType) {
                     case 'cart_token':
@@ -3516,6 +3518,7 @@ class Shopping {
                  FROM \`${this.app}\`.t_checkout o
                           LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id and i.status = 1
                  WHERE ${querySql.join(' and ')} ${orderString}`;
+            timer.checkPoint("start-query-sql");
             if (query.returnSearch == 'true') {
                 const data = await database_js_1.default.query(`SELECT *
            FROM \`${this.app}\`.t_checkout
@@ -3541,6 +3544,7 @@ class Shopping {
                 return data[0];
             }
             const response_data = await new Promise(async (resolve, reject) => {
+                timer.checkPoint("start-query-response_data");
                 if (query.id) {
                     const data = (await database_js_1.default.query(`SELECT *
                FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
@@ -3551,10 +3555,13 @@ class Shopping {
                     });
                 }
                 else {
-                    resolve({
-                        data: await database_js_1.default.query(`SELECT *
+                    const data = (await database_js_1.default.query(`SELECT *
                FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
-              `, []),
+              `, []));
+                    timer.checkPoint("finish-query-response_data");
+                    console.log(sql);
+                    resolve({
+                        data: data,
                         total: (await database_js_1.default.query(`SELECT count(1)
                  FROM (${sql}) as subqyery
                 `, []))[0]['count(1)'],
@@ -3633,6 +3640,7 @@ class Shopping {
                 .concat(obMap.map(async (order) => {
                 order.user_data = await new user_js_1.User(this.app).getUserData(order.email, 'email_or_phone');
             })));
+            timer.checkPoint("finish-query-all");
             return response_data;
         }
         catch (e) {

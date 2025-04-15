@@ -72,7 +72,7 @@ export class OrderInfo {
   }
 
   // 付款方式
-  public static paymentSelector(gvc: GVC, order: any) {
+  public static paymentSelector(gvc: GVC, order: any,payment_support?:any) {
     const vm = {
       id: gvc.glitter.getUUID(),
       loading: true,
@@ -91,7 +91,7 @@ export class OrderInfo {
       },
       onCreate: async () => {
         if (vm.loading) {
-          vm.dataList = await PaymentConfig.getSupportPayment();
+          vm.dataList = payment_support;
           vm.loading = false;
           gvc.notifyDataChange(vm.id);
         }

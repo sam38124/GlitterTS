@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toJSONSafeString = void 0;
+exports.toJSONSafeString = toJSONSafeString;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const underscore_1 = __importDefault(require("underscore"));
 const config_1 = __importDefault(require("../config"));
@@ -43,7 +43,6 @@ function toJSONSafeString(val) {
         }
     });
 }
-exports.toJSONSafeString = toJSONSafeString;
 function getMaskObj(obj) {
     const maskObj = {};
     underscore_1.default.map(obj, (value, key) => {

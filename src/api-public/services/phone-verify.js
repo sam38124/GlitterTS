@@ -8,7 +8,7 @@ const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 class PhoneVerify {
     static async verify(phone, code) {
         if (await redis_js_1.default.getValue(`verify-phone-${phone}`) === code) {
-            await redis_js_1.default.deleteKey(`verify-phone-${phone}-last-count`);
+            redis_js_1.default.deleteKey(`verify-phone-${phone}-last-count`);
             return true;
         }
         else {

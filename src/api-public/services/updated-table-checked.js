@@ -199,6 +199,28 @@ class UpdatedTableChecked {
         CHANGE COLUMN \`count\` \`count\` FLOAT NOT NULL;
       `,
         });
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_user',
+            last_version: ['V1.2'],
+            new_version: 'V1.3',
+            event: `ALTER TABLE \`${app_name}\`.\`t_user\`
+      ADD COLUMN \`email\` VARCHAR(50) NULL AFTER \`member_level\`,
+      ADD COLUMN \`phone\` VARCHAR(50) NULL AFTER \`email\`,
+      ADD INDEX \`index8\` (\`email\` ASC) VISIBLE,
+      ADD INDEX \`index9\` (\`phone\` ASC) VISIBLE;
+      ;`,
+        });
+        await UpdatedTableChecked.update({
+            app_name: app_name,
+            table_name: 't_user',
+            last_version: ['V1.3'],
+            new_version: 'V1.4',
+            event: `UPDATE \`${app_name}\`.t_user
+    SET
+    phone = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.phone')),
+      email = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email'))  where id>0`,
+        });
     }
     static async update(obj) {
         var _a;

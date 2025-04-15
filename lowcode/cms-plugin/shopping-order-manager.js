@@ -312,227 +312,230 @@ export class ShoppingOrderManager {
                     if (vm.filter_type !== 'all') {
                         vm.apiJSON.is_pos = vm.filter_type === 'pos';
                     }
-                    ApiShop.getOrder(vm.apiJSON).then(data => {
+                    ApiShop.getOrder(vm.apiJSON).then((data) => __awaiter(this, void 0, void 0, function* () {
                         function getDatalist() {
-                            return data.response.data.map((dd) => {
-                                var _a;
-                                dd.orderData.total = dd.orderData.total || 0;
-                                dd.orderData.customer_info = (_a = dd.orderData.customer_info) !== null && _a !== void 0 ? _a : {};
-                                if (query.isShipment) {
-                                    return [
-                                        {
-                                            key: '訂單編號',
-                                            value: html ` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
+                            return __awaiter(this, void 0, void 0, function* () {
+                                const payment_support = yield PaymentConfig.getSupportPayment();
+                                return data.response.data.map((dd) => {
+                                    var _a;
+                                    dd.orderData.total = dd.orderData.total || 0;
+                                    dd.orderData.customer_info = (_a = dd.orderData.customer_info) !== null && _a !== void 0 ? _a : {};
+                                    if (query.isShipment) {
+                                        return [
+                                            {
+                                                key: '訂單編號',
+                                                value: html ` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
                             ${dd.cart_token}${(() => {
-                                                switch (dd.order_source) {
-                                                    case 'manual':
-                                                        return BgWidget.primaryInsignia('手動', { type: 'border' });
-                                                    case 'combine':
-                                                        return BgWidget.warningInsignia('合併', { type: 'border' });
-                                                    case 'POS':
-                                                        return BgWidget.primaryInsignia('POS', { type: 'border' });
-                                                    default:
-                                                        return '';
-                                                }
-                                            })()}
-                          </div>`,
-                                        },
-                                        {
-                                            key: '出貨日期',
-                                            value: dd.orderData.user_info.shipment_date
-                                                ? glitter.ut.dateFormat(new Date(dd.orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm')
-                                                : '尚未設定',
-                                        },
-                                        {
-                                            key: '訂購人',
-                                            value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
-                                        },
-                                        {
-                                            key: '出貨狀態',
-                                            value: (() => {
-                                                var _a;
-                                                switch ((_a = dd.orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
-                                                    case 'pre_order':
-                                                        return BgWidget.notifyInsignia('待預購');
-                                                    case 'wait':
-                                                        if (dd.orderData.user_info.shipment_number) {
-                                                            return BgWidget.secondaryInsignia('備貨中');
-                                                        }
-                                                        else {
-                                                            return BgWidget.notifyInsignia('未出貨');
-                                                        }
-                                                    case 'shipping':
-                                                        return BgWidget.warningInsignia('已出貨');
-                                                    case 'finish':
-                                                        return BgWidget.infoInsignia('已取貨');
-                                                    case 'arrived':
-                                                        return BgWidget.warningInsignia('已送達');
-                                                    case 'returns':
-                                                        return BgWidget.dangerInsignia('已退貨');
-                                                }
-                                            })(),
-                                        },
-                                        {
-                                            key: '出貨單號碼',
-                                            value: dd.orderData.user_info.shipment_number,
-                                        },
-                                    ].map((dd) => {
-                                        dd.value = html ` <div style="line-height:40px;">${dd.value}</div>`;
-                                        return dd;
-                                    });
-                                }
-                                else {
-                                    return [
-                                        {
-                                            key: '訂單編號',
-                                            value: html ` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
-                            ${dd.cart_token}${(() => {
-                                                switch (dd.orderData.orderSource) {
-                                                    case 'manual':
-                                                        return BgWidget.primaryInsignia('手動', { type: 'border' });
-                                                    case 'combine':
-                                                        return BgWidget.warningInsignia('合併', { type: 'border' });
-                                                    case 'POS':
-                                                        if (vm.filter_type === 'pos') {
+                                                    switch (dd.order_source) {
+                                                        case 'manual':
+                                                            return BgWidget.primaryInsignia('手動', { type: 'border' });
+                                                        case 'combine':
+                                                            return BgWidget.warningInsignia('合併', { type: 'border' });
+                                                        case 'POS':
+                                                            return BgWidget.primaryInsignia('POS', { type: 'border' });
+                                                        default:
                                                             return '';
-                                                        }
-                                                        return BgWidget.primaryInsignia('POS', { type: 'border' });
-                                                    case 'split':
-                                                        return BgWidget.warningInsignia('拆分', { type: 'border' });
-                                                    default:
-                                                        return '';
-                                                }
-                                            })()}
+                                                    }
+                                                })()}
                           </div>`,
-                                        },
-                                        {
-                                            key: '訂單日期',
-                                            value: html ` <div style="width: 120px;">
+                                            },
+                                            {
+                                                key: '出貨日期',
+                                                value: dd.orderData.user_info.shipment_date
+                                                    ? glitter.ut.dateFormat(new Date(dd.orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm')
+                                                    : '尚未設定',
+                                            },
+                                            {
+                                                key: '訂購人',
+                                                value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
+                                            },
+                                            {
+                                                key: '出貨狀態',
+                                                value: (() => {
+                                                    var _a;
+                                                    switch ((_a = dd.orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
+                                                        case 'pre_order':
+                                                            return BgWidget.notifyInsignia('待預購');
+                                                        case 'wait':
+                                                            if (dd.orderData.user_info.shipment_number) {
+                                                                return BgWidget.secondaryInsignia('備貨中');
+                                                            }
+                                                            else {
+                                                                return BgWidget.notifyInsignia('未出貨');
+                                                            }
+                                                        case 'shipping':
+                                                            return BgWidget.warningInsignia('已出貨');
+                                                        case 'finish':
+                                                            return BgWidget.infoInsignia('已取貨');
+                                                        case 'arrived':
+                                                            return BgWidget.warningInsignia('已送達');
+                                                        case 'returns':
+                                                            return BgWidget.dangerInsignia('已退貨');
+                                                    }
+                                                })(),
+                                            },
+                                            {
+                                                key: '出貨單號碼',
+                                                value: dd.orderData.user_info.shipment_number,
+                                            },
+                                        ].map((dd) => {
+                                            dd.value = html ` <div style="line-height:40px;">${dd.value}</div>`;
+                                            return dd;
+                                        });
+                                    }
+                                    else {
+                                        return [
+                                            {
+                                                key: '訂單編號',
+                                                value: html ` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
+                            ${dd.cart_token}${(() => {
+                                                    switch (dd.orderData.orderSource) {
+                                                        case 'manual':
+                                                            return BgWidget.primaryInsignia('手動', { type: 'border' });
+                                                        case 'combine':
+                                                            return BgWidget.warningInsignia('合併', { type: 'border' });
+                                                        case 'POS':
+                                                            if (vm.filter_type === 'pos') {
+                                                                return '';
+                                                            }
+                                                            return BgWidget.primaryInsignia('POS', { type: 'border' });
+                                                        case 'split':
+                                                            return BgWidget.warningInsignia('拆分', { type: 'border' });
+                                                        default:
+                                                            return '';
+                                                    }
+                                                })()}
+                          </div>`,
+                                            },
+                                            {
+                                                key: '訂單日期',
+                                                value: html ` <div style="width: 120px;">
                             ${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd')}
                           </div>`,
-                                        },
-                                        {
-                                            key: '訂購人',
-                                            value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
-                                        },
-                                        {
-                                            key: '訂單金額',
-                                            value: `$ ${dd.orderData.total.toLocaleString()}`,
-                                        },
-                                        {
-                                            key: '付款狀態',
-                                            value: (() => {
-                                                switch (dd.status) {
-                                                    case 0:
-                                                        if (dd.orderData.proof_purchase) {
-                                                            return BgWidget.warningInsignia('待核款');
-                                                        }
-                                                        if (dd.orderData.customer_info.payment_select == 'cash_on_delivery') {
-                                                            return BgWidget.warningInsignia('貨到付款');
-                                                        }
-                                                        return BgWidget.notifyInsignia('未付款');
-                                                    case 3:
-                                                        return BgWidget.warningInsignia('部分付款');
-                                                    case 1:
-                                                        return BgWidget.infoInsignia('已付款');
-                                                    case -1:
-                                                        return BgWidget.notifyInsignia('付款失敗');
-                                                    case -2:
-                                                        return BgWidget.notifyInsignia('已退款');
-                                                }
-                                            })(),
-                                        },
-                                        {
-                                            key: '出貨狀態',
-                                            value: (() => {
-                                                var _a;
-                                                switch ((_a = dd.orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
-                                                    case 'pre_order':
-                                                        return BgWidget.notifyInsignia('待預購');
-                                                    case 'wait':
-                                                        if (dd.orderData.user_info.shipment_number) {
-                                                            return BgWidget.secondaryInsignia('備貨中');
-                                                        }
-                                                        else {
-                                                            return BgWidget.notifyInsignia('未出貨');
-                                                        }
-                                                    case 'shipping':
-                                                        return BgWidget.warningInsignia('已出貨');
-                                                    case 'finish':
-                                                        return BgWidget.infoInsignia('已取貨');
-                                                    case 'arrived':
-                                                        return BgWidget.warningInsignia('已送達');
-                                                    case 'returns':
-                                                        return BgWidget.dangerInsignia('已退貨');
-                                                }
-                                            })(),
-                                        },
-                                        {
-                                            key: '訂單狀態',
-                                            value: (() => {
-                                                var _a;
-                                                switch ((_a = dd.orderData.orderStatus) !== null && _a !== void 0 ? _a : '0') {
-                                                    case '-1':
-                                                        return BgWidget.notifyInsignia('已取消');
-                                                    case '0':
-                                                        return BgWidget.warningInsignia('處理中');
-                                                    case '1':
-                                                        return BgWidget.infoInsignia('已完成');
-                                                }
-                                            })(),
-                                        },
-                                        {
-                                            key: '運送方式',
-                                            value: html ` <div style="width: 120px;">
+                                            },
+                                            {
+                                                key: '訂購人',
+                                                value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
+                                            },
+                                            {
+                                                key: '訂單金額',
+                                                value: `$ ${dd.orderData.total.toLocaleString()}`,
+                                            },
+                                            {
+                                                key: '付款狀態',
+                                                value: (() => {
+                                                    switch (dd.status) {
+                                                        case 0:
+                                                            if (dd.orderData.proof_purchase) {
+                                                                return BgWidget.warningInsignia('待核款');
+                                                            }
+                                                            if (dd.orderData.customer_info.payment_select == 'cash_on_delivery') {
+                                                                return BgWidget.warningInsignia('貨到付款');
+                                                            }
+                                                            return BgWidget.notifyInsignia('未付款');
+                                                        case 3:
+                                                            return BgWidget.warningInsignia('部分付款');
+                                                        case 1:
+                                                            return BgWidget.infoInsignia('已付款');
+                                                        case -1:
+                                                            return BgWidget.notifyInsignia('付款失敗');
+                                                        case -2:
+                                                            return BgWidget.notifyInsignia('已退款');
+                                                    }
+                                                })(),
+                                            },
+                                            {
+                                                key: '出貨狀態',
+                                                value: (() => {
+                                                    var _a;
+                                                    switch ((_a = dd.orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
+                                                        case 'pre_order':
+                                                            return BgWidget.notifyInsignia('待預購');
+                                                        case 'wait':
+                                                            if (dd.orderData.user_info.shipment_number) {
+                                                                return BgWidget.secondaryInsignia('備貨中');
+                                                            }
+                                                            else {
+                                                                return BgWidget.notifyInsignia('未出貨');
+                                                            }
+                                                        case 'shipping':
+                                                            return BgWidget.warningInsignia('已出貨');
+                                                        case 'finish':
+                                                            return BgWidget.infoInsignia('已取貨');
+                                                        case 'arrived':
+                                                            return BgWidget.warningInsignia('已送達');
+                                                        case 'returns':
+                                                            return BgWidget.dangerInsignia('已退貨');
+                                                    }
+                                                })(),
+                                            },
+                                            {
+                                                key: '訂單狀態',
+                                                value: (() => {
+                                                    var _a;
+                                                    switch ((_a = dd.orderData.orderStatus) !== null && _a !== void 0 ? _a : '0') {
+                                                        case '-1':
+                                                            return BgWidget.notifyInsignia('已取消');
+                                                        case '0':
+                                                            return BgWidget.warningInsignia('處理中');
+                                                        case '1':
+                                                            return BgWidget.infoInsignia('已完成');
+                                                    }
+                                                })(),
+                                            },
+                                            {
+                                                key: '運送方式',
+                                                value: html ` <div style="width: 120px;">
                             ${OrderInfo.shipmetSelector(dd, OrderModule.supportShipmentMethod())}
                           </div>`,
-                                        },
-                                        {
-                                            key: '付款方式',
-                                            value: OrderInfo.paymentSelector(gvc, dd),
-                                        },
-                                        {
-                                            key: '付款時間',
-                                            value: html ` <div style="width: 160px;">
+                                            },
+                                            {
+                                                key: '付款方式',
+                                                value: OrderInfo.paymentSelector(gvc, dd, payment_support),
+                                            },
+                                            {
+                                                key: '付款時間',
+                                                value: html ` <div style="width: 160px;">
                             ${(() => {
-                                                if (!dd.orderData.editRecord) {
-                                                    return '-';
-                                                }
-                                                const record = dd.orderData.editRecord.find((item) => item.record === '付款成功');
-                                                return record ? Tool.formatDateTime(record.time) : '-';
-                                            })()}
+                                                    if (!dd.orderData.editRecord) {
+                                                        return '-';
+                                                    }
+                                                    const record = dd.orderData.editRecord.find((item) => item.record === '付款成功');
+                                                    return record ? Tool.formatDateTime(record.time) : '-';
+                                                })()}
                           </div>`,
-                                        },
-                                        {
-                                            key: '對帳狀態',
-                                            value: OrderInfo.reconciliationStatus(dd),
-                                        },
-                                        {
-                                            key: '發票號碼',
-                                            value: dd.invoice_no || '-',
-                                        },
-                                    ]
-                                        .filter(item => {
-                                        return vm.headerConfig.includes(item.key);
-                                    })
-                                        .map((dd) => {
-                                        dd.value = html ` <div style="line-height:40px;">${dd.value}</div>`;
-                                        return dd;
-                                    });
-                                }
+                                            },
+                                            {
+                                                key: '對帳狀態',
+                                                value: OrderInfo.reconciliationStatus(dd),
+                                            },
+                                            {
+                                                key: '發票號碼',
+                                                value: dd.invoice_no || '-',
+                                            },
+                                        ]
+                                            .filter(item => {
+                                            return vm.headerConfig.includes(item.key);
+                                        })
+                                            .map((dd) => {
+                                            dd.value = html ` <div style="line-height:40px;">${dd.value}</div>`;
+                                            return dd;
+                                        });
+                                    }
+                                });
                             });
                         }
                         vm.dataList = data.response.data;
                         vmi.pageSize = Math.ceil(data.response.total / limit);
                         vmi.originalData = vm.dataList;
-                        vmi.tableData = getDatalist();
+                        vmi.tableData = yield getDatalist();
                         vmi.loading = false;
                         if (vmi.pageSize != 0 && vmi.page > vmi.pageSize) {
                             ShoppingOrderManager.vm.page = 1;
                             gvc.notifyDataChange(vm.id);
                         }
                         vmi.callback();
-                    });
+                    }));
                 },
                 rowClick: (_, index) => {
                     vm.data = vm.dataList[index];
@@ -1021,7 +1024,7 @@ export class ShoppingOrderManager {
                         });
                         orderData = structuredClone(orderDataNew.response.data[0]);
                         originData = structuredClone(orderData);
-                        console.log("orderDataNew.response.data -- ", orderDataNew.response.data);
+                        console.log('orderDataNew.response.data -- ', orderDataNew.response.data);
                     }
                     orderData.orderData.progress = (_b = orderData.orderData.progress) !== null && _b !== void 0 ? _b : 'wait';
                     if (orderData.orderData.shipment_selector &&
@@ -1766,9 +1769,7 @@ export class ShoppingOrderManager {
                     ${document.body.clientWidth > 768 ? getBadgeList() : ''}
                   </div>
                   ${document.body.clientWidth > 768 ? '' : html ` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
-                  <div class="d-flex justify-content-end">
-                    ${funBTN().splitOrder()}
-                  </div>
+                  <div class="d-flex justify-content-end">${funBTN().splitOrder()}</div>
                   ${BgWidget.container1x2({
                                     html: [
                                         !is_shipment ? '' : shipment_card,
@@ -2562,7 +2563,7 @@ export class ShoppingOrderManager {
                                             const source = {
                                                 pos: 'POS',
                                                 combine: '合併訂單',
-                                                split: '拆分'
+                                                split: '拆分',
                                             };
                                             return (_a = source[orderData.orderData.orderSource]) !== null && _a !== void 0 ? _a : '線上';
                                         })()}
@@ -4568,8 +4569,6 @@ export class ShoppingOrderManager {
             passData.orderStatus = 1;
             delete passData.tag;
             passData.line_items = passData.lineItems;
-            console.log('passData -- ', passData);
-            return;
             dialog.dataLoading({ visible: true });
             if (checkOrderEmpty(passData)) {
                 ApiShop.toManualCheckout(passData).then(() => {
