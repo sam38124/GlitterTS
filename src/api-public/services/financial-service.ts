@@ -92,14 +92,11 @@ export default class FinancialService {
       return await new EcPay(this.appName, this.keyData).createOrderPage(orderData);
     }
 
-    // return await OrderEvent.insertOrder({
-    //   cartData: orderData,
-    //   status: 0,
-    //   app: this.appName,
-    // });
-
-    // //todo 修改付款方式 to paypal
-    // return await new PayPal(this.appName, this.keyData).checkout(orderData);
+    return await OrderEvent.insertOrder({
+      cartData: orderData,
+      status: 0,
+      app: this.appName,
+    });
   }
 
   async saveWallet(orderData: {

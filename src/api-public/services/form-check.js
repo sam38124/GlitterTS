@@ -1,23 +1,9 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FormCheck = void 0;
-var FormCheck = /** @class */ (function () {
-    function FormCheck() {
-    }
-    FormCheck.initialRegisterForm = function (form_formats) {
-        //沒有姓名欄位
-        if (!form_formats.find(function (dd) {
+class FormCheck {
+    static initialRegisterForm(form_formats) {
+        if (!form_formats.find((dd) => {
             return dd.key === 'name';
         })) {
             form_formats.push({
@@ -69,8 +55,7 @@ var FormCheck = /** @class */ (function () {
                 deletable: false,
             });
         }
-        //沒有信箱欄位
-        if (!form_formats.find(function (dd) {
+        if (!form_formats.find((dd) => {
             return dd.key === 'email';
         })) {
             form_formats.push({
@@ -122,8 +107,7 @@ var FormCheck = /** @class */ (function () {
                 deletable: false,
             });
         }
-        //沒有電話欄位
-        if (!form_formats.find(function (dd) {
+        if (!form_formats.find((dd) => {
             return dd.key === 'phone';
         })) {
             form_formats.push({
@@ -175,8 +159,7 @@ var FormCheck = /** @class */ (function () {
                 deletable: false,
             });
         }
-        //沒有生日欄位
-        if (!form_formats.find(function (dd) {
+        if (!form_formats.find((dd) => {
             return dd.key === 'birth';
         })) {
             form_formats.push({
@@ -228,10 +211,9 @@ var FormCheck = /** @class */ (function () {
                 deletable: false,
             });
         }
-    };
-    FormCheck.initialUserForm = function (form_formats) {
-        //沒有姓名欄位
-        var userObject = [
+    }
+    static initialUserForm(form_formats) {
+        const userObject = [
             { key: 'carrier_number', title: '手機載具' },
             { key: 'gui_number', title: '統一編號' },
             { key: 'company', title: '公司' },
@@ -240,9 +222,9 @@ var FormCheck = /** @class */ (function () {
             { key: 'consignee_email', title: '收貨人電子郵件', type: 'consignee' },
             { key: 'consignee_phone', title: '收貨人手機', type: 'consignee' },
         ];
-        userObject.map(function (item) {
+        userObject.map(item => {
             var _a;
-            if (!form_formats.find(function (dd) {
+            if (!form_formats.find((dd) => {
                 return dd.key === item.key;
             })) {
                 form_formats.push({
@@ -296,8 +278,8 @@ var FormCheck = /** @class */ (function () {
             }
         });
         return form_formats;
-    };
-    FormCheck.initialListHeader = function (data) {
+    }
+    static initialListHeader(data) {
         var _a, _b;
         data = data || {};
         (_a = data['user-list']) !== null && _a !== void 0 ? _a : (data['user-list'] = [
@@ -312,14 +294,14 @@ var FormCheck = /** @class */ (function () {
         ]);
         (_b = data['order-list']) !== null && _b !== void 0 ? _b : (data['order-list'] = ['訂單編號', '訂單日期', '訂購人', '訂單金額', '付款狀態', '出貨狀態', '訂單狀態']);
         return data;
-    };
-    FormCheck.initialLoginConfig = function (data) {
-        data = __assign({ sorted_voucher: {
+    }
+    static initialLoginConfig(data) {
+        data = Object.assign({ sorted_voucher: {
                 toggle: false,
                 array: [],
             } }, (data !== null && data !== void 0 ? data : {}));
         return data;
-    };
-    return FormCheck;
-}());
+    }
+}
 exports.FormCheck = FormCheck;
+//# sourceMappingURL=form-check.js.map

@@ -61,6 +61,7 @@ const checkout_js_1 = require("./checkout.js");
 const product_initial_js_1 = require("./product-initial.js");
 const ut_timer_js_1 = require("../utils/ut-timer.js");
 const auto_fcm_js_1 = require("../../public-config-initial/auto-fcm.js");
+const handlePaymentTransaction_js_1 = __importDefault(require("./model/handlePaymentTransaction.js"));
 class OrderDetail {
     constructor(subtotal, shipment) {
         this.discount = 0;
@@ -2221,84 +2222,98 @@ class Shopping {
     }
     async repayOrder(orderID, return_url) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
-        const sqlData = (await database_js_1.default.query(`SELECT *
-             FROM \`${this.app}\`.t_checkout
-             WHERE cart_token = ?
-               AND status = 0;`, [orderID]))[0];
-        const orderData = sqlData.orderData;
-        if (!orderData) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
-        }
-        const keyData = (await private_config_js_1.Private_config.getConfig({
-            appName: this.app,
-            key: 'glitter_finance',
-        }))[0].value;
-        const shipment_setting = await (async () => {
+        const app = this.app;
+        async function getOrder(orderID) {
             try {
-                const config = await private_config_js_1.Private_config.getConfig({
-                    appName: this.app,
-                    key: 'logistics_setting',
-                });
-                if (!config) {
-                    return {
-                        support: [],
-                        shipmentSupport: [],
-                    };
-                }
-                return config[0].value;
+                const result = await database_js_1.default.query(`
+            SELECT *
+            FROM \`${app}\`.t_checkout
+            WHERE cart_token = ?`, [orderID]);
+                return result[0];
             }
             catch (e) {
-                return [];
+                console.error(`查詢 orderID ${orderID} 的結帳資料時發生錯誤:`, e.message || e);
+                return null;
             }
-        })();
-        let kd = (_a = keyData[orderData.customer_info.payment_select]) !== null && _a !== void 0 ? _a : {
-            ReturnURL: '',
-            NotifyURL: '',
-        };
-        const carData = {
-            customer_info: orderData.customer_info || {},
-            lineItems: (_b = orderData.lineItems) !== null && _b !== void 0 ? _b : [],
-            total: (_c = orderData.total) !== null && _c !== void 0 ? _c : 0,
-            email: (_f = (_d = sqlData.email) !== null && _d !== void 0 ? _d : (_e = orderData.user_info) === null || _e === void 0 ? void 0 : _e.email) !== null && _f !== void 0 ? _f : '',
-            user_info: orderData.user_info,
-            shipment_fee: (_g = orderData.shipment_fee) !== null && _g !== void 0 ? _g : 0,
-            rebate: (_h = orderData.rebate) !== null && _h !== void 0 ? _h : 0,
-            goodsWeight: 0,
-            use_rebate: orderData.use_rebate || 0,
-            orderID: orderData.orderID || `${Date.now()}`,
-            shipment_support: shipment_setting.support,
-            shipment_info: shipment_setting.info,
-            shipment_selector: [
-                ...shipment_config_js_1.ShipmentConfig.list.map(dd => ({
-                    name: dd.title,
-                    value: dd.value,
-                })),
-                ...((_j = shipment_setting.custom_delivery) !== null && _j !== void 0 ? _j : []).map((dd) => ({
-                    form: dd.form,
-                    name: dd.name,
-                    value: dd.id,
-                    system_form: dd.system_form,
-                })),
-            ].filter(option => shipment_setting.support.includes(option.value)),
-            use_wallet: 0,
-            method: (_k = sqlData.user_info) === null || _k === void 0 ? void 0 : _k.method,
-            user_email: (_o = (_l = sqlData.email) !== null && _l !== void 0 ? _l : (_m = orderData.user_info) === null || _m === void 0 ? void 0 : _m.email) !== null && _o !== void 0 ? _o : '',
-            useRebateInfo: sqlData.useRebateInfo,
-            custom_form_format: sqlData.custom_form_format,
-            custom_form_data: sqlData.custom_form_data,
-            custom_receipt_form: sqlData.custom_receipt_form,
-            orderSource: sqlData.orderSource === 'POS' ? 'POS' : '',
-            code_array: sqlData.code_array,
-            give_away: sqlData.give_away,
-            user_rebate_sum: 0,
-            language: sqlData.language,
-            pos_info: sqlData.pos_info,
-            client_ip_address: sqlData.client_ip_address,
-            fbc: sqlData.fbc,
-            fbp: sqlData.fbp,
-            editRecord: [],
-        };
-        console.log("kd -- ", kd);
+        }
+        const sqlData = await getOrder(orderID);
+        if (sqlData) {
+            const orderData = sqlData.orderData;
+            if (!orderData) {
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
+            }
+            const keyData = (await private_config_js_1.Private_config.getConfig({
+                appName: this.app,
+                key: 'glitter_finance',
+            }))[0].value;
+            const shipment_setting = await (async () => {
+                try {
+                    const config = await private_config_js_1.Private_config.getConfig({
+                        appName: this.app,
+                        key: 'logistics_setting',
+                    });
+                    if (!config) {
+                        return {
+                            support: [],
+                            shipmentSupport: [],
+                        };
+                    }
+                    return config[0].value;
+                }
+                catch (e) {
+                    return [];
+                }
+            })();
+            let kd = (_a = keyData[orderData.customer_info.payment_select]) !== null && _a !== void 0 ? _a : {
+                ReturnURL: '',
+                NotifyURL: '',
+            };
+            const carData = {
+                customer_info: orderData.customer_info || {},
+                lineItems: (_b = orderData.lineItems) !== null && _b !== void 0 ? _b : [],
+                total: (_c = orderData.total) !== null && _c !== void 0 ? _c : 0,
+                email: (_f = (_d = sqlData.email) !== null && _d !== void 0 ? _d : (_e = orderData.user_info) === null || _e === void 0 ? void 0 : _e.email) !== null && _f !== void 0 ? _f : '',
+                user_info: orderData.user_info,
+                shipment_fee: (_g = orderData.shipment_fee) !== null && _g !== void 0 ? _g : 0,
+                rebate: (_h = orderData.rebate) !== null && _h !== void 0 ? _h : 0,
+                goodsWeight: 0,
+                use_rebate: orderData.use_rebate || 0,
+                orderID: orderData.orderID || `${Date.now()}`,
+                shipment_support: shipment_setting.support,
+                shipment_info: shipment_setting.info,
+                shipment_selector: [
+                    ...shipment_config_js_1.ShipmentConfig.list.map(dd => ({
+                        name: dd.title,
+                        value: dd.value,
+                    })),
+                    ...((_j = shipment_setting.custom_delivery) !== null && _j !== void 0 ? _j : []).map((dd) => ({
+                        form: dd.form,
+                        name: dd.name,
+                        value: dd.id,
+                        system_form: dd.system_form,
+                    })),
+                ].filter(option => shipment_setting.support.includes(option.value)),
+                use_wallet: 0,
+                method: (_k = sqlData.user_info) === null || _k === void 0 ? void 0 : _k.method,
+                user_email: (_o = (_l = sqlData.email) !== null && _l !== void 0 ? _l : (_m = orderData.user_info) === null || _m === void 0 ? void 0 : _m.email) !== null && _o !== void 0 ? _o : '',
+                useRebateInfo: sqlData.useRebateInfo,
+                custom_form_format: sqlData.custom_form_format,
+                custom_form_data: sqlData.custom_form_data,
+                custom_receipt_form: sqlData.custom_receipt_form,
+                orderSource: sqlData.orderSource === 'POS' ? 'POS' : '',
+                code_array: sqlData.code_array,
+                give_away: sqlData.give_away,
+                user_rebate_sum: 0,
+                language: sqlData.language,
+                pos_info: sqlData.pos_info,
+                client_ip_address: sqlData.client_ip_address,
+                fbc: sqlData.fbc,
+                fbp: sqlData.fbp,
+                editRecord: [],
+            };
+            console.log("kd -- ", kd);
+            const result = await new handlePaymentTransaction_js_1.default(this.app, orderData.customer_info.payment_select).processPayment(carData);
+        }
     }
     async getReturnOrder(query) {
         try {

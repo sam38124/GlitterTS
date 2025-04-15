@@ -34,6 +34,7 @@ import { CheckoutService } from './checkout.js';
 import { ProductInitial } from './product-initial.js';
 import { UtTimer } from '../utils/ut-timer.js';
 import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
+import PaymentTransaction from './model/handlePaymentTransaction.js';
 
 type BindItem = {
   id: string;
@@ -3126,138 +3127,155 @@ export class Shopping {
   }
 
   async repayOrder(orderID: string, return_url: string) {
-    const sqlData:any = (await db.query(
-      `SELECT *
-             FROM \`${this.app}\`.t_checkout
-             WHERE cart_token = ?
-               AND status = 0;`,
-      [orderID]))[0];
-    const orderData : {
-      lineItems: CartItem[];
-      customer_info?: any; //顧客資訊 訂單人
-      email?: string;
-      return_url: string;
-      orderID ?: string;
-      user_info: any; //取貨人資訊
-      code?: string;
-      use_rebate?: number;
-      use_wallet?: number;
-      checkOutType?: 'manual' | 'auto' | 'POS' | 'group_buy';
-      pos_store?: string;
-      voucher?: any; //自定義的voucher
-      discount?: number; //自定義金額
-      total?: number; //自定義總額
-      pay_status?: number; //自定義訂單狀態
-      custom_form_format?: any; //自定義表單格式
-      custom_form_data?: any; //自定義表單資料
-      custom_receipt_form?: any; //自定義配送表單格式
-      distribution_code?: string; //分銷連結代碼
-      code_array: string[]; // 優惠券代碼列表
-      give_away?: {
-        id: number;
-        spec: string[];
-        count: number;
-        voucher_id: string;
-      }[];
-      language?: 'en-US' | 'zh-CN' | 'zh-TW';
-      pos_info?: any; //POS結帳資訊;
-      invoice_select?: string;
-      pre_order?: boolean;
-      voucherList?: any;
-      isExhibition?: boolean;
-      client_ip_address?: string;
-      fbc?: string;
-      fbp?: string;
-      temp_cart_id?: string;
-      shipment_fee?: number;
-      rebate ?: number
-    } = sqlData.orderData;
-
-    if (!orderData) {
-      throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
-    }
-    const keyData = (
-      await Private_config.getConfig({
-        appName: this.app,
-        key: 'glitter_finance',
-      })
-    )[0].value;
-
-    // 物流設定
-    const shipment_setting: any = await (async () => {
+    const app = this.app;
+    async function getOrder(orderID: string) {
       try {
-        const config = await Private_config.getConfig({
-          appName: this.app,
-          key: 'logistics_setting',
-        });
-
-        // 如果 config 為空，則返回預設值
-        if (!config) {
-          return {
-            support: [],
-            shipmentSupport: [],
-          };
-        }
-
-        // 返回第一個元素的 value 屬性
-        return config[0].value;
-      } catch (e) {
-        // 發生錯誤時返回空陣列
-        return [];
+        const result = await db.query(`
+            SELECT *
+            FROM \`${app}\`.t_checkout
+            WHERE cart_token = ?`, [orderID]);
+        return result[0];
+      } catch (e: any) {
+        console.error(`查詢 orderID ${orderID} 的結帳資料時發生錯誤:`, e.message || e);
+        // 處理錯誤的方式：
+        // 選擇 1：返回 null，讓呼叫者知道操作失敗或未找到資料
+        return null;
       }
-    })();
+    }
+    const sqlData:any = await getOrder(orderID);
 
-    let kd = keyData[orderData.customer_info.payment_select] ?? {
-      ReturnURL: '',
-      NotifyURL: '',
-    };
-    const carData: Cart = {
-      customer_info: orderData.customer_info || {},
-      lineItems: orderData.lineItems??[],
-      total: orderData.total ?? 0,
-      email: sqlData.email ?? orderData.user_info?.email ?? '',
-      user_info: orderData.user_info,
-      shipment_fee: orderData.shipment_fee??0,
-      rebate: orderData.rebate??0,
-      goodsWeight: 0,
-      use_rebate: orderData.use_rebate || 0,
-      orderID: orderData.orderID || `${Date.now()}`,
-      shipment_support: shipment_setting.support as any,
-      shipment_info: shipment_setting.info as any,
-      shipment_selector: [
-        // 標準物流
-        ...Shipment_support_config.list.map(dd => ({
-          name: dd.title,
-          value: dd.value,
-        })),
-        // 自定義物流
-        ...(shipment_setting.custom_delivery ?? []).map((dd: any) => ({
-          form: dd.form,
-          name: dd.name,
-          value: dd.id,
-          system_form: dd.system_form,
-        })),
-      ].filter(option => shipment_setting.support.includes(option.value)),
-      use_wallet: 0,
-      method: sqlData.user_info?.method,
-      user_email: sqlData.email ?? orderData.user_info?.email ?? '',
-      useRebateInfo: sqlData.useRebateInfo,
-      custom_form_format: sqlData.custom_form_format,
-      custom_form_data: sqlData.custom_form_data,
-      custom_receipt_form: sqlData.custom_receipt_form,
-      orderSource: sqlData.orderSource === 'POS' ? 'POS' : '',
-      code_array: sqlData.code_array,
-      give_away: sqlData.give_away as any,
-      user_rebate_sum: 0,
-      language: sqlData.language,
-      pos_info: sqlData.pos_info,
-      client_ip_address: sqlData.client_ip_address as string,
-      fbc: sqlData.fbc as string,
-      fbp: sqlData.fbp as string,
-      editRecord: [],
-    };
-    console.log("kd -- " , kd);
-    // const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select).processPayment(carData);
+    if (sqlData){
+      const orderData : {
+        lineItems: CartItem[];
+        customer_info?: any; //顧客資訊 訂單人
+        email?: string;
+        return_url: string;
+        orderID ?: string;
+        user_info: any; //取貨人資訊
+        code?: string;
+        use_rebate?: number;
+        use_wallet?: number;
+        checkOutType?: 'manual' | 'auto' | 'POS' | 'group_buy';
+        pos_store?: string;
+        voucher?: any; //自定義的voucher
+        discount?: number; //自定義金額
+        total?: number; //自定義總額
+        pay_status?: number; //自定義訂單狀態
+        custom_form_format?: any; //自定義表單格式
+        custom_form_data?: any; //自定義表單資料
+        custom_receipt_form?: any; //自定義配送表單格式
+        distribution_code?: string; //分銷連結代碼
+        code_array: string[]; // 優惠券代碼列表
+        give_away?: {
+          id: number;
+          spec: string[];
+          count: number;
+          voucher_id: string;
+        }[];
+        language?: 'en-US' | 'zh-CN' | 'zh-TW';
+        pos_info?: any; //POS結帳資訊;
+        invoice_select?: string;
+        pre_order?: boolean;
+        voucherList?: any;
+        isExhibition?: boolean;
+        client_ip_address?: string;
+        fbc?: string;
+        fbp?: string;
+        temp_cart_id?: string;
+        shipment_fee?: number;
+        rebate ?: number
+      } = sqlData.orderData;
+      if (!orderData) {
+        throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
+
+      }
+      const keyData = (
+        await Private_config.getConfig({
+          appName: this.app,
+          key: 'glitter_finance',
+        })
+      )[0].value;
+
+      // 物流設定
+      const shipment_setting: any = await (async () => {
+        try {
+          const config = await Private_config.getConfig({
+            appName: this.app,
+            key: 'logistics_setting',
+          });
+
+          // 如果 config 為空，則返回預設值
+          if (!config) {
+            return {
+              support: [],
+              shipmentSupport: [],
+            };
+          }
+
+          // 返回第一個元素的 value 屬性
+          return config[0].value;
+        } catch (e) {
+          // 發生錯誤時返回空陣列
+          return [];
+        }
+      })();
+
+      let kd = keyData[orderData.customer_info.payment_select] ?? {
+        ReturnURL: '',
+        NotifyURL: '',
+      };
+      const newOrderID = Date.now()
+      const carData: Cart = {
+        customer_info: orderData.customer_info || {},
+        lineItems: orderData.lineItems??[],
+        total: orderData.total ?? 0,
+        email: sqlData.email ?? orderData.user_info?.email ?? '',
+        user_info: orderData.user_info,
+        shipment_fee: orderData.shipment_fee??0,
+        rebate: orderData.rebate??0,
+        goodsWeight: 0,
+        use_rebate: orderData.use_rebate || 0,
+        orderID: `${newOrderID}`,
+        shipment_support: shipment_setting.support as any,
+        shipment_info: shipment_setting.info as any,
+        shipment_selector: [
+          // 標準物流
+          ...Shipment_support_config.list.map(dd => ({
+            name: dd.title,
+            value: dd.value,
+          })),
+          // 自定義物流
+          ...(shipment_setting.custom_delivery ?? []).map((dd: any) => ({
+            form: dd.form,
+            name: dd.name,
+            value: dd.id,
+            system_form: dd.system_form,
+          })),
+        ].filter(option => shipment_setting.support.includes(option.value)),
+        use_wallet: 0,
+        method: sqlData.user_info?.method,
+        user_email: sqlData.email ?? orderData.user_info?.email ?? '',
+        useRebateInfo: sqlData.useRebateInfo,
+        custom_form_format: sqlData.custom_form_format,
+        custom_form_data: sqlData.custom_form_data,
+        custom_receipt_form: sqlData.custom_receipt_form,
+        orderSource: sqlData.orderSource === 'POS' ? 'POS' : '',
+        code_array: sqlData.code_array,
+        give_away: sqlData.give_away as any,
+        user_rebate_sum: 0,
+        language: sqlData.language,
+        pos_info: sqlData.pos_info,
+        client_ip_address: sqlData.client_ip_address as string,
+        fbc: sqlData.fbc as string,
+        fbp: sqlData.fbp as string,
+        editRecord: [],
+      };
+      const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select).processPayment(carData);
+    }
+
+
+
+
     // return result
   }
 

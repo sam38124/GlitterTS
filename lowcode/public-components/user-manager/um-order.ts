@@ -453,7 +453,6 @@ export class UMOrder {
         const id = gvc.glitter.getUUID();
         $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
         (document.querySelector(`#${id} #submit`) as any).click();
-        new ApiCart().clearCart();
       });
     });
   }
@@ -1252,7 +1251,7 @@ export class UMOrder {
                                 const repayBtn = () => {
                                   return html` 
                                   <span class="payment-actions">
-                                    <button class="customer-btn-text ms-3" id="repay-button" onclick="${gvc.event(()=>{
+                                    <button class="d-none customer-btn-text ms-3" id="repay-button" onclick="${gvc.event(()=>{
                                       UMOrder.repay(gvc, vm.data.cart_token).then(r => {
                                        
                                       });

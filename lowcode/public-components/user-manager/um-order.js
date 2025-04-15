@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { UmClass } from './um-class.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { ApiCart } from '../../glitter-base/route/api-cart.js';
 import { Ad } from '../public/ad.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
@@ -212,7 +211,6 @@ export class UMOrder {
                 const id = gvc.glitter.getUUID();
                 $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                 document.querySelector(`#${id} #submit`).click();
-                new ApiCart().clearCart();
             });
         });
     }
@@ -756,7 +754,7 @@ export class UMOrder {
                                                 const repayBtn = () => {
                                                     return html ` 
                                   <span class="payment-actions">
-                                    <button class="customer-btn-text ms-3" id="repay-button" onclick="${gvc.event(() => {
+                                    <button class="d-none customer-btn-text ms-3" id="repay-button" onclick="${gvc.event(() => {
                                                         UMOrder.repay(gvc, vm.data.cart_token).then(r => {
                                                         });
                                                     })}">重新付款</button>

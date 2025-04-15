@@ -1,10 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FilterProtectData = void 0;
-var FilterProtectData = /** @class */ (function () {
-    function FilterProtectData() {
-    }
-    FilterProtectData.filter = function (key, data) {
+class FilterProtectData {
+    static filter(key, data) {
         if (data) {
             switch (key) {
                 case 'login_line_setting':
@@ -12,7 +10,6 @@ var FilterProtectData = /** @class */ (function () {
                     data['message_token'] = undefined;
                     break;
                 case 'login_fb_setting':
-                    // data['secret']=undefined
                     data['fans_token'] = undefined;
                     data['fans_id'] = undefined;
                     break;
@@ -29,7 +26,7 @@ var FilterProtectData = /** @class */ (function () {
             }
         }
         return data;
-    };
-    return FilterProtectData;
-}());
+    }
+}
 exports.FilterProtectData = FilterProtectData;
+//# sourceMappingURL=filter-protect-data.js.map
