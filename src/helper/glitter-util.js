@@ -1,98 +1,175 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GlitterUtil = void 0;
-const fs_1 = __importDefault(require("fs"));
-class GlitterUtil {
-    static async set_frontend(express, rout) {
-        for (const dd of rout) {
-            express.use(dd.rout, async (req, resp, next) => {
-                let path = req.path;
-                if (path === '/') {
-                    path = '/index.html';
-                }
-                if ((dd.path + path).indexOf('index.html') !== -1) {
-                    const seo = await dd.seoManager(req, resp);
-                    let fullPath = dd.path + '/index.html';
-                    const data = fs_1.default.readFileSync(fullPath, 'utf8');
-                    resp.header('Content-Type', 'text/html; charset=UTF-8');
-                    return resp.send(data.replace(data.substring(data.indexOf(`<head>`) + 6, data.indexOf(`</head>`)), seo));
-                }
-                else {
-                    return resp.sendFile(decodeURI((dd.path + path)));
-                }
-            });
-        }
+var fs_1 = require("fs");
+var GlitterUtil = /** @class */ (function () {
+    function GlitterUtil() {
     }
-    static async set_frontend_v2(express, rout) {
-        for (const dd of rout) {
-            express.use(dd.rout, async (req, resp, next) => {
-                const fileURL = (() => {
-                    if (req.baseUrl.startsWith(dd.root_path)) {
-                        return dd.path + '/' + req.baseUrl.replace(dd.root_path, '');
-                    }
-                    else {
-                        return dd.path + '/' + req.baseUrl.replace(`/${dd.app_name}/`, '');
-                    }
-                })();
-                if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'robots.txt') {
-                    resp.set('Content-Type', 'text/plain');
-                    return resp.send(await dd.robots(req, resp));
+    GlitterUtil.set_frontend = function (express, rout) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _loop_1, _i, rout_1, dd;
+            var _this = this;
+            return __generator(this, function (_a) {
+                _loop_1 = function (dd) {
+                    express.use(dd.rout, function (req, resp, next) { return __awaiter(_this, void 0, void 0, function () {
+                        var path, seo, fullPath, data;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    path = req.path;
+                                    if (path === '/') {
+                                        path = '/index.html';
+                                    }
+                                    if (!((dd.path + path).indexOf('index.html') !== -1)) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, dd.seoManager(req, resp)];
+                                case 1:
+                                    seo = _a.sent();
+                                    fullPath = dd.path + '/index.html';
+                                    data = fs_1.default.readFileSync(fullPath, 'utf8');
+                                    resp.header('Content-Type', 'text/html; charset=UTF-8');
+                                    return [2 /*return*/, resp.send(data.replace(data.substring(data.indexOf("<head>") + 6, data.indexOf("</head>")), seo))];
+                                case 2: return [2 /*return*/, resp.sendFile(decodeURI((dd.path + path)))];
+                            }
+                        });
+                    }); });
+                };
+                for (_i = 0, rout_1 = rout; _i < rout_1.length; _i++) {
+                    dd = rout_1[_i];
+                    _loop_1(dd);
                 }
-                else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'tw_shop.xml') {
-                    resp.set('Content-Type', 'application/xml');
-                    return resp.send(await dd.tw_shop(req, resp));
-                }
-                else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap.xml') {
-                    resp.set('Content-Type', 'text/xml');
-                    return resp.send(await dd.sitemap(req, resp));
-                }
-                else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap_detail.xml') {
-                    resp.set('Content-Type', 'text/xml');
-                    return resp.send(await dd.sitemap(req, resp));
-                }
-                else if (!fs_1.default.existsSync(fileURL)) {
-                    if (req.baseUrl.startsWith(dd.root_path)) {
-                        req.query.page = req.baseUrl.replace(dd.root_path, '');
-                    }
-                    const seo = await dd.seoManager(req, resp);
-                    if (seo.redirect) {
-                        resp.redirect(301, seo.redirect);
-                        return;
-                    }
-                    let fullPath = dd.path + '/index.html';
-                    const data = fs_1.default.readFileSync(fullPath, 'utf8');
-                    resp.header('Content-Type', 'text/html; charset=UTF-8');
-                    let meta_info = [
-                        `<head>`,
-                        `<meta name="apple-mobile-web-app-capable" content="yes">`,
-                        `<meta name="apple-touch-fullscreen" content="yes">`,
-                        `<meta name="mobile-web-app-capable" content="yes">`,
-                        `<meta http-equiv="content-type" content="text/html;charset=UTF-8">`,
-                        (req.query._preview_width && req.query._preview_scale) ? `<meta name="viewport" content="width=${req.query._preview_width}, initial-scale=${req.query._preview_scale}, maximum-scale=${req.query._preview_scale}, user-scalable=no">` : `<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">`,
-                        seo.head,
-                        (req.body) ? `<script>window.post_body=${(typeof req.body === 'string') ? req.body : `${JSON.stringify(req.body)}`};</script>` : ``,
-                        `</head>`,
-                        seo.body,
-                    ].map((dd) => {
-                        return dd.trim();
-                    });
-                    try {
-                        return resp.send(data.replace(data.substring(data.indexOf(`<head>`), data.indexOf(`</head>`) + 7), meta_info.join('\n')));
-                    }
-                    catch (e) {
-                        console.log(e);
-                        return e;
-                    }
-                }
-                else {
-                    return resp.sendFile(decodeURI(fileURL));
-                }
+                return [2 /*return*/];
             });
-        }
-    }
-}
+        });
+    };
+    GlitterUtil.set_frontend_v2 = function (express, rout) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _loop_2, _i, rout_2, dd;
+            var _this = this;
+            return __generator(this, function (_a) {
+                _loop_2 = function (dd) {
+                    express.use(dd.rout, function (req, resp, next) { return __awaiter(_this, void 0, void 0, function () {
+                        var fileURL, _a, _b, _c, _d, _e, _f, _g, _h, seo, fullPath, data, meta_info;
+                        return __generator(this, function (_j) {
+                            switch (_j.label) {
+                                case 0:
+                                    fileURL = (function () {
+                                        if (req.baseUrl.startsWith(dd.root_path)) {
+                                            return dd.path + '/' + req.baseUrl.replace(dd.root_path, '');
+                                        }
+                                        else {
+                                            return dd.path + '/' + req.baseUrl.replace("/".concat(dd.app_name, "/"), '');
+                                        }
+                                    })();
+                                    if (!(req.baseUrl.replace("/".concat(dd.app_name, "/"), '') === 'robots.txt')) return [3 /*break*/, 2];
+                                    resp.set('Content-Type', 'text/plain');
+                                    _b = (_a = resp).send;
+                                    return [4 /*yield*/, dd.robots(req, resp)];
+                                case 1: return [2 /*return*/, _b.apply(_a, [_j.sent()])];
+                                case 2:
+                                    if (!(req.baseUrl.replace("/".concat(dd.app_name, "/"), '') === 'tw_shop.xml')) return [3 /*break*/, 4];
+                                    resp.set('Content-Type', 'application/xml');
+                                    _d = (_c = resp).send;
+                                    return [4 /*yield*/, dd.tw_shop(req, resp)];
+                                case 3: return [2 /*return*/, _d.apply(_c, [_j.sent()])];
+                                case 4:
+                                    if (!(req.baseUrl.replace("/".concat(dd.app_name, "/"), '') === 'sitemap.xml')) return [3 /*break*/, 6];
+                                    resp.set('Content-Type', 'text/xml');
+                                    _f = (_e = resp).send;
+                                    return [4 /*yield*/, dd.sitemap(req, resp)];
+                                case 5: return [2 /*return*/, _f.apply(_e, [_j.sent()])];
+                                case 6:
+                                    if (!(req.baseUrl.replace("/".concat(dd.app_name, "/"), '') === 'sitemap_detail.xml')) return [3 /*break*/, 8];
+                                    resp.set('Content-Type', 'text/xml');
+                                    _h = (_g = resp).send;
+                                    return [4 /*yield*/, dd.sitemap(req, resp)];
+                                case 7: return [2 /*return*/, _h.apply(_g, [_j.sent()])];
+                                case 8:
+                                    if (!!fs_1.default.existsSync(fileURL)) return [3 /*break*/, 10];
+                                    if (req.baseUrl.startsWith(dd.root_path)) {
+                                        req.query.page = req.baseUrl.replace(dd.root_path, '');
+                                    }
+                                    return [4 /*yield*/, dd.seoManager(req, resp)];
+                                case 9:
+                                    seo = _j.sent();
+                                    if (seo.redirect) {
+                                        resp.redirect(301, seo.redirect);
+                                        return [2 /*return*/];
+                                    }
+                                    fullPath = dd.path + '/index.html';
+                                    data = fs_1.default.readFileSync(fullPath, 'utf8');
+                                    resp.header('Content-Type', 'text/html; charset=UTF-8');
+                                    meta_info = [
+                                        "<head>",
+                                        "<meta name=\"apple-mobile-web-app-capable\" content=\"yes\">",
+                                        "<meta name=\"apple-touch-fullscreen\" content=\"yes\">",
+                                        "<meta name=\"mobile-web-app-capable\" content=\"yes\">",
+                                        "<meta http-equiv=\"content-type\" content=\"text/html;charset=UTF-8\">",
+                                        (req.query._preview_width && req.query._preview_scale) ? "<meta name=\"viewport\" content=\"width=".concat(req.query._preview_width, ", initial-scale=").concat(req.query._preview_scale, ", maximum-scale=").concat(req.query._preview_scale, ", user-scalable=no\">") : "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no\">",
+                                        seo.head,
+                                        (req.body) ? "<script>window.post_body=".concat((typeof req.body === 'string') ? req.body : "".concat(JSON.stringify(req.body)), ";</script>") : "",
+                                        "</head>",
+                                        seo.body,
+                                    ].map(function (dd) {
+                                        return dd.trim();
+                                    });
+                                    try {
+                                        return [2 /*return*/, resp.send(data.replace(data.substring(data.indexOf("<head>"), data.indexOf("</head>") + 7), meta_info.join('\n')))];
+                                    }
+                                    catch (e) {
+                                        console.log(e);
+                                        return [2 /*return*/, e];
+                                    }
+                                    return [3 /*break*/, 11];
+                                case 10: return [2 /*return*/, resp.sendFile(decodeURI(fileURL))];
+                                case 11: return [2 /*return*/];
+                            }
+                        });
+                    }); });
+                };
+                for (_i = 0, rout_2 = rout; _i < rout_2.length; _i++) {
+                    dd = rout_2[_i];
+                    _loop_2(dd);
+                }
+                return [2 /*return*/];
+            });
+        });
+    };
+    return GlitterUtil;
+}());
 exports.GlitterUtil = GlitterUtil;
-//# sourceMappingURL=glitter-util.js.map

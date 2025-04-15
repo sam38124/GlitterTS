@@ -1646,7 +1646,7 @@ export class OrderSetting {
       orderCreateUnit.voucher = orderData.voucherList;
       orderCreateUnit.lineItems = structuredClone(orderData.lineItems);
       orderCreateUnit.lineItems.forEach((lineItem: LineItem) => {
-        lineItem.count = '0';
+        lineItem.count = 0;
       });
     }
     orderData.orderSource = 'split';
@@ -1921,17 +1921,23 @@ export class OrderSetting {
               orderData : orderData,
               splitOrderArray : splitOrderArray
             }
-            console.log("passData -- " , passData);
+
+
+            ApiShop.combineOrder(vm.dataObject).then(r => {
+              if (r.result && r.response) {
+
+              }
+            });
+            dialog.dataLoading({ visible: true });
             ApiShop.splitOrder(passData).then(r => {
-              console.log("r -- " , r);
-              // if (r.result && r.response) {
-              //   dialog.dataLoading({ visible: false });
-              //   dialog.successMessage({ text: '合併完成' });
-              //   setTimeout(() => {
-              //     closeDialog();
-              //     callback();
-              //   }, 500);
-              // }
+              if (r.result && r.response) {
+                dialog.dataLoading({ visible: false });
+                dialog.successMessage({ text: '拆分訂單完成' });
+                setTimeout(() => {
+                  closeDialog();
+                  callback();
+                }, 500);
+              }
             });
           }
         },
@@ -1943,7 +1949,7 @@ export class OrderSetting {
       bind:ids.footer,
       view:()=>{
         const allOrdersHaveZeroItems = splitOrderArray.every(order =>
-          order.lineItems.every(item => Number(item.count) === 0)
+          order.lineItems.every(item => item.count === 0)
         );
         let checkBTN = ``;
         if (!allOrdersHaveZeroItems) {
@@ -2052,16 +2058,16 @@ export class OrderSetting {
                           class="${gClass('product-input')} d-flex tx_normal w-100"
                           style="${commonHeight};"
                           type="number"
-                          value="${parseInt(item.count)}"
+                          value="${item.count}"
                           min="0"
                           onchange="${gvc.event(e => {
                             const temp = structuredClone(item.count);
-                            item.count = e.value;
+                            item.count = Number(e.value);
                             let nowQty = 0;
                             splitOrderArray.forEach((order, index) => {
-                              nowQty += Number(order.lineItems[itemIndex].count);
+                              nowQty += order.lineItems[itemIndex].count;
                             });
-                            if (Number(dataArray[itemIndex].count) >= nowQty) {
+                            if (order.lineItems[itemIndex].count >= nowQty) {
                             } else {
                               item.count = temp;
                             }

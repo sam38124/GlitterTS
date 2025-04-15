@@ -1,13 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppInitial = void 0;
-class AppInitial {
-    static main(appName) {
+var AppInitial = /** @class */ (function () {
+    function AppInitial() {
+    }
+    AppInitial.main = function (appName) {
         return [{
-                sql: `
-                                insert into \`${appName}\`.t_user_public_config
-                                SET ?;
-                            `,
+                sql: "\n                                insert into `".concat(appName, "`.t_user_public_config\n                                SET ?;\n                            "),
                 obj: {
                     key: 'robot_auto_reply',
                     user_id: 'manager',
@@ -38,10 +37,7 @@ class AppInitial {
                     })
                 }
             }, {
-                sql: `
-                                insert into \`${appName}\`.t_user_public_config
-                                SET ?;
-                            `,
+                sql: "\n                                insert into `".concat(appName, "`.t_user_public_config\n                                SET ?;\n                            "),
                 obj: {
                     key: 'message_setting',
                     user_id: 'manager',
@@ -56,7 +52,7 @@ class AppInitial {
                     })
                 }
             }];
-    }
-}
+    };
+    return AppInitial;
+}());
 exports.AppInitial = AppInitial;
-//# sourceMappingURL=app-initial.js.map

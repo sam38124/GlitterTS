@@ -7,7 +7,7 @@ import axios from 'axios';
 import app from '../../app';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
-import FinancialService, { LinePay, PayNow, PayPal, JKO, EcPay } from './financial-service.js';
+import FinancialService, { EcPay, JKO, LinePay, PayNow, PayPal } from './financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from './user.js';
 import { Invoice } from './invoice.js';
@@ -33,7 +33,7 @@ import { PayNowLogistics } from './paynow-logistics.js';
 import { CheckoutService } from './checkout.js';
 import { ProductInitial } from './product-initial.js';
 import { UtTimer } from '../utils/ut-timer.js';
-
+import PaymentTransaction from './model/handlePaymentTransaction';
 
 type BindItem = {
   id: string;
@@ -125,7 +125,7 @@ interface LineItem {
   sale_price: number;
   title: string;
   sku: string;
-  preview_image:string;
+  preview_image: string;
 }
 
 interface CustomerInfo {
@@ -150,8 +150,8 @@ interface UserInfo {
 }
 
 interface orderVoucherData {
-  id:number;
-  discount_total:number;
+  id: number;
+  discount_total: number;
   title: string;
   method: 'percent' | 'fixed';
   trigger: 'auto' | 'code';
@@ -178,10 +178,10 @@ interface orderVoucherData {
   }[];
   start_ISO_Date: string;
   end_ISO_Date: string;
-  reBackType:string;
-  rebate_total:number;
-  target:string;
-  targetList:string[];
+  reBackType: string;
+  rebate_total: number;
+  target: string;
+  targetList: string[];
 }
 
 class OrderDetail {
@@ -203,14 +203,25 @@ class OrderDetail {
     phone: string;
     address: string;
     custom_form_delivery?: any;
-    shipment: "normal" | "FAMIC2C" | "black_cat_freezing" | "UNIMARTC2C" | "HILIFEC2C" | "OKMARTC2C" | "now" | "shop" | "global_express" | "black_cat" | "UNIMARTFREEZE";
+    shipment:
+      | 'normal'
+      | 'FAMIC2C'
+      | 'black_cat_freezing'
+      | 'UNIMARTC2C'
+      | 'HILIFEC2C'
+      | 'OKMARTC2C'
+      | 'now'
+      | 'shop'
+      | 'global_express'
+      | 'black_cat'
+      | 'UNIMARTFREEZE';
     CVSStoreName: string;
     CVSStoreID: string;
     CVSTelephone: string;
     MerchantTradeNo: string;
     CVSAddress: string;
     note?: string;
-    code_note?: string
+    code_note?: string;
   };
   pay_status: string;
 
@@ -220,7 +231,7 @@ class OrderDetail {
     this.customer_info = this.initCustomerInfo();
     this.user_info = this.initUserInfo();
     this.total = 0;
-    this.pay_status = "0";
+    this.pay_status = '0';
     this.voucher = this.initVoucher();
   }
 
@@ -249,17 +260,17 @@ class OrderDetail {
   }
 
   private initVoucher(): orderVoucherData {
-    return  {
+    return {
       id: 0,
       discount_total: 0,
       end_ISO_Date: '',
-      for: "product",
+      for: 'product',
       forKey: [],
-      method: "fixed",
+      method: 'fixed',
       overlay: false,
-      reBackType: "rebate",
+      reBackType: 'rebate',
       rebate_total: 0,
-      rule: "min_count",
+      rule: 'min_count',
       ruleValue: 0,
       startDate: '',
       startTime: '',
@@ -268,9 +279,9 @@ class OrderDetail {
       target: '',
       targetList: [],
       title: '',
-      trigger: "auto",
+      trigger: 'auto',
       type: 'voucher',
-      value: "0"
+      value: '0',
     };
   }
 }
@@ -361,7 +372,7 @@ export type Cart = {
   custom_form_data?: any;
   distribution_id?: number;
   distribution_info?: any;
-  orderSource: '' | 'manual' | 'normal' | 'POS' | 'combine' | 'group_buy';
+  orderSource: '' | 'manual' | 'normal' | 'POS' | 'combine' | 'group_buy' | 'split';
   temp_cart_id?: string;
   code_array: string[];
   deliveryData?: DeliveryData;
@@ -375,6 +386,8 @@ export type Cart = {
   scheduled_id?: string;
   editRecord: { time: string; record: string }[];
   combineOrderID?: number;
+  splitOrders?: string[];
+  parentOrder?: string;
 };
 
 export type Order = {
@@ -1787,7 +1800,7 @@ export class Shopping {
       fbp?: string;
       temp_cart_id?: string;
     },
-    type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
+    type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' | 'split' = 'add',
     replace_order_id?: string
   ) {
     try {
@@ -2764,8 +2777,8 @@ export class Shopping {
       checkPoint('check user rebate');
 
       // 手動結帳地方判定
-      if (type === 'manual') {
-        carData.orderSource = 'manual';
+      if (type === 'manual' || type === 'split') {
+        carData.orderSource = type;
         let tempVoucher: VoucherData = {
           discount_total: data.voucher.discount_total,
           end_ISO_Date: '',
@@ -2803,7 +2816,7 @@ export class Shopping {
         carData.total = data.total ?? 0;
         carData.rebate = tempVoucher.rebate_total;
 
-        if (tempVoucher.reBackType == 'shipment_free') {
+        if (tempVoucher.reBackType == 'shipment_free' || type == 'split') {
           carData.shipment_fee = 0;
         }
 
@@ -2963,7 +2976,7 @@ export class Shopping {
           ReturnURL: '',
           NotifyURL: '',
         };
-        // 線下付款
+        // 金流處理
         switch (carData.customer_info.payment_select) {
           case 'ecPay':
           case 'newWebPay':
@@ -3089,6 +3102,142 @@ export class Shopping {
       console.error(e);
       throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Func Error:' + e, null);
     }
+  }
+
+  async repayOrder(orderID: string, return_url: string) {
+    const sqlData:any = (await db.query(
+      `SELECT *
+             FROM \`${this.app}\`.t_checkout
+             WHERE cart_token = ?
+               AND status = 0;`,
+      [orderID]))[0];
+    const orderData : {
+      lineItems: CartItem[];
+      customer_info?: any; //顧客資訊 訂單人
+      email?: string;
+      return_url: string;
+      orderID ?: string;
+      user_info: any; //取貨人資訊
+      code?: string;
+      use_rebate?: number;
+      use_wallet?: number;
+      checkOutType?: 'manual' | 'auto' | 'POS' | 'group_buy';
+      pos_store?: string;
+      voucher?: any; //自定義的voucher
+      discount?: number; //自定義金額
+      total?: number; //自定義總額
+      pay_status?: number; //自定義訂單狀態
+      custom_form_format?: any; //自定義表單格式
+      custom_form_data?: any; //自定義表單資料
+      custom_receipt_form?: any; //自定義配送表單格式
+      distribution_code?: string; //分銷連結代碼
+      code_array: string[]; // 優惠券代碼列表
+      give_away?: {
+        id: number;
+        spec: string[];
+        count: number;
+        voucher_id: string;
+      }[];
+      language?: 'en-US' | 'zh-CN' | 'zh-TW';
+      pos_info?: any; //POS結帳資訊;
+      invoice_select?: string;
+      pre_order?: boolean;
+      voucherList?: any;
+      isExhibition?: boolean;
+      client_ip_address?: string;
+      fbc?: string;
+      fbp?: string;
+      temp_cart_id?: string;
+      shipment_fee?: number;
+      rebate ?: number
+    } = sqlData.orderData;
+
+    if (!orderData) {
+      throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
+    }
+    const keyData = (
+      await Private_config.getConfig({
+        appName: this.app,
+        key: 'glitter_finance',
+      })
+    )[0].value;
+
+    // 物流設定
+    const shipment_setting: any = await (async () => {
+      try {
+        const config = await Private_config.getConfig({
+          appName: this.app,
+          key: 'logistics_setting',
+        });
+
+        // 如果 config 為空，則返回預設值
+        if (!config) {
+          return {
+            support: [],
+            shipmentSupport: [],
+          };
+        }
+
+        // 返回第一個元素的 value 屬性
+        return config[0].value;
+      } catch (e) {
+        // 發生錯誤時返回空陣列
+        return [];
+      }
+    })();
+
+    let kd = keyData[orderData.customer_info.payment_select] ?? {
+      ReturnURL: '',
+      NotifyURL: '',
+    };
+    const carData: Cart = {
+      customer_info: orderData.customer_info || {},
+      lineItems: orderData.lineItems??[],
+      total: orderData.total ?? 0,
+      email: sqlData.email ?? orderData.user_info?.email ?? '',
+      user_info: orderData.user_info,
+      shipment_fee: orderData.shipment_fee??0,
+      rebate: orderData.rebate??0,
+      goodsWeight: 0,
+      use_rebate: orderData.use_rebate || 0,
+      orderID: orderData.orderID || `${Date.now()}`,
+      shipment_support: shipment_setting.support as any,
+      shipment_info: shipment_setting.info as any,
+      shipment_selector: [
+        // 標準物流
+        ...Shipment_support_config.list.map(dd => ({
+          name: dd.title,
+          value: dd.value,
+        })),
+        // 自定義物流
+        ...(shipment_setting.custom_delivery ?? []).map((dd: any) => ({
+          form: dd.form,
+          name: dd.name,
+          value: dd.id,
+          system_form: dd.system_form,
+        })),
+      ].filter(option => shipment_setting.support.includes(option.value)),
+      use_wallet: 0,
+      method: sqlData.user_info?.method,
+      user_email: sqlData.email ?? orderData.user_info?.email ?? '',
+      useRebateInfo: sqlData.useRebateInfo,
+      custom_form_format: sqlData.custom_form_format,
+      custom_form_data: sqlData.custom_form_data,
+      custom_receipt_form: sqlData.custom_receipt_form,
+      orderSource: sqlData.orderSource === 'POS' ? 'POS' : '',
+      code_array: sqlData.code_array,
+      give_away: sqlData.give_away as any,
+      user_rebate_sum: 0,
+      language: sqlData.language,
+      pos_info: sqlData.pos_info,
+      client_ip_address: sqlData.client_ip_address as string,
+      fbc: sqlData.fbc as string,
+      fbp: sqlData.fbp as string,
+      editRecord: [],
+    };
+    console.log("kd -- " , kd);
+    // const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select).processPayment(carData);
+    // return result
   }
 
   async getReturnOrder(query: {
@@ -3378,8 +3527,10 @@ export class Shopping {
     }
   }
 
-  async splitOrder(obj:{orderData: Cart, splitOrderArray:OrderDetail[]}) {
+  async splitOrder(obj: { orderData: Cart; splitOrderArray: OrderDetail[] }) {
     try {
+      const currentTime = new Date().toISOString();
+      //給定訂單編號 產生 編號A 編號B... 依此類推
       function generateOrderIds(orderId: string, arrayLength: number): string[] {
         const orderIdArray: string[] = [];
         const startChar = 'A'.charCodeAt(0); // 取得 'A' 的 ASCII 碼
@@ -3393,35 +3544,60 @@ export class Shopping {
         return orderIdArray;
       }
       //整理原本訂單的總價 優惠卷
-      function refreshOrder(orderData:Cart , splitOrderArray:OrderDetail[]){
-        const { newTotal, newDiscount } = splitOrderArray.reduce((acc, order) => {
-          return {
-            newTotal: acc.newTotal + order.total,
-            newDiscount: acc.newDiscount + order.discount,
-          };
-        }, { newTotal: 0, newDiscount: 0 });
+      function refreshOrder(orderData: Cart, splitOrderArray: OrderDetail[]) {
+        const { newTotal, newDiscount } = splitOrderArray.reduce(
+          (acc, order) => {
+            return {
+              newTotal: acc.newTotal + order.total,
+              newDiscount: acc.newDiscount + order.discount,
+            };
+          },
+          { newTotal: 0, newDiscount: 0 }
+        );
 
-        orderData.total = newTotal;
-        orderData.discount = newDiscount;
-
+        orderData.total = orderData.total - newTotal;
+        orderData.discount = (orderData.discount ?? 0) - newDiscount;
+        orderData.splitOrders = generateOrderIds(orderData.orderID, splitOrderArray.length) ?? [];
+        orderData.editRecord.push({
+          time: currentTime,
+          record: `拆分成 ${splitOrderArray.length} 筆子訂單\\n${orderData.splitOrders.map(orderID => `{{order=${orderID}}}`).join('\\n')}`,
+        })
       }
       const orderData = obj.orderData;
       const splitOrderArray = obj.splitOrderArray;
-      refreshOrder(orderData , splitOrderArray);
-
-      try {
-        await db.query(
-          `UPDATE \`${this.app}\`.t_checkout
-         SET orderData = ?
-         WHERE cart_token = ?;`,
-          [JSON.stringify(orderData), orderData.orderID]
-        );
-      }catch (e:any){
-        console.error(e);
-        throw exception.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
+      refreshOrder(orderData, splitOrderArray);
+      await this.putOrder({
+        cart_token: orderData.orderID,
+        orderData,
+      })
+      for (const [index, order] of splitOrderArray.entries()) {
+        await this.toCheckout({
+          code_array: [],
+          order_id: orderData?.splitOrders?.[index] ?? '',
+          line_items: order.lineItems as any,
+          customer_info: order.customer_info,
+          return_url: "",
+          user_info: order.user_info,
+          discount: order.discount,
+          voucher:order.voucher,
+          total: order.total,
+          pay_status: Number(order.pay_status)
+        }, 'split');
       }
 
-      const currentTime = new Date().toISOString();
+      // try {
+      //   await db.query(
+      //     `UPDATE \`${this.app}\`.t_checkout
+      //    SET orderData = ?
+      //    WHERE cart_token = ?;`,
+      //     [JSON.stringify(orderData), orderData.orderID]
+      //   );
+      // }catch (e:any){
+      //   console.error(e);
+      //   throw exception.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
+      // }
+
+
 
       return true;
     } catch (e) {
@@ -3849,7 +4025,7 @@ export class Shopping {
     return cart;
   }
 
-  async putOrder(data: { id?: string; cart_token?: string; orderData: any; status: any ; spiltOrder?:string[]}) {
+  async putOrder(data: { id?: string; cart_token?: string; orderData: any; status?: any; }) {
     try {
       const update: any = {};
       const storeConfig = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
@@ -3873,6 +4049,8 @@ export class Shopping {
 
       if (data.status !== undefined) {
         update.status = data.status;
+      }else{
+        data.status = update.status
       }
 
       // lineItems 庫存修正
@@ -4021,7 +4199,6 @@ export class Shopping {
       throw exception.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
     }
   }
-
 
   private writeRecord(origin: any, update: any): void {
     const editArray: Array<{ time: string; record: string }> = [];
@@ -4412,6 +4589,9 @@ export class Shopping {
               `(cart_token in (select order_id from \`${this.app}\`.t_invoice_memory where invoice_no like '%${query.search}%' ))`
             );
             break;
+          case 'cart_token_exact':
+            querySql.push(`(cart_token = '${query.search}')`);
+            break;
           default:
             querySql.push(
               `JSON_CONTAINS_PATH(orderData, 'one', '$.lineItems[*].title') AND JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.lineItems[*].${query.searchType}')) REGEXP '${query.search}'`
@@ -4476,7 +4656,6 @@ export class Shopping {
 
         querySql.push(countingSQL);
       }
-
       if (query.is_shipment) {
         querySql.push(`(shipment_number IS NOT NULL) and (shipment_number != '')`);
       }
@@ -4491,7 +4670,6 @@ export class Shopping {
             .join(',')})`
         );
       }
-
       if (query.progress) {
         //備貨中
         if (query.progress === 'in_stock') {
@@ -4508,7 +4686,6 @@ export class Shopping {
         temp += `progress IN (${newArray.map(status => `"${status}"`).join(',')})`;
         querySql.push(`(${temp})`);
       }
-
       if (query.distribution_code) {
         let codes = query.distribution_code.split(',');
         let temp = '';
@@ -4521,7 +4698,6 @@ export class Shopping {
       } else if (query.is_pos === 'false') {
         querySql.push(`(order_source!='POS' or order_source is null)`);
       }
-
       if (query.shipment) {
         let shipment = query.shipment.split(',');
         let temp = '';
@@ -4567,7 +4743,6 @@ export class Shopping {
             break;
         }
       }
-
       query.status && querySql.push(`o.status IN (${query.status})`);
       const orderMath = [];
 
@@ -4746,7 +4921,6 @@ export class Shopping {
             })
           )
       );
-
       return response_data;
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'getCheckOut Error:' + e, null);

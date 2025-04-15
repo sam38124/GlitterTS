@@ -1137,7 +1137,7 @@ export class ApiShop {
     line_items: {
       id: number;
       spec: string[];
-      count: string;
+      count: number;
     }[];
     user_info: {
       shipment: string;

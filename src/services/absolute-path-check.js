@@ -1,11 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AbsolutePathCheck = void 0;
-const html = String.raw;
-class AbsolutePathCheck {
-    static check(page) {
+//判斷是否為codeBase絕對路徑
+var html = String.raw;
+var AbsolutePathCheck = /** @class */ (function () {
+    function AbsolutePathCheck() {
     }
-    static getTemplate(code) {
+    AbsolutePathCheck.check = function (page) {
+        //         switch (page) {
+        //             case 'sy01_checkout_detail':
+        //                 return AbsolutePathCheck.getTemplate(`return new Promise((resolve) => {
+        //     glitter.getModule(new URL('./public-components/checkout/index.js', gvc.glitter.root_path).href, (res) => {
+        //         resolve(res.main(gvc, widget, subData));
+        //     });
+        // })`)
+        //         }
+    };
+    AbsolutePathCheck.getTemplate = function (code) {
         return {
             "id": -1,
             "userID": "manager",
@@ -129,7 +140,7 @@ class AbsolutePathCheck {
             "template_type": 0,
             "updated_time": "2024-11-04T05:11:49.000Z"
         };
-    }
-}
+    };
+    return AbsolutePathCheck;
+}());
 exports.AbsolutePathCheck = AbsolutePathCheck;
-//# sourceMappingURL=absolute-path-check.js.map

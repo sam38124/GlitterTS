@@ -17,7 +17,7 @@ glitter.$(document).ready(function () {
     if (window.GL !== undefined) {
         glitter.deviceType = glitter.deviceTypeEnum.Android;
     }
-    else if (navigator.userAgent.includes('iosGlitter')) {
+    else if (navigator.userAgent === 'iosGlitter') {
         glitter.deviceType = glitter.deviceTypeEnum.Ios;
     }
     Entry.onCreate(glitter);

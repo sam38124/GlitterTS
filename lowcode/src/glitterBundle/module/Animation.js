@@ -1,12 +1,17 @@
-import { Glitter } from "../Glitter.js";
-export class AnimationConfig {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Animation = exports.AnimationConfig = void 0;
+const Glitter_js_1 = require("../Glitter.js");
+class AnimationConfig {
     constructor(inView, outView) {
         this.inView = inView;
         this.outView = outView;
     }
 }
-export class Animation {
+exports.AnimationConfig = AnimationConfig;
+class Animation {
 }
+exports.Animation = Animation;
 Animation.none = new AnimationConfig((page, finish) => {
     finish();
 }, (page, finish) => {
@@ -27,7 +32,7 @@ Animation.fade = new AnimationConfig((page, finish) => {
     }, 250);
 });
 Animation.rightToLeft = new AnimationConfig((pageConfig, finish) => {
-    Glitter.glitter.addStyle(`.inRightToLeft{
+    Glitter_js_1.Glitter.glitter.addStyle(`.inRightToLeft{
     animation:RightToLeft 0.3s ; /*IE*/
     -moz-animation:RightToLeft 0.3s; /*FireFox*/
     -webkit-animation:RightToLeft 0.3s ; /*Chrome, Safari*/
@@ -47,7 +52,7 @@ Animation.rightToLeft = new AnimationConfig((pageConfig, finish) => {
     from {left:100%;}
     to {left:0%;}
 }`);
-    Glitter.glitter.addStyle(`.inRightToLeftDismiss{
+    Glitter_js_1.Glitter.glitter.addStyle(`.inRightToLeftDismiss{
     animation:RightToLeftD 0.3s ; /*IE*/
     -moz-animation:RightToLeftD 0.3s; /*FireFox*/
     -webkit-animation:RightToLeftD 0.3s ; /*Chrome, Safari*/
@@ -80,7 +85,7 @@ Animation.rightToLeft = new AnimationConfig((pageConfig, finish) => {
     }, 250);
 });
 Animation.topToBottom = new AnimationConfig((pageConfig, finish) => {
-    Glitter.glitter.addStyle(`.inTopToBottom{
+    Glitter_js_1.Glitter.glitter.addStyle(`.inTopToBottom{
     animation:TopToBtn 0.3s ; /*IE*/
     -moz-animation:TopToBtn 0.3s; /*FireFox*/
     -webkit-animation:TopToBtn 0.3s ; /*Chrome, Safari*/
@@ -100,7 +105,7 @@ Animation.topToBottom = new AnimationConfig((pageConfig, finish) => {
     from {top:-100%;}
     to {top:0%;}
 }`);
-    Glitter.glitter.addStyle(`.TopToBtnDismiss{
+    Glitter_js_1.Glitter.glitter.addStyle(`.TopToBtnDismiss{
     animation:TopToBtnD 0.3s ; /*IE*/
     -moz-animation:TopToBtnD 0.3s; /*FireFox*/
     -webkit-animation:TopToBtnD 0.3s ; /*Chrome, Safari*/
@@ -132,3 +137,4 @@ Animation.topToBottom = new AnimationConfig((pageConfig, finish) => {
         finish();
     }, 250);
 });
+//# sourceMappingURL=Animation.js.map

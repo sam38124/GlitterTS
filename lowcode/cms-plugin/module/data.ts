@@ -106,7 +106,7 @@ export interface CartData {
 export interface LineItem {
     id: number;
     spec: string[];
-    count: string;
+    count: number;
     sale_price: number;
     title?: string;
     sku: string;

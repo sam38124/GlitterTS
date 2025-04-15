@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fakeProduct = void 0;
-exports.fakeProduct = ((() => {
-    let data = [];
-    for (let a = 0; a < 20; a++) {
+exports.fakeProduct = ((function () {
+    var data = [];
+    for (var a = 0; a < 20; a++) {
         data.push({
             "sku": [
                 "CCT-001",
@@ -103,11 +103,10 @@ exports.fakeProduct = ((() => {
         });
     }
     return data;
-})()).map((dd) => {
+})()).map(function (dd) {
     dd.shipment_obj = {
         "type": "volume",
         "value": 1000
     };
     return dd;
 });
-//# sourceMappingURL=fake-product.js.map

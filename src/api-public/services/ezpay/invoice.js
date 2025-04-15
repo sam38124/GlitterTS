@@ -1,176 +1,200 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EzInvoice = void 0;
-const tool_1 = __importDefault(require("./tool"));
-const axios_1 = __importDefault(require("axios"));
-const form_data_1 = __importDefault(require("form-data"));
-class EzInvoice {
-    static postInvoice(obj) {
-        console.log(`invoice_data:${JSON.stringify(obj.invoice_data)}`);
-        const tool = new tool_1.default();
-        const salesMoney = 1000;
-        const timeStamp = `${new Date().valueOf()}`;
-        const params = JSON.parse(JSON.stringify(obj.invoice_data));
+var tool_1 = require("./tool");
+var axios_1 = require("axios");
+var form_data_1 = require("form-data");
+var EzInvoice = /** @class */ (function () {
+    function EzInvoice() {
+    }
+    EzInvoice.postInvoice = function (obj) {
+        console.log("invoice_data:".concat(JSON.stringify(obj.invoice_data)));
+        var tool = new tool_1.default();
+        var salesMoney = 1000;
+        var timeStamp = "".concat(new Date().valueOf());
+        // 1. 建立請求的參數
+        var params = JSON.parse(JSON.stringify(obj.invoice_data));
         var dateFormat = new Date(params.TimeStamp);
-        console.log(`dateFormat--${dateFormat}`);
-        const qs = tool.JsonToQueryString(params);
+        console.log("dateFormat--".concat(dateFormat));
+        // 2. 產生 Query String
+        var qs = tool.JsonToQueryString(params);
         console.log(qs);
-        const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
-        console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new form_data_1.default();
+        // 3. 開始加密
+        // { method: 'aes-256-cbc', inputEndcoding: 'utf-8', outputEndcoding: 'hex' };
+        // createCipheriv 方法中，key 要滿 32 字元、iv 要滿 16 字元，請之後測試多注意這點
+        var tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
+        console.log("tradeInfo--".concat(params.TimeStamp));
+        var data = new form_data_1.default();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
-        let config = {
+        var config = {
             method: 'post',
             maxBodyLength: Infinity,
             url: (obj.beta) ? 'https://cinv.ezpay.com.tw/Api/invoice_issue' : 'https://inv.ezpay.com.tw/Api/invoice_issue',
             headers: {},
             data: data
         };
-        return new Promise((resolve, reject) => {
+        return new Promise(function (resolve, reject) {
             axios_1.default.request(config)
-                .then((response) => {
+                .then(function (response) {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data);
             })
-                .catch((error) => {
+                .catch(function (error) {
                 resolve(false);
             });
         });
-    }
-    static allowance(obj) {
-        console.log(`invoice_data:${JSON.stringify(obj.invoice_data)}`);
-        const tool = new tool_1.default();
-        const salesMoney = 1000;
-        const timeStamp = `${new Date().valueOf()}`;
-        const params = obj.invoice_data;
+    };
+    EzInvoice.allowance = function (obj) {
+        console.log("invoice_data:".concat(JSON.stringify(obj.invoice_data)));
+        var tool = new tool_1.default();
+        var salesMoney = 1000;
+        var timeStamp = "".concat(new Date().valueOf());
+        // 1. 建立請求的參數
+        var params = obj.invoice_data;
         var dateFormat = new Date(params.TimeStamp);
-        console.log(`dateFormat--${dateFormat}`);
-        const qs = tool.JsonToQueryString(params);
+        console.log("dateFormat--".concat(dateFormat));
+        // 2. 產生 Query String
+        var qs = tool.JsonToQueryString(params);
         console.log(qs);
-        const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
-        console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new form_data_1.default();
+        // 3. 開始加密
+        // { method: 'aes-256-cbc', inputEndcoding: 'utf-8', outputEndcoding: 'hex' };
+        // createCipheriv 方法中，key 要滿 32 字元、iv 要滿 16 字元，請之後測試多注意這點
+        var tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
+        console.log("tradeInfo--".concat(params.TimeStamp));
+        var data = new form_data_1.default();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
-        let config = {
+        var config = {
             method: 'post',
             maxBodyLength: Infinity,
             url: (obj.beta) ? 'https://cinv.ezpay.com.tw/Api/allowance_issue' : 'https://inv.ezpay.com.tw/Api/allowance_issue',
             headers: {},
             data: data
         };
-        return new Promise((resolve, reject) => {
+        return new Promise(function (resolve, reject) {
             axios_1.default.request(config)
-                .then((response) => {
+                .then(function (response) {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data);
             })
-                .catch((error) => {
+                .catch(function (error) {
                 resolve(false);
             });
         });
-    }
-    static allowanceInvalid(obj) {
-        console.log(`invoice_data:${JSON.stringify(obj.invoice_data)}`);
-        const tool = new tool_1.default();
-        const salesMoney = 1000;
-        const timeStamp = `${new Date().valueOf()}`;
-        const params = obj.invoice_data;
+    };
+    EzInvoice.allowanceInvalid = function (obj) {
+        console.log("invoice_data:".concat(JSON.stringify(obj.invoice_data)));
+        var tool = new tool_1.default();
+        var salesMoney = 1000;
+        var timeStamp = "".concat(new Date().valueOf());
+        // 1. 建立請求的參數
+        var params = obj.invoice_data;
         var dateFormat = new Date(params.TimeStamp);
-        console.log(`dateFormat--${dateFormat}`);
-        const qs = tool.JsonToQueryString(params);
+        console.log("dateFormat--".concat(dateFormat));
+        // 2. 產生 Query String
+        var qs = tool.JsonToQueryString(params);
         console.log(qs);
-        const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
-        console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new form_data_1.default();
+        // 3. 開始加密
+        // { method: 'aes-256-cbc', inputEndcoding: 'utf-8', outputEndcoding: 'hex' };
+        // createCipheriv 方法中，key 要滿 32 字元、iv 要滿 16 字元，請之後測試多注意這點
+        var tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
+        console.log("tradeInfo--".concat(params.TimeStamp));
+        var data = new form_data_1.default();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
-        let config = {
+        var config = {
             method: 'post',
             maxBodyLength: Infinity,
             url: (obj.beta) ? 'https://cinv.ezpay.com.tw/Api/allowanceInvalid' : 'https://inv.ezpay.com.tw/Api/allowanceInvalid',
             headers: {},
             data: data
         };
-        return new Promise((resolve, reject) => {
+        return new Promise(function (resolve, reject) {
             axios_1.default.request(config)
-                .then((response) => {
+                .then(function (response) {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data);
             })
-                .catch((error) => {
+                .catch(function (error) {
                 resolve(false);
             });
         });
-    }
-    static deleteInvoice(obj) {
-        const tool = new tool_1.default();
-        const salesMoney = 1000;
-        const timeStamp = `${new Date().valueOf()}`;
-        const params = obj.invoice_data;
+    };
+    EzInvoice.deleteInvoice = function (obj) {
+        var tool = new tool_1.default();
+        var salesMoney = 1000;
+        var timeStamp = "".concat(new Date().valueOf());
+        // 1. 建立請求的參數
+        var params = obj.invoice_data;
         var dateFormat = new Date(params.TimeStamp);
-        console.log(`dateFormat--${dateFormat}`);
-        const qs = tool.JsonToQueryString(params);
+        console.log("dateFormat--".concat(dateFormat));
+        // 2. 產生 Query String
+        var qs = tool.JsonToQueryString(params);
         console.log(qs);
-        const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
-        console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new form_data_1.default();
+        // 3. 開始加密
+        // { method: 'aes-256-cbc', inputEndcoding: 'utf-8', outputEndcoding: 'hex' };
+        // createCipheriv 方法中，key 要滿 32 字元、iv 要滿 16 字元，請之後測試多注意這點
+        var tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
+        console.log("tradeInfo--".concat(params.TimeStamp));
+        var data = new form_data_1.default();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
-        let config = {
+        var config = {
             method: 'post',
             maxBodyLength: Infinity,
             url: (obj.beta) ? 'https://cinv.ezpay.com.tw/Api/invoice_invalid' : 'https://inv.ezpay.com.tw/Api/invoice_invalid',
             headers: {},
             data: data
         };
-        return new Promise((resolve, reject) => {
+        return new Promise(function (resolve, reject) {
             axios_1.default.request(config)
-                .then((response) => {
+                .then(function (response) {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data);
             })
-                .catch((error) => {
+                .catch(function (error) {
                 resolve(false);
             });
         });
-    }
-    static getInvoice(obj) {
-        const tool = new tool_1.default();
-        const salesMoney = 1000;
-        const timeStamp = `${new Date().valueOf()}`;
-        const params = obj.invoice_data;
+    };
+    EzInvoice.getInvoice = function (obj) {
+        var tool = new tool_1.default();
+        var salesMoney = 1000;
+        var timeStamp = "".concat(new Date().valueOf());
+        // 1. 建立請求的參數
+        var params = obj.invoice_data;
         var dateFormat = new Date(params.TimeStamp);
-        console.log(`dateFormat--${dateFormat}`);
-        const qs = tool.JsonToQueryString(params);
+        console.log("dateFormat--".concat(dateFormat));
+        // 2. 產生 Query String
+        var qs = tool.JsonToQueryString(params);
         console.log(qs);
-        const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
-        console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new form_data_1.default();
+        // 3. 開始加密
+        // { method: 'aes-256-cbc', inputEndcoding: 'utf-8', outputEndcoding: 'hex' };
+        // createCipheriv 方法中，key 要滿 32 字元、iv 要滿 16 字元，請之後測試多注意這點
+        var tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
+        console.log("tradeInfo--".concat(params.TimeStamp));
+        var data = new form_data_1.default();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
-        let config = {
+        var config = {
             method: 'post',
             maxBodyLength: Infinity,
             url: (obj.beta) ? 'https://cinv.ezpay.com.tw/Api/invoice_search' : 'https://inv.ezpay.com.tw/Api/invoice_search',
             headers: {},
             data: data
         };
-        return new Promise((resolve, reject) => {
+        return new Promise(function (resolve, reject) {
             axios_1.default.request(config)
-                .then((response) => {
+                .then(function (response) {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data.Status === 'SUCCESS');
             })
-                .catch((error) => {
+                .catch(function (error) {
                 resolve(false);
             });
         });
-    }
-}
+    };
+    return EzInvoice;
+}());
 exports.EzInvoice = EzInvoice;
-//# sourceMappingURL=invoice.js.map

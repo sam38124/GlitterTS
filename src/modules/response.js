@@ -1,11 +1,19 @@
 'use strict';
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const http_status_codes_1 = __importDefault(require("http-status-codes"));
-const exception_1 = __importDefault(require("./exception"));
-const logger_1 = __importDefault(require("./logger"));
+var http_status_codes_1 = require("http-status-codes");
+var exception_1 = require("./exception");
+var logger_1 = require("./logger");
+/*
+---Success---
+{
+    xxxxx
+}
+---Fail---
+{
+    "code":     String (required),
+    "message":  string (required)
+}
+*/
 function succ(resp, data) {
     if (data) {
         resp.status(http_status_codes_1.default.OK).json(data);
@@ -15,6 +23,9 @@ function succ(resp, data) {
     }
 }
 function fail(resp, err) {
+    /**
+    * Double check err instance
+    */
     if (!exception_1.default.isWebError(err)) {
         if (err instanceof Error) {
             err = exception_1.default.ServerError('INTERNAL_SERVER_ERROR', err.message);
@@ -26,7 +37,7 @@ function fail(resp, err) {
             err = exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'unknown error');
         }
     }
-    const error = {
+    var error = {
         code: err.code,
         message: err.message,
         data: err.data
@@ -34,8 +45,9 @@ function fail(resp, err) {
     new logger_1.default().error('[Exception]', err.stack);
     resp.status(err.statusCode).json(error);
 }
+// module.exports.succ = succ;
+// module.exports.fail = fail;
 exports.default = {
-    succ,
-    fail
+    succ: succ,
+    fail: fail
 };
-//# sourceMappingURL=response.js.map

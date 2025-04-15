@@ -11,4 +11,3 @@ exports.onlinePayArray = [
     { key: 'line_pay_scan', name: 'Line Pay', type: 'pos' },
     { key: 'ut_credit_card', name: '聯合信用卡', type: 'pos' },
 ];
-//# sourceMappingURL=glitter-finance.js.map

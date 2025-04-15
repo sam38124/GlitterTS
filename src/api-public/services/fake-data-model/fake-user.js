@@ -202,7 +202,7 @@ exports.fakeUser = [
             "address": "83928 豐原石牌路812號之5"
         }
     }
-].map((dd) => {
+].map(function (dd) {
     dd.created_time = formatDate(getRandomDateInLastYear());
     dd.online_time = dd.created_time;
     return dd;
@@ -365,34 +365,34 @@ exports.fakeUser = [
             "phone": "019 55962789",
             "address": "142 馬公縣劍南路939號之7"
         }
-    }].map((dd) => {
+    }].map(function (dd) {
     dd.created_time = formatDate(getRandomDateInLast14Days());
     dd.online_time = dd.created_time;
     return dd;
-})).map((dd) => {
+})).map(function (dd) {
     dd.pwd = '12345';
     return dd;
 });
 function getRandomDateInLastYear() {
-    const now = new Date();
-    const lastYear = new Date(now);
+    var now = new Date();
+    var lastYear = new Date(now);
     lastYear.setFullYear(now.getFullYear() - 1);
-    const randomTime = new Date(lastYear.getTime() + Math.random() * (now.getTime() - lastYear.getTime()));
+    var randomTime = new Date(lastYear.getTime() + Math.random() * (now.getTime() - lastYear.getTime()));
     return randomTime;
 }
 function formatDate(date) {
-    const year = date.getFullYear();
-    const month = ('0' + (date.getMonth() + 1)).slice(-2);
-    const day = ('0' + date.getDate()).slice(-2);
-    const hours = ('0' + date.getHours()).slice(-2);
-    const minutes = ('0' + date.getMinutes()).slice(-2);
-    const seconds = ('0' + date.getSeconds()).slice(-2);
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    var year = date.getFullYear();
+    var month = ('0' + (date.getMonth() + 1)).slice(-2);
+    var day = ('0' + date.getDate()).slice(-2);
+    var hours = ('0' + date.getHours()).slice(-2);
+    var minutes = ('0' + date.getMinutes()).slice(-2);
+    var seconds = ('0' + date.getSeconds()).slice(-2);
+    return "".concat(year, "-").concat(month, "-").concat(day, " ").concat(hours, ":").concat(minutes, ":").concat(seconds);
 }
 function getRandomDateInLast14Days() {
-    const now = new Date();
-    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-    const randomTime = new Date(fourteenDaysAgo.getTime() + Math.random() * (now.getTime() - fourteenDaysAgo.getTime()));
+    var now = new Date();
+    var fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000); // 14天前
+    // 生成從14天前到現在之間的隨機日期
+    var randomTime = new Date(fourteenDaysAgo.getTime() + Math.random() * (now.getTime() - fourteenDaysAgo.getTime()));
     return randomTime;
 }
-//# sourceMappingURL=fake-user.js.map

@@ -1,4 +1,7 @@
-export const seoManager = [
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.seoManager = void 0;
+exports.seoManager = [
     {
         title: "網頁標題", key: "title", callback: (text) => {
             return `<title>${text}</title>`;
@@ -17,3 +20,4 @@ export const seoManager = [
         }
     }
 ];
+//# sourceMappingURL=seo-manager.js.map

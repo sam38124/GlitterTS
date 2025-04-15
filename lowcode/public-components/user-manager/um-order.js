@@ -172,11 +172,32 @@ export class UMOrder {
         cursor: pointer;
       }
       .customer-btn-text {
+        line-height:normal;
         text-align: center;
         color: white;
         font-size: 14px;
         font-weight: 400;
         letter-spacing: 0.56px;
+      }
+      
+      .payment-section {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 20px;
+      }
+      #repay-button {
+        height:32px;
+        
+        background-color: #4caf50;
+        color: white;
+        border-radius:10px;
+        padding: 6px 14px;
+        border: none;
+        cursor: pointer;
+      }
+      
+      #repay-button:hover {
+        background-color: #45a049;
       }
     `);
     }
@@ -229,6 +250,7 @@ export class UMOrder {
             type: '',
             formList: [],
         };
+        const repayArray = ['ecPay', 'newWebPay', 'paypal', 'jkopay', 'paynow', 'line_pay'];
         return html ` <div class="container py-4">
       ${gvc.bindView({
             bind: ids.view,
@@ -719,11 +741,24 @@ export class UMOrder {
                             {
                                 title: Language.text('payment_status'),
                                 value: (() => {
+                                    var _a, _b;
                                     if (orderData.customer_info.payment_select === 'cash_on_delivery') {
                                         return Language.text('cash_on_delivery');
                                     }
                                     switch (vm.data.status) {
                                         case 0:
+                                            if (repayArray.includes((_b = (_a = vm.data) === null || _a === void 0 ? void 0 : _a.payment_method) !== null && _b !== void 0 ? _b : '')) {
+                                                const repayBtn = () => {
+                                                    return html ` 
+                                  <span class="payment-actions">
+                                    <button class="customer-btn-text ms-3" id="repay-button" onclick="${gvc.event(() => {
+                                                        UMOrder.repay(gvc, vm.data.cart_token).then(r => {
+                                                        });
+                                                    })}">重新付款</button>
+                                  </span>`;
+                                                };
+                                                return Language.text('awaiting_verification') + repayBtn();
+                                            }
                                             return orderData.proof_purchase
                                                 ? Language.text('awaiting_verification')
                                                 : `${Language.text('unpaid')}${gotoCheckout()}`;

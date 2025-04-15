@@ -1,56 +1,58 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Language = void 0;
-class Language {
-    static languageDataList() {
+var Language = /** @class */ (function () {
+    function Language() {
+    }
+    Language.languageDataList = function () {
         return [
             {
                 key: 'c_cancel_order',
                 tw: '請問確定要取消此訂單嗎?',
                 cn: '请问确定要取消此订单吗?',
-                en: `Are you sure you want to cancel this order?`
+                en: "Are you sure you want to cancel this order?"
             },
-            { key: 's_cancel_order', tw: '取消訂單成功', cn: '取消订单成功', en: `Order canceled successfully` },
-            { key: 'newWebPay', tw: '藍新金流', cn: '蓝新金流', en: `NewebPay` },
-            { key: 'ecPay', tw: '綠界金流', cn: '绿界金流', en: `EcPay` },
-            { key: 'paypal', tw: 'Paypal', cn: 'Paypal', en: `Paypal` },
-            { key: 'line_pay', tw: 'Line Pay', cn: 'Line Pay', en: `Line Pay` },
-            { key: 'atm', tw: 'ATM 轉帳', cn: 'ATM 转帐', en: `ATM Transfer` },
-            { key: 'line', tw: 'Line 轉帳', cn: 'Line 转帐', en: `Line Bank` },
-            { key: 'cash_on_delivery', tw: '貨到付款', cn: '货到付款', en: `Cash on delivery` },
-            { key: 'country', tw: '國家', cn: '国家', en: `Country` },
-            { key: 'select_country', tw: '選擇國家', cn: '选择国家', en: `Select country` },
-            { key: 'stock_count', tw: '商品庫存', cn: '商品库存', en: `Stock quantity` },
-            { key: 'birth', tw: '生日', cn: '生日', en: `Birth` },
-            { key: 'buy_it_now', tw: '立即購買', cn: '立即购买', en: `Buy it now` },
-            { key: 'cart', tw: '購物車', cn: '购物车', en: `Cart` },
+            { key: 's_cancel_order', tw: '取消訂單成功', cn: '取消订单成功', en: "Order canceled successfully" },
+            { key: 'newWebPay', tw: '藍新金流', cn: '蓝新金流', en: "NewebPay" },
+            { key: 'ecPay', tw: '綠界金流', cn: '绿界金流', en: "EcPay" },
+            { key: 'paypal', tw: 'Paypal', cn: 'Paypal', en: "Paypal" },
+            { key: 'line_pay', tw: 'Line Pay', cn: 'Line Pay', en: "Line Pay" },
+            { key: 'atm', tw: 'ATM 轉帳', cn: 'ATM 转帐', en: "ATM Transfer" },
+            { key: 'line', tw: 'Line 轉帳', cn: 'Line 转帐', en: "Line Bank" },
+            { key: 'cash_on_delivery', tw: '貨到付款', cn: '货到付款', en: "Cash on delivery" },
+            { key: 'country', tw: '國家', cn: '国家', en: "Country" },
+            { key: 'select_country', tw: '選擇國家', cn: '选择国家', en: "Select country" },
+            { key: 'stock_count', tw: '商品庫存', cn: '商品库存', en: "Stock quantity" },
+            { key: 'birth', tw: '生日', cn: '生日', en: "Birth" },
+            { key: 'buy_it_now', tw: '立即購買', cn: '立即购买', en: "Buy it now" },
+            { key: 'cart', tw: '購物車', cn: '购物车', en: "Cart" },
             {
                 key: 'min_p_count_d',
                 tw: '_p_ 最少購買數量為_c_件',
                 cn: '_p_ 最少购买数量为_c_件',
-                en: `_p_ Minimum purchase quantity is _c_ pieces.`
+                en: "_p_ Minimum purchase quantity is _c_ pieces."
             },
             {
                 key: 'min_p_count',
                 tw: '此商品最少購買數量為_c_件',
                 cn: '此商品最少购买数量为_c_件',
-                en: `Minimum purchase quantity is _c_ pieces.`
+                en: "Minimum purchase quantity is _c_ pieces."
             },
-            { key: 'ship_global_express', tw: '國際快遞', cn: '国际快递', en: `International express` },
-            { key: 'ship_HILIFEC2C', tw: '萊爾富店到店', cn: '莱尔富店到店', en: `Hi-Life Store-to-Store Delivery` },
-            { key: 'ship_OKMARTC2C', tw: 'OK超商店到店', cn: 'OK超商店到店', en: `OK Mart Store-to-Store Delivery` },
+            { key: 'ship_global_express', tw: '國際快遞', cn: '国际快递', en: "International express" },
+            { key: 'ship_HILIFEC2C', tw: '萊爾富店到店', cn: '莱尔富店到店', en: "Hi-Life Store-to-Store Delivery" },
+            { key: 'ship_OKMARTC2C', tw: 'OK超商店到店', cn: 'OK超商店到店', en: "OK Mart Store-to-Store Delivery" },
             {
                 key: 'ship_UNIMARTC2C',
                 tw: '7-ELEVEN超商交貨便',
                 cn: '7-ELEVEN便利店送货便',
-                en: `7-ELEVEN Store Delivery Service`
+                en: "7-ELEVEN Store Delivery Service"
             },
-            { key: 'ship_shop', tw: '實體門市取貨', cn: '实体门市取货', en: `In-Store Pickup` },
-            { key: 'ship_FAMIC2C', tw: '全家店到店', cn: '全家店到店', en: `FamilyMart Store-to-Store Delivery` },
-            { key: 'ship_black_cat', tw: '黑貓到府', cn: '黑猫到府', en: `Black Cat Home Delivery` },
-            { key: 'ship_normal', tw: '中華郵政', cn: '中华邮政', en: `Chunghwa Post` },
-            { key: 'next', tw: '下一步', cn: '下一步', en: `Next` },
-            { key: 'please_wait', tw: '請稍候...', cn: '請稍候...', en: `Please wait...` },
+            { key: 'ship_shop', tw: '實體門市取貨', cn: '实体门市取货', en: "In-Store Pickup" },
+            { key: 'ship_FAMIC2C', tw: '全家店到店', cn: '全家店到店', en: "FamilyMart Store-to-Store Delivery" },
+            { key: 'ship_black_cat', tw: '黑貓到府', cn: '黑猫到府', en: "Black Cat Home Delivery" },
+            { key: 'ship_normal', tw: '中華郵政', cn: '中华邮政', en: "Chunghwa Post" },
+            { key: 'next', tw: '下一步', cn: '下一步', en: "Next" },
+            { key: 'please_wait', tw: '請稍候...', cn: '請稍候...', en: "Please wait..." },
             { key: 'related_products', tw: '相關商品', cn: '相關商品', en: 'Related Products' },
             { key: 'product_description', tw: '商品描述', cn: '商品描述', en: 'Product Description' },
             { key: 'switch_language', tw: '切換語言', cn: '切换语言', en: 'Switch language' },
@@ -693,15 +695,15 @@ class Language {
             { key: 'refund', tw: '退換貨政策', cn: '退換貨政策', en: 'Refund policy' },
             { key: 'delivery', tw: '購買與配送須知', cn: '配送须知', en: 'Shipping instructions' }
         ];
-    }
-    static text(key, lan) {
-        const find_ = this.languageDataList().find((dd) => {
+    };
+    Language.text = function (key, lan) {
+        var find_ = this.languageDataList().find(function (dd) {
             return dd.key === key;
         });
         if (!find_) {
             return undefined;
         }
-        return find_[(() => {
+        return find_[(function () {
             switch (lan) {
                 case 'zh-TW':
                     return 'tw';
@@ -710,10 +712,10 @@ class Language {
                 case 'en-US':
                     return 'en';
                 default:
-                    return `en`;
+                    return "en";
             }
         })()];
-    }
-}
+    };
+    return Language;
+}());
 exports.Language = Language;
-//# sourceMappingURL=Language.js.map

@@ -397,6 +397,8 @@ export class ShoppingOrderManager {
                                                             return '';
                                                         }
                                                         return BgWidget.primaryInsignia('POS', { type: 'border' });
+                                                    case 'split':
+                                                        return BgWidget.warningInsignia('拆分', { type: 'border' });
                                                     default:
                                                         return '';
                                                 }
@@ -405,7 +407,7 @@ export class ShoppingOrderManager {
                                         },
                                         {
                                             key: '訂單日期',
-                                            value: html `<div style="width: 120px;">
+                                            value: html ` <div style="width: 120px;">
                             ${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd')}
                           </div>`,
                                         },
@@ -481,7 +483,7 @@ export class ShoppingOrderManager {
                                         },
                                         {
                                             key: '運送方式',
-                                            value: html `<div style="width: 120px;">
+                                            value: html ` <div style="width: 120px;">
                             ${OrderInfo.shipmetSelector(dd, OrderModule.supportShipmentMethod())}
                           </div>`,
                                         },
@@ -491,7 +493,7 @@ export class ShoppingOrderManager {
                                         },
                                         {
                                             key: '付款時間',
-                                            value: html `<div style="width: 160px;">
+                                            value: html ` <div style="width: 160px;">
                             ${(() => {
                                                 if (!dd.orderData.editRecord) {
                                                     return '-';
@@ -1015,10 +1017,11 @@ export class ShoppingOrderManager {
                             limit: 1,
                             search: cart_token,
                             data_from: 'manager',
-                            searchType: 'cart_token',
+                            searchType: 'cart_token_exact',
                         });
                         orderData = structuredClone(orderDataNew.response.data[0]);
                         originData = structuredClone(orderData);
+                        console.log("orderDataNew.response.data -- ", orderDataNew.response.data);
                     }
                     orderData.orderData.progress = (_b = orderData.orderData.progress) !== null && _b !== void 0 ? _b : 'wait';
                     if (orderData.orderData.shipment_selector &&
@@ -1079,6 +1082,26 @@ export class ShoppingOrderManager {
                             }
                         });
                     }
+                    const funBTN = () => {
+                        gvc.addStyle(html `
+            .funInsignia{ border-radius: 10px; background: #EAEAEA; display: flex; padding: 6px 18px; justify-content:
+            center; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
+          `);
+                        return {
+                            splitOrder: () => {
+                                return html ` <div
+                class="funInsignia"
+                style=""
+                onclick="${gvc.event(() => {
+                                    console.log('orderData -- ', orderData);
+                                    OrderSetting.splitOrder(gvc, orderData.orderData, () => gvc.notifyDataChange(vm.id));
+                                })}"
+              >
+                拆分訂單
+              </div>`;
+                            },
+                        };
+                    };
                     function getBadgeList() {
                         const vt = OrderSetting.getAllStatusBadge(orderData);
                         return html ` <div style="display: flex; gap: 10px; justify-content: flex-end;">
@@ -1649,7 +1672,7 @@ export class ShoppingOrderManager {
                                                 (() => {
                                                     let map = [];
                                                     if (orderData.orderData.user_info.invoice_method) {
-                                                        map.push(html `<div class="tx_700">發票開立資訊</div>`);
+                                                        map.push(html ` <div class="tx_700">發票開立資訊</div>`);
                                                         map.push(`開立時機: ${(() => {
                                                             switch (orderData.orderData.user_info.invoice_method) {
                                                                 case 'nouse':
@@ -1684,13 +1707,13 @@ export class ShoppingOrderManager {
                                                                         `發票寄送信箱: ${orderData.orderData.user_info.email || '未填寫'}`,
                                                                     ]
                                                                         .map(dd => {
-                                                                        return html `<div>${dd}</div>`;
+                                                                        return html ` <div>${dd}</div>`;
                                                                     })
                                                                         .join(BgWidget.mbContainer(8));
                                                                 default:
                                                                     return [`發票寄送信箱: ${orderData.orderData.user_info.email || '未填寫'}`]
                                                                         .map(dd => {
-                                                                        return html `<div>${dd}</div>`;
+                                                                        return html ` <div>${dd}</div>`;
                                                                     })
                                                                         .join(BgWidget.mbContainer(8));
                                                             }
@@ -1698,7 +1721,7 @@ export class ShoppingOrderManager {
                                                     }
                                                     return map
                                                         .map(dd => {
-                                                        return html `<div>${dd}</div>`;
+                                                        return html ` <div>${dd}</div>`;
                                                     })
                                                         .join(BgWidget.mbContainer(8));
                                                 })(),
@@ -1743,6 +1766,9 @@ export class ShoppingOrderManager {
                     ${document.body.clientWidth > 768 ? getBadgeList() : ''}
                   </div>
                   ${document.body.clientWidth > 768 ? '' : html ` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
+                  <div class="d-flex justify-content-end">
+                    ${funBTN().splitOrder()}
+                  </div>
                   ${BgWidget.container1x2({
                                     html: [
                                         !is_shipment ? '' : shipment_card,
@@ -1827,15 +1853,15 @@ export class ShoppingOrderManager {
                                       </div>
                                       <div class="d-flex flex-column">
                                         ${dd.is_hidden
-                                                        ? html `<div style="width:auto;">
+                                                        ? html ` <div style="width:auto;">
                                               ${BgWidget.secondaryInsignia('隱形商品')}
                                             </div>`
                                                         : ''}
                                         <div class="tx_700 d-flex align-items-center" style="gap:4px;">
                                           <div>${dd.title}</div>
-                                          ${dd.is_gift ? html `<div>${showTag('#FFE9B2', '贈品')}</div>` : ''}
-                                          ${dd.is_add_on_items ? html `<div>${showTag('#D8E7EC', '加購品')}</div>` : ''}
-                                          ${dd.pre_order ? html `<div>${showTag('#D8E7EC', '預購')}</div>` : ''}
+                                          ${dd.is_gift ? html ` <div>${showTag('#FFE9B2', '贈品')}</div>` : ''}
+                                          ${dd.is_add_on_items ? html ` <div>${showTag('#D8E7EC', '加購品')}</div>` : ''}
+                                          ${dd.pre_order ? html ` <div>${showTag('#D8E7EC', '預購')}</div>` : ''}
                                         </div>
                                         ${dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : ''}
                                         ${BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`)}
@@ -1979,7 +2005,7 @@ export class ShoppingOrderManager {
                                         })
                                             .join(BgWidget.mbContainer(18))}
                             ${`${(_c = orderData.orderData.orderStatus) !== null && _c !== void 0 ? _c : 0}` === '0'
-                                            ? html `<div class="d-flex justify-content-end mt-3">
+                                            ? html ` <div class="d-flex justify-content-end mt-3">
                                   ${BgWidget.blueNote('手動調整訂單價格', gvc.event(() => {
                                                 const cloneData = orderData.orderData;
                                                 PosFunction.manualDiscount({
@@ -2171,7 +2197,7 @@ export class ShoppingOrderManager {
                                       <div>
                                         ${(cash_flow.TradeStatus === '1'
                                                             ? [
-                                                                html `<div class="d-flex align-items-center">
+                                                                html ` <div class="d-flex align-items-center">
                                                 金流交易結果:
                                                 ${(cash_flow.credit_receipt && cash_flow.credit_receipt.status) ||
                                                                     '已付款'}
@@ -2388,7 +2414,7 @@ export class ShoppingOrderManager {
                               ${invoiceDataList
                                                     .map((invoiceData) => {
                                                     var _a;
-                                                    return html `<div class="d-flex" style="height:55px;">
+                                                    return html ` <div class="d-flex" style="height:55px;">
                                     <div class="col-3 d-flex align-items-center ">
                                       ${invoiceData.create_date.split('T')[0]}
                                     </div>
@@ -2451,7 +2477,7 @@ export class ShoppingOrderManager {
                                             var _a;
                                             const renderReconciliationInfo = (orderData) => {
                                                 if (!orderData.reconciliation_date) {
-                                                    return html `<div>尚未入帳</div>`;
+                                                    return html ` <div>尚未入帳</div>`;
                                                 }
                                                 return html `
                               <div class="rounded-3 w-100 border p-2" style="background: whitesmoke;">
@@ -2510,8 +2536,8 @@ export class ShoppingOrderManager {
                                                 .slice()
                                                 .reverse()
                                                 .map(renderOffsetRecord)
-                                                .map(dd => html `<div class="w-100">${dd}</div>`)
-                                                .join(html `<div class="w-100 border-top my-2"></div>`);
+                                                .map(dd => html ` <div class="w-100">${dd}</div>`)
+                                                .join(html ` <div class="w-100 border-top my-2"></div>`);
                                             BgWidget.mainCard(html `
                             <div class="tx_700">對帳記錄</div>
                             ${BgWidget.mbContainer(18)}
@@ -2536,6 +2562,7 @@ export class ShoppingOrderManager {
                                             const source = {
                                                 pos: 'POS',
                                                 combine: '合併訂單',
+                                                split: '拆分'
                                             };
                                             return (_a = source[orderData.orderData.orderSource]) !== null && _a !== void 0 ? _a : '線上';
                                         })()}
@@ -2601,7 +2628,7 @@ export class ShoppingOrderManager {
                                                     let view = [];
                                                     if (orderData.orderData.user_info.shipment !== 'now') {
                                                         view.push([
-                                                            html `<div style="font-size: 16px;font-weight: 700;color:#393939">
+                                                            html ` <div style="font-size: 16px;font-weight: 700;color:#393939">
                                               收件人資料
                                             </div>`,
                                                             gvc.bindView(() => {
@@ -2702,7 +2729,7 @@ export class ShoppingOrderManager {
                                                                 if (formData.form) {
                                                                     mapView.push(formData.form
                                                                         .map((dd) => {
-                                                                        return html `<div class="d-flex flex-wrap w-100">
+                                                                        return html ` <div class="d-flex flex-wrap w-100">
                                                         <span class="me-2 fw-normal fs-6"
                                                           >${Language.getLanguageCustomText(dd.title)}:</span
                                                         >
@@ -3300,11 +3327,12 @@ export class ShoppingOrderManager {
                             title: '',
                             id: data.id,
                             spec: variant.spec,
-                            count: (_b = variant.qty) !== null && _b !== void 0 ? _b : "1",
+                            count: (_b = variant.qty) !== null && _b !== void 0 ? _b : '1',
                             sale_price: variant.sale_price,
-                            sku: variant.sku
+                            sku: variant.sku,
                         });
-                        orderDetail.subtotal += Number(orderDetail.lineItems[index].count) * orderDetail.lineItems[index].sale_price;
+                        orderDetail.subtotal +=
+                            Number(orderDetail.lineItems[index].count) * orderDetail.lineItems[index].sale_price;
                     });
                     if (orderDetailRefresh) {
                         dialog.dataLoading({ text: '計算中', visible: true });
@@ -3731,7 +3759,7 @@ export class ShoppingOrderManager {
                                                             .join('')}
                                                         </select>
                                                       `
-                                                        : html `<div
+                                                        : html ` <div
                                                         class="d-flex align-items-center"
                                                         style="height: 34px;color: #8D8D8D;font-size: 14px;font-weight: 400;"
                                                       >
@@ -4364,7 +4392,7 @@ export class ShoppingOrderManager {
                     }),
                 ]
                     .map(dd => {
-                    return html `<div class="col-12 col-lg-6">${dd}</div>`;
+                    return html ` <div class="col-12 col-lg-6">${dd}</div>`;
                 })
                     .join('')}
                   </div>
@@ -4451,7 +4479,7 @@ export class ShoppingOrderManager {
                                 returnHTML = html `
                             <div class="d-flex flex-column">
                               ${[
-                                    html `<div class="d-flex align-items-center pt-2">
+                                    html ` <div class="d-flex align-items-center pt-2">
                                   <img
                                     style="width: 23px;height: 23px;margin-right: 8px;"
                                     src="${(_b = ShipmentConfig.list.find(dd => {
@@ -4468,10 +4496,10 @@ export class ShoppingOrderManager {
                                     點擊更換門市
                                   </div>
                                 </div>`,
-                                    html `<div class="d-flex">門市名稱: ${orderDetail.user_info.CVSStoreName}</div>`,
-                                    html `<div class="d-flex">門市店號: ${orderDetail.user_info.CVSStoreID}</div>`,
-                                    html `<div class="d-flex">門市地址: ${orderDetail.user_info.CVSAddress}</div>`,
-                                ].join(html `<div class="my-2 w-100 border-top"></div>`)}
+                                    html ` <div class="d-flex">門市名稱: ${orderDetail.user_info.CVSStoreName}</div>`,
+                                    html ` <div class="d-flex">門市店號: ${orderDetail.user_info.CVSStoreID}</div>`,
+                                    html ` <div class="d-flex">門市地址: ${orderDetail.user_info.CVSAddress}</div>`,
+                                ].join(html ` <div class="my-2 w-100 border-top"></div>`)}
                             </div>
                           `;
                                 return html `
@@ -4540,7 +4568,7 @@ export class ShoppingOrderManager {
             passData.orderStatus = 1;
             delete passData.tag;
             passData.line_items = passData.lineItems;
-            console.log("passData -- ", passData);
+            console.log('passData -- ', passData);
             return;
             dialog.dataLoading({ visible: true });
             if (checkOrderEmpty(passData)) {

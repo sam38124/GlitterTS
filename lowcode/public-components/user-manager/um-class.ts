@@ -401,6 +401,7 @@ export class UmClass {
         const solidButtonText = globalValue['theme_color.0.solid-button-text'] ?? '#000000';
 
         gvc.addStyle(`
+            
             .um-nav-title {
                 font-weight: 700;
                 font-size: 36px;

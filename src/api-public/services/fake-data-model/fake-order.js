@@ -1,23 +1,20 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fakeOrder = void 0;
-const tool_js_1 = __importDefault(require("../../../modules/tool.js"));
-const fake_user_js_1 = require("./fake-user.js");
-const fake_product_js_1 = require("./fake-product.js");
-exports.fakeOrder = (() => {
-    let data = [];
-    const fakeData_ = fake_product_js_1.fakeProduct;
-    for (let a = 0; a < 500; a++) {
-        const user = getRandomElement(fake_user_js_1.fakeUser);
-        const orderID = tool_js_1.default.randomNumber(12);
-        let total = 0;
-        const lineItems = (() => {
-            let data = [];
-            for (let a = 0; a < (Math.floor(Math.random() * 5) + 1); a++) {
-                const pd = fakeData_[Math.floor(Math.random() * 20)];
+var tool_js_1 = require("../../../modules/tool.js");
+var fake_user_js_1 = require("./fake-user.js");
+var fake_product_js_1 = require("./fake-product.js");
+exports.fakeOrder = (function () {
+    var data = [];
+    var fakeData_ = fake_product_js_1.fakeProduct;
+    var _loop_1 = function (a) {
+        var user = getRandomElement(fake_user_js_1.fakeUser);
+        var orderID = tool_js_1.default.randomNumber(12);
+        var total = 0;
+        var lineItems = (function () {
+            var data = [];
+            for (var a_1 = 0; a_1 < (Math.floor(Math.random() * 5) + 1); a_1++) {
+                var pd = fakeData_[Math.floor(Math.random() * 20)];
                 total += (pd.sale_price * pd.count);
                 data.push(pd);
             }
@@ -165,27 +162,29 @@ exports.fakeOrder = (() => {
                 }
             }), formatDate(getRandomDateInLastYear())
         ]);
+    };
+    for (var a = 0; a < 500; a++) {
+        _loop_1(a);
     }
     return data;
 })();
 function getRandomElement(arr) {
-    const randomIndex = Math.floor(Math.random() * arr.length);
+    var randomIndex = Math.floor(Math.random() * arr.length);
     return arr[randomIndex];
 }
 function getRandomDateInLastYear() {
-    const now = new Date();
-    const lastYear = new Date(now);
+    var now = new Date();
+    var lastYear = new Date(now);
     lastYear.setFullYear(now.getFullYear() - 1);
-    const randomTime = new Date(lastYear.getTime() + Math.random() * (now.getTime() - lastYear.getTime()));
+    var randomTime = new Date(lastYear.getTime() + Math.random() * (now.getTime() - lastYear.getTime()));
     return randomTime;
 }
 function formatDate(date) {
-    const year = date.getFullYear();
-    const month = ('0' + (date.getMonth() + 1)).slice(-2);
-    const day = ('0' + date.getDate()).slice(-2);
-    const hours = ('0' + date.getHours()).slice(-2);
-    const minutes = ('0' + date.getMinutes()).slice(-2);
-    const seconds = ('0' + date.getSeconds()).slice(-2);
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    var year = date.getFullYear();
+    var month = ('0' + (date.getMonth() + 1)).slice(-2);
+    var day = ('0' + date.getDate()).slice(-2);
+    var hours = ('0' + date.getHours()).slice(-2);
+    var minutes = ('0' + date.getMinutes()).slice(-2);
+    var seconds = ('0' + date.getSeconds()).slice(-2);
+    return "".concat(year, "-").concat(month, "-").concat(day, " ").concat(hours, ":").concat(minutes, ":").concat(seconds);
 }
-//# sourceMappingURL=fake-order.js.map

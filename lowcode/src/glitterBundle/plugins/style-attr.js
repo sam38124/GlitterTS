@@ -1,4 +1,7 @@
-export const styleAttr = [
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.styleAttr = void 0;
+exports.styleAttr = [
     {
         tag: "margin", title: "間距", innerHtml: (gvc, data) => {
             const glitter = window.glitter;
@@ -40,3 +43,4 @@ export const styleAttr = [
         }
     }
 ];
+//# sourceMappingURL=style-attr.js.map

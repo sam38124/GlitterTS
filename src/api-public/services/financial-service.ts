@@ -84,6 +84,7 @@ export default class FinancialService {
     user_email: string;
     method: string;
   }) {
+    // console.log("orderData -- " , orderData);
     orderData.method = orderData.method || 'ALL';
     if (this.keyData.TYPE === 'newWebPay') {
       return await new EzPay(this.appName, this.keyData).createOrderPage(orderData);
@@ -91,11 +92,11 @@ export default class FinancialService {
       return await new EcPay(this.appName, this.keyData).createOrderPage(orderData);
     }
 
-    return await OrderEvent.insertOrder({
-      cartData: orderData,
-      status: 0,
-      app: this.appName,
-    });
+    // return await OrderEvent.insertOrder({
+    //   cartData: orderData,
+    //   status: 0,
+    //   app: this.appName,
+    // });
 
     // //todo 修改付款方式 to paypal
     // return await new PayPal(this.appName, this.keyData).checkout(orderData);
@@ -456,6 +457,7 @@ export class EcPay {
       app: this.appName,
     });
     console.log(`params-is=>`, params);
+
     // 5. 回傳物件
     return html`
       <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">

@@ -1,11 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductInitial = void 0;
-class ProductInitial {
-    static initial(content) {
+var ProductInitial = /** @class */ (function () {
+    function ProductInitial() {
+    }
+    ProductInitial.initial = function (content) {
         var _a;
+        //補上language-data
         content.language_data = (_a = content.language_data) !== null && _a !== void 0 ? _a : {};
-        ['en-US', 'zh-CN', 'zh-TW'].map((dd) => {
+        ['en-US', 'zh-CN', 'zh-TW'].map(function (dd) {
             if (!content.language_data[dd]) {
                 content.language_data[dd] = {
                     "seo": content.seo,
@@ -18,7 +21,7 @@ class ProductInitial {
                 };
             }
         });
-    }
-}
+    };
+    return ProductInitial;
+}());
 exports.ProductInitial = ProductInitial;
-//# sourceMappingURL=product-initial.js.map

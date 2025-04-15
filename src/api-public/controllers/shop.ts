@@ -197,13 +197,18 @@ router.post('/checkout/repay', async (req: express.Request, resp: express.Respon
   try {
     return response.succ(
       resp,
-      await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
-        {
-          return_url: req.body.return_url,
-        } as any,
-        'add',
-        req.body.order_id
+      await new Shopping(req.get('g-app') as string, req.body.token).repayOrder(
+        req.body.order_id,
+        req.body.return_url
       )
+      // await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
+      //   {
+      //     return_url: req.body.return_url,
+      //
+      //   } as any,
+      //   'add',
+      //   req.body.order_id
+      // )
     );
   } catch (err) {
     return response.fail(resp, err);
@@ -242,6 +247,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
     return response.fail(resp, err);
   }
 });
+//手動新增訂單
 router.post('/manager/checkout', async (req: express.Request, resp: express.Response) => {
   try {
     if (await UtPermission.isManager(req)) {

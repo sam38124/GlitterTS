@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TermsCheck = void 0;
-class TermsCheck {
-    static check(key) {
+var TermsCheck = /** @class */ (function () {
+    function TermsCheck() {
+    }
+    TermsCheck.check = function (key) {
         switch (key) {
             case 'terms-related-refund-zh-TW':
                 return {
@@ -20,7 +22,7 @@ class TermsCheck {
         return {
             'text': ''
         };
-    }
-}
+    };
+    return TermsCheck;
+}());
 exports.TermsCheck = TermsCheck;
-//# sourceMappingURL=terms-check.js.map

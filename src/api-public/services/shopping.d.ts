@@ -140,7 +140,7 @@ declare class OrderDetail {
         phone: string;
         address: string;
         custom_form_delivery?: any;
-        shipment: "normal" | "FAMIC2C" | "black_cat_freezing" | "UNIMARTC2C" | "HILIFEC2C" | "OKMARTC2C" | "now" | "shop" | "global_express" | "black_cat" | "UNIMARTFREEZE";
+        shipment: 'normal' | 'FAMIC2C' | 'black_cat_freezing' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop' | 'global_express' | 'black_cat' | 'UNIMARTFREEZE';
         CVSStoreName: string;
         CVSStoreID: string;
         CVSTelephone: string;
@@ -244,7 +244,7 @@ export type Cart = {
     custom_form_data?: any;
     distribution_id?: number;
     distribution_info?: any;
-    orderSource: '' | 'manual' | 'normal' | 'POS' | 'combine' | 'group_buy';
+    orderSource: '' | 'manual' | 'normal' | 'POS' | 'combine' | 'group_buy' | 'split';
     temp_cart_id?: string;
     code_array: string[];
     deliveryData?: DeliveryData;
@@ -261,6 +261,8 @@ export type Cart = {
         record: string;
     }[];
     combineOrderID?: number;
+    splitOrders?: string[];
+    parentOrder?: string;
 };
 export type Order = {
     id: number;
@@ -425,7 +427,8 @@ export declare class Shopping {
         fbc?: string;
         fbp?: string;
         temp_cart_id?: string;
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<any>;
+    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' | 'split', replace_order_id?: string): Promise<any>;
+    repayOrder(orderID: string, return_url: string): Promise<void>;
     getReturnOrder(query: {
         page: number;
         limit: number;
@@ -481,7 +484,7 @@ export declare class Shopping {
         id?: string;
         cart_token?: string;
         orderData: any;
-        status: any;
+        status?: any;
     }): Promise<{
         result: string;
         message: string;
