@@ -319,7 +319,6 @@ export class User {
     if (data.toggle) {
       sendmail(`${data.name} <${process.env.smtp}>`, usData.account, data.title, data.content);
     }
-
     //發送購物金
     const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
     const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
@@ -329,9 +328,9 @@ export class User {
         deadTime: rgs.unlimited ? undefined : moment().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
       });
     }
-
     //發送用戶註冊通知
     new ManagerNotify(this.app).userRegister({ user_id: userID });
+    await UserUpdate.update(this.app, userID);
   }
 
   public async updateAccount(account: string, userID: string): Promise<any> {
@@ -367,7 +366,7 @@ export class User {
         (await db.execute(
           `select *
            from \`${this.app}\`.t_user
-           where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
+           where (userData ->>'$.email' = ? or phone=? or account=?)
              and status = 1`,
           [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]
         )) as any
@@ -839,10 +838,10 @@ export class User {
                        query2.push(`userID=${db.escape(query)}`);
                      } else if (type === 'email_or_phone') {
                        query2.push(
-                         `((userData->>'$.email'=${db.escape(query)}) or (userData->>'$.phone'=${db.escape(query)}))`
+                         `((email=${db.escape(query)}) or (phone=${db.escape(query)}))`
                        );
                      } else {
-                       query2.push(`userData->>'$.email'=${db.escape(query)}`);
+                       query2.push(`email=${db.escape(query)}`);
                      }
                      return query2.join(` and `);
                    })()}`;
@@ -853,7 +852,7 @@ export class User {
       await new CustomCode(this.app).loginHook(cf);
       if (data) {
         data.pwd = undefined;
-        data.member = await this.checkMember(data, true);
+        data.member = await this.checkMember(data, false);
         const userLevel = (await this.getUserLevel([{ userId: data.userID }]))[0];
         if (userLevel) {
           data.member_level = userLevel.data;
@@ -1386,7 +1385,7 @@ export class User {
             (
               SELECT MAX(shipment_date)
               FROM \`${this.app}\`.t_checkout
-              WHERE email = u.userData->>'$.phone' AND ${orderCountingSQL}
+              WHERE email = u.phone AND ${orderCountingSQL}
             )
             BETWEEN ${startDate} AND ${endDate}
           `;
@@ -1395,7 +1394,7 @@ export class User {
             (
               SELECT MAX(shipment_date)
               FROM \`${this.app}\`.t_checkout
-              WHERE email = u.userData->>'$.email' AND ${orderCountingSQL}
+              WHERE email = u.email AND ${orderCountingSQL}
             )
             BETWEEN ${startDate} AND ${endDate}
           `;
@@ -1714,7 +1713,7 @@ export class User {
         const usuallyBuyingStandard = 9.99;
         const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
         const neverBuyingData = await db.query(
-          `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
+          `SELECT userID,  email
            FROM \`${this.app}\`.t_user
            WHERE userID not in (${buyingList
              .map(item => item.userID)
@@ -1990,7 +1989,7 @@ export class User {
           SELECT *
           FROM \`${this.app}\`.t_user
           WHERE userID in (${idList.join(',')})
-             OR JSON_EXTRACT(userData, '$.email') in (${emailList.join(',')})
+             OR email in (${emailList.join(',')})
       `,
       []
     );

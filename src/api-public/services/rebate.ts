@@ -134,7 +134,7 @@ export class Rebate {
       } else if (obj.email) {
         const user = await db.query(
           `SELECT userID FROM \`${this.app}\`.t_user 
-          WHERE account = '${obj.email}' OR JSON_EXTRACT(userData, '$.email') = '${obj.email}'`,
+          WHERE account = '${obj.email}' OR email = '${obj.email}'`,
           []
         );
         if (user[0]) {
@@ -183,7 +183,7 @@ export class Rebate {
     const dataArray: OneUserRebate[] = [];
     const searchSQL = search
       ? ` AND (JSON_EXTRACT(userData, '$.name') LIKE '%${search ?? ''}%'
-                OR JSON_EXTRACT(userData, '$.email') LIKE '%${search ?? ''}%')`
+                OR email LIKE '%${search ?? ''}%')`
       : '';
     const getUsersSQL = `SELECT * FROM \`${this.app}\`.t_user WHERE 1 = 1 ` + searchSQL;
 
@@ -222,15 +222,15 @@ export class Rebate {
         SELECT userID, JSON_EXTRACT(userData, '$.name') as name
         FROM \`${this.app}\`.t_user
         WHERE
-            (JSON_EXTRACT(userData, '$.phone') = ${db.escape(query.email_or_phone)}
-            OR JSON_EXTRACT(userData, '$.email') = ${db.escape(query.email_or_phone)});
+            (phone = ${db.escape(query.email_or_phone)}
+            OR email = ${db.escape(query.email_or_phone)});
     `
       : `
             SELECT userID, JSON_EXTRACT(userData, '$.name') as name 
             FROM \`${this.app}\`.t_user 
             WHERE 
                 (JSON_EXTRACT(userData, '$.name') LIKE '%${query.search ?? ''}%'
-                OR JSON_EXTRACT(userData, '$.email') LIKE '%${query.search ?? ''}%');
+                OR email LIKE '%${query.search ?? ''}%');
         `;
     try {
       if (query.search || query.email_or_phone) {
@@ -295,7 +295,7 @@ export class Rebate {
   // 單一會員購物金歷史紀錄
   async getCustomerRebateHistory(obj: { user_id?: number | string; email?: string }) {
     const searchSQL = `SELECT userID FROM \`${this.app}\`.t_user 
-                            WHERE JSON_EXTRACT(userData, '$.email') = ? OR userID = ?`;
+                            WHERE email = ? OR userID = ?`;
     const rebateSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point where user_id = ? order by id desc`;
 
     try {

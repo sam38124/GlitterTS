@@ -12,6 +12,7 @@ import { StockVendors, VendorData } from './stock-vendors.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
+import { al } from '@faker-js/faker/dist/airline-CBNP41sR.js';
 
 const html = String.raw;
 
@@ -1125,11 +1126,20 @@ export class StockHistory {
                                       class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
                                       style="color: #36B; font-size: 16px; font-weight: 400;"
                                       onclick="${gvc.event(() => {
+                                        // BgProduct.productsDialog({
+                                        //   gvc: gvc,
+                                        //   default:  [],
+                                        //   with_variants:true,
+                                        //   callback: async value => {
+                                        //   alert(JSON.stringify(value))
+                                        //   },
+                                        // })
                                         BgWidget.variantDialog({
                                           gvc,
                                           title: '搜尋商品',
                                           default: dvm.variantIds,
                                           callback: resultData => {
+                                            alert(JSON.stringify(resultData));
                                             dvm.variantIds = resultData;
                                             gvc.notifyDataChange(dvm.tableId);
                                           },

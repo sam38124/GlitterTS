@@ -138,7 +138,6 @@ export class ShoppingOrderManager {
       vm.data = {
         cart_token: (window.parent as any).glitter.getUrlParameter('orderID'),
       };
-
     } else {
       const url = window.parent.location.href;
       const urlParams = new URLSearchParams(new URL(url).search);
@@ -380,8 +379,9 @@ export class ShoppingOrderManager {
                 vm.apiJSON.is_pos = vm.filter_type === 'pos';
               }
 
-              ApiShop.getOrder(vm.apiJSON).then(data => {
-                function getDatalist() {
+              ApiShop.getOrder(vm.apiJSON).then(async data => {
+                async function getDatalist() {
+                  const payment_support = await PaymentConfig.getSupportPayment();
                   return data.response.data.map((dd: any) => {
                     dd.orderData.total = dd.orderData.total || 0;
                     dd.orderData.customer_info = dd.orderData.customer_info ?? {};
@@ -462,7 +462,7 @@ export class ShoppingOrderManager {
                                   }
                                   return BgWidget.primaryInsignia('POS', { type: 'border' });
                                 case 'split':
-                                  return BgWidget.warningInsignia('拆分' , { type: 'border' });
+                                  return BgWidget.warningInsignia('拆分', { type: 'border' });
                                 default:
                                   return '';
                               }
@@ -550,7 +550,7 @@ export class ShoppingOrderManager {
                         },
                         {
                           key: '付款方式',
-                          value: OrderInfo.paymentSelector(gvc, dd),
+                          value: OrderInfo.paymentSelector(gvc, dd, payment_support),
                         },
                         {
                           key: '付款時間',
@@ -589,7 +589,7 @@ export class ShoppingOrderManager {
                 vm.dataList = data.response.data;
                 vmi.pageSize = Math.ceil(data.response.total / limit);
                 vmi.originalData = vm.dataList;
-                vmi.tableData = getDatalist();
+                vmi.tableData = await getDatalist();
                 vmi.loading = false;
                 if (vmi.pageSize != 0 && vmi.page > vmi.pageSize) {
                   ShoppingOrderManager.vm.page = 1;
@@ -1106,7 +1106,6 @@ export class ShoppingOrderManager {
           (window as any).glitter.getUrlParameter('page')
         );
 
-
         const dialog = new ShareDialog(gvc.glitter);
         const saasConfig = (window.parent as any).saasConfig;
         const child_vm: {
@@ -1135,7 +1134,7 @@ export class ShoppingOrderManager {
           });
           orderData = structuredClone(orderDataNew.response.data[0]);
           originData = structuredClone(orderData);
-          console.log("orderDataNew.response.data -- " , orderDataNew.response.data);
+          console.log('orderDataNew.response.data -- ', orderDataNew.response.data);
         }
 
         orderData.orderData.progress = orderData.orderData.progress ?? 'wait';
@@ -1454,7 +1453,7 @@ export class ShoppingOrderManager {
                                         BgWidget.editeInput({
                                           gvc: gvc,
                                           title: '出貨單號碼',
-                                          default:   `${shipnumber ?? ''}`,
+                                          default: `${shipnumber ?? ''}`,
                                           callback: text => {
                                             shipnumber = text;
                                           },
@@ -1964,9 +1963,7 @@ export class ShoppingOrderManager {
                     ${document.body.clientWidth > 768 ? getBadgeList() : ''}
                   </div>
                   ${document.body.clientWidth > 768 ? '' : html` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
-                  <div class="d-flex justify-content-end">
-                    ${funBTN().splitOrder()}
-                  </div>
+                  <div class="d-flex justify-content-end">${funBTN().splitOrder()}</div>
                   ${BgWidget.container1x2(
                     {
                       html: [
@@ -2794,7 +2791,7 @@ export class ShoppingOrderManager {
                                 const source: Record<string, string> = {
                                   pos: 'POS',
                                   combine: '合併訂單',
-                                  split : '拆分'
+                                  split: '拆分',
                                 };
                                 return source[orderData.orderData.orderSource] ?? '線上';
                               })()}
@@ -4918,8 +4915,6 @@ export class ShoppingOrderManager {
             passData.orderStatus = 1;
             delete passData.tag;
             passData.line_items = passData.lineItems;
-            console.log('passData -- ', passData);
-            return;
             dialog.dataLoading({ visible: true });
             if (checkOrderEmpty(passData)) {
               ApiShop.toManualCheckout(passData).then(() => {

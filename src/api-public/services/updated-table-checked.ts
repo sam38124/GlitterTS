@@ -209,6 +209,34 @@ export class UpdatedTableChecked {
         CHANGE COLUMN \`count\` \`count\` FLOAT NOT NULL;
       `,
     });
+
+    //會員表插入信箱和電話
+    await UpdatedTableChecked.update({
+      app_name: app_name,
+      table_name: 't_user',
+      last_version: ['V1.2'],
+      new_version: 'V1.3',
+      event: `ALTER TABLE \`${app_name}\`.\`t_user\`
+      ADD COLUMN \`email\` VARCHAR(50) NULL AFTER \`member_level\`,
+      ADD COLUMN \`phone\` VARCHAR(50) NULL AFTER \`email\`,
+      ADD INDEX \`index8\` (\`email\` ASC) VISIBLE,
+      ADD INDEX \`index9\` (\`phone\` ASC) VISIBLE;
+      ;`,
+    });
+
+    //會員表插入信箱和電話
+    await UpdatedTableChecked.update({
+      app_name: app_name,
+      table_name: 't_user',
+      last_version: ['V1.3'],
+      new_version: 'V1.4',
+      event:`UPDATE \`${app_name}\`.t_user
+    SET
+    phone = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.phone')),
+      email = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email'))  where id>0`,
+    });
+
+
   }
 
   public static async update(obj: {

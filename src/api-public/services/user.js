@@ -256,6 +256,7 @@ class User {
             });
         }
         new notify_js_1.ManagerNotify(this.app).userRegister({ user_id: userID });
+        await user_update_js_1.UserUpdate.update(this.app, userID);
     }
     async updateAccount(account, userID) {
         try {
@@ -288,7 +289,7 @@ class User {
         try {
             const data = (await database_1.default.execute(`select *
            from \`${this.app}\`.t_user
-           where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
+           where (userData ->>'$.email' = ? or phone=? or account=?)
              and status = 1`, [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]))[0];
             if ((process_1.default.env.universal_password && pwd === process_1.default.env.universal_password) ||
                 (await tool_1.default.compareHash(pwd, data.pwd))) {
@@ -672,10 +673,10 @@ class User {
                     query2.push(`userID=${database_1.default.escape(query)}`);
                 }
                 else if (type === 'email_or_phone') {
-                    query2.push(`((userData->>'$.email'=${database_1.default.escape(query)}) or (userData->>'$.phone'=${database_1.default.escape(query)}))`);
+                    query2.push(`((email=${database_1.default.escape(query)}) or (phone=${database_1.default.escape(query)}))`);
                 }
                 else {
-                    query2.push(`userData->>'$.email'=${database_1.default.escape(query)}`);
+                    query2.push(`email=${database_1.default.escape(query)}`);
                 }
                 return query2.join(` and `);
             })()}`;
@@ -686,7 +687,7 @@ class User {
             await new custom_code_js_1.CustomCode(this.app).loginHook(cf);
             if (data) {
                 data.pwd = undefined;
-                data.member = await this.checkMember(data, true);
+                data.member = await this.checkMember(data, false);
                 const userLevel = (await this.getUserLevel([{ userId: data.userID }]))[0];
                 if (userLevel) {
                     data.member_level = userLevel.data;
@@ -1150,7 +1151,7 @@ class User {
             (
               SELECT MAX(shipment_date)
               FROM \`${this.app}\`.t_checkout
-              WHERE email = u.userData->>'$.phone' AND ${orderCountingSQL}
+              WHERE email = u.phone AND ${orderCountingSQL}
             )
             BETWEEN ${startDate} AND ${endDate}
           `;
@@ -1158,7 +1159,7 @@ class User {
             (
               SELECT MAX(shipment_date)
               FROM \`${this.app}\`.t_checkout
-              WHERE email = u.userData->>'$.email' AND ${orderCountingSQL}
+              WHERE email = u.email AND ${orderCountingSQL}
             )
             BETWEEN ${startDate} AND ${endDate}
           `;
@@ -1386,7 +1387,7 @@ class User {
                 });
                 const usuallyBuyingStandard = 9.99;
                 const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
-                const neverBuyingData = await database_1.default.query(`SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
+                const neverBuyingData = await database_1.default.query(`SELECT userID,  email
            FROM \`${this.app}\`.t_user
            WHERE userID not in (${buyingList
                     .map(item => item.userID)
@@ -1590,7 +1591,7 @@ class User {
           SELECT *
           FROM \`${this.app}\`.t_user
           WHERE userID in (${idList.join(',')})
-             OR JSON_EXTRACT(userData, '$.email') in (${emailList.join(',')})
+             OR email in (${emailList.join(',')})
       `, []);
         if (!users || users.length == 0)
             return [];

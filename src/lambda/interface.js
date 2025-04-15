@@ -3,7 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+<<<<<<< HEAD
 exports.lambda = exports.createViewComponent = void 0;
+=======
+exports.lambda = void 0;
+exports.createViewComponent = createViewComponent;
+>>>>>>> de7bf009 ([update] : glitter version.)
 const axios_1 = __importDefault(require("axios"));
 const fs_1 = __importDefault(require("fs"));
 const fs_2 = __importDefault(require("fs"));
@@ -288,7 +293,6 @@ function createViewComponent(config) {
         });
     });
 }
-exports.createViewComponent = createViewComponent;
 function chunkArray(array, groupSize) {
     const result = [];
     for (let i = 0; i < array.length; i += groupSize) {

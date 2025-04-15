@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 export class OrderInfo {
     static reconciliationStatus(dd, text_only = false) {
         var _a;
@@ -72,7 +71,7 @@ export class OrderInfo {
         const shipment = (order.orderData.shipment_selector || shipmentSelector).find((d) => d.value === order.orderData.user_info.shipment);
         return (shipment === null || shipment === void 0 ? void 0 : shipment.name) || '門市取貨';
     }
-    static paymentSelector(gvc, order) {
+    static paymentSelector(gvc, order, payment_support) {
         const vm = {
             id: gvc.glitter.getUUID(),
             loading: true,
@@ -91,7 +90,7 @@ export class OrderInfo {
             },
             onCreate: () => __awaiter(this, void 0, void 0, function* () {
                 if (vm.loading) {
-                    vm.dataList = yield PaymentConfig.getSupportPayment();
+                    vm.dataList = payment_support;
                     vm.loading = false;
                     gvc.notifyDataChange(vm.id);
                 }

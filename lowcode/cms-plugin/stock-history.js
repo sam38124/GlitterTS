@@ -1043,6 +1043,7 @@ export class StockHistory {
                                                             title: '搜尋商品',
                                                             default: dvm.variantIds,
                                                             callback: resultData => {
+                                                                alert(JSON.stringify(resultData));
                                                                 dvm.variantIds = resultData;
                                                                 gvc.notifyDataChange(dvm.tableId);
                                                             },

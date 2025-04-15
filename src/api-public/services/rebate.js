@@ -80,7 +80,7 @@ class Rebate {
             }
             else if (obj.email) {
                 const user = await database_1.default.query(`SELECT userID FROM \`${this.app}\`.t_user 
-          WHERE account = '${obj.email}' OR JSON_EXTRACT(userData, '$.email') = '${obj.email}'`, []);
+          WHERE account = '${obj.email}' OR email = '${obj.email}'`, []);
                 if (user[0]) {
                     user_id = user[0].userID;
                 }
@@ -124,7 +124,7 @@ class Rebate {
         const dataArray = [];
         const searchSQL = search
             ? ` AND (JSON_EXTRACT(userData, '$.name') LIKE '%${search !== null && search !== void 0 ? search : ''}%'
-                OR JSON_EXTRACT(userData, '$.email') LIKE '%${search !== null && search !== void 0 ? search : ''}%')`
+                OR email LIKE '%${search !== null && search !== void 0 ? search : ''}%')`
             : '';
         const getUsersSQL = `SELECT * FROM \`${this.app}\`.t_user WHERE 1 = 1 ` + searchSQL;
         try {
@@ -160,15 +160,15 @@ class Rebate {
         SELECT userID, JSON_EXTRACT(userData, '$.name') as name
         FROM \`${this.app}\`.t_user
         WHERE
-            (JSON_EXTRACT(userData, '$.phone') = ${database_1.default.escape(query.email_or_phone)}
-            OR JSON_EXTRACT(userData, '$.email') = ${database_1.default.escape(query.email_or_phone)});
+            (phone = ${database_1.default.escape(query.email_or_phone)}
+            OR email = ${database_1.default.escape(query.email_or_phone)});
     `
             : `
             SELECT userID, JSON_EXTRACT(userData, '$.name') as name 
             FROM \`${this.app}\`.t_user 
             WHERE 
                 (JSON_EXTRACT(userData, '$.name') LIKE '%${(_e = query.search) !== null && _e !== void 0 ? _e : ''}%'
-                OR JSON_EXTRACT(userData, '$.email') LIKE '%${(_f = query.search) !== null && _f !== void 0 ? _f : ''}%');
+                OR email LIKE '%${(_f = query.search) !== null && _f !== void 0 ? _f : ''}%');
         `;
         try {
             if (query.search || query.email_or_phone) {
@@ -229,7 +229,7 @@ class Rebate {
     }
     async getCustomerRebateHistory(obj) {
         const searchSQL = `SELECT userID FROM \`${this.app}\`.t_user 
-                            WHERE JSON_EXTRACT(userData, '$.email') = ? OR userID = ?`;
+                            WHERE email = ? OR userID = ?`;
         const rebateSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point where user_id = ? order by id desc`;
         try {
             const search = await database_1.default.query(searchSQL, [obj.email, obj.user_id]);
