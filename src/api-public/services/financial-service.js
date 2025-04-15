@@ -50,6 +50,11 @@ class FinancialService {
         else if (this.keyData.TYPE === 'ecPay') {
             return await new EcPay(this.appName, this.keyData).createOrderPage(orderData);
         }
+        return await order_event_js_1.OrderEvent.insertOrder({
+            cartData: orderData,
+            status: 0,
+            app: this.appName,
+        });
     }
     async saveWallet(orderData) {
         if (this.keyData.TYPE === 'newWebPay') {

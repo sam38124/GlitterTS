@@ -3226,6 +3226,7 @@ export class Shopping {
       };
       const newOrderID = Date.now()
       const carData: Cart = {
+        discount: orderData.discount ?? 0,
         customer_info: orderData.customer_info || {},
         lineItems: orderData.lineItems??[],
         total: orderData.total ?? 0,
@@ -3270,7 +3271,10 @@ export class Shopping {
         fbp: sqlData.fbp as string,
         editRecord: [],
       };
+      console.log("orderData.customer_info.payment_select -- " , orderData.customer_info.payment_select);
       const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select).processPayment(carData);
+
+      return result
     }
 
 

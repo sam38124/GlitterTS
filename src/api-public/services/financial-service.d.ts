@@ -34,7 +34,7 @@ export default class FinancialService {
         use_wallet: number;
         user_email: string;
         method: string;
-    }): Promise<string | undefined>;
+    }): Promise<string | void>;
     saveWallet(orderData: {
         total: number;
         userID: number;

@@ -440,19 +440,42 @@ export class UMOrder {
     `);
   }
 
-  static repay(gvc: GVC, id: string) {
+  static repay(gvc: GVC, orderData: any) {
+    const id = orderData.cart_token
     const dialog = new ShareDialog(gvc.glitter);
     dialog.dataLoading({ visible: true, text: Language.text('loading') });
 
     const redirect = gvc.glitter.root_path + 'order_detail' + location.search;
-    const l = new URL(redirect as any, location.href);
+    const url = new URL(redirect as any, location.href);
 
     return new Promise(() => {
-      ApiShop.repay(id, l.href).then(res => {
+      ApiShop.repay(id, url.href).then(res => {
+        console.log("orderData.payment_method -- " , orderData.payment_method);
+
         dialog.dataLoading({ visible: false });
-        const id = gvc.glitter.getUUID();
-        $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
-        (document.querySelector(`#${id} #submit`) as any).click();
+        switch (orderData.payment_method){
+          case 'line_pay':
+            if (gvc.glitter.share.is_application) {
+              gvc.glitter.runJsInterFace(
+                'intent_url',
+                {
+                  url: res.response.info.paymentUrl.app,
+                },
+                () => {}
+              );
+              // location.href = res.response.info.paymentUrl.app;
+            } else {
+              location.href = res.response.info.paymentUrl.web;
+            }
+            break
+          default :{
+            const id = gvc.glitter.getUUID();
+            $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+            (document.querySelector(`#${id} #submit`) as any).click();
+          }
+        }
+        return
+
       });
     });
   }
@@ -1197,21 +1220,7 @@ export class UMOrder {
                         },
                       });
                     }
-
-                    function gotoCheckout() {
-                      const isOffLine = orderData.method === 'off_line';
-                      if (isOffLine) {
-                        return '';
-                      }
-                      return html` <div
-                        class="customer-btn ms-3 d-none"
-                        onclick="${gvc.event(() => {
-                          UMOrder.repay(gvc, vm.data.cart_token);
-                        })}"
-                      >
-                        <div class="customer-btn-text">${Language.text('proceed_to_checkout')}</div>
-                      </div>`;
-                    }
+                    
 
                     checkAndRemoveURLParameter();
 
@@ -1252,7 +1261,7 @@ export class UMOrder {
                                   return html` 
                                   <span class="payment-actions">
                                     <button class="d-none customer-btn-text ms-3" id="repay-button" onclick="${gvc.event(()=>{
-                                      UMOrder.repay(gvc, vm.data.cart_token).then(r => {
+                                      UMOrder.repay(gvc, vm.data).then(r => {
                                        
                                       });
                                     })}">重新付款</button>
@@ -1262,7 +1271,7 @@ export class UMOrder {
                               }
                               return orderData.proof_purchase
                                 ? Language.text('awaiting_verification')
-                                : `${Language.text('unpaid')}${gotoCheckout()}`;
+                                : `${Language.text('unpaid')}`;
                             case 1:
                               return Language.text('paid');
                             case -1:

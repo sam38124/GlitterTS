@@ -428,7 +428,7 @@ export declare class Shopping {
         fbp?: string;
         temp_cart_id?: string;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' | 'split', replace_order_id?: string): Promise<any>;
-    repayOrder(orderID: string, return_url: string): Promise<void>;
+    repayOrder(orderID: string, return_url: string): Promise<any>;
     getReturnOrder(query: {
         page: number;
         limit: number;

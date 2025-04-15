@@ -5,7 +5,7 @@ import {App} from '../../../services/app.js';
 import process from "process";
 import {User} from "../user";
 import { CustomerSessions } from '../customer-sessions';
-import FinancialService from '../financial-service.js';
+import FinancialService, { LinePay } from '../financial-service.js';
 import { Private_config } from '../../../services/private_config.js';
 import Tool from '../../../modules/tool.js';
 
@@ -44,10 +44,10 @@ class PaymentTransaction {
     if (!this.kd){
       await this.createInstance();
     }
+    const id = 'redirect_' + Tool.randomString(6);
     switch (this.payment_select) {
       case 'ecPay':
       case 'newWebPay':
-        const id = 'redirect_' + Tool.randomString(6);
         const subMitData = await new FinancialService(this.app, {
           HASH_IV: this.kd.HASH_IV,
           HASH_KEY: this.kd.HASH_KEY,
@@ -65,13 +65,12 @@ class PaymentTransaction {
       //   this.checkPoint('select paypal');
       //   return await this.payPal.checkout(carData);
       //
-      // case 'line_pay':
-      //   this.kd.ReturnURL = `${this.processEnvDomain}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
-      //   this.kd.NotifyURL = `${this.processEnvDomain}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
-      //   await Promise.all(saveStockArray.map(dd => dd()));
-      //   this.checkPoint('select linepay');
-      //   return await this.linePay.createOrder(carData);
-      //
+      case 'line_pay':
+        this.kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
+        this.kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
+
+        return await new LinePay(this.app, this.kd).createOrder(carData);
+
       // case 'paynow': {
       //   this.kd.ReturnURL = `${this.processEnvDomain}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
       //   this.kd.NotifyURL = `${this.processEnvDomain}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true&type=${carData.customer_info.payment_select}`;

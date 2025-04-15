@@ -3291,7 +3291,6 @@ export class CheckoutIndex {
                                                                       dialog.dataLoading({ visible: true });
                                                                       PayNow.checkout().then((response: any) => {
                                                                         dialog.dataLoading({ visible: false });
-                                                                        console.log('response -- ', response);
                                                                         if (response.error) {
                                                                           dialog.errorMessage({
                                                                             text: response.error.message,

@@ -2268,6 +2268,7 @@ class Shopping {
                 ReturnURL: '',
                 NotifyURL: '',
             };
+            const newOrderID = Date.now();
             const carData = {
                 customer_info: orderData.customer_info || {},
                 lineItems: (_b = orderData.lineItems) !== null && _b !== void 0 ? _b : [],
@@ -2278,7 +2279,7 @@ class Shopping {
                 rebate: (_h = orderData.rebate) !== null && _h !== void 0 ? _h : 0,
                 goodsWeight: 0,
                 use_rebate: orderData.use_rebate || 0,
-                orderID: orderData.orderID || `${Date.now()}`,
+                orderID: `${newOrderID}`,
                 shipment_support: shipment_setting.support,
                 shipment_info: shipment_setting.info,
                 shipment_selector: [
@@ -2311,8 +2312,9 @@ class Shopping {
                 fbp: sqlData.fbp,
                 editRecord: [],
             };
-            console.log("kd -- ", kd);
+            console.log("orderData.customer_info.payment_select -- ", orderData.customer_info.payment_select);
             const result = await new handlePaymentTransaction_js_1.default(this.app, orderData.customer_info.payment_select).processPayment(carData);
+            return result;
         }
     }
     async getReturnOrder(query) {
