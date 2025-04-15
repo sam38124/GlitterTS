@@ -1454,7 +1454,7 @@ export class ShoppingOrderManager {
                                         BgWidget.editeInput({
                                           gvc: gvc,
                                           title: '出貨單號碼',
-                                          default: shipnumber ?? '',
+                                          default:   `${shipnumber ?? ''}`,
                                           callback: text => {
                                             shipnumber = text;
                                           },

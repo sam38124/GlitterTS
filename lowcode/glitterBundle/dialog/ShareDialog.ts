@@ -39,7 +39,6 @@ export class ShareDialog {
     if (glitter.getUrlParameter('cms') === 'true' || glitter.getUrlParameter('type') === 'htmlEditor') {
       this.glitter = (window.parent as any).glitter;
     }
-
     this.dataLoading = (obj: DataLoadingOptions): void => {
       if (obj.visible) {
         this.glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'dataLoading', {

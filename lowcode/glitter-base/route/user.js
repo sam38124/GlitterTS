@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { BaseApi } from '../../glitterBundle/api/base.js';
 import { GlobalUser } from '../global/global-user.js';
 import { ApiShop } from './shopping.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 export class ApiUser {
     static register(json) {
         return BaseApi.create({
@@ -208,16 +209,28 @@ export class ApiUser {
         });
     }
     static phoneVerify(phone_number) {
-        return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/user/phone-verify`,
-            type: 'POST',
-            headers: {
-                'g-app': getConfig().config.appName,
-                'Content-Type': 'application/json',
-            },
-            data: JSON.stringify({
-                phone_number: phone_number,
-            }),
+        return new Promise((resolve, reject) => {
+            BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/user/phone-verify`,
+                type: 'POST',
+                headers: {
+                    'g-app': getConfig().config.appName,
+                    'Content-Type': 'application/json',
+                },
+                data: JSON.stringify({
+                    phone_number: phone_number,
+                }),
+            }).then((res) => {
+                if (res.response.out_limit) {
+                    const dialog = new ShareDialog(window.glitter);
+                    dialog.errorMessage({
+                        text: '連續驗證失敗超過三次，請聯絡客服進行修改'
+                    });
+                }
+                else {
+                    resolve(res);
+                }
+            });
         });
     }
     static registerFCM(userID, deviceToken, app_name) {
@@ -372,6 +385,7 @@ export class ApiUser {
                 searchType: (_c = json.searchType) !== null && _c !== void 0 ? _c : '',
                 order_string: (_d = json.orderString) !== null && _d !== void 0 ? _d : '',
                 filter_type: (_e = json.filter_type) !== null && _e !== void 0 ? _e : '',
+                all_result: json.all_result ? `${json.all_result}` : '',
             }).toString();
             const extraQuery = [...filterString, ...groupString].join('&');
             const finalQuery = extraQuery ? `${baseQuery}&${extraQuery}` : baseQuery;
@@ -391,6 +405,7 @@ export class ApiUser {
                     };
                 }
                 const array = data.response.data;
+                const allUsers = data.response.allUsers;
                 if (array.length > 0) {
                     yield Promise.allSettled(array.map((item) => __awaiter(this, void 0, void 0, function* () {
                         const firstShipment = (yield ApiShop.getOrder({
@@ -413,6 +428,7 @@ export class ApiUser {
                 return {
                     response: {
                         data: array,
+                        allUsers,
                         total: data.response.total,
                         extra: data.response.extra,
                     },
@@ -744,6 +760,42 @@ export class ApiUser {
                 Authorization: getConfig().config.token,
             },
             data: JSON.stringify({ email: email }),
+        });
+    }
+    static batchAddTag(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/batch/tag`,
+            type: 'POST',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
+    static batchRemoveTag(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/batch/tag`,
+            type: 'DELETE',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
+    static batchManualLevel(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/batch/manualLevel`,
+            type: 'POST',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(json),
         });
     }
 }

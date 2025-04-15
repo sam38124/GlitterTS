@@ -35,6 +35,7 @@ export declare class Rebate {
     getOneRebate(obj: {
         user_id?: number;
         email?: string;
+        quickPass?: boolean;
     }): Promise<OneUserRebate | undefined>;
     getRebateList(query: IRebateSearch): Promise<{
         total: number;

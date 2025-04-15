@@ -543,6 +543,7 @@ FilterOptions.stockFilterFrame = {
 FilterOptions.stockSelect = [
     { key: 'title', value: '商品名稱' },
     { key: 'sku', value: '庫存單位（SKU）' },
+    { key: 'barcode', value: '商品條碼' },
 ];
 FilterOptions.stockFunnel = [
     {

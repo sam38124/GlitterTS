@@ -287,6 +287,10 @@ export class Template {
         'shipment_list_archive',
         'reconciliation_area',
         'app-design',
+        'auto_fcm_push',
+        'auto_fcm_advertise',
+        'auto_fcm_template',
+        'notify_message_list'
       ].includes(query_page)
     ) {
       return 'official-router';
@@ -305,6 +309,7 @@ export class Template {
     //當判斷是分銷連結時
     if (query_page.split('/')[0] === 'distribution' && query_page.split('/')[1]) {
       try {
+        //
         const page = (
           await db.query(
             `SELECT *
@@ -313,7 +318,11 @@ export class Template {
             [query_page.split('/')[1]]
           )
         )[0].content;
-        return await Template.getRealPage((page.redirect as string).substring(1), appName as string);
+        if(page.redirect.startsWith('/products')){
+          return 'official-router';
+        }else{
+          return await Template.getRealPage((page.redirect as string).substring(1), appName as string);
+        }
       } catch (error) {
         console.error(`distribution 路徑錯誤 code: ${query_page.split('/')[1]}`);
         page = '';

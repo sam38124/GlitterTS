@@ -1,78 +1,44 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var express_1 = require("express");
-var response_1 = require("../../modules/response");
-var jsonwebtoken_1 = require("jsonwebtoken");
-var redis_1 = require("../../modules/redis");
-var database_1 = require("../../modules/database");
-var config_1 = require("../../config");
-var router = express_1.default.Router();
-var logger_1 = require("../../modules/logger");
-var underscore_1 = require("underscore");
-var exception_1 = require("../../modules/exception");
-var userRouter = require("./user");
-var postRouter = require("./post");
-var messageRouter = require("./chat");
-var invoiceRouter = require("./invoice");
-var sql_apiRouter = require("./sql_api");
-var lambda_apiRouter = require("./lambda");
-var shop_apiRouter = require("./shop");
-var manager_apiRouter = require("./manager");
-var app_release = require("./app-release");
-var smtp = require("./smtp");
-var sms = require("./sms");
-var line_message = require("./line-message");
-var fb_message = require("./fb-message");
-var fcm = require("./fcm");
-var wallet = require("./wallet");
-var article = require("./article");
-var delivery = require("./delivery");
-var rebate = require("./rebate");
-var recommend = require("./recommend");
-var stock = require("./stock");
-var shopee = require("./shopee");
-var customer_sessions = require("./customer-sessions");
-var fb = require("./fb-service");
-var live_source_js_1 = require("../../live_source.js");
-var public_table_check_js_1 = require("../services/public-table-check.js");
-var monitor_js_1 = require("../services/monitor.js");
-var language_setting_js_1 = require("../services/language-setting.js");
-/*********SET UP Router*************/
+const express_1 = __importDefault(require("express"));
+const response_1 = __importDefault(require("../../modules/response"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const redis_1 = __importDefault(require("../../modules/redis"));
+const database_1 = __importDefault(require("../../modules/database"));
+const exception_1 = __importDefault(require("../../modules/exception"));
+const logger_1 = __importDefault(require("../../modules/logger"));
+const underscore_1 = __importDefault(require("underscore"));
+const config_1 = require("../../config");
+const live_source_js_1 = require("../../live_source.js");
+const public_table_check_js_1 = require("../services/public-table-check.js");
+const monitor_js_1 = require("../services/monitor.js");
+const language_setting_js_1 = require("../services/language-setting.js");
+const userRouter = require("./user");
+const postRouter = require("./post");
+const messageRouter = require("./chat");
+const invoiceRouter = require("./invoice");
+const sql_apiRouter = require("./sql_api");
+const lambda_apiRouter = require("./lambda");
+const shop_apiRouter = require("./shop");
+const manager_apiRouter = require("./manager");
+const app_release = require("./app-release");
+const smtp = require("./smtp");
+const sms = require("./sms");
+const line_message = require("./line-message");
+const fb_message = require("./fb-message");
+const fcm = require("./fcm");
+const wallet = require("./wallet");
+const article = require("./article");
+const delivery = require("./delivery");
+const rebate = require("./rebate");
+const recommend = require("./recommend");
+const stock = require("./stock");
+const shopee = require("./shopee");
+const customer_sessions = require("./customer-sessions");
+const fb = require("./fb-service");
+const router = express_1.default.Router();
 router.use('/api-public/*', doAuthAction);
 router.use(config_1.config.getRoute(config_1.config.public_route.user, 'public'), userRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.post, 'public'), postRouter);
@@ -104,8 +70,8 @@ router.use(config_1.config.getRoute(config_1.config.public_route.track, 'public'
 router.use(config_1.config.getRoute(config_1.config.public_route.voucher, 'public'), require('./voucher'));
 router.use(config_1.config.getRoute(config_1.config.public_route.fb, 'public'), fb);
 router.use(config_1.config.getRoute(config_1.config.public_route.reconciliation, 'public'), require('./reconciliation'));
-/******************************/
-var whiteList = [
+router.use(config_1.config.getRoute(config_1.config.public_route.progress, 'public'), require('./progress'));
+const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.customer_sessions + '/online_cart', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.shopee, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.shopee + '/listenMessage', 'public'), method: 'POST' },
@@ -193,123 +159,78 @@ var whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.ai_chat + '/ask-order', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ai_chat + '/search-product', 'public'), method: 'POST' },
 ];
-function doAuthAction(req, resp, next_step) {
-    return __awaiter(this, void 0, void 0, function () {
-        //將請求紀錄插入SQL，監測用戶數量與避免DDOS攻擊。
-        function next() {
-            return __awaiter(this, void 0, void 0, function () {
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4 /*yield*/, monitor_js_1.Monitor.insertHistory({ req: req, token: req.body.token, req_type: 'api' })];
-                        case 1:
-                            _a.sent();
-                            next_step();
-                            return [2 /*return*/];
-                    }
-                });
-            });
-        }
-        function checkBlockUser() {
-            return __awaiter(this, void 0, void 0, function () {
-                var _a, _b;
-                return __generator(this, function (_c) {
-                    switch (_c.label) {
-                        case 0: return [4 /*yield*/, database_1.default.query("SELECT count(1)\n                     FROM `".concat((_a = req.get('g-app')) !== null && _a !== void 0 ? _a : req.query['g-app'], "`.t_user\n                     where userID = ?\n                       and status = 0"), [req.body.token.userID])];
-                        case 1:
-                            if (!((_c.sent())[0]['count(1)'] === 1)) return [3 /*break*/, 3];
-                            return [4 /*yield*/, redis_1.default.deleteKey(token)];
-                        case 2:
-                            _c.sent();
-                            return [2 /*return*/, true];
-                        case 3: return [4 /*yield*/, database_1.default.execute("update `".concat((_b = req.get('g-app')) !== null && _b !== void 0 ? _b : req.query['g-app'], "`.t_user\n             set online_time=NOW()\n             where userID = ?"), [req.body.token.userID || '-1'])];
-                        case 4:
-                            _c.sent();
-                            return [2 /*return*/, false];
-                    }
-                });
-            });
-        }
-        var refer_app, _a, _b, logger, TAG, url, matches, token, e_1, redisToken, tokenCheck, err_1;
-        var _c, _d, _e, _f;
-        return __generator(this, function (_g) {
-            switch (_g.label) {
-                case 0:
-                    if (live_source_js_1.Live_source.liveAPP.indexOf("".concat((_c = req.get('g-app')) !== null && _c !== void 0 ? _c : req.query['g-app'])) === -1) {
-                        return [2 /*return*/, response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_APP', 'invalid app'))];
-                    }
-                    //Check database scheme
-                    return [4 /*yield*/, public_table_check_js_1.ApiPublic.createScheme((_d = req.get('g-app')) !== null && _d !== void 0 ? _d : req.query['g-app'])];
-                case 1:
-                    //Check database scheme
-                    _g.sent();
-                    refer_app = public_table_check_js_1.ApiPublic.checkedApp.find(function (dd) {
-                        return dd.app_name === req.headers['g-app'];
-                    });
-                    req.headers['g-app'] = (refer_app && refer_app.refer_app) || ((_e = req.get('g-app')) !== null && _e !== void 0 ? _e : req.query['g-app']);
-                    _a = req.headers;
-                    _b = 'language';
-                    return [4 /*yield*/, language_setting_js_1.LanguageSetting.getLanguage(req.headers['language'], req.headers['g-app'])];
-                case 2:
-                    _a[_b] = _g.sent();
-                    logger = new logger_1.default();
-                    TAG = '[DoAuthAction]';
-                    url = req.baseUrl;
-                    matches = underscore_1.default.where(whiteList, { url: url, method: req.method });
-                    token = (_f = req.get('Authorization')) === null || _f === void 0 ? void 0 : _f.replace('Bearer ', '');
-                    if (!(matches.length > 0)) return [3 /*break*/, 9];
-                    _g.label = 3;
-                case 3:
-                    _g.trys.push([3, 6, , 7]);
-                    req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
-                    if (!req.body.token) return [3 /*break*/, 5];
-                    return [4 /*yield*/, checkBlockUser()];
-                case 4:
-                    if (_g.sent()) {
-                        return [2 /*return*/, response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'this user has been block.'))];
-                    }
-                    _g.label = 5;
-                case 5: return [3 /*break*/, 7];
-                case 6:
-                    e_1 = _g.sent();
-                    console.error('matchTokenError', e_1);
-                    return [3 /*break*/, 7];
-                case 7: return [4 /*yield*/, next()];
-                case 8:
-                    _g.sent();
-                    return [2 /*return*/];
-                case 9:
-                    _g.trys.push([9, 16, , 17]);
-                    req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
-                    if (!req.body.token) return [3 /*break*/, 11];
-                    return [4 /*yield*/, checkBlockUser()];
-                case 10:
-                    if (_g.sent()) {
-                        return [2 /*return*/, response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'this user has been block.'))];
-                    }
-                    _g.label = 11;
-                case 11: return [4 /*yield*/, redis_1.default.getValue(token)];
-                case 12:
-                    redisToken = _g.sent();
-                    if (!!redisToken) return [3 /*break*/, 14];
-                    return [4 /*yield*/, database_1.default.query("select count(1)\n                 from `".concat(config_1.saasConfig.SAAS_NAME, "`.user\n                 where editor_token = ?"), [token])];
-                case 13:
-                    tokenCheck = _g.sent();
-                    if (tokenCheck[0]['count(1)'] !== 1) {
-                        logger.error(TAG, 'Token is not match in redis.');
-                        return [2 /*return*/, response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'invalid token'))];
-                    }
-                    _g.label = 14;
-                case 14: return [4 /*yield*/, next()];
-                case 15:
-                    _g.sent();
-                    return [3 /*break*/, 17];
-                case 16:
-                    err_1 = _g.sent();
-                    logger.error(TAG, "Unexpected exception occurred because ".concat(err_1, "."));
-                    return [2 /*return*/, response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'invalid token'))];
-                case 17: return [2 /*return*/];
-            }
-        });
+async function doAuthAction(req, resp, next_step) {
+    var _a, _b, _c, _d;
+    async function next() {
+        await monitor_js_1.Monitor.insertHistory({ req: req, token: req.body.token, req_type: 'api' });
+        next_step();
+    }
+    if (live_source_js_1.Live_source.liveAPP.indexOf(`${(_a = req.get('g-app')) !== null && _a !== void 0 ? _a : req.query['g-app']}`) === -1) {
+        return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_APP', 'invalid app'));
+    }
+    await public_table_check_js_1.ApiPublic.createScheme((_b = req.get('g-app')) !== null && _b !== void 0 ? _b : req.query['g-app']);
+    const refer_app = public_table_check_js_1.ApiPublic.checkedApp.find(dd => {
+        return dd.app_name === req.headers['g-app'];
     });
+    req.headers['g-app'] = (refer_app && refer_app.refer_app) || ((_c = req.get('g-app')) !== null && _c !== void 0 ? _c : req.query['g-app']);
+    req.headers['language'] = await language_setting_js_1.LanguageSetting.getLanguage(req.headers['language'], req.headers['g-app']);
+    const logger = new logger_1.default();
+    const TAG = '[DoAuthAction]';
+    const url = req.baseUrl;
+    const matches = underscore_1.default.where(whiteList, { url: url, method: req.method });
+    const token = (_d = req.get('Authorization')) === null || _d === void 0 ? void 0 : _d.replace('Bearer ', '');
+    async function checkBlockUser() {
+        var _a, _b;
+        if ((await database_1.default.query(`SELECT count(1)
+                     FROM \`${(_a = req.get('g-app')) !== null && _a !== void 0 ? _a : req.query['g-app']}\`.t_user
+                     where userID = ?
+                       and status = 0`, [req.body.token.userID]))[0]['count(1)'] === 1) {
+            await redis_1.default.deleteKey(token);
+            return true;
+        }
+        await database_1.default.execute(`update \`${(_b = req.get('g-app')) !== null && _b !== void 0 ? _b : req.query['g-app']}\`.t_user
+             set online_time=NOW()
+             where userID = ?`, [req.body.token.userID || '-1']);
+        return false;
+    }
+    if (matches.length > 0) {
+        try {
+            req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
+            if (req.body.token) {
+                if (await checkBlockUser()) {
+                    return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'this user has been block.'));
+                }
+            }
+        }
+        catch (e) {
+            console.error('matchTokenError', e);
+        }
+        await next();
+        return;
+    }
+    try {
+        req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
+        if (req.body.token) {
+            if (await checkBlockUser()) {
+                return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'this user has been block.'));
+            }
+        }
+        const redisToken = await redis_1.default.getValue(token);
+        if (!redisToken) {
+            const tokenCheck = await database_1.default.query(`select count(1)
+                 from \`${config_1.saasConfig.SAAS_NAME}\`.user
+                 where editor_token = ?`, [token]);
+            if (tokenCheck[0]['count(1)'] !== 1) {
+                logger.error(TAG, 'Token is not match in redis.');
+                return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'invalid token'));
+            }
+        }
+        await next();
+    }
+    catch (err) {
+        logger.error(TAG, `Unexpected exception occurred because ${err}.`);
+        return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'invalid token'));
+    }
 }
 module.exports = router;
+//# sourceMappingURL=index.js.map

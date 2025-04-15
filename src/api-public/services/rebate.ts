@@ -20,7 +20,7 @@ export interface IRebateSearch {
   page: number;
   low?: number;
   high?: number;
-  email_or_phone?:string;
+  email_or_phone?: string;
   type?: string;
 }
 
@@ -81,7 +81,7 @@ export class Rebate {
   }
 
   static nowTime = (timeZone?: string) => {
-    return moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+    return moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
   };
 
   // 取得購物金基本設置
@@ -115,23 +115,31 @@ export class Rebate {
   }
 
   // 單一會員購物金
-  async getOneRebate(obj: { user_id?: number; email?: string }): Promise<OneUserRebate | undefined> {
+  async getOneRebate(obj: {
+    user_id?: number;
+    email?: string;
+    quickPass?: boolean;
+  }): Promise<OneUserRebate | undefined> {
     const nowTime = Rebate.nowTime();
     let user_id = 0;
     let point = 0;
     let recycle = 0;
     let pending = 0;
 
-    if (obj.user_id && !isNaN(obj.user_id)) {
+    if (obj.quickPass && obj.user_id) {
       user_id = obj.user_id;
-    } else if (obj.email) {
-      const user = await db.query(
-        `SELECT userID FROM \`${this.app}\`.t_user 
-                    WHERE account = '${obj.email}' OR JSON_EXTRACT(userData, '$.email') = '${obj.email}'`,
-        []
-      );
-      if (user[0]) {
-        user_id = user[0].userID;
+    } else {
+      if (obj.user_id && !isNaN(obj.user_id)) {
+        user_id = obj.user_id;
+      } else if (obj.email) {
+        const user = await db.query(
+          `SELECT userID FROM \`${this.app}\`.t_user 
+          WHERE account = '${obj.email}' OR JSON_EXTRACT(userData, '$.email') = '${obj.email}'`,
+          []
+        );
+        if (user[0]) {
+          user_id = user[0].userID;
+        }
       }
     }
 
@@ -209,14 +217,15 @@ export class Rebate {
     const high = query.high ?? 10000000000;
     let rebateSearchSQL = '';
 
-
-    const getUsersSQL = (query.email_or_phone) ? `
+    const getUsersSQL = query.email_or_phone
+      ? `
         SELECT userID, JSON_EXTRACT(userData, '$.name') as name
         FROM \`${this.app}\`.t_user
         WHERE
             (JSON_EXTRACT(userData, '$.phone') = ${db.escape(query.email_or_phone)}
             OR JSON_EXTRACT(userData, '$.email') = ${db.escape(query.email_or_phone)});
-    `:`
+    `
+      : `
             SELECT userID, JSON_EXTRACT(userData, '$.name') as name 
             FROM \`${this.app}\`.t_user 
             WHERE 

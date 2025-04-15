@@ -1131,7 +1131,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
         '|',
         'formatOL',
         'emoticons',
-        'html'
+        'html',
       ];
 
       return {
@@ -1206,11 +1206,11 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     obj.callback(doc.documentElement.outerHTML);
                   }
 
-                  FroalaEditor.DefineIcon('altManager',{
-                    "NAME": "commenting",
-                    "FA5NAME": "comment-alt",
-                    "SVG_KEY": "imageCaption"
-                  })
+                  FroalaEditor.DefineIcon('altManager', {
+                    NAME: 'commenting',
+                    FA5NAME: 'comment-alt',
+                    SVG_KEY: 'imageCaption',
+                  });
                   FroalaEditor.RegisterCommand('altManager', {
                     title: 'alt設定',
                     icon: 'altManager',
@@ -1219,12 +1219,12 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     showOnMobile: true,
                     refreshAfterCallback: true,
                     callback: function () {
-                      console.log (this.html.get());
+                      console.log(this.html.get());
                     },
                     refresh: function () {
-                      console.log (this.selection.element());
-                    }
-                  })
+                      console.log(this.selection.element());
+                    },
+                  });
 
                   editor = new FroalaEditor('#' + richID, {
                     enter: FroalaEditor.ENTER_DIV,
@@ -1334,9 +1334,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                       //     console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
                       //     editor.selection.save()
                       // },
-                      'mouseup': function () {
-                          console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
-                          editor.selection.save()
+                      mouseup: function () {
+                        console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
+                        editor.selection.save();
                       },
                       // // 當編輯器獲得焦點時觸發
                       // 'focus': function () {
@@ -2720,7 +2720,7 @@ ${obj.gvc.bindView(() => {
             option: [
               {
                 key: 'onclick',
-                value: obj.gvc.event((e, event) => {
+                value: obj.gvc.event((_, event) => {
                   const bool = !obj.def;
                   if (!obj.stopChangeView) {
                     obj.def = !obj.def;

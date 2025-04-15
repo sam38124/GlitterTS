@@ -71,6 +71,7 @@ export declare const config: {
         voucher: string;
         reconciliation: string;
         fb: string;
+        progress: string;
     };
     route: {
         shopee: string;

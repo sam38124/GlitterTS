@@ -269,7 +269,9 @@ export class StockHistory {
               },
               {
                 key: '總金額',
-                value: `<span class="fs-7">$ ${(dd.content.total_price || 0).toLocaleString()}</span>`,
+                value: `<span class="fs-7">$ ${  dd.content.product_list.reduce((sum, item) => {
+                return sum + item.cost * (item.recent_count ?? 0);
+                }, 0).toLocaleString()}</span>`,
               },
               {
                 key: '供應商',

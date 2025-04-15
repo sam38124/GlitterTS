@@ -30,6 +30,10 @@ import { App as GeneralApp } from '../../services/app.js';
 import { UserUpdate } from './user-update.js';
 import { ApiPublic } from './public-table-check.js';
 import { UtTimer } from '../utils/ut-timer';
+import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
+import { PhoneVerify } from './phone-verify.js';
+import { StackTracker, Stack } from '../../update-progress-track.js';
+import { InitialFakeData } from './initial-fake-data.js';
 
 interface UserQuery {
   page?: number;
@@ -52,6 +56,7 @@ interface UserQuery {
   groupTag?: string;
   filter_type?: string;
   tags?: string;
+  all_result?: boolean;
 }
 
 interface GroupUserItem {
@@ -126,9 +131,9 @@ export class User {
         const authData = (
           await db.query(
             `SELECT *
-           FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
-           WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
-          `,
+             FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+             WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
+            `,
             [email || '-21']
           )
         )[0];
@@ -163,6 +168,14 @@ export class User {
 
   public async phoneVerify(account: string) {
     const time: any = await redis.getValue(`verify-phone-${account}-last-time`);
+    let last_count: any = parseInt(`${(await redis.getValue(`verify-phone-${account}-last-count`)) || '0'}`, 10);
+    last_count++;
+    if (last_count > 3) {
+      return {
+        out_limit: true,
+      };
+    }
+    await redis.setValue(`verify-phone-${account}-last-count`, last_count);
     //超過30秒可在次發送
     if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
       await redis.setValue(`verify-phone-${account}-last-time`, new Date().toISOString());
@@ -170,7 +183,6 @@ export class User {
       const code = Tool.randomNumber(6);
       await redis.setValue(`verify-phone-${account}`, code);
       data.content = data.content.replace(`@{{code}}`, code);
-
       const sns = new SMS(this.app, this.token);
       await sns.sendSNS({ data: data.content as string, phone: account }, () => {});
       return {
@@ -236,7 +248,7 @@ export class User {
         }
         if (
           login_config.phone_verify &&
-          userData.verify_code_phone !== (await redis.getValue(`verify-phone-${userData.phone}`)) &&
+          !(await PhoneVerify.verify(userData.phone, userData.verify_code_phone)) &&
           register_form.list.find((dd: any) => {
             return dd.key === 'phone' && `${dd.hidden}` !== 'true';
           })
@@ -1239,15 +1251,20 @@ export class User {
 
   public async getUserList(query: UserQuery) {
     try {
+      const checkPoint = new UtTimer('GET-USER-LIST').checkPoint;
+
+      // if (this.app === 't_1725992531001') {
+      //   await new InitialFakeData('t_1725992531001').run();
+      //   checkPoint('Run InitialFakeData');
+      // }
+
       const orderCountingSQL = await this.getCheckoutCountingModeSQL();
       const querySql: string[] = ['1=1'];
       const noRegisterUsers: any[] = [];
+
       query.page = query.page ?? 0;
       query.limit = query.limit ?? 50;
 
-      function sqlDateConvert(dd: string) {
-        return dd.replace('T', ' ').replace('.000Z', '');
-      }
       if (query.groupType) {
         const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
         if (getGroup.result && getGroup.data[0]) {
@@ -1333,35 +1350,57 @@ export class User {
       }
 
       if (query.created_time) {
-        const created_time = query.created_time.split(',');
-        if (created_time.length > 1) {
-          querySql.push(`
-                        (u.created_time BETWEEN ${db.escape(`${created_time[0]} 00:00:00`)} 
-                        AND ${db.escape(`${created_time[1]} 23:59:59`)})
-                    `);
+        const createdTimeRange = query.created_time.split(',');
+
+        if (createdTimeRange.length > 1) {
+          const startTime = db.escape(`${createdTimeRange[0]} 00:00:00`);
+          const endTime = db.escape(`${createdTimeRange[1]} 23:59:59`);
+
+          querySql.push(`(u.created_time BETWEEN ${startTime} AND ${endTime})`);
         }
       }
 
+      function sqlDateConvert(dd: string) {
+        return dd.replace('T', ' ').replace('.000Z', '');
+      }
+
       if (query.last_order_time) {
-        const last_time = query.last_order_time.split(',');
-        if (last_time.length > 1) {
-          querySql.push(`
-                        (lo.last_order_time BETWEEN ${db.escape(`${sqlDateConvert(last_time[0])}`)} 
-                        AND ${db.escape(`${sqlDateConvert(last_time[1])}`)})
-                    `);
+        const lastOrderRange = query.last_order_time.split(',');
+
+        if (lastOrderRange.length > 1) {
+          const startTime = db.escape(sqlDateConvert(lastOrderRange[0]));
+          const endTime = db.escape(sqlDateConvert(lastOrderRange[1]));
+
+          querySql.push(`(lo.last_order_time BETWEEN ${startTime} AND ${endTime})`);
         }
       }
 
       if (query.last_shipment_date) {
         const last_time = query.last_shipment_date.split(',');
-        if (last_time.length > 1) {
-          querySql.push(`
-(((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.phone' and ${orderCountingSQL})  between ${db.escape(sqlDateConvert(last_time[0]))} and ${db.escape(sqlDateConvert(last_time[1]))})
 
-)   
-or
-((select MAX(shipment_date) from \`${this.app}\`.t_checkout where email=u.userData->>'$.email' and ${orderCountingSQL})  between ${db.escape(sqlDateConvert(last_time[0]))} and ${db.escape(sqlDateConvert(last_time[1]))})                    
-                    `);
+        if (last_time.length > 1) {
+          const startDate = db.escape(sqlDateConvert(last_time[0]));
+          const endDate = db.escape(sqlDateConvert(last_time[1]));
+
+          const maxShipmentByPhone = `
+            (
+              SELECT MAX(shipment_date)
+              FROM \`${this.app}\`.t_checkout
+              WHERE email = u.userData->>'$.phone' AND ${orderCountingSQL}
+            )
+            BETWEEN ${startDate} AND ${endDate}
+          `;
+
+          const maxShipmentByEmail = `
+            (
+              SELECT MAX(shipment_date)
+              FROM \`${this.app}\`.t_checkout
+              WHERE email = u.userData->>'$.email' AND ${orderCountingSQL}
+            )
+            BETWEEN ${startDate} AND ${endDate}
+          `;
+
+          querySql.push(`(${maxShipmentByPhone} OR ${maxShipmentByEmail})`);
         }
       }
 
@@ -1470,137 +1509,147 @@ or
         querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
       }
 
-      // 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time'
-      const dataSQL = await this.getUserAndOrderSQL({
-        select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
-        where: querySql,
-        orderBy: query.order_string ?? '',
-        page: query.page,
-        limit: query.limit,
-      });
-
       const countSQL = await this.getUserAndOrderSQL({
         select: 'count(1)',
         where: querySql,
         orderBy: query.order_string ?? '',
       });
 
-      const userData = (await db.query(dataSQL, [])).map((dd: any) => {
-        dd.pwd = undefined;
-        dd.tag_name = '一般會員';
-        return dd;
-      });
+      const processChunk = 1000;
 
-      // 建立 userID 對應的 Map，加快查找
-      const userMap = new Map(userData.map((user: any) => [String(user.userID), user]));
-
-      // 會員等級 Map
-      const levels = await this.getUserLevel(userData.map((user: any) => ({ userId: user.userID })));
-      const levelMap = new Map(levels.map(lv => [lv.id, lv.data.dead_line ?? '']));
-
-      const queryResult = await db.query(
-        `
-            SELECT *
-            FROM \`${this.app}\`.t_user_public_config
-            WHERE \`key\` = 'member_update'
-              AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
-        `,
-        []
-      );
-
-      // 更新 userData
-      for (const b of queryResult) {
-        const tag = levels.find(dd => {
-          return `${dd.id}` === `${b.user_id}`;
+      const getUserQuery = async (param?: { page?: number; limit?: number }) => {
+        const dataSQL = await this.getUserAndOrderSQL({
+          select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
+          where: querySql,
+          orderBy: query.order_string ?? '',
+          page: param?.page,
+          limit: param?.limit,
         });
-        if (tag && tag.data && tag.data.tag_name) {
-          const user = userMap.get(String(b.user_id)) as any;
-          if (user) {
-            user.tag_name = tag.data.tag_name; // 確保 user 不是 undefined，並設定 tag_name
-          }
-        }
-      }
 
-      const processUserData = async (user: any) => {
-        const phone = user.userData.phone || 'asnhsauh';
-        const email = user.userData.email || 'asnhsauh';
-        // 取得購物金餘額
-        const _rebate = new Rebate(this.app);
-        const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
-        user.rebate = userRebate ? userRebate.point : 0;
-        // 取得會員等級截止日
-        user.member_deadline = levelMap.get(user.userID) ?? '';
-        user.latest_order_date = (
-          await db.query(
-            `select created_time
-                                                  from \`${this.app}\`.t_checkout
-                                                  where email in ('${email}', '${phone}')
-                                                    and ${orderCountingSQL}
-                                                  order by created_time desc limit 0,1`,
-            []
-          )
-        )[0];
-        user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
-        user.latest_order_total = (
-          await db.query(
-            `select total
-                                                   from \`${this.app}\`.t_checkout
-                                                   where email in ('${email}', '${phone}')
-                                                     and ${orderCountingSQL}
-                                                   order by created_time desc limit 0,1`,
-            []
-          )
-        )[0];
-        user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
-        user.checkout_total = (
-          await db.query(
-            `select sum(total)
-                                               from \`${this.app}\`.t_checkout
-                                               where email in ('${email}', '${phone}')
-                                                 and ${orderCountingSQL} `,
-            []
-          )
-        )[0];
-        user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
-        user.checkout_count = (
-          await db.query(
-            `select count(1)
-                                               from \`${this.app}\`.t_checkout
-                                               where email in ('${email}', '${phone}')
-                                                 and ${orderCountingSQL} `,
-            []
-          )
-        )[0];
-        user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
+        const levelData = (await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' })).levels ?? [];
+
+        const getUsers = (await db.query(dataSQL, [])).map((dd: any) => {
+          dd.pwd = undefined;
+          const find_level = levelData.find((d1: any) => {
+            return dd.member_level === d1.id;
+          });
+          dd.tag_name = find_level ? find_level.tag_name : '一般會員';
+          return dd;
+        });
+        checkPoint('getUsers');
+
+        if (param) {
+          const dataArray = [];
+
+          for (let i = 0; i < getUsers.length; i += processChunk) {
+            const data = await processUserData(getUsers.slice(i, i + processChunk));
+            dataArray.push(data);
+            checkPoint(`processUserData ${i}`);
+          }
+
+          return dataArray.flat();
+        }
+
+        return getUsers.map((user: any) => ({ userID: user.userID }));
       };
 
-      // 批次處理會員資料
-      if (Array.isArray(userData) && userData.length > 0) {
-        const chunkSize = 20; // 每次最多處理人數
+      const processUserData = async (userData: any) => {
+        // 會員等級 Map
+        const levels = await this.getUserLevel(userData.map((user: any) => ({ userId: user.userID })));
+        const levelMap = new Map(levels.map(lv => [lv.id, lv.data.dead_line ?? '']));
+        checkPoint('levels');
 
-        const chunkedUserData: any[][] = [];
-        for (let i = 0; i < userData.length; i += chunkSize) {
-          chunkedUserData.push(userData.slice(i, i + chunkSize));
-        }
+        const mapUser = async (user: any) => {
+          const phone = user.userData.phone || 'asnhsauh';
+          const email = user.userData.email || 'asnhsauh';
 
-        // 依序處理每個批次
-        for (const batch of chunkedUserData) {
-          await Promise.all(
-            batch.map(async (user: any) => {
-              await processUserData(user);
-            })
-          );
-        }
-      }
+          // 取得購物金餘額
+          const userRebate = await new Rebate(this.app).getOneRebate({
+            user_id: user.userID,
+            quickPass: true,
+          });
+          user.rebate = userRebate ? userRebate.point : 0;
 
-      return {
-        // 所有註冊會員的詳細資料
-        data: userData.map((user: any) => {
+          // 取得會員等級截止日
+          user.member_deadline = levelMap.get(user.userID) ?? '';
+          user.latest_order_date = (
+            await db.query(
+              `select created_time
+                                                    from \`${this.app}\`.t_checkout
+                                                    where email in ('${email}', '${phone}')
+                                                      and ${orderCountingSQL}
+                                                    order by created_time desc limit 0,1`,
+              []
+            )
+          )[0];
+          user.latest_order_date = user.latest_order_date && user.latest_order_date.created_time;
+          user.latest_order_total = (
+            await db.query(
+              `select total
+                                                     from \`${this.app}\`.t_checkout
+                                                     where email in ('${email}', '${phone}')
+                                                       and ${orderCountingSQL}
+                                                     order by created_time desc limit 0,1`,
+              []
+            )
+          )[0];
+          user.latest_order_total = user.latest_order_total && user.latest_order_total.total;
+          user.checkout_total = (
+            await db.query(
+              `select sum(total)
+                                                 from \`${this.app}\`.t_checkout
+                                                 where email in ('${email}', '${phone}')
+                                                   and ${orderCountingSQL} `,
+              []
+            )
+          )[0];
+          user.checkout_total = user.checkout_total && user.checkout_total['sum(total)'];
+          user.checkout_count = (
+            await db.query(
+              `select count(1)
+                                                 from \`${this.app}\`.t_checkout
+                                                 where email in ('${email}', '${phone}')
+                                                   and ${orderCountingSQL} `,
+              []
+            )
+          )[0];
+          user.checkout_count = user.checkout_count && user.checkout_count['count(1)'];
+          user.last_order_total = user.last_order_total || 0;
           user.order_count = user.order_count || 0;
           user.total_amount = user.total_amount || 0;
-          return user;
-        }),
-        // 所有註冊會員的數量
+        };
+
+        // 批次處理會員資料
+
+        if (Array.isArray(userData) && userData.length > 0) {
+          const chunkSize = 100;
+
+          for (let i = 0; i < userData.length; i += chunkSize) {
+            const batch = userData.slice(i, i + chunkSize);
+            await Promise.all(
+              batch.map(async (user: any) => {
+                await mapUser(user);
+                checkPoint('mapUser');
+              })
+            );
+          }
+        }
+
+        return userData;
+      };
+
+      const [pageUsers, allUsers] = await Promise.all([
+        getUserQuery({ page: query.page, limit: query.limit }),
+        query.all_result ? getUserQuery() : [],
+      ]);
+      checkPoint('return data');
+
+      return {
+        // 指定頁數和符合篩選條件的會員資料
+        data: pageUsers,
+        // 所有符合篩選條件的會員資料
+        ...(allUsers.length > 0 ? { allUsers } : {}),
+        // 所有符合篩選條件的會員數量
         total: (await db.query(countSQL, []))[0]['count(1)'],
         // 額外資料（例如未註冊的訂閱者資料）
         extra: {
@@ -1662,20 +1711,20 @@ or
         });
 
         // 經常購買者清單
-        const usuallyBuyingStandard = 9.9;
+        const usuallyBuyingStandard = 9.99;
         const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
         const neverBuyingData = await db.query(
           `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
            FROM \`${this.app}\`.t_user
            WHERE userID not in (${buyingList
              .map(item => item.userID)
-             .concat([-1312])
+             .concat([-1111])
              .join(',')})`,
           []
         );
 
         dataList = dataList.concat([
-          { type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData },
+          { type: 'neverBuying', title: '尚未成立有效訂單的顧客', users: neverBuyingData },
           { type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList },
         ]);
       }
@@ -1702,7 +1751,7 @@ or
 
         const users = await db.query(
           `SELECT userID
-           FROM \`${this.app}\`.t_user;`,
+                                      FROM \`${this.app}\`.t_user;`,
           []
         );
 
@@ -1753,20 +1802,41 @@ or
   public async getLevelConfig() {
     const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
     const levelList = levelData.levels || [];
-    levelList.push(this.normalMember);
-    return levelList;
+
+    if (levelList.length === 0) {
+      return [this.normalMember];
+    }
+
+    const existNormalTag = levelList.find((level: any) => level.tag_name === this.normalMember.tag_name);
+    const existZeroValue = levelList.find((level: any) => level.condition.value === 0);
+
+    if (existNormalTag || existZeroValue) {
+      return levelList;
+    }
+
+    const formatLevelList = levelList.map((item: any) => {
+      item.index++;
+      return item;
+    });
+    return [this.normalMember, ...formatLevelList];
   }
 
   private async filterMemberUpdates(idList: string[]): Promise<any[]> {
     try {
       const memberUpdates: any[] = [];
 
+      if (idList.length === 0) {
+        return [];
+      }
+
       if (idList.length > 10000) {
         const idSetArray = [...new Set(idList)];
         const idMap = new Map();
 
         const getMember = await db.query(
-          `SELECT * FROM \`${this.app}\`.t_user_public_config WHERE \`key\` = 'member_update'
+          `SELECT *
+           FROM \`${this.app}\`.t_user_public_config
+           WHERE \`key\` = 'member_update'
           `,
           []
         );
@@ -1787,9 +1857,10 @@ or
           const slice = idList.slice(i, i + batchSize);
           const placeholders = slice.map(() => '?').join(',');
           const query = `
-            SELECT * FROM \`${this.app}\`.t_user_public_config
-            WHERE \`key\` = 'member_update'
-            AND user_id IN (${placeholders});
+              SELECT *
+              FROM \`${this.app}\`.t_user_public_config
+              WHERE \`key\` = 'member_update'
+                AND user_id IN (${placeholders});
           `;
           batches.push({ query, params: slice });
         }
@@ -1812,17 +1883,16 @@ or
     }
   }
 
-  private async setLevelData(user: any, memberUpdates: any, levelConfig?: any) {
+  private async setLevelData(user: any, quickPass: boolean, memberUpdates: any, levelList: any) {
     const { userID, userData } = user;
     const { level_status, level_default, email } = userData;
 
-    const levelList = levelConfig ?? (await this.getLevelConfig());
-
+    const normalMember = levelList[0] ?? this.normalMember;
     const normalData = {
-      id: this.normalMember.id,
-      og: this.normalMember,
+      id: normalMember.id,
+      og: normalMember,
       trigger: true,
-      tag_name: this.normalMember.tag_name,
+      tag_name: normalMember.tag_name,
       dead_line: '',
     };
 
@@ -1834,6 +1904,35 @@ or
         email,
         status: 'manual',
         data: matchedLevel ?? normalData,
+      };
+    }
+
+    // 啟用快速通關處理會員等級
+    if (quickPass) {
+      const index = user.member_level ? levelList.findIndex((level: any) => level.id === user.member_level) : 0;
+      const getLevel = levelList[index];
+
+      const formatData = {
+        id: getLevel.id,
+        og: {
+          id: getLevel.id,
+          index: index,
+          duration: getLevel.duration,
+          tag_name: getLevel.tag_name,
+          condition: getLevel.condition,
+          dead_line: getLevel.dead_line,
+          create_date: getLevel.create_date,
+        },
+        trigger: true,
+        tag_name: getLevel.tag_name,
+        dead_line: '',
+      };
+
+      return {
+        id: userID,
+        email,
+        status: 'auto',
+        data: formatData,
       };
     }
 
@@ -1874,6 +1973,8 @@ or
       status: 'auto' | 'manual';
     }[]
   > {
+    const utTimer = new UtTimer('getUserLevel');
+
     const idList: string[] = data
       .filter(item => Boolean(item.userId))
       .map(item => `${item.userId}`)
@@ -1886,34 +1987,31 @@ or
 
     const users = await db.query(
       `
-          SELECT * FROM \`${this.app}\`.t_user
+          SELECT *
+          FROM \`${this.app}\`.t_user
           WHERE userID in (${idList.join(',')})
-          OR JSON_EXTRACT(userData, '$.email') in (${emailList.join(',')})
-        `,
+             OR JSON_EXTRACT(userData, '$.email') in (${emailList.join(',')})
+      `,
       []
     );
 
     if (!users || users.length == 0) return [];
 
-    const chunk = 50;
-    const chunkArray = [];
+    const chunk = 20;
     const dataList: any = [];
     const levelConfig = await this.getLevelConfig();
     const memberUpdates = await this.filterMemberUpdates(idList);
 
     for (let i = 0; i < users.length; i += chunk) {
-      chunkArray.push(users.slice(i * chunk, (i + 1) * chunk));
+      const userArray = users.slice(i, i + chunk);
+      await Promise.all(
+        userArray.map(async (user: any) => {
+          const userData = await this.setLevelData(user, users.length > 100, memberUpdates, levelConfig);
+          dataList.push(userData);
+        })
+      );
     }
 
-    await Promise.all(
-      chunkArray.map(async userArray => {
-        await Promise.all(
-          userArray.map((user: any) =>
-            this.setLevelData(user, memberUpdates, levelConfig).then(userData => dataList.push(userData))
-          )
-        );
-      })
-    );
     return dataList;
   }
 
@@ -2081,15 +2179,22 @@ or
   }
 
   public async updateUserData(userID: string, par: any, manager: boolean = false) {
+    const userData = await (async () => {
+      const getUser = await db.query(
+        `select *
+         from \`${this.app}\`.\`t_user\`
+         where userID = ${db.escape(userID)}
+        `,
+        []
+      );
+      return getUser[0] ?? {};
+    })();
+
     try {
-      const userData = (
-        await db.query(
-          `select *
-           from \`${this.app}\`.\`t_user\`
-           where userID = ${db.escape(userID)}`,
-          []
-        )
-      )[0];
+      if (!userData.userData) {
+        return { data: {} };
+      }
+
       const login_config = await this.getConfigV2({
         key: 'login_config',
         user_id: 'manager',
@@ -2098,9 +2203,10 @@ or
         key: 'custom_form_register',
         user_id: 'manager',
       });
+
       register_form.list = register_form.list ?? [];
       FormCheck.initialRegisterForm(register_form.list);
-      //更改密碼
+
       if (par.userData.pwd) {
         if ((await redis.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
           await db.query(
@@ -2115,6 +2221,7 @@ or
           });
         }
       }
+
       if (par.userData.email && par.userData.email !== userData.userData.email) {
         const count = (
           await db.query(
@@ -2142,6 +2249,7 @@ or
           });
         }
       }
+
       if (par.userData.phone && par.userData.phone !== userData.userData.phone) {
         const count = (
           await db.query(
@@ -2159,7 +2267,7 @@ or
         }
         if (
           login_config.phone_verify &&
-          par.userData.verify_code_phone !== (await redis.getValue(`verify-phone-${par.userData.phone}`)) &&
+          !(await PhoneVerify.verify(par.userData.phone, par.userData.verify_code_phone)) &&
           register_form.list.find((dd: any) => {
             return dd.key === 'phone' && `${dd.hidden}` !== 'true';
           })
@@ -2169,8 +2277,10 @@ or
           });
         }
       }
+
       const blockCheck = par.userData.type == 'block';
       par.status = blockCheck ? 0 : 1;
+
       if (par.userData.phone) {
         await db.query(
           `update \`${this.app}\`.t_checkout
@@ -2181,6 +2291,7 @@ or
         );
         userData.account = par.userData.phone;
       }
+
       if (par.userData.email) {
         await db.query(
           `update \`${this.app}\`.t_checkout
@@ -2191,20 +2302,25 @@ or
         );
         userData.account = par.userData.email;
       }
+
       par.userData = await this.checkUpdate({
         updateUserData: par.userData,
         userID: userID,
         manager: manager,
       });
+
       delete par.userData.verify_code;
+
       par = {
         account: userData.account,
         userData: JSON.stringify(par.userData),
         status: par.status,
       };
+
       if (!par.account) {
         delete par.account;
       }
+
       const data = (await db.query(
         `update \`${this.app}\`.t_user
          SET ?
@@ -2215,11 +2331,144 @@ or
 
       await UserUpdate.update(this.app, userID);
 
-      return {
-        data: data,
-      };
+      return { data };
     } catch (e: any) {
-      throw exception.BadRequestError((e as any).code || 'BAD_REQUEST', (e as any).message, e.data);
+      delete userData.pwd;
+      delete userData.userData.verify_code;
+      throw exception.BadRequestError(e.code || 'BAD_REQUEST', e.message, { data: userData });
+    }
+  }
+
+  public async batchGetUser(userId: string[]) {
+    try {
+      const sql = `SELECT * FROM \`${this.app}\`.t_user WHERE userID = ?`;
+      const dataArray: any = [];
+
+      const stack: Stack = {
+        appName: this.app,
+        taskId: Tool.randomString(12),
+        taskTag: 'batchGetUser',
+        progress: 0,
+      };
+
+      StackTracker.stack.push(stack);
+
+      if (Array.isArray(userId) && userId.length > 0) {
+        const chunkSize = 100;
+        for (let i = 0; i < userId.length; i += chunkSize) {
+          const size = i + chunkSize;
+          const batch = userId.slice(i, size);
+          await Promise.all(
+            batch.map(async id => {
+              const results = await db.query(sql, [db.escape(id)]);
+              results.forEach((result: any) => delete result.pwd);
+              dataArray.push(results);
+            })
+          );
+          StackTracker.setProgress(stack.taskId, StackTracker.calcPercentage(size, userId.length));
+        }
+      }
+
+      StackTracker.clearProgress(stack.taskId);
+
+      return dataArray.flat();
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Batch get userData:' + error, null);
+    }
+  }
+
+  public async batchUpdateUserData(trackName: string, users: { id: string; data: any }[]) {
+    try {
+      const stack: Stack = {
+        appName: this.app as string,
+        taskId: Tool.randomString(12),
+        taskTag: trackName,
+        progress: 0,
+      };
+
+      StackTracker.stack.push(stack);
+
+      if (Array.isArray(users) && users.length > 0) {
+        const chunkSize = 200;
+        for (let i = 0; i < users.length; i += chunkSize) {
+          const size = i + chunkSize;
+          const batch = users.slice(i, size);
+          StackTracker.setProgress(stack.taskId, StackTracker.calcPercentage(size, users.length));
+          await Promise.all(
+            batch.map(async user => {
+              await new Promise(async resolve => {
+                await this.updateUserData(user.id, user.data);
+                setTimeout(() => resolve(true), 200);
+              });
+            })
+          );
+        }
+      }
+
+      StackTracker.clearProgress(stack.taskId);
+
+      return;
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Batch update userData:' + error, null);
+    }
+  }
+
+  public async batchAddtag(userId: string[], tags: string[]) {
+    try {
+      const users = await this.batchGetUser(userId);
+
+      const updateData = users.map((item: any) => {
+        item.userData.tags = item.userData.tags ? [...new Set([...item.userData.tags, ...tags])] : tags;
+
+        return {
+          id: item.userID,
+          data: item,
+        };
+      });
+
+      await this.batchUpdateUserData('batchAddtag', updateData);
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Batch add tag:' + error, null);
+    }
+  }
+
+  public async batchRemovetag(userId: string[], tags: string[]) {
+    try {
+      const users = await this.batchGetUser(userId);
+      const postMap: Map<string, boolean> = new Map(tags.map(tag => [tag, true]));
+
+      const updateData = users.map((item: any) => {
+        item.userData.tags = item.userData.tags ? item.userData.tags.filter((tag: string) => !postMap.get(tag)) : [];
+
+        return {
+          id: item.userID,
+          data: item,
+        };
+      });
+
+      await this.batchUpdateUserData('batchRemovetag', updateData);
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Batch remove tag:' + error, null);
+    }
+  }
+
+  public async batchManualLevel(userId: string[], level: string[]) {
+    try {
+      const users = await this.batchGetUser(userId);
+
+      const updateData = users.map((item: any) => {
+        item.userData.level_status = 'manual';
+        item.userData.level_default = level;
+
+        return {
+          id: item.userID,
+          data: item,
+        };
+      });
+
+      await this.batchUpdateUserData('batchManualLevel', updateData);
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Batch manual level:' + error, null);
     }
   }
 
@@ -2586,7 +2835,7 @@ or
           return { language_setting: { def: 'zh-TW', support: ['zh-TW'] } }; // store-information 預設回傳
         }
 
-        return (data && data.value) || {};
+        return await that.checkLeakData(config.key, (data && data.value) || {});
       }
 
       if (config.key.includes(',')) {
@@ -2649,7 +2898,11 @@ or
       case 'login_config':
         value = FormCheck.initialLoginConfig(value);
         break;
+      case 'auto_fcm':
+        value = AutoFcm.initial(value);
+        break;
     }
+    return value;
   }
 
   public async checkEmailExists(email: string) {

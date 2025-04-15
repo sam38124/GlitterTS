@@ -1,30 +1,26 @@
 'use strict';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.config = exports.saasConfig = exports.ConfigSetting = void 0;
-var path_1 = require("path");
-var dotenv_1 = require("dotenv");
-var process_1 = require("process");
-var ConfigSetting = /** @class */ (function () {
-    function ConfigSetting() {
+const path_1 = __importDefault(require("path"));
+const dotenv_1 = __importDefault(require("dotenv"));
+const process_1 = __importDefault(require("process"));
+class ConfigSetting {
+    static get is_local() {
+        return process_1.default.env.is_local === 'true';
     }
-    Object.defineProperty(ConfigSetting, "is_local", {
-        get: function () {
-            return process_1.default.env.is_local === 'true';
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ConfigSetting.setConfig = function (envPath) {
+    static setConfig(envPath) {
         ConfigSetting.config_path = envPath;
         dotenv_1.default.config({
             path: envPath,
         });
-    };
-    ConfigSetting.runSchedule = true;
-    ConfigSetting.config_path = '';
-    return ConfigSetting;
-}());
+    }
+}
 exports.ConfigSetting = ConfigSetting;
+ConfigSetting.runSchedule = true;
+ConfigSetting.config_path = '';
 exports.saasConfig = {
     get SAAS_NAME() {
         return process_1.default.env.GLITTER_DB;
@@ -43,7 +39,6 @@ exports.config = {
     PARAMS_NEED_ENCRYPT_IN_LOG: ['pwd', 'email'],
     PWD_SALT_ROUND: 5,
     LOG_PATH: path_1.default.resolve('../../log'),
-    /*Database*/
     DB_CONN_LIMIT: 0,
     DB_QUEUE_LIMIT: 0,
     DB_SHOW_INFO: false,
@@ -69,7 +64,6 @@ exports.config = {
     get DB_NAME() {
         return process_1.default.env.GLITTER_DB;
     },
-    /*REDIS*/
     get REDIS_URL() {
         return process_1.default.env.REDIS_URL;
     },
@@ -79,7 +73,6 @@ exports.config = {
     get REDIS_PWD() {
         return process_1.default.env.REDIS_PWD;
     },
-    /*AWS*/
     get AWS_S3_NAME() {
         return process_1.default.env.AWS_S3_NAME;
     },
@@ -102,11 +95,9 @@ exports.config = {
         return process_1.default.env.AWS_S3_DOMAIN + '/';
     },
     get SINGLE_TYPE() {
-        return "".concat(process_1.default.env.SINGLE_TYPE) == 'true';
+        return `${process_1.default.env.SINGLE_TYPE}` == 'true';
     },
-    /********/
-    getRoute: function (r, type) {
-        if (type === void 0) { type = 'normal'; }
+    getRoute: (r, type = 'normal') => {
         if (type === 'normal') {
             return exports.config.API_PREFIX + r;
         }
@@ -145,7 +136,8 @@ exports.config = {
         customer_sessions: '/customer_sessions',
         voucher: '/voucher',
         reconciliation: '/reconciliation',
-        fb: '/fb'
+        fb: '/fb',
+        progress: '/progress',
     },
     route: {
         shopee: '/shopee',
@@ -162,3 +154,4 @@ exports.config = {
     },
 };
 exports.default = exports.config;
+//# sourceMappingURL=config.js.map

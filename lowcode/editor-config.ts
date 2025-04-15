@@ -1,5 +1,6 @@
 import {GVC} from './glitterBundle/GVController.js';
 import {BgWidget} from "./backend-manager/bg-widget.js";
+import { SaasOffer } from './saas-offer.js';
 
 export class EditorConfig {
     public static get editor_layout(): {
@@ -90,7 +91,8 @@ export class EditorConfig {
      * 到期日相關頁面設定
      * */
     public static paymentInfo(gvc: GVC) {
-        if (EditorConfig.backend_page() !== 'backend-manger') {
+
+        if ((EditorConfig.backend_page() !== 'backend-manger') || SaasOffer.is_dealer) {
             return ``;
         }
         let bg_color = '#FEAD20'

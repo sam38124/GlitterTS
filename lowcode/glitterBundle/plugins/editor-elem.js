@@ -974,7 +974,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 '|',
                 'formatOL',
                 'emoticons',
-                'html'
+                'html',
             ];
             return {
                 bind: id,
@@ -1044,9 +1044,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         obj.callback(doc.documentElement.outerHTML);
                                     }
                                     FroalaEditor.DefineIcon('altManager', {
-                                        "NAME": "commenting",
-                                        "FA5NAME": "comment-alt",
-                                        "SVG_KEY": "imageCaption"
+                                        NAME: 'commenting',
+                                        FA5NAME: 'comment-alt',
+                                        SVG_KEY: 'imageCaption',
                                     });
                                     FroalaEditor.RegisterCommand('altManager', {
                                         title: 'alt設定',
@@ -1060,7 +1060,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         },
                                         refresh: function () {
                                             console.log(this.selection.element());
-                                        }
+                                        },
                                     });
                                     editor = new FroalaEditor('#' + richID, {
                                         enter: FroalaEditor.ENTER_DIV,
@@ -1145,7 +1145,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                     initEvent();
                                                 }, 200);
                                             },
-                                            'mouseup': function () {
+                                            mouseup: function () {
                                                 console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
                                                 editor.selection.save();
                                             },
@@ -2348,7 +2348,7 @@ ${obj.gvc.bindView(() => {
                         option: [
                             {
                                 key: 'onclick',
-                                value: obj.gvc.event((e, event) => {
+                                value: obj.gvc.event((_, event) => {
                                     const bool = !obj.def;
                                     if (!obj.stopChangeView) {
                                         obj.def = !obj.def;

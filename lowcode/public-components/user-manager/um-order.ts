@@ -693,6 +693,7 @@ export class UMOrder {
     UmClass.addStyle(gvc);
     const glitter = gvc.glitter;
     const dialog = new ShareDialog(gvc.glitter);
+
     const ids = {
       view: glitter.getUUID(),
     };
@@ -726,7 +727,13 @@ export class UMOrder {
             }
 
             const orderData = vm.data.orderData;
-
+            
+            //判斷需要出貨單號碼
+            if((window as any).store_info.pickup_mode){
+              dialog.infoMessage({
+                text:`取貨時請核對您的取貨號碼，您的取貨號碼為<br><div class="fw-bold fs-5 text-danger">『 ${(vm.data as any).shipment_number} 號 』</div>`
+              })
+            }
             const showUploadProof =
               orderData.method === 'off_line' &&
               orderData.customer_info.payment_select !== 'cash_on_delivery' &&
@@ -1366,8 +1373,9 @@ export class UMOrder {
                     }
 
                     if ((vm.data as any).orderData.user_info.shipment_number) {
+                      
                       arr.push({
-                        title: Language.text('shipment_number'),
+                        title: (window as any).store_info.pickup_mode ? `取貨號碼`:Language.text('shipment_number'),
                         value: (vm.data as any).orderData.user_info.shipment_number,
                       });
                     }

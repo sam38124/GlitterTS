@@ -610,7 +610,7 @@ export class BgRecommend {
                                                         gvc.notifyDataChange(vm.previewId);
                                                     },
                                                     filter: {
-                                                        page: ['一頁商店', '隱形賣場'],
+                                                        page: ['一頁商店', '隱形賣場', '所有商品'],
                                                     },
                                                 })}`,
                                                 gvc.bindView({

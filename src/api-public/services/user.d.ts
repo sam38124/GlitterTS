@@ -20,6 +20,7 @@ interface UserQuery {
     groupTag?: string;
     filter_type?: string;
     tags?: string;
+    all_result?: boolean;
 }
 interface GroupUserItem {
     userID: number;
@@ -59,7 +60,11 @@ export declare class User {
         result: boolean;
     }>;
     phoneVerify(account: string): Promise<{
+        out_limit: boolean;
+        result?: undefined;
+    } | {
         result: boolean;
+        out_limit?: undefined;
     }>;
     createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean): Promise<any>;
     createUserHook(userID: string): Promise<void>;
@@ -92,11 +97,12 @@ export declare class User {
     }): Promise<string>;
     private getOrderByClause;
     getUserList(query: UserQuery): Promise<{
-        data: any;
         total: any;
         extra: {
             noRegisterUsers: any[] | undefined;
         };
+        allUsers?: any;
+        data: any;
     }>;
     getUserGroups(type?: string[], tag?: string, hide_level?: boolean): Promise<{
         result: false;
@@ -159,6 +165,14 @@ export declare class User {
     updateUserData(userID: string, par: any, manager?: boolean): Promise<{
         data: any;
     }>;
+    batchGetUser(userId: string[]): Promise<any>;
+    batchUpdateUserData(trackName: string, users: {
+        id: string;
+        data: any;
+    }[]): Promise<void>;
+    batchAddtag(userId: string[], tags: string[]): Promise<void>;
+    batchRemovetag(userId: string[], tags: string[]): Promise<void>;
+    batchManualLevel(userId: string[], level: string[]): Promise<void>;
     clearUselessData(userData: any, manager: boolean): Promise<void>;
     checkUpdate(cf: {
         updateUserData: any;
@@ -195,11 +209,7 @@ export declare class User {
         key: string;
         user_id: string;
     }): Promise<any>;
-    checkLeakData(key: string, value: any): Promise<{
-        'zh-TW': any[];
-        'en-US': never[];
-        'zh-CN': never[];
-    } | undefined>;
+    checkLeakData(key: string, value: any): Promise<any>;
     checkEmailExists(email: string): Promise<any>;
     checkPhoneExists(phone: string): Promise<any>;
     getUnreadCount(): Promise<{

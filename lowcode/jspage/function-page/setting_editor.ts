@@ -10,6 +10,7 @@ import { ApiUser } from '../../glitter-base/route/user.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { imageLibrary } from '../../modules/image-library.js';
+import { SaasOffer } from '../../saas-offer.js';
 
 export class Setting_editor {
     static pluginUrl = '';
@@ -720,22 +721,50 @@ export class Setting_editor {
             },
             {
                 icon: '',
-                page: 'cloud_subscrible',
+                page: 'auto_fcm_push',
                 group: '品牌APP',
-                title: '推播訂閱裝置',
+                title: '自動推播訊息',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
                 moduleName: '訂閱裝置管理',
             },
             {
                 icon: '',
-                page: 'notify_message_list',
+                page: 'auto_fcm_advertise',
                 group: '品牌APP',
-                title: '推播訊息管理',
+                title: '行銷推播發送',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
-                moduleName: '推播訊息管理',
+                moduleName: '訂閱裝置管理',
             },
+            // {
+            //     icon: '',
+            //     page: 'auto_fcm_template',
+            //     group: '品牌APP',
+            //     title: '行銷推播模板',
+            //     appName: 'cms_system',
+            //     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
+            //     moduleName: '訂閱裝置管理',
+            // },
+            //
+            // {
+            //     icon: '',
+            //     page: 'notify_message_list',
+            //     group: '品牌APP',
+            //     title: '推播發送記錄',
+            //     appName: 'cms_system',
+            //     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
+            //     moduleName: '推播發送記錄',
+            // },
+            // {
+            //     icon: '',
+            //     page: 'cloud_subscrible',
+            //     group: '品牌APP',
+            //     title: '推播訂閱用戶',
+            //     appName: 'cms_system',
+            //     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
+            //     moduleName: '訂閱裝置管理',
+            // },
             {
                 icon: '',
                 page: 'shop_list',
@@ -770,15 +799,21 @@ export class Setting_editor {
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/cash-register-regular (1).svg',
             },
-            {
-                icon: '',
-                page: 'member_plan',
-                group: `方案與加值中心`,
-                title: '開店方案',
-                appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1719982993525-credit-card-regular.svg',
-                moduleName: '方案管理',
-            },
+          ...(()=>{
+                if(SaasOffer.is_dealer){
+                    return []
+                }else{
+                    return [{
+                        icon: '',
+                        page: 'member_plan',
+                        group: `方案與加值中心`,
+                        title: '開店方案',
+                        appName: 'cms_system',
+                        groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1719982993525-credit-card-regular.svg',
+                        moduleName: '方案管理',
+                    }]
+                }
+            })(),
             {
                 icon: '',
                 page: 'ai-point',
