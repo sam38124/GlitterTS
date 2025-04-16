@@ -1738,86 +1738,66 @@ class User {
         }
     }
     async updateUserData(userID, par, manager = false) {
-        var _a;
-        const userData = await (async () => {
-            var _a;
-            const getUser = await database_1.default.query(`select *
-         from \`${this.app}\`.\`t_user\`
-         where userID = ${database_1.default.escape(userID)}
+        var _a, _b;
+        const getUser = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user WHERE userID = ${database_1.default.escape(userID)}
         `, []);
-            return (_a = getUser[0]) !== null && _a !== void 0 ? _a : {};
-        })();
+        const userData = (_a = getUser[0]) !== null && _a !== void 0 ? _a : {};
+        if (!userData.userData) {
+            return { data: {} };
+        }
         try {
-            if (!userData.userData) {
-                return { data: {} };
-            }
-            const login_config = await this.getConfigV2({
-                key: 'login_config',
-                user_id: 'manager',
-            });
-            const register_form = await this.getConfigV2({
-                key: 'custom_form_register',
-                user_id: 'manager',
-            });
-            register_form.list = (_a = register_form.list) !== null && _a !== void 0 ? _a : [];
+            const login_config = await this.getConfigV2({ key: 'login_config', user_id: 'manager' });
+            const register_form = await this.getConfigV2({ key: 'custom_form_register', user_id: 'manager' });
+            register_form.list = (_b = register_form.list) !== null && _b !== void 0 ? _b : [];
             form_check_js_1.FormCheck.initialRegisterForm(register_form.list);
+            const userDataVerify = await redis_js_1.default.getValue(`verify-${userData.userData.email}`);
+            const parDataVerify = await redis_js_1.default.getValue(`verify-${par.userData.email}`);
             if (par.userData.pwd) {
-                if ((await redis_js_1.default.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
-                    await database_1.default.query(`update \`${this.app}\`.\`t_user\`
-             set pwd=?
-             where userID = ${database_1.default.escape(userID)}`, [await tool_1.default.hashPwd(par.userData.pwd)]);
+                if (userDataVerify === par.userData.verify_code) {
+                    const pwd = await tool_1.default.hashPwd(par.userData.pwd);
+                    await database_1.default.query(`UPDATE \`${this.app}\`.t_user SET pwd = ? WHERE userID = ${database_1.default.escape(userID)}
+            `, [pwd]);
                 }
                 else {
-                    console.log(1);
-                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'UserData verify code error.', {
                         msg: 'email-verify-false',
                     });
                 }
             }
             if (par.userData.email && par.userData.email !== userData.userData.email) {
-                const count = (await database_1.default.query(`select count(1)
-             from \`${this.app}\`.\`t_user\`
-             where (userData ->>'$.email' = ${database_1.default.escape(par.userData.email)})
-               and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
+                const count = (await database_1.default.query(`SELECT count(1)
+             FROM \`${this.app}\`.t_user
+             WHERE (userData->>'$.email' = ${database_1.default.escape(par.userData.email)})
+               AND (userID != ${database_1.default.escape(userID)})`, []))[0]['count(1)'];
                 if (count) {
-                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'Already exists.', {
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'User email already exists.', {
                         msg: 'email-exists',
                     });
                 }
-                console.log([
-                    login_config.email_verify,
-                    par.userData.verify_code !== (await redis_js_1.default.getValue(`verify-${par.userData.email}`)),
-                    !manager &&
-                        register_form.list.find((dd) => {
-                            return dd.key === 'email' && `${dd.hidden}` !== 'true';
-                        }),
-                ]);
                 if (!manager &&
                     login_config.email_verify &&
-                    par.userData.verify_code !== (await redis_js_1.default.getValue(`verify-${par.userData.email}`)) &&
+                    par.userData.verify_code !== parDataVerify &&
                     register_form.list.some((r) => r.key === 'email' && `${r.hidden}` !== 'true')) {
-                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'ParData email verify code error.', {
                         msg: 'email-verify-false',
                     });
                 }
             }
             if (par.userData.phone && par.userData.phone !== userData.userData.phone) {
-                const count = (await database_1.default.query(`select count(1)
-             from \`${this.app}\`.\`t_user\`
-             where (userData ->>'$.phone' = ${database_1.default.escape(par.userData.phone)})
-               and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
+                const count = (await database_1.default.query(`SELECT count(1)
+             FROM \`${this.app}\`.t_user
+             WHERE (userData->>'$.phone' = ${database_1.default.escape(par.userData.phone)})
+               AND (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
                 if (count) {
-                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'Already exists.', {
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'User phone already exists.', {
                         msg: 'phone-exists',
                     });
                 }
-                if (login_config.phone_verify &&
+                if (!manager &&
+                    login_config.phone_verify &&
                     !(await phone_verify_js_1.PhoneVerify.verify(par.userData.phone, par.userData.verify_code_phone)) &&
-                    register_form.list.find((dd) => {
-                        return dd.key === 'phone' && `${dd.hidden}` !== 'true';
-                    })) {
-                    console.log(3);
-                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
+                    register_form.list.some((dd) => dd.key === 'phone' && `${dd.hidden}` !== 'true')) {
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'ParData phone verify code error.', {
                         msg: 'phone-verify-false',
                     });
                 }
@@ -1825,23 +1805,19 @@ class User {
             const blockCheck = par.userData.type == 'block';
             par.status = blockCheck ? 0 : 1;
             if (par.userData.phone) {
-                await database_1.default.query(`update \`${this.app}\`.t_checkout
-           set email=?
-           where id > 0
-             and email = ?`, [par.userData.phone, `${userData.userData.phone}`]);
+                await database_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET email = ? WHERE id > 0 AND email = ?
+          `, [par.userData.phone, `${userData.userData.phone}`]);
                 userData.account = par.userData.phone;
             }
             if (par.userData.email) {
-                await database_1.default.query(`update \`${this.app}\`.t_checkout
-           set email=?
-           where id > 0
-             and email = ?`, [par.userData.email, `${userData.userData.email}`]);
+                await database_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET email = ? WHERE id > 0 AND email = ?
+          `, [par.userData.email, `${userData.userData.email}`]);
                 userData.account = par.userData.email;
             }
             par.userData = await this.checkUpdate({
                 updateUserData: par.userData,
-                userID: userID,
-                manager: manager,
+                userID,
+                manager,
             });
             delete par.userData.verify_code;
             par = {
@@ -1852,10 +1828,8 @@ class User {
             if (!par.account) {
                 delete par.account;
             }
-            const data = (await database_1.default.query(`update \`${this.app}\`.t_user
-         SET ?
-         WHERE 1 = 1
-           and userID = ?`, [par, userID]));
+            const data = await database_1.default.query(`UPDATE \`${this.app}\`.t_user SET ? WHERE 1 = 1 AND userID = ?
+        `, [par, userID]);
             await user_update_js_1.UserUpdate.update(this.app, userID);
             return { data };
         }
