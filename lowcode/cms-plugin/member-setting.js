@@ -132,7 +132,7 @@ export class MemberSetting {
                         style="margin-bottom: 12px;"
                       >
                         註冊頁面表單
-                        <span class="" style="color:#8D8D8D;font-size: 12px;">於註冊頁面中設定顧客必須填寫的資料</span>
+                        <span style="color:#8D8D8D;font-size: 12px;">於註冊頁面中設定顧客必須填寫的資料</span>
                       </div>`,
                                 },
                                 {
@@ -142,9 +142,7 @@ export class MemberSetting {
                         style="margin-bottom: 12px;"
                       >
                         設定頁面表單
-                        <span class="" style="color:#8D8D8D;font-size: 12px;"
-                          >於用戶設定頁面中設定顧客可填寫的額外資料</span
-                        >
+                        <span style="color:#8D8D8D;font-size: 12px;">於用戶設定頁面中設定顧客可填寫的額外資料</span>
                       </div>`,
                                 },
                             ]);
