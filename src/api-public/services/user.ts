@@ -837,9 +837,7 @@ export class User {
                      if (type === 'userID') {
                        query2.push(`userID=${db.escape(query)}`);
                      } else if (type === 'email_or_phone') {
-                       query2.push(
-                         `((email=${db.escape(query)}) or (phone=${db.escape(query)}))`
-                       );
+                       query2.push(`((email=${db.escape(query)}) or (phone=${db.escape(query)}))`);
                      } else {
                        query2.push(`email=${db.escape(query)}`);
                      }
@@ -2215,6 +2213,7 @@ export class User {
             [await tool.hashPwd(par.userData.pwd)]
           );
         } else {
+          console.log(1);
           throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
             msg: 'email-verify-false',
           });
@@ -2236,12 +2235,20 @@ export class User {
             msg: 'email-exists',
           });
         }
+
+        console.log([
+          login_config.email_verify,
+          par.userData.verify_code !== (await redis.getValue(`verify-${par.userData.email}`)),
+          !manager &&
+            register_form.list.find((dd: any) => {
+              return dd.key === 'email' && `${dd.hidden}` !== 'true';
+            }),
+        ]);
         if (
+          !manager &&
           login_config.email_verify &&
           par.userData.verify_code !== (await redis.getValue(`verify-${par.userData.email}`)) &&
-          register_form.list.find((dd: any) => {
-            return dd.key === 'email' && `${dd.hidden}` !== 'true';
-          })
+          register_form.list.some((r: any) => r.key === 'email' && `${r.hidden}` !== 'true')
         ) {
           throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
             msg: 'email-verify-false',
@@ -2271,6 +2278,7 @@ export class User {
             return dd.key === 'phone' && `${dd.hidden}` !== 'true';
           })
         ) {
+          console.log(3);
           throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
             msg: 'phone-verify-false',
           });

@@ -1842,6 +1842,7 @@ export class UserList {
                     }))}
                   ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                         const dialog = new ShareDialog(gvc.glitter);
+                        console.log(userData);
                         if (CheckInput.isEmpty(userData.name)) {
                             dialog.infoMessage({ text: '請輸入顧客姓名' });
                             return;
@@ -1850,7 +1851,7 @@ export class UserList {
                             dialog.infoMessage({ text: '請輸入正確的電子信箱格式' });
                             return;
                         }
-                        if (!CheckInput.isEmpty(userData.phone) && !CheckInput.isTaiwanPhone(userData.phone)) {
+                        if (!CheckInput.isTaiwanPhone(userData.phone)) {
                             dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
                             return;
                         }
@@ -1877,14 +1878,13 @@ export class UserList {
                                 pwd: gvc.glitter.getUUID(),
                                 userData: userData,
                             }).then(r => {
+                                dialog.dataLoading({ visible: false });
                                 if (r.result) {
-                                    dialog.dataLoading({ visible: false });
-                                    dialog.infoMessage({ text: '成功新增會員' });
+                                    dialog.successMessage({ text: '顧客新增成功' });
                                     vm.type = 'list';
                                 }
                                 else {
-                                    dialog.dataLoading({ visible: false });
-                                    dialog.errorMessage({ text: '會員建立失敗' });
+                                    dialog.errorMessage({ text: '顧客新增失敗' });
                                 }
                             });
                         }

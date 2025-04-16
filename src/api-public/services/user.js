@@ -1768,6 +1768,7 @@ class User {
              where userID = ${database_1.default.escape(userID)}`, [await tool_1.default.hashPwd(par.userData.pwd)]);
                 }
                 else {
+                    console.log(1);
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
                         msg: 'email-verify-false',
                     });
@@ -1783,11 +1784,18 @@ class User {
                         msg: 'email-exists',
                     });
                 }
-                if (login_config.email_verify &&
+                console.log([
+                    login_config.email_verify,
+                    par.userData.verify_code !== (await redis_js_1.default.getValue(`verify-${par.userData.email}`)),
+                    !manager &&
+                        register_form.list.find((dd) => {
+                            return dd.key === 'email' && `${dd.hidden}` !== 'true';
+                        }),
+                ]);
+                if (!manager &&
+                    login_config.email_verify &&
                     par.userData.verify_code !== (await redis_js_1.default.getValue(`verify-${par.userData.email}`)) &&
-                    register_form.list.find((dd) => {
-                        return dd.key === 'email' && `${dd.hidden}` !== 'true';
-                    })) {
+                    register_form.list.some((r) => r.key === 'email' && `${r.hidden}` !== 'true')) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
                         msg: 'email-verify-false',
                     });
@@ -1808,6 +1816,7 @@ class User {
                     register_form.list.find((dd) => {
                         return dd.key === 'phone' && `${dd.hidden}` !== 'true';
                     })) {
+                    console.log(3);
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
                         msg: 'phone-verify-false',
                     });
