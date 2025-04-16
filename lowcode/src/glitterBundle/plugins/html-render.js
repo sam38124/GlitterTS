@@ -1,7 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const GVController_js_1 = require("../GVController.js");
-(0, GVController_js_1.init)((gvc, glitter, gBundle) => {
+import { init } from '../GVController.js';
+init((gvc, glitter, gBundle) => {
     var _a;
     glitter.share.htmlExtension = (_a = glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
     return {
@@ -20,4 +18,3 @@ const GVController_js_1 = require("../GVController.js");
         }
     };
 });
-//# sourceMappingURL=html-render.js.map

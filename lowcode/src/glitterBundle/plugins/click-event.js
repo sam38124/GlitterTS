@@ -1,7 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ClickEvent = void 0;
-class ClickEvent {
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+export class ClickEvent {
     static getUrlParameter(url, sParam) {
         try {
             let sPageURL = url.split("?")[1], sURLVariables = sPageURL.split('&'), sParameterName, i;
@@ -26,21 +32,23 @@ class ClickEvent {
     static trigger(oj) {
         const glitter = window.glitter;
         const event = oj.clickEvent.clickEvent;
-        async function run() {
+        function run() {
             var _a;
-            oj.gvc.glitter.share.clickEvent = (_a = oj.gvc.glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
-            if (!oj.gvc.glitter.share.clickEvent[event.src]) {
-                await new Promise((resolve, reject) => {
-                    oj.gvc.glitter.addMtScript([
-                        { src: `${glitter.htmlGenerate.resourceHook(event.src)}`, type: 'module' }
-                    ], () => {
-                        resolve(true);
-                    }, () => {
-                        resolve(false);
+            return __awaiter(this, void 0, void 0, function* () {
+                oj.gvc.glitter.share.clickEvent = (_a = oj.gvc.glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
+                if (!oj.gvc.glitter.share.clickEvent[event.src]) {
+                    yield new Promise((resolve, reject) => {
+                        oj.gvc.glitter.addMtScript([
+                            { src: `${glitter.htmlGenerate.resourceHook(event.src)}`, type: 'module' }
+                        ], () => {
+                            resolve(true);
+                        }, () => {
+                            resolve(false);
+                        });
                     });
-                });
-            }
-            oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent).event();
+                }
+                oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent).event();
+            });
         }
         run().then();
     }
@@ -140,5 +148,3 @@ ${gvc.bindView(() => {
 </div> `;
     }
 }
-exports.ClickEvent = ClickEvent;
-//# sourceMappingURL=click-event.js.map

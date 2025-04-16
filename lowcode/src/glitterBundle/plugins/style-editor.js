@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const glitter = window.glitter;
 glitter.htmlGenerate.share.styleEditor = {
     render: (obj) => {
@@ -20,4 +18,4 @@ function styleValue(obj) {
     obj.widget.css.style[obj.tag] = (_a = obj.widget.css.style[obj.tag]) !== null && _a !== void 0 ? _a : [];
     return;
 }
-//# sourceMappingURL=style-editor.js.map
+export {};

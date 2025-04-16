@@ -819,11 +819,6 @@ class LinePay {
             },
             data: body,
         };
-        console.log(`line-request->
-        URL:${url}
-        X-LINE-ChannelId:${this.LinePay_CLIENT_ID}
-        LinePay_SECRET:${this.LinePay_SECRET}
-        `);
         try {
             const response = await axios_1.default.request(config);
             await order_event_js_1.OrderEvent.insertOrder({
@@ -833,7 +828,13 @@ class LinePay {
             });
             console.log(`response.data===>`, response.data);
             await redis_1.default.setValue('linepay' + orderData.orderID, response.data.info.transactionId);
-            return response.data;
+            if (response.data.returnCode === '0000') {
+                return response.data;
+            }
+            else {
+                console.log(" Line Pay Error: ", response.data.returnCode, response.data.returnMessage);
+                return response.data;
+            }
         }
         catch (error) {
             console.error('Error linePay:', ((_b = error.response) === null || _b === void 0 ? void 0 : _b.data) || error.message);

@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PageManager = exports.PageConfig = exports.GVCType = exports.DefaultSetting = void 0;
-const Glitter_js_1 = require("../Glitter.js");
-class DefaultSetting {
+import { Glitter } from '../Glitter.js';
+export class DefaultSetting {
     constructor(obj) {
         this.pageLoading = () => {
         };
@@ -15,13 +12,12 @@ class DefaultSetting {
         this.dialogAnimation = obj.dialogAnimation;
     }
 }
-exports.DefaultSetting = DefaultSetting;
-var GVCType;
+export var GVCType;
 (function (GVCType) {
     GVCType[GVCType["Page"] = 0] = "Page";
     GVCType[GVCType["Dialog"] = 1] = "Dialog";
-})(GVCType = exports.GVCType || (exports.GVCType = {}));
-class PageConfig {
+})(GVCType || (GVCType = {}));
+export class PageConfig {
     constructor(par) {
         this.scrollTop = 0;
         this.tag = par.tag;
@@ -36,13 +32,12 @@ class PageConfig {
         this.backGroundColor = par.backGroundColor;
     }
     getElement() {
-        return Glitter_js_1.Glitter.glitter.$(`#page${this.id}`);
+        return Glitter.glitter.$(`#page${this.id}`);
     }
 }
-exports.PageConfig = PageConfig;
-class PageManager {
+export class PageManager {
     static hidePageView(id, del = false) {
-        const glitter = Glitter_js_1.Glitter.glitter;
+        const glitter = Glitter.glitter;
         try {
             const index = glitter.pageConfig.map((data) => {
                 return data.id;
@@ -62,7 +57,7 @@ class PageManager {
         }
     }
     static showPageView(id) {
-        const glitter = Glitter_js_1.Glitter.glitter;
+        const glitter = Glitter.glitter;
         try {
             const index = glitter.pageConfig.map((data) => {
                 return data.id;
@@ -72,18 +67,18 @@ class PageManager {
             glitter.pageConfig[index].createResource();
             glitter.setUrlParameter('page', glitter.pageConfig[index].tag);
             if (glitter.pageConfig[index].type === GVCType.Page) {
-                Glitter_js_1.Glitter.glitter.$('html').stop().animate({ scrollTop: glitter.pageConfig[index].scrollTop });
+                Glitter.glitter.$('html').stop().animate({ scrollTop: glitter.pageConfig[index].scrollTop });
             }
         }
         catch (e) {
         }
     }
     static hideLoadingView() {
-        Glitter_js_1.Glitter.glitter.$('#loadingView').hide();
+        Glitter.glitter.$('#loadingView').hide();
     }
     static setHome(url, tag, obj, option = {}) {
         var _a, _b;
-        const glitter = Glitter_js_1.Glitter.glitter;
+        const glitter = Glitter.glitter;
         if (glitter.waitChangePage || PageManager.clock.stop() < 300) {
             setTimeout(() => {
                 glitter.setHome(url, tag, obj, option);
@@ -155,12 +150,12 @@ background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hi
     }
     ;
     static setLoadingView(link) {
-        const glitter = Glitter_js_1.Glitter.glitter;
+        const glitter = Glitter.glitter;
         glitter.$('#loadingView').hide();
         glitter.$('#loadingView').append('<iframe  src="' + link + '" style="width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.5);"></iframe>');
     }
     static changePageListener(tag) {
-        const glitter = Glitter_js_1.Glitter.glitter;
+        const glitter = Glitter.glitter;
         for (const data of glitter.changePageCallback) {
             try {
                 data(tag);
@@ -170,11 +165,11 @@ background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hi
         }
     }
     static showLoadingView() {
-        Glitter_js_1.Glitter.glitter.$('#loadingView').show();
+        Glitter.glitter.$('#loadingView').show();
     }
     ;
     static setAnimation(page) {
-        const glitter = Glitter_js_1.Glitter.glitter;
+        const glitter = Glitter.glitter;
         function closePreviousPage() {
             if (page.type === GVCType.Page) {
                 glitter.pageConfig.map((a) => {
@@ -210,7 +205,7 @@ background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hi
     }
     static changePage(url, tag, goBack, obj, option = {}) {
         var _a, _b;
-        const glitter = Glitter_js_1.Glitter.glitter;
+        const glitter = Glitter.glitter;
         if (glitter.waitChangePage || PageManager.clock.stop() < 300) {
             setTimeout(() => {
                 glitter.changePage(url, tag, goBack, obj, option);
@@ -266,7 +261,7 @@ background: transparent;background: ${config.backGroundColor};display: none;posi
         }
     }
     static removePage(tag) {
-        const pg = Glitter_js_1.Glitter.glitter.pageConfig.find((dd) => {
+        const pg = Glitter.glitter.pageConfig.find((dd) => {
             return dd.tag === tag;
         });
         if (pg) {
@@ -276,7 +271,7 @@ background: transparent;background: ${config.backGroundColor};display: none;posi
     ;
     static openDiaLog(url, tag, obj, option = {}) {
         var _a, _b;
-        const glitter = Glitter_js_1.Glitter.glitter;
+        const glitter = Glitter.glitter;
         if (glitter.waitChangePage || PageManager.clock.stop() < 300) {
             setTimeout(() => {
                 glitter.openDiaLog(url, tag, obj, option);
@@ -328,7 +323,7 @@ background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hi
     }
     ;
     static closeDiaLog(tag) {
-        const glitter = Glitter_js_1.Glitter.glitter;
+        const glitter = Glitter.glitter;
         if (glitter.waitChangePage || PageManager.clock.stop() < 300) {
             setTimeout(() => {
                 glitter.closeDiaLog(tag);
@@ -348,7 +343,7 @@ background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hi
         }
     }
     static goBack(tag = undefined) {
-        const glitter = Glitter_js_1.Glitter.glitter;
+        const glitter = Glitter.glitter;
         if (tag === undefined && glitter.pageConfig.length > 1) {
             const pageHide = glitter.pageConfig[glitter.pageConfig.length - 1];
             const pageShow = glitter.pageConfig[glitter.pageConfig.length - 2];
@@ -391,7 +386,7 @@ background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hi
     }
     ;
     static goMenu() {
-        const glitter = Glitter_js_1.Glitter.glitter;
+        const glitter = Glitter.glitter;
         for (let a = glitter.pageConfig.length - 1; a >= 0; a--) {
             if (a == 0) {
                 this.showPageView(glitter.pageConfig[a].id);
@@ -403,10 +398,9 @@ background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hi
         }
     }
     static addChangePageListener(callback) {
-        Glitter_js_1.Glitter.glitter.changePageCallback.push(callback);
+        Glitter.glitter.changePageCallback.push(callback);
     }
 }
-exports.PageManager = PageManager;
 PageManager.changeWait = function () {
 };
 PageManager.clock = {
@@ -418,4 +412,3 @@ PageManager.clock = {
         this.start = new Date();
     }
 };
-//# sourceMappingURL=PageManager.js.map

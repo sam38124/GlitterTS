@@ -12,7 +12,6 @@ import { StockVendors, VendorData } from './stock-vendors.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
-import { al } from '@faker-js/faker/dist/airline-CBNP41sR.js';
 
 const html = String.raw;
 
@@ -270,9 +269,11 @@ export class StockHistory {
               },
               {
                 key: '總金額',
-                value: `<span class="fs-7">$ ${  dd.content.product_list.reduce((sum, item) => {
-                return sum + item.cost * (item.recent_count ?? 0);
-                }, 0).toLocaleString()}</span>`,
+                value: `<span class="fs-7">$ ${dd.content.product_list
+                  .reduce((sum, item) => {
+                    return sum + item.cost * (item.recent_count ?? 0);
+                  }, 0)
+                  .toLocaleString()}</span>`,
               },
               {
                 key: '供應商',

@@ -1,31 +1,39 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Plugin = void 0;
-class Plugin {
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+export class Plugin {
     constructor() {
     }
     static create(url, fun) {
         const glitter = window.glitter;
         glitter.share.htmlExtension[url] = fun(glitter, window.parent.editerData !== undefined);
     }
-    static async initial(gvc, set) {
-        for (const a of set) {
-            if (!gvc.glitter.share.htmlExtension[a.js]) {
-                await new Promise((resolve, reject) => {
-                    gvc.glitter.addMtScript([
-                        { src: `${a.js}`, type: 'module' }
-                    ], () => {
-                        resolve(true);
-                    }, () => {
-                        resolve(false);
+    static initial(gvc, set) {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (const a of set) {
+                if (!gvc.glitter.share.htmlExtension[a.js]) {
+                    yield new Promise((resolve, reject) => {
+                        gvc.glitter.addMtScript([
+                            { src: `${a.js}`, type: 'module' }
+                        ], () => {
+                            resolve(true);
+                        }, () => {
+                            resolve(false);
+                        });
                     });
-                });
+                }
+                if (a.type === 'container') {
+                    yield Plugin.initial(gvc, a.data.setting);
+                }
             }
-            if (a.type === 'container') {
-                await Plugin.initial(gvc, a.data.setting);
-            }
-        }
-        return true;
+            return true;
+        });
     }
     static initialConfig(name) {
         var _a, _b, _c;
@@ -51,7 +59,6 @@ class Plugin {
         });
     }
 }
-exports.Plugin = Plugin;
 function getUrlParameter(url, sParam) {
     let sPageURL = url.split("?")[1], sURLVariables = sPageURL.split('&'), sParameterName, i;
     for (i = 0; i < sURLVariables.length; i++) {
@@ -61,4 +68,3 @@ function getUrlParameter(url, sParam) {
         }
     }
 }
-//# sourceMappingURL=plugin-creater.js.map
