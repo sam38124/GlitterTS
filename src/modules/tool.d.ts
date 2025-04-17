@@ -19,10 +19,10 @@ declare const _default: {
     compareHash: (pwd: string, has: string) => Promise<boolean>;
     randomNumber: (max: number) => string;
     getCurrentDateTime: (json?: {
-        inputDate?: string;
-        addSeconds?: number;
-    }) => string;
-    formatDateTime: (dateTimeStr?: string, includeSeconds?: boolean) => string;
+        inputDate?: string | undefined;
+        addSeconds?: number | undefined;
+    } | undefined) => string;
+    formatDateTime: (dateTimeStr?: string | undefined, includeSeconds?: boolean) => string;
     floatAdd: typeof floatAdd;
 };
 export default _default;

@@ -69,7 +69,7 @@ ShipmentConfig.list = [
         src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Chunghwa_Post_Logo.svg.png',
     },
     {
-        title: '7-11交貨便',
+        title: '7-11店到店',
         value: 'UNIMARTC2C',
         src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734544575-34f72af5b441738b1f65a0597c28d9cf (1).png',
         paynow_id: '01',
@@ -118,15 +118,16 @@ ShipmentConfig.list = [
     },
 ];
 ShipmentConfig.supportPrintList = [
-    'FAMIC2C',
     'UNIMARTC2C',
-    'HILIFEC2C',
+    'UNIMARTFREEZE',
+    'FAMIC2C',
+    'FAMIC2CFREEZE',
     'OKMARTC2C',
+    'HILIFEC2C',
     'normal',
     'black_cat',
     'black_cat_ice',
-    'UNIMARTFREEZE',
     'black_cat_freezing',
 ];
-ShipmentConfig.supermarketList = ['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTFREEZE', 'FAMIC2CFREEZE'];
+ShipmentConfig.supermarketList = ['UNIMARTC2C', 'UNIMARTFREEZE', 'FAMIC2C', 'FAMIC2CFREEZE', 'OKMARTC2C', 'HILIFEC2C'];
 window.glitter.setModule(import.meta.url, ShipmentConfig);

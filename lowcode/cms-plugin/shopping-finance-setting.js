@@ -20,6 +20,7 @@ import { Language } from '../glitter-base/global/language.js';
 import { ShoppingShipmentSetting } from './shopping-shipment-setting.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { ApiUser } from '../glitter-base/route/user.js';
+import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 const html = String.raw;
 export class ShoppingFinanceSetting {
     static main(gvc) {
@@ -221,7 +222,8 @@ export class ShoppingFinanceSetting {
                         if (vm.page === 'online') {
                             h = html ` <div class="my-2">${BgWidget.blueNote('透過線上金流，消費者可於線上進行結帳付款')}</div>
                   <div class="row">
-                    ${this.onlinePayArray()
+                    ${PaymentConfig.onlinePay
+                                .filter(item => item.type !== 'pos')
                                 .map(dd => {
                                 var _a;
                                 keyData[dd.key] = (_a = keyData[dd.key]) !== null && _a !== void 0 ? _a : {};
@@ -471,7 +473,7 @@ export class ShoppingFinanceSetting {
                                                                                 key_d.STORE_ID = text;
                                                                             },
                                                                             placeHolder: '請輸入STORE_ID',
-                                                                        })
+                                                                        }),
                                                                     ].join('');
                                                                 case 'paynow':
                                                                     return [
@@ -594,7 +596,7 @@ export class ShoppingFinanceSetting {
                         }
                         if (vm.page === 'offline') {
                             const offlinePayArray = [
-                                ...this.offlinePayArray(),
+                                ...PaymentConfig.defalutOfflinePay,
                                 ...keyData.payment_info_custom.map((dd) => {
                                     return {
                                         key: dd.id,
@@ -724,7 +726,8 @@ export class ShoppingFinanceSetting {
                         if (vm.page === 'pos') {
                             h = html `<div class="my-2">${BgWidget.blueNote('設定實體店面所需串接的付款方式')}</div>
                   <div class="row">
-                    ${this.posPayArray()
+                    ${PaymentConfig.onlinePay
+                                .filter(item => item.type === 'pos')
                                 .map(dd => {
                                 return html ` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
                           <div
@@ -2805,72 +2808,4 @@ export class ShoppingFinanceSetting {
         });
     }
 }
-ShoppingFinanceSetting.onlinePayArray = () => {
-    return [
-        {
-            key: 'newWebPay',
-            name: '藍新金流',
-            img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/logo.jpg',
-        },
-        {
-            key: 'ecPay',
-            name: '綠界金流',
-            img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/52415944_122858408.428215.png',
-        },
-        {
-            key: 'paynow',
-            name: 'PayNow 立吉富',
-            img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/download.png',
-        },
-        {
-            key: 'paypal',
-            name: 'PayPal',
-            img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/174861.png',
-        },
-        {
-            key: 'line_pay',
-            name: 'Line Pay',
-            img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/tw-11134207-7r98t-ltrond04grjj74.jpeg',
-        },
-        {
-            key: 'jkopay',
-            name: '街口支付',
-            img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/1200x630waw.png',
-        },
-    ];
-};
-ShoppingFinanceSetting.offlinePayArray = () => {
-    return [
-        {
-            key: 'atm',
-            name: 'ATM銀行轉帳',
-            customerClass: 'guide2-3',
-            img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/20200804163522idfs9.jpg',
-        },
-        {
-            key: 'line',
-            name: 'LINE 轉帳',
-            img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed.webp',
-        },
-        {
-            key: 'cash_on_delivery',
-            name: '貨到付款',
-            img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/images.png',
-        },
-    ];
-};
-ShoppingFinanceSetting.posPayArray = () => {
-    return [
-        {
-            key: 'line_pay_scan',
-            name: 'Line Pay',
-            img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/tw-11134207-7r98t-ltrond04grjj74.jpeg',
-        },
-        {
-            key: 'ut_credit_card',
-            name: '聯合信用卡',
-            img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed (1) copy.jpg',
-        },
-    ];
-};
 window.glitter.setModule(import.meta.url, ShoppingFinanceSetting);

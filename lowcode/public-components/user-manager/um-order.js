@@ -208,7 +208,7 @@ export class UMOrder {
         const url = new URL(redirect, location.href);
         return new Promise(() => {
             ApiShop.repay(id, url.href).then(res => {
-                console.log("orderData.payment_method -- ", orderData.payment_method);
+                console.log('orderData.payment_method -- ', orderData.payment_method);
                 dialog.dataLoading({ visible: false });
                 switch (orderData.payment_method) {
                     case 'line_pay':
@@ -285,7 +285,7 @@ export class UMOrder {
                     const orderData = vm.data.orderData;
                     if (window.store_info.pickup_mode) {
                         dialog.infoMessage({
-                            text: `取貨時請核對您的取貨號碼，您的取貨號碼為<br><div class="fw-bold fs-5 text-danger">『 ${vm.data.shipment_number} 號 』</div>`
+                            text: `取貨時請核對您的取貨號碼，您的取貨號碼為<br><div class="fw-bold fs-5 text-danger">『 ${vm.data.shipment_number} 號 』</div>`,
                         });
                     }
                     const showUploadProof = orderData.method === 'off_line' &&
@@ -766,12 +766,16 @@ export class UMOrder {
                                         case 0:
                                             if (repayArray.includes((_b = (_a = vm.data) === null || _a === void 0 ? void 0 : _a.payment_method) !== null && _b !== void 0 ? _b : '')) {
                                                 const repayBtn = () => {
-                                                    return html ` 
-                                  <span class="payment-actions">
-                                    <button class="d-none customer-btn-text ms-3" id="repay-button" onclick="${gvc.event(() => {
-                                                        UMOrder.repay(gvc, vm.data).then(r => {
-                                                        });
-                                                    })}">重新付款</button>
+                                                    return html ` <span class="payment-actions">
+                                    <button
+                                      class="d-none customer-btn-text ms-3"
+                                      id="repay-button"
+                                      onclick="${gvc.event(() => {
+                                                        UMOrder.repay(gvc, vm.data).then(r => { });
+                                                    })}"
+                                    >
+                                      重新付款
+                                    </button>
                                   </span>`;
                                                 };
                                                 return Language.text('awaiting_verification') + repayBtn();
@@ -900,7 +904,7 @@ export class UMOrder {
                                 value: vm.data.orderData.user_info.shipment_detail.paymentno,
                             });
                         }
-                        if (['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].find(dd => {
+                        if (['UNIMARTC2C', 'UNIMARTFREEZE', 'FAMIC2C', 'FAMIC2CFREEZE', 'OKMARTC2C', 'HILIFEC2C'].find(dd => {
                             return dd === orderData.user_info.shipment;
                         })) {
                             arr = [

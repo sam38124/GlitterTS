@@ -1,4 +1,3 @@
-//這邊儲存所有宅配的配置檔案
 export class ShipmentConfig {
   public static list = [
     {
@@ -22,7 +21,7 @@ export class ShipmentConfig {
       src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Chunghwa_Post_Logo.svg.png',
     },
     {
-      title: '7-11交貨便',
+      title: '7-11店到店',
       value: 'UNIMARTC2C',
       src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734544575-34f72af5b441738b1f65a0597c28d9cf (1).png',
       paynow_id: '01',
@@ -70,22 +69,25 @@ export class ShipmentConfig {
       src: `<i class="fa-duotone fa-solid fa-shop" style="font-size: 35px;color:#319e49;"></i>`,
     },
   ];
-  //支援列印托運單的配送方式
+
+  // 支援列印托運單的配送方式
   public static supportPrintList = [
-    'FAMIC2C',
     'UNIMARTC2C',
-    'HILIFEC2C',
+    'UNIMARTFREEZE',
+    'FAMIC2C',
+    'FAMIC2CFREEZE',
     'OKMARTC2C',
+    'HILIFEC2C',
     'normal',
     'black_cat',
     'black_cat_ice',
-    'UNIMARTFREEZE',
     'black_cat_freezing',
   ];
-  //超商列表
-  public static supermarketList = ['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTFREEZE', 'FAMIC2CFREEZE'];
 
-  //所有的配送方式
+  // 超商列表
+  public static supermarketList = ['UNIMARTC2C', 'UNIMARTFREEZE', 'FAMIC2C', 'FAMIC2CFREEZE', 'OKMARTC2C', 'HILIFEC2C'];
+
+  // 所有的配送方式
   public static async shipmentMethod(cf: { type: 'all' | 'market' | 'support' }) {
     const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
     const response: { response: any; result: boolean } = await saasConfig.api.getPrivateConfig(
@@ -101,7 +103,7 @@ export class ShipmentConfig {
         'zh-TW': { info: configData.info || '' },
       };
     }
-    configData.support=configData.support??[];
+    configData.support = configData.support ?? [];
     const shipmentOptions = ShipmentConfig.list
       .map(dd => {
         return { key: dd.value, name: dd.title };

@@ -1,7 +1,8 @@
 import { Tool } from '../../modules/tool.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
-import { OrderSetting } from '../module/order-setting.js';
+import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
+import { PaymentConfig } from '../../glitter-base/global/payment-config.js';
 const html = String.raw;
 export class DeliveryHTML {
     static print(ogvc, dataArray, type) {
@@ -29,6 +30,8 @@ export class DeliveryHTML {
             store: {},
             twZipcode: [],
             info: infoMap[type],
+            shippingMethod: [],
+            paymentMethod: [],
         };
         return BgWidget.fullDialog({
             gvc: ogvc,
@@ -65,9 +68,13 @@ export class DeliveryHTML {
                                 ApiUser.getPublicConfig('store-information', 'manager').then(r => {
                                     return r.result && r.response ? r.response.value : {};
                                 }),
+                                ShipmentConfig.shipmentMethod({ type: 'all' }),
+                                PaymentConfig.getSupportPayment(true),
                             ]).then(dataArray => {
                                 vm.twZipcode = dataArray[0];
                                 vm.store = dataArray[1];
+                                vm.shippingMethod = dataArray[2];
+                                vm.paymentMethod = dataArray[3];
                                 loading = false;
                                 gvc.notifyDataChange(id);
                             });
@@ -299,7 +306,7 @@ export class DeliveryHTML {
       <h1 class="subtitle">${vm.info.subtitle}時間：${glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd hh:mm')}</h1>
     </div>`;
     }
-    static shipmentDetail(glitter, data) {
+    static shipmentDetail(vm, glitter, data) {
         const orderData = data.orderData;
         function paymentStatus(cart) {
             const statusMessages = {
@@ -310,26 +317,27 @@ export class DeliveryHTML {
             };
             return statusMessages[`${cart.status}`] || '付款失敗';
         }
+        const shippingMethod = vm.shippingMethod.find((ship) => ship.key === orderData.user_info.shipment);
+        const paymentMethod = vm.paymentMethod.find((pay) => pay.key === orderData.customer_info.payment_select);
+        const shippingAddr = ['UNIMARTC2C', 'UNIMARTFREEZE', 'FAMIC2C', 'FAMIC2CFREEZE', 'OKMARTC2C', 'HILIFEC2C'].includes(orderData.user_info.shipment)
+            ? `${orderData.user_info.CVSStoreName} (${orderData.user_info.CVSAddress})`
+            : [orderData.user_info.city, orderData.user_info.area, orderData.user_info.address].filter(Boolean).join('');
         return html `<div class="details">
       <table>
         <tr>
           <td>訂單編號：${data.cart_token}</td>
-          <td>送貨方式：${OrderSetting.getShippingMethodText(orderData)}</td>
+          <td>送貨方式：${shippingMethod ? shippingMethod.name : '立即取貨'}</td>
         </tr>
         <tr>
           <td>訂購日期：${glitter.ut.dateFormat(new Date(data.created_time), 'yyyy-MM-dd hh:mm')}</td>
-          <td>
-            送貨地址：${[orderData.user_info.city, orderData.user_info.area, orderData.user_info.address]
-            .filter(Boolean)
-            .join('')}
-          </td>
+          <td>送貨地址：${shippingAddr}</td>
         </tr>
         <tr>
           <td>訂購人帳號：${orderData.email}</td>
           <td>收件人姓名：${orderData.user_info.name}</td>
         </tr>
         <tr>
-          <td>付款方式：${OrderSetting.getPaymentMethodText(orderData)}</td>
+          <td>付款方式：${paymentMethod ? paymentMethod.name : '線下付款'}</td>
           <td>收件人電話：${orderData.user_info.phone}</td>
         </tr>
         <tr>
@@ -415,7 +423,7 @@ export class DeliveryHTML {
         const orderData = data.orderData;
         return [
             this.shipmentHeader(vm, glitter),
-            this.shipmentDetail(glitter, data),
+            this.shipmentDetail(vm, glitter, data),
             this.shipmentItems(gvc, orderData),
             this.shipmentSummary(orderData),
             this.shipmentNote(orderData),
