@@ -656,6 +656,17 @@ export class UMOrder {
                                         text: `您已完成訂單，請於「付款資訊」了解付款說明後，儘速上傳結帳證明，以完成付款程序`,
                                     });
                                 }
+                                Ad.fbqEvent('Purchase', {
+                                    value: orderData.total,
+                                    currency: 'TWD',
+                                    contents: orderData.lineItems.map((item) => {
+                                        return {
+                                            id: item.sku || item.id,
+                                            quantity: item.count,
+                                        };
+                                    }),
+                                    content_type: 'product',
+                                });
                                 Ad.gtagEvent('purchase', {
                                     transaction_id: vm.data.cart_token,
                                     value: orderData.total,

@@ -3302,9 +3302,15 @@ export class CheckoutIndex {
                 });
                 return false;
             }
-            else if (!subData['area'] || subData['area'] === '') {
+            else if ((!subData['area'] || subData['area'] === '') && (subData['shipment'] !== 'global_express')) {
                 dialog.errorMessage({
                     text: `${Language.text('please_enter')}「${Language.text('area')}」`,
+                });
+                return false;
+            }
+            else if ((!subData['state'] || subData['state'] === '') && (subData['shipment'] === 'global_express')) {
+                dialog.errorMessage({
+                    text: `${Language.text('please_enter')}「${Language.text('state')}」`,
                 });
                 return false;
             }
@@ -3412,17 +3418,6 @@ export class CheckoutIndex {
                     discount: item.discount_price,
                 };
             }),
-        });
-        Ad.fbqEvent('Purchase', {
-            value: cartData.total,
-            currency: 'TWD',
-            contents: cartData.lineItems.map((item) => {
-                return {
-                    id: item.sku || item.id,
-                    quantity: item.count,
-                };
-            }),
-            content_type: 'product',
         });
         return true;
     }

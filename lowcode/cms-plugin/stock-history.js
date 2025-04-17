@@ -238,12 +238,15 @@ export class StockHistory {
                             },
                             {
                                 key: '總金額',
-                                value: `<span class="fs-7">$ ${dd.content.product_list
-                                    .reduce((sum, item) => {
-                                    var _a;
-                                    return sum + item.cost * ((_a = item.recent_count) !== null && _a !== void 0 ? _a : 0);
-                                }, 0)
-                                    .toLocaleString()}</span>`,
+                                value: `<span class="fs-7">$ ${dd.content.product_list.reduce((sum, item) => {
+                                    var _a, _b;
+                                    if (dd.type === 'restocking') {
+                                        return sum + item.cost * ((_a = item.transfer_count) !== null && _a !== void 0 ? _a : 0);
+                                    }
+                                    else {
+                                        return sum + item.cost * ((_b = item.recent_count) !== null && _b !== void 0 ? _b : 0);
+                                    }
+                                }, 0).toLocaleString()}</span>`,
                             },
                             {
                                 key: '供應商',
@@ -1040,15 +1043,14 @@ export class StockHistory {
                                       class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
                                       style="color: #36B; font-size: 16px; font-weight: 400;"
                                       onclick="${gvc.event(() => {
-                                                        BgWidget.variantDialog({
-                                                            gvc,
-                                                            title: '搜尋商品',
+                                                        BgProduct.productsDialog({
+                                                            gvc: gvc,
                                                             default: dvm.variantIds,
-                                                            callback: resultData => {
-                                                                alert(JSON.stringify(resultData));
-                                                                dvm.variantIds = resultData;
+                                                            with_variants: true,
+                                                            callback: (value) => __awaiter(this, void 0, void 0, function* () {
+                                                                dvm.variantIds = value;
                                                                 gvc.notifyDataChange(dvm.tableId);
-                                                            },
+                                                            }),
                                                         });
                                                     })}"
                                     >

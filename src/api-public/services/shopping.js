@@ -875,8 +875,10 @@ class Shopping {
         const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
         const orderClause = query.order_by || 'ORDER BY id DESC';
         const offset = query.page * query.limit;
-        let sql = `SELECT * FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}`;
-        const data = await database_js_1.default.query(`SELECT * FROM (${sql}) AS subquery LIMIT ?, ?
+        let sql = `SELECT *
+               FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}`;
+        const data = await database_js_1.default.query(`SELECT *
+       FROM (${sql}) AS subquery LIMIT ?, ?
       `, [offset, Number(query.limit)]);
         if (query.id) {
             return {
@@ -886,7 +888,8 @@ class Shopping {
         }
         else {
             const total = await database_js_1.default
-                .query(`SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}
+                .query(`SELECT COUNT(*) as count
+           FROM \`${this.app}\`.t_manager_post ${whereClause}
           `, [])
                 .then((res) => { var _a; return ((_a = res[0]) === null || _a === void 0 ? void 0 : _a.count) || 0; });
             return {
@@ -2559,12 +2562,12 @@ class Shopping {
                     order_id: (_b = (_a = orderData === null || orderData === void 0 ? void 0 : orderData.splitOrders) === null || _a === void 0 ? void 0 : _a[index]) !== null && _b !== void 0 ? _b : '',
                     line_items: order.lineItems,
                     customer_info: order.customer_info,
-                    return_url: "",
+                    return_url: '',
                     user_info: order.user_info,
                     discount: order.discount,
                     voucher: order.voucher,
                     total: order.total,
-                    pay_status: Number(order.pay_status)
+                    pay_status: Number(order.pay_status),
                 }, 'split');
             }
             return true;
@@ -2935,7 +2938,9 @@ class Shopping {
             const whereClause = data.cart_token ? 'cart_token = ?' : data.id ? 'id = ?' : null;
             const value = (_a = data.cart_token) !== null && _a !== void 0 ? _a : data.id;
             if (whereClause && value) {
-                const query = `SELECT * FROM \`${this.app}\`.t_checkout WHERE ${whereClause};`;
+                const query = `SELECT *
+                       FROM \`${this.app}\`.t_checkout
+                       WHERE ${whereClause};`;
                 const result = await database_js_1.default.query(query, [value]);
                 origin = result[0];
             }
@@ -3009,7 +3014,9 @@ class Shopping {
             update.orderData.lineItems = update.orderData.lineItems.filter((item) => item.count > 0);
             this.writeRecord(origin, update);
             const updateData = Object.entries(update).reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: typeof value === 'object' ? JSON.stringify(value) : value })), {});
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
+         SET ?
+         WHERE id = ?;
         `, [updateData, origin.id]);
             await Promise.all(origin.orderData.lineItems.map(async (lineItem) => {
                 var _a;
@@ -3325,8 +3332,8 @@ class Shopping {
         try {
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
-            const timer = new ut_timer_js_1.UtTimer("get-checkout-info");
-            timer.checkPoint("start");
+            const timer = new ut_timer_js_1.UtTimer('get-checkout-info');
+            timer.checkPoint('start');
             if (query.search && query.searchType) {
                 switch (query.searchType) {
                     case 'cart_token':
@@ -3521,7 +3528,7 @@ class Shopping {
                  FROM \`${this.app}\`.t_checkout o
                           LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id and i.status = 1
                  WHERE ${querySql.join(' and ')} ${orderString}`;
-            timer.checkPoint("start-query-sql");
+            timer.checkPoint('start-query-sql');
             if (query.returnSearch == 'true') {
                 const data = await database_js_1.default.query(`SELECT *
            FROM \`${this.app}\`.t_checkout
@@ -3547,7 +3554,7 @@ class Shopping {
                 return data[0];
             }
             const response_data = await new Promise(async (resolve, reject) => {
-                timer.checkPoint("start-query-response_data");
+                timer.checkPoint('start-query-response_data');
                 if (query.id) {
                     const data = (await database_js_1.default.query(`SELECT *
                FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
@@ -3558,10 +3565,10 @@ class Shopping {
                     });
                 }
                 else {
-                    const data = (await database_js_1.default.query(`SELECT *
-               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
-              `, []));
-                    timer.checkPoint("finish-query-response_data");
+                    const data = await database_js_1.default.query(`SELECT *
+             FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+            `, []);
+                    timer.checkPoint('finish-query-response_data');
                     console.log(sql);
                     resolve({
                         data: data,
@@ -3643,7 +3650,7 @@ class Shopping {
                 .concat(obMap.map(async (order) => {
                 order.user_data = await new user_js_1.User(this.app).getUserData(order.email, 'email_or_phone');
             })));
-            timer.checkPoint("finish-query-all");
+            timer.checkPoint('finish-query-all');
             return response_data;
         }
         catch (e) {
@@ -3901,7 +3908,8 @@ class Shopping {
                 else if (Object.keys(variant.stockList).length === 0) {
                     variant.stockList[storeConfig.list[0].id] = { count: variant.stock };
                 }
-                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants SET ?
+                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants
+           SET ?
           `, [
                     {
                         content: JSON.stringify(variant),
@@ -4705,7 +4713,7 @@ class Shopping {
         }
     }
     async getVariants(query) {
-        var _a;
+        var _a, _b, _c;
         try {
             let querySql = ['1=1'];
             if (query.search) {
@@ -4723,7 +4731,16 @@ class Shopping {
                 }
             }
             query.id && querySql.push(`(v.id = ${query.id})`);
-            query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
+            if (query.id_list) {
+                if ((_a = query.id_list) === null || _a === void 0 ? void 0 : _a.includes('-')) {
+                    querySql.push(`(v.product_id in (${query.id_list.split(',').map((dd) => {
+                        return dd.split('-')[0];
+                    })}))`);
+                }
+                else {
+                    querySql.push(`(v.id in (${query.id_list}))`);
+                }
+            }
             query.collection &&
                 querySql.push(`(${query.collection
                     .split(',')
@@ -4772,7 +4789,7 @@ class Shopping {
                     .join(' or ')})`);
             }
             if (query.stockCount) {
-                const stockCount = (_a = query.stockCount) === null || _a === void 0 ? void 0 : _a.split(',');
+                const stockCount = (_b = query.stockCount) === null || _b === void 0 ? void 0 : _b.split(',');
                 switch (stockCount[0]) {
                     case 'lessThan':
                         querySql.push(`(cast(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) < ${stockCount[1]})`);
@@ -4809,6 +4826,16 @@ class Shopping {
                 user_id: 'manager',
             });
             const data = await this.querySqlByVariants(querySql, query);
+            if (query.id_list) {
+                if ((_c = query.id_list) === null || _c === void 0 ? void 0 : _c.includes('-')) {
+                    data.data = data.data.filter((dd) => {
+                        var _a;
+                        return (_a = query.id_list) === null || _a === void 0 ? void 0 : _a.split(',').find((d1) => {
+                            return d1 === [dd.product_id, ...dd.variant_content.spec].join('-');
+                        });
+                    });
+                }
+            }
             const shopee_data_list = [];
             await Promise.all(data.data.map((v_c) => {
                 const product = v_c['product_content'];

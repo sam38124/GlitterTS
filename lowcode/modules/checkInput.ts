@@ -53,9 +53,7 @@ export class CheckInput {
     if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1) {
       return false;
     }
-
     // 使用 Date 對象檢查日期是否合法
     const date = new Date(year, month - 1, day);
     return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
-  }
-}
+  }}

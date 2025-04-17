@@ -1331,10 +1331,12 @@ export class Shopping {
     const orderClause = query.order_by || 'ORDER BY id DESC';
     const offset = query.page * query.limit;
 
-    let sql = `SELECT * FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}`;
+    let sql = `SELECT *
+               FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}`;
 
     const data = await db.query(
-      `SELECT * FROM (${sql}) AS subquery LIMIT ?, ?
+      `SELECT *
+       FROM (${sql}) AS subquery LIMIT ?, ?
       `,
       [offset, Number(query.limit)]
     );
@@ -1347,7 +1349,8 @@ export class Shopping {
     } else {
       const total = await db
         .query(
-          `SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}
+          `SELECT COUNT(*) as count
+           FROM \`${this.app}\`.t_manager_post ${whereClause}
           `,
           []
         )
@@ -3128,12 +3131,16 @@ export class Shopping {
 
   async repayOrder(orderID: string, return_url: string) {
     const app = this.app;
+
     async function getOrder(orderID: string) {
       try {
-        const result = await db.query(`
+        const result = await db.query(
+          `
             SELECT *
             FROM \`${app}\`.t_checkout
-            WHERE cart_token = ?`, [orderID]);
+            WHERE cart_token = ?`,
+          [orderID]
+        );
         return result[0];
       } catch (e: any) {
         console.error(`查詢 orderID ${orderID} 的結帳資料時發生錯誤:`, e.message || e);
@@ -3142,15 +3149,16 @@ export class Shopping {
         return null;
       }
     }
-    const sqlData:any = await getOrder(orderID);
 
-    if (sqlData){
-      const orderData : {
+    const sqlData: any = await getOrder(orderID);
+
+    if (sqlData) {
+      const orderData: {
         lineItems: CartItem[];
         customer_info?: any; //顧客資訊 訂單人
         email?: string;
         return_url: string;
-        orderID ?: string;
+        orderID?: string;
         user_info: any; //取貨人資訊
         code?: string;
         use_rebate?: number;
@@ -3183,11 +3191,10 @@ export class Shopping {
         fbp?: string;
         temp_cart_id?: string;
         shipment_fee?: number;
-        rebate ?: number
+        rebate?: number;
       } = sqlData.orderData;
       if (!orderData) {
         throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
-
       }
       const keyData = (
         await Private_config.getConfig({
@@ -3224,16 +3231,16 @@ export class Shopping {
         ReturnURL: '',
         NotifyURL: '',
       };
-      const newOrderID = Date.now()
+      const newOrderID = Date.now();
       const carData: Cart = {
         discount: orderData.discount ?? 0,
         customer_info: orderData.customer_info || {},
-        lineItems: orderData.lineItems??[],
+        lineItems: orderData.lineItems ?? [],
         total: orderData.total ?? 0,
         email: sqlData.email ?? orderData.user_info?.email ?? '',
         user_info: orderData.user_info,
-        shipment_fee: orderData.shipment_fee??0,
-        rebate: orderData.rebate??0,
+        shipment_fee: orderData.shipment_fee ?? 0,
+        rebate: orderData.rebate ?? 0,
         goodsWeight: 0,
         use_rebate: orderData.use_rebate || 0,
         orderID: `${newOrderID}`,
@@ -3276,9 +3283,6 @@ export class Shopping {
 
       return result
     }
-
-
-
 
     // return result
   }
@@ -3573,6 +3577,7 @@ export class Shopping {
   async splitOrder(obj: { orderData: Cart; splitOrderArray: OrderDetail[] }) {
     try {
       const currentTime = new Date().toISOString();
+
       //給定訂單編號 產生 編號A 編號B... 依此類推
       function generateOrderIds(orderId: string, arrayLength: number): string[] {
         const orderIdArray: string[] = [];
@@ -3586,6 +3591,7 @@ export class Shopping {
 
         return orderIdArray;
       }
+
       //整理原本訂單的總價 優惠卷
       function refreshOrder(orderData: Cart, splitOrderArray: OrderDetail[]) {
         const { newTotal, newDiscount } = splitOrderArray.reduce(
@@ -3603,28 +3609,32 @@ export class Shopping {
         orderData.editRecord.push({
           time: currentTime,
           record: `拆分成 ${splitOrderArray.length} 筆子訂單\\n${orderData.splitOrders.map(orderID => `{{order=${orderID}}}`).join('\\n')}`,
-        })
+        });
       }
+
       const orderData = obj.orderData;
       const splitOrderArray = obj.splitOrderArray;
       refreshOrder(orderData, splitOrderArray);
       await this.putOrder({
         cart_token: orderData.orderID,
         orderData,
-      })
+      });
       for (const [index, order] of splitOrderArray.entries()) {
-        await this.toCheckout({
-          code_array: [],
-          order_id: orderData?.splitOrders?.[index] ?? '',
-          line_items: order.lineItems as any,
-          customer_info: order.customer_info,
-          return_url: "",
-          user_info: order.user_info,
-          discount: order.discount,
-          voucher:order.voucher,
-          total: order.total,
-          pay_status: Number(order.pay_status)
-        }, 'split');
+        await this.toCheckout(
+          {
+            code_array: [],
+            order_id: orderData?.splitOrders?.[index] ?? '',
+            line_items: order.lineItems as any,
+            customer_info: order.customer_info,
+            return_url: '',
+            user_info: order.user_info,
+            discount: order.discount,
+            voucher: order.voucher,
+            total: order.total,
+            pay_status: Number(order.pay_status),
+          },
+          'split'
+        );
       }
 
       // try {
@@ -3638,8 +3648,6 @@ export class Shopping {
       //   console.error(e);
       //   throw exception.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
       // }
-
-
 
       return true;
     } catch (e) {
@@ -4067,7 +4075,7 @@ export class Shopping {
     return cart;
   }
 
-  async putOrder(data: { id?: string; cart_token?: string; orderData: any; status?: any; }) {
+  async putOrder(data: { id?: string; cart_token?: string; orderData: any; status?: any }) {
     try {
       const update: any = {};
       const storeConfig = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
@@ -4077,7 +4085,9 @@ export class Shopping {
       const value = data.cart_token ?? data.id;
 
       if (whereClause && value) {
-        const query = `SELECT * FROM \`${this.app}\`.t_checkout WHERE ${whereClause};`;
+        const query = `SELECT *
+                       FROM \`${this.app}\`.t_checkout
+                       WHERE ${whereClause};`;
         const result = await db.query(query, [value]);
         origin = result[0];
       }
@@ -4091,8 +4101,8 @@ export class Shopping {
 
       if (data.status !== undefined) {
         update.status = data.status;
-      }else{
-        data.status = update.status
+      } else {
+        data.status = update.status;
       }
 
       // lineItems 庫存修正
@@ -4190,7 +4200,9 @@ export class Shopping {
         {}
       );
       await db.query(
-        `UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
+        `UPDATE \`${this.app}\`.t_checkout
+         SET ?
+         WHERE id = ?;
         `,
         [updateData, origin.id]
       );
@@ -4625,8 +4637,8 @@ export class Shopping {
     try {
       let querySql = ['1=1'];
       let orderString = 'order by id desc';
-      const timer=new UtTimer("get-checkout-info");
-      timer.checkPoint("start");
+      const timer = new UtTimer('get-checkout-info');
+      timer.checkPoint('start');
       if (query.search && query.searchType) {
         switch (query.searchType) {
           case 'cart_token':
@@ -4834,7 +4846,7 @@ export class Shopping {
                  FROM \`${this.app}\`.t_checkout o
                           LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id and i.status = 1
                  WHERE ${querySql.join(' and ')} ${orderString}`;
-      timer.checkPoint("start-query-sql");
+      timer.checkPoint('start-query-sql');
       if (query.returnSearch == 'true') {
         const data = await db.query(
           `SELECT *
@@ -4864,7 +4876,7 @@ export class Shopping {
         return data[0];
       }
       const response_data: any = await new Promise(async (resolve, reject) => {
-        timer.checkPoint("start-query-response_data");
+        timer.checkPoint('start-query-response_data');
         if (query.id) {
           const data = (
             await db.query(
@@ -4879,14 +4891,14 @@ export class Shopping {
             result: !!data,
           });
         } else {
-          const data = (await db.query(
+          const data = await db.query(
             `SELECT *
-               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
-              `,
+             FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+            `,
             []
-          ))
-          timer.checkPoint("finish-query-response_data");
-          console.log(sql)
+          );
+          timer.checkPoint('finish-query-response_data');
+          console.log(sql);
           resolve({
             data: data,
             total: (
@@ -4986,7 +4998,7 @@ export class Shopping {
             })
           )
       );
-      timer.checkPoint("finish-query-all");
+      timer.checkPoint('finish-query-all');
       return response_data;
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'getCheckOut Error:' + e, null);
@@ -5341,7 +5353,8 @@ export class Shopping {
         }
 
         const insertData = await db.query(
-          `INSERT INTO \`${this.app}\`.t_variants SET ?
+          `INSERT INTO \`${this.app}\`.t_variants
+           SET ?
           `,
           [
             {
@@ -6369,7 +6382,16 @@ export class Shopping {
       }
 
       query.id && querySql.push(`(v.id = ${query.id})`);
-      query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
+      if (query.id_list) {
+        if (query.id_list?.includes('-')) {
+        querySql.push(`(v.product_id in (${query.id_list.split(',').map((dd)=>{
+            return dd.split('-')[0]
+          })}))`);
+        } else {
+          querySql.push(`(v.id in (${query.id_list}))`);
+        }
+      }
+
       query.collection &&
         querySql.push(
           `(${query.collection
@@ -6461,6 +6483,16 @@ export class Shopping {
         user_id: 'manager',
       });
       const data = await this.querySqlByVariants(querySql, query);
+      if (query.id_list) {
+        //過濾出需要的商品規格
+        if (query.id_list?.includes('-')) {
+          data.data=data.data.filter((dd:any)=>{
+            return query.id_list?.split(',').find((d1)=>{
+              return d1 === [dd.product_id,...dd.variant_content.spec].join('-')
+            })
+          })
+        }
+      }
       const shopee_data_list: { id: string; data: any }[] = [];
       await Promise.all(
         data.data.map((v_c: any) => {
@@ -6557,22 +6589,23 @@ export class Shopping {
            WHERE id = ?`,
           [{ content: JSON.stringify(data.variant_content) }, data.id]
         );
-        let variants=(await db.query(
-          `SELECT *
+        let variants = (
+          await db.query(
+            `SELECT *
            FROM \`${this.app}\`.t_variants
            WHERE product_id = ?`,
-          [data.product_id]
-        )).map((dd:any)=>{
-          return dd.content
+            [data.product_id]
+          )
+        ).map((dd: any) => {
+          return dd.content;
         });
-        data.product_content.variants=variants;
+        data.product_content.variants = variants;
         await db.query(
           `UPDATE \`${this.app}\`.t_manager_post
            SET ?
            WHERE id = ?`,
           [{ content: JSON.stringify(data.product_content) }, data.product_id]
         );
-
       }
       return {
         result: 'success',

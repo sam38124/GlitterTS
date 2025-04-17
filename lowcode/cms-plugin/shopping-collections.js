@@ -960,8 +960,8 @@ export class ShoppingCollections {
                                 dialog.infoMessage({ text: '請填寫「標題」' });
                                 return;
                             }
-                            const regexTitle = /[\s,\/\\]+/g;
-                            if (regexTitle.test(vm.data.title)) {
+                            const forbiddenRegex = /[,/\\]/;
+                            if (forbiddenRegex.test(vm.data.title)) {
                                 dialog.infoMessage({ text: '標題不可包含空白格與以下符號：<br />「 , 」「 / 」「 \\ 」' });
                                 return;
                             }

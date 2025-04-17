@@ -269,11 +269,13 @@ export class StockHistory {
               },
               {
                 key: '總金額',
-                value: `<span class="fs-7">$ ${dd.content.product_list
-                  .reduce((sum, item) => {
+                value: `<span class="fs-7">$ ${  dd.content.product_list.reduce((sum, item) => {
+                  if(dd.type==='restocking'){
+                    return sum + item.cost * (item.transfer_count ?? 0);
+                  }else{
                     return sum + item.cost * (item.recent_count ?? 0);
-                  }, 0)
-                  .toLocaleString()}</span>`,
+                  }
+                }, 0).toLocaleString()}</span>`,
               },
               {
                 key: '供應商',
@@ -1127,24 +1129,25 @@ export class StockHistory {
                                       class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
                                       style="color: #36B; font-size: 16px; font-weight: 400;"
                                       onclick="${gvc.event(() => {
-                                        // BgProduct.productsDialog({
-                                        //   gvc: gvc,
-                                        //   default:  [],
-                                        //   with_variants:true,
-                                        //   callback: async value => {
-                                        //   alert(JSON.stringify(value))
-                                        //   },
-                                        // })
-                                        BgWidget.variantDialog({
-                                          gvc,
-                                          title: '搜尋商品',
-                                          default: dvm.variantIds,
-                                          callback: resultData => {
-                                            alert(JSON.stringify(resultData));
-                                            dvm.variantIds = resultData;
+                                        BgProduct.productsDialog({
+                                          gvc: gvc,
+                                          default:  dvm.variantIds,
+                                          with_variants:true,
+                                          callback: async value => {
+                                            dvm.variantIds=value
                                             gvc.notifyDataChange(dvm.tableId);
+                                          // alert(JSON.stringify(value))
                                           },
-                                        });
+                                        })
+                                        // BgWidget.variantDialog({
+                                        //   gvc,
+                                        //   title: '搜尋商品',
+                                        //   default: dvm.variantIds,
+                                        //   callback: resultData => {
+                                        //     dvm.variantIds = resultData;
+                                        //     gvc.notifyDataChange(dvm.tableId);
+                                        //   },
+                                        // });
                                       })}"
                                     >
                                       <div>新增${typeData.name}商品</div>

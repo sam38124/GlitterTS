@@ -1759,8 +1759,8 @@ class User {
             `, [pwd]);
                 }
                 else {
-                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'UserData verify code error.', {
-                        msg: 'email-verify-false',
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'Password verify code error.', {
+                        msg: 'password-verify-false',
                     });
                 }
             }

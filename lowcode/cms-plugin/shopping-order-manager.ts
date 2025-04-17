@@ -1963,7 +1963,7 @@ export class ShoppingOrderManager {
                     ${document.body.clientWidth > 768 ? getBadgeList() : ''}
                   </div>
                   ${document.body.clientWidth > 768 ? '' : html` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
-                  <div class="d-flex justify-content-end">${funBTN().splitOrder()}</div>
+                  <div class="d-none justify-content-end">${funBTN().splitOrder()}</div>
                   ${BgWidget.container1x2(
                     {
                       html: [

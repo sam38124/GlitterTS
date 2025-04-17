@@ -1144,8 +1144,9 @@ export class ShoppingCollections {
                       return;
                     }
 
-                    const regexTitle = /[\s,\/\\]+/g;
-                    if (regexTitle.test(vm.data.title)) {
+                    // const regexTitle = /[\s,\/\\]+/g;
+                    const forbiddenRegex = /[,/\\]/;
+                    if (forbiddenRegex.test(vm.data.title)) {
                       dialog.infoMessage({ text: '標題不可包含空白格與以下符號：<br />「 , 」「 / 」「 \\ 」' });
                       return;
                     }
