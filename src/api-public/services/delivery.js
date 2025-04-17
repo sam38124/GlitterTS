@@ -431,7 +431,7 @@ class Delivery {
                 if (carData.deliveryData[keyData.Action] === undefined) {
                     console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
                     console.log(`carData.user_info.LogisticsSubType==>`, carData.user_info.shipment);
-                    if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTFREEZE'].includes(carData.user_info.shipment)) {
+                    if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTFREEZE', 'FAMIC2CFREEZE'].includes(carData.user_info.shipment)) {
                         const delivery_cf = {
                             LogisticsType: 'CVS',
                             LogisticsSubType: carData.user_info.shipment,
