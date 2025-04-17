@@ -10,7 +10,7 @@ export class OrderDetail {
         this.customer_info = this.initCustomerInfo();
         this.user_info = this.initUserInfo();
         this.total = 0;
-        this.pay_status = "0";
+        this.pay_status = '0';
         this.voucher = this.initVoucher();
     }
     initCustomerInfo() {
@@ -40,13 +40,13 @@ export class OrderDetail {
             id: 0,
             discount_total: 0,
             end_ISO_Date: '',
-            for: "product",
+            for: 'product',
             forKey: [],
-            method: "fixed",
+            method: 'fixed',
             overlay: false,
-            reBackType: "rebate",
+            reBackType: 'rebate',
             rebate_total: 0,
-            rule: "min_count",
+            rule: 'min_count',
             ruleValue: 0,
             startDate: '',
             startTime: '',
@@ -55,9 +55,9 @@ export class OrderDetail {
             target: '',
             targetList: [],
             title: '',
-            trigger: "auto",
+            trigger: 'auto',
             type: 'voucher',
-            value: "0"
+            value: '0',
         };
     }
 }

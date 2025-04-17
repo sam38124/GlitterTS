@@ -206,16 +206,17 @@ class OrderDetail {
     custom_form_delivery?: any;
     shipment:
       | 'normal'
-      | 'FAMIC2C'
       | 'black_cat_freezing'
-      | 'UNIMARTC2C'
-      | 'HILIFEC2C'
-      | 'OKMARTC2C'
       | 'now'
       | 'shop'
       | 'global_express'
       | 'black_cat'
-      | 'UNIMARTFREEZE';
+      | 'UNIMARTC2C'
+      | 'FAMIC2C'
+      | 'HILIFEC2C'
+      | 'OKMARTC2C'
+      | 'UNIMARTFREEZE'
+      | 'FAMIC2CFREEZE';
     CVSStoreName: string;
     CVSStoreID: string;
     CVSTelephone: string;

@@ -1628,8 +1628,9 @@ export class ShoppingOrderManager {
                             'FAMIC2C',
                             'OKMARTC2C',
                             'HILIFEC2C',
-                            'normal',
                             'UNIMARTFREEZE',
+                            'FAMIC2CFREEZE',
+                            'normal',
                             'black_cat',
                             'black_cat_freezing',
                           ].includes(orderData.orderData.user_info.shipment)
@@ -1706,9 +1707,14 @@ export class ShoppingOrderManager {
                                 return dd.value === orderData.orderData.user_info.shipment;
                               });
                               if (
-                                ['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'UNIMARTFREEZE'].includes(
-                                  orderData.orderData.user_info.shipment
-                                )
+                                [
+                                  'UNIMARTC2C',
+                                  'FAMIC2C',
+                                  'OKMARTC2C',
+                                  'HILIFEC2C',
+                                  'UNIMARTFREEZE',
+                                  'FAMIC2CFREEZE',
+                                ].includes(orderData.orderData.user_info.shipment)
                               ) {
                                 return html`
                                   <div class="d-flex flex-wrap">
@@ -2967,6 +2973,7 @@ export class ShoppingOrderManager {
                                             case 'OKMARTC2C':
                                             case 'UNIMARTC2C':
                                             case 'UNIMARTFREEZE':
+                                            case 'FAMIC2CFREEZE':
                                               return [
                                                 html` <div class="d-flex flex-wrap w-100">
                                                   <span class="me-2 fw-normal fs-6">門市名稱:</span>

@@ -426,7 +426,7 @@ export class Delivery {
         });
         if (shipment_config.bulk) {
           const conf = await pay_now.config();
-          const request_={
+          const request_ = {
             method: 'post',
             maxBodyLength: Infinity,
             url: `${conf.link}/api/${(() => {
@@ -458,10 +458,10 @@ export class Delivery {
                 })
               ),
             },
-          }
+          };
           const link_response = await axios(request_);
           console.log(`request.url_=>`, request_.url);
-          console.log(`link_response_=>`,link_response)
+          console.log(`link_response_=>`, link_response);
         }
         const payNowAccount = (await pay_now.config()).account;
         const config: any = {
@@ -512,7 +512,6 @@ export class Delivery {
               })
               .join(','),
           };
-
         }
         const link_response = await axios(config);
         const link = link_response.data;
@@ -556,7 +555,9 @@ export class Delivery {
           console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
           console.log(`carData.user_info.LogisticsSubType==>`, carData.user_info.shipment);
           if (
-            ['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTFREEZE'].includes(carData.user_info.shipment)
+            ['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTFREEZE', 'FAMIC2CFREEZE'].includes(
+              carData.user_info.shipment
+            )
           ) {
             const delivery_cf = {
               LogisticsType: 'CVS',
