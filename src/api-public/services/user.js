@@ -223,6 +223,10 @@ class User {
                 account: usData['account'],
                 userData: {},
             });
+            const rebate_value = parseInt(userData.rebate, 10);
+            if (!isNaN(rebate_value) && rebate_value > 0) {
+                await new rebate_js_1.Rebate(this.app).insertRebate(userID, rebate_value, '匯入會員購物金');
+            }
             return usData;
         }
         catch (e) {

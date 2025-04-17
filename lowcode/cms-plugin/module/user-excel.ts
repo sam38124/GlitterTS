@@ -75,6 +75,7 @@ export class UserExcel {
       會員標籤: '台中,青年',
       'LINE UID': '12341234',
       'FB UID': '12341234',
+      購物金餘額: '100',
     },
   ];
 
@@ -98,7 +99,7 @@ export class UserExcel {
       '收貨人手機',
       '顧客備註',
     ],
-    個人紀錄: ['黑名單', '會員等級', '會員有效期', '會員標籤', '註冊時間', '現有購物金', 'LINE UID', 'FB UID'],
+    個人紀錄: ['黑名單', '會員等級', '會員有效期', '會員標籤', '註冊時間', '購物金餘額', 'LINE UID', 'FB UID'],
     訂單相關: ['最後購買日期', '最後消費金額', '最後出貨日期', '累積消費金額', '累積消費次數'],
   };
 
@@ -192,8 +193,8 @@ export class UserExcel {
       Object.fromEntries(Object.entries(obj).filter(([key]) => column.includes(key)));
 
     // 顧客欄位物件
-    const getUserJSON = (user: User) =>
-      formatJSON({
+    const getUserJSON = (user: User) => {
+      return formatJSON({
         ID: user.id,
         會員編號: user.userID,
         顧客名稱: user.userData.name,
@@ -211,8 +212,9 @@ export class UserExcel {
         收貨人手機: user.userData.consignee_phone,
         顧客備註: user.userData.managerNote,
       });
+    };
 
-    // 紀錄欄位物件
+    // 個人紀錄欄位物件
     const getRecordJSON = (user: User) => {
       return formatJSON({
         黑名單: user.status === 1 ? '否' : '是',
@@ -220,7 +222,7 @@ export class UserExcel {
         會員有效期: formatDate(user.member_deadline),
         會員標籤: (user.userData.tags ?? []).join(','),
         註冊時間: formatDate(user.created_time),
-        現有購物金: user.rebate,
+        購物金餘額: user.rebate,
         'LINE UID': user.userData.lineID,
         'FB UID': user.userData['fb-id'],
       });
@@ -400,6 +402,7 @@ export class UserExcel {
             lineID: user['LINE UID'],
             'fb-id': user['FB UID'],
             tags: (user['會員標籤'] ?? '').split(','),
+            rebate: user['購物金餘額'],
           };
 
           jsonData[i] = {

@@ -212,6 +212,7 @@ export class User {
       delete userData.repeat_password;
       const findAuth = await this.findAuthUser(account);
       const userID = findAuth ? findAuth.user : User.generateUserID();
+
       if (
         register_form.list.find((dd: any) => {
           return dd.key === 'email' && `${dd.hidden}` !== 'true' && dd.required;
@@ -287,6 +288,11 @@ export class User {
         account: usData['account'],
         userData: {},
       });
+
+      const rebate_value = parseInt(userData.rebate, 10);
+      if (!isNaN(rebate_value) && rebate_value > 0) {
+        await new Rebate(this.app).insertRebate(userID, rebate_value, '匯入會員購物金');
+      }
 
       return usData;
     } catch (e: any) {
