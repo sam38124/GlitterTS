@@ -602,6 +602,29 @@ export class BgProduct {
         gvc.notifyDataChange(id);
       });
 
+      function checkboxList() {
+        return [
+          BgWidget.tripletCheckboxContainer(
+            gvc,
+            '會員階級',
+            (() => {
+              if (vm.postData.length === 0) return -1;
+              return vm.postData.length === vm.dataList.length ? 1 : 0;
+            })(),
+            r => {
+              vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
+              gvc.notifyDataChange(id);
+            }
+          ),
+          BgWidget.horizontalLine(),
+          BgWidget.grayNote('※只有被選取的會員才能設置專屬價格，其餘依售價計算', 'margin-bottom: 12px;'),
+          BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, text => {
+            vm.postData = text;
+            gvc.notifyDataChange(id);
+          }),
+        ].join('');
+      }
+
       return gvc.bindView({
         bind: id,
         view: () =>
@@ -620,7 +643,7 @@ export class BgProduct {
                       class="w-100 d-flex align-items-center p-3 border-bottom"
                       style="position: sticky; top: 0; z-index: 2; background: #fff;"
                     >
-                      <div class="tx_700">會員專屬價格設定</div>
+                      <div class="tx_700">會員等級價格設定</div>
                       <div class="flex-fill"></div>
                       <i
                         class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
@@ -630,24 +653,9 @@ export class BgProduct {
                     <div class="c_dialog h-100">
                       <div class="c_dialog_body h-100">
                         <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
-                          ${BgWidget.tripletCheckboxContainer(
-                            gvc,
-                            '會員階級',
-                            (() => {
-                              if (vm.postData.length === 0) return -1;
-                              return vm.postData.length === vm.dataList.length ? 1 : 0;
-                            })(),
-                            r => {
-                              vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
-                              gvc.notifyDataChange(id);
-                            }
-                          )}
-                          ${BgWidget.horizontalLine()}
-                          ${BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, text => {
-                            vm.postData = text;
-                            gvc.notifyDataChange(id);
-                          })}
-                          ${BgWidget.grayNote('※只有被選取的會員才能設置專屬價格，其餘依售價計算', 'margin-top: 12px;')}
+                          ${vm.dataList.length > 0
+                            ? checkboxList()
+                            : '尚未建立會員等級，請至「顧客管理」>「會員等級」新增'}
                         </div>
                         <div class="c_dialog_bar" style="z-index: 2;">
                           ${BgWidget.cancel(gvc.event(() => gvc.closeDialog()))}
@@ -696,6 +704,33 @@ export class BgProduct {
         gvc.notifyDataChange(id);
       });
 
+      function checkboxList() {
+        return [
+          html` <div class="d-none gap-2 mb-3">
+            <div class="textbox textbox-uncheck">依照門市</div>
+            <div class="textbox textbox-checked">依照門市標籤</div>
+          </div>`,
+          BgWidget.tripletCheckboxContainer(
+            gvc,
+            '門市名稱',
+            (() => {
+              if (vm.postData.length === 0) return -1;
+              return vm.postData.length === vm.dataList.length ? 1 : 0;
+            })(),
+            r => {
+              vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
+              gvc.notifyDataChange(id);
+            }
+          ),
+          BgWidget.horizontalLine(),
+          BgWidget.grayNote('※只有被選取的門市/標籤才能設置專屬價格，其餘依售價計算', 'margin-bottom: 12px;'),
+          BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, text => {
+            vm.postData = text;
+            gvc.notifyDataChange(id);
+          }),
+        ].join('');
+      }
+
       return gvc.bindView({
         bind: id,
         view: () =>
@@ -724,31 +759,9 @@ export class BgProduct {
                     <div class="c_dialog h-100">
                       <div class="c_dialog_body h-100">
                         <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
-                          <div class="d-none gap-2 mb-3">
-                            <div class="textbox textbox-uncheck">依照門市</div>
-                            <div class="textbox textbox-checked">依照門市標籤</div>
-                          </div>
-                          ${BgWidget.tripletCheckboxContainer(
-                            gvc,
-                            '門市名稱',
-                            (() => {
-                              if (vm.postData.length === 0) return -1;
-                              return vm.postData.length === vm.dataList.length ? 1 : 0;
-                            })(),
-                            r => {
-                              vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
-                              gvc.notifyDataChange(id);
-                            }
-                          )}
-                          ${BgWidget.horizontalLine()}
-                          ${BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, text => {
-                            vm.postData = text;
-                            gvc.notifyDataChange(id);
-                          })}
-                          ${BgWidget.grayNote(
-                            '※只有被選取的門市/標籤才能設置專屬價格，其餘依售價計算',
-                            'margin-top: 12px;'
-                          )}
+                          ${vm.dataList.length > 0
+                            ? checkboxList()
+                            : '尚未建立門市，請至「庫存管理」>「庫存點管理」新增'}
                         </div>
                         <div class="c_dialog_bar" style="z-index: 2;">
                           ${BgWidget.cancel(gvc.event(() => gvc.closeDialog()))}
@@ -792,6 +805,29 @@ export class BgProduct {
         gvc.notifyDataChange(id);
       });
 
+      function checkboxList() {
+        return [
+          BgWidget.tripletCheckboxContainer(
+            gvc,
+            '顧客標籤',
+            (() => {
+              if (vm.postData.length === 0) return -1;
+              return vm.postData.length === vm.dataList.length ? 1 : 0;
+            })(),
+            r => {
+              vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
+              gvc.notifyDataChange(id);
+            }
+          ),
+          BgWidget.horizontalLine(),
+          BgWidget.grayNote('※只有被選取的會員才能設置專屬價格，其餘依售價計算', 'margin-bottom: 12px;'),
+          BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, text => {
+            vm.postData = text;
+            gvc.notifyDataChange(id);
+          }),
+        ].join('');
+      }
+
       return gvc.bindView({
         bind: id,
         view: () =>
@@ -820,24 +856,9 @@ export class BgProduct {
                     <div class="c_dialog h-100">
                       <div class="c_dialog_body h-100">
                         <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
-                          ${BgWidget.tripletCheckboxContainer(
-                            gvc,
-                            '顧客標籤',
-                            (() => {
-                              if (vm.postData.length === 0) return -1;
-                              return vm.postData.length === vm.dataList.length ? 1 : 0;
-                            })(),
-                            r => {
-                              vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
-                              gvc.notifyDataChange(id);
-                            }
-                          )}
-                          ${BgWidget.horizontalLine()}
-                          ${BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, text => {
-                            vm.postData = text;
-                            gvc.notifyDataChange(id);
-                          })}
-                          ${BgWidget.grayNote('※只有被選取的會員才能設置專屬價格，其餘依售價計算', 'margin-top: 12px;')}
+                          ${vm.dataList.length > 0
+                            ? checkboxList()
+                            : '尚未建立顧客標籤，請編輯任一顧客的「顧客標籤」欄位'}
                         </div>
                         <div class="c_dialog_bar" style="z-index: 2;">
                           ${BgWidget.cancel(gvc.event(() => gvc.closeDialog()))}

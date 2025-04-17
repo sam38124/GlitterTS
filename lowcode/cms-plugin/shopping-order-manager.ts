@@ -24,7 +24,7 @@ import { UserList } from './user-list.js';
 import { FilterOptions } from './filter-options.js';
 import { ListHeaderOption } from './list-header-option.js';
 import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
-import { CartData, LineItem } from './module/data.js';
+import { LineItem } from './module/data.js';
 import { OrderModule } from './order/order-module.js';
 
 const html = String.raw;

@@ -8,27 +8,19 @@ import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
 const html = String.raw;
 export class OrderSetting {
     static getPaymentMethodText(orderData) {
-        if (orderData.orderSource === 'POS') {
-            return '門市POS付款';
-        }
-        switch (orderData.customer_info.payment_select) {
-            case 'off_line':
-                return '線下付款';
-            case 'newWebPay':
-                return '藍新金流';
-            case 'ecPay':
-                return '綠界金流';
-            case 'line_pay':
-                return 'Line Pay';
-            case 'atm':
-                return '銀行轉帳';
-            case 'line':
-                return 'Line 轉帳';
-            case 'cash_on_delivery':
-                return '貨到付款';
-            default:
-                return '線下付款';
-        }
+        const paymentMethods = {
+            POS: '門市POS付款',
+            off_line: '線下付款',
+            newWebPay: '藍新金流',
+            ecPay: '綠界金流',
+            line_pay: 'Line Pay',
+            atm: '銀行轉帳',
+            line: 'Line 轉帳',
+            cash_on_delivery: '貨到付款',
+        };
+        return orderData.orderSource === 'POS'
+            ? paymentMethods['POS']
+            : paymentMethods[orderData.customer_info.payment_select] || '線下付款';
     }
     static getShippingMethodText(orderData) {
         switch (orderData.user_info.shipment) {
@@ -1691,26 +1683,30 @@ export class OrderSetting {
         });
         const handleSave = () => {
             const alertHTML = html `
-      <div class="d-flex flex-column">
-        <div class="tx_normal text-start">您即將拆分訂單，系統將產生 ${splitOrderArray.length} 筆子訂單，拆分後：</div>
-        <ul class="${gClass('dialog-ul')}">
-          <li>原訂單調整金額與折扣，運費及附加費維持不變。子訂單按比例分配優惠。</li>
-          <li>子訂單繼承母訂單設定，發票需手動作廢與重開。 </li>
-          <li>代收金額更新，已建立的出貨單需取消並重新建立。</li>
-        </ul>
-      </div>
+        <div class="d-flex flex-column">
+          <div class="tx_normal text-start">
+            您即將拆分訂單，系統將產生 ${splitOrderArray.length} 筆子訂單，拆分後：
+          </div>
+          <ul class="${gClass('dialog-ul')}">
+            <li>原訂單調整金額與折扣，運費及附加費維持不變。子訂單按比例分配優惠。</li>
+            <li>子訂單繼承母訂單設定，發票需手動作廢與重開。</li>
+            <li>代收金額更新，已建立的出貨單需取消並重新建立。</li>
+          </ul>
+        </div>
       `;
             dialog.checkYesOrNotWithCustomWidth({
                 callback: bool => {
                     if (bool) {
                         orderData.lineItems.forEach((lineItem, index) => {
                             let count = 0;
-                            count = splitOrderArray.reduce((total, order) => { return total += Number(order.lineItems[index].count); }, 0);
+                            count = splitOrderArray.reduce((total, order) => {
+                                return (total += Number(order.lineItems[index].count));
+                            }, 0);
                             lineItem.count -= count;
                         });
                         const passData = {
                             orderData: orderData,
-                            splitOrderArray: splitOrderArray
+                            splitOrderArray: splitOrderArray,
                         };
                         ApiShop.combineOrder(vm.dataObject).then(r => {
                             if (r.result && r.response) {
@@ -1743,10 +1739,9 @@ export class OrderSetting {
                 else {
                     checkBTN = BgWidget.disableSave('拆分訂單');
                 }
-                return html `
-          ${BgWidget.cancel(gvc.event(closeDialog))} ${checkBTN}
-        `;
-            }, divCreate: { class: `${gClass('footer')}` }
+                return html ` ${BgWidget.cancel(gvc.event(closeDialog))} ${checkBTN} `;
+            },
+            divCreate: { class: `${gClass('footer')}` },
         });
         const renderHint = (gvc) => {
             const phoneCardStyle = isDesktop
@@ -1775,15 +1770,18 @@ export class OrderSetting {
             })
                 .join('')}
                   </ul>
-                  <div class="${gClass('split-rule')} ms-auto d-flex align-items-end" onclick="${gvc.event(() => {
+                  <div
+                    class="${gClass('split-rule')} ms-auto d-flex align-items-end"
+                    onclick="${gvc.event(() => {
                 BgWidget.settingDialog({
                     gvc: gvc,
                     title: '拆單需知',
                     width: 766,
                     innerHTML: gvc => {
-                        return html `
-                          <ul class="${gClass('dialog-ul')}">
-                            <li>原訂單將保留剩餘商品，訂單金額與折扣將調整；子訂單將包含選定商品，並按比例分配優惠折扣</li>
+                        return html ` <ul class="${gClass('dialog-ul')}">
+                            <li>
+                              原訂單將保留剩餘商品，訂單金額與折扣將調整；子訂單將包含選定商品，並按比例分配優惠折扣
+                            </li>
                             <li>拆單後運費及附加費用不變，將保留於原訂單內，如需更改，請手動編輯訂單新增費用</li>
                             <li>子訂單會預設繼承母訂單的配送與付款方式，如需更改，請手動編輯訂單內容</li>
                             <li>子訂單若要重新開立發票，請至發票頁面手動建立</li>
@@ -1795,7 +1793,10 @@ export class OrderSetting {
                         return '';
                     },
                 });
-            })}">詳細拆單規則</div>
+            })}"
+                  >
+                    詳細拆單規則
+                  </div>
                 </div>
               </div>
             `)}
@@ -1910,7 +1911,7 @@ export class OrderSetting {
                             <img class="${gClass('product-preview-img')}" src="${item.preview_image}" alt="產品圖片" />
                             <div class="d-flex flex-column flex-grow-1" style="gap:2px;">
                               <div class="tx_normal_14" style="white-space: normal;line-height: normal;">
-                                ${Tool.truncateString((_a = item.title) !== null && _a !== void 0 ? _a : "", 10)} -${spec}
+                                ${Tool.truncateString((_a = item.title) !== null && _a !== void 0 ? _a : '', 10)} -${spec}
                               </div>
                               <div class="tx_normal_14 ${gClass('font-gray')}">
                                 存貨單位 (SKU): ${(_b = item.sku) !== null && _b !== void 0 ? _b : '無SKU'}
@@ -2002,9 +2003,11 @@ export class OrderSetting {
             });
         };
         const renderBlock = (gvc) => {
-            const subBlock = splitOrderArray.map((order, index) => {
+            const subBlock = splitOrderArray
+                .map((order, index) => {
                 return html `<div class="${gClass('summary-subSummary')}"></div>`;
-            }).join('');
+            })
+                .join('');
             return html `
         <div class="d-flex" style="height:27px;">
           <div class="${gClass('summary-title')}"></div>
@@ -2063,7 +2066,9 @@ export class OrderSetting {
                     <div class="d-flex align-items-center">
                       <span class="text-decoration-line-through">${orderData.total}</span
                       ><i class="fa-solid fa-arrow-right ${gClass('font-blue')} ${gClass('summary-right')}"></i
-                      ><span class="${gClass('font-blue')}">${sale_price - split_price - discount + orderData.shipment_fee}</span>
+                      ><span class="${gClass('font-blue')}"
+                        >${sale_price - split_price - discount + orderData.shipment_fee}</span
+                      >
                     </div>
                   `;
                                 }
