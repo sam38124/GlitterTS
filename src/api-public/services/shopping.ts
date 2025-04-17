@@ -3278,10 +3278,12 @@ export class Shopping {
         fbp: sqlData.fbp as string,
         editRecord: [],
       };
-      console.log("orderData.customer_info.payment_select -- " , orderData.customer_info.payment_select);
-      const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select).processPayment(carData);
+      console.log('orderData.customer_info.payment_select -- ', orderData.customer_info.payment_select);
+      const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select).processPayment(
+        carData
+      );
 
-      return result
+      return result;
     }
 
     // return result
@@ -4171,7 +4173,14 @@ export class Shopping {
 
         // 當訂單出貨狀態變更，觸發通知事件
         const updateProgress = update.orderData.progress;
-        if (prevProgress !== updateProgress) {
+
+        if (
+          updateProgress === 'wait' &&
+          update.orderData.user_info.shipment_number &&
+          update.orderData.user_info.shipment_number !== origin.orderData.user_info.shipment_number
+        ) {
+          await this.sendNotifications(orderData, 'in_stock');
+        } else if (prevProgress !== updateProgress) {
           if (updateProgress === 'shipping') {
             await this.sendNotifications(orderData, 'shipment');
           } else if (updateProgress === 'arrived') {
@@ -4387,12 +4396,13 @@ export class Shopping {
   /**
    * 寄送同時寄送購買人和寄件人
    * */
-  private async sendNotifications(orderData: any, type: 'shipment' | 'arrival') {
+  private async sendNotifications(orderData: any, type: 'shipment' | 'arrival' | 'in_stock') {
     const { lineID } = orderData.customer_info;
     const messages = [];
     const typeMap = {
       shipment: 'shipment',
       arrival: 'shipment-arrival',
+      in_stock: 'in-stock',
     };
 
     if (lineID) {
@@ -4898,7 +4908,6 @@ export class Shopping {
             []
           );
           timer.checkPoint('finish-query-response_data');
-          console.log(sql);
           resolve({
             data: data,
             total: (
@@ -6384,9 +6393,11 @@ export class Shopping {
       query.id && querySql.push(`(v.id = ${query.id})`);
       if (query.id_list) {
         if (query.id_list?.includes('-')) {
-        querySql.push(`(v.product_id in (${query.id_list.split(',').map((dd)=>{
-            return dd.split('-')[0]
-          })}))`);
+          querySql.push(
+            `(v.product_id in (${query.id_list.split(',').map(dd => {
+              return dd.split('-')[0];
+            })}))`
+          );
         } else {
           querySql.push(`(v.id in (${query.id_list}))`);
         }
@@ -6486,11 +6497,11 @@ export class Shopping {
       if (query.id_list) {
         //過濾出需要的商品規格
         if (query.id_list?.includes('-')) {
-          data.data=data.data.filter((dd:any)=>{
-            return query.id_list?.split(',').find((d1)=>{
-              return d1 === [dd.product_id,...dd.variant_content.spec].join('-')
-            })
-          })
+          data.data = data.data.filter((dd: any) => {
+            return query.id_list?.split(',').find(d1 => {
+              return d1 === [dd.product_id, ...dd.variant_content.spec].join('-');
+            });
+          });
         }
       }
       const shopee_data_list: { id: string; data: any }[] = [];

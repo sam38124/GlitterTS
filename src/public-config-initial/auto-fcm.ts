@@ -12,6 +12,12 @@ export class AutoFcm {
         content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 出貨中',
         toggle: true,
       },
+      in_stock: {
+        name: '@{{app_name}}',
+        title: '配送狀態已更新',
+        content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 備貨中',
+        toggle: true,
+      },
       arrival: {
         name: '@{{app_name}}',
         title: '配送狀態已更新',
@@ -63,10 +69,12 @@ export class AutoFcm {
     const userData = await new User(obj.app).getUserData(obj.phone_email, 'email_or_phone');
     if (userData) {
       //
-      const orderChangeInfo = (await new User(obj.app).getConfigV2({
-        key: 'auto_fcm',
-        user_id: 'manager',
-      }))[obj.tag];
+      const orderChangeInfo = (
+        await new User(obj.app).getConfigV2({
+          key: 'auto_fcm',
+          user_id: 'manager',
+        })
+      )[obj.tag];
       //
       const appData = await new User(obj.app).getConfigV2({
         key: 'store-information',
@@ -78,8 +86,9 @@ export class AutoFcm {
         userID: userData.userID,
         tag: 'orderChangeInfo',
         link: `/order_detail?cart_token=${obj.order_id}`,
-        body: orderChangeInfo.content.replace(/@\{\{app_name\}\}/g, (appData && appData.shop_name) || '商店名稱')
-          .replace(/@\{\{訂單號碼\}\}/g, `#${obj.order_id}`)
+        body: orderChangeInfo.content
+          .replace(/@\{\{app_name\}\}/g, (appData && appData.shop_name) || '商店名稱')
+          .replace(/@\{\{訂單號碼\}\}/g, `#${obj.order_id}`),
       });
     }
   }

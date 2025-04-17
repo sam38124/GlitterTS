@@ -2316,7 +2316,7 @@ class Shopping {
                 fbp: sqlData.fbp,
                 editRecord: [],
             };
-            console.log("orderData.customer_info.payment_select -- ", orderData.customer_info.payment_select);
+            console.log('orderData.customer_info.payment_select -- ', orderData.customer_info.payment_select);
             const result = await new handlePaymentTransaction_js_1.default(this.app, orderData.customer_info.payment_select).processPayment(carData);
             return result;
         }
@@ -2996,7 +2996,12 @@ class Shopping {
                     delete update.orderData.user_info.shipment_date;
                 }
                 const updateProgress = update.orderData.progress;
-                if (prevProgress !== updateProgress) {
+                if (updateProgress === 'wait' &&
+                    update.orderData.user_info.shipment_number &&
+                    update.orderData.user_info.shipment_number !== origin.orderData.user_info.shipment_number) {
+                    await this.sendNotifications(orderData, 'in_stock');
+                }
+                else if (prevProgress !== updateProgress) {
                     if (updateProgress === 'shipping') {
                         await this.sendNotifications(orderData, 'shipment');
                     }
@@ -3162,6 +3167,7 @@ class Shopping {
         const typeMap = {
             shipment: 'shipment',
             arrival: 'shipment-arrival',
+            in_stock: 'in-stock',
         };
         if (lineID) {
             const line = new line_message_1.LineMessage(this.app);
@@ -3569,7 +3575,6 @@ class Shopping {
              FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
             `, []);
                     timer.checkPoint('finish-query-response_data');
-                    console.log(sql);
                     resolve({
                         data: data,
                         total: (await database_js_1.default.query(`SELECT count(1)
@@ -4733,7 +4738,7 @@ class Shopping {
             query.id && querySql.push(`(v.id = ${query.id})`);
             if (query.id_list) {
                 if ((_a = query.id_list) === null || _a === void 0 ? void 0 : _a.includes('-')) {
-                    querySql.push(`(v.product_id in (${query.id_list.split(',').map((dd) => {
+                    querySql.push(`(v.product_id in (${query.id_list.split(',').map(dd => {
                         return dd.split('-')[0];
                     })}))`);
                 }
@@ -4830,7 +4835,7 @@ class Shopping {
                 if ((_c = query.id_list) === null || _c === void 0 ? void 0 : _c.includes('-')) {
                     data.data = data.data.filter((dd) => {
                         var _a;
-                        return (_a = query.id_list) === null || _a === void 0 ? void 0 : _a.split(',').find((d1) => {
+                        return (_a = query.id_list) === null || _a === void 0 ? void 0 : _a.split(',').find(d1 => {
                             return d1 === [dd.product_id, ...dd.variant_content.spec].join('-');
                         });
                     });

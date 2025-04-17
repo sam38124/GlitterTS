@@ -10,6 +10,11 @@ class AutoFcm {
                 title: '配送狀態已更新',
                 content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 出貨中',
                 toggle: true,
+            }, in_stock: {
+                name: '@{{app_name}}',
+                title: '配送狀態已更新',
+                content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 備貨中',
+                toggle: true,
             }, arrival: {
                 name: '@{{app_name}}',
                 title: '配送狀態已更新',
@@ -64,8 +69,9 @@ class AutoFcm {
                 userID: userData.userID,
                 tag: 'orderChangeInfo',
                 link: `/order_detail?cart_token=${obj.order_id}`,
-                body: orderChangeInfo.content.replace(/@\{\{app_name\}\}/g, (appData && appData.shop_name) || '商店名稱')
-                    .replace(/@\{\{訂單號碼\}\}/g, `#${obj.order_id}`)
+                body: orderChangeInfo.content
+                    .replace(/@\{\{app_name\}\}/g, (appData && appData.shop_name) || '商店名稱')
+                    .replace(/@\{\{訂單號碼\}\}/g, `#${obj.order_id}`),
             });
         }
     }

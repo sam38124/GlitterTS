@@ -866,6 +866,9 @@ export class ShoppingOrderManager {
                                                     }
                                                     gvc.closeDialog();
                                                     orders.forEach(order => {
+                                                        if (['wait', 'returns', undefined].includes(progress)) {
+                                                            order.orderData.user_info.shipment_number = '';
+                                                        }
                                                         order.orderData.progress = progress;
                                                     });
                                                     updateOrders(orders);
@@ -1190,27 +1193,41 @@ export class ShoppingOrderManager {
                           </div>
                           ${BgWidget.mbContainer(12)}
                           <div class="ms-auto w-100">
-                            ${EditorElem.select({
-                                                    title: '',
-                                                    gvc: gvc,
-                                                    def: `${orderData.orderData.progress}`,
-                                                    array: ApiShop.getProgressArray(orderData.orderData.user_info.shipment_number),
-                                                    readonly: orderData.orderData.user_info.shipment_refer === 'paynow' || is_archive,
-                                                    callback: text => {
+                            ${BgWidget.select({
+                                                    gvc,
+                                                    default: (() => {
+                                                        if (!orderData.orderData.progress) {
+                                                            return 'wait';
+                                                        }
+                                                        if (orderData.orderData.progress === 'wait' &&
+                                                            orderData.orderData.user_info.shipment_number) {
+                                                            return 'in_stock';
+                                                        }
+                                                        return orderData.orderData.progress;
+                                                    })(),
+                                                    options: OrderSetting.getShippmentOpt(),
+                                                    callback: (text) => {
+                                                        const emptyStatus = ['wait', 'returns', undefined, ''];
+                                                        const addNumberStatus = ['arrived', 'finish', 'shipping', 'in_stock'];
                                                         function next() {
                                                             if (text && text !== `${orderData.orderData.progress}`) {
                                                                 orderData.orderData.progress = text;
                                                             }
                                                         }
-                                                        if (['', 'wait'].includes(orderData.orderData.progress) &&
-                                                            !orderData.orderData.user_info.shipment_number &&
-                                                            text !== 'pre_order') {
+                                                        if (emptyStatus.includes(orderData.orderData.progress) &&
+                                                            addNumberStatus.includes(text) &&
+                                                            !orderData.orderData.user_info.shipment_number) {
                                                             dialog.checkYesOrNot({
                                                                 text: '尚未新增出貨單，是否隨機取號並變更出貨狀態?',
                                                                 callback: response => {
                                                                     if (response) {
-                                                                        orderData.orderData.user_info.shipment_number = new Date().getTime();
                                                                         next();
+                                                                        orderData.orderData.user_info.shipment_number = emptyStatus.includes(text)
+                                                                            ? ''
+                                                                            : `${new Date().getTime()}`;
+                                                                        if (orderData.orderData.progress === 'in_stock') {
+                                                                            orderData.orderData.progress = 'wait';
+                                                                        }
                                                                         saveEvent();
                                                                     }
                                                                     gvc.notifyDataChange('Edit');
@@ -1221,6 +1238,7 @@ export class ShoppingOrderManager {
                                                             next();
                                                         }
                                                     },
+                                                    readonly: orderData.orderData.user_info.shipment_refer === 'paynow' || is_archive,
                                                 })}
                           </div>`,
                                                 html ` <div class="tx_700">配送方式</div>
@@ -1441,12 +1459,11 @@ export class ShoppingOrderManager {
                                                     : '',
                                                 html `${[
                                                     'UNIMARTC2C',
-                                                    'UNIMARTFREEZE',
                                                     'FAMIC2C',
-                                                    'FAMIC2CFREEZE',
                                                     'OKMARTC2C',
                                                     'HILIFEC2C',
                                                     'normal',
+                                                    'UNIMARTFREEZE',
                                                     'black_cat',
                                                     'black_cat_freezing',
                                                 ].includes(orderData.orderData.user_info.shipment)
@@ -1509,14 +1526,7 @@ export class ShoppingOrderManager {
                                                     const formData = (orderData.orderData.shipment_selector || OrderModule.supportShipmentMethod()).find(dd => {
                                                         return dd.value === orderData.orderData.user_info.shipment;
                                                     });
-                                                    if ([
-                                                        'UNIMARTC2C',
-                                                        'UNIMARTFREEZE',
-                                                        'FAMIC2C',
-                                                        'FAMIC2CFREEZE',
-                                                        'OKMARTC2C',
-                                                        'HILIFEC2C',
-                                                    ].includes(orderData.orderData.user_info.shipment)) {
+                                                    if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'UNIMARTFREEZE'].includes(orderData.orderData.user_info.shipment)) {
                                                         return html `
                                   <div class="d-flex flex-wrap">
                                     <span class="me-2">門市名稱:</span>
@@ -1799,16 +1809,23 @@ export class ShoppingOrderManager {
                                                 var _a;
                                                 return dd.value == ((_a = orderData.orderData.orderStatus) !== null && _a !== void 0 ? _a : '0');
                                             })) === null || _a === void 0 ? void 0 : _a.title
-                                            : EditorElem.select({
+                                            : BgWidget.select({
                                                 title: '',
                                                 gvc: gvc,
-                                                def: (_b = orderData.orderData.orderStatus) !== null && _b !== void 0 ? _b : '0',
-                                                array: [
+                                                default: (_b = orderData.orderData.orderStatus) !== null && _b !== void 0 ? _b : '0',
+                                                options: [
                                                     {
                                                         title: '變更訂單狀態',
                                                         value: '',
                                                     },
-                                                ].concat(ApiShop.getOrderStatusArray()),
+                                                ]
+                                                    .concat(ApiShop.getOrderStatusArray())
+                                                    .map(item => {
+                                                    return {
+                                                        key: item.value,
+                                                        value: item.title,
+                                                    };
+                                                }),
                                                 callback: text => {
                                                     orderData.orderData.orderStatus = orderData.orderData.orderStatus || '0';
                                                     if (text && text !== orderData.orderData.orderStatus) {
@@ -2157,16 +2174,23 @@ export class ShoppingOrderManager {
                                                         .find(dd => {
                                                         return dd.value === `${orderData.status}`;
                                                     })) === null || _d === void 0 ? void 0 : _d.title
-                                                    : EditorElem.select({
+                                                    : BgWidget.select({
                                                         title: '',
                                                         gvc: gvc,
-                                                        def: `${orderData.status}`,
-                                                        array: [
+                                                        default: `${orderData.status}`,
+                                                        options: [
                                                             {
                                                                 title: '變更付款狀態',
                                                                 value: '',
                                                             },
-                                                        ].concat(ApiShop.getStatusArray(orderData.orderData.proof_purchase)),
+                                                        ]
+                                                            .concat(ApiShop.getStatusArray(orderData.orderData.proof_purchase))
+                                                            .map(item => {
+                                                            return {
+                                                                key: item.value,
+                                                                value: item.title,
+                                                            };
+                                                        }),
                                                         callback: text => {
                                                             dialog.checkYesOrNot({
                                                                 text: '是否確認變更付款狀態?',
@@ -2660,7 +2684,7 @@ export class ShoppingOrderManager {
                                                                         return viewModel
                                                                             .map(item => {
                                                                             return html `
-                                                        <div>
+                                                        <div style="word-break: break-all;">
                                                           ${item[0]} :
                                                           ${orderData.orderData.user_info[item[1]] || '未填寫'}
                                                         </div>

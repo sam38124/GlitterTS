@@ -95,6 +95,7 @@ export class OrderSetting {
   static getShippmentOpt() {
     return [
       { title: '未出貨', value: 'wait' },
+      { title: '待預購', value: 'pre_order' },
       { title: '備貨中', value: 'in_stock' },
       { title: '已出貨', value: 'shipping' },
       { title: '已到貨', value: 'arrived' },
@@ -1561,6 +1562,9 @@ export class OrderSetting {
                   callback: (value: any) => {
                     checkArray.forEach((order: any) => {
                       order.orderData.progress = value;
+                      if (['wait', 'returns', undefined].includes(value)) {
+                        order.orderData.user_info.shipment_number = '';
+                      }
                     });
                   },
                 });
