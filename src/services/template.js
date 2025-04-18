@@ -230,7 +230,7 @@ class Template {
             'auto_fcm_push',
             'auto_fcm_advertise',
             'auto_fcm_template',
-            'notify_message_list'
+            'notify_message_list',
         ].includes(query_page)) {
             return 'official-router';
         }

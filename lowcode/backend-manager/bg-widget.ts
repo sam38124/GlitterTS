@@ -9,7 +9,7 @@ import { ApiStock } from '../glitter-base/route/stock.js';
 import { FormModule } from '../cms-plugin/module/form-module.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FormCheck } from '../cms-plugin/module/form-check.js';
-import { Language } from '../glitter-base/global/language.js';
+import { Language, LanguageLocation } from '../glitter-base/global/language.js';
 import { ProductAi } from '../cms-plugin/ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
 import { Animation } from '../glitterBundle/module/Animation.js';
@@ -543,7 +543,7 @@ export class BgWidget {
     });
   }
 
-  static languageInsignia(language: 'en-US' | 'zh-CN' | 'zh-TW', style?: string) {
+  static languageInsignia(language: LanguageLocation, style?: string) {
     switch (language) {
       case 'zh-TW':
         return html` <div class="insignia insignia-sm" style="background: #ffe9b2; ${style || ''};">
@@ -1551,6 +1551,50 @@ ${obj.default ?? ''}</textarea
           ? ``
           : `<option class="d-none" selected>${obj.place_holder || `請選擇項目`}</option>`}
       </select>`;
+  }
+
+  static printOption(gvc: GVC, vmt: { id: string; postData: string[] }, opt: OptionsItem) {
+    const id = `print-option-${opt.key}`;
+    opt.key = `${opt.key}`;
+
+    function call() {
+      if (vmt.postData.includes(opt.key)) {
+        vmt.postData = vmt.postData.filter(item => item !== opt.key);
+      } else {
+        vmt.postData.push(opt.key);
+      }
+      gvc.notifyDataChange(vmt.id);
+    }
+
+    return html`<div class="d-flex align-items-center gap-3 mb-3">
+      ${gvc.bindView({
+        bind: id,
+        view: () => {
+          return html`<input
+            class="form-check-input mt-0 ${BgWidget.getCheckedClass(gvc)}"
+            type="checkbox"
+            id="${opt.key}"
+            name="radio_${opt.key}"
+            onclick="${gvc.event(() => call())}"
+            ${vmt.postData.includes(opt.key) ? 'checked' : ''}
+          />`;
+        },
+        divCreate: {
+          class: 'd-flex align-items-center justify-content-center',
+        },
+      })}
+      <div class="form-check-label c_updown_label cursor_pointer" onclick="${gvc.event(() => call())}">
+        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+        ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+      </div>
+    </div>`;
+  }
+
+  static renderOptions(gvc: GVC, vmt: { id: string; postData: string[]; dataList: any }) {
+    if (vmt.dataList.length === 0) {
+      return html`<div class="d-flex justify-content-center fs-5">查無標籤</div>`;
+    }
+    return vmt.dataList.map((item: any) => this.printOption(gvc, vmt, { key: item, value: item })).join('');
   }
 
   // 頁面

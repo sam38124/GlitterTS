@@ -1256,7 +1256,7 @@ export class UserList {
                                                             '0',
                                                             '0'
                                                           ),
-                                                          UserModule.renderOptions(gvc2, vmt),
+                                                          BgWidget.renderOptions(gvc2, vmt),
                                                         ].join(BgWidget.mbContainer(18));
                                                       }
                                                     },

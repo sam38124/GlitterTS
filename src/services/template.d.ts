@@ -1,4 +1,5 @@
 import { IToken } from '../models/Auth.js';
+import { LanguageLocation } from '../Language.js';
 export declare class Template {
     token?: IToken;
     createPage(config: {
@@ -25,7 +26,7 @@ export declare class Template {
         preview_image: string;
         favorite: number;
         updated_time: any;
-        language?: 'zh-TW' | 'zh-CN' | 'en-US';
+        language?: LanguageLocation;
     }): Promise<boolean>;
     deletePage(config: {
         appName: string;
@@ -63,7 +64,7 @@ export declare class Template {
         favorite?: string;
         preload?: boolean;
         id?: string;
-        language?: 'zh-TW' | 'zh-CN' | 'en-US';
+        language?: LanguageLocation;
     }): Promise<any>;
     constructor(token?: IToken);
 }

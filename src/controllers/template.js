@@ -14,11 +14,11 @@ const seo_config_js_1 = require("../seo-config.js");
 const router = express_1.default.Router();
 router.post('/', async (req, resp) => {
     try {
-        if (!await ut_permission_js_1.UtPermission.isManager(req)) {
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
             throw exception_js_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         else {
-            return response_1.default.succ(resp, { result: (await (new template_1.Template(req.body.token).createPage(req.body))) });
+            return response_1.default.succ(resp, { result: await new template_1.Template(req.body.token).createPage(req.body) });
         }
     }
     catch (err) {
@@ -27,12 +27,12 @@ router.post('/', async (req, resp) => {
 });
 router.put('/', async (req, resp) => {
     try {
-        if (!await ut_permission_js_1.UtPermission.isManager(req)) {
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
             throw exception_js_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         else {
             req.body.language = req.headers['language'];
-            return response_1.default.succ(resp, { result: (await (new template_1.Template(req.body.token).updatePage(req.body))) });
+            return response_1.default.succ(resp, { result: await new template_1.Template(req.body.token).updatePage(req.body) });
         }
     }
     catch (err) {
@@ -41,12 +41,12 @@ router.put('/', async (req, resp) => {
 });
 router.delete('/', async (req, resp) => {
     try {
-        if (!await ut_permission_js_1.UtPermission.isManager(req)) {
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
             throw exception_js_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         else {
             req.body.language = req.headers['language'];
-            return response_1.default.succ(resp, { result: (await (new template_1.Template(req.body.token).deletePage(req.body))) });
+            return response_1.default.succ(resp, { result: await new template_1.Template(req.body.token).deletePage(req.body) });
         }
     }
     catch (err) {
@@ -60,7 +60,7 @@ router.get('/', async (req, resp) => {
         const seo = await seo_config_js_1.SeoConfig.seoDetail(req.query.appName, req, resp);
         let language = req.headers['language'];
         req.query.language = language;
-        const result = (await (new template_1.Template(req.body.token).getPage(req.query)));
+        const result = await new template_1.Template(req.body.token).getPage(req.query);
         let redirect = '';
         if (result.length === 0) {
             try {
@@ -68,11 +68,12 @@ router.get('/', async (req, resp) => {
                                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                   where \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName = ${database_1.default.escape(req.query.appName)}
                 `, []))[0]['config'];
-                if (config && ((await database_1.default.execute(`SELECT count(1)
+                if (config &&
+                    (await database_1.default.execute(`SELECT count(1)
                                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                                   where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_1.default.escape(req.query.appName)}
                                                     and tag = ${database_1.default.escape(config['homePage'])}
-                `, []))[0]["count(1)"] === 1)) {
+                `, []))[0]['count(1)'] === 1) {
                     redirect = config['homePage'];
                 }
                 else {
@@ -82,8 +83,7 @@ router.get('/', async (req, resp) => {
                     `, []))[0]['tag'];
                 }
             }
-            catch (e) {
-            }
+            catch (e) { }
         }
         let preload_data = {};
         if (req.query.preload) {
@@ -93,7 +93,7 @@ router.get('/', async (req, resp) => {
             result: result,
             redirect: redirect,
             preload_data: preload_data,
-            seo_config: seo.seo_detail
+            seo_config: seo.seo_detail,
         });
     }
     catch (err) {
@@ -103,16 +103,16 @@ router.get('/', async (req, resp) => {
 });
 router.post('/create_template', async (req, resp) => {
     try {
-        if (!await ut_permission_js_1.UtPermission.isManager(req)) {
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
             throw exception_js_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         else {
             return response_1.default.succ(resp, {
-                result: (await new template_1.Template(req.body.token).postTemplate({
+                result: await new template_1.Template(req.body.token).postTemplate({
                     appName: req.body.appName,
                     data: req.body.config,
-                    tag: req.body.tag
-                }))
+                    tag: req.body.tag,
+                }),
             });
         }
     }

@@ -1309,6 +1309,47 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             : `<option class="d-none" selected>${obj.place_holder || `請選擇項目`}</option>`}
       </select>`;
     }
+    static printOption(gvc, vmt, opt) {
+        const id = `print-option-${opt.key}`;
+        opt.key = `${opt.key}`;
+        function call() {
+            if (vmt.postData.includes(opt.key)) {
+                vmt.postData = vmt.postData.filter(item => item !== opt.key);
+            }
+            else {
+                vmt.postData.push(opt.key);
+            }
+            gvc.notifyDataChange(vmt.id);
+        }
+        return html `<div class="d-flex align-items-center gap-3 mb-3">
+      ${gvc.bindView({
+            bind: id,
+            view: () => {
+                return html `<input
+            class="form-check-input mt-0 ${BgWidget.getCheckedClass(gvc)}"
+            type="checkbox"
+            id="${opt.key}"
+            name="radio_${opt.key}"
+            onclick="${gvc.event(() => call())}"
+            ${vmt.postData.includes(opt.key) ? 'checked' : ''}
+          />`;
+            },
+            divCreate: {
+                class: 'd-flex align-items-center justify-content-center',
+            },
+        })}
+      <div class="form-check-label c_updown_label cursor_pointer" onclick="${gvc.event(() => call())}">
+        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+        ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+      </div>
+    </div>`;
+    }
+    static renderOptions(gvc, vmt) {
+        if (vmt.dataList.length === 0) {
+            return html `<div class="d-flex justify-content-center fs-5">查無標籤</div>`;
+        }
+        return vmt.dataList.map((item) => this.printOption(gvc, vmt, { key: item, value: item })).join('');
+    }
     static maintenance() {
         return html ` <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
       <iframe

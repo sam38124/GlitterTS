@@ -1,5 +1,6 @@
 import { IToken } from '../models/Auth.js';
 import { DeliveryData } from './delivery.js';
+import { LanguageLocation } from '../../Language.js';
 type BindItem = {
     id: string;
     spec: string[];
@@ -315,6 +316,14 @@ export declare class Shopping {
         total: any;
         result?: undefined;
     }>;
+    initProductCustomizeTagConifg(): Promise<any>;
+    setProductCustomizeTagConifg(add_tags: string[]): Promise<{
+        list: any[];
+    }>;
+    initProductGeneralTagConifg(): Promise<any>;
+    setProductGeneralTagConifg(add_tags: {
+        [k in LanguageLocation]: string[];
+    }): Promise<any>;
     getAllUseVoucher(userID: any): Promise<VoucherData[]>;
     getDistributionRecommend(distribution_code: string): Promise<any>;
     aboutProductVoucher(json: {
@@ -417,7 +426,7 @@ export declare class Shopping {
             count: number;
             voucher_id: string;
         }[];
-        language?: 'en-US' | 'zh-CN' | 'zh-TW';
+        language?: LanguageLocation;
         pos_info?: any;
         invoice_select?: string;
         pre_order?: boolean;

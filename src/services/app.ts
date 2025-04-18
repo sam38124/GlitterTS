@@ -16,6 +16,7 @@ import Tool from './tool';
 import path from 'path';
 import { AppInitial } from './app-initial.js';
 import { User } from '../api-public/services/user.js';
+import { LanguageLocation } from '../Language.js';
 
 export class App {
   public token?: IToken;
@@ -596,7 +597,7 @@ export class App {
     }
   }
 
-  public static async preloadPageData(appName: string, refer_page: string, language: 'zh-TW' | 'zh-CN' | 'en-US') {
+  public static async preloadPageData(appName: string, refer_page: string, language: LanguageLocation) {
     const start = new Date().getTime();
     const page = await Template.getRealPage(refer_page, appName);
     console.log(`preload-0==>`, (new Date().getTime() - start) / 1000);

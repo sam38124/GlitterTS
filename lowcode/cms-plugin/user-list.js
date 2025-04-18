@@ -1095,7 +1095,7 @@ export class UserList {
                                                                                         vmt.loading = true;
                                                                                         gvc2.notifyDataChange(vmt.id);
                                                                                     }), vmt.search, '搜尋標籤', '0', '0'),
-                                                                                    UserModule.renderOptions(gvc2, vmt),
+                                                                                    BgWidget.renderOptions(gvc2, vmt),
                                                                                 ].join(BgWidget.mbContainer(18));
                                                                             }
                                                                         },

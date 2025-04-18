@@ -1,4 +1,5 @@
-import { IToken } from "../../models/Auth.js";
+import { IToken } from '../../models/Auth.js';
+import { LanguageLocation } from '../../Language.js';
 export declare class Manager {
     token: IToken;
     setConfig(config: {
@@ -9,8 +10,8 @@ export declare class Manager {
     static getConfig(config: {
         appName: string;
         key: string;
-        language: 'zh-TW' | 'zh-CN' | 'en-US';
+        language: LanguageLocation;
     }): Promise<any[]>;
-    static checkData(data: any[], language: 'zh-TW' | 'zh-CN' | 'en-US'): Promise<any[]>;
+    static checkData(data: any[], language: LanguageLocation): Promise<any[]>;
     constructor(token: IToken);
 }

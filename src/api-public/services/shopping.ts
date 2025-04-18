@@ -35,6 +35,7 @@ import { ProductInitial } from './product-initial.js';
 import { UtTimer } from '../utils/ut-timer.js';
 import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
 import PaymentTransaction from './model/handlePaymentTransaction.js';
+import { Language, LanguageLocation } from '../../Language.js';
 
 type BindItem = {
   id: string;
@@ -453,6 +454,9 @@ export class Shopping {
       const idStr = query.id_list ? query.id_list.split(',').filter(Boolean).join(',') : '';
       query.language = query.language ?? store_info.language_setting.def;
       query.show_hidden = query.show_hidden ?? 'true';
+
+      // 初始化商品與管理員標籤 Config
+      await Promise.all([this.initProductCustomizeTagConifg(), this.initProductGeneralTagConifg()]);
 
       const orderMapping: Record<string, string> = {
         title: `ORDER BY JSON_EXTRACT(content, '$.title')`,
@@ -997,6 +1001,7 @@ export class Shopping {
 
         products.data = foundProduct || products.data[0];
       }
+
       if (query.id && products.data.length > 0) {
         products.data = products.data[0];
       }
@@ -1196,6 +1201,121 @@ export class Shopping {
       console.error(e);
       throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
     }
+  }
+
+  async initProductCustomizeTagConifg() {
+    try {
+      const managerTags = await new User(this.app).getConfigV2({ key: 'product_manager_tags', user_id: 'manager' });
+
+      if (managerTags && Array.isArray(managerTags.list)) {
+        return managerTags;
+      }
+
+      const getData = await db.query(
+        `
+          SELECT 
+            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
+          FROM \`${this.app}\`.t_manager_post
+          WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
+        `,
+        []
+      );
+      const unique_tags_string = getData[0]?.unique_tags ?? '';
+      const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
+      const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
+      const data = { list: [...new Set(unique_tags_flot)] };
+
+      await new User(this.app).setConfig({
+        key: 'product_manager_tags',
+        user_id: 'manager',
+        value: data,
+      });
+
+      return data;
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Set customize tag conifg Error:' + e, null);
+    }
+  }
+
+  async setProductCustomizeTagConifg(add_tags: string[]) {
+    const tagConfig = await new User(this.app).getConfigV2({ key: 'product_manager_tags', user_id: 'manager' });
+    const tagList = tagConfig?.list ?? [];
+    const data = { list: [...new Set([...tagList, ...add_tags])] };
+
+    await new User(this.app).setConfig({
+      key: 'product_manager_tags',
+      user_id: 'manager',
+      value: data,
+    });
+
+    return data;
+  }
+
+  async initProductGeneralTagConifg() {
+    try {
+      const generalTags = await new User(this.app).getConfigV2({ key: 'product_general_tags', user_id: 'manager' });
+
+      if (generalTags && Array.isArray(generalTags.list)) {
+        return generalTags;
+      }
+
+      const getData = await db.query(
+        `
+          SELECT 
+            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_tag.language')) SEPARATOR ',') AS unique_tags
+          FROM \`${this.app}\`.t_manager_post
+          WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
+        `,
+        []
+      );
+      const unique_tags_string = getData[0]?.unique_tags ?? '';
+      const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
+      const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
+      const list: { [k in LanguageLocation]?: string[] } = {};
+
+      unique_tags_flot.map(item => {
+        Language.locationList.map(lang => {
+          list[lang] = [...(list[lang] ?? []), ...item[lang]];
+        });
+      });
+
+      Language.locationList.map(lang => {
+        list[lang] = [...new Set(list[lang])];
+      });
+
+      const data = { list };
+      await new User(this.app).setConfig({
+        key: 'product_general_tags',
+        user_id: 'manager',
+        value: data,
+      });
+
+      return data;
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Set general tag conifg Error:' + e, null);
+    }
+  }
+
+  async setProductGeneralTagConifg(add_tags: { [k in LanguageLocation]: string[] }) {
+    const tagConfig =
+      (await new User(this.app).getConfigV2({ key: 'product_general_tags', user_id: 'manager' })) ??
+      (await this.initProductGeneralTagConifg());
+
+    tagConfig.list ??= {};
+
+    Language.locationList.map(lang => {
+      const originList = tagConfig.list[lang] ?? [];
+      const updateList = add_tags[lang];
+      tagConfig.list[lang] = [...new Set([...originList, ...updateList])];
+    });
+
+    await new User(this.app).setConfig({
+      key: 'product_general_tags',
+      user_id: 'manager',
+      value: tagConfig,
+    });
+
+    return tagConfig;
   }
 
   async getAllUseVoucher(userID: any): Promise<VoucherData[]> {
@@ -1797,7 +1917,7 @@ export class Shopping {
         count: number;
         voucher_id: string;
       }[];
-      language?: 'en-US' | 'zh-CN' | 'zh-TW';
+      language?: LanguageLocation;
       pos_info?: any; //POS結帳資訊;
       invoice_select?: string;
       pre_order?: boolean;
@@ -3181,7 +3301,7 @@ export class Shopping {
           count: number;
           voucher_id: string;
         }[];
-        language?: 'en-US' | 'zh-CN' | 'zh-TW';
+        language?: LanguageLocation;
         pos_info?: any; //POS結帳資訊;
         invoice_select?: string;
         pre_order?: boolean;
@@ -6157,33 +6277,42 @@ export class Shopping {
   }
 
   async putProduct(content: any) {
-    if (content.language_data) {
-      const language = await App.getSupportLanguage(this.app);
-      for (const b of language) {
-        const find_conflict = await db.query(
-          `select count(1)
-           from \`${this.app}\`.\`t_manager_post\`
-           where content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
-             and id != ${content.id}`,
-          []
-        );
-        if (find_conflict[0]['count(1)'] > 0) {
-          throw exception.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
-            message: '網域已被使用',
-            code: '733',
-          });
-        }
-      }
-    }
-
     try {
       content.type = 'product';
 
+      // 檢查 seo domain 是否重複
+      if (content.language_data) {
+        const language = await App.getSupportLanguage(this.app);
+        for (const b of language) {
+          const find_conflict = await db.query(
+            `SELECT count(1)
+           FROM \`${this.app}\`.t_manager_post
+           WHERE content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
+             AND id != ${content.id}`,
+            []
+          );
+          if (find_conflict[0]['count(1)'] > 0) {
+            throw exception.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
+              message: '網域已被使用',
+              code: '733',
+            });
+          }
+        }
+      }
+
+      // 檢查 Variant 資料屬性
       this.checkVariantDataType(content.variants);
-      const data = await db.query(
-        `update \`${this.app}\`.\`t_manager_post\`
-         SET ?
-         where id = ?`,
+
+      // 重新設置管理員標籤
+      await Promise.all([
+        this.setProductCustomizeTagConifg(content.product_customize_tag ?? []),
+        this.setProductGeneralTagConifg(content.product_tag?.language ?? []),
+      ]);
+
+      // 更新商品
+      await db.query(
+        `UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
+        `,
         [
           {
             content: JSON.stringify(content),
@@ -6191,7 +6320,11 @@ export class Shopping {
           content.id,
         ]
       );
+
+      // 更新商品 Variant
       await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
+
+      // 同步更新蝦皮
       if (content.shopee_id) {
         await new Shopee(this.app, this.token).asyncStockToShopee({
           product: {

@@ -587,7 +587,12 @@ export class Language {
                 cn: '此电话号码已存在',
                 en: 'This phone number already exists',
             },
-            { key: 'phone_verify_check', tw: '請前往認證電話號碼', cn: '請前往認證電話號碼', en: 'Please proceed to verify your phone number.' },
+            {
+                key: 'phone_verify_check',
+                tw: '請前往認證電話號碼',
+                cn: '請前往認證電話號碼',
+                en: 'Please proceed to verify your phone number.',
+            },
             { key: 'email_already_exists', tw: '此信箱已存在', cn: '此邮箱已存在', en: 'This email already exists' },
             { key: 'update_exception', tw: '更新異常', cn: '更新异常', en: 'Update Exception' },
             { key: 'change_success', tw: '更改成功', cn: '更改成功', en: 'Change Success' },

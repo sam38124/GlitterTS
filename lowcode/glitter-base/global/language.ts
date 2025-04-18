@@ -1,3 +1,5 @@
+export type LanguageLocation = 'en-US' | 'zh-CN' | 'zh-TW';
+
 export class Language {
   public static languageSupport() {
     const sup = [
@@ -453,8 +455,8 @@ export class Language {
       { key: 'my', tw: '我的', cn: '我的', en: 'My' },
       { key: 'my_coupons', tw: '我的優惠券', cn: '我的优惠券', en: 'Coupons' },
       { key: 'coupons', tw: '優惠券', cn: '优惠券', en: 'Coupons' },
-      {key: 'wait_ship',tw:'待出貨',cn: `待出货`,en: `To Ship`},
-      {key: 'shipped',tw:'已出貨',cn: `已出货`,en: `Shipped`},
+      { key: 'wait_ship', tw: '待出貨', cn: `待出货`, en: `To Ship` },
+      { key: 'shipped', tw: '已出貨', cn: `已出货`, en: `Shipped` },
       { key: 'order_history', tw: '訂單記錄', cn: '订单记录', en: 'OrderEvent History' },
       { key: 'wishlist', tw: '心願單', cn: '心愿单', en: 'Wishlist' },
       { key: 'add_to_wishlist', tw: '添加至心願單', cn: '添加至心愿单', en: 'Add to Wishlist' },
@@ -595,7 +597,12 @@ export class Language {
         cn: '此电话号码已存在',
         en: 'This phone number already exists',
       },
-      { key: 'phone_verify_check', tw: '請前往認證電話號碼', cn: '請前往認證電話號碼', en: 'Please proceed to verify your phone number.' },
+      {
+        key: 'phone_verify_check',
+        tw: '請前往認證電話號碼',
+        cn: '請前往認證電話號碼',
+        en: 'Please proceed to verify your phone number.',
+      },
       { key: 'email_already_exists', tw: '此信箱已存在', cn: '此邮箱已存在', en: 'This email already exists' },
       { key: 'update_exception', tw: '更新異常', cn: '更新异常', en: 'Update Exception' },
       { key: 'change_success', tw: '更改成功', cn: '更改成功', en: 'Change Success' },
@@ -944,7 +951,6 @@ export class Language {
       { key: 'quick_input', tw: '快速帶入', cn: '快速带入', en: 'Quick Fill' },
       { key: 'home_page', tw: '首頁', cn: '首页', en: 'Home page' },
       { key: 'account_user_info', tw: '會員中心', cn: '会员中心', en: 'Member Center' },
-
     ];
   }
 

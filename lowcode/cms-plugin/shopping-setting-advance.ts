@@ -3,6 +3,7 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
 import { ApiUser } from '../glitter-base/route/user.js';
+import { LanguageLocation } from '../glitter-base/global/language.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { QuestionInfo } from './module/question-info.js';
 import { Tool } from '../modules/tool.js';
@@ -16,7 +17,7 @@ export class ShoppingSettingAdvance {
     vm: any;
     vm2: {
       id: string;
-      language: any;
+      language: LanguageLocation;
       content_detail: any;
     };
     reload: () => void;
@@ -45,11 +46,30 @@ export class ShoppingSettingAdvance {
                 [
                   html`
                     <div class="guide5-4">
-                      <div class="d-flex align-items-center">
-                        <div style="color: #393939; font-weight: 700;">${carTitle}標籤</div>
-                        ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                          <div class="d-flex align-items-center">
+                            <div style="color: #393939; font-weight: 700;">${carTitle}標籤</div>
+                            ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
+                          </div>
+                          ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + carTitle)} ${BgWidget.mbContainer(4)}
+                        </div>
+                        ${BgWidget.blueNote(
+                          '使用現有標籤',
+                          gvc.event(() => {
+                            BgProduct.useProductTags({
+                              gvc,
+                              config_key: 'product_general_tags',
+                              config_lang: vm.language,
+                              def: (postMD.product_tag.language as any)[vm.language] ?? [],
+                              callback: tags => {
+                                (postMD.product_tag.language as any)[vm.language] = tags;
+                                gvc.notifyDataChange(id);
+                              },
+                            });
+                          })
+                        )}
                       </div>
-                      ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + carTitle)} ${BgWidget.mbContainer(4)}
                       ${BgWidget.multipleInput(gvc, (postMD.product_tag.language as any)[vm.language], {
                         save: def => {
                           (postMD.product_tag.language as any)[vm.language] = def;
@@ -58,15 +78,36 @@ export class ShoppingSettingAdvance {
                     </div>
                   `,
                   html`
-                    <div>
-                      <div style="color: #393939; font-weight: 700;">${carTitle}管理員標籤</div>
-                      ${BgWidget.grayNote('操作後台人員登記與分類用，不會顯示於前台')} ${BgWidget.mbContainer(4)}
-                      ${BgWidget.multipleInput(gvc, postMD.product_customize_tag ?? [], {
-                        save: def => {
-                          postMD.product_customize_tag = def;
-                        },
-                      })}
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div>
+                        <div style="color: #393939; font-weight: 700;">${carTitle}管理員標籤</div>
+                        ${BgWidget.grayNote('操作後台人員登記與分類用，不會顯示於前台')} ${BgWidget.mbContainer(4)}
+                      </div>
+                      ${BgWidget.blueNote(
+                        '使用現有標籤',
+                        gvc.event(() => {
+                          BgProduct.useProductTags({
+                            gvc,
+                            config_key: 'product_manager_tags',
+                            def: postMD.product_customize_tag ?? [],
+                            callback: tags => {
+                              postMD.product_customize_tag = tags;
+                              gvc.notifyDataChange(id);
+                            },
+                          });
+                        })
+                      )}
                     </div>
+                    ${BgWidget.multipleInput(
+                      gvc,
+                      postMD.product_customize_tag ?? [],
+                      {
+                        save: def => {
+                          postMD.product_customize_tag = [...new Set(def)];
+                        },
+                      },
+                      true
+                    )}
                   `,
                   html` <div class="d-flex align-items-center gap-2">
                       <div style="color: #393939; font-weight: 700;">${carTitle}促銷標籤</div>
@@ -141,7 +182,7 @@ export class ShoppingSettingAdvance {
                       type: 'text',
                       placeHolder: '數字越大商品排序會越靠前',
                       callback: (text: any) => {
-                        postMD.sort_weight=text
+                        postMD.sort_weight = text;
                         gvc.notifyDataChange(id);
                       },
                     })}

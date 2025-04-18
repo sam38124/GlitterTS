@@ -2,6 +2,7 @@ import { GVC } from '../glitterBundle/GVController.js';
 import { BgWidget } from './bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
+import { LanguageLocation } from '../glitter-base/global/language.js';
 import { FilterOptions } from '../cms-plugin/filter-options.js';
 import { StockList } from '../cms-plugin/shopping-product-stock.js';
 import { ProductConfig } from '../cms-plugin/product-config.js';
@@ -878,5 +879,94 @@ export class BgProduct {
         divCreate: {},
       });
     }, 'setUserTagPriceSetting');
+  }
+
+  static useProductTags(obj: {
+    gvc: GVC;
+    config_key: 'product_manager_tags' | 'product_general_tags';
+    config_lang?: LanguageLocation;
+    def: string[];
+    callback: (dataArray: string[]) => void;
+  }) {
+    const gvc = obj.gvc;
+
+    const vmt = {
+      id: gvc.glitter.getUUID(),
+      loading: true,
+      search: '',
+      dataList: [] as string[],
+      postData: obj.def,
+    };
+
+    return BgWidget.settingDialog({
+      gvc,
+      title: '使用現有標籤',
+      innerHTML: gvc2 => {
+        return gvc2.bindView({
+          bind: vmt.id,
+          view: () => {
+            if (vmt.loading) {
+              return BgWidget.spinner();
+            } else {
+              return [
+                BgWidget.searchPlace(
+                  gvc2.event(e => {
+                    vmt.search = e.value;
+                    vmt.loading = true;
+                    gvc2.notifyDataChange(vmt.id);
+                  }),
+                  vmt.search,
+                  '搜尋標籤',
+                  '0',
+                  '0'
+                ),
+                BgWidget.renderOptions(gvc2, vmt),
+              ].join(BgWidget.mbContainer(18));
+            }
+          },
+          divCreate: {},
+          onCreate: () => {
+            if (vmt.loading) {
+              ApiUser.getPublicConfig(obj.config_key, 'manager').then((dd: any) => {
+                if (dd.result && dd.response?.value?.list) {
+                  const responseList = obj.config_lang
+                    ? dd.response.value.list[obj.config_lang]
+                    : dd.response.value.list;
+                  const list = [...new Set([...responseList, ...obj.def])];
+                  vmt.dataList = list.filter((item: string) => item.includes(vmt.search));
+                }
+                vmt.loading = false;
+                gvc2.notifyDataChange(vmt.id);
+              });
+            }
+          },
+        });
+      },
+      footer_html: gvc2 => {
+        return [
+          html`<div
+            style="color: #393939; text-decoration-line: underline; cursor: pointer"
+            onclick="${gvc2.event(() => {
+              vmt.postData = [];
+              vmt.loading = true;
+              gvc2.notifyDataChange(vmt.id);
+            })}"
+          >
+            清除全部
+          </div>`,
+          BgWidget.cancel(
+            gvc2.event(() => {
+              gvc2.closeDialog();
+            })
+          ),
+          BgWidget.save(
+            gvc2.event(() => {
+              obj.callback(vmt.postData);
+              gvc2.closeDialog();
+            })
+          ),
+        ].join('');
+      },
+    });
   }
 }

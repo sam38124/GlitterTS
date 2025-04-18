@@ -6,7 +6,7 @@ import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
 import { CheckInput } from '../modules/checkInput.js';
-import { Language } from '../glitter-base/global/language.js';
+import { Language, LanguageLocation } from '../glitter-base/global/language.js';
 
 type ViewModel = {
   id: string;
@@ -33,8 +33,6 @@ interface LanguageData {
     content: string;
   };
 }
-
-type LanguageLocation = 'en-US' | 'zh-CN' | 'zh-TW';
 
 type Collection = {
   title: string;
