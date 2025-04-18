@@ -503,6 +503,8 @@ export class FilterOptions {
     status: [],
     channel: [],
     collection: [],
+    general_tag: [],
+    manager_tag: [],
   };
 
   static productFunnel = [
@@ -525,6 +527,24 @@ export class FilterOptions {
         { key: 'normal', name: 'APP & 官網' },
         { key: 'pos', name: 'POS' },
       ],
+    },
+    {
+      key: 'collection',
+      type: 'multi_checkbox',
+      name: '商品分類',
+      data: [],
+    },
+    {
+      key: 'general_tag',
+      type: 'search_and_select',
+      name: '商品標籤',
+      data: [],
+    },
+    {
+      key: 'manager_tag',
+      type: 'search_and_select',
+      name: '商品管理標籤',
+      data: [],
     },
   ];
 

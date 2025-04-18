@@ -292,6 +292,8 @@ export declare class Shopping {
         max_price?: string;
         status?: string;
         channel?: string;
+        general_tag?: string;
+        manager_tag?: string;
         whereStore?: string;
         order_by?: string;
         id_list?: string;

@@ -373,6 +373,28 @@ class Shopping {
                     querySql.push(`(content->>'$.channel' IS NULL ${channelJoin})`);
                 }
             }
+            if (query.manager_tag) {
+                const tagSplit = query.manager_tag.split(',').map(tag => tag.trim());
+                if (tagSplit.length > 0) {
+                    const tagJoin = tagSplit.map(tag => {
+                        return `JSON_CONTAINS(content->>'$.product_customize_tag', '"${tag}"')`;
+                    });
+                    querySql.push(`(${tagJoin.join(' OR ')})`);
+                }
+            }
+            if (query.general_tag) {
+                const tagSplit = query.general_tag.split(',').map(tag => tag.trim());
+                if (tagSplit.length > 0) {
+                    const tagJoin = tagSplit.map(tag => {
+                        var _a;
+                        return `(JSON_CONTAINS(
+              JSON_EXTRACT(content, '$.product_tag.language."${(_a = query.language) !== null && _a !== void 0 ? _a : 'zh-TW'}"'),
+              JSON_QUOTE('${tag}')
+              ))`;
+                    });
+                    querySql.push(`(${tagJoin.join(' OR ')})`);
+                }
+            }
             if (query.id_list && idStr) {
                 querySql.push(`(id in (${idStr}))`);
             }

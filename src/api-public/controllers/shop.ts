@@ -197,10 +197,7 @@ router.post('/checkout/repay', async (req: express.Request, resp: express.Respon
   try {
     return response.succ(
       resp,
-      await new Shopping(req.get('g-app') as string, req.body.token).repayOrder(
-        req.body.order_id,
-        req.body.return_url
-      )
+      await new Shopping(req.get('g-app') as string, req.body.token).repayOrder(req.body.order_id, req.body.return_url)
       // await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
       //   {
       //     return_url: req.body.return_url,
@@ -870,11 +867,14 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
           TYPE: keyData.TYPE,
         }).decode(req.body.TradeInfo);
 
-        decodeData = JSON.parse(decode.replace(/[\u0000-\u001F]+/g, '') // 控制字元
-          .replace(/[\u007F-\u009F]/g, '')  // 非ASCII控制字元
-          .replace(/\\'/g, "'")             // 修正單引號轉義
-          .replace(/[\r\n]+/g, '\\n'));
-        console.log(`decodeData==>`,decodeData)
+        decodeData = JSON.parse(
+          decode
+            .replace(/[\u0000-\u001F]+/g, '') // 控制字元
+            .replace(/[\u007F-\u009F]/g, '') // 非ASCII控制字元
+            .replace(/\\'/g, "'") // 修正單引號轉義
+            .replace(/[\r\n]+/g, '\\n')
+        );
+        console.log(`decodeData==>`, decodeData);
       }
       // 執行付款完成之訂單事件
       if (decodeData['Status'] === 'SUCCESS') {
@@ -888,7 +888,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
   } catch (err) {
     console.log(`notify-error`, req.body);
     console.error(err);
-    CaughtError.warning(`checkout-notify`,`${err}`,`${err}`)
+    CaughtError.warning(`checkout-notify`, `${err}`, `${err}`);
     return response.fail(resp, err);
   }
 });
@@ -1108,6 +1108,8 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
       max_price: req.query.max_price as string,
       status: req.query.status as string,
       channel: req.query.channel as string,
+      general_tag: req.query.general_tag as string,
+      manager_tag: req.query.manager_tag as string,
       whereStore: req.query.whereStore as string,
       id_list: req.query.id_list as string,
       order_by: req.query.order_by as string,

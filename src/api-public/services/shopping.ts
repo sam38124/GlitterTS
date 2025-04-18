@@ -427,6 +427,8 @@ export class Shopping {
     max_price?: string;
     status?: string;
     channel?: string;
+    general_tag?: string;
+    manager_tag?: string;
     whereStore?: string;
     order_by?: string;
     id_list?: string;
@@ -716,6 +718,29 @@ export class Shopping {
             return `OR JSON_CONTAINS(content->>'$.channel', '"${channel}"')`;
           });
           querySql.push(`(content->>'$.channel' IS NULL ${channelJoin})`);
+        }
+      }
+
+      if (query.manager_tag) {
+        const tagSplit = query.manager_tag.split(',').map(tag => tag.trim());
+        if (tagSplit.length > 0) {
+          const tagJoin = tagSplit.map(tag => {
+            return `JSON_CONTAINS(content->>'$.product_customize_tag', '"${tag}"')`;
+          });
+          querySql.push(`(${tagJoin.join(' OR ')})`);
+        }
+      }
+
+      if (query.general_tag) {
+        const tagSplit = query.general_tag.split(',').map(tag => tag.trim());
+        if (tagSplit.length > 0) {
+          const tagJoin = tagSplit.map(tag => {
+            return `(JSON_CONTAINS(
+              JSON_EXTRACT(content, '$.product_tag.language."${query.language ?? 'zh-TW'}"'),
+              JSON_QUOTE('${tag}')
+              ))`;
+          });
+          querySql.push(`(${tagJoin.join(' OR ')})`);
         }
       }
 

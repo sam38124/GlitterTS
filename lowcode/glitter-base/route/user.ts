@@ -220,7 +220,7 @@ export class ApiUser {
   }
 
   public static phoneVerify(phone_number: string) {
-    return new Promise<{result:boolean,response:any}>((resolve, reject) => {
+    return new Promise<{ result: boolean; response: any }>((resolve, reject) => {
       BaseApi.create({
         url: getBaseUrl() + `/api-public/v1/user/phone-verify`,
         type: 'POST',
@@ -231,17 +231,17 @@ export class ApiUser {
         data: JSON.stringify({
           phone_number: phone_number,
         }),
-      }).then((res)=>{
-        if(res.response.out_limit){
-         const dialog=new ShareDialog((window as any).glitter);
-         dialog.errorMessage({
-           text:'連續驗證失敗超過三次，請聯絡客服進行修改'
-         })
-        }else{
-          resolve(res)
+      }).then(res => {
+        if (res.response.out_limit) {
+          const dialog = new ShareDialog((window as any).glitter);
+          dialog.errorMessage({
+            text: '連續驗證失敗超過三次，請聯絡客服進行修改',
+          });
+        } else {
+          resolve(res);
         }
-      })
-    })
+      });
+    });
   }
 
   public static registerFCM(userID: string, deviceToken: string, app_name?: string) {

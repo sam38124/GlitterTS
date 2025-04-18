@@ -1348,7 +1348,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         if (vmt.dataList.length === 0) {
             return html `<div class="d-flex justify-content-center fs-5">查無標籤</div>`;
         }
-        return vmt.dataList.map((item) => this.printOption(gvc, vmt, { key: item, value: item })).join('');
+        return vmt.dataList.map((item) => this.printOption(gvc, vmt, { key: item, value: `#${item}` })).join('');
     }
     static maintenance() {
         return html ` <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
@@ -2149,7 +2149,50 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             },
         });
     }
+    static searchSelectContainer(gvc, button_title, data, def, callback) {
+        const id = gvc.glitter.getUUID();
+        let loading = true;
+        let search = '';
+        return gvc.bindView({
+            bind: id,
+            view: () => {
+                try {
+                    def || (def = []);
+                    return [
+                        this.grayButton(loading ? button_title : '確認', gvc.event(() => {
+                            loading = !loading;
+                            gvc.notifyDataChange(id);
+                        }), {
+                            class: 'w-100',
+                        }),
+                        loading
+                            ? html `<div class="d-flex flex-wrap gap-2">
+                  ${def.map(item => this.normalInsignia(`#${item}`)).join('')}
+                </div>`
+                            : this.mainCard([
+                                this.searchPlace(gvc.event(e => {
+                                    search = e.value;
+                                    gvc.notifyDataChange(id);
+                                }), search || '', '搜尋', '0', '0'),
+                                this.multiCheckboxContainer(gvc, data.filter(item => item.name.includes(search)), def, stringArray => {
+                                    def = stringArray;
+                                    callback(stringArray);
+                                }, {
+                                    single: false,
+                                    containerStyle: 'overflow: auto; max-height: 310px;',
+                                }),
+                            ].join(this.mbContainer(12))),
+                    ].join(this.mbContainer(12));
+                }
+                catch (error) {
+                    console.error(error);
+                    return '';
+                }
+            },
+        });
+    }
     static multiCheckboxContainer(gvc, data, def, callback, obj) {
+        var _a;
         const id = gvc.glitter.getUUID();
         const inputColor = obj && obj.readonly ? '#808080' : undefined;
         const randomString = obj && obj.single ? this.getWhiteDotClass(gvc, inputColor) : this.getCheckedClass(gvc, inputColor);
@@ -2209,6 +2252,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
           `;
                 });
                 return html ` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+            },
+            divCreate: {
+                style: (_a = obj === null || obj === void 0 ? void 0 : obj.containerStyle) !== null && _a !== void 0 ? _a : '',
             },
         });
     }

@@ -410,6 +410,8 @@ export class ApiShop {
     minPrice?: string;
     status?: string;
     channel?: string;
+    general_tag?: string;
+    manager_tag?: string;
     whereStore?: string;
     schedule?: boolean;
     orderBy?: string;
@@ -438,6 +440,8 @@ export class ApiShop {
           json.minPrice && par.push(`min_price=${json.minPrice}`);
           json.status && par.push(`status=${json.status}`);
           json.channel && par.push(`channel=${json.channel}`);
+          json.general_tag && par.push(`general_tag=${json.general_tag}`);
+          json.manager_tag && par.push(`manager_tag=${json.manager_tag}`);
           json.whereStore && par.push(`whereStore=${json.whereStore}`);
           if (json.schedule === true || json.schedule === false) {
             par.push(`schedule=${json.schedule}`);

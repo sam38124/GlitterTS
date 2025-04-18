@@ -220,11 +220,11 @@ export class ApiUser {
                 data: JSON.stringify({
                     phone_number: phone_number,
                 }),
-            }).then((res) => {
+            }).then(res => {
                 if (res.response.out_limit) {
                     const dialog = new ShareDialog(window.glitter);
                     dialog.errorMessage({
-                        text: '連續驗證失敗超過三次，請聯絡客服進行修改'
+                        text: '連續驗證失敗超過三次，請聯絡客服進行修改',
                     });
                 }
                 else {

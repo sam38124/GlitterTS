@@ -969,4 +969,67 @@ export class BgProduct {
       },
     });
   }
+
+  static async getProductGeneralTag() {
+    return await ApiUser.getPublicConfig('product_general_tags', 'manager').then((dd: any) => {
+      if (dd.result && dd.response?.value?.list) {
+        const defaultLanguage = (window.parent as any)?.store_info?.language_setting?.def ?? 'zh-TW';
+        const result: { lang: LanguageLocation; tag: string }[] = [];
+
+        // 遍歷每個語言和標籤
+        for (const [lang, tags] of Object.entries(dd.response.value.list)) {
+          (tags as string[]).forEach(tag => {
+            result.push({
+              lang: lang as LanguageLocation,
+              tag,
+            });
+          });
+        }
+
+        return result
+          .filter(item => item.lang === defaultLanguage)
+          .map(item => {
+            return {
+              key: item.tag,
+              name: `#${item.tag}`,
+            };
+          });
+      }
+      return [];
+    });
+  }
+
+  static async getProductManagerTag() {
+    return await ApiUser.getPublicConfig('product_manager_tags', 'manager').then((dd: any) => {
+      if (dd.result && dd.response?.value?.list) {
+        return dd.response.value.list.map((item: string) => {
+          return {
+            key: item,
+            name: `#${item}`,
+          };
+        });
+      }
+      return [];
+    });
+  }
+
+  static async getCollectonCheckData() {
+    return await new Promise<{ key: string; name: string }[]>((resolve, reject) => {
+      try {
+        let collections: OptionsItem[] = [];
+        this.getCollectionAllOpts(collections, () => {
+          resolve(
+            collections.map(item => {
+              return {
+                key: `${item.key}`,
+                name: item.value,
+              };
+            })
+          );
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    });
+  }
 }
