@@ -35,6 +35,7 @@ import { ProductInitial } from './product-initial.js';
 import { UtTimer } from '../utils/ut-timer.js';
 import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
 import PaymentTransaction from './model/handlePaymentTransaction.js';
+import { Language, LanguageLocation } from '../../Language.js';
 
 type BindItem = {
   id: string;
@@ -206,16 +207,17 @@ class OrderDetail {
     custom_form_delivery?: any;
     shipment:
       | 'normal'
-      | 'FAMIC2C'
       | 'black_cat_freezing'
-      | 'UNIMARTC2C'
-      | 'HILIFEC2C'
-      | 'OKMARTC2C'
       | 'now'
       | 'shop'
       | 'global_express'
       | 'black_cat'
-      | 'UNIMARTFREEZE';
+      | 'UNIMARTC2C'
+      | 'FAMIC2C'
+      | 'HILIFEC2C'
+      | 'OKMARTC2C'
+      | 'UNIMARTFREEZE'
+      | 'FAMIC2CFREEZE';
     CVSStoreName: string;
     CVSStoreID: string;
     CVSTelephone: string;
@@ -425,6 +427,8 @@ export class Shopping {
     max_price?: string;
     status?: string;
     channel?: string;
+    general_tag?: string;
+    manager_tag?: string;
     whereStore?: string;
     order_by?: string;
     id_list?: string;
@@ -452,6 +456,9 @@ export class Shopping {
       const idStr = query.id_list ? query.id_list.split(',').filter(Boolean).join(',') : '';
       query.language = query.language ?? store_info.language_setting.def;
       query.show_hidden = query.show_hidden ?? 'true';
+
+      // 初始化商品與管理員標籤 Config
+      await Promise.all([this.initProductCustomizeTagConifg(), this.initProductGeneralTagConifg()]);
 
       const orderMapping: Record<string, string> = {
         title: `ORDER BY JSON_EXTRACT(content, '$.title')`,
@@ -711,6 +718,29 @@ export class Shopping {
             return `OR JSON_CONTAINS(content->>'$.channel', '"${channel}"')`;
           });
           querySql.push(`(content->>'$.channel' IS NULL ${channelJoin})`);
+        }
+      }
+
+      if (query.manager_tag) {
+        const tagSplit = query.manager_tag.split(',').map(tag => tag.trim());
+        if (tagSplit.length > 0) {
+          const tagJoin = tagSplit.map(tag => {
+            return `JSON_CONTAINS(content->>'$.product_customize_tag', '"${tag}"')`;
+          });
+          querySql.push(`(${tagJoin.join(' OR ')})`);
+        }
+      }
+
+      if (query.general_tag) {
+        const tagSplit = query.general_tag.split(',').map(tag => tag.trim());
+        if (tagSplit.length > 0) {
+          const tagJoin = tagSplit.map(tag => {
+            return `(JSON_CONTAINS(
+              JSON_EXTRACT(content, '$.product_tag.language."${query.language ?? 'zh-TW'}"'),
+              JSON_QUOTE('${tag}')
+              ))`;
+          });
+          querySql.push(`(${tagJoin.join(' OR ')})`);
         }
       }
 
@@ -996,6 +1026,7 @@ export class Shopping {
 
         products.data = foundProduct || products.data[0];
       }
+
       if (query.id && products.data.length > 0) {
         products.data = products.data[0];
       }
@@ -1197,6 +1228,169 @@ export class Shopping {
     }
   }
 
+  async initProductCustomizeTagConifg() {
+    try {
+      const managerTags = await new User(this.app).getConfigV2({ key: 'product_manager_tags', user_id: 'manager' });
+
+      if (managerTags && Array.isArray(managerTags.list)) {
+        return managerTags;
+      }
+
+      const getData = await db.query(
+        `
+          SELECT 
+            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
+          FROM \`${this.app}\`.t_manager_post
+          WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
+        `,
+        []
+      );
+      const unique_tags_string = getData[0]?.unique_tags ?? '';
+      const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
+      const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
+      const data = { list: [...new Set(unique_tags_flot)] };
+
+      await new User(this.app).setConfig({
+        key: 'product_manager_tags',
+        user_id: 'manager',
+        value: data,
+      });
+
+      return data;
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Set product customize tag conifg Error:' + e, null);
+    }
+  }
+
+  async setProductCustomizeTagConifg(add_tags: string[]) {
+    const tagConfig = await new User(this.app).getConfigV2({ key: 'product_manager_tags', user_id: 'manager' });
+    const tagList = tagConfig?.list ?? [];
+    const data = { list: [...new Set([...tagList, ...add_tags])] };
+
+    await new User(this.app).setConfig({
+      key: 'product_manager_tags',
+      user_id: 'manager',
+      value: data,
+    });
+
+    return data;
+  }
+
+  async initProductGeneralTagConifg() {
+    try {
+      const generalTags = await new User(this.app).getConfigV2({ key: 'product_general_tags', user_id: 'manager' });
+
+      if (generalTags && Array.isArray(generalTags.list)) {
+        return generalTags;
+      }
+
+      const getData = await db.query(
+        `
+          SELECT 
+            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_tag.language')) SEPARATOR ',') AS unique_tags
+          FROM \`${this.app}\`.t_manager_post
+          WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
+        `,
+        []
+      );
+      const unique_tags_string = getData[0]?.unique_tags ?? '';
+      const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
+      const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
+      const list: { [k in LanguageLocation]?: string[] } = {};
+
+      unique_tags_flot.map(item => {
+        Language.locationList.map(lang => {
+          list[lang] = [...(list[lang] ?? []), ...item[lang]];
+        });
+      });
+
+      Language.locationList.map(lang => {
+        list[lang] = [...new Set(list[lang])];
+      });
+
+      const data = { list };
+      await new User(this.app).setConfig({
+        key: 'product_general_tags',
+        user_id: 'manager',
+        value: data,
+      });
+
+      return data;
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Set product general tag conifg Error:' + e, null);
+    }
+  }
+
+  async setProductGeneralTagConifg(add_tags: { [k in LanguageLocation]: string[] }) {
+    const tagConfig =
+      (await new User(this.app).getConfigV2({ key: 'product_general_tags', user_id: 'manager' })) ??
+      (await this.initProductGeneralTagConifg());
+
+    tagConfig.list ??= {};
+
+    Language.locationList.map(lang => {
+      const originList = tagConfig.list[lang] ?? [];
+      const updateList = add_tags[lang];
+      tagConfig.list[lang] = [...new Set([...originList, ...updateList])];
+    });
+
+    await new User(this.app).setConfig({
+      key: 'product_general_tags',
+      user_id: 'manager',
+      value: tagConfig,
+    });
+
+    return tagConfig;
+  }
+
+  async initOrderCustomizeTagConifg() {
+    try {
+      const managerTags = await new User(this.app).getConfigV2({ key: 'order_manager_tags', user_id: 'manager' });
+
+      if (managerTags && Array.isArray(managerTags.list)) {
+        return managerTags;
+      }
+
+      const getData = await db.query(
+        `
+          SELECT 
+            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) SEPARATOR ',') AS unique_tags
+          FROM \`${this.app}\`.t_checkout
+          WHERE JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) IS NOT NULL
+        `,
+        []
+      );
+      const unique_tags_string = getData[0]?.unique_tags ?? '';
+      const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
+      const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
+      const data = { list: [...new Set(unique_tags_flot)] };
+
+      await new User(this.app).setConfig({
+        key: 'order_manager_tags',
+        user_id: 'manager',
+        value: data,
+      });
+
+      return data;
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Set order customize tag conifg Error:' + e, null);
+    }
+  }
+
+  async setOrderCustomizeTagConifg(add_tags: string[]) {
+    const tagConfig = await new User(this.app).getConfigV2({ key: 'order_manager_tags', user_id: 'manager' });
+    const tagList = tagConfig?.list ?? [];
+    const data = { list: [...new Set([...tagList, ...add_tags])] };
+
+    await new User(this.app).setConfig({
+      key: 'order_manager_tags',
+      user_id: 'manager',
+      value: data,
+    });
+
+    return data;
+  }
+
   async getAllUseVoucher(userID: any): Promise<VoucherData[]> {
     const now = Date.now();
 
@@ -1331,10 +1525,12 @@ export class Shopping {
     const orderClause = query.order_by || 'ORDER BY id DESC';
     const offset = query.page * query.limit;
 
-    let sql = `SELECT * FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}`;
+    let sql = `SELECT *
+               FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}`;
 
     const data = await db.query(
-      `SELECT * FROM (${sql}) AS subquery LIMIT ?, ?
+      `SELECT *
+       FROM (${sql}) AS subquery LIMIT ?, ?
       `,
       [offset, Number(query.limit)]
     );
@@ -1347,7 +1543,8 @@ export class Shopping {
     } else {
       const total = await db
         .query(
-          `SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}
+          `SELECT COUNT(*) as count
+           FROM \`${this.app}\`.t_manager_post ${whereClause}
           `,
           []
         )
@@ -1793,7 +1990,7 @@ export class Shopping {
         count: number;
         voucher_id: string;
       }[];
-      language?: 'en-US' | 'zh-CN' | 'zh-TW';
+      language?: LanguageLocation;
       pos_info?: any; //POS結帳資訊;
       invoice_select?: string;
       pre_order?: boolean;
@@ -3162,12 +3359,16 @@ export class Shopping {
 
   async repayOrder(orderID: string, return_url: string) {
     const app = this.app;
+
     async function getOrder(orderID: string) {
       try {
-        const result = await db.query(`
+        const result = await db.query(
+          `
             SELECT *
             FROM \`${app}\`.t_checkout
-            WHERE cart_token = ?`, [orderID]);
+            WHERE cart_token = ?`,
+          [orderID]
+        );
         return result[0];
       } catch (e: any) {
         console.error(`查詢 orderID ${orderID} 的結帳資料時發生錯誤:`, e.message || e);
@@ -3176,15 +3377,16 @@ export class Shopping {
         return null;
       }
     }
-    const sqlData:any = await getOrder(orderID);
 
-    if (sqlData){
-      const orderData : {
+    const sqlData: any = await getOrder(orderID);
+
+    if (sqlData) {
+      const orderData: {
         lineItems: CartItem[];
         customer_info?: any; //顧客資訊 訂單人
         email?: string;
         return_url: string;
-        orderID ?: string;
+        orderID?: string;
         user_info: any; //取貨人資訊
         code?: string;
         use_rebate?: number;
@@ -3206,7 +3408,7 @@ export class Shopping {
           count: number;
           voucher_id: string;
         }[];
-        language?: 'en-US' | 'zh-CN' | 'zh-TW';
+        language?: LanguageLocation;
         pos_info?: any; //POS結帳資訊;
         invoice_select?: string;
         pre_order?: boolean;
@@ -3217,7 +3419,7 @@ export class Shopping {
         fbp?: string;
         temp_cart_id?: string;
         shipment_fee?: number;
-        rebate ?: number
+        rebate?: number;
       } = sqlData.orderData;
       if (!orderData) {
         throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
@@ -3259,17 +3461,17 @@ export class Shopping {
       };
       //現在是new一個新的版本
       //todo 新增一個fake單號 直接做付款的動作 同時做訂單上的更新把這個付款單號記錄下來
-      const newOrderID = Date.now()
+      const newOrderID = Date.now();
       const carData: Cart = {
         orderID: `${newOrderID}`,
         discount: orderData.discount ?? 0,
         customer_info: orderData.customer_info || {},
-        lineItems: orderData.lineItems??[],
+        lineItems: orderData.lineItems ?? [],
         total: orderData.total ?? 0,
         email: sqlData.email ?? orderData.user_info?.email ?? '',
         user_info: orderData.user_info,
-        shipment_fee: orderData.shipment_fee??0,
-        rebate: orderData.rebate??0,
+        shipment_fee: orderData.shipment_fee ?? 0,
+        rebate: orderData.rebate ?? 0,
         goodsWeight: 0,
         use_rebate: orderData.use_rebate || 0,
         shipment_support: shipment_setting.support as any,
@@ -3313,11 +3515,8 @@ export class Shopping {
       });
       const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select).processPayment(carData , return_url);
 
-      return result
+      return result;
     }
-
-
-
 
     // return result
   }
@@ -3659,6 +3858,7 @@ export class Shopping {
         }
       }
       const currentTime = new Date().toISOString();
+
       //給定訂單編號 產生 編號A 編號B... 依此類推
       function generateOrderIds(orderId: string, arrayLength: number): string[] {
         const orderIdArray: string[] = [];
@@ -3689,8 +3889,9 @@ export class Shopping {
         orderData.editRecord.push({
           time: currentTime,
           record: `拆分成 ${splitOrderArray.length} 筆子訂單\\n${orderData.splitOrders.map(orderID => `{{order=${orderID}}}`).join('\\n')}`,
-        })
+        });
       }
+
       const orderData = obj.orderData;
       const splitOrderArray = obj.splitOrderArray;
       refreshOrder(orderData, splitOrderArray);
@@ -3698,51 +3899,7 @@ export class Shopping {
         cart_token: orderData.orderID,
         orderData,
       })
-      // const promises = splitOrderArray.map((order, index) =>
-      //   {
-      //     return ()=>{
-      //       setTimeout(() => {
-      //         this.toCheckout({
-      //           code_array: [],
-      //           order_id: orderData?.splitOrders?.[index] ?? '',
-      //           line_items: order.lineItems as any,
-      //           customer_info: order.customer_info,
-      //           return_url: "",
-      //           user_info: order.user_info,
-      //           discount: order.discount,
-      //           voucher: order.voucher,
-      //           total: order.total,
-      //           pay_status: Number(order.pay_status),
-      //         }, 'split')
-      //       },1000*index)
-      //     }
-      //   }
-      // );
-      // const promises = splitOrderArray.map((order, index) =>
-      //   {
-      //     setTimeout(() => {
-      //       console.log("index -- " , index);
-      //       this.toCheckout({
-      //         code_array: [],
-      //         order_id: orderData?.splitOrders?.[index] ?? '',
-      //         line_items: order.lineItems as any,
-      //         customer_info: order.customer_info,
-      //         return_url: "",
-      //         user_info: order.user_info,
-      //         discount: order.discount,
-      //         voucher: order.voucher,
-      //         total: order.total,
-      //         pay_status: Number(order.pay_status),
-      //       }, 'split')
-      //     },1000*index)
-      //   }
-      // );
-
       return await processCheckoutsStaggered(splitOrderArray, orderData, this);
-
-
-
-
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'splitOrder Error:' + e, null);
     }
@@ -4168,7 +4325,7 @@ export class Shopping {
     return cart;
   }
 
-  async putOrder(data: { id?: string; cart_token?: string; orderData: any; status?: any; }) {
+  async putOrder(data: { id?: string; cart_token?: string; orderData: any; status?: any }) {
     try {
       const update: any = {};
       const storeConfig = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
@@ -4178,7 +4335,9 @@ export class Shopping {
       const value = data.cart_token ?? data.id;
 
       if (whereClause && value) {
-        const query = `SELECT * FROM \`${this.app}\`.t_checkout WHERE ${whereClause};`;
+        const query = `SELECT *
+                       FROM \`${this.app}\`.t_checkout
+                       WHERE ${whereClause};`;
         const result = await db.query(query, [value]);
         origin = result[0];
       }
@@ -4192,8 +4351,8 @@ export class Shopping {
 
       if (data.status !== undefined) {
         update.status = data.status;
-      }else{
-        data.status = update.status
+      } else {
+        data.status = update.status;
       }
 
       // lineItems 庫存修正
@@ -4261,7 +4420,14 @@ export class Shopping {
 
         // 當訂單出貨狀態變更，觸發通知事件
         const updateProgress = update.orderData.progress;
-        if (prevProgress !== updateProgress) {
+
+        if (
+          updateProgress === 'wait' &&
+          update.orderData.user_info.shipment_number &&
+          update.orderData.user_info.shipment_number !== origin.orderData.user_info.shipment_number
+        ) {
+          await this.sendNotifications(orderData, 'in_stock');
+        } else if (prevProgress !== updateProgress) {
           if (updateProgress === 'shipping') {
             await this.sendNotifications(orderData, 'shipment');
           } else if (updateProgress === 'arrived') {
@@ -4294,6 +4460,11 @@ export class Shopping {
         `,
         [updateData, origin.id]
       );
+
+      // 更新訂單現有標籤
+      if (Array.isArray(update.orderData.tags)) {
+        await this.setOrderCustomizeTagConifg(update.orderData.tags);
+      }
 
       // 同步蝦皮商品
       await Promise.all(
@@ -4475,12 +4646,13 @@ export class Shopping {
   /**
    * 寄送同時寄送購買人和寄件人
    * */
-  private async sendNotifications(orderData: any, type: 'shipment' | 'arrival') {
+  private async sendNotifications(orderData: any, type: 'shipment' | 'arrival' | 'in_stock') {
     const { lineID } = orderData.customer_info;
     const messages = [];
     const typeMap = {
       shipment: 'shipment',
       arrival: 'shipment-arrival',
+      in_stock: 'in-stock',
     };
 
     if (lineID) {
@@ -4721,12 +4893,17 @@ export class Shopping {
     payment_select?: string;
     is_reconciliation?: boolean;
     reconciliation_status?: string[];
+    manager_tag?: string;
   }) {
     try {
+      const timer = new UtTimer('get-checkout-info');
+      timer.checkPoint('start');
+
       let querySql = ['1=1'];
       let orderString = 'order by id desc';
-      const timer=new UtTimer("get-checkout-info");
-      timer.checkPoint("start");
+
+      await this.initOrderCustomizeTagConifg();
+
       if (query.search && query.searchType) {
         switch (query.searchType) {
           case 'cart_token':
@@ -4904,6 +5081,16 @@ export class Shopping {
             break;
         }
       }
+
+      if (query.manager_tag) {
+        const tagSplit = query.manager_tag.split(',').map(tag => tag.trim());
+        if (tagSplit.length > 0) {
+          const tagJoin = tagSplit.map(tag => {
+            return `JSON_CONTAINS(orderData->>'$.tags', '"${tag}"')`;
+          });
+          querySql.push(`(${tagJoin.join(' OR ')})`);
+        }
+      }
       query.status && querySql.push(`o.status IN (${query.status})`);
       const orderMath = [];
 
@@ -4934,7 +5121,7 @@ export class Shopping {
                  FROM \`${this.app}\`.t_checkout o
                           LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id and i.status = 1
                  WHERE ${querySql.join(' and ')} ${orderString}`;
-      timer.checkPoint("start-query-sql");
+      timer.checkPoint('start-query-sql');
       if (query.returnSearch == 'true') {
         const data = await db.query(
           `SELECT *
@@ -4964,7 +5151,7 @@ export class Shopping {
         return data[0];
       }
       const response_data: any = await new Promise(async (resolve, reject) => {
-        timer.checkPoint("start-query-response_data");
+        timer.checkPoint('start-query-response_data');
         if (query.id) {
           const data = (
             await db.query(
@@ -4979,13 +5166,13 @@ export class Shopping {
             result: !!data,
           });
         } else {
-          const data = (await db.query(
+          const data = await db.query(
             `SELECT *
-               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
-              `,
+             FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+            `,
             []
-          ))
-          timer.checkPoint("finish-query-response_data");
+          );
+          timer.checkPoint('finish-query-response_data');
           resolve({
             data: data,
             total: (
@@ -5085,7 +5272,7 @@ export class Shopping {
             })
           )
       );
-      timer.checkPoint("finish-query-all");
+      timer.checkPoint('finish-query-all');
       return response_data;
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'getCheckOut Error:' + e, null);
@@ -5440,7 +5627,7 @@ export class Shopping {
         }
 
         const insertData = await db.query(
-          `INSERT INTO \`${this.app}\`.t_variants SET ?
+          `INSERT INTO \`${this.app}\`.t_variants SET ? 
           `,
           [
             {
@@ -5461,7 +5648,15 @@ export class Shopping {
         return insertData;
       });
 
-      await Promise.all(insertPromises);
+      const chunk = 10;
+      const chunkLength = Math.ceil(insertPromises.length / chunk);
+
+      for (let i = 0; i < chunkLength; i++) {
+        const promisesArray = insertPromises.slice(i * chunk, (i + 1) * chunk);
+        setTimeout(async () => {
+          await Promise.all(promisesArray);
+        }, 200);
+      }
 
       const exhibitionConfig = await _user.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
       exhibitionConfig.list = exhibitionConfig.list ?? [];
@@ -6149,6 +6344,7 @@ export class Shopping {
                 delete product['content'];
                 delete product['preview_image'];
                 const og_content = og_data['content'];
+
                 if (og_content.language_data && og_content.language_data[store_info.language_setting.def]) {
                   og_content.language_data[store_info.language_setting.def].seo = product.seo;
                   og_content.language_data[store_info.language_setting.def].title = product.title;
@@ -6162,10 +6358,10 @@ export class Shopping {
                 product.preview_image = og_data['content'].preview_image || [];
                 productArray[index] = product;
               } else {
-                console.error('Product id not exist:', product);
+                console.error('Product id not exist:', product.title);
               }
             } else {
-              console.error('Product has not id:', product);
+              console.error('Product has not id:', product.title);
             }
             resolve(true);
           });
@@ -6199,8 +6395,8 @@ export class Shopping {
 
       if (productArray.length) {
         const data = await db.query(
-          `replace
-          INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,
+          `REPLACE INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
+          `,
           [
             productArray.map((product: any) => {
               if (!product.id) {
@@ -6229,37 +6425,55 @@ export class Shopping {
       product.id = product.id || insertIDStart++;
       return new Shopping(this.app, this.token).postVariantsAndPriceValue(product);
     });
-    await Promise.all(promises);
+
+    const chunk = 10;
+    const chunkLength = Math.ceil(promises.length / chunk);
+
+    for (let i = 0; i < chunkLength; i++) {
+      const promisesArray = promises.slice(i * chunk, (i + 1) * chunk);
+      setTimeout(async () => {
+        await Promise.all(promisesArray);
+      }, 200);
+    }
   }
 
   async putProduct(content: any) {
-    if (content.language_data) {
-      const language = await App.getSupportLanguage(this.app);
-      for (const b of language) {
-        const find_conflict = await db.query(
-          `select count(1)
-           from \`${this.app}\`.\`t_manager_post\`
-           where content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
-             and id != ${content.id}`,
-          []
-        );
-        if (find_conflict[0]['count(1)'] > 0) {
-          throw exception.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
-            message: '網域已被使用',
-            code: '733',
-          });
-        }
-      }
-    }
-
     try {
       content.type = 'product';
 
+      // 檢查 seo domain 是否重複
+      if (content.language_data) {
+        const language = await App.getSupportLanguage(this.app);
+        for (const b of language) {
+          const find_conflict = await db.query(
+            `SELECT count(1)
+           FROM \`${this.app}\`.t_manager_post
+           WHERE content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
+             AND id != ${content.id}`,
+            []
+          );
+          if (find_conflict[0]['count(1)'] > 0) {
+            throw exception.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
+              message: '網域已被使用',
+              code: '733',
+            });
+          }
+        }
+      }
+
+      // 檢查 Variant 資料屬性
       this.checkVariantDataType(content.variants);
-      const data = await db.query(
-        `update \`${this.app}\`.\`t_manager_post\`
-         SET ?
-         where id = ?`,
+
+      // 重新設置管理員標籤
+      await Promise.all([
+        this.setProductCustomizeTagConifg(content.product_customize_tag ?? []),
+        this.setProductGeneralTagConifg(content.product_tag?.language ?? []),
+      ]);
+
+      // 更新商品
+      await db.query(
+        `UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
+        `,
         [
           {
             content: JSON.stringify(content),
@@ -6267,7 +6481,11 @@ export class Shopping {
           content.id,
         ]
       );
+
+      // 更新商品 Variant
       await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
+
+      // 同步更新蝦皮
       if (content.shopee_id) {
         await new Shopee(this.app, this.token).asyncStockToShopee({
           product: {
@@ -6468,7 +6686,18 @@ export class Shopping {
       }
 
       query.id && querySql.push(`(v.id = ${query.id})`);
-      query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
+      if (query.id_list) {
+        if (query.id_list?.includes('-')) {
+          querySql.push(
+            `(v.product_id in (${query.id_list.split(',').map(dd => {
+              return dd.split('-')[0];
+            })}))`
+          );
+        } else {
+          querySql.push(`(v.id in (${query.id_list}))`);
+        }
+      }
+
       query.collection &&
         querySql.push(
           `(${query.collection
@@ -6560,6 +6789,16 @@ export class Shopping {
         user_id: 'manager',
       });
       const data = await this.querySqlByVariants(querySql, query);
+      if (query.id_list) {
+        //過濾出需要的商品規格
+        if (query.id_list?.includes('-')) {
+          data.data = data.data.filter((dd: any) => {
+            return query.id_list?.split(',').find(d1 => {
+              return d1 === [dd.product_id, ...dd.variant_content.spec].join('-');
+            });
+          });
+        }
+      }
       const shopee_data_list: { id: string; data: any }[] = [];
       await Promise.all(
         data.data.map((v_c: any) => {
@@ -6656,22 +6895,23 @@ export class Shopping {
            WHERE id = ?`,
           [{ content: JSON.stringify(data.variant_content) }, data.id]
         );
-        let variants=(await db.query(
-          `SELECT *
+        let variants = (
+          await db.query(
+            `SELECT *
            FROM \`${this.app}\`.t_variants
            WHERE product_id = ?`,
-          [data.product_id]
-        )).map((dd:any)=>{
-          return dd.content
+            [data.product_id]
+          )
+        ).map((dd: any) => {
+          return dd.content;
         });
-        data.product_content.variants=variants;
+        data.product_content.variants = variants;
         await db.query(
           `UPDATE \`${this.app}\`.t_manager_post
            SET ?
            WHERE id = ?`,
           [{ content: JSON.stringify(data.product_content) }, data.product_id]
         );
-
       }
       return {
         result: 'success',

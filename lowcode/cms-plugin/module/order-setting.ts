@@ -6,6 +6,8 @@ import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { Tool } from '../../modules/tool.js';
 import { CartData, LineItem, OrderData, OrderDetail } from './data.js';
 import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
+import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
+import { PaymentConfig } from '../../glitter-base/global/payment-config.js';
 
 const html = String.raw;
 
@@ -34,64 +36,42 @@ type DashboardData = {
 
 export class OrderSetting {
   // 付款名稱
-  static getPaymentMethodText(orderData: OrderData) {
-    if (orderData.orderSource === 'POS') {
-      return '門市POS付款';
-    }
-    switch (orderData.customer_info.payment_select) {
-      case 'off_line':
-        return '線下付款';
-      case 'newWebPay':
-        return '藍新金流';
-      case 'ecPay':
-        return '綠界金流';
-      case 'line_pay':
-        return 'Line Pay';
-      case 'atm':
-        return '銀行轉帳';
-      case 'line':
-        return 'Line 轉帳';
-      case 'cash_on_delivery':
-        return '貨到付款';
-      default:
-        return '線下付款';
-    }
+  static getPaymentMethodText(orderData: OrderData, paymentMethod: any) {
+    const paymentMethods: Record<string, string> = {
+      POS: '門市POS付款',
+      off_line: '線下付款',
+    };
+
+    paymentMethod.map((item: any) => {
+      paymentMethods[item.key] = item.name;
+    });
+
+    return orderData.orderSource === 'POS'
+      ? paymentMethods['POS']
+      : paymentMethods[orderData.customer_info.payment_select] || '線下付款';
   }
 
   // 配送名稱
   static getShippingMethodText(orderData: OrderData) {
-    switch (orderData.user_info.shipment) {
-      case 'UNIMARTC2C':
-        return '7-11店到店';
-      case 'FAMIC2C':
-        return '全家店到店';
-      case 'OKMARTC2C':
-        return 'OK店到店';
-      case 'HILIFEC2C':
-        return '萊爾富店到店';
-      case 'normal':
-        return '中華郵政';
-      case 'black_cat':
-        return '黑貓到府';
-      case 'shop':
-        return '實體門市取貨';
-      case 'global_express':
-        return '國際快遞';
-      case 'now':
-        return '立即取貨';
-      default:
-        return '宅配';
+    if (!orderData.user_info.shipment) {
+      return '立即取貨';
     }
+
+    const shippingData = ShipmentConfig.list.find(item => item.value === orderData.user_info.shipment);
+    return shippingData ? shippingData.title : '立即取貨';
   }
 
   // 配送地址
   static getShippingAddress(orderData: OrderData) {
     const shipment = orderData.user_info.shipment;
-    if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C'].includes(shipment)) {
+    if (['UNIMARTC2C', 'UNIMARTFREEZE', 'FAMIC2C', 'FAMIC2CFREEZE', 'OKMARTC2C', 'HILIFEC2C'].includes(shipment)) {
       return `${orderData.user_info.CVSStoreName} (${orderData.user_info.CVSAddress})`;
     }
     if (shipment === 'shop') {
       return '實體門市';
+    }
+    if (shipment === 'now') {
+      return '立即取貨';
     }
     return orderData.user_info.address;
   }
@@ -115,6 +95,7 @@ export class OrderSetting {
   static getShippmentOpt() {
     return [
       { title: '未出貨', value: 'wait' },
+      { title: '待預購', value: 'pre_order' },
       { title: '備貨中', value: 'in_stock' },
       { title: '已出貨', value: 'shipping' },
       { title: '已到貨', value: 'arrived' },
@@ -784,6 +765,7 @@ export class OrderSetting {
                 selectOrderID: data.targetID,
                 dotClass: BgWidget.getWhiteDotClass(gvc),
               };
+
               return BgWidget.dialog({
                 gvc: ogvc,
                 title: '確認資訊',
@@ -797,6 +779,13 @@ export class OrderSetting {
                     { width: 10, align: 'center' },
                     { width: 30, align: 'center' },
                   ];
+
+                  const ovm = {
+                    list_id: gvc.glitter.getUUID(),
+                    list_loading: true,
+                    payment_method: [] as any,
+                  };
+
                   return html`
                     <div class="${gClass('check-info-box')}">
                       ${BgWidget.grayNote(
@@ -821,59 +810,78 @@ export class OrderSetting {
                             })
                             .join('')}
                         </div>
-                        <div class="d-flex flex-column gap-0 mt-3">
-                          ${orders
-                            .map(order => {
-                              const orderData = order.orderData;
-                              const vt = this.getAllStatusBadge(order);
-                              const row = [
-                                {
-                                  title: html`
-                                    <div class="d-flex gap-2">
-                                      ${gvc.bindView({
-                                        bind: `r-${order.cart_token}`,
-                                        view: () => {
-                                          return html`<input
-                                            class="form-check-input ${dialogVM.dotClass} cursor_pointer"
-                                            style="margin-top: 0.25rem;"
-                                            type="radio"
-                                            id="r-${order.cart_token}"
-                                            name="check-info-radios"
-                                            onchange="${gvc.event(() => {
-                                              dialogVM.selectOrderID = order.cart_token;
-                                              gvc.notifyDataChange(orders.map(d => `r-${d.cart_token}`));
-                                            })}"
-                                            ${dialogVM.selectOrderID === order.cart_token ? 'checked' : ''}
-                                          />`;
-                                        },
-                                      })}
-                                      <span style="color: #4d86db;">${order.cart_token}</span>
-                                      <div class="d-flex justify-content-end gap-2">
-                                        ${vt.archivedBadge()}
-                                        ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}
-                                      </div>
-                                    </div>
-                                  `,
-                                },
-                                { title: order.created_time.split('T')[0] },
-                                { title: this.getPaymentMethodText(orderData) },
-                                { title: this.getShippingMethodText(orderData) },
-                                { title: this.getShippingAddress(orderData) },
-                              ]
-                                .map((item, i) => {
-                                  return html` <div
-                                    class="tx_normal"
-                                    style="width: ${styles[i].width}%; text-align: ${styles[i].align};"
-                                  >
-                                    <span style="white-space: break-spaces;">${(item.title ?? '').trim()}</span>
-                                  </div>`;
+                        ${gvc.bindView({
+                          bind: ovm.list_id,
+                          view: () => {
+                            if (ovm.list_loading) {
+                              return '';
+                            } else {
+                              return orders
+                                .map(order => {
+                                  const orderData = order.orderData;
+                                  const vt = this.getAllStatusBadge(order);
+                                  const row = [
+                                    {
+                                      title: html`
+                                        <div class="d-flex gap-2">
+                                          ${gvc.bindView({
+                                            bind: `r-${order.cart_token}`,
+                                            view: () => {
+                                              return html`<input
+                                                class="form-check-input ${dialogVM.dotClass} cursor_pointer"
+                                                style="margin-top: 0.25rem;"
+                                                type="radio"
+                                                id="r-${order.cart_token}"
+                                                name="check-info-radios"
+                                                onchange="${gvc.event(() => {
+                                                  dialogVM.selectOrderID = order.cart_token;
+                                                  gvc.notifyDataChange(orders.map(d => `r-${d.cart_token}`));
+                                                })}"
+                                                ${dialogVM.selectOrderID === order.cart_token ? 'checked' : ''}
+                                              />`;
+                                            },
+                                          })}
+                                          <span style="color: #4d86db;">${order.cart_token}</span>
+                                          <div class="d-flex justify-content-end gap-2">
+                                            ${vt.archivedBadge()}
+                                            ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}
+                                          </div>
+                                        </div>
+                                      `,
+                                    },
+                                    { title: order.created_time.split('T')[0] },
+                                    { title: this.getPaymentMethodText(orderData, ovm.payment_method) },
+                                    { title: this.getShippingMethodText(orderData) },
+                                    { title: this.getShippingAddress(orderData) },
+                                  ]
+                                    .map((item, i) => {
+                                      return html` <div
+                                        class="tx_normal"
+                                        style="width: ${styles[i].width}%; text-align: ${styles[i].align};"
+                                      >
+                                        <span style="white-space: break-spaces;">${(item.title ?? '').trim()}</span>
+                                      </div>`;
+                                    })
+                                    .join('');
+
+                                  return html` <div class="${gClass('order-row')}">${row}</div>`;
                                 })
                                 .join('');
-
-                              return html` <div class="${gClass('order-row')}">${row}</div>`;
-                            })
-                            .join('')}
-                        </div>
+                            }
+                          },
+                          divCreate: {
+                            class: 'd-flex flex-column gap-0 mt-3',
+                          },
+                          onCreate: () => {
+                            if (ovm.list_loading) {
+                              PaymentConfig.getSupportPayment(true).then(response => {
+                                ovm.payment_method = response;
+                                ovm.list_loading = false;
+                                gvc.notifyDataChange(ovm.list_id);
+                              });
+                            }
+                          },
+                        })}
                       </div>
                     </div>
                   `;
@@ -972,6 +980,12 @@ export class OrderSetting {
             { width: 5, align: 'center' },
           ];
 
+          const ovm = {
+            list_id: gvc.glitter.getUUID(),
+            list_loading: true,
+            payment_method: [] as any,
+          };
+
           return html` <div class="${gClass('box')} mt-2" style="${isDesktop ? '' : 'width: 1200px'}">
             <div class="d-flex">
               ${[
@@ -991,60 +1005,79 @@ export class OrderSetting {
                 })
                 .join('')}
             </div>
-            <div class="d-flex flex-column gap-0 mt-3">
-              ${orders
-                .map((order, index) => {
-                  const orderData = order.orderData;
-                  const vt = this.getAllStatusBadge(order);
-                  const row = [
-                    {
-                      title: html`
-                        <div class="d-flex gap-3">
-                          <span style="color: #4d86db;">${order.cart_token}</span>
-                          <div class="d-flex justify-content-end gap-2">
-                            ${vt.archivedBadge()} ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}
-                          </div>
-                        </div>
-                      `,
-                    },
-                    { title: order.created_time.split('T')[0] },
-                    { title: this.getPaymentMethodText(orderData) },
-                    { title: this.getShippingMethodText(orderData) },
-                    { title: this.getShippingAddress(orderData) },
-                    { title: `$ ${orderData.total.toLocaleString()}` },
-                    { title: `${orderData.lineItems.length}件商品` },
-                    {
-                      title:
-                        orders.length > 1
-                          ? html`<i
-                              class="fa-solid fa-xmark"
-                              style="color: #B0B0B0; cursor: pointer"
-                              onclick="${gvc.event(() => {
-                                if (order.cart_token === data.targetID) {
-                                  data.targetID = '';
-                                }
-                                data.orders.splice(index, 1);
-                                vm.dataObject = setDataStatus(dataMap);
-                                gvc.notifyDataChange([editID, ids.header, ids.dashboard]);
-                              })}"
-                            ></i>`
-                          : '',
-                    },
-                  ]
-                    .map((item, i) => {
-                      return html` <div
-                        class="tx_normal"
-                        style="width: ${styles[i].width}%; text-align: ${styles[i].align};"
-                      >
-                        <span style="white-space: break-spaces;">${(item.title ?? '').trim()}</span>
-                      </div>`;
+            ${gvc.bindView({
+              bind: ovm.list_id,
+              view: () => {
+                if (ovm.list_loading) {
+                  return '';
+                } else {
+                  return orders
+                    .map((order, index) => {
+                      const orderData = order.orderData;
+                      const vt = this.getAllStatusBadge(order);
+                      const row = [
+                        {
+                          title: html`
+                            <div class="d-flex gap-3">
+                              <span style="color: #4d86db;">${order.cart_token}</span>
+                              <div class="d-flex justify-content-end gap-2">
+                                ${vt.archivedBadge()} ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}
+                              </div>
+                            </div>
+                          `,
+                        },
+                        { title: order.created_time.split('T')[0] },
+                        { title: this.getPaymentMethodText(orderData, ovm.payment_method) },
+                        { title: this.getShippingMethodText(orderData) },
+                        { title: this.getShippingAddress(orderData) },
+                        { title: `$ ${orderData.total.toLocaleString()}` },
+                        { title: `${orderData.lineItems.length}件商品` },
+                        {
+                          title:
+                            orders.length > 1
+                              ? html`<i
+                                  class="fa-solid fa-xmark"
+                                  style="color: #B0B0B0; cursor: pointer"
+                                  onclick="${gvc.event(() => {
+                                    if (order.cart_token === data.targetID) {
+                                      data.targetID = '';
+                                    }
+                                    data.orders.splice(index, 1);
+                                    vm.dataObject = setDataStatus(dataMap);
+                                    gvc.notifyDataChange([editID, ids.header, ids.dashboard]);
+                                  })}"
+                                ></i>`
+                              : '',
+                        },
+                      ]
+                        .map((item, i) => {
+                          return html` <div
+                            class="tx_normal"
+                            style="width: ${styles[i].width}%; text-align: ${styles[i].align};"
+                          >
+                            <span style="white-space: break-spaces;">${(item.title ?? '').trim()}</span>
+                          </div>`;
+                        })
+                        .join('');
+
+                      return html` <div class="${gClass('order-row')}">${row}</div>`;
                     })
                     .join('');
-
-                  return html` <div class="${gClass('order-row')}">${row}</div>`;
-                })
-                .join('')}
-            </div>
+                }
+              },
+              divCreate: {
+                class: 'd-flex flex-column gap-0 mt-3',
+              },
+              onCreate: () => {
+                if (ovm.list_loading) {
+                  PaymentConfig.getSupportPayment(true).then(response => {
+                    ovm.payment_method = response;
+                    ovm.list_loading = false;
+                    gvc.notifyDataChange(ovm.list_id);
+                  });
+                }
+              },
+            })}
           </div>`;
         };
 
@@ -1138,7 +1171,14 @@ export class OrderSetting {
 
         const isPayStatusSame = status === baseStatus;
         const isShipmentSame = user_info.shipment === baseShipment;
-        const isAddressSame = ['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C'].includes(baseShipment)
+        const isAddressSame = [
+          'UNIMARTC2C',
+          'UNIMARTFREEZE',
+          'FAMIC2C',
+          'FAMIC2CFREEZE',
+          'OKMARTC2C',
+          'HILIFEC2C',
+        ].includes(baseShipment)
           ? user_info.CVSStoreName === baseCVSStoreName
           : user_info.address === baseAddress;
 
@@ -1522,6 +1562,9 @@ export class OrderSetting {
                   callback: (value: any) => {
                     checkArray.forEach((order: any) => {
                       order.orderData.progress = value;
+                      if (['wait', 'returns', undefined].includes(value)) {
+                        order.orderData.user_info.shipment_number = '';
+                      }
                     });
                   },
                 });
@@ -2149,7 +2192,6 @@ export class OrderSetting {
                               item.count = temp;
                               e.value = temp;
                             }
-                            gvc.notifyDataChange([ids.summary, ids.footer , `${ids.origQTY}${itemIndex}`]);
                             gvc.notifyDataChange([ids.summary, ids.footer, 'oriQty']);
                           })}"
                         />

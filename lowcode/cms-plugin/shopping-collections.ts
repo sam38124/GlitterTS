@@ -6,7 +6,7 @@ import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
 import { CheckInput } from '../modules/checkInput.js';
-import { Language } from '../glitter-base/global/language.js';
+import { Language, LanguageLocation } from '../glitter-base/global/language.js';
 
 type ViewModel = {
   id: string;
@@ -33,8 +33,6 @@ interface LanguageData {
     content: string;
   };
 }
-
-type LanguageLocation = 'en-US' | 'zh-CN' | 'zh-TW';
 
 type Collection = {
   title: string;
@@ -1144,8 +1142,9 @@ export class ShoppingCollections {
                       return;
                     }
 
-                    const regexTitle = /[\s,\/\\]+/g;
-                    if (regexTitle.test(vm.data.title)) {
+                    // const regexTitle = /[\s,\/\\]+/g;
+                    const forbiddenRegex = /[,/\\]/;
+                    if (forbiddenRegex.test(vm.data.title)) {
                       dialog.infoMessage({ text: '標題不可包含空白格與以下符號：<br />「 , 」「 / 」「 \\ 」' });
                       return;
                     }

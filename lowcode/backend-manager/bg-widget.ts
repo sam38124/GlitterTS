@@ -9,7 +9,7 @@ import { ApiStock } from '../glitter-base/route/stock.js';
 import { FormModule } from '../cms-plugin/module/form-module.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FormCheck } from '../cms-plugin/module/form-check.js';
-import { Language } from '../glitter-base/global/language.js';
+import { Language, LanguageLocation } from '../glitter-base/global/language.js';
 import { ProductAi } from '../cms-plugin/ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
 import { Animation } from '../glitterBundle/module/Animation.js';
@@ -543,7 +543,7 @@ export class BgWidget {
     });
   }
 
-  static languageInsignia(language: 'en-US' | 'zh-CN' | 'zh-TW', style?: string) {
+  static languageInsignia(language: LanguageLocation, style?: string) {
     switch (language) {
       case 'zh-TW':
         return html` <div class="insignia insignia-sm" style="background: #ffe9b2; ${style || ''};">
@@ -1553,6 +1553,50 @@ ${obj.default ?? ''}</textarea
       </select>`;
   }
 
+  static printOption(gvc: GVC, vmt: { id: string; postData: string[] }, opt: OptionsItem) {
+    const id = `print-option-${opt.key}`;
+    opt.key = `${opt.key}`;
+
+    function call() {
+      if (vmt.postData.includes(opt.key)) {
+        vmt.postData = vmt.postData.filter(item => item !== opt.key);
+      } else {
+        vmt.postData.push(opt.key);
+      }
+      gvc.notifyDataChange(vmt.id);
+    }
+
+    return html`<div class="d-flex align-items-center gap-3 mb-3">
+      ${gvc.bindView({
+        bind: id,
+        view: () => {
+          return html`<input
+            class="form-check-input mt-0 ${BgWidget.getCheckedClass(gvc)}"
+            type="checkbox"
+            id="${opt.key}"
+            name="radio_${opt.key}"
+            onclick="${gvc.event(() => call())}"
+            ${vmt.postData.includes(opt.key) ? 'checked' : ''}
+          />`;
+        },
+        divCreate: {
+          class: 'd-flex align-items-center justify-content-center',
+        },
+      })}
+      <div class="form-check-label c_updown_label cursor_pointer" onclick="${gvc.event(() => call())}">
+        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+        ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+      </div>
+    </div>`;
+  }
+
+  static renderOptions(gvc: GVC, vmt: { id: string; postData: string[]; dataList: any }) {
+    if (vmt.dataList.length === 0) {
+      return html`<div class="d-flex justify-content-center fs-5">查無標籤</div>`;
+    }
+    return vmt.dataList.map((item: any) => this.printOption(gvc, vmt, { key: item, value: `#${item}` })).join('');
+  }
+
   // 頁面
   static dotlottieJS = 'https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs';
 
@@ -2398,7 +2442,7 @@ ${obj.default ?? ''}</textarea
     }
   ) {
     return html` <div
-      class="mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0'}"
+      class="mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-3' : 'w-100 mx-0'}"
       style="max-width: 100%; width: ${this.getContainerWidth()}px; ${obj?.style ?? ''}"
     >
       ${htmlString}
@@ -2416,7 +2460,7 @@ ${obj.default ?? ''}</textarea
     }
   ) {
     return html` <div
-      class="d-flex mt-4 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0 flex-column'} "
+      class="d-flex mt-2 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0 flex-column'} "
       style="gap: 24px;"
     >
       <div style="width: ${document.body.clientWidth > 768 ? cont1.ratio : 100}%">${cont1.html}</div>
@@ -2528,6 +2572,73 @@ ${obj.default ?? ''}</textarea
     });
   }
 
+  static searchSelectContainer(
+    gvc: GVC,
+    button_title: string,
+    data: { key: string; name: string; type: string; placeHolder: string; unit?: string }[],
+    def: string[],
+    callback: (value: string[]) => void
+  ) {
+    const id = gvc.glitter.getUUID();
+    let loading = true;
+    let search = '';
+
+    return gvc.bindView({
+      bind: id,
+      view: () => {
+        try {
+          def ||= [];
+          return [
+            this.grayButton(
+              loading ? button_title : '確認',
+              gvc.event(() => {
+                loading = !loading;
+                gvc.notifyDataChange(id);
+              }),
+              {
+                class: 'w-100',
+              }
+            ),
+            loading
+              ? html`<div class="d-flex flex-wrap gap-2">
+                  ${def.map(item => this.normalInsignia(`#${item}`)).join('')}
+                </div>`
+              : this.mainCard(
+                  [
+                    this.searchPlace(
+                      gvc.event(e => {
+                        search = e.value;
+                        gvc.notifyDataChange(id);
+                      }),
+                      search || '',
+                      '搜尋',
+                      '0',
+                      '0'
+                    ),
+                    this.multiCheckboxContainer(
+                      gvc,
+                      data.filter(item => item.name.includes(search)),
+                      def,
+                      stringArray => {
+                        def = stringArray;
+                        callback(stringArray);
+                      },
+                      {
+                        single: false,
+                        containerStyle: 'overflow: auto; max-height: 310px;',
+                      }
+                    ),
+                  ].join(this.mbContainer(12))
+                ),
+          ].join(this.mbContainer(12));
+        } catch (error) {
+          console.error(error);
+          return '';
+        }
+      },
+    });
+  }
+
   static multiCheckboxContainer(
     gvc: GVC,
     data: {
@@ -2543,6 +2654,7 @@ ${obj.default ?? ''}</textarea
       readonly?: boolean;
       single?: boolean;
       zeroOption?: boolean;
+      containerStyle?: string;
     }
   ) {
     const id = gvc.glitter.getUUID();
@@ -2604,6 +2716,9 @@ ${obj.default ?? ''}</textarea
         });
 
         return html` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+      },
+      divCreate: {
+        style: obj?.containerStyle ?? '',
       },
     });
   }
@@ -2795,8 +2910,8 @@ ${obj.default ?? ''}</textarea
     style?: string
   ) {
     return html` <div
-      class="mx-sm-0 mx-2"
-      style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style ??
+      class="mx-sm-0 my-sm-4 mx-2 my-3"
+      style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;font-size: 18px; ${style ??
       ''};"
     >
       ${data

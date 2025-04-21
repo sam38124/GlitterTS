@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { BgWidget } from './bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
@@ -434,6 +443,24 @@ export class BgProduct {
                 vm.loading = false;
                 gvc.notifyDataChange(id);
             });
+            function checkboxList() {
+                return [
+                    BgWidget.tripletCheckboxContainer(gvc, '會員階級', (() => {
+                        if (vm.postData.length === 0)
+                            return -1;
+                        return vm.postData.length === vm.dataList.length ? 1 : 0;
+                    })(), r => {
+                        vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
+                        gvc.notifyDataChange(id);
+                    }),
+                    BgWidget.horizontalLine(),
+                    BgWidget.grayNote('※只有被選取的會員才能設置專屬價格，其餘依售價計算', 'margin-bottom: 12px;'),
+                    BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, text => {
+                        vm.postData = text;
+                        gvc.notifyDataChange(id);
+                    }),
+                ].join('');
+            }
             return gvc.bindView({
                 bind: id,
                 view: () => html ` <div
@@ -451,7 +478,7 @@ export class BgProduct {
                       class="w-100 d-flex align-items-center p-3 border-bottom"
                       style="position: sticky; top: 0; z-index: 2; background: #fff;"
                     >
-                      <div class="tx_700">會員專屬價格設定</div>
+                      <div class="tx_700">會員等級價格設定</div>
                       <div class="flex-fill"></div>
                       <i
                         class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
@@ -461,20 +488,9 @@ export class BgProduct {
                     <div class="c_dialog h-100">
                       <div class="c_dialog_body h-100">
                         <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
-                          ${BgWidget.tripletCheckboxContainer(gvc, '會員階級', (() => {
-                        if (vm.postData.length === 0)
-                            return -1;
-                        return vm.postData.length === vm.dataList.length ? 1 : 0;
-                    })(), r => {
-                        vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
-                        gvc.notifyDataChange(id);
-                    })}
-                          ${BgWidget.horizontalLine()}
-                          ${BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, text => {
-                        vm.postData = text;
-                        gvc.notifyDataChange(id);
-                    })}
-                          ${BgWidget.grayNote('※只有被選取的會員才能設置專屬價格，其餘依售價計算', 'margin-top: 12px;')}
+                          ${vm.dataList.length > 0
+                        ? checkboxList()
+                        : '尚未建立會員等級，請至「顧客管理」>「會員等級」新增'}
                         </div>
                         <div class="c_dialog_bar" style="z-index: 2;">
                           ${BgWidget.cancel(gvc.event(() => gvc.closeDialog()))}
@@ -515,6 +531,28 @@ export class BgProduct {
                 vm.loading = false;
                 gvc.notifyDataChange(id);
             });
+            function checkboxList() {
+                return [
+                    html ` <div class="d-none gap-2 mb-3">
+            <div class="textbox textbox-uncheck">依照門市</div>
+            <div class="textbox textbox-checked">依照門市標籤</div>
+          </div>`,
+                    BgWidget.tripletCheckboxContainer(gvc, '門市名稱', (() => {
+                        if (vm.postData.length === 0)
+                            return -1;
+                        return vm.postData.length === vm.dataList.length ? 1 : 0;
+                    })(), r => {
+                        vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
+                        gvc.notifyDataChange(id);
+                    }),
+                    BgWidget.horizontalLine(),
+                    BgWidget.grayNote('※只有被選取的門市/標籤才能設置專屬價格，其餘依售價計算', 'margin-bottom: 12px;'),
+                    BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, text => {
+                        vm.postData = text;
+                        gvc.notifyDataChange(id);
+                    }),
+                ].join('');
+            }
             return gvc.bindView({
                 bind: id,
                 view: () => html ` <div
@@ -542,24 +580,9 @@ export class BgProduct {
                     <div class="c_dialog h-100">
                       <div class="c_dialog_body h-100">
                         <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
-                          <div class="d-none gap-2 mb-3">
-                            <div class="textbox textbox-uncheck">依照門市</div>
-                            <div class="textbox textbox-checked">依照門市標籤</div>
-                          </div>
-                          ${BgWidget.tripletCheckboxContainer(gvc, '門市名稱', (() => {
-                        if (vm.postData.length === 0)
-                            return -1;
-                        return vm.postData.length === vm.dataList.length ? 1 : 0;
-                    })(), r => {
-                        vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
-                        gvc.notifyDataChange(id);
-                    })}
-                          ${BgWidget.horizontalLine()}
-                          ${BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, text => {
-                        vm.postData = text;
-                        gvc.notifyDataChange(id);
-                    })}
-                          ${BgWidget.grayNote('※只有被選取的門市/標籤才能設置專屬價格，其餘依售價計算', 'margin-top: 12px;')}
+                          ${vm.dataList.length > 0
+                        ? checkboxList()
+                        : '尚未建立門市，請至「庫存管理」>「庫存點管理」新增'}
                         </div>
                         <div class="c_dialog_bar" style="z-index: 2;">
                           ${BgWidget.cancel(gvc.event(() => gvc.closeDialog()))}
@@ -595,6 +618,24 @@ export class BgProduct {
                 vm.loading = false;
                 gvc.notifyDataChange(id);
             });
+            function checkboxList() {
+                return [
+                    BgWidget.tripletCheckboxContainer(gvc, '顧客標籤', (() => {
+                        if (vm.postData.length === 0)
+                            return -1;
+                        return vm.postData.length === vm.dataList.length ? 1 : 0;
+                    })(), r => {
+                        vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
+                        gvc.notifyDataChange(id);
+                    }),
+                    BgWidget.horizontalLine(),
+                    BgWidget.grayNote('※只有被選取的會員才能設置專屬價格，其餘依售價計算', 'margin-bottom: 12px;'),
+                    BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, text => {
+                        vm.postData = text;
+                        gvc.notifyDataChange(id);
+                    }),
+                ].join('');
+            }
             return gvc.bindView({
                 bind: id,
                 view: () => html ` <div
@@ -622,20 +663,9 @@ export class BgProduct {
                     <div class="c_dialog h-100">
                       <div class="c_dialog_body h-100">
                         <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
-                          ${BgWidget.tripletCheckboxContainer(gvc, '顧客標籤', (() => {
-                        if (vm.postData.length === 0)
-                            return -1;
-                        return vm.postData.length === vm.dataList.length ? 1 : 0;
-                    })(), r => {
-                        vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
-                        gvc.notifyDataChange(id);
-                    })}
-                          ${BgWidget.horizontalLine()}
-                          ${BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, text => {
-                        vm.postData = text;
-                        gvc.notifyDataChange(id);
-                    })}
-                          ${BgWidget.grayNote('※只有被選取的會員才能設置專屬價格，其餘依售價計算', 'margin-top: 12px;')}
+                          ${vm.dataList.length > 0
+                        ? checkboxList()
+                        : '尚未建立顧客標籤，請編輯任一顧客的「顧客標籤」欄位'}
                         </div>
                         <div class="c_dialog_bar" style="z-index: 2;">
                           ${BgWidget.cancel(gvc.event(() => gvc.closeDialog()))}
@@ -652,6 +682,142 @@ export class BgProduct {
                 divCreate: {},
             });
         }, 'setUserTagPriceSetting');
+    }
+    static useProductTags(obj) {
+        const gvc = obj.gvc;
+        const vmt = {
+            id: gvc.glitter.getUUID(),
+            loading: true,
+            search: '',
+            dataList: [],
+            postData: obj.def,
+        };
+        return BgWidget.settingDialog({
+            gvc,
+            title: '使用現有標籤',
+            innerHTML: gvc2 => {
+                return gvc2.bindView({
+                    bind: vmt.id,
+                    view: () => {
+                        if (vmt.loading) {
+                            return BgWidget.spinner();
+                        }
+                        else {
+                            return [
+                                BgWidget.searchPlace(gvc2.event(e => {
+                                    vmt.search = e.value;
+                                    vmt.loading = true;
+                                    gvc2.notifyDataChange(vmt.id);
+                                }), vmt.search, '搜尋標籤', '0', '0'),
+                                BgWidget.renderOptions(gvc2, vmt),
+                            ].join(BgWidget.mbContainer(18));
+                        }
+                    },
+                    divCreate: {},
+                    onCreate: () => {
+                        if (vmt.loading) {
+                            ApiUser.getPublicConfig(obj.config_key, 'manager').then((dd) => {
+                                var _a, _b;
+                                if (dd.result && ((_b = (_a = dd.response) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.list)) {
+                                    const responseList = obj.config_lang
+                                        ? dd.response.value.list[obj.config_lang]
+                                        : dd.response.value.list;
+                                    const list = [...new Set([...responseList, ...obj.def])];
+                                    vmt.dataList = list.filter((item) => item.includes(vmt.search));
+                                }
+                                vmt.loading = false;
+                                gvc2.notifyDataChange(vmt.id);
+                            });
+                        }
+                    },
+                });
+            },
+            footer_html: gvc2 => {
+                return [
+                    html `<div
+            style="color: #393939; text-decoration-line: underline; cursor: pointer"
+            onclick="${gvc2.event(() => {
+                        vmt.postData = [];
+                        vmt.loading = true;
+                        gvc2.notifyDataChange(vmt.id);
+                    })}"
+          >
+            清除全部
+          </div>`,
+                    BgWidget.cancel(gvc2.event(() => {
+                        gvc2.closeDialog();
+                    })),
+                    BgWidget.save(gvc2.event(() => {
+                        obj.callback(vmt.postData);
+                        gvc2.closeDialog();
+                    })),
+                ].join('');
+            },
+        });
+    }
+    static getProductGeneralTag() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield ApiUser.getPublicConfig('product_general_tags', 'manager').then((dd) => {
+                var _a, _b, _c, _d, _e, _f;
+                if (dd.result && ((_b = (_a = dd.response) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.list)) {
+                    const defaultLanguage = (_f = (_e = (_d = (_c = window.parent) === null || _c === void 0 ? void 0 : _c.store_info) === null || _d === void 0 ? void 0 : _d.language_setting) === null || _e === void 0 ? void 0 : _e.def) !== null && _f !== void 0 ? _f : 'zh-TW';
+                    const result = [];
+                    for (const [lang, tags] of Object.entries(dd.response.value.list)) {
+                        tags.forEach(tag => {
+                            result.push({
+                                lang: lang,
+                                tag,
+                            });
+                        });
+                    }
+                    return result
+                        .filter(item => item.lang === defaultLanguage)
+                        .map(item => {
+                        return {
+                            key: item.tag,
+                            name: `#${item.tag}`,
+                        };
+                    });
+                }
+                return [];
+            });
+        });
+    }
+    static getProductManagerTag() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield ApiUser.getPublicConfig('product_manager_tags', 'manager').then((dd) => {
+                var _a, _b;
+                if (dd.result && ((_b = (_a = dd.response) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.list)) {
+                    return dd.response.value.list.map((item) => {
+                        return {
+                            key: item,
+                            name: `#${item}`,
+                        };
+                    });
+                }
+                return [];
+            });
+        });
+    }
+    static getCollectonCheckData() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield new Promise((resolve, reject) => {
+                try {
+                    let collections = [];
+                    this.getCollectionAllOpts(collections, () => {
+                        resolve(collections.map(item => {
+                            return {
+                                key: `${item.key}`,
+                                name: item.value,
+                            };
+                        }));
+                    });
+                }
+                catch (error) {
+                    console.log(error);
+                }
+            });
+        });
     }
 }
 BgProduct.getProductOpts = (def, productType) => {

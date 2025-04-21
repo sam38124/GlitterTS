@@ -87,24 +87,26 @@ export class UserExcel {
             }
             const formatDate = (date) => date ? gvc.glitter.ut.dateFormat(new Date(date), 'yyyy-MM-dd hh:mm') : '';
             const formatJSON = (obj) => Object.fromEntries(Object.entries(obj).filter(([key]) => column.includes(key)));
-            const getUserJSON = (user) => formatJSON({
-                ID: user.id,
-                會員編號: user.userID,
-                顧客名稱: user.userData.name,
-                電子信箱: user.userData.email,
-                電話: user.userData.phone,
-                生日: user.userData.birth,
-                地址: user.userData.address,
-                性別: user.userData.gender,
-                手機載具: user.userData.carrier_number,
-                統一編號: user.userData.gui_number,
-                公司: user.company || user.userData.company,
-                收貨人: user.userData.consignee_name,
-                收貨人地址: user.userData.consignee_address,
-                收貨人電子郵件: user.userData.consignee_email,
-                收貨人手機: user.userData.consignee_phone,
-                顧客備註: user.userData.managerNote,
-            });
+            const getUserJSON = (user) => {
+                return formatJSON({
+                    ID: user.id,
+                    會員編號: user.userID,
+                    顧客名稱: user.userData.name,
+                    電子信箱: user.userData.email,
+                    電話: user.userData.phone,
+                    生日: user.userData.birth,
+                    地址: user.userData.address,
+                    性別: user.userData.gender,
+                    手機載具: user.userData.carrier_number,
+                    統一編號: user.userData.gui_number,
+                    公司: user.company || user.userData.company,
+                    收貨人: user.userData.consignee_name,
+                    收貨人地址: user.userData.consignee_address,
+                    收貨人電子郵件: user.userData.consignee_email,
+                    收貨人手機: user.userData.consignee_phone,
+                    顧客備註: user.userData.managerNote,
+                });
+            };
             const getRecordJSON = (user) => {
                 var _a;
                 return formatJSON({
@@ -113,7 +115,7 @@ export class UserExcel {
                     會員有效期: formatDate(user.member_deadline),
                     會員標籤: ((_a = user.userData.tags) !== null && _a !== void 0 ? _a : []).join(','),
                     註冊時間: formatDate(user.created_time),
-                    現有購物金: user.rebate,
+                    購物金餘額: user.rebate,
                     'LINE UID': user.userData.lineID,
                     'FB UID': user.userData['fb-id'],
                 });
@@ -255,6 +257,7 @@ export class UserExcel {
                             lineID: user['LINE UID'],
                             'fb-id': user['FB UID'],
                             tags: ((_b = user['會員標籤']) !== null && _b !== void 0 ? _b : '').split(','),
+                            rebate: user['購物金餘額'],
                         };
                         jsonData[i] = {
                             account: userData.email,
@@ -334,7 +337,7 @@ export class UserExcel {
                         : ''}
             <div class="d-flex flex-column w-100 align-items-start gap-3" style="padding: 20px">
               <div class="d-flex align-items-center gap-2">
-                <div class="tx_700">透過XLSX檔案匯入商品</div>
+                <div class="tx_700">透過XLSX檔案匯入顧客</div>
                 ${BgWidget.blueNote('下載範例', gvc.event(viewData.example.event))}
               </div>
               <input
@@ -417,6 +420,7 @@ UserExcel.importExampleData = [
         會員標籤: '台中,青年',
         'LINE UID': '12341234',
         'FB UID': '12341234',
+        購物金餘額: '100',
     },
 ];
 UserExcel.headerColumn = {
@@ -438,6 +442,6 @@ UserExcel.headerColumn = {
         '收貨人手機',
         '顧客備註',
     ],
-    個人紀錄: ['黑名單', '會員等級', '會員有效期', '會員標籤', '註冊時間', '現有購物金', 'LINE UID', 'FB UID'],
+    個人紀錄: ['黑名單', '會員等級', '會員有效期', '會員標籤', '註冊時間', '購物金餘額', 'LINE UID', 'FB UID'],
     訂單相關: ['最後購買日期', '最後消費金額', '最後出貨日期', '累積消費金額', '累積消費次數'],
 };

@@ -12,27 +12,23 @@ class Manager {
             await database_js_1.default.execute(`replace
             into \`${config.appName}\`.public_config (\`key\`,\`value\`,updated_at)
             values (?,?,?)
-            `, [
-                config.key,
-                config.value,
-                new Date()
-            ]);
+            `, [config.key, config.value, new Date()]);
         }
         catch (e) {
-            console.log(e);
-            throw exception_js_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('ERROR', 'setConfig ERROR: ' + e, null);
         }
     }
     static async getConfig(config) {
         try {
             return await this.checkData(await database_js_1.default.execute(`select *
-                                                          from \`${config.appName}\`.public_config
-                                                          where \`key\` = ${database_js_1.default.escape(config.key)}
+            from \`${config.appName}\`.public_config
+            where \`key\` = ${database_js_1.default.escape(config.key)}
             `, []), config.language);
         }
         catch (e) {
-            console.log(e);
-            throw exception_js_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('ERROR', 'getConfig ERROR: ' + e, null);
         }
     }
     static async checkData(data, language) {
@@ -41,7 +37,7 @@ class Manager {
             switch (data_.key) {
                 case 'collection':
                     function loop(array) {
-                        array.map((dd) => {
+                        array.map(dd => {
                             if (dd.language_data && dd.language_data[language]) {
                                 dd.code = dd.language_data[language].seo.domain || dd.code;
                                 dd.seo_content = dd.language_data[language].seo.content || dd.seo_content;

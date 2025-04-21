@@ -1,5 +1,6 @@
 import { IToken } from '../models/Auth.js';
 import { DeliveryData } from './delivery.js';
+import { LanguageLocation } from '../../Language.js';
 type BindItem = {
     id: string;
     spec: string[];
@@ -140,7 +141,7 @@ declare class OrderDetail {
         phone: string;
         address: string;
         custom_form_delivery?: any;
-        shipment: 'normal' | 'FAMIC2C' | 'black_cat_freezing' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop' | 'global_express' | 'black_cat' | 'UNIMARTFREEZE';
+        shipment: 'normal' | 'black_cat_freezing' | 'now' | 'shop' | 'global_express' | 'black_cat' | 'UNIMARTC2C' | 'FAMIC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'UNIMARTFREEZE' | 'FAMIC2CFREEZE';
         CVSStoreName: string;
         CVSStoreID: string;
         CVSTelephone: string;
@@ -291,6 +292,8 @@ export declare class Shopping {
         max_price?: string;
         status?: string;
         channel?: string;
+        general_tag?: string;
+        manager_tag?: string;
         whereStore?: string;
         order_by?: string;
         id_list?: string;
@@ -314,6 +317,18 @@ export declare class Shopping {
         data: any;
         total: any;
         result?: undefined;
+    }>;
+    initProductCustomizeTagConifg(): Promise<any>;
+    setProductCustomizeTagConifg(add_tags: string[]): Promise<{
+        list: any[];
+    }>;
+    initProductGeneralTagConifg(): Promise<any>;
+    setProductGeneralTagConifg(add_tags: {
+        [k in LanguageLocation]: string[];
+    }): Promise<any>;
+    initOrderCustomizeTagConifg(): Promise<any>;
+    setOrderCustomizeTagConifg(add_tags: string[]): Promise<{
+        list: any[];
     }>;
     getAllUseVoucher(userID: any): Promise<VoucherData[]>;
     getDistributionRecommend(distribution_code: string): Promise<any>;
@@ -417,7 +432,7 @@ export declare class Shopping {
             count: number;
             voucher_id: string;
         }[];
-        language?: 'en-US' | 'zh-CN' | 'zh-TW';
+        language?: LanguageLocation;
         pos_info?: any;
         invoice_select?: string;
         pre_order?: boolean;
@@ -542,6 +557,7 @@ export declare class Shopping {
         payment_select?: string;
         is_reconciliation?: boolean;
         reconciliation_status?: string[];
+        manager_tag?: string;
     }): Promise<any>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
     shareVoucherRebate(cartData: any): Promise<void>;

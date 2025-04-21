@@ -481,7 +481,7 @@ export class UMOrder {
     }
   }
   static repay(gvc: GVC, orderData: any) {
-    const id = orderData.cart_token
+    const id = orderData.cart_token;
     const dialog = new ShareDialog(gvc.glitter);
     dialog.dataLoading({ visible: true, text: Language.text('loading') });
     const redirect = gvc.glitter.root_path + 'order_detail' + location.search;
@@ -492,8 +492,30 @@ export class UMOrder {
         dialog.dataLoading({ visible: false });
         this.executePayment(gvc , orderData.payment_method , res);
 
-        return
 
+        dialog.dataLoading({ visible: false });
+        switch (orderData.payment_method) {
+          case 'line_pay':
+            if (gvc.glitter.share.is_application) {
+              gvc.glitter.runJsInterFace(
+                'intent_url',
+                {
+                  url: res.response.info.paymentUrl.app,
+                },
+                () => {}
+              );
+              // location.href = res.response.info.paymentUrl.app;
+            } else {
+              location.href = res.response.info.paymentUrl.web;
+            }
+            break;
+          default: {
+            const id = gvc.glitter.getUUID();
+            $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+            (document.querySelector(`#${id} #submit`) as any).click();
+          }
+        }
+        return;
       });
     });
   }
@@ -767,12 +789,12 @@ export class UMOrder {
             }
 
             const orderData = vm.data.orderData;
-            
+
             //判斷需要出貨單號碼
-            if((window as any).store_info.pickup_mode){
+            if ((window as any).store_info.pickup_mode) {
               dialog.infoMessage({
-                text:`取貨時請核對您的取貨號碼，您的取貨號碼為<br><div class="fw-bold fs-5 text-danger">『 ${(vm.data as any).shipment_number} 號 』</div>`
-              })
+                text: `取貨時請核對您的取貨號碼，您的取貨號碼為<br><div class="fw-bold fs-5 text-danger">『 ${(vm.data as any).shipment_number} 號 』</div>`,
+              });
             }
             const showUploadProof =
               orderData.method === 'off_line' &&
@@ -1170,7 +1192,17 @@ export class UMOrder {
                             text: `您已完成訂單，請於「付款資訊」了解付款說明後，儘速上傳結帳證明，以完成付款程序`,
                           });
                         }
-
+                        Ad.fbqEvent('Purchase', {
+                          value: orderData.total,
+                          currency: 'TWD',
+                          contents: orderData.lineItems.map((item: any) => {
+                            return {
+                              id: item.sku || item.id,
+                              quantity: item.count,
+                            };
+                          }),
+                          content_type: 'product',
+                        });
                         Ad.gtagEvent('purchase', {
                           transaction_id: vm.data.cart_token,
                           value: orderData.total,
@@ -1238,7 +1270,6 @@ export class UMOrder {
                         },
                       });
                     }
-                    
 
                     checkAndRemoveURLParameter();
 
@@ -1277,7 +1308,7 @@ export class UMOrder {
                               if (repayArray.includes(vm.data?.payment_method ?? '')) {
                                 const repayBtn = () => {
                                   return html` 
-                                  <span class="payment-actions">
+                                  <span class="payment-actions d-none">
                                     <button class="customer-btn-text ms-3" id="repay-button" onclick="${gvc.event(()=>{
                                       UMOrder.repay(gvc, vm.data).then(r => {
                                        
@@ -1399,9 +1430,8 @@ export class UMOrder {
                     }
 
                     if ((vm.data as any).orderData.user_info.shipment_number) {
-                      
                       arr.push({
-                        title: (window as any).store_info.pickup_mode ? `取貨號碼`:Language.text('shipment_number'),
+                        title: (window as any).store_info.pickup_mode ? `取貨號碼` : Language.text('shipment_number'),
                         value: (vm.data as any).orderData.user_info.shipment_number,
                       });
                     }
@@ -1426,7 +1456,7 @@ export class UMOrder {
                     }
 
                     if (
-                      ['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].find(dd => {
+                      ['UNIMARTC2C', 'UNIMARTFREEZE', 'FAMIC2C', 'FAMIC2CFREEZE', 'OKMARTC2C', 'HILIFEC2C'].find(dd => {
                         return dd === orderData.user_info.shipment;
                       })
                     ) {

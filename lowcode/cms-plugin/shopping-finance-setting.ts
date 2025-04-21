@@ -12,6 +12,7 @@ import { Language } from '../glitter-base/global/language.js';
 import { ShoppingShipmentSetting } from './shopping-shipment-setting.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { ApiUser } from '../glitter-base/route/user.js';
+import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 
 type CustomFinance = {
   name: string;
@@ -260,9 +261,12 @@ export class ShoppingFinanceSetting {
 
               // 線上金流
               if (vm.page === 'online') {
-                h = html` <div class="my-2">${BgWidget.blueNote('透過線上金流，消費者可於線上進行結帳付款')}</div>
+                h = html` <div class="px-md-0 px-2 mb-2">
+                    ${BgWidget.normalInsignia('透過線上金流，消費者可於線上進行結帳付款')}
+                  </div>
                   <div class="row">
-                    ${this.onlinePayArray()
+                    ${PaymentConfig.onlinePay
+                      .filter(item => item.type !== 'pos')
                       .map(dd => {
                         keyData[dd.key] = keyData[dd.key] ?? {};
                         return html` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
@@ -515,7 +519,7 @@ export class ShoppingFinanceSetting {
                                                           key_d.STORE_ID = text;
                                                         },
                                                         placeHolder: '請輸入STORE_ID',
-                                                      })
+                                                      }),
                                                     ].join('');
                                                   case 'paynow':
                                                     return [
@@ -647,7 +651,7 @@ export class ShoppingFinanceSetting {
               if (vm.page === 'offline') {
                 const offlinePayArray = [
                   // 系統線下金流
-                  ...this.offlinePayArray(),
+                  ...PaymentConfig.defalutOfflinePay,
                   // 自訂線下金流
                   ...keyData.payment_info_custom.map((dd: any) => {
                     return {
@@ -658,8 +662,8 @@ export class ShoppingFinanceSetting {
                   }),
                 ];
 
-                h = html` <div class="my-2">
-                    ${BgWidget.blueNote('透過設定線下金流，結帳後訂單將進入手動核款的流程，亦可使用超商取貨付款')}
+                h = html` <div class="px-md-0 px-2 mb-2">
+                    ${BgWidget.normalInsignia('透過設定線下金流，結帳後訂單將進入手動核款的流程，亦可使用超商取貨付款')}
                   </div>
                   <div class="row">
                     ${offlinePayArray
@@ -786,9 +790,12 @@ export class ShoppingFinanceSetting {
 
               // POS
               if (vm.page === 'pos') {
-                h = html`<div class="my-2">${BgWidget.blueNote('設定實體店面所需串接的付款方式')}</div>
+                h = html` <div class="px-md-0 px-2 mb-2">
+                    ${BgWidget.normalInsignia('設定實體店面所需串接的付款方式')}
+                  </div>
                   <div class="row">
-                    ${this.posPayArray()
+                    ${PaymentConfig.onlinePay
+                      .filter(item => item.type === 'pos')
                       .map(dd => {
                         return html` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
                           <div
@@ -898,8 +905,7 @@ export class ShoppingFinanceSetting {
                   (key: any) => {
                     vm.page = key;
                     gvc.notifyDataChange(vm.id);
-                  },
-                  'margin-top: 0px; margin-bottom: 0px;'
+                  }
                 ),
                 h,
               ].join('');
@@ -932,7 +938,7 @@ export class ShoppingFinanceSetting {
             }
           },
         }),
-      ].join(BgWidget.mbContainer(24))}
+      ].join('')}
       ${BgWidget.mbContainer(240)}
     `);
   }
@@ -1223,80 +1229,6 @@ export class ShoppingFinanceSetting {
       },
     });
   }
-
-  // 金流種類 (線上)
-  static onlinePayArray = () => {
-    return [
-      {
-        key: 'newWebPay',
-        name: '藍新金流',
-        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/logo.jpg',
-      },
-      {
-        key: 'ecPay',
-        name: '綠界金流',
-        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/52415944_122858408.428215.png',
-      },
-      {
-        key: 'paynow',
-        name: 'PayNow 立吉富',
-        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/download.png',
-      },
-      {
-        key: 'paypal',
-        name: 'PayPal',
-        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/174861.png',
-      },
-      {
-        key: 'line_pay',
-        name: 'Line Pay',
-        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/tw-11134207-7r98t-ltrond04grjj74.jpeg',
-      },
-      {
-        key: 'jkopay',
-        name: '街口支付',
-        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/1200x630waw.png',
-      },
-    ];
-  };
-
-  // 金流種類 (線下)
-  static offlinePayArray = () => {
-    return [
-      {
-        key: 'atm',
-        name: 'ATM銀行轉帳',
-        customerClass: 'guide2-3',
-        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/20200804163522idfs9.jpg',
-      },
-      {
-        key: 'line',
-        name: 'LINE 轉帳',
-        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed.webp',
-      },
-      {
-        key: 'cash_on_delivery',
-        name: '貨到付款',
-        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/images.png',
-      },
-    ];
-  };
-
-  // 金流種類 (POS)
-  static posPayArray = () => {
-    return [
-      {
-        key: 'line_pay_scan',
-        name: 'Line Pay',
-        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/tw-11134207-7r98t-ltrond04grjj74.jpeg',
-      },
-      {
-        key: 'ut_credit_card',
-        name: '聯合信用卡',
-        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed (1) copy.jpg',
-      },
-    ];
-  };
 
   // 彈窗: 貨到付款 (線下)
   static cashOnDelivery(gvc: GVC, keyData: any) {
@@ -1737,7 +1669,7 @@ export class ShoppingFinanceSetting {
           ];
           if (vm.page === 'delivery_setting') {
             view = view.concat([
-              html`<div class="mx-2 mx-sm-0 mt-3 mb-0">
+              html`<div class="px-md-0 px-2">
                 ${BgWidget.normalInsignia(
                   '設定支援的配送方式，供消費者於前臺自行選擇合適的物流，另外可於商品頁面設定特定商品支援的配送'
                 )}
@@ -2471,7 +2403,7 @@ export class ShoppingFinanceSetting {
             );
           } else if (vm.page === 'delivery_track') {
             view = view.concat([
-              html` <div class="mx-2 mx-sm-0 mt-3 mb-0">
+              html` <div class="px-md-0 px-2">
                 ${BgWidget.normalInsignia('透過設定物流追蹤，可直接列印托運單進行出貨，並自動追蹤貨態')}
               </div>`,
               gvc.bindView(() => {

@@ -88,403 +88,402 @@ export class ShoppingProductSetting {
                             window.parent.glitter.share.checkData = () => true;
                             vm.tableId = gvc.glitter.getUUID();
                             vm.dataList = [];
-                            const vmlist = {
-                                id: glitter.getUUID(),
-                                loading: true,
-                                collections: [],
-                            };
                             return gvc.bindView({
-                                bind: vmlist.id,
-                                view: () => {
-                                    if (vmlist.loading) {
-                                        return '';
-                                    }
-                                    else {
-                                        if (FilterOptions.productFunnel.findIndex(item => item.key === 'collection') === -1) {
-                                            FilterOptions.productFunnel.push({
-                                                key: 'collection',
-                                                type: 'multi_checkbox',
-                                                name: '商品分類',
-                                                data: vmlist.collections.map(item => {
-                                                    return {
-                                                        key: `${item.key}`,
-                                                        name: item.value,
-                                                    };
-                                                }),
-                                            });
+                                bind: glitter.getUUID(),
+                                view: () => __awaiter(this, void 0, void 0, function* () {
+                                    FilterOptions.productFunnel.map((item) => __awaiter(this, void 0, void 0, function* () {
+                                        if (item.key === 'collection') {
+                                            item.data = yield BgProduct.getCollectonCheckData();
                                         }
-                                        return BgWidget.container(html `
-                      <div class="title-container">
-                        ${BgWidget.title((() => {
-                                            const titleMap = {
-                                                addProduct: '加購品',
-                                                giveaway: '贈品',
-                                                product: '商品列表',
-                                                hidden: '隱形賣場商品',
-                                            };
-                                            return titleMap[type] || '';
-                                        })())}
-                        <div class="flex-fill"></div>
-                        <div style="display: flex; gap: 10px;">
-                          ${[
-                                            BgWidget.grayButton('匯入', gvc.event(() => {
-                                                ProductExcel.importDialog(gvc, () => gvc.notifyDataChange(vm.id));
-                                            })),
-                                            BgWidget.grayButton('匯出', gvc.event(() => {
-                                                ProductExcel.exportDialog(gvc, type, vm.apiJSON, vm.checkedData);
-                                            })),
-                                            BgWidget.darkButton('新增', gvc.event(() => {
-                                                var _b, _c, _d, _e;
-                                                ShoppingProductSetting.select_language = (_d = (_c = (_b = window.parent) === null || _b === void 0 ? void 0 : _b.store_info) === null || _c === void 0 ? void 0 : _c.language_setting) === null || _d === void 0 ? void 0 : _d.def;
-                                                const supportProducts = ShoppingProductSetting.getSupportProductCategory();
-                                                if (supportProducts.length <= 1) {
-                                                    ShoppingProductSetting.select_product_type = (((_e = supportProducts[0]) === null || _e === void 0 ? void 0 : _e.key) || '');
-                                                    vm.type = 'add';
-                                                    return;
-                                                }
-                                                ShoppingProductSetting.select_product_type = supportProducts[0].key;
-                                                BgWidget.settingDialog({
-                                                    gvc: gvc,
-                                                    title: '選擇商品類型',
-                                                    innerHTML: (gvc) => {
-                                                        return html `
-                                      <div class="d-flex align-items-center">
-                                        ${BgWidget.select({
-                                                            gvc: gvc,
-                                                            callback: data => {
-                                                                ShoppingProductSetting.select_product_type = data;
-                                                            },
-                                                            options: supportProducts,
-                                                            default: ShoppingProductSetting.select_product_type,
-                                                        })}
-                                      </div>
-                                    `;
-                                                    },
-                                                    footer_html: (gvc) => {
-                                                        return BgWidget.save(gvc.event(() => {
-                                                            vm.type = 'add';
-                                                            gvc.closeDialog();
-                                                        }), '下一步');
-                                                    },
-                                                    width: 300,
-                                                });
-                                            }), {
-                                                class: `guide5-3`,
-                                            }),
-                                        ].join('')}
-                        </div>
+                                        if (item.key === 'general_tag') {
+                                            item.data = yield BgProduct.getProductGeneralTag();
+                                        }
+                                        if (item.key === 'manager_tag') {
+                                            item.data = yield BgProduct.getProductManagerTag();
+                                        }
+                                        return item;
+                                    }));
+                                    return BgWidget.container(html `
+                    <div class="title-container">
+                      ${BgWidget.title((() => {
+                                        const titleMap = {
+                                            addProduct: '加購品',
+                                            giveaway: '贈品',
+                                            product: '商品列表',
+                                            hidden: '隱形賣場商品',
+                                        };
+                                        return titleMap[type] || '';
+                                    })())}
+                      <div class="flex-fill"></div>
+                      <div style="display: flex; gap: 10px;">
+                        ${[
+                                        BgWidget.grayButton('匯入', gvc.event(() => {
+                                            ProductExcel.importDialog(gvc, () => gvc.notifyDataChange(vm.id));
+                                        })),
+                                        BgWidget.grayButton('匯出', gvc.event(() => {
+                                            ProductExcel.exportDialog(gvc, type, vm.apiJSON, vm.checkedData);
+                                        })),
+                                        BgWidget.darkButton('新增', gvc.event(() => {
+                                            var _b, _c, _d, _e;
+                                            ShoppingProductSetting.select_language = (_d = (_c = (_b = window.parent) === null || _b === void 0 ? void 0 : _b.store_info) === null || _c === void 0 ? void 0 : _c.language_setting) === null || _d === void 0 ? void 0 : _d.def;
+                                            const supportProducts = ShoppingProductSetting.getSupportProductCategory();
+                                            if (supportProducts.length <= 1) {
+                                                ShoppingProductSetting.select_product_type = (((_e = supportProducts[0]) === null || _e === void 0 ? void 0 : _e.key) || '');
+                                                vm.type = 'add';
+                                                return;
+                                            }
+                                            ShoppingProductSetting.select_product_type = supportProducts[0].key;
+                                            BgWidget.settingDialog({
+                                                gvc: gvc,
+                                                title: '選擇商品類型',
+                                                innerHTML: (gvc) => {
+                                                    return html `
+                                    <div class="d-flex align-items-center">
+                                      ${BgWidget.select({
+                                                        gvc: gvc,
+                                                        callback: data => {
+                                                            ShoppingProductSetting.select_product_type = data;
+                                                        },
+                                                        options: supportProducts,
+                                                        default: ShoppingProductSetting.select_product_type,
+                                                    })}
+                                    </div>
+                                  `;
+                                                },
+                                                footer_html: (gvc) => {
+                                                    return BgWidget.save(gvc.event(() => {
+                                                        vm.type = 'add';
+                                                        gvc.closeDialog();
+                                                    }), '下一步');
+                                                },
+                                                width: 300,
+                                            });
+                                        }), {
+                                            class: `guide5-3`,
+                                        }),
+                                    ].join('')}
                       </div>
-                      ${BgWidget.container(BgWidget.mainCard([
-                                            (() => {
-                                                const id = gvc.glitter.getUUID();
-                                                return gvc.bindView({
-                                                    bind: id,
-                                                    view: () => {
-                                                        const filterList = [
-                                                            BgWidget.selectFilter({
-                                                                gvc,
-                                                                callback: (value) => {
-                                                                    vm.queryType = value;
-                                                                    gvc.notifyDataChange(vm.tableId);
-                                                                    gvc.notifyDataChange(id);
-                                                                },
-                                                                default: vm.queryType || 'title',
-                                                                options: FilterOptions.productSelect,
-                                                                style: 'min-width: 160px;',
-                                                            }),
-                                                            BgWidget.searchFilter(gvc.event(e => {
-                                                                vm.query = `${e.value}`.trim();
+                    </div>
+                    ${BgWidget.container(BgWidget.mainCard([
+                                        (() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return gvc.bindView({
+                                                bind: id,
+                                                view: () => {
+                                                    const filterList = [
+                                                        BgWidget.selectFilter({
+                                                            gvc,
+                                                            callback: (value) => {
+                                                                vm.queryType = value;
                                                                 gvc.notifyDataChange(vm.tableId);
                                                                 gvc.notifyDataChange(id);
-                                                            }), vm.query || '', '搜尋'),
-                                                            BgWidget.funnelFilter({
-                                                                gvc,
-                                                                callback: () => ListComp.showRightMenu(FilterOptions.productFunnel),
-                                                            }),
-                                                            BgWidget.updownFilter({
-                                                                gvc,
-                                                                callback: (value) => {
-                                                                    vm.orderString = value;
-                                                                    gvc.notifyDataChange(vm.tableId);
-                                                                    gvc.notifyDataChange(id);
-                                                                },
-                                                                default: vm.orderString || 'default',
-                                                                options: FilterOptions.productListOrderBy,
-                                                            }),
-                                                        ];
-                                                        const filterTags = ListComp.getFilterTags(FilterOptions.productFunnel);
-                                                        return BgListComponent.listBarRWD(filterList, filterTags);
+                                                            },
+                                                            default: vm.queryType || 'title',
+                                                            options: FilterOptions.productSelect,
+                                                            style: 'min-width: 160px;',
+                                                        }),
+                                                        BgWidget.searchFilter(gvc.event(e => {
+                                                            vm.query = `${e.value}`.trim();
+                                                            gvc.notifyDataChange(vm.tableId);
+                                                            gvc.notifyDataChange(id);
+                                                        }), vm.query || '', '搜尋'),
+                                                        BgWidget.funnelFilter({
+                                                            gvc,
+                                                            callback: () => ListComp.showRightMenu(FilterOptions.productFunnel),
+                                                        }),
+                                                        BgWidget.updownFilter({
+                                                            gvc,
+                                                            callback: (value) => {
+                                                                vm.orderString = value;
+                                                                gvc.notifyDataChange(vm.tableId);
+                                                                gvc.notifyDataChange(id);
+                                                            },
+                                                            default: vm.orderString || 'default',
+                                                            options: FilterOptions.productListOrderBy,
+                                                        }),
+                                                    ];
+                                                    const filterTags = ListComp.getFilterTags(FilterOptions.productFunnel);
+                                                    return BgListComponent.listBarRWD(filterList, filterTags);
+                                                },
+                                            });
+                                        })(),
+                                        gvc.bindView({
+                                            bind: vm.tableId,
+                                            view: () => {
+                                                const limit = 20;
+                                                return BgWidget.tableV3({
+                                                    gvc: gvc,
+                                                    getData: vmi => {
+                                                        function loop() {
+                                                            vm.apiJSON = {
+                                                                page: vmi.page - 1,
+                                                                limit: limit,
+                                                                search: vm.query || undefined,
+                                                                searchType: vm.queryType || undefined,
+                                                                orderBy: vm.orderString || undefined,
+                                                                status: (() => {
+                                                                    if (vm.filter.status && vm.filter.status.length > 0) {
+                                                                        return vm.filter.status.join(',');
+                                                                    }
+                                                                    return undefined;
+                                                                })(),
+                                                                channel: (() => {
+                                                                    if (vm.filter.channel && vm.filter.channel.length > 0) {
+                                                                        return vm.filter.channel.join(',');
+                                                                    }
+                                                                    return undefined;
+                                                                })(),
+                                                                filter_visible: `${type !== 'hidden'}`,
+                                                                collection: vm.filter.collection,
+                                                                accurate_search_collection: true,
+                                                                productType: type === 'hidden' ? 'product' : type,
+                                                                general_tag: (() => {
+                                                                    if (vm.filter.general_tag && vm.filter.general_tag.length > 0) {
+                                                                        return vm.filter.general_tag.join(',');
+                                                                    }
+                                                                    return undefined;
+                                                                })(),
+                                                                manager_tag: (() => {
+                                                                    if (vm.filter.manager_tag && vm.filter.manager_tag.length > 0) {
+                                                                        return vm.filter.manager_tag.join(',');
+                                                                    }
+                                                                    return undefined;
+                                                                })(),
+                                                            };
+                                                            ApiShop.getProduct(vm.apiJSON).then(data => {
+                                                                function getDatalist() {
+                                                                    return data.response.data.map((dd) => {
+                                                                        var _b;
+                                                                        return [
+                                                                            {
+                                                                                key: '商品',
+                                                                                value: html ` <div class="d-flex align-items-center">
+                                                ${BgWidget.validImageBox({
+                                                                                    gvc: gvc,
+                                                                                    image: dd.content.preview_image[0],
+                                                                                    width: 40,
+                                                                                    class: 'rounded border me-2',
+                                                                                })}
+                                                <div class="d-flex flex-column" style="">
+                                                  ${dd.content.shopee_id
+                                                                                    ? html `<div style="margin-bottom: -10px;">
+                                                        <div
+                                                          class="insignia"
+                                                          style="background: orangered;color: white;"
+                                                        >
+                                                          蝦皮
+                                                        </div>
+                                                      </div> `
+                                                                                    : ''}
+                                                  <div>${Tool.truncateString(dd.content.title)}</div>
+                                                </div>
+                                              </div>`,
+                                                                            },
+                                                                            {
+                                                                                key: '售價',
+                                                                                value: (() => {
+                                                                                    var _b;
+                                                                                    const numArray = ((_b = dd.content.variants) !== null && _b !== void 0 ? _b : [])
+                                                                                        .map((dd) => {
+                                                                                        return parseInt(`${dd.sale_price}`, 10);
+                                                                                    })
+                                                                                        .filter((dd) => {
+                                                                                        return !isNaN(dd);
+                                                                                    });
+                                                                                    if (numArray.length == 0) {
+                                                                                        return '尚未設定';
+                                                                                    }
+                                                                                    return `$ ${Math.min(...numArray).toLocaleString()}`;
+                                                                                })(),
+                                                                            },
+                                                                            {
+                                                                                key: '庫存',
+                                                                                value: (() => {
+                                                                                    let sum = 0;
+                                                                                    let countStock = 0;
+                                                                                    dd.content.variants.forEach((variant) => {
+                                                                                        if (variant.show_understocking == 'true') {
+                                                                                            countStock++;
+                                                                                            sum += variant.stock;
+                                                                                        }
+                                                                                    });
+                                                                                    if (countStock == 0) {
+                                                                                        return html ` 無追蹤庫存 `;
+                                                                                    }
+                                                                                    return html `${countStock}個子類
+                                                ${sum > 1
+                                                                                        ? `有${sum}件庫存`
+                                                                                        : html ` <span style="color:#8E0E2B">有${sum} 件庫存</span>`}`;
+                                                                                })(),
+                                                                            },
+                                                                            {
+                                                                                key: '已售出',
+                                                                                value: ((_b = dd.total_sales) !== null && _b !== void 0 ? _b : '0').toLocaleString(),
+                                                                            },
+                                                                            {
+                                                                                key: '狀態',
+                                                                                value: gvc.bindView(() => {
+                                                                                    const id = gvc.glitter.getUUID();
+                                                                                    return {
+                                                                                        bind: id,
+                                                                                        view: () => {
+                                                                                            return ShoppingProductSetting.getOnboardStatus(dd.content);
+                                                                                        },
+                                                                                        divCreate: {
+                                                                                            style: 'min-width: 60px;',
+                                                                                            option: [
+                                                                                                {
+                                                                                                    key: 'onclick',
+                                                                                                    value: gvc.event((e, event) => {
+                                                                                                        event.stopPropagation();
+                                                                                                    }),
+                                                                                                },
+                                                                                            ],
+                                                                                        },
+                                                                                    };
+                                                                                }),
+                                                                            },
+                                                                        ].map(dd => {
+                                                                            dd.value = html ` <div style="line-height:40px;">${dd.value}</div>`;
+                                                                            return dd;
+                                                                        });
+                                                                    });
+                                                                }
+                                                                vm.dataList = data.response.data;
+                                                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                                vmi.originalData = vm.dataList;
+                                                                vmi.tableData = getDatalist();
+                                                                vmi.loading = false;
+                                                                if (ShoppingProductSetting.select_page_index !== vmi.page - 1 &&
+                                                                    ShoppingProductSetting.select_page_index <= vmi.pageSize) {
+                                                                    vmi.page = ShoppingProductSetting.select_page_index + 1;
+                                                                    loop();
+                                                                }
+                                                                else {
+                                                                    ShoppingProductSetting.select_page_index = vmi.page - 1;
+                                                                    vmi.callback();
+                                                                }
+                                                            });
+                                                        }
+                                                        loop();
+                                                    },
+                                                    rowClick: (data, index) => {
+                                                        vm.replaceData = vm.dataList[index].content;
+                                                        ShoppingProductSetting.select_language = window.parent.store_info.language_setting.def;
+                                                        vm.type = 'replace';
+                                                    },
+                                                    tabClick: vmi => {
+                                                        ShoppingProductSetting.select_page_index = vmi.page - 1;
+                                                    },
+                                                    filter: [
+                                                        {
+                                                            name: '上架',
+                                                            event: checkedData => {
+                                                                const selCount = checkedData.length;
+                                                                dialog.dataLoading({ visible: true });
+                                                                new Promise(resolve => {
+                                                                    let n = 0;
+                                                                    checkedData.map((dd) => {
+                                                                        dd.content.active_schedule = this.getActiveDatetime();
+                                                                        dd.content.status = 'active';
+                                                                        function run() {
+                                                                            return __awaiter(this, void 0, void 0, function* () {
+                                                                                return ApiPost.put({
+                                                                                    postData: dd.content,
+                                                                                    token: window.parent.config.token,
+                                                                                    type: 'manager',
+                                                                                }).then(res => {
+                                                                                    res.result ? n++ : run();
+                                                                                });
+                                                                            });
+                                                                        }
+                                                                        run();
+                                                                    });
+                                                                    setInterval(() => {
+                                                                        n === selCount && setTimeout(() => resolve(), 200);
+                                                                    }, 500);
+                                                                }).then(() => {
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    gvc.notifyDataChange(vm.id);
+                                                                });
+                                                            },
+                                                            option: true,
+                                                        },
+                                                        {
+                                                            name: '下架',
+                                                            event: checkedData => {
+                                                                const selCount = checkedData.length;
+                                                                dialog.dataLoading({ visible: true });
+                                                                new Promise(resolve => {
+                                                                    let n = 0;
+                                                                    checkedData.map((dd) => {
+                                                                        dd.content.active_schedule = this.getInactiveDatetime();
+                                                                        dd.content.status = 'active';
+                                                                        function run() {
+                                                                            return __awaiter(this, void 0, void 0, function* () {
+                                                                                return ApiPost.put({
+                                                                                    postData: dd.content,
+                                                                                    token: window.parent.config.token,
+                                                                                    type: 'manager',
+                                                                                }).then(res => {
+                                                                                    res.result ? n++ : run();
+                                                                                });
+                                                                            });
+                                                                        }
+                                                                        run();
+                                                                    });
+                                                                    setInterval(() => {
+                                                                        n === selCount && setTimeout(() => resolve(), 200);
+                                                                    }, 500);
+                                                                }).then(() => {
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    gvc.notifyDataChange(vm.id);
+                                                                });
+                                                            },
+                                                            option: true,
+                                                        },
+                                                        {
+                                                            name: '刪除',
+                                                            event: checkedData => {
+                                                                dialog.checkYesOrNot({
+                                                                    text: '是否確認刪除所選項目？',
+                                                                    callback: response => {
+                                                                        if (response) {
+                                                                            dialog.dataLoading({ visible: true });
+                                                                            ApiShop.delete({
+                                                                                id: checkedData
+                                                                                    .map((dd) => {
+                                                                                    return dd.id;
+                                                                                })
+                                                                                    .join(`,`),
+                                                                            }).then(res => {
+                                                                                dialog.dataLoading({ visible: false });
+                                                                                if (res.result) {
+                                                                                    vm.dataList = undefined;
+                                                                                    gvc.notifyDataChange(vm.id);
+                                                                                }
+                                                                                else {
+                                                                                    dialog.errorMessage({
+                                                                                        text: '刪除失敗',
+                                                                                    });
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    },
+                                                                });
+                                                            },
+                                                        },
+                                                    ],
+                                                    filterCallback: (dataArray) => {
+                                                        vm.checkedData = dataArray;
                                                     },
                                                 });
-                                            })(),
-                                            gvc.bindView({
-                                                bind: vm.tableId,
-                                                view: () => {
-                                                    const limit = 20;
-                                                    return BgWidget.tableV3({
-                                                        gvc: gvc,
-                                                        getData: vmi => {
-                                                            function loop() {
-                                                                vm.apiJSON = {
-                                                                    page: vmi.page - 1,
-                                                                    limit: limit,
-                                                                    search: vm.query || undefined,
-                                                                    searchType: vm.queryType || undefined,
-                                                                    orderBy: vm.orderString || undefined,
-                                                                    status: (() => {
-                                                                        if (vm.filter.status && vm.filter.status.length > 0) {
-                                                                            return vm.filter.status.join(',');
-                                                                        }
-                                                                        return undefined;
-                                                                    })(),
-                                                                    channel: (() => {
-                                                                        if (vm.filter.channel && vm.filter.channel.length > 0) {
-                                                                            return vm.filter.channel.join(',');
-                                                                        }
-                                                                        return undefined;
-                                                                    })(),
-                                                                    filter_visible: `${type !== 'hidden'}`,
-                                                                    collection: vm.filter.collection,
-                                                                    accurate_search_collection: true,
-                                                                    productType: type === 'hidden' ? 'product' : type,
-                                                                };
-                                                                ApiShop.getProduct(vm.apiJSON).then(data => {
-                                                                    function getDatalist() {
-                                                                        return data.response.data.map((dd) => {
-                                                                            var _b;
-                                                                            return [
-                                                                                {
-                                                                                    key: '商品',
-                                                                                    value: html ` <div class="d-flex align-items-center">
-                                                  ${BgWidget.validImageBox({
-                                                                                        gvc: gvc,
-                                                                                        image: dd.content.preview_image[0],
-                                                                                        width: 40,
-                                                                                        class: 'rounded border me-2',
-                                                                                    })}
-                                                  <div class="d-flex flex-column" style="">
-                                                    ${dd.content.shopee_id
-                                                                                        ? `<div style="margin-bottom: -10px;"><div class="insignia" style="background: orangered;color: white;">蝦皮</div></div>
-                                                                                                                `
-                                                                                        : ``}
-                                                    <div>${Tool.truncateString(dd.content.title)}</div>
-                                                  </div>
-                                                </div>`,
-                                                                                },
-                                                                                {
-                                                                                    key: '售價',
-                                                                                    value: (() => {
-                                                                                        var _b;
-                                                                                        const numArray = ((_b = dd.content.variants) !== null && _b !== void 0 ? _b : [])
-                                                                                            .map((dd) => {
-                                                                                            return parseInt(`${dd.sale_price}`, 10);
-                                                                                        })
-                                                                                            .filter((dd) => {
-                                                                                            return !isNaN(dd);
-                                                                                        });
-                                                                                        if (numArray.length == 0) {
-                                                                                            return '尚未設定';
-                                                                                        }
-                                                                                        return `$ ${Math.min(...numArray).toLocaleString()}`;
-                                                                                    })(),
-                                                                                },
-                                                                                {
-                                                                                    key: '庫存',
-                                                                                    value: (() => {
-                                                                                        let sum = 0;
-                                                                                        let countStock = 0;
-                                                                                        dd.content.variants.forEach((variant) => {
-                                                                                            if (variant.show_understocking == 'true') {
-                                                                                                countStock++;
-                                                                                                sum += variant.stock;
-                                                                                            }
-                                                                                        });
-                                                                                        if (countStock == 0) {
-                                                                                            return html ` 無追蹤庫存 `;
-                                                                                        }
-                                                                                        return html `${countStock}個子類
-                                                  ${sum > 1
-                                                                                            ? `有${sum}件庫存`
-                                                                                            : html ` <span style="color:#8E0E2B">有${sum} 件庫存</span>`}`;
-                                                                                    })(),
-                                                                                },
-                                                                                {
-                                                                                    key: '已售出',
-                                                                                    value: ((_b = dd.total_sales) !== null && _b !== void 0 ? _b : '0').toLocaleString(),
-                                                                                },
-                                                                                {
-                                                                                    key: '狀態',
-                                                                                    value: gvc.bindView(() => {
-                                                                                        const id = gvc.glitter.getUUID();
-                                                                                        return {
-                                                                                            bind: id,
-                                                                                            view: () => {
-                                                                                                return ShoppingProductSetting.getOnboardStatus(dd.content);
-                                                                                            },
-                                                                                            divCreate: {
-                                                                                                style: 'min-width: 60px;',
-                                                                                                option: [
-                                                                                                    {
-                                                                                                        key: 'onclick',
-                                                                                                        value: gvc.event((e, event) => {
-                                                                                                            event.stopPropagation();
-                                                                                                        }),
-                                                                                                    },
-                                                                                                ],
-                                                                                            },
-                                                                                        };
-                                                                                    }),
-                                                                                },
-                                                                            ].map(dd => {
-                                                                                dd.value = html ` <div style="line-height:40px;">${dd.value}</div>`;
-                                                                                return dd;
-                                                                            });
-                                                                        });
-                                                                    }
-                                                                    vm.dataList = data.response.data;
-                                                                    vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                                    vmi.originalData = vm.dataList;
-                                                                    vmi.tableData = getDatalist();
-                                                                    vmi.loading = false;
-                                                                    if (ShoppingProductSetting.select_page_index !== vmi.page - 1 &&
-                                                                        ShoppingProductSetting.select_page_index <= vmi.pageSize) {
-                                                                        vmi.page = ShoppingProductSetting.select_page_index + 1;
-                                                                        loop();
-                                                                    }
-                                                                    else {
-                                                                        ShoppingProductSetting.select_page_index = vmi.page - 1;
-                                                                        vmi.callback();
-                                                                    }
-                                                                });
-                                                            }
-                                                            loop();
-                                                        },
-                                                        rowClick: (data, index) => {
-                                                            vm.replaceData = vm.dataList[index].content;
-                                                            ShoppingProductSetting.select_language = window.parent.store_info.language_setting.def;
-                                                            vm.type = 'replace';
-                                                        },
-                                                        tabClick: vmi => {
-                                                            ShoppingProductSetting.select_page_index = vmi.page - 1;
-                                                        },
-                                                        filter: [
-                                                            {
-                                                                name: '上架',
-                                                                event: checkedData => {
-                                                                    const selCount = checkedData.length;
-                                                                    dialog.dataLoading({ visible: true });
-                                                                    new Promise(resolve => {
-                                                                        let n = 0;
-                                                                        checkedData.map((dd) => {
-                                                                            dd.content.active_schedule = this.getActiveDatetime();
-                                                                            dd.content.status = 'active';
-                                                                            function run() {
-                                                                                return __awaiter(this, void 0, void 0, function* () {
-                                                                                    return ApiPost.put({
-                                                                                        postData: dd.content,
-                                                                                        token: window.parent.config.token,
-                                                                                        type: 'manager',
-                                                                                    }).then(res => {
-                                                                                        res.result ? n++ : run();
-                                                                                    });
-                                                                                });
-                                                                            }
-                                                                            run();
-                                                                        });
-                                                                        setInterval(() => {
-                                                                            n === selCount && setTimeout(() => resolve(), 200);
-                                                                        }, 500);
-                                                                    }).then(() => {
-                                                                        dialog.dataLoading({ visible: false });
-                                                                        gvc.notifyDataChange(vm.id);
-                                                                    });
-                                                                },
-                                                                option: true,
-                                                            },
-                                                            {
-                                                                name: '下架',
-                                                                event: checkedData => {
-                                                                    const selCount = checkedData.length;
-                                                                    dialog.dataLoading({ visible: true });
-                                                                    new Promise(resolve => {
-                                                                        let n = 0;
-                                                                        checkedData.map((dd) => {
-                                                                            dd.content.active_schedule = this.getInactiveDatetime();
-                                                                            dd.content.status = 'active';
-                                                                            function run() {
-                                                                                return __awaiter(this, void 0, void 0, function* () {
-                                                                                    return ApiPost.put({
-                                                                                        postData: dd.content,
-                                                                                        token: window.parent.config.token,
-                                                                                        type: 'manager',
-                                                                                    }).then(res => {
-                                                                                        res.result ? n++ : run();
-                                                                                    });
-                                                                                });
-                                                                            }
-                                                                            run();
-                                                                        });
-                                                                        setInterval(() => {
-                                                                            n === selCount && setTimeout(() => resolve(), 200);
-                                                                        }, 500);
-                                                                    }).then(() => {
-                                                                        dialog.dataLoading({ visible: false });
-                                                                        gvc.notifyDataChange(vm.id);
-                                                                    });
-                                                                },
-                                                                option: true,
-                                                            },
-                                                            {
-                                                                name: '刪除',
-                                                                event: checkedData => {
-                                                                    dialog.checkYesOrNot({
-                                                                        text: '是否確認刪除所選項目？',
-                                                                        callback: response => {
-                                                                            if (response) {
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                ApiShop.delete({
-                                                                                    id: checkedData
-                                                                                        .map((dd) => {
-                                                                                        return dd.id;
-                                                                                    })
-                                                                                        .join(`,`),
-                                                                                }).then(res => {
-                                                                                    dialog.dataLoading({ visible: false });
-                                                                                    if (res.result) {
-                                                                                        vm.dataList = undefined;
-                                                                                        gvc.notifyDataChange(vm.id);
-                                                                                    }
-                                                                                    else {
-                                                                                        dialog.errorMessage({
-                                                                                            text: '刪除失敗',
-                                                                                        });
-                                                                                    }
-                                                                                });
-                                                                            }
-                                                                        },
-                                                                    });
-                                                                },
-                                                            },
-                                                        ],
-                                                        filterCallback: (dataArray) => {
-                                                            vm.checkedData = dataArray;
-                                                        },
-                                                    });
-                                                },
-                                            }),
-                                        ].join('')))}
-                      ${BgWidget.minHeightContainer(240)}
-                    `);
-                                    }
-                                },
-                                onCreate: () => {
-                                    if (vmlist.loading) {
-                                        BgProduct.getCollectionAllOpts(vmlist.collections, () => {
-                                            vmlist.loading = false;
-                                            gvc.notifyDataChange(vmlist.id);
-                                        });
-                                    }
-                                },
+                                            },
+                                        }),
+                                    ].join('')))}
+                    ${BgWidget.minHeightContainer(240)}
+                  `);
+                                }),
                             });
                         case 'replace':
                             setTimeout(() => {

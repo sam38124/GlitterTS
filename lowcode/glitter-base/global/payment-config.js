@@ -18,22 +18,7 @@ export class PaymentConfig {
                 keyData = Object.assign(Object.assign({}, keyData), data.response.result[0].value);
             }
             const offlinePayArray = [
-                {
-                    key: 'atm',
-                    name: 'ATM銀行轉帳',
-                    customerClass: 'guide2-3',
-                    img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/20200804163522idfs9.jpg',
-                },
-                {
-                    key: 'line',
-                    name: 'LINE 轉帳',
-                    img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed.webp',
-                },
-                {
-                    key: 'cash_on_delivery',
-                    name: '貨到付款',
-                    img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/images.png',
-                },
+                ...this.defalutOfflinePay,
                 ...keyData.payment_info_custom.map((dd) => {
                     return {
                         key: dd.id,
@@ -94,5 +79,23 @@ PaymentConfig.onlinePay = [
         name: '聯合信用卡',
         type: 'pos',
         img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed (1) copy.jpg',
+    },
+];
+PaymentConfig.defalutOfflinePay = [
+    {
+        key: 'atm',
+        name: 'ATM銀行轉帳',
+        customerClass: 'guide2-3',
+        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/20200804163522idfs9.jpg',
+    },
+    {
+        key: 'line',
+        name: 'LINE 轉帳',
+        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed.webp',
+    },
+    {
+        key: 'cash_on_delivery',
+        name: '貨到付款',
+        img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/images.png',
     },
 ];

@@ -82,11 +82,12 @@ ShipmentConfig.supportPrintList = [
     'UNIMARTC2C',
     'HILIFEC2C',
     'OKMARTC2C',
+    'UNIMARTFREEZE',
+    'FAMIC2CFREEZE',
     'normal',
     'black_cat',
     'black_cat_ice',
-    'UNIMARTFREEZE',
     'black_cat_freezing',
 ];
-ShipmentConfig.supermarketList = ['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTFREEZE'];
+ShipmentConfig.supermarketList = ['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTFREEZE', 'FAMIC2CFREEZE'];
 //# sourceMappingURL=shipment-config.js.map

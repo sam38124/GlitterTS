@@ -62,6 +62,7 @@ const product_initial_js_1 = require("./product-initial.js");
 const ut_timer_js_1 = require("../utils/ut-timer.js");
 const auto_fcm_js_1 = require("../../public-config-initial/auto-fcm.js");
 const handlePaymentTransaction_js_1 = __importDefault(require("./model/handlePaymentTransaction.js"));
+const Language_js_1 = require("../../Language.js");
 class OrderDetail {
     constructor(subtotal, shipment) {
         this.discount = 0;
@@ -143,6 +144,7 @@ class Shopping {
             const idStr = query.id_list ? query.id_list.split(',').filter(Boolean).join(',') : '';
             query.language = (_b = query.language) !== null && _b !== void 0 ? _b : store_info.language_setting.def;
             query.show_hidden = (_c = query.show_hidden) !== null && _c !== void 0 ? _c : 'true';
+            await Promise.all([this.initProductCustomizeTagConifg(), this.initProductGeneralTagConifg()]);
             const orderMapping = {
                 title: `ORDER BY JSON_EXTRACT(content, '$.title')`,
                 max_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED) DESC , id DESC`,
@@ -369,6 +371,28 @@ class Shopping {
                         return `OR JSON_CONTAINS(content->>'$.channel', '"${channel}"')`;
                     });
                     querySql.push(`(content->>'$.channel' IS NULL ${channelJoin})`);
+                }
+            }
+            if (query.manager_tag) {
+                const tagSplit = query.manager_tag.split(',').map(tag => tag.trim());
+                if (tagSplit.length > 0) {
+                    const tagJoin = tagSplit.map(tag => {
+                        return `JSON_CONTAINS(content->>'$.product_customize_tag', '"${tag}"')`;
+                    });
+                    querySql.push(`(${tagJoin.join(' OR ')})`);
+                }
+            }
+            if (query.general_tag) {
+                const tagSplit = query.general_tag.split(',').map(tag => tag.trim());
+                if (tagSplit.length > 0) {
+                    const tagJoin = tagSplit.map(tag => {
+                        var _a;
+                        return `(JSON_CONTAINS(
+              JSON_EXTRACT(content, '$.product_tag.language."${(_a = query.language) !== null && _a !== void 0 ? _a : 'zh-TW'}"'),
+              JSON_QUOTE('${tag}')
+              ))`;
+                    });
+                    querySql.push(`(${tagJoin.join(' OR ')})`);
                 }
             }
             if (query.id_list && idStr) {
@@ -771,6 +795,141 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
     }
+    async initProductCustomizeTagConifg() {
+        var _a, _b;
+        try {
+            const managerTags = await new user_js_1.User(this.app).getConfigV2({ key: 'product_manager_tags', user_id: 'manager' });
+            if (managerTags && Array.isArray(managerTags.list)) {
+                return managerTags;
+            }
+            const getData = await database_js_1.default.query(`
+          SELECT 
+            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
+          FROM \`${this.app}\`.t_manager_post
+          WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
+        `, []);
+            const unique_tags_string = (_b = (_a = getData[0]) === null || _a === void 0 ? void 0 : _a.unique_tags) !== null && _b !== void 0 ? _b : '';
+            const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
+            const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
+            const data = { list: [...new Set(unique_tags_flot)] };
+            await new user_js_1.User(this.app).setConfig({
+                key: 'product_manager_tags',
+                user_id: 'manager',
+                value: data,
+            });
+            return data;
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Set product customize tag conifg Error:' + express_1.default, null);
+        }
+    }
+    async setProductCustomizeTagConifg(add_tags) {
+        var _a;
+        const tagConfig = await new user_js_1.User(this.app).getConfigV2({ key: 'product_manager_tags', user_id: 'manager' });
+        const tagList = (_a = tagConfig === null || tagConfig === void 0 ? void 0 : tagConfig.list) !== null && _a !== void 0 ? _a : [];
+        const data = { list: [...new Set([...tagList, ...add_tags])] };
+        await new user_js_1.User(this.app).setConfig({
+            key: 'product_manager_tags',
+            user_id: 'manager',
+            value: data,
+        });
+        return data;
+    }
+    async initProductGeneralTagConifg() {
+        var _a, _b;
+        try {
+            const generalTags = await new user_js_1.User(this.app).getConfigV2({ key: 'product_general_tags', user_id: 'manager' });
+            if (generalTags && Array.isArray(generalTags.list)) {
+                return generalTags;
+            }
+            const getData = await database_js_1.default.query(`
+          SELECT 
+            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_tag.language')) SEPARATOR ',') AS unique_tags
+          FROM \`${this.app}\`.t_manager_post
+          WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
+        `, []);
+            const unique_tags_string = (_b = (_a = getData[0]) === null || _a === void 0 ? void 0 : _a.unique_tags) !== null && _b !== void 0 ? _b : '';
+            const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
+            const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
+            const list = {};
+            unique_tags_flot.map(item => {
+                Language_js_1.Language.locationList.map(lang => {
+                    var _a;
+                    list[lang] = [...((_a = list[lang]) !== null && _a !== void 0 ? _a : []), ...item[lang]];
+                });
+            });
+            Language_js_1.Language.locationList.map(lang => {
+                list[lang] = [...new Set(list[lang])];
+            });
+            const data = { list };
+            await new user_js_1.User(this.app).setConfig({
+                key: 'product_general_tags',
+                user_id: 'manager',
+                value: data,
+            });
+            return data;
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Set product general tag conifg Error:' + express_1.default, null);
+        }
+    }
+    async setProductGeneralTagConifg(add_tags) {
+        var _a, _b;
+        const tagConfig = (_a = (await new user_js_1.User(this.app).getConfigV2({ key: 'product_general_tags', user_id: 'manager' }))) !== null && _a !== void 0 ? _a : (await this.initProductGeneralTagConifg());
+        (_b = tagConfig.list) !== null && _b !== void 0 ? _b : (tagConfig.list = {});
+        Language_js_1.Language.locationList.map(lang => {
+            var _a;
+            const originList = (_a = tagConfig.list[lang]) !== null && _a !== void 0 ? _a : [];
+            const updateList = add_tags[lang];
+            tagConfig.list[lang] = [...new Set([...originList, ...updateList])];
+        });
+        await new user_js_1.User(this.app).setConfig({
+            key: 'product_general_tags',
+            user_id: 'manager',
+            value: tagConfig,
+        });
+        return tagConfig;
+    }
+    async initOrderCustomizeTagConifg() {
+        var _a, _b;
+        try {
+            const managerTags = await new user_js_1.User(this.app).getConfigV2({ key: 'order_manager_tags', user_id: 'manager' });
+            if (managerTags && Array.isArray(managerTags.list)) {
+                return managerTags;
+            }
+            const getData = await database_js_1.default.query(`
+          SELECT 
+            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) SEPARATOR ',') AS unique_tags
+          FROM \`${this.app}\`.t_checkout
+          WHERE JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) IS NOT NULL
+        `, []);
+            const unique_tags_string = (_b = (_a = getData[0]) === null || _a === void 0 ? void 0 : _a.unique_tags) !== null && _b !== void 0 ? _b : '';
+            const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
+            const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
+            const data = { list: [...new Set(unique_tags_flot)] };
+            await new user_js_1.User(this.app).setConfig({
+                key: 'order_manager_tags',
+                user_id: 'manager',
+                value: data,
+            });
+            return data;
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Set order customize tag conifg Error:' + express_1.default, null);
+        }
+    }
+    async setOrderCustomizeTagConifg(add_tags) {
+        var _a;
+        const tagConfig = await new user_js_1.User(this.app).getConfigV2({ key: 'order_manager_tags', user_id: 'manager' });
+        const tagList = (_a = tagConfig === null || tagConfig === void 0 ? void 0 : tagConfig.list) !== null && _a !== void 0 ? _a : [];
+        const data = { list: [...new Set([...tagList, ...add_tags])] };
+        await new user_js_1.User(this.app).setConfig({
+            key: 'order_manager_tags',
+            user_id: 'manager',
+            value: data,
+        });
+        return data;
+    }
     async getAllUseVoucher(userID) {
         const now = Date.now();
         const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
@@ -875,8 +1034,10 @@ class Shopping {
         const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
         const orderClause = query.order_by || 'ORDER BY id DESC';
         const offset = query.page * query.limit;
-        let sql = `SELECT * FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}`;
-        const data = await database_js_1.default.query(`SELECT * FROM (${sql}) AS subquery LIMIT ?, ?
+        let sql = `SELECT *
+               FROM \`${this.app}\`.t_manager_post ${whereClause} ${orderClause}`;
+        const data = await database_js_1.default.query(`SELECT *
+       FROM (${sql}) AS subquery LIMIT ?, ?
       `, [offset, Number(query.limit)]);
         if (query.id) {
             return {
@@ -886,7 +1047,8 @@ class Shopping {
         }
         else {
             const total = await database_js_1.default
-                .query(`SELECT COUNT(*) as count FROM \`${this.app}\`.t_manager_post ${whereClause}
+                .query(`SELECT COUNT(*) as count
+           FROM \`${this.app}\`.t_manager_post ${whereClause}
           `, [])
                 .then((res) => { var _a; return ((_a = res[0]) === null || _a === void 0 ? void 0 : _a.count) || 0; });
             return {
@@ -2985,7 +3147,9 @@ class Shopping {
             const whereClause = data.cart_token ? 'cart_token = ?' : data.id ? 'id = ?' : null;
             const value = (_a = data.cart_token) !== null && _a !== void 0 ? _a : data.id;
             if (whereClause && value) {
-                const query = `SELECT * FROM \`${this.app}\`.t_checkout WHERE ${whereClause};`;
+                const query = `SELECT *
+                       FROM \`${this.app}\`.t_checkout
+                       WHERE ${whereClause};`;
                 const result = await database_js_1.default.query(query, [value]);
                 origin = result[0];
             }
@@ -3041,7 +3205,12 @@ class Shopping {
                     delete update.orderData.user_info.shipment_date;
                 }
                 const updateProgress = update.orderData.progress;
-                if (prevProgress !== updateProgress) {
+                if (updateProgress === 'wait' &&
+                    update.orderData.user_info.shipment_number &&
+                    update.orderData.user_info.shipment_number !== origin.orderData.user_info.shipment_number) {
+                    await this.sendNotifications(orderData, 'in_stock');
+                }
+                else if (prevProgress !== updateProgress) {
                     if (updateProgress === 'shipping') {
                         await this.sendNotifications(orderData, 'shipment');
                     }
@@ -3061,6 +3230,9 @@ class Shopping {
             const updateData = Object.entries(update).reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: typeof value === 'object' ? JSON.stringify(value) : value })), {});
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
         `, [updateData, origin.id]);
+            if (Array.isArray(update.orderData.tags)) {
+                await this.setOrderCustomizeTagConifg(update.orderData.tags);
+            }
             await Promise.all(origin.orderData.lineItems.map(async (lineItem) => {
                 var _a;
                 const shopping = new Shopping(this.app, this.token);
@@ -3205,6 +3377,7 @@ class Shopping {
         const typeMap = {
             shipment: 'shipment',
             arrival: 'shipment-arrival',
+            in_stock: 'in-stock',
         };
         if (lineID) {
             const line = new line_message_1.LineMessage(this.app);
@@ -3373,10 +3546,11 @@ class Shopping {
     }
     async getCheckOut(query) {
         try {
+            const timer = new ut_timer_js_1.UtTimer('get-checkout-info');
+            timer.checkPoint('start');
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
-            const timer = new ut_timer_js_1.UtTimer("get-checkout-info");
-            timer.checkPoint("start");
+            await this.initOrderCustomizeTagConifg();
             if (query.search && query.searchType) {
                 switch (query.searchType) {
                     case 'cart_token':
@@ -3542,6 +3716,15 @@ class Shopping {
                         break;
                 }
             }
+            if (query.manager_tag) {
+                const tagSplit = query.manager_tag.split(',').map(tag => tag.trim());
+                if (tagSplit.length > 0) {
+                    const tagJoin = tagSplit.map(tag => {
+                        return `JSON_CONTAINS(orderData->>'$.tags', '"${tag}"')`;
+                    });
+                    querySql.push(`(${tagJoin.join(' OR ')})`);
+                }
+            }
             query.status && querySql.push(`o.status IN (${query.status})`);
             const orderMath = [];
             query.email && orderMath.push(`(email=${database_js_1.default.escape(query.email)})`);
@@ -3571,7 +3754,7 @@ class Shopping {
                  FROM \`${this.app}\`.t_checkout o
                           LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id and i.status = 1
                  WHERE ${querySql.join(' and ')} ${orderString}`;
-            timer.checkPoint("start-query-sql");
+            timer.checkPoint('start-query-sql');
             if (query.returnSearch == 'true') {
                 const data = await database_js_1.default.query(`SELECT *
            FROM \`${this.app}\`.t_checkout
@@ -3597,7 +3780,7 @@ class Shopping {
                 return data[0];
             }
             const response_data = await new Promise(async (resolve, reject) => {
-                timer.checkPoint("start-query-response_data");
+                timer.checkPoint('start-query-response_data');
                 if (query.id) {
                     const data = (await database_js_1.default.query(`SELECT *
                FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
@@ -3608,10 +3791,10 @@ class Shopping {
                     });
                 }
                 else {
-                    const data = (await database_js_1.default.query(`SELECT *
-               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
-              `, []));
-                    timer.checkPoint("finish-query-response_data");
+                    const data = await database_js_1.default.query(`SELECT *
+             FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+            `, []);
+                    timer.checkPoint('finish-query-response_data');
                     resolve({
                         data: data,
                         total: (await database_js_1.default.query(`SELECT count(1)
@@ -3692,7 +3875,7 @@ class Shopping {
                 .concat(obMap.map(async (order) => {
                 order.user_data = await new user_js_1.User(this.app).getUserData(order.email, 'email_or_phone');
             })));
-            timer.checkPoint("finish-query-all");
+            timer.checkPoint('finish-query-all');
             return response_data;
         }
         catch (e) {
@@ -3950,7 +4133,7 @@ class Shopping {
                 else if (Object.keys(variant.stockList).length === 0) {
                     variant.stockList[storeConfig.list[0].id] = { count: variant.stock };
                 }
-                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants SET ?
+                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants SET ? 
           `, [
                     {
                         content: JSON.stringify(variant),
@@ -3963,7 +4146,14 @@ class Shopping {
                 }
                 return insertData;
             });
-            await Promise.all(insertPromises);
+            const chunk = 10;
+            const chunkLength = Math.ceil(insertPromises.length / chunk);
+            for (let i = 0; i < chunkLength; i++) {
+                const promisesArray = insertPromises.slice(i * chunk, (i + 1) * chunk);
+                setTimeout(async () => {
+                    await Promise.all(promisesArray);
+                }, 200);
+            }
             const exhibitionConfig = await _user.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
             exhibitionConfig.list = (_b = exhibitionConfig.list) !== null && _b !== void 0 ? _b : [];
             exhibitionConfig.list.forEach((exhibition) => {
@@ -4517,11 +4707,11 @@ class Shopping {
                             productArray[index] = product;
                         }
                         else {
-                            console.error('Product id not exist:', product);
+                            console.error('Product id not exist:', product.title);
                         }
                     }
                     else {
-                        console.error('Product has not id:', product);
+                        console.error('Product has not id:', product.title);
                     }
                     resolve(true);
                 });
@@ -4551,8 +4741,8 @@ class Shopping {
                 return [product.id || null, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
             });
             if (productArray.length) {
-                const data = await database_js_1.default.query(`replace
-          INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
+                const data = await database_js_1.default.query(`REPLACE INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
+          `, [
                     productArray.map((product) => {
                         var _a;
                         if (!product.id) {
@@ -4581,30 +4771,41 @@ class Shopping {
             product.id = product.id || insertIDStart++;
             return new Shopping(this.app, this.token).postVariantsAndPriceValue(product);
         });
-        await Promise.all(promises);
+        const chunk = 10;
+        const chunkLength = Math.ceil(promises.length / chunk);
+        for (let i = 0; i < chunkLength; i++) {
+            const promisesArray = promises.slice(i * chunk, (i + 1) * chunk);
+            setTimeout(async () => {
+                await Promise.all(promisesArray);
+            }, 200);
+        }
     }
     async putProduct(content) {
-        if (content.language_data) {
-            const language = await app_js_1.App.getSupportLanguage(this.app);
-            for (const b of language) {
-                const find_conflict = await database_js_1.default.query(`select count(1)
-           from \`${this.app}\`.\`t_manager_post\`
-           where content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
-             and id != ${content.id}`, []);
-                if (find_conflict[0]['count(1)'] > 0) {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
-                        message: '網域已被使用',
-                        code: '733',
-                    });
-                }
-            }
-        }
+        var _a, _b, _c;
         try {
             content.type = 'product';
+            if (content.language_data) {
+                const language = await app_js_1.App.getSupportLanguage(this.app);
+                for (const b of language) {
+                    const find_conflict = await database_js_1.default.query(`SELECT count(1)
+           FROM \`${this.app}\`.t_manager_post
+           WHERE content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
+             AND id != ${content.id}`, []);
+                    if (find_conflict[0]['count(1)'] > 0) {
+                        throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
+                            message: '網域已被使用',
+                            code: '733',
+                        });
+                    }
+                }
+            }
             this.checkVariantDataType(content.variants);
-            const data = await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
-         SET ?
-         where id = ?`, [
+            await Promise.all([
+                this.setProductCustomizeTagConifg((_a = content.product_customize_tag) !== null && _a !== void 0 ? _a : []),
+                this.setProductGeneralTagConifg((_c = (_b = content.product_tag) === null || _b === void 0 ? void 0 : _b.language) !== null && _c !== void 0 ? _c : []),
+            ]);
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
+        `, [
                 {
                     content: JSON.stringify(content),
                 },
@@ -4754,7 +4955,7 @@ class Shopping {
         }
     }
     async getVariants(query) {
-        var _a;
+        var _a, _b, _c;
         try {
             let querySql = ['1=1'];
             if (query.search) {
@@ -4772,7 +4973,16 @@ class Shopping {
                 }
             }
             query.id && querySql.push(`(v.id = ${query.id})`);
-            query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
+            if (query.id_list) {
+                if ((_a = query.id_list) === null || _a === void 0 ? void 0 : _a.includes('-')) {
+                    querySql.push(`(v.product_id in (${query.id_list.split(',').map(dd => {
+                        return dd.split('-')[0];
+                    })}))`);
+                }
+                else {
+                    querySql.push(`(v.id in (${query.id_list}))`);
+                }
+            }
             query.collection &&
                 querySql.push(`(${query.collection
                     .split(',')
@@ -4821,7 +5031,7 @@ class Shopping {
                     .join(' or ')})`);
             }
             if (query.stockCount) {
-                const stockCount = (_a = query.stockCount) === null || _a === void 0 ? void 0 : _a.split(',');
+                const stockCount = (_b = query.stockCount) === null || _b === void 0 ? void 0 : _b.split(',');
                 switch (stockCount[0]) {
                     case 'lessThan':
                         querySql.push(`(cast(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) < ${stockCount[1]})`);
@@ -4858,6 +5068,16 @@ class Shopping {
                 user_id: 'manager',
             });
             const data = await this.querySqlByVariants(querySql, query);
+            if (query.id_list) {
+                if ((_c = query.id_list) === null || _c === void 0 ? void 0 : _c.includes('-')) {
+                    data.data = data.data.filter((dd) => {
+                        var _a;
+                        return (_a = query.id_list) === null || _a === void 0 ? void 0 : _a.split(',').find(d1 => {
+                            return d1 === [dd.product_id, ...dd.variant_content.spec].join('-');
+                        });
+                    });
+                }
+            }
             const shopee_data_list = [];
             await Promise.all(data.data.map((v_c) => {
                 const product = v_c['product_content'];

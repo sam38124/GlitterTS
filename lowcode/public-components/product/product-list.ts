@@ -119,6 +119,7 @@ export class ProductList {
         }
       }
     `);
+
     return html` <div class="box-tag-${obj.tag} box-container-${text} ${obj.openOnInit ? `open-box` : ''}">
       <div
         class="box-navbar-${text} ${obj.guideClass ?? ''}"
@@ -216,14 +217,14 @@ export class ProductList {
 
       .page-link-prev {
         border-radius: 7px 0px 0px 7px;
-        border: 1px solid #d8d8d8;
+        border: 1px solid #393939;
         background: #fff;
         color: #393939;
       }
 
       .page-link-next {
         border-radius: 0px 7px 7px 0px;
-        border: 1px solid #d8d8d8;
+        border: 1px solid #393939;
         background: #fff;
         color: #393939;
       }
@@ -235,7 +236,7 @@ export class ProductList {
 
       .angle-style {
         font-size: 12px;
-        color: #d8d8d8;
+        color: #393939;
       }
     `);
 
@@ -789,7 +790,11 @@ export class ProductList {
                   onclick="${gvc.event(() => {
                     glitter.setDrawer(
                       html`<div class="p-3">
-                        <div class="fw-500 mb-3" style="font-size: 24px; color: ${fontColor};padding-top:${gvc.glitter.share.top_inset}px !important;">
+                        <div
+                          class="fw-500 mb-3"
+                          style="font-size: 24px; color: ${fontColor};padding-top:${gvc.glitter.share
+                            .top_inset}px !important;"
+                        >
                           ${Language.text('product_categories')}
                         </div>
                         ${getCollectionHTML()}

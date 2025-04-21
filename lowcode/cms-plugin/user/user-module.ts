@@ -19,50 +19,6 @@ export class UserModule {
     });
   }
 
-  static printOption(gvc: GVC, vmt: { id: string; postData: string[] }, opt: OptionsItem) {
-    const id = `user-tag-${opt.key}`;
-    opt.key = `${opt.key}`;
-
-    function call() {
-      if (vmt.postData.includes(opt.key)) {
-        vmt.postData = vmt.postData.filter(item => item !== opt.key);
-      } else {
-        vmt.postData.push(opt.key);
-      }
-      gvc.notifyDataChange(vmt.id);
-    }
-
-    return html`<div class="d-flex align-items-center gap-3 mb-3">
-      ${gvc.bindView({
-        bind: id,
-        view: () => {
-          return html`<input
-            class="form-check-input mt-0 ${BgWidget.getCheckedClass(gvc)}"
-            type="checkbox"
-            id="${opt.key}"
-            name="radio_${opt.key}"
-            onclick="${gvc.event(() => call())}"
-            ${vmt.postData.includes(opt.key) ? 'checked' : ''}
-          />`;
-        },
-        divCreate: {
-          class: 'd-flex align-items-center justify-content-center',
-        },
-      })}
-      <div class="form-check-label c_updown_label cursor_pointer" onclick="${gvc.event(() => call())}">
-        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-        ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-      </div>
-    </div>`;
-  }
-
-  static renderOptions(gvc: GVC, vmt: { id: string; postData: string[]; dataList: any }) {
-    if (vmt.dataList.length === 0) {
-      return html`<div class="d-flex justify-content-center fs-5">查無標籤</div>`;
-    }
-    return vmt.dataList.map((item: any) => this.printOption(gvc, vmt, { key: item, value: item })).join('');
-  }
-
   static addTags(obj: { gvc: GVC; vm: any; dataArray: any }) {
     const gvc = obj.gvc;
     const dataArray = obj.dataArray;
@@ -98,7 +54,7 @@ export class UserModule {
                   '0'
                 ),
                 BgWidget.grayNote('勾選的標籤，將會從已選取顧客的資料中新增'),
-                this.renderOptions(gvc2, vmt),
+                BgWidget.renderOptions(gvc2, vmt),
               ].join(BgWidget.mbContainer(18));
             }
           },
@@ -170,7 +126,7 @@ export class UserModule {
             } else {
               return [
                 BgWidget.grayNote('勾選的標籤，將會從已選取顧客的資料中移除'),
-                this.renderOptions(gvc2, vmt),
+                BgWidget.renderOptions(gvc2, vmt),
               ].join(BgWidget.mbContainer(18));
             }
           },

@@ -67,7 +67,7 @@ class App {
             else if (devDependencies[libraryName]) {
                 return devDependencies[libraryName];
             }
-            else if (libraryName !== 'ts-glitter') {
+            else {
                 throw new Error(`Library ${libraryName} is not listed in dependencies or devDependencies`);
             }
         }

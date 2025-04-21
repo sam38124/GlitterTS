@@ -1,7 +1,7 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { UmClass } from './um-class.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { Language } from '../../glitter-base/global/language.js';
+import { Language, LanguageLocation } from '../../glitter-base/global/language.js';
 
 const html = String.raw;
 
@@ -36,7 +36,7 @@ export interface VoucherContent {
   conditionType: string;
   includeDiscount: 'before' | 'after';
   start_ISO_Date: string;
-  language: 'en-US' | 'zh-CN' | 'zh-TW';
+  language: LanguageLocation;
 }
 
 export interface Voucher {

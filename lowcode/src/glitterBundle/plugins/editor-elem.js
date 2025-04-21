@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.EditorElem = void 0;
-class EditorElem {
+export class EditorElem {
     static h3(title) {
         return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${title}</h3>`;
     }
@@ -109,5 +106,3 @@ ${obj.gvc.bindView(() => {
 `;
     }
 }
-exports.EditorElem = EditorElem;
-//# sourceMappingURL=editor-elem.js.map

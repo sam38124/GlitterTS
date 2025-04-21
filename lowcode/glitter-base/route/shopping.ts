@@ -410,6 +410,8 @@ export class ApiShop {
     minPrice?: string;
     status?: string;
     channel?: string;
+    general_tag?: string;
+    manager_tag?: string;
     whereStore?: string;
     schedule?: boolean;
     orderBy?: string;
@@ -438,6 +440,8 @@ export class ApiShop {
           json.minPrice && par.push(`min_price=${json.minPrice}`);
           json.status && par.push(`status=${json.status}`);
           json.channel && par.push(`channel=${json.channel}`);
+          json.general_tag && par.push(`general_tag=${json.general_tag}`);
+          json.manager_tag && par.push(`manager_tag=${json.manager_tag}`);
           json.whereStore && par.push(`whereStore=${json.whereStore}`);
           if (json.schedule === true || json.schedule === false) {
             par.push(`schedule=${json.schedule}`);
@@ -638,6 +642,7 @@ export class ApiShop {
     valid?: boolean;
     is_shipment?: boolean;
     is_reconciliation?: boolean;
+    manager_tag?: string;
   }) {
     const filterString = this.orderListFilterString(json.filter);
     return BaseApi.create({
@@ -659,6 +664,7 @@ export class ApiShop {
           json.returnSearch && par.push(`returnSearch=${json.returnSearch ?? 'false'}`);
           json.is_shipment && par.push(`is_shipment=${json.is_shipment}`);
           json.is_reconciliation && par.push(`is_reconciliation=${json.is_reconciliation}`);
+          json.manager_tag && par.push(`manager_tag=${json.manager_tag}`);
           if (json.is_pos === true || json.is_pos === false) {
             par.push(`is_pos=${json.is_pos}`);
           }
@@ -1356,39 +1362,6 @@ export class ApiShop {
       { title: '部分付款', value: '3' },
       { title: proof_purchase ? '待核款' : '未付款', value: '0' },
       { title: '已退款', value: '-2' },
-    ];
-  }
-
-  static getProgressArray(shipment_number: any) {
-    return [
-      {
-        title: '出貨狀態',
-        value: '',
-      },
-      {
-        title: '已出貨',
-        value: 'shipping',
-      },
-      {
-        title: '待預購',
-        value: 'pre_order',
-      },
-      {
-        title: shipment_number ? `備貨中` : '未出貨',
-        value: 'wait',
-      },
-      {
-        title: '已取貨',
-        value: 'finish',
-      },
-      {
-        title: '已退貨',
-        value: 'returns',
-      },
-      {
-        title: '已到貨',
-        value: 'arrived',
-      },
     ];
   }
 

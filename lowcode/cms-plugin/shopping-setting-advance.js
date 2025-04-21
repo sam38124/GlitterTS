@@ -35,11 +35,28 @@ export class ShoppingSettingAdvance {
                         BgWidget.mainCard([
                             html `
                     <div class="guide5-4">
-                      <div class="d-flex align-items-center">
-                        <div style="color: #393939; font-weight: 700;">${carTitle}標籤</div>
-                        ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                          <div class="d-flex align-items-center">
+                            <div style="color: #393939; font-weight: 700;">${carTitle}標籤</div>
+                            ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
+                          </div>
+                          ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + carTitle)} ${BgWidget.mbContainer(4)}
+                        </div>
+                        ${BgWidget.blueNote('使用現有標籤', gvc.event(() => {
+                                var _a;
+                                BgProduct.useProductTags({
+                                    gvc,
+                                    config_key: 'product_general_tags',
+                                    config_lang: vm.language,
+                                    def: (_a = postMD.product_tag.language[vm.language]) !== null && _a !== void 0 ? _a : [],
+                                    callback: tags => {
+                                        postMD.product_tag.language[vm.language] = tags;
+                                        gvc.notifyDataChange(id);
+                                    },
+                                });
+                            }))}
                       </div>
-                      ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + carTitle)} ${BgWidget.mbContainer(4)}
                       ${BgWidget.multipleInput(gvc, postMD.product_tag.language[vm.language], {
                                 save: def => {
                                     postMD.product_tag.language[vm.language] = def;
@@ -48,15 +65,29 @@ export class ShoppingSettingAdvance {
                     </div>
                   `,
                             html `
-                    <div>
-                      <div style="color: #393939; font-weight: 700;">${carTitle}管理員標籤</div>
-                      ${BgWidget.grayNote('操作後台人員登記與分類用，不會顯示於前台')} ${BgWidget.mbContainer(4)}
-                      ${BgWidget.multipleInput(gvc, (_a = postMD.product_customize_tag) !== null && _a !== void 0 ? _a : [], {
-                                save: def => {
-                                    postMD.product_customize_tag = def;
-                                },
-                            })}
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div>
+                        <div style="color: #393939; font-weight: 700;">${carTitle}管理員標籤</div>
+                        ${BgWidget.grayNote('操作後台人員登記與分類用，不會顯示於前台')} ${BgWidget.mbContainer(4)}
+                      </div>
+                      ${BgWidget.blueNote('使用現有標籤', gvc.event(() => {
+                                var _a;
+                                BgProduct.useProductTags({
+                                    gvc,
+                                    config_key: 'product_manager_tags',
+                                    def: (_a = postMD.product_customize_tag) !== null && _a !== void 0 ? _a : [],
+                                    callback: tags => {
+                                        postMD.product_customize_tag = tags;
+                                        gvc.notifyDataChange(id);
+                                    },
+                                });
+                            }))}
                     </div>
+                    ${BgWidget.multipleInput(gvc, (_a = postMD.product_customize_tag) !== null && _a !== void 0 ? _a : [], {
+                                save: def => {
+                                    postMD.product_customize_tag = [...new Set(def)];
+                                },
+                            }, true)}
                   `,
                             html ` <div class="d-flex align-items-center gap-2">
                       <div style="color: #393939; font-weight: 700;">${carTitle}促銷標籤</div>

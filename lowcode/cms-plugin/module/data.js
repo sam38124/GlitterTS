@@ -1,3 +1,42 @@
+;
+custom_receipt_form ?  : any;
+custom_form_format ?  : any;
+custom_form_data ?  : any;
+proof_purchase: any;
+progress: string;
+order_note: string;
+voucherList: [
+    {
+        title: string,
+        method: 'percent' | 'fixed',
+        trigger: 'auto' | 'code',
+        value: string,
+        for: 'collection' | 'product',
+        rule: 'min_price' | 'min_count',
+        forKey: string[],
+        ruleValue: number,
+        startDate: string,
+        startTime: string,
+        endDate: string,
+        endTime: string,
+        status: 0 | 1 | -1,
+        type: 'voucher',
+        code: string,
+        overlay: boolean,
+        bind: {
+            id: string,
+            spec: string[],
+            count: number,
+            sale_price: number,
+            collection: string[],
+            discount_price: number
+        }[],
+        start_ISO_Date: string,
+        end_ISO_Date: string
+    },
+];
+orderSource ?  : string;
+deliveryData: Record();
 export class OrderDetail {
     constructor(subtotal, shipment) {
         this.discount = 0;
@@ -10,7 +49,7 @@ export class OrderDetail {
         this.customer_info = this.initCustomerInfo();
         this.user_info = this.initUserInfo();
         this.total = 0;
-        this.pay_status = "0";
+        this.pay_status = '0';
         this.voucher = this.initVoucher();
     }
     initCustomerInfo() {
@@ -40,13 +79,13 @@ export class OrderDetail {
             id: 0,
             discount_total: 0,
             end_ISO_Date: '',
-            for: "product",
+            for: 'product',
             forKey: [],
-            method: "fixed",
+            method: 'fixed',
             overlay: false,
-            reBackType: "rebate",
+            reBackType: 'rebate',
             rebate_total: 0,
-            rule: "min_count",
+            rule: 'min_count',
             ruleValue: 0,
             startDate: '',
             startTime: '',
@@ -55,9 +94,9 @@ export class OrderDetail {
             target: '',
             targetList: [],
             title: '',
-            trigger: "auto",
+            trigger: 'auto',
             type: 'voucher',
-            value: "0"
+            value: '0',
         };
     }
 }

@@ -162,46 +162,6 @@ export class PageSplit {
         dataList: <any>[],
       };
 
-      gvc.addStyle(`
-        .page-link-v2 {
-          display: inline-flex;
-          height: 32px;
-          padding: 10px;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          gap: 10px;
-          cursor: pointer;
-          background: #fff;
-          border: 1px solid #393939;
-          color: #393939;
-        }
-
-        .page-link-prev {
-          border-radius: 7px 0px 0px 7px;
-          border: 1px solid #d8d8d8;
-          background: #fff;
-          color: #393939;
-        }
-
-        .page-link-next {
-          border-radius: 0px 7px 7px 0px;
-          border: 1px solid #d8d8d8;
-          background: #fff;
-          color: #393939;
-        }
-
-        .page-link-active {
-          background: #393939;
-          color: #fff;
-        }
-
-        .angle-style {
-          font-size: 12px;
-          color: #d8d8d8;
-        }
-      `);
-
       return gvc.bindView({
         bind: vm.id,
         view: () => {

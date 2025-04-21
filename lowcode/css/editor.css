@@ -312,6 +312,44 @@ h6 {
   font-size: 1rem;
 }
 
+.angle-style {
+  font-size: 12px;
+  color: var(--main-black);
+}
+
+.page-link-v2 {
+  display: inline-flex;
+  height: 32px;
+  padding: 10px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: var(--main-white);
+  border: 1px solid var(--main-black);
+  color: var(--main-black);
+}
+
+.page-link-active {
+  background: var(--main-black);
+  color: var(--background-2);
+}
+
+.page-link-prev {
+  border-radius: 7px 0px 0px 7px;
+  border: 1px solid var(--main-black);
+  background: var(--main-white);
+  color: var(--main-black);
+}
+
+.page-link-next {
+  border-radius: 0px 7px 7px 0px;
+  border: 1px solid var(--main-black);
+  background: var(--main-white);
+  color: var(--main-black);
+}
+
 .h_item {
   height: 36px;
 }
@@ -1237,9 +1275,10 @@ h6 {
   }
 
   .title-container {
-    padding-left: 8px;
-    padding-right: 8px;
-    margin-top: 10px;
+    padding-left: 12px;
+    padding-right: 12px;
+    margin-top: 12px;
+    margin-bottom: 12px;
   }
 
   .bt_orange_lin {

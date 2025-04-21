@@ -1098,6 +1098,7 @@ export class ProductExcel {
                                     };
                                     productData.id = id_list[postMD.length];
                                     productData.title = this.checkString(row[0]);
+                                    productData.sub_title = this.checkString(row[29]);
                                     productData.status = row[1] == '啟用' ? 'active' : 'draft';
                                     productData.collection = (_b = row[2].split(',')) !== null && _b !== void 0 ? _b : [];
                                     productData.collection = productData.collection.map((item) => item.replace(/\s+/g, ''));
@@ -1182,7 +1183,6 @@ export class ProductExcel {
                                 variantData.stock = this.checkNumber(row[26]);
                                 variantData.save_stock = this.checkNumber(row[27]);
                                 variantData.barcode = this.checkString(row[28]);
-                                productData.sub_title = this.checkString(row[29]);
                                 productData.variants.push(JSON.parse(JSON.stringify(variantData)));
                             }
                         }

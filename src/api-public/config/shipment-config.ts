@@ -79,12 +79,13 @@ export class ShipmentConfig {
     'UNIMARTC2C',
     'HILIFEC2C',
     'OKMARTC2C',
+    'UNIMARTFREEZE',
+    'FAMIC2CFREEZE',
     'normal',
     'black_cat',
     'black_cat_ice',
-    'UNIMARTFREEZE',
     'black_cat_freezing',
   ];
   //超商列表
-  public static supermarketList = ['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTFREEZE'];
+  public static supermarketList = ['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTFREEZE', 'FAMIC2CFREEZE'];
 }

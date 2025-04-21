@@ -212,6 +212,7 @@ export class User {
       delete userData.repeat_password;
       const findAuth = await this.findAuthUser(account);
       const userID = findAuth ? findAuth.user : User.generateUserID();
+
       if (
         register_form.list.find((dd: any) => {
           return dd.key === 'email' && `${dd.hidden}` !== 'true' && dd.required;
@@ -287,6 +288,11 @@ export class User {
         account: usData['account'],
         userData: {},
       });
+
+      const rebate_value = parseInt(userData.rebate, 10);
+      if (!isNaN(rebate_value) && rebate_value > 0) {
+        await new Rebate(this.app).insertRebate(userID, rebate_value, '匯入會員購物金');
+      }
 
       return usData;
     } catch (e: any) {
@@ -837,9 +843,7 @@ export class User {
                      if (type === 'userID') {
                        query2.push(`userID=${db.escape(query)}`);
                      } else if (type === 'email_or_phone') {
-                       query2.push(
-                         `((email=${db.escape(query)}) or (phone=${db.escape(query)}))`
-                       );
+                       query2.push(`((email=${db.escape(query)}) or (phone=${db.escape(query)}))`);
                      } else {
                        query2.push(`email=${db.escape(query)}`);
                      }
@@ -2178,100 +2182,98 @@ export class User {
   }
 
   public async updateUserData(userID: string, par: any, manager: boolean = false) {
-    const userData = await (async () => {
-      const getUser = await db.query(
-        `select *
-         from \`${this.app}\`.\`t_user\`
-         where userID = ${db.escape(userID)}
+    const getUser = await db.query(
+      `SELECT * FROM \`${this.app}\`.t_user WHERE userID = ${db.escape(userID)}
         `,
-        []
-      );
-      return getUser[0] ?? {};
-    })();
+      []
+    );
+    const userData = getUser[0] ?? {};
+
+    if (!userData.userData) {
+      return { data: {} };
+    }
 
     try {
-      if (!userData.userData) {
-        return { data: {} };
-      }
-
-      const login_config = await this.getConfigV2({
-        key: 'login_config',
-        user_id: 'manager',
-      });
-      const register_form = await this.getConfigV2({
-        key: 'custom_form_register',
-        user_id: 'manager',
-      });
+      const login_config = await this.getConfigV2({ key: 'login_config', user_id: 'manager' });
+      const register_form = await this.getConfigV2({ key: 'custom_form_register', user_id: 'manager' });
 
       register_form.list = register_form.list ?? [];
       FormCheck.initialRegisterForm(register_form.list);
 
+      const userDataVerify = await redis.getValue(`verify-${userData.userData.email}`);
+      const parDataVerify = await redis.getValue(`verify-${par.userData.email}`);
+
+      // 更改密碼驗證
       if (par.userData.pwd) {
-        if ((await redis.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
+        if (userDataVerify === par.userData.verify_code) {
+          const pwd = await tool.hashPwd(par.userData.pwd);
           await db.query(
-            `update \`${this.app}\`.\`t_user\`
-             set pwd=?
-             where userID = ${db.escape(userID)}`,
-            [await tool.hashPwd(par.userData.pwd)]
+            `UPDATE \`${this.app}\`.t_user SET pwd = ? WHERE userID = ${db.escape(userID)}
+            `,
+            [pwd]
           );
         } else {
-          throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
-            msg: 'email-verify-false',
+          throw exception.BadRequestError('BAD_REQUEST', 'Password verify code error.', {
+            msg: 'password-verify-false',
           });
         }
       }
 
+      // 更改信箱驗證
       if (par.userData.email && par.userData.email !== userData.userData.email) {
         const count = (
           await db.query(
-            `select count(1)
-             from \`${this.app}\`.\`t_user\`
-             where (userData ->>'$.email' = ${db.escape(par.userData.email)})
-               and (userID != ${db.escape(userID)}) `,
+            `SELECT count(1)
+             FROM \`${this.app}\`.t_user
+             WHERE (userData->>'$.email' = ${db.escape(par.userData.email)})
+               AND (userID != ${db.escape(userID)})`,
             []
           )
         )[0]['count(1)'];
+
         if (count) {
-          throw exception.BadRequestError('BAD_REQUEST', 'Already exists.', {
+          throw exception.BadRequestError('BAD_REQUEST', 'User email already exists.', {
             msg: 'email-exists',
           });
         }
+
         if (
+          !manager &&
           login_config.email_verify &&
-          par.userData.verify_code !== (await redis.getValue(`verify-${par.userData.email}`)) &&
-          register_form.list.find((dd: any) => {
-            return dd.key === 'email' && `${dd.hidden}` !== 'true';
-          })
+          par.userData.verify_code !== parDataVerify &&
+          register_form.list.some((r: any) => r.key === 'email' && `${r.hidden}` !== 'true')
         ) {
-          throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
+          throw exception.BadRequestError('BAD_REQUEST', 'ParData email verify code error.', {
             msg: 'email-verify-false',
           });
         }
       }
 
+      // 更改手機驗證
       if (par.userData.phone && par.userData.phone !== userData.userData.phone) {
         const count = (
           await db.query(
-            `select count(1)
-             from \`${this.app}\`.\`t_user\`
-             where (userData ->>'$.phone' = ${db.escape(par.userData.phone)})
-               and (userID != ${db.escape(userID)}) `,
+            `SELECT count(1)
+             FROM \`${this.app}\`.t_user
+             WHERE (userData->>'$.phone' = ${db.escape(par.userData.phone)})
+               AND (userID != ${db.escape(userID)}) `,
             []
           )
         )[0]['count(1)'];
+
         if (count) {
-          throw exception.BadRequestError('BAD_REQUEST', 'Already exists.', {
+          throw exception.BadRequestError('BAD_REQUEST', 'User phone already exists.', {
             msg: 'phone-exists',
           });
         }
+
         if (
+          !manager &&
           login_config.phone_verify &&
           !(await PhoneVerify.verify(par.userData.phone, par.userData.verify_code_phone)) &&
-          register_form.list.find((dd: any) => {
-            return dd.key === 'phone' && `${dd.hidden}` !== 'true';
-          })
+          register_form.list.some((dd: any) => dd.key === 'phone' && `${dd.hidden}` !== 'true')
         ) {
-          throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
+          throw exception.BadRequestError('BAD_REQUEST', 'ParData phone verify code error.', {
             msg: 'phone-verify-false',
           });
         }
@@ -2282,10 +2284,8 @@ export class User {
 
       if (par.userData.phone) {
         await db.query(
-          `update \`${this.app}\`.t_checkout
-           set email=?
-           where id > 0
-             and email = ?`,
+          `UPDATE \`${this.app}\`.t_checkout SET email = ? WHERE id > 0 AND email = ?
+          `,
           [par.userData.phone, `${userData.userData.phone}`]
         );
         userData.account = par.userData.phone;
@@ -2293,10 +2293,8 @@ export class User {
 
       if (par.userData.email) {
         await db.query(
-          `update \`${this.app}\`.t_checkout
-           set email=?
-           where id > 0
-             and email = ?`,
+          `UPDATE \`${this.app}\`.t_checkout SET email = ? WHERE id > 0 AND email = ?
+          `,
           [par.userData.email, `${userData.userData.email}`]
         );
         userData.account = par.userData.email;
@@ -2304,8 +2302,8 @@ export class User {
 
       par.userData = await this.checkUpdate({
         updateUserData: par.userData,
-        userID: userID,
-        manager: manager,
+        userID,
+        manager,
       });
 
       delete par.userData.verify_code;
@@ -2320,13 +2318,11 @@ export class User {
         delete par.account;
       }
 
-      const data = (await db.query(
-        `update \`${this.app}\`.t_user
-         SET ?
-         WHERE 1 = 1
-           and userID = ?`,
+      const data = await db.query(
+        `UPDATE \`${this.app}\`.t_user SET ? WHERE 1 = 1 AND userID = ?
+        `,
         [par, userID]
-      )) as any;
+      );
 
       await UserUpdate.update(this.app, userID);
 

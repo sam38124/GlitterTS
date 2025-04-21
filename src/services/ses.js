@@ -36,7 +36,6 @@ async function sendmail(sender, recipient, subject, body, callback) {
     sendEmail(sender, recipient, subject, body);
 }
 exports.sendmail = sendmail;
-exports.sendmail = sendmail;
 async function sendmail(sender, recipient, subject, body, callback) {
     const AWS = require('aws-sdk');
     AWS.config.update({ region: 'us-west-2' });

@@ -32,7 +32,7 @@ export class CheckInput {
         return regex.test(input);
     }
     static isBirthString(input) {
-        if (input.length !== 8) {
+        if (!input || input.length !== 8) {
             return false;
         }
         const year = parseInt(input.substring(0, 4), 10);

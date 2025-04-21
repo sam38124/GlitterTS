@@ -2,6 +2,9 @@ import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
+import { OrderModule } from './order/order-module.js';
+
+const html = String.raw;
 
 export class FilterOptions {
   static userFilterFrame = {
@@ -166,6 +169,7 @@ export class FilterOptions {
     payment_select: [],
     shipment: [],
     created_time: ['', ''],
+    manager_tag: [],
   };
 
   static returnOrderFilterFrame = {
@@ -236,7 +240,9 @@ export class FilterOptions {
         data: (await PaymentConfig.getSupportPayment()).map(dd => {
           if (dd.type === 'pos' && !dd.name.includes('POS')) {
             const name = dd.name;
-            dd.name = `<div class="d-flex">${[BgWidget.warningInsignia('POS'), name].join(`<div class="mx-1"></div>`)}</div>`;
+            dd.name = html`<div class="d-flex">
+              ${[BgWidget.warningInsignia('POS'), name].join(html`<div class="mx-1"></div>`)}
+            </div>`;
           }
           return dd;
         }),
@@ -273,6 +279,12 @@ export class FilterOptions {
             { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
           ],
         },
+      },
+      {
+        key: 'manager_tag',
+        type: 'search_and_select',
+        name: '訂單管理標籤',
+        data: await OrderModule.getOrderManagerTag(),
       },
     ];
   }
@@ -503,6 +515,8 @@ export class FilterOptions {
     status: [],
     channel: [],
     collection: [],
+    general_tag: [],
+    manager_tag: [],
   };
 
   static productFunnel = [
@@ -525,6 +539,24 @@ export class FilterOptions {
         { key: 'normal', name: 'APP & 官網' },
         { key: 'pos', name: 'POS' },
       ],
+    },
+    {
+      key: 'collection',
+      type: 'multi_checkbox',
+      name: '商品分類',
+      data: [],
+    },
+    {
+      key: 'general_tag',
+      type: 'search_and_select',
+      name: '商品標籤',
+      data: [],
+    },
+    {
+      key: 'manager_tag',
+      type: 'search_and_select',
+      name: '商品管理標籤',
+      data: [],
     },
   ];
 

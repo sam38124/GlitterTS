@@ -4,12 +4,10 @@ import exception from '../modules/exception';
 import { IToken } from '../models/Auth.js';
 import process from 'process';
 import { UtDatabase } from '../api-public/utils/ut-database.js';
-import { AbsolutePathCheck } from './absolute-path-check.js';
+import { LanguageLocation } from '../Language.js';
 
 export class Template {
   public token?: IToken;
-
-
 
   public async createPage(config: {
     appName: string;
@@ -23,8 +21,6 @@ export class Template {
     copyApp: string;
     replace?: boolean;
   }) {
-
-
     if (config.copy) {
       const data = (
         await db.execute(
@@ -77,9 +73,8 @@ export class Template {
     preview_image: string;
     favorite: number;
     updated_time: any;
-    language?: 'zh-TW' | 'zh-CN' | 'en-US';
+    language?: LanguageLocation;
   }) {
-
     const page_db = (() => {
       switch (config.language) {
         case 'zh-TW':
@@ -155,7 +150,6 @@ export class Template {
   }
 
   public async deletePage(config: { appName: string; id?: string; tag?: string }) {
-
     try {
       for (const b of ['page_config', 'page_config_rcn', 'page_config_en']) {
         let sql = config.id
@@ -233,8 +227,8 @@ export class Template {
     if (query_page.includes('#')) {
       query_page = query_page.substring(0, query_page.indexOf('#'));
     }
-    if(appName === 'proshake_v2'){
-      return  query_page
+    if (appName === 'proshake_v2') {
+      return query_page;
     }
     console.log(`query_page`, query_page);
     //判斷是APP頁面，首次預設複製首頁頁面
@@ -267,7 +261,6 @@ export class Template {
           );
         }
       }
-
     }
     //判斷是條款頁面或部落格列表頁面時
     if (
@@ -290,13 +283,13 @@ export class Template {
         'auto_fcm_push',
         'auto_fcm_advertise',
         'auto_fcm_template',
-        'notify_message_list'
+        'notify_message_list',
       ].includes(query_page)
     ) {
       return 'official-router';
     }
     if (
-      ['account_userinfo', 'voucher-list', 'rebate', 'order_list', 'wishlist','account_edit'].includes(query_page) &&
+      ['account_userinfo', 'voucher-list', 'rebate', 'order_list', 'wishlist', 'account_edit'].includes(query_page) &&
       appName !== 'cms_system'
     ) {
       return 'official-router';
@@ -318,9 +311,9 @@ export class Template {
             [query_page.split('/')[1]]
           )
         )[0].content;
-        if(page.redirect.startsWith('/products')){
+        if (page.redirect.startsWith('/products')) {
           return 'official-router';
-        }else{
+        } else {
           return await Template.getRealPage((page.redirect as string).substring(1), appName as string);
         }
       } catch (error) {
@@ -333,13 +326,12 @@ export class Template {
       page = 'all-product';
     }
     //當判斷是商品頁時
-    if (query_page.split('/')[0] === 'products' && query_page.split('/')[1] ) {
-      if(appName === '3131_shop'){
+    if (query_page.split('/')[0] === 'products' && query_page.split('/')[1]) {
+      if (appName === '3131_shop') {
         page = 'products';
-      }else{
+      } else {
         page = 'official-router';
       }
-
     }
     //當判斷是CMS頁面時
     if (query_page === 'cms') {
@@ -367,7 +359,7 @@ export class Template {
     favorite?: string;
     preload?: boolean;
     id?: string;
-    language?: 'zh-TW' | 'zh-CN' | 'en-US';
+    language?: LanguageLocation;
   }): Promise<any> {
     if (config.tag) {
       config.tag = await Template.getRealPage(config.tag, config.appName!);

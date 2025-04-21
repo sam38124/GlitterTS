@@ -1,7 +1,5 @@
 'use strict';
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Editor = void 0;
-class Editor {
+export class Editor {
     constructor(gvc) {
         var _a;
         const editor = this;
@@ -378,5 +376,3 @@ class Editor {
         };
     }
 }
-exports.Editor = Editor;
-//# sourceMappingURL=editor.js.map

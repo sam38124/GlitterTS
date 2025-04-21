@@ -232,8 +232,7 @@ export class UserList {
                 自訂資料
               </button>
             </div>
-            <div class="title-container">
-              ${BgWidget.tab(((_b = vm.group) === null || _b === void 0 ? void 0 : _b.type) === 'subscriber'
+            ${BgWidget.tab(((_b = vm.group) === null || _b === void 0 ? void 0 : _b.type) === 'subscriber'
                         ? [
                             {
                                 title: '一般列表',
@@ -260,8 +259,7 @@ export class UserList {
                         ], gvc, vm.filter_type, text => {
                         vm.filter_type = text;
                         gvc.notifyDataChange(vm.id);
-                    }, 'margin: 0; margin-top: 24px;')}
-            </div>
+                    })}
             ${BgWidget.container((() => {
                         if (vm.filter_type === 'notRegistered') {
                             return BgNotify.email(gvc, 'list', () => obj === null || obj === void 0 ? void 0 : obj.backButtonEvent);
@@ -1095,7 +1093,7 @@ export class UserList {
                                                                                         vmt.loading = true;
                                                                                         gvc2.notifyDataChange(vmt.id);
                                                                                     }), vmt.search, '搜尋標籤', '0', '0'),
-                                                                                    UserModule.renderOptions(gvc2, vmt),
+                                                                                    BgWidget.renderOptions(gvc2, vmt),
                                                                                 ].join(BgWidget.mbContainer(18));
                                                                             }
                                                                         },
@@ -1181,94 +1179,92 @@ export class UserList {
                                 </div>`,
                                                 ].join(BgWidget.mbContainer(12)),
                                                 [
-                                                    html `<div class="tx_700">升級方式</div>`,
+                                                    html `
+                                  <div class="d-flex align-items-center gap-2">
+                                    <div class="tx_700">升級方式</div>
+                                    ${BgWidget.blueNote('查看會員級數規則', gvc.event(() => {
+                                                        BgWidget.infoDialog({
+                                                            gvc: gvc,
+                                                            title: '會員規則',
+                                                            innerHTML: BgWidget.tableV3({
+                                                                gvc: gvc,
+                                                                getData: vd => {
+                                                                    setTimeout(() => {
+                                                                        vd.tableData = vm.data.member.map((leadData) => {
+                                                                            return [
+                                                                                {
+                                                                                    key: '會員等級',
+                                                                                    value: leadData.tag_name,
+                                                                                },
+                                                                                {
+                                                                                    key: '升級規則',
+                                                                                    value: (() => {
+                                                                                        let text = '';
+                                                                                        const val = parseInt(`${leadData.og.condition.value}`, 10).toLocaleString();
+                                                                                        const condition_type = leadData.og.condition.type === 'single' ? '單筆' : '累積';
+                                                                                        if (leadData.og.duration.type === 'noLimit') {
+                                                                                            text = `${condition_type}消費額達 NT$${val}`;
+                                                                                        }
+                                                                                        else {
+                                                                                            text = `${leadData.og.duration.value}天內${condition_type}消費額達 NT$${val}`;
+                                                                                        }
+                                                                                        return text;
+                                                                                    })(),
+                                                                                },
+                                                                                {
+                                                                                    key: '有效期限',
+                                                                                    value: (() => {
+                                                                                        const { type, value } = leadData.og.dead_line;
+                                                                                        let dead_line = '';
+                                                                                        if (type === 'date') {
+                                                                                            const deadlines = [
+                                                                                                {
+                                                                                                    title: '一個月',
+                                                                                                    value: 30,
+                                                                                                },
+                                                                                                {
+                                                                                                    title: '三個月',
+                                                                                                    value: 90,
+                                                                                                },
+                                                                                                {
+                                                                                                    title: '六個月',
+                                                                                                    value: 180,
+                                                                                                },
+                                                                                                {
+                                                                                                    title: '一年',
+                                                                                                    value: 365,
+                                                                                                },
+                                                                                            ];
+                                                                                            const matchedDeadline = deadlines.find(item => item.value === value);
+                                                                                            dead_line = matchedDeadline
+                                                                                                ? matchedDeadline.title
+                                                                                                : `${value}天`;
+                                                                                        }
+                                                                                        else if (type === 'noLimit') {
+                                                                                            dead_line = '沒有期限';
+                                                                                        }
+                                                                                        return dead_line;
+                                                                                    })(),
+                                                                                },
+                                                                            ];
+                                                                        });
+                                                                        vd.originalData = vm.data.member;
+                                                                        vd.loading = false;
+                                                                        vd.callback();
+                                                                    }, 200);
+                                                                },
+                                                                filter: [],
+                                                                rowClick: () => { },
+                                                                hiddenPageSplit: true,
+                                                            }),
+                                                        });
+                                                    }))}
+                                  </div>
+                                `,
                                                     BgWidget.multiCheckboxContainer(gvc, [
                                                         {
                                                             key: 'auto',
-                                                            name: html `<div>
-                                        根據本站<span
-                                          style="color: #4D86DB; text-decoration: underline;"
-                                          onclick="${gvc.event((e, ev) => {
-                                                                ev.stopPropagation();
-                                                                BgWidget.infoDialog({
-                                                                    gvc: gvc,
-                                                                    title: '會員規則',
-                                                                    innerHTML: BgWidget.tableV3({
-                                                                        gvc: gvc,
-                                                                        getData: vd => {
-                                                                            setTimeout(() => {
-                                                                                vd.tableData = vm.data.member.map((leadData) => {
-                                                                                    return [
-                                                                                        {
-                                                                                            key: '會員等級',
-                                                                                            value: leadData.tag_name,
-                                                                                        },
-                                                                                        {
-                                                                                            key: '升級條件',
-                                                                                            value: (() => {
-                                                                                                let text = '';
-                                                                                                const val = parseInt(`${leadData.og.condition.value}`, 10).toLocaleString();
-                                                                                                const condition_type = leadData.og.condition.type === 'single' ? '單筆' : '累積';
-                                                                                                if (leadData.og.duration.type === 'noLimit') {
-                                                                                                    text = `${condition_type}消費額達 NT$${val}`;
-                                                                                                }
-                                                                                                else {
-                                                                                                    text = `${leadData.og.duration.value}天內${condition_type}消費額達 NT$${val}`;
-                                                                                                }
-                                                                                                return text;
-                                                                                            })(),
-                                                                                        },
-                                                                                        {
-                                                                                            key: '有效期限',
-                                                                                            value: (() => {
-                                                                                                const { type, value } = leadData.og.dead_line;
-                                                                                                let dead_line = '';
-                                                                                                if (type === 'date') {
-                                                                                                    const deadlines = [
-                                                                                                        {
-                                                                                                            title: '一個月',
-                                                                                                            value: 30,
-                                                                                                        },
-                                                                                                        {
-                                                                                                            title: '三個月',
-                                                                                                            value: 90,
-                                                                                                        },
-                                                                                                        {
-                                                                                                            title: '六個月',
-                                                                                                            value: 180,
-                                                                                                        },
-                                                                                                        {
-                                                                                                            title: '一年',
-                                                                                                            value: 365,
-                                                                                                        },
-                                                                                                    ];
-                                                                                                    const matchedDeadline = deadlines.find(item => item.value === value);
-                                                                                                    dead_line = matchedDeadline
-                                                                                                        ? matchedDeadline.title
-                                                                                                        : `${value}天`;
-                                                                                                }
-                                                                                                else if (type === 'noLimit') {
-                                                                                                    dead_line = '沒有期限';
-                                                                                                }
-                                                                                                return dead_line;
-                                                                                            })(),
-                                                                                        },
-                                                                                    ];
-                                                                                });
-                                                                                vd.originalData = vm.data.member;
-                                                                                vd.loading = false;
-                                                                                vd.callback();
-                                                                            }, 200);
-                                                                        },
-                                                                        filter: [],
-                                                                        rowClick: () => { },
-                                                                        hiddenPageSplit: true,
-                                                                    }),
-                                                                });
-                                                            })}"
-                                          >會員規則</span
-                                        >自動升級
-                                      </div>`,
+                                                            name: '根據本站會員規則自動升級',
                                                         },
                                                         {
                                                             key: 'manual',
@@ -1766,12 +1762,16 @@ export class UserList {
                                             bind: id,
                                             view: () => {
                                                 return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                                                    var _a, _b, _c;
-                                                    const response = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitterUserForm');
-                                                    const result = (_c = (_b = (_a = response === null || response === void 0 ? void 0 : response.response) === null || _a === void 0 ? void 0 : _a.result) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.value;
-                                                    const data = Array.isArray(result) ? result : [];
-                                                    function loopForm(data, refer_obj) {
-                                                        return data
+                                                    var _a, _b, _c, _d, _e;
+                                                    const getDefaultForm = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitterUserForm');
+                                                    const defaultForm = (_c = (_b = (_a = getDefaultForm === null || getDefaultForm === void 0 ? void 0 : getDefaultForm.response) === null || _a === void 0 ? void 0 : _a.result) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.value;
+                                                    const customerForm = ((_e = (_d = (yield ApiUser.getPublicConfig('customer_form_user_setting', 'manager'))) === null || _d === void 0 ? void 0 : _d.response) === null || _e === void 0 ? void 0 : _e.value) || { list: [] };
+                                                    const formList = [
+                                                        ...(Array.isArray(defaultForm) ? defaultForm : []),
+                                                        ...customerForm.list,
+                                                    ];
+                                                    function loopForm(dataArray, refer_obj) {
+                                                        return dataArray
                                                             .map(item => {
                                                             const { title, key, page } = item;
                                                             const value = refer_obj[key] || '';
@@ -1821,7 +1821,7 @@ export class UserList {
                                                     }
                                                     const form_array_view = [
                                                         html `<div style="display:flex; gap: 12px; flex-direction: column;">
-                                      ${loopForm(data, userData)}
+                                      ${loopForm(formList, userData)}
                                     </div>`,
                                                     ];
                                                     resolve(form_array_view.join(html `<div class="my-4 border"></div>`));
@@ -1850,7 +1850,7 @@ export class UserList {
                             dialog.infoMessage({ text: '請輸入正確的電子信箱格式' });
                             return;
                         }
-                        if (!CheckInput.isEmpty(userData.phone) && !CheckInput.isTaiwanPhone(userData.phone)) {
+                        if (!CheckInput.isTaiwanPhone(userData.phone)) {
                             dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
                             return;
                         }
@@ -1877,14 +1877,13 @@ export class UserList {
                                 pwd: gvc.glitter.getUUID(),
                                 userData: userData,
                             }).then(r => {
+                                dialog.dataLoading({ visible: false });
                                 if (r.result) {
-                                    dialog.dataLoading({ visible: false });
-                                    dialog.infoMessage({ text: '成功新增會員' });
+                                    dialog.successMessage({ text: '顧客新增成功' });
                                     vm.type = 'list';
                                 }
                                 else {
-                                    dialog.dataLoading({ visible: false });
-                                    dialog.errorMessage({ text: '會員建立失敗' });
+                                    dialog.errorMessage({ text: '顧客新增失敗' });
                                 }
                             });
                         }

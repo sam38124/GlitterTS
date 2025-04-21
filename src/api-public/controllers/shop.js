@@ -285,6 +285,7 @@ router.get('/order', async (req, resp) => {
                 is_reconciliation: req.query.is_reconciliation === 'true',
                 payment_select: req.query.payment_select,
                 reconciliation_status: req.query.reconciliation_status && req.query.reconciliation_status.split(','),
+                manager_tag: req.query.manager_tag,
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {
@@ -719,7 +720,8 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
                     MERCHANT_ID: keyData.MERCHANT_ID,
                     TYPE: keyData.TYPE,
                 }).decode(req.body.TradeInfo);
-                decodeData = JSON.parse(decode.replace(/[\u0000-\u001F]+/g, '')
+                decodeData = JSON.parse(decode
+                    .replace(/[\u0000-\u001F]+/g, '')
                     .replace(/[\u007F-\u009F]/g, '')
                     .replace(/\\'/g, "'")
                     .replace(/[\r\n]+/g, '\\n'));
@@ -917,6 +919,8 @@ router.get('/product', async (req, resp) => {
             max_price: req.query.max_price,
             status: req.query.status,
             channel: req.query.channel,
+            general_tag: req.query.general_tag,
+            manager_tag: req.query.manager_tag,
             whereStore: req.query.whereStore,
             id_list: req.query.id_list,
             order_by: req.query.order_by,

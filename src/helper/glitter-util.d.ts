@@ -1,3 +1,4 @@
+/// <reference types="cookie-parser" />
 import * as core from 'express-serve-static-core';
 import express from 'express';
 export declare class GlitterUtil {

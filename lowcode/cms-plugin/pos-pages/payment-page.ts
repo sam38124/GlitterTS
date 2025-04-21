@@ -19,6 +19,7 @@ import { TempOrder } from './temp-order.js';
 import { PaymentFunction } from './payment-function.js';
 import { UmClass } from '../../public-components/user-manager/um-class.js';
 import { FormCheck } from '../module/form-check.js';
+import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 
 const html = String.raw;
 
@@ -48,14 +49,26 @@ export class PaymentPage {
     const defaultOptions = [{ title: '立即取貨', value: 'now' }];
 
     // 可用的運送選項
-    const availableOptions = [
-      { title: '一般宅配', value: 'normal' },
-      { title: '全家店到店', value: 'FAMIC2C' },
-      { title: '萊爾富店到店', value: 'HILIFEC2C' },
-      { title: 'OK超商店到店', value: 'OKMARTC2C' },
-      { title: '7-ELEVEN超商交貨便', value: 'UNIMARTC2C' },
-      { title: '門市取貨', value: 'shop' },
-    ].filter(option => orderDetail.shipment_support.includes(option.value));
+    const availableOptions = ShipmentConfig.list
+      .filter(item => {
+        const isPayNow = Boolean(item.paynow_id);
+        const includeKey = item.value === 'normal' || item.value === 'shop';
+        const isSupport = orderDetail.shipment_support.includes(item.value);
+        return (isPayNow || includeKey) && isSupport;
+      })
+      .map(item => {
+        return { title: item.title, value: item.value };
+      });
+
+    // 可用的運送選項(原)
+    // const availableOptions = [
+    //   { title: '一般宅配', value: 'normal' },
+    //   { title: '全家店到店', value: 'FAMIC2C' },
+    //   { title: '萊爾富店到店', value: 'HILIFEC2C' },
+    //   { title: 'OK超商店到店', value: 'OKMARTC2C' },
+    //   { title: '7-ELEVEN超商交貨便', value: 'UNIMARTC2C' },
+    //   { title: '門市取貨', value: 'shop' },
+    // ].filter(option => orderDetail.shipment_support.includes(option.value));
 
     // 合併預設選項和可用運送選項
     return defaultOptions.concat(availableOptions);
@@ -111,13 +124,13 @@ export class PaymentPage {
               const userInfo = obj.ogOrderData.user_info || {};
               userInfo.shipment = userInfo.shipment || 'now';
 
-              const orderDetail = (await this.checkout({
-                line_items: obj.ogOrderData.lineItems,
-                user_info: userInfo,
-                code_array: obj.ogOrderData.code_array || [],
-                use_rebate: obj.ogOrderData.use_rebate,
-              }))||{};
-
+              const orderDetail =
+                (await this.checkout({
+                  line_items: obj.ogOrderData.lineItems,
+                  user_info: userInfo,
+                  code_array: obj.ogOrderData.code_array || [],
+                  use_rebate: obj.ogOrderData.use_rebate,
+                })) || {};
 
               // 確保 voucherList 存在
               obj.ogOrderData.voucherList = obj.ogOrderData.voucherList || [];

@@ -365,8 +365,9 @@ export class PdClass {
           >
             <div
               class="w-100 d-flex align-items-center p-3 border-bottom"
-              style="position: sticky; top: 0; background: #fff;z-index:12;height: calc(60px + ${gvc.glitter.share.top_inset}px);
-              ${gvc.glitter.share.top_inset ? `padding-top: ${gvc.glitter.share.top_inset}px !important;`:``}
+              style="position: sticky; top: 0; background: #fff;z-index:12;height: calc(60px + ${gvc.glitter.share
+                .top_inset}px);
+              ${gvc.glitter.share.top_inset ? `padding-top: ${gvc.glitter.share.top_inset}px !important;` : ``}
 
 "
             >
@@ -629,6 +630,22 @@ export class PdClass {
     } else {
       return prod.variants.find(item => PdClass.ObjCompare(item.spec, vm.specs, true)) as any as any;
     }
+  }
+
+  static showCanBuyStock(variant: any, titleFontColor: string) {
+    if (variant && variant.show_understocking !== 'false' && (window as any).store_info.stock_view) {
+      const stockInt = parseInt(`${variant.stock}`, 10);
+      const stockValue = !isNaN(stockInt) && stockInt > 0 ? stockInt : 0;
+      const stockClass = stockValue === 0 ? 'text-danger' : '';
+
+      return html`
+        <div class="${stockClass} fw-500 mt-2 mb-1 fs-6" style="color: ${titleFontColor};">
+          ${Language.text('can_buy')}：${stockValue}
+        </div>
+      `;
+    }
+
+    return html`<div class=" fw-500 mt-2 mb-1 fs-6">&ensp;</div>`;
   }
 
   static selectSpec(obj: {
@@ -916,29 +933,12 @@ export class PdClass {
             };
           }),
           //庫存顯示
-          gvc.bindView(() => {
-            return {
-              bind: ids.stock_count,
-              view: () => {
-                return [
-                  (() => {
-                    const variant = PdClass.getVariant(prod, vm);
-
-                    if (variant && variant.show_understocking !== 'false' && (window as any).store_info.stock_view) {
-                      const stockClass = `${variant.stock}` === '0' ? 'text-danger' : '';
-                      return html`
-                        <div class="${stockClass} fw-500 mt-2" style="font-size: 14px; color: ${titleFontColor};">
-                          ${Language.text('can_buy')}：${variant.stock}
-                        </div>
-                      `;
-                    }
-
-                    return '';
-                  })(),
-                ].join('');
-              },
-              divCreate: {},
-            };
+          gvc.bindView({
+            bind: ids.stock_count,
+            view: () => {
+              const variant = PdClass.getVariant(prod, vm);
+              return this.showCanBuyStock(variant, titleFontColor);
+            },
           }),
           //購物車按鈕
           gvc.bindView({
@@ -1023,7 +1023,7 @@ export class PdClass {
                     style="height:44px;width:44px;"
                     onclick="${gvc.event(() => {
                       if (!GlobalUser.token) {
-                        gvc.glitter.href='/login'
+                        gvc.glitter.href = '/login';
                       }
                       const userID = (() => {
                         if (GlobalUser.token) {
@@ -1422,33 +1422,12 @@ export class PdClass {
                 })
                 .join(''),
               //庫存顯示
-              gvc.bindView(() => {
-                return {
-                  bind: ids.stock_count,
-                  view: () => {
-                    return [
-                      (() => {
-                        const variant = PdClass.getVariant(prod, vm);
-
-                        if (
-                          variant &&
-                          variant.show_understocking !== 'false' &&
-                          (window as any).store_info.stock_view
-                        ) {
-                          const stockClass = `${variant.stock}` === '0' ? 'text-danger' : '';
-                          return html`
-                            <div class="${stockClass} fw-500 mt-2" style="font-size: 14px; color: ${titleFontColor};">
-                              ${Language.text('can_buy')}：${variant.stock}
-                            </div>
-                          `;
-                        }
-
-                        return '';
-                      })(),
-                    ].join('');
-                  },
-                  divCreate: {},
-                };
+              gvc.bindView({
+                bind: ids.stock_count,
+                view: () => {
+                  const variant = PdClass.getVariant(prod, vm);
+                  return this.showCanBuyStock(variant, titleFontColor);
+                },
               }),
               //購物車按鈕
               gvc.bindView({

@@ -8,7 +8,7 @@ class Language {
                 key: 'c_cancel_order',
                 tw: '請問確定要取消此訂單嗎?',
                 cn: '请问确定要取消此订单吗?',
-                en: `Are you sure you want to cancel this order?`
+                en: `Are you sure you want to cancel this order?`,
             },
             { key: 's_cancel_order', tw: '取消訂單成功', cn: '取消订单成功', en: `Order canceled successfully` },
             { key: 'newWebPay', tw: '藍新金流', cn: '蓝新金流', en: `NewebPay` },
@@ -28,13 +28,13 @@ class Language {
                 key: 'min_p_count_d',
                 tw: '_p_ 最少購買數量為_c_件',
                 cn: '_p_ 最少购买数量为_c_件',
-                en: `_p_ Minimum purchase quantity is _c_ pieces.`
+                en: `_p_ Minimum purchase quantity is _c_ pieces.`,
             },
             {
                 key: 'min_p_count',
                 tw: '此商品最少購買數量為_c_件',
                 cn: '此商品最少购买数量为_c_件',
-                en: `Minimum purchase quantity is _c_ pieces.`
+                en: `Minimum purchase quantity is _c_ pieces.`,
             },
             { key: 'ship_global_express', tw: '國際快遞', cn: '国际快递', en: `International express` },
             { key: 'ship_HILIFEC2C', tw: '萊爾富店到店', cn: '莱尔富店到店', en: `Hi-Life Store-to-Store Delivery` },
@@ -43,7 +43,7 @@ class Language {
                 key: 'ship_UNIMARTC2C',
                 tw: '7-ELEVEN超商交貨便',
                 cn: '7-ELEVEN便利店送货便',
-                en: `7-ELEVEN Store Delivery Service`
+                en: `7-ELEVEN Store Delivery Service`,
             },
             { key: 'ship_shop', tw: '實體門市取貨', cn: '实体门市取货', en: `In-Store Pickup` },
             { key: 'ship_FAMIC2C', tw: '全家店到店', cn: '全家店到店', en: `FamilyMart Store-to-Store Delivery` },
@@ -74,7 +74,7 @@ class Language {
                 key: 'max_discount_order',
                 tw: '此份訂單最多可折抵',
                 cn: '此份订单最多可折抵',
-                en: 'Maximum discount for this order'
+                en: 'Maximum discount for this order',
             },
             { key: 'total_amount', tw: '總金額', cn: '总金额', en: 'Total amount' },
             { key: 'additional_purchase_items', tw: '可加購商品', cn: '可加购商品', en: 'Additional purchase items' },
@@ -82,7 +82,7 @@ class Language {
                 key: 'payment_and_shipping_methods',
                 tw: '付款及配送方式',
                 cn: '付款及配送方式',
-                en: 'Payment and shipping'
+                en: 'Payment and shipping',
             },
             { key: 'payment_method', tw: '付款方式', cn: '付款方式', en: 'Payment method' },
             { key: 'shipping_method', tw: '配送方式', cn: '配送方式', en: 'Shipping method' },
@@ -99,7 +99,7 @@ class Language {
                 key: 'enter_delivery_notes',
                 tw: '請輸入送貨備註',
                 cn: '请输入送货备注',
-                en: 'Please enter delivery notes'
+                en: 'Please enter delivery notes',
             },
             { key: 'send_to_user_email', tw: '傳送至用戶信箱', cn: '传送至用户邮箱', en: 'Send to user email' },
             { key: 'mobile_barcode_device', tw: '手機條碼載具', cn: '手机条码载具', en: 'Mobile barcode device' },
@@ -115,7 +115,7 @@ class Language {
                 key: 'same_as_buyer_info',
                 tw: '收件人同購買人資料',
                 cn: '收件人同购买人资料',
-                en: 'Recipient same as buyer information'
+                en: 'Recipient same as buyer information',
             },
             { key: 'personal', tw: '個人', cn: '个人', en: 'Personal' },
             { key: 'company', tw: '公司', cn: '公司', en: 'Company' },
@@ -136,7 +136,7 @@ class Language {
                 key: 'not_meet_usage_criteria',
                 tw: '未達使用標準',
                 cn: '未达使用标准',
-                en: 'Does not meet usage criteria'
+                en: 'Does not meet usage criteria',
             },
             { key: 'code_unusable', tw: '此代碼無法使用', cn: '此代码无法使用', en: 'This code cannot be used' },
             { key: 'enter_promo_code', tw: '請輸入優惠代碼', cn: '请输入优惠代码', en: 'Please enter coupon code' },
@@ -151,37 +151,37 @@ class Language {
                 key: 'city',
                 tw: '城市',
                 cn: '城市',
-                en: 'City'
+                en: 'City',
             },
             {
                 key: 'state',
                 tw: '州/省',
                 cn: '州/省',
-                en: 'State/Province'
+                en: 'State/Province',
             },
             {
                 key: 'postal_code',
                 tw: '郵遞區號',
                 cn: '邮政编码',
-                en: 'Postal code'
+                en: 'Postal code',
             },
             {
                 key: 'please_enter_delivery_address',
                 tw: '請輸入配送地址',
                 cn: '请输入配送地址',
-                en: 'Please enter delivery address'
+                en: 'Please enter delivery address',
             },
             {
                 key: 'please_enter_street_location',
                 tw: '請輸入街道與門牌位置',
                 cn: '請輸入街道與門牌位置',
-                en: 'Please enter the street and house number location'
+                en: 'Please enter the street and house number location',
             },
             {
                 key: 'please_enter_contact_number',
                 tw: '請輸入聯絡電話',
                 cn: '请输入联系电话',
-                en: 'Please enter contact number'
+                en: 'Please enter contact number',
             },
             { key: 'please_enter_name', tw: '請輸入姓名', cn: '请输入姓名', en: 'Please enter name' },
             { key: 'please_enter_email', tw: '請輸入電子信箱', cn: '请输入电子邮箱', en: 'Please enter email' },
@@ -191,25 +191,25 @@ class Language {
                 key: 'please_enter_carrier_number',
                 tw: '請輸入載具號碼',
                 cn: '请输入载具号码',
-                en: 'Please enter carrier number'
+                en: 'Please enter carrier number',
             },
             {
                 key: 'please_enter_company_name',
                 tw: '請輸入公司名稱',
                 cn: '请输入公司名称',
-                en: 'Please enter company name'
+                en: 'Please enter company name',
             },
             {
                 key: 'please_enter_company_tax_id',
                 tw: '請輸入公司統一編號',
                 cn: '请输入公司统一编码',
-                en: 'Please enter company tax ID'
+                en: 'Please enter company tax ID',
             },
             {
                 key: 'please_enter_donation_code',
                 tw: '請輸入捐贈碼',
                 cn: '请输入捐赠码',
-                en: 'Please enter donation code'
+                en: 'Please enter donation code',
             },
             {
                 key: 'name_length_restrictions',
@@ -227,7 +227,7 @@ class Language {
                 key: 'select_delivery_store',
                 tw: '請選擇「配送門市」',
                 cn: '请选择「配送门市」',
-                en: 'Please select "Delivery Store"'
+                en: 'Please select "Delivery Store"',
             },
             { key: 'please_select_gift', tw: '請選擇「贈品」', cn: '请选择「赠品」', en: 'Please select "Gift"' },
             { key: 'customer_name', tw: '顧客姓名', cn: '顾客姓名', en: 'Customer name' },
@@ -242,7 +242,7 @@ class Language {
                 key: 'phone_format_starting_with_09',
                 tw: '09 開頭的手機格式',
                 cn: '以 09 開头的手机格式',
-                en: 'Phone format starting with 09'
+                en: 'Phone format starting with 09',
             },
             { key: 'addon', tw: '加購品', cn: '加购品', en: 'Addon' },
             { key: 'gift', tw: '贈品', cn: '赠品', en: 'Gift' },
@@ -255,7 +255,7 @@ class Language {
                 key: 'distance_from_target_amount',
                 tw: '距離目標金額還差',
                 cn: '距离目标金额还差',
-                en: 'Amount remaining to target'
+                en: 'Amount remaining to target',
             },
             { key: 'member_login', tw: '會員登入', cn: '会员登录', en: 'Login' },
             { key: 'member_register', tw: '會員註冊', cn: '会员注册', en: 'Register' },
@@ -295,13 +295,13 @@ class Language {
                 key: 'please_enter_password_again',
                 tw: '請再次輸入密碼',
                 cn: '请再次输入密码',
-                en: 'Please enter password again'
+                en: 'Please enter password again',
             },
             {
                 key: 'email_phone_placeholder',
                 tw: '請輸入信箱或電話',
                 cn: '请输入邮箱或电话',
-                en: 'Please enter email or phone number'
+                en: 'Please enter email or phone number',
             },
             { key: 'email_phone', tw: '信箱或電話', cn: '邮箱或电话', en: 'Email or Phone Number' },
             { key: 'email_placeholder', tw: '請輸入信箱', cn: '请输入邮箱', en: 'Please enter email' },
@@ -309,37 +309,37 @@ class Language {
                 key: 'please_enter_verification_code',
                 tw: '請輸入驗證碼',
                 cn: '请输入验证码',
-                en: 'Please enter verification code'
+                en: 'Please enter verification code',
             },
             {
                 key: 'please_enter_email_verification_code',
                 tw: '請輸入信箱驗證碼',
                 cn: '请输入邮箱验证码',
-                en: 'Please enter email verification code'
+                en: 'Please enter email verification code',
             },
             {
                 key: 'please_enter_sms_verification_code',
                 tw: '請輸入簡訊驗證碼',
                 cn: '请输入短信验证码',
-                en: 'Please enter sms verification code'
+                en: 'Please enter sms verification code',
             },
             {
                 key: 'enter_website_password',
                 tw: '請輸入網站密碼',
                 cn: '请输入网站密码',
-                en: 'Please enter website password'
+                en: 'Please enter website password',
             },
             {
                 key: 'enter_your_bank_name',
                 tw: '請輸入您的銀行名稱',
                 cn: '请输入您的银行名称',
-                en: 'Please enter your bank name'
+                en: 'Please enter your bank name',
             },
             {
                 key: 'enter_your_bank_account_name',
                 tw: '請輸入您的銀行戶名',
                 cn: '请输入您的银行户名',
-                en: 'Please enter your bank account name'
+                en: 'Please enter your bank account name',
             },
             { key: 'enter_five_digits', tw: '請輸入五位數字', cn: '请输入五位数字', en: 'Please enter five digits' },
             { key: 'new_password_placeholder', tw: '請輸入新密碼', cn: '请输入新密码', en: 'Please enter New Password' },
@@ -347,62 +347,62 @@ class Language {
                 key: 'enter_phone_number',
                 tw: '請輸入手機號碼',
                 cn: '请输入手机号码',
-                en: 'Please enter your phone number'
+                en: 'Please enter your phone number',
             },
             {
                 key: 'enter_valid_email',
                 tw: '請輸入有效電子信箱',
                 cn: '请输入有效电子邮箱',
-                en: 'Please enter a valid email address'
+                en: 'Please enter a valid email address',
             },
             {
                 key: 'enter_valid_phone_number',
                 tw: '請輸入有效手機號碼',
                 cn: '请输入有效手机号码',
-                en: 'Please enter a valid phone number'
+                en: 'Please enter a valid phone number',
             },
             { key: 'enter_verification_code', tw: '輸入驗證碼', cn: '输入验证码', en: 'Enter Verification Code' },
             {
                 key: 'reset_password_verification_code',
                 tw: '重設密碼驗證碼',
                 cn: '重设密码验证码',
-                en: 'Reset Password Verification Code'
+                en: 'Reset Password Verification Code',
             },
             {
                 key: 'verification_code_sent_to',
                 tw: '驗證碼已發送至',
                 cn: '验证码已发送至',
-                en: 'Verification Code Sent to'
+                en: 'Verification Code Sent to',
             },
             {
                 key: 'password_min_length',
                 tw: '密碼必須大於8位數',
                 cn: '密码必须大于8位数',
-                en: 'Password must be greater than 8 characters'
+                en: 'Password must be greater than 8 characters',
             },
             {
                 key: 'please_confirm_password_again',
                 tw: '請再次輸入確認密碼',
                 cn: '请再次输入确认密码',
-                en: 'Please enter confirm password again'
+                en: 'Please enter confirm password again',
             },
             {
                 key: 'email_verification_code_incorrect',
                 tw: '信箱驗證碼輸入錯誤',
                 cn: '邮箱验证码输入错误',
-                en: 'Email verification code entered incorrectly'
+                en: 'Email verification code entered incorrectly',
             },
             {
                 key: 'sms_verification_code_incorrect',
                 tw: '簡訊驗證碼輸入錯誤',
                 cn: '短信验证码输入错误',
-                en: 'SMS verification code entered incorrectly'
+                en: 'SMS verification code entered incorrectly',
             },
             {
                 key: 'phone_number_already_exists',
                 tw: '此電話號碼已存在',
                 cn: '此电话号码已存在',
-                en: 'This phone number already exists'
+                en: 'This phone number already exists',
             },
             { key: 'email_already_exists', tw: '此信箱已存在', cn: '此邮箱已存在', en: 'This email already exists' },
             { key: 'update_exception', tw: '更新異常', cn: '更新异常', en: 'Update Exception' },
@@ -420,14 +420,14 @@ class Language {
                 key: 'can_meet_renewal_criteria',
                 tw: '即可達成續會條件',
                 cn: '即可达成续会条件',
-                en: 'Can Meet Renewal Criteria'
+                en: 'Can Meet Renewal Criteria',
             },
             { key: 'single_purchase_reaches', tw: '單筆消費達', cn: '单笔消费达', en: 'Single Purchase Reaches' },
             {
                 key: 'accumulated_spending_reaches',
                 tw: '累積消費額達',
                 cn: '累积消费额达',
-                en: 'Accumulated Spending Reaches'
+                en: 'Accumulated Spending Reaches',
             },
             { key: 'upgrade_to', tw: '即可升級至', cn: '即可升级至', en: 'Upgrade To' },
             { key: 'days', tw: '天', cn: '天', en: 'Days' },
@@ -443,20 +443,20 @@ class Language {
                 key: 'view_membership_level_rules',
                 tw: '查看會員級數規則',
                 cn: '查看会员级数规则',
-                en: 'View Membership Level Rules'
+                en: 'View Membership Level Rules',
             },
             { key: 'membership_barcode', tw: '會員條碼', cn: '会员条码', en: 'Membership Barcode' },
             {
                 key: 'present_membership_barcode',
                 tw: '出示會員條碼',
                 cn: '出示会员条码',
-                en: 'Present Membership Barcode'
+                en: 'Present Membership Barcode',
             },
             {
                 key: 'current_accumulated_spending_amount',
                 tw: '目前累積消費金額',
                 cn: '当前累积消费金额',
-                en: 'Current Accumulated Spending Amount'
+                en: 'Current Accumulated Spending Amount',
             },
             { key: 'can_upgrade', tw: '即可升級', cn: '即可升级', en: 'Can Upgrade' },
             { key: 'edit_profile', tw: '編輯個人資料', cn: '编辑个人资料', en: 'Edit Profile' },
@@ -489,7 +489,7 @@ class Language {
                 key: 'no_coupons_available',
                 tw: '目前沒有任何優惠券',
                 cn: '目前没有任何优惠券',
-                en: 'Currently no coupons available'
+                en: 'Currently no coupons available',
             },
             { key: 'show_qr_code', tw: '顯示 QR code', cn: '显示 QR code', en: 'Show QR Code' },
             { key: 'coupon_qr_code', tw: '優惠券 QR code', cn: '优惠券 QR code', en: 'Coupon QR Code' },
@@ -499,14 +499,14 @@ class Language {
                 key: 'no_items_added',
                 tw: '目前沒有加入任何商品',
                 cn: '目前没有添加任何商品',
-                en: 'Currently there are no items added'
+                en: 'Currently there are no items added',
             },
             { key: 'error', tw: '發生錯誤', cn: '發生錯誤', en: 'Error' },
             {
                 key: 'ai_assisted_shopping',
                 tw: '透過 AI 可以協助你快速找到喜歡的商品',
                 cn: '通过AI可以帮助您快速找到喜欢的商品',
-                en: 'AI can assist you in quickly finding products you like.'
+                en: 'AI can assist you in quickly finding products you like.',
             },
             { key: 'product_list', tw: '產品列表', cn: '产品列表', en: 'Product List' },
             { key: 'save', tw: '儲存', cn: '保存', en: 'Save' },
@@ -514,7 +514,7 @@ class Language {
                 key: 'incorrect_website_password',
                 tw: '網站密碼輸入錯誤',
                 cn: '网站密码输入错误',
-                en: 'Incorrect website password entered'
+                en: 'Incorrect website password entered',
             },
             { key: 'no_access_permission', tw: '無訪問權限', cn: '无访问权限', en: 'No access permission' },
             { key: 'payment_time', tw: '付款時間', cn: '付款时间', en: 'Payment Time' },
@@ -524,7 +524,7 @@ class Language {
                 key: 'last_five_digits_of_bank_account',
                 tw: '銀行帳號後五碼',
                 cn: '银行账号后五码',
-                en: 'Last Five Digits of Bank Account'
+                en: 'Last Five Digits of Bank Account',
             },
             { key: 'bank_name', tw: '銀行名稱', cn: '银行名称', en: 'Bank Name' },
             { key: 'bank_code', tw: '銀行代碼', cn: '银行代码', en: 'Bank Code' },
@@ -538,13 +538,13 @@ class Language {
                 key: 'bank_account_name_not_filled',
                 tw: '銀行戶名未填寫',
                 cn: '银行户名未填写',
-                en: 'Bank account name not filled'
+                en: 'Bank account name not filled',
             },
             {
                 key: 'last_five_digits_five_digits',
                 tw: '銀行帳號後五碼需為五位數字',
                 cn: '银行账号后五码需为五位数字',
-                en: 'Last five digits of bank account must be five digits'
+                en: 'Last five digits of bank account must be five digits',
             },
             { key: 'file_upload', tw: '檔案上傳', cn: '文件上传', en: 'File Upload' },
             { key: 'payment_info', tw: '付款資訊', cn: '付款信息', en: 'Payment Information' },
@@ -559,7 +559,7 @@ class Language {
                 key: 'upload_screenshot_for_verification',
                 tw: '請上傳截圖，以便我們進行核款',
                 cn: '请上传截图，以便我们进行核款',
-                en: 'Please upload a screenshot for verification'
+                en: 'Please upload a screenshot for verification',
             },
             {
                 key: 'upload_screenshot_or_transfer_proof',
@@ -580,7 +580,7 @@ class Language {
                 key: 'reupload_checkout_proof',
                 tw: '重新上傳結帳證明',
                 cn: '重新上传结账证明',
-                en: 'Reupload checkout proof'
+                en: 'Reupload checkout proof',
             },
             { key: 'upload_checkout_proof', tw: '上傳結帳證明', cn: '上传结账证明', en: 'Upload checkout proof' },
             { key: 'order_information', tw: '訂單資訊', cn: '订单信息', en: 'OrderEvent Information' },
@@ -621,19 +621,19 @@ class Language {
                 key: 'member_exists_prompt',
                 tw: '已經有會員了？前往',
                 cn: '已经有会员了？前往',
-                en: 'Already have an account? Go to'
+                en: 'Already have an account? Go to',
             },
             {
                 key: 'member_not_exists_prompt',
                 tw: '還沒有成為會員？前往',
                 cn: '还没有成为会员？前往',
-                en: 'Not a member yet? Go to'
+                en: 'Not a member yet? Go to',
             },
             {
                 key: 'registration_terms_agreement',
                 tw: '註冊完成時，即代表您同意我們的',
                 cn: '注册完成时，即代表您同意我们的',
-                en: 'By completing the registration, you agree to our'
+                en: 'By completing the registration, you agree to our',
             },
             { key: 'terms_of_service', tw: '服務條款', cn: '服务条款', en: 'Terms of Service' },
             { key: 'privacy_policy', tw: '隱私條款', cn: '隐私政策', en: 'Privacy Policy' },
@@ -641,7 +641,7 @@ class Language {
                 key: 'login_terms_agreement',
                 tw: '登入完成時，即代表您同意我們的',
                 cn: '登录完成时，即代表您同意我们的',
-                en: 'By completing the login, you agree to our'
+                en: 'By completing the login, you agree to our',
             },
             { key: 'and', tw: '和', cn: '和', en: 'and' },
             { key: 'or', tw: '或', cn: '或', en: 'or' },
@@ -653,7 +653,7 @@ class Language {
                 key: 'password_mismatch',
                 tw: '密碼與確認密碼不符',
                 cn: '密码与确认密码不符',
-                en: 'Passwords do not match'
+                en: 'Passwords do not match',
             },
             { key: 'registration_success', tw: '註冊成功', cn: '注册成功', en: 'Registration successful' },
             { key: 'registration_failure', tw: '註冊失敗', cn: '注册失败', en: 'Registration failed' },
@@ -661,19 +661,19 @@ class Language {
                 key: 'existing_user',
                 tw: '此為已註冊的使用者',
                 cn: '此为已注册的用户',
-                en: 'This user is already registered'
+                en: 'This user is already registered',
             },
             {
                 key: 'incorrect_credentials',
                 tw: '帳號或密碼錯誤',
                 cn: '帐号或密码错误',
-                en: 'Incorrect account or password'
+                en: 'Incorrect account or password',
             },
             {
                 key: 'verification_code_sent',
                 tw: '成功寄送驗證碼',
                 cn: '成功发送验证码',
-                en: 'Verification code sent successfully'
+                en: 'Verification code sent successfully',
             },
             { key: 'system_error', tw: '系統錯誤', cn: '系统错误', en: 'System error' },
             { key: 'password_change_success', tw: '更換密碼成功', cn: '更换密码成功', en: 'Password change successful' },
@@ -682,7 +682,7 @@ class Language {
                 key: 'resend_code_timer',
                 tw: 'xxx秒後可重新取得驗證碼',
                 cn: 'xxx秒后可重新获取验证码',
-                en: 'Resend the verification code in xxx seconds'
+                en: 'Resend the verification code in xxx seconds',
             },
             { key: 'form_name', tw: '姓名', cn: '名字', en: 'Name' },
             { key: 'form_email', tw: '信箱 / 帳號', cn: '邮箱 / 账号', en: 'Email' },
@@ -691,11 +691,11 @@ class Language {
             { key: 'privacy', tw: '隱私權政策', cn: '隐私权政策', en: 'Privacy policy' },
             { key: 'term', tw: '服務條款', cn: '服务条款', en: 'Terms of Service' },
             { key: 'refund', tw: '退換貨政策', cn: '退換貨政策', en: 'Refund policy' },
-            { key: 'delivery', tw: '購買與配送須知', cn: '配送须知', en: 'Shipping instructions' }
+            { key: 'delivery', tw: '購買與配送須知', cn: '配送须知', en: 'Shipping instructions' },
         ];
     }
     static text(key, lan) {
-        const find_ = this.languageDataList().find((dd) => {
+        const find_ = this.languageDataList().find(dd => {
             return dd.key === key;
         });
         if (!find_) {
@@ -716,4 +716,5 @@ class Language {
     }
 }
 exports.Language = Language;
+Language.locationList = ['en-US', 'zh-CN', 'zh-TW'];
 //# sourceMappingURL=Language.js.map

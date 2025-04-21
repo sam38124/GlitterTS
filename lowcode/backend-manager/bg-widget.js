@@ -1309,6 +1309,47 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             : `<option class="d-none" selected>${obj.place_holder || `請選擇項目`}</option>`}
       </select>`;
     }
+    static printOption(gvc, vmt, opt) {
+        const id = `print-option-${opt.key}`;
+        opt.key = `${opt.key}`;
+        function call() {
+            if (vmt.postData.includes(opt.key)) {
+                vmt.postData = vmt.postData.filter(item => item !== opt.key);
+            }
+            else {
+                vmt.postData.push(opt.key);
+            }
+            gvc.notifyDataChange(vmt.id);
+        }
+        return html `<div class="d-flex align-items-center gap-3 mb-3">
+      ${gvc.bindView({
+            bind: id,
+            view: () => {
+                return html `<input
+            class="form-check-input mt-0 ${BgWidget.getCheckedClass(gvc)}"
+            type="checkbox"
+            id="${opt.key}"
+            name="radio_${opt.key}"
+            onclick="${gvc.event(() => call())}"
+            ${vmt.postData.includes(opt.key) ? 'checked' : ''}
+          />`;
+            },
+            divCreate: {
+                class: 'd-flex align-items-center justify-content-center',
+            },
+        })}
+      <div class="form-check-label c_updown_label cursor_pointer" onclick="${gvc.event(() => call())}">
+        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+        ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+      </div>
+    </div>`;
+    }
+    static renderOptions(gvc, vmt) {
+        if (vmt.dataList.length === 0) {
+            return html `<div class="d-flex justify-content-center fs-5">查無標籤</div>`;
+        }
+        return vmt.dataList.map((item) => this.printOption(gvc, vmt, { key: item, value: `#${item}` })).join('');
+    }
     static maintenance() {
         return html ` <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
       <iframe
@@ -2006,7 +2047,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static container(htmlString, obj) {
         var _a;
         return html ` <div
-      class="mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0'}"
+      class="mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-3' : 'w-100 mx-0'}"
       style="max-width: 100%; width: ${this.getContainerWidth()}px; ${(_a = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _a !== void 0 ? _a : ''}"
     >
       ${htmlString}
@@ -2014,7 +2055,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static container1x2(cont1, cont2) {
         return html ` <div
-      class="d-flex mt-4 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0 flex-column'} "
+      class="d-flex mt-2 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0 flex-column'} "
       style="gap: 24px;"
     >
       <div style="width: ${document.body.clientWidth > 768 ? cont1.ratio : 100}%">${cont1.html}</div>
@@ -2108,7 +2149,50 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             },
         });
     }
+    static searchSelectContainer(gvc, button_title, data, def, callback) {
+        const id = gvc.glitter.getUUID();
+        let loading = true;
+        let search = '';
+        return gvc.bindView({
+            bind: id,
+            view: () => {
+                try {
+                    def || (def = []);
+                    return [
+                        this.grayButton(loading ? button_title : '確認', gvc.event(() => {
+                            loading = !loading;
+                            gvc.notifyDataChange(id);
+                        }), {
+                            class: 'w-100',
+                        }),
+                        loading
+                            ? html `<div class="d-flex flex-wrap gap-2">
+                  ${def.map(item => this.normalInsignia(`#${item}`)).join('')}
+                </div>`
+                            : this.mainCard([
+                                this.searchPlace(gvc.event(e => {
+                                    search = e.value;
+                                    gvc.notifyDataChange(id);
+                                }), search || '', '搜尋', '0', '0'),
+                                this.multiCheckboxContainer(gvc, data.filter(item => item.name.includes(search)), def, stringArray => {
+                                    def = stringArray;
+                                    callback(stringArray);
+                                }, {
+                                    single: false,
+                                    containerStyle: 'overflow: auto; max-height: 310px;',
+                                }),
+                            ].join(this.mbContainer(12))),
+                    ].join(this.mbContainer(12));
+                }
+                catch (error) {
+                    console.error(error);
+                    return '';
+                }
+            },
+        });
+    }
     static multiCheckboxContainer(gvc, data, def, callback, obj) {
+        var _a;
         const id = gvc.glitter.getUUID();
         const inputColor = obj && obj.readonly ? '#808080' : undefined;
         const randomString = obj && obj.single ? this.getWhiteDotClass(gvc, inputColor) : this.getCheckedClass(gvc, inputColor);
@@ -2168,6 +2252,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
           `;
                 });
                 return html ` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+            },
+            divCreate: {
+                style: (_a = obj === null || obj === void 0 ? void 0 : obj.containerStyle) !== null && _a !== void 0 ? _a : '',
             },
         });
     }
@@ -2326,8 +2413,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static tab(data, gvc, select, callback, style) {
         return html ` <div
-      class="mx-sm-0 mx-2"
-      style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style !== null && style !== void 0 ? style : ''};"
+      class="mx-sm-0 my-sm-4 mx-2 my-3"
+      style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;font-size: 18px; ${style !== null && style !== void 0 ? style : ''};"
     >
       ${data
             .map(dd => {

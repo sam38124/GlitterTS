@@ -1,8 +1,14 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.HtmlGenerate = void 0;
-const Glitter_js_1 = require("../Glitter.js");
-class HtmlGenerate {
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+import { Glitter } from '../Glitter.js';
+export class HtmlGenerate {
     constructor(setting, hover = []) {
         var _a;
         this.setting = setting;
@@ -44,22 +50,24 @@ class HtmlGenerate {
             const container = gvc.glitter.getUUID();
             gvc.glitter.defaultSetting.pageLoading();
             function getData() {
-                async function add(set) {
-                    for (const a of set) {
-                        if (!gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(a.js)]) {
-                            await new Promise((resolve, reject) => {
-                                gvc.glitter.addMtScript([{ src: `${gvc.glitter.htmlGenerate.resourceHook(a.js)}`, type: 'module' }], () => {
-                                    resolve(true);
-                                }, () => {
-                                    resolve(false);
+                function add(set) {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        for (const a of set) {
+                            if (!gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(a.js)]) {
+                                yield new Promise((resolve, reject) => {
+                                    gvc.glitter.addMtScript([{ src: `${gvc.glitter.htmlGenerate.resourceHook(a.js)}`, type: 'module' }], () => {
+                                        resolve(true);
+                                    }, () => {
+                                        resolve(false);
+                                    });
                                 });
-                            });
+                            }
+                            if (a.type === 'container') {
+                                yield add(a.data.setting);
+                            }
                         }
-                        if (a.type === 'container') {
-                            await add(a.data.setting);
-                        }
-                    }
-                    return true;
+                        return true;
+                    });
                 }
                 add(setting).then((data) => {
                     var _a;
@@ -166,27 +174,29 @@ class HtmlGenerate {
             const oset = this.setting;
             function getData() {
                 var _a;
-                async function add(set) {
-                    for (const a of set) {
-                        let falseArray = [];
-                        if (!gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(a.js)]) {
-                            await new Promise((resolve, reject) => {
-                                gvc.glitter.addMtScript([{ src: `${gvc.glitter.htmlGenerate.resourceHook(a.js)}`, type: 'module' }], () => {
-                                    resolve(true);
-                                }, () => {
-                                    falseArray.push(gvc.glitter.htmlGenerate.resourceHook(a.js));
-                                    resolve(false);
+                function add(set) {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        for (const a of set) {
+                            let falseArray = [];
+                            if (!gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(a.js)]) {
+                                yield new Promise((resolve, reject) => {
+                                    gvc.glitter.addMtScript([{ src: `${gvc.glitter.htmlGenerate.resourceHook(a.js)}`, type: 'module' }], () => {
+                                        resolve(true);
+                                    }, () => {
+                                        falseArray.push(gvc.glitter.htmlGenerate.resourceHook(a.js));
+                                        resolve(false);
+                                    });
                                 });
-                            });
+                            }
+                            if (a.type === 'container') {
+                                yield add(a.data.setting);
+                            }
+                            if (falseArray.length > 0) {
+                                yield add(falseArray);
+                            }
                         }
-                        if (a.type === 'container') {
-                            await add(a.data.setting);
-                        }
-                        if (falseArray.length > 0) {
-                            await add(falseArray);
-                        }
-                    }
-                    return true;
+                        return true;
+                    });
                 }
                 add((_a = option.setting) !== null && _a !== void 0 ? _a : setting).then((data) => {
                     loading = false;
@@ -443,7 +453,6 @@ ${e.line}
         })}" style="height: 100px;">${(_a = obj.default) !== null && _a !== void 0 ? _a : ''}</textarea>`;
     }
 }
-exports.HtmlGenerate = HtmlGenerate;
 HtmlGenerate.share = {};
 HtmlGenerate.resourceHook = (src) => {
     return src;
@@ -453,7 +462,7 @@ HtmlGenerate.saveEvent = () => {
 };
 HtmlGenerate.setHome = (obj) => {
     var _a, _b;
-    const glitter = Glitter_js_1.Glitter.glitter;
+    const glitter = Glitter.glitter;
     glitter.setHome('glitterBundle/plugins/html-render.js', obj.tag, {
         page_config: (_a = obj.page_config) !== null && _a !== void 0 ? _a : {},
         config: obj.config,
@@ -463,11 +472,10 @@ HtmlGenerate.setHome = (obj) => {
 };
 HtmlGenerate.changePage = (obj) => {
     var _a;
-    const glitter = Glitter_js_1.Glitter.glitter;
+    const glitter = Glitter.glitter;
     glitter.changePage('glitterBundle/plugins/html-render.js', obj.tag, obj.goBack, {
         config: obj.config,
         editMode: obj.editMode,
         data: obj.data,
     }, (_a = obj.option) !== null && _a !== void 0 ? _a : {});
 };
-//# sourceMappingURL=Html_generate.js.map

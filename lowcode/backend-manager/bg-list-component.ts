@@ -78,6 +78,7 @@ export class BgListComponent {
                 : '';
             break;
           case 'multi_checkbox':
+          case 'search_and_select':
             h +=
               data.length > 0
                 ? this.tagBadge(
@@ -152,6 +153,19 @@ export class BgListComponent {
                                 ? BgWidget.radioInputContainer(gvc, item.data, this.vm.filter[item.key], value => {
                                     this.vm.filter[item.key] = value;
                                   })
+                                : '';
+                          case 'search_and_select':
+                            contentHTML +=
+                              item.data.length > 0
+                                ? BgWidget.searchSelectContainer(
+                                    gvc,
+                                    '選擇標籤',
+                                    item.data,
+                                    this.vm.filter[item.key],
+                                    value => {
+                                      this.vm.filter[item.key] = value;
+                                    }
+                                  )
                                 : '';
                             break;
                         }
