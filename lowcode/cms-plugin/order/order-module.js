@@ -12,6 +12,7 @@ import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { BgProduct } from '../../backend-manager/bg-product.js';
 import { ApiDelivery } from '../../glitter-base/route/delivery.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
+import { ApiUser } from '../../glitter-base/route/user.js';
 import { PaymentConfig } from '../../glitter-base/global/payment-config.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { PaymentPage } from '../pos-pages/payment-page.js';
@@ -692,6 +693,92 @@ export class OrderModule {
             closeCallback: () => {
                 orderData = cloneData;
             },
+        });
+    }
+    static useOrderTags(obj) {
+        const gvc = obj.gvc;
+        const vmt = {
+            id: gvc.glitter.getUUID(),
+            loading: true,
+            search: '',
+            dataList: [],
+            postData: obj.def,
+        };
+        return BgWidget.settingDialog({
+            gvc,
+            title: '使用現有標籤',
+            innerHTML: gvc2 => {
+                return gvc2.bindView({
+                    bind: vmt.id,
+                    view: () => {
+                        if (vmt.loading) {
+                            return BgWidget.spinner();
+                        }
+                        else {
+                            return [
+                                BgWidget.searchPlace(gvc2.event(e => {
+                                    vmt.search = e.value;
+                                    vmt.loading = true;
+                                    gvc2.notifyDataChange(vmt.id);
+                                }), vmt.search, '搜尋標籤', '0', '0'),
+                                BgWidget.renderOptions(gvc2, vmt),
+                            ].join(BgWidget.mbContainer(18));
+                        }
+                    },
+                    divCreate: {},
+                    onCreate: () => {
+                        if (vmt.loading) {
+                            ApiUser.getPublicConfig(obj.config_key, 'manager').then((dd) => {
+                                var _a, _b;
+                                if (dd.result && ((_b = (_a = dd.response) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.list)) {
+                                    const responseList = dd.response.value.list;
+                                    const list = [...new Set([...responseList, ...obj.def])];
+                                    vmt.dataList = list.filter((item) => item.includes(vmt.search));
+                                }
+                                vmt.loading = false;
+                                gvc2.notifyDataChange(vmt.id);
+                            });
+                        }
+                    },
+                });
+            },
+            footer_html: gvc2 => {
+                return [
+                    html `<div
+            style="color: #393939; text-decoration-line: underline; cursor: pointer"
+            onclick="${gvc2.event(() => {
+                        vmt.postData = [];
+                        vmt.loading = true;
+                        gvc2.notifyDataChange(vmt.id);
+                    })}"
+          >
+            清除全部
+          </div>`,
+                    BgWidget.cancel(gvc2.event(() => {
+                        gvc2.closeDialog();
+                    })),
+                    BgWidget.save(gvc2.event(() => {
+                        obj.callback(vmt.postData);
+                        gvc2.closeDialog();
+                    })),
+                ].join('');
+            },
+        });
+    }
+    static getOrderManagerTag() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield ApiUser.getPublicConfig('order_manager_tags', 'manager').then((dd) => {
+                var _a, _b;
+                if (dd.result && ((_b = (_a = dd.response) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.list)) {
+                    return dd.response.value.list.map((item) => {
+                        return {
+                            key: item,
+                            name: `#${item}`,
+                        };
+                    });
+                }
+                return [];
+            });
         });
     }
 }

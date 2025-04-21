@@ -285,6 +285,7 @@ router.get('/order', async (req, resp) => {
                 is_reconciliation: req.query.is_reconciliation === 'true',
                 payment_select: req.query.payment_select,
                 reconciliation_status: req.query.reconciliation_status && req.query.reconciliation_status.split(','),
+                manager_tag: req.query.manager_tag,
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {

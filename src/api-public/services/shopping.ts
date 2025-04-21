@@ -1258,7 +1258,7 @@ export class Shopping {
 
       return data;
     } catch (error) {
-      throw exception.BadRequestError('BAD_REQUEST', 'Set customize tag conifg Error:' + e, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'Set product customize tag conifg Error:' + e, null);
     }
   }
 
@@ -1317,7 +1317,7 @@ export class Shopping {
 
       return data;
     } catch (error) {
-      throw exception.BadRequestError('BAD_REQUEST', 'Set general tag conifg Error:' + e, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'Set product general tag conifg Error:' + e, null);
     }
   }
 
@@ -1341,6 +1341,54 @@ export class Shopping {
     });
 
     return tagConfig;
+  }
+
+  async initOrderCustomizeTagConifg() {
+    try {
+      const managerTags = await new User(this.app).getConfigV2({ key: 'order_manager_tags', user_id: 'manager' });
+
+      if (managerTags && Array.isArray(managerTags.list)) {
+        return managerTags;
+      }
+
+      const getData = await db.query(
+        `
+          SELECT 
+            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) SEPARATOR ',') AS unique_tags
+          FROM \`${this.app}\`.t_checkout
+          WHERE JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) IS NOT NULL
+        `,
+        []
+      );
+      const unique_tags_string = getData[0]?.unique_tags ?? '';
+      const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
+      const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
+      const data = { list: [...new Set(unique_tags_flot)] };
+
+      await new User(this.app).setConfig({
+        key: 'order_manager_tags',
+        user_id: 'manager',
+        value: data,
+      });
+
+      return data;
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'Set order customize tag conifg Error:' + e, null);
+    }
+  }
+
+  async setOrderCustomizeTagConifg(add_tags: string[]) {
+    const tagConfig = await new User(this.app).getConfigV2({ key: 'order_manager_tags', user_id: 'manager' });
+    const tagList = tagConfig?.list ?? [];
+    const data = { list: [...new Set([...tagList, ...add_tags])] };
+
+    await new User(this.app).setConfig({
+      key: 'order_manager_tags',
+      user_id: 'manager',
+      value: data,
+    });
+
+    return data;
   }
 
   async getAllUseVoucher(userID: any): Promise<VoucherData[]> {
@@ -4355,12 +4403,15 @@ export class Shopping {
         {}
       );
       await db.query(
-        `UPDATE \`${this.app}\`.t_checkout
-         SET ?
-         WHERE id = ?;
+        `UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
         `,
         [updateData, origin.id]
       );
+
+      // 更新訂單現有標籤
+      if (Array.isArray(update.orderData.tags)) {
+        await this.setOrderCustomizeTagConifg(update.orderData.tags);
+      }
 
       // 同步蝦皮商品
       await Promise.all(
@@ -4789,12 +4840,17 @@ export class Shopping {
     payment_select?: string;
     is_reconciliation?: boolean;
     reconciliation_status?: string[];
+    manager_tag?: string;
   }) {
     try {
-      let querySql = ['1=1'];
-      let orderString = 'order by id desc';
       const timer = new UtTimer('get-checkout-info');
       timer.checkPoint('start');
+
+      let querySql = ['1=1'];
+      let orderString = 'order by id desc';
+
+      await this.initOrderCustomizeTagConifg();
+
       if (query.search && query.searchType) {
         switch (query.searchType) {
           case 'cart_token':
@@ -4970,6 +5026,16 @@ export class Shopping {
           case 'order_total_asc':
             orderString = 'order by total asc';
             break;
+        }
+      }
+
+      if (query.manager_tag) {
+        const tagSplit = query.manager_tag.split(',').map(tag => tag.trim());
+        if (tagSplit.length > 0) {
+          const tagJoin = tagSplit.map(tag => {
+            return `JSON_CONTAINS(orderData->>'$.tags', '"${tag}"')`;
+          });
+          querySql.push(`(${tagJoin.join(' OR ')})`);
         }
       }
       query.status && querySql.push(`o.status IN (${query.status})`);

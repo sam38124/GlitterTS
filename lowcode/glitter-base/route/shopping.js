@@ -559,6 +559,7 @@ export class ApiShop {
                     json.returnSearch && par.push(`returnSearch=${(_a = json.returnSearch) !== null && _a !== void 0 ? _a : 'false'}`);
                     json.is_shipment && par.push(`is_shipment=${json.is_shipment}`);
                     json.is_reconciliation && par.push(`is_reconciliation=${json.is_reconciliation}`);
+                    json.manager_tag && par.push(`manager_tag=${json.manager_tag}`);
                     if (json.is_pos === true || json.is_pos === false) {
                         par.push(`is_pos=${json.is_pos}`);
                     }

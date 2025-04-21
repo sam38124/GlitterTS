@@ -642,6 +642,7 @@ export class ApiShop {
     valid?: boolean;
     is_shipment?: boolean;
     is_reconciliation?: boolean;
+    manager_tag?: string;
   }) {
     const filterString = this.orderListFilterString(json.filter);
     return BaseApi.create({
@@ -663,6 +664,7 @@ export class ApiShop {
           json.returnSearch && par.push(`returnSearch=${json.returnSearch ?? 'false'}`);
           json.is_shipment && par.push(`is_shipment=${json.is_shipment}`);
           json.is_reconciliation && par.push(`is_reconciliation=${json.is_reconciliation}`);
+          json.manager_tag && par.push(`manager_tag=${json.manager_tag}`);
           if (json.is_pos === true || json.is_pos === false) {
             par.push(`is_pos=${json.is_pos}`);
           }

@@ -326,6 +326,10 @@ export declare class Shopping {
     setProductGeneralTagConifg(add_tags: {
         [k in LanguageLocation]: string[];
     }): Promise<any>;
+    initOrderCustomizeTagConifg(): Promise<any>;
+    setOrderCustomizeTagConifg(add_tags: string[]): Promise<{
+        list: any[];
+    }>;
     getAllUseVoucher(userID: any): Promise<VoucherData[]>;
     getDistributionRecommend(distribution_code: string): Promise<any>;
     aboutProductVoucher(json: {
@@ -550,6 +554,7 @@ export declare class Shopping {
         payment_select?: string;
         is_reconciliation?: boolean;
         reconciliation_status?: string[];
+        manager_tag?: string;
     }): Promise<any>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
     shareVoucherRebate(cartData: any): Promise<void>;

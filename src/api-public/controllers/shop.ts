@@ -338,6 +338,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
           payment_select: req.query.payment_select as string,
           reconciliation_status:
             req.query.reconciliation_status && ((req.query.reconciliation_status as string).split(',') as any),
+          manager_tag: req.query.manager_tag as string,
         })
       );
     } else if (await UtPermission.isAppUser(req)) {

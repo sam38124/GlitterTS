@@ -820,7 +820,7 @@ class Shopping {
             return data;
         }
         catch (error) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Set customize tag conifg Error:' + express_1.default, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Set product customize tag conifg Error:' + express_1.default, null);
         }
     }
     async setProductCustomizeTagConifg(add_tags) {
@@ -870,7 +870,7 @@ class Shopping {
             return data;
         }
         catch (error) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Set general tag conifg Error:' + express_1.default, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Set product general tag conifg Error:' + express_1.default, null);
         }
     }
     async setProductGeneralTagConifg(add_tags) {
@@ -889,6 +889,46 @@ class Shopping {
             value: tagConfig,
         });
         return tagConfig;
+    }
+    async initOrderCustomizeTagConifg() {
+        var _a, _b;
+        try {
+            const managerTags = await new user_js_1.User(this.app).getConfigV2({ key: 'order_manager_tags', user_id: 'manager' });
+            if (managerTags && Array.isArray(managerTags.list)) {
+                return managerTags;
+            }
+            const getData = await database_js_1.default.query(`
+          SELECT 
+            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) SEPARATOR ',') AS unique_tags
+          FROM \`${this.app}\`.t_checkout
+          WHERE JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) IS NOT NULL
+        `, []);
+            const unique_tags_string = (_b = (_a = getData[0]) === null || _a === void 0 ? void 0 : _a.unique_tags) !== null && _b !== void 0 ? _b : '';
+            const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
+            const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
+            const data = { list: [...new Set(unique_tags_flot)] };
+            await new user_js_1.User(this.app).setConfig({
+                key: 'order_manager_tags',
+                user_id: 'manager',
+                value: data,
+            });
+            return data;
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Set order customize tag conifg Error:' + express_1.default, null);
+        }
+    }
+    async setOrderCustomizeTagConifg(add_tags) {
+        var _a;
+        const tagConfig = await new user_js_1.User(this.app).getConfigV2({ key: 'order_manager_tags', user_id: 'manager' });
+        const tagList = (_a = tagConfig === null || tagConfig === void 0 ? void 0 : tagConfig.list) !== null && _a !== void 0 ? _a : [];
+        const data = { list: [...new Set([...tagList, ...add_tags])] };
+        await new user_js_1.User(this.app).setConfig({
+            key: 'order_manager_tags',
+            user_id: 'manager',
+            value: data,
+        });
+        return data;
     }
     async getAllUseVoucher(userID) {
         const now = Date.now();
@@ -3138,10 +3178,13 @@ class Shopping {
             update.orderData.lineItems = update.orderData.lineItems.filter((item) => item.count > 0);
             this.writeRecord(origin, update);
             const updateData = Object.entries(update).reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: typeof value === 'object' ? JSON.stringify(value) : value })), {});
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-         SET ?
-         WHERE id = ?;
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
         `, [updateData, origin.id]);
+            console.log(update.orderData.tags);
+            if (Array.isArray(update.orderData.tags)) {
+                console.log('Array.isArray');
+                await this.setOrderCustomizeTagConifg(update.orderData.tags);
+            }
             await Promise.all(origin.orderData.lineItems.map(async (lineItem) => {
                 var _a;
                 const shopping = new Shopping(this.app, this.token);
@@ -3455,10 +3498,11 @@ class Shopping {
     }
     async getCheckOut(query) {
         try {
-            let querySql = ['1=1'];
-            let orderString = 'order by id desc';
             const timer = new ut_timer_js_1.UtTimer('get-checkout-info');
             timer.checkPoint('start');
+            let querySql = ['1=1'];
+            let orderString = 'order by id desc';
+            await this.initOrderCustomizeTagConifg();
             if (query.search && query.searchType) {
                 switch (query.searchType) {
                     case 'cart_token':
@@ -3622,6 +3666,15 @@ class Shopping {
                     case 'order_total_asc':
                         orderString = 'order by total asc';
                         break;
+                }
+            }
+            if (query.manager_tag) {
+                const tagSplit = query.manager_tag.split(',').map(tag => tag.trim());
+                if (tagSplit.length > 0) {
+                    const tagJoin = tagSplit.map(tag => {
+                        return `JSON_CONTAINS(orderData->>'$.tags', '"${tag}"')`;
+                    });
+                    querySql.push(`(${tagJoin.join(' OR ')})`);
                 }
             }
             query.status && querySql.push(`o.status IN (${query.status})`);
@@ -4597,8 +4650,6 @@ class Shopping {
                             delete product['preview_image'];
                             const og_content = og_data['content'];
                             if (og_content.language_data && og_content.language_data[store_info.language_setting.def]) {
-                                console.log(`====== ${product.title} ======`);
-                                console.log(product.sub_title);
                                 og_content.language_data[store_info.language_setting.def].seo = product.seo;
                                 og_content.language_data[store_info.language_setting.def].title = product.title;
                                 og_content.language_data[store_info.language_setting.def].sub_title = product.sub_title;

@@ -287,7 +287,7 @@ export class ShoppingOrderManager {
                                 }),
                             }),
                     ];
-                    const filterTags = ListComp.getFilterTags(yield FilterOptions.getOrderFunnel());
+                    const filterTags = ListComp.getFilterTags(orderFunnel);
                     return BgListComponent.listBarRWD(filterList, filterTags);
                 }),
             }),
@@ -306,6 +306,12 @@ export class ShoppingOrderManager {
                         filter: vm.filter,
                         archived: `${query.isArchived}`,
                         is_shipment: query.isShipment,
+                        manager_tag: (() => {
+                            if (vm.filter.manager_tag && vm.filter.manager_tag.length > 0) {
+                                return vm.filter.manager_tag.join(',');
+                            }
+                            return undefined;
+                        })(),
                     };
                     if (vm.filter_type !== 'all') {
                         vm.apiJSON.is_pos = vm.filter_type === 'pos';
@@ -2352,6 +2358,41 @@ export class ShoppingOrderManager {
                                                 .filter(Boolean)
                                                 .join(BgWidget.mbContainer(18))),
                                         is_shipment ? '' : shipment_card,
+                                        BgWidget.mainCard(gvc.bindView((() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    var _a;
+                                                    return html `
+                                    <div class="d-flex align-items-center justify-content-between">
+                                      <div>
+                                        <div style="color: #393939; font-weight: 700;">訂單標籤</div>
+                                        ${BgWidget.grayNote('操作後台人員登記與分類用，不會顯示於前台')}
+                                        ${BgWidget.mbContainer(4)}
+                                      </div>
+                                      ${BgWidget.blueNote('使用現有標籤', gvc.event(() => {
+                                                        var _a;
+                                                        OrderModule.useOrderTags({
+                                                            gvc,
+                                                            config_key: 'order_manager_tags',
+                                                            def: (_a = orderData.orderData.tags) !== null && _a !== void 0 ? _a : [],
+                                                            callback: tags => {
+                                                                orderData.orderData.tags = tags;
+                                                                gvc.notifyDataChange(id);
+                                                            },
+                                                        });
+                                                    }))}
+                                    </div>
+                                    ${BgWidget.multipleInput(gvc, (_a = orderData.orderData.tags) !== null && _a !== void 0 ? _a : [], {
+                                                        save: def => {
+                                                            orderData.orderData.tags = [...new Set(def)];
+                                                        },
+                                                    }, true)}
+                                  `;
+                                                },
+                                            };
+                                        })())),
                                         BgWidget.mainCard(gvc.bindView(() => {
                                             const vm = {
                                                 edit_mode: false,
