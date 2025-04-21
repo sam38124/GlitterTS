@@ -4032,8 +4032,7 @@ class Shopping {
                 else if (Object.keys(variant.stockList).length === 0) {
                     variant.stockList[storeConfig.list[0].id] = { count: variant.stock };
                 }
-                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants
-           SET ?
+                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants SET ? 
           `, [
                     {
                         content: JSON.stringify(variant),
@@ -4046,7 +4045,14 @@ class Shopping {
                 }
                 return insertData;
             });
-            await Promise.all(insertPromises);
+            const chunk = 10;
+            const chunkLength = Math.ceil(insertPromises.length / chunk);
+            for (let i = 0; i < chunkLength; i++) {
+                const promisesArray = insertPromises.slice(i * chunk, (i + 1) * chunk);
+                setTimeout(async () => {
+                    await Promise.all(promisesArray);
+                }, 200);
+            }
             const exhibitionConfig = await _user.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
             exhibitionConfig.list = (_b = exhibitionConfig.list) !== null && _b !== void 0 ? _b : [];
             exhibitionConfig.list.forEach((exhibition) => {
@@ -4591,6 +4597,8 @@ class Shopping {
                             delete product['preview_image'];
                             const og_content = og_data['content'];
                             if (og_content.language_data && og_content.language_data[store_info.language_setting.def]) {
+                                console.log(`====== ${product.title} ======`);
+                                console.log(product.sub_title);
                                 og_content.language_data[store_info.language_setting.def].seo = product.seo;
                                 og_content.language_data[store_info.language_setting.def].title = product.title;
                                 og_content.language_data[store_info.language_setting.def].sub_title = product.sub_title;
@@ -4600,11 +4608,11 @@ class Shopping {
                             productArray[index] = product;
                         }
                         else {
-                            console.error('Product id not exist:', product);
+                            console.error('Product id not exist:', product.title);
                         }
                     }
                     else {
-                        console.error('Product has not id:', product);
+                        console.error('Product has not id:', product.title);
                     }
                     resolve(true);
                 });
@@ -4634,8 +4642,8 @@ class Shopping {
                 return [product.id || null, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
             });
             if (productArray.length) {
-                const data = await database_js_1.default.query(`replace
-          INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
+                const data = await database_js_1.default.query(`REPLACE INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
+          `, [
                     productArray.map((product) => {
                         var _a;
                         if (!product.id) {
@@ -4664,7 +4672,14 @@ class Shopping {
             product.id = product.id || insertIDStart++;
             return new Shopping(this.app, this.token).postVariantsAndPriceValue(product);
         });
-        await Promise.all(promises);
+        const chunk = 10;
+        const chunkLength = Math.ceil(promises.length / chunk);
+        for (let i = 0; i < chunkLength; i++) {
+            const promisesArray = promises.slice(i * chunk, (i + 1) * chunk);
+            setTimeout(async () => {
+                await Promise.all(promisesArray);
+            }, 200);
+        }
     }
     async putProduct(content) {
         var _a, _b, _c;

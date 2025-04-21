@@ -5508,8 +5508,7 @@ export class Shopping {
         }
 
         const insertData = await db.query(
-          `INSERT INTO \`${this.app}\`.t_variants
-           SET ?
+          `INSERT INTO \`${this.app}\`.t_variants SET ? 
           `,
           [
             {
@@ -5530,7 +5529,15 @@ export class Shopping {
         return insertData;
       });
 
-      await Promise.all(insertPromises);
+      const chunk = 10;
+      const chunkLength = Math.ceil(insertPromises.length / chunk);
+
+      for (let i = 0; i < chunkLength; i++) {
+        const promisesArray = insertPromises.slice(i * chunk, (i + 1) * chunk);
+        setTimeout(async () => {
+          await Promise.all(promisesArray);
+        }, 200);
+      }
 
       const exhibitionConfig = await _user.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
       exhibitionConfig.list = exhibitionConfig.list ?? [];
@@ -6218,6 +6225,7 @@ export class Shopping {
                 delete product['content'];
                 delete product['preview_image'];
                 const og_content = og_data['content'];
+
                 if (og_content.language_data && og_content.language_data[store_info.language_setting.def]) {
                   og_content.language_data[store_info.language_setting.def].seo = product.seo;
                   og_content.language_data[store_info.language_setting.def].title = product.title;
@@ -6231,10 +6239,10 @@ export class Shopping {
                 product.preview_image = og_data['content'].preview_image || [];
                 productArray[index] = product;
               } else {
-                console.error('Product id not exist:', product);
+                console.error('Product id not exist:', product.title);
               }
             } else {
-              console.error('Product has not id:', product);
+              console.error('Product has not id:', product.title);
             }
             resolve(true);
           });
@@ -6268,8 +6276,8 @@ export class Shopping {
 
       if (productArray.length) {
         const data = await db.query(
-          `replace
-          INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,
+          `REPLACE INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
+          `,
           [
             productArray.map((product: any) => {
               if (!product.id) {
@@ -6298,7 +6306,16 @@ export class Shopping {
       product.id = product.id || insertIDStart++;
       return new Shopping(this.app, this.token).postVariantsAndPriceValue(product);
     });
-    await Promise.all(promises);
+
+    const chunk = 10;
+    const chunkLength = Math.ceil(promises.length / chunk);
+
+    for (let i = 0; i < chunkLength; i++) {
+      const promisesArray = promises.slice(i * chunk, (i + 1) * chunk);
+      setTimeout(async () => {
+        await Promise.all(promisesArray);
+      }, 200);
+    }
   }
 
   async putProduct(content: any) {
