@@ -2442,7 +2442,7 @@ ${obj.default ?? ''}</textarea
     }
   ) {
     return html` <div
-      class="mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0'}"
+      class="mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-3' : 'w-100 mx-0'}"
       style="max-width: 100%; width: ${this.getContainerWidth()}px; ${obj?.style ?? ''}"
     >
       ${htmlString}
@@ -2460,7 +2460,7 @@ ${obj.default ?? ''}</textarea
     }
   ) {
     return html` <div
-      class="d-flex mt-4 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0 flex-column'} "
+      class="d-flex mt-2 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0 flex-column'} "
       style="gap: 24px;"
     >
       <div style="width: ${document.body.clientWidth > 768 ? cont1.ratio : 100}%">${cont1.html}</div>
@@ -2910,8 +2910,8 @@ ${obj.default ?? ''}</textarea
     style?: string
   ) {
     return html` <div
-      class="mx-sm-0 mx-2"
-      style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style ??
+      class="mx-sm-0 my-sm-4 mx-2 my-3"
+      style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;font-size: 18px; ${style ??
       ''};"
     >
       ${data

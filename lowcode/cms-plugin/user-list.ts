@@ -280,42 +280,39 @@ export class UserList {
                 自訂資料
               </button>
             </div>
-            <div class="title-container">
-              ${BgWidget.tab(
-                vm.group?.type === 'subscriber'
-                  ? [
-                      {
-                        title: '一般列表',
-                        key: 'normal',
-                      },
-                      {
-                        title: '黑名單',
-                        key: 'block',
-                      },
-                      {
-                        title: '未註冊',
-                        key: 'notRegistered',
-                      },
-                    ]
-                  : [
-                      {
-                        title: '一般列表',
-                        key: 'normal',
-                      },
-                      {
-                        title: '黑名單',
-                        key: 'block',
-                      },
-                    ],
-                gvc,
-                vm.filter_type,
-                text => {
-                  vm.filter_type = text as any;
-                  gvc.notifyDataChange(vm.id);
-                },
-                'margin: 0; margin-top: 24px;'
-              )}
-            </div>
+            ${BgWidget.tab(
+              vm.group?.type === 'subscriber'
+                ? [
+                    {
+                      title: '一般列表',
+                      key: 'normal',
+                    },
+                    {
+                      title: '黑名單',
+                      key: 'block',
+                    },
+                    {
+                      title: '未註冊',
+                      key: 'notRegistered',
+                    },
+                  ]
+                : [
+                    {
+                      title: '一般列表',
+                      key: 'normal',
+                    },
+                    {
+                      title: '黑名單',
+                      key: 'block',
+                    },
+                  ],
+              gvc,
+              vm.filter_type,
+              text => {
+                vm.filter_type = text as any;
+                gvc.notifyDataChange(vm.id);
+              }
+            )}
             ${BgWidget.container(
               (() => {
                 if (vm.filter_type === 'notRegistered') {

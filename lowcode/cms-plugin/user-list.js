@@ -232,8 +232,7 @@ export class UserList {
                 自訂資料
               </button>
             </div>
-            <div class="title-container">
-              ${BgWidget.tab(((_b = vm.group) === null || _b === void 0 ? void 0 : _b.type) === 'subscriber'
+            ${BgWidget.tab(((_b = vm.group) === null || _b === void 0 ? void 0 : _b.type) === 'subscriber'
                         ? [
                             {
                                 title: '一般列表',
@@ -260,8 +259,7 @@ export class UserList {
                         ], gvc, vm.filter_type, text => {
                         vm.filter_type = text;
                         gvc.notifyDataChange(vm.id);
-                    }, 'margin: 0; margin-top: 24px;')}
-            </div>
+                    })}
             ${BgWidget.container((() => {
                         if (vm.filter_type === 'notRegistered') {
                             return BgNotify.email(gvc, 'list', () => obj === null || obj === void 0 ? void 0 : obj.backButtonEvent);

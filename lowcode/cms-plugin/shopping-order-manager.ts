@@ -258,27 +258,26 @@ export class ShoppingOrderManager {
         </div>
       </div>
       <div class="${query.isShipment ? '' : 'd-none'} mb-3"></div>
-      <div class="${query.isShipment ? 'd-none' : ''}">
-        ${BgWidget.tab(
-          query.isPOS
-            ? [
-                { title: '所有訂單', key: 'all' },
-                { title: 'POS訂單', key: 'pos' },
-                { title: '線上訂單', key: 'normal' },
-              ]
-            : [
-                { title: '所有訂單', key: 'all' },
-                { title: '線上訂單', key: 'normal' },
-                { title: 'POS訂單', key: 'pos' },
-              ],
-          gvc,
-          vm.filter_type,
-          text => {
-            vm.filter_type = text as any;
-            gvc.notifyDataChange(vm.id);
-          }
-        )}
-      </div>
+      ${BgWidget.tab(
+        query.isPOS
+          ? [
+              { title: '所有訂單', key: 'all' },
+              { title: 'POS訂單', key: 'pos' },
+              { title: '線上訂單', key: 'normal' },
+            ]
+          : [
+              { title: '所有訂單', key: 'all' },
+              { title: '線上訂單', key: 'normal' },
+              { title: 'POS訂單', key: 'pos' },
+            ],
+        gvc,
+        vm.filter_type,
+        text => {
+          vm.filter_type = text as any;
+          gvc.notifyDataChange(vm.id);
+        },
+        query.isShipment ? 'display: none;' : ''
+      )}
       ${BgWidget.mainCard(
         [
           gvc.bindView({
@@ -2118,10 +2117,8 @@ export class ShoppingOrderManager {
                                         <div>$${dd.sale_price.toLocaleString()} × ${dd.count}</div>
                                       </div>
                                       <div
-                                        class="tx_normal d-sm-none d-flex flex-column"
-                                        style="display: flex;justify-content: end;${document.body.clientWidth > 800
-                                          ? 'width: 110px'
-                                          : 'width: 140px'}"
+                                        class="tx_normal d-sm-none d-flex flex-column align-items-end justify-content-end"
+                                        style="min-width: 110px"
                                       >
                                         ${dd.origin_price && dd.origin_price > dd.sale_price
                                           ? html` <div style="margin-right: 6px; text-decoration: line-through;">
@@ -2130,7 +2127,6 @@ export class ShoppingOrderManager {
                                           : ''}
                                         <div>$${dd.sale_price.toLocaleString()} × ${dd.count}</div>
                                       </div>
-
                                       <div
                                         class="tx_normal d-none d-sm-flex"
                                         style="display: flex;justify-content: end;${document.body.clientWidth > 800

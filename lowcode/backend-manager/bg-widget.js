@@ -2047,7 +2047,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static container(htmlString, obj) {
         var _a;
         return html ` <div
-      class="mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-4' : 'w-100 mx-0'}"
+      class="mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-3' : 'w-100 mx-0'}"
       style="max-width: 100%; width: ${this.getContainerWidth()}px; ${(_a = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _a !== void 0 ? _a : ''}"
     >
       ${htmlString}
@@ -2055,7 +2055,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static container1x2(cont1, cont2) {
         return html ` <div
-      class="d-flex mt-4 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0 flex-column'} "
+      class="d-flex mt-2 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0 flex-column'} "
       style="gap: 24px;"
     >
       <div style="width: ${document.body.clientWidth > 768 ? cont1.ratio : 100}%">${cont1.html}</div>
@@ -2413,8 +2413,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static tab(data, gvc, select, callback, style) {
         return html ` <div
-      class="mx-sm-0 mx-2"
-      style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style !== null && style !== void 0 ? style : ''};"
+      class="mx-sm-0 my-sm-4 mx-2 my-3"
+      style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;font-size: 18px; ${style !== null && style !== void 0 ? style : ''};"
     >
       ${data
             .map(dd => {

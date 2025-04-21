@@ -261,7 +261,9 @@ export class ShoppingFinanceSetting {
 
               // 線上金流
               if (vm.page === 'online') {
-                h = html` <div class="my-2">${BgWidget.blueNote('透過線上金流，消費者可於線上進行結帳付款')}</div>
+                h = html` <div class="px-md-0 px-2 mb-2">
+                    ${BgWidget.normalInsignia('透過線上金流，消費者可於線上進行結帳付款')}
+                  </div>
                   <div class="row">
                     ${PaymentConfig.onlinePay
                       .filter(item => item.type !== 'pos')
@@ -660,8 +662,8 @@ export class ShoppingFinanceSetting {
                   }),
                 ];
 
-                h = html` <div class="my-2">
-                    ${BgWidget.blueNote('透過設定線下金流，結帳後訂單將進入手動核款的流程，亦可使用超商取貨付款')}
+                h = html` <div class="px-md-0 px-2 mb-2">
+                    ${BgWidget.normalInsignia('透過設定線下金流，結帳後訂單將進入手動核款的流程，亦可使用超商取貨付款')}
                   </div>
                   <div class="row">
                     ${offlinePayArray
@@ -788,7 +790,9 @@ export class ShoppingFinanceSetting {
 
               // POS
               if (vm.page === 'pos') {
-                h = html`<div class="my-2">${BgWidget.blueNote('設定實體店面所需串接的付款方式')}</div>
+                h = html` <div class="px-md-0 px-2 mb-2">
+                    ${BgWidget.normalInsignia('設定實體店面所需串接的付款方式')}
+                  </div>
                   <div class="row">
                     ${PaymentConfig.onlinePay
                       .filter(item => item.type === 'pos')
@@ -901,8 +905,7 @@ export class ShoppingFinanceSetting {
                   (key: any) => {
                     vm.page = key;
                     gvc.notifyDataChange(vm.id);
-                  },
-                  'margin-top: 0px; margin-bottom: 0px;'
+                  }
                 ),
                 h,
               ].join('');
@@ -935,7 +938,7 @@ export class ShoppingFinanceSetting {
             }
           },
         }),
-      ].join(BgWidget.mbContainer(24))}
+      ].join('')}
       ${BgWidget.mbContainer(240)}
     `);
   }
@@ -1666,7 +1669,7 @@ export class ShoppingFinanceSetting {
           ];
           if (vm.page === 'delivery_setting') {
             view = view.concat([
-              html`<div class="mx-2 mx-sm-0 mt-3 mb-0">
+              html`<div class="px-md-0 px-2">
                 ${BgWidget.normalInsignia(
                   '設定支援的配送方式，供消費者於前臺自行選擇合適的物流，另外可於商品頁面設定特定商品支援的配送'
                 )}
@@ -2400,7 +2403,7 @@ export class ShoppingFinanceSetting {
             );
           } else if (vm.page === 'delivery_track') {
             view = view.concat([
-              html` <div class="mx-2 mx-sm-0 mt-3 mb-0">
+              html` <div class="px-md-0 px-2">
                 ${BgWidget.normalInsignia('透過設定物流追蹤，可直接列印托運單進行出貨，並自動追蹤貨態')}
               </div>`,
               gvc.bindView(() => {
