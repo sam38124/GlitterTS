@@ -271,9 +271,12 @@ export class OrderModule {
 
   static formatRecord(gvc: GVC, vm: any, orderID: string, record: string): string {
     // 處理訂單連結
-    const orderNumbers = record.match(/{{order=(\d+)}}/g) || [];
+
+    const orderNumbers = record.match(/{{order=(\d+[a-zA-Z]?)}}/g) || [];
+    console.log("orderNumbers - ", orderNumbers);
     orderNumbers.map((order: string) => {
       const pureOrder = order.replace(/{{order=|}}/g, '');
+      console.log("pureOrder -- " , pureOrder );
       record = record.replace(
         order,
         BgWidget.blueNote(
@@ -422,6 +425,7 @@ export class OrderModule {
                         }
 
                         const storeKeys = Object.keys(dd.deduction_log || {});
+                        //todo 不能變更為負數 
                         if (storeKeys.length > 0) {
                           let selectStore = '';
                           for (const key of storeKeys) {

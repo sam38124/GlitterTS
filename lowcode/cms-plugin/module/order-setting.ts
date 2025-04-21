@@ -1330,7 +1330,7 @@ export class OrderSetting {
             },
             {
               key: '出貨單號碼',
-              value: html`<div style="width: 200px;">
+              value: html` <div style="width: 200px;">
                 ${BgWidget.grayNote(
                   dd.orderData.user_info.shipment_number
                     ? `#${dd.orderData.user_info.shipment_number}`
@@ -1438,7 +1438,7 @@ export class OrderSetting {
                           : '',
                       ].filter(Boolean);
 
-                      return html`<div class="d-flex align-items-center gap-2">${htmlArray.join('')}</div>`;
+                      return html` <div class="d-flex align-items-center gap-2">${htmlArray.join('')}</div>`;
                     },
                     divCreate: {
                       style: 'min-width: 580px;',
@@ -1637,11 +1637,13 @@ export class OrderSetting {
   }
 
   // 拆分訂單
-  static splitOrder(topGVC: GVC, orderData: any, callback: () => void) {
+  static splitOrder(topGVC: GVC, origOrderData: any, callback: () => void) {
     //把原本的預設資訊扔進拆分表單內，並且把商品的數量設定為0
+    const orderData = structuredClone(origOrderData);
+
     function assignOrder(orderCreateUnit: OrderDetail) {
       orderCreateUnit.cart_token = orderData.orderID;
-      orderCreateUnit.customer_info = orderData.user_info;
+      orderCreateUnit.customer_info = orderData.customer_info;
       orderCreateUnit.user_info = orderData.user_info;
       orderCreateUnit.voucher = orderData.voucherList;
       orderCreateUnit.lineItems = structuredClone(orderData.lineItems);
@@ -1649,6 +1651,7 @@ export class OrderSetting {
         lineItem.count = 0;
       });
     }
+
     orderData.orderSource = 'split';
     const dataArray: LineItem[] = orderData.lineItems;
     const parentPageConfig = (window.parent as any)?.glitter?.pageConfig;
@@ -1659,12 +1662,9 @@ export class OrderSetting {
     const orderCreateUnit = new OrderDetail(0, 0);
     assignOrder(orderCreateUnit);
     const splitOrderArray: OrderDetail[] = [structuredClone(orderCreateUnit)];
-    const passData = structuredClone(orderCreateUnit);//修改後的
+    const passData = structuredClone(orderCreateUnit); //修改後的
     const isDesktop = document.body.clientWidth > 768;
-
     const vm = {
-      dataObject: {} as DataMap, // 調用合併訂單資料
-      originDataObject: {} as DataMap, // 原始合併訂單資料
       prefix: 'split-orders',
       splitCount: 1,
     };
@@ -1674,6 +1674,7 @@ export class OrderSetting {
       page: glitter.getUUID(),
       header: glitter.getUUID(),
       dashboard: glitter.getUUID(),
+      origQTY: glitter.getUUID(),
       itemList: glitter.getUUID(),
       block: glitter.getUUID(),
       summary: glitter.getUUID(),
@@ -1737,31 +1738,7 @@ export class OrderSetting {
           bottom: 0;
           z-index: 10;
         }
-        .${vm.prefix}-dashboard-gray {
-          color: #8d8d8d;
-          font-size: 16px;
-          font-weight: 400;
-        }
-        .${vm.prefix}-update {
-          width: 80px;
-          color: #4d86db;
-          font-weight: 400;
-          gap: 8px;
-          cursor: pointer;
-        }
-        .${vm.prefix}-list {
-          list-style: disc;
-          white-space: break-spaces;
-        }
-        .${vm.prefix}-box {
-          border-radius: 10px;
-          padding: 6px 10px;
-        }
-        .${vm.prefix}-check-info-box {
-          position: absolute;
-          width: 1000px;
-          overflow: auto;
-        }
+     
         .${vm.prefix}-order-row {
           display: flex;
           align-items: center;
@@ -1799,7 +1776,7 @@ export class OrderSetting {
           height:26px;
           color:#4D86DB;
           gap: 6px;
-          padding-left:18px;
+          padding:0 18px;
           display: flex;
           align-items: start;
           cursor:pointer;
@@ -1811,16 +1788,18 @@ export class OrderSetting {
         }
         .${vm.prefix}-itemList-section{
           min-width: 100%;
+          border-bottom: 1px solid #DDD;
           padding-top:24px;
           gap:5px;
-          display: flex;
+          display: inline-flex;
         }
         .${vm.prefix}-summary-section{
-          border-top: 1px solid #DDD;
+          min-width: 100%;
           border-bottom: 1px solid #DDD;
+          width:fit-content;
         }
         .${vm.prefix}-summary-title{
-          width:606px;
+          width:481px;
           flex-shrink:0;
           border-right: 1px solid #DDD;
           padding-left:18px;
@@ -1864,19 +1843,18 @@ export class OrderSetting {
         
         .${vm.prefix}-dialog-ul{
           padding:6px ;
-          list-style:disc;
           
         }
         .${vm.prefix}-dialog-ul li{
+          margin-bottom: 3px;
           list-style:disc;
           text-align:left;
-          list-style-position: inside;
+          white-space:break-spaces;
         }
       `);
     };
 
     const closeDialog = () => glitter.closeDiaLog();
-
 
     const renderHeader = (gvc: GVC) =>
       gvc.bindView({
@@ -1899,35 +1877,103 @@ export class OrderSetting {
 
     const handleSave = () => {
       const alertHTML = html`
-      <div class="d-flex flex-column">
-        <div class="tx_normal text-start">您即將拆分訂單，系統將產生 ${splitOrderArray.length} 筆子訂單，拆分後：</div>
-        <ul class="${gClass('dialog-ul')}">
-          <li>原訂單調整金額與折扣，運費及附加費維持不變。子訂單按比例分配優惠。</li>
-          <li>子訂單繼承母訂單設定，發票需手動作廢與重開。 </li>
-          <li>代收金額更新，已建立的出貨單需取消並重新建立。</li>
-        </ul>
-      </div>
-      `
+        <div class="d-flex flex-column">
+          <div class="tx_normal text-start">
+            您即將拆分訂單，系統將產生 ${splitOrderArray.length} 筆子訂單，拆分後：
+          </div>
+          <ul class="${gClass('dialog-ul')}">
+            <li>原訂單調整金額與折扣，運費及附加費維持不變。子訂單按比例分配優惠。</li>
+            <li>子訂單繼承母訂單設定，發票需手動作廢與重開。</li>
+            <li>代收金額更新，已建立的出貨單需取消並重新建立。</li>
+          </ul>
+        </div>
+      `;
 
       dialog.checkYesOrNotWithCustomWidth({
         callback: bool => {
           if (bool) {
-            orderData.lineItems.forEach((lineItem:any,index:number)=>{
-              let count = 0;
-              count = splitOrderArray.reduce((total,order)=>{return total += Number(order.lineItems[index].count)},0)
-              lineItem.count -= count;
-            })
-            const passData = {
-              orderData : orderData,
-              splitOrderArray : splitOrderArray
+            // 定義 log 物件的型別介面
+            interface StoreLog {
+              [key: string]: number;
             }
 
+            // 定義函式回傳值的型別介面
+            interface DeductionResult {
+              updatedLog: StoreLog; // 更新後的 log
+              deductions: Record<string, number>; // 扣除紀錄，鍵是店鋪名稱，值是扣除的數量
+            }
 
-            ApiShop.combineOrder(vm.dataObject).then(r => {
-              if (r.result && r.response) {
+            /**
+             * 從商店 log 中扣除指定數量，優先從值較高的商店開始扣除。
+             * @param log - 初始的 log 物件，將商店鍵 (string) 映射到值 (number)。
+             * @param amountToDeduct - 要扣除的總數量。
+             * @returns 一個包含更新後 log 和扣除紀錄的物件。
+             */
+            function deductFromStoresTS(log: StoreLog, amountToDeduct: number): DeductionResult {
+              // 1. 創建一個 log 的可變副本，並確保輸入數量有效
+              const updatedLog: StoreLog = { ...log }; // 確保型別一致
+              const deductions: Record<string, number> = {}; // 扣除紀錄的型別
+              let remainingAmount: number = Math.max(0, amountToDeduct); // 確保數量不為負
 
+              // 2. 將 log 轉換為 [string, number] 陣列，並按值降序排序
+              // Object.entries 會根據 StoreLog 型別推斷出 [string, number][]
+              const sortedEntries: [string, number][] = Object.entries(updatedLog).sort(
+                ([, valueA], [, valueB]) => valueB - valueA
+              );
+
+              // 3. 遍歷排序後的條目並執行扣除
+              for (const [storeKey, storeValue] of sortedEntries) {
+                // 如果剩餘待扣除數量已歸零，則停止迴圈
+                if (remainingAmount <= 0) {
+                  break;
+                }
+
+                // 如果當前商店的值小於或等於零，則跳過
+                if (storeValue <= 0) {
+                  continue;
+                }
+
+                // 確定從這個特定商店扣除的數量
+                const amountDeductedFromThisStore: number = Math.min(remainingAmount, storeValue);
+
+                // 只有當實際扣除數量大於 0 時才執行更新和記錄
+                if (amountDeductedFromThisStore > 0) {
+                  // 更新副本 log 物件中的值
+                  updatedLog[storeKey] -= amountDeductedFromThisStore;
+
+                  // 記錄扣除資訊
+                  deductions[storeKey] = amountDeductedFromThisStore;
+
+                  // 減少剩餘待扣除的數量
+                  remainingAmount -= amountDeductedFromThisStore;
+                }
               }
+
+              // 4. 返回更新後的 log (副本) 和扣除紀錄
+              return {
+                updatedLog: updatedLog,
+                deductions: deductions,
+              };
+            }
+
+            //處理每件商品在原訂單上的庫存
+            orderData.lineItems.forEach((lineItem: any, index: number) => {
+              let count = 0;
+              splitOrderArray.forEach(order => {
+                lineItem.count -= order.lineItems[index].count;
+                const resultTS: DeductionResult = deductFromStoresTS(
+                  lineItem.deduction_log,
+                  order.lineItems[index].count
+                );
+                order.lineItems[index].deduction_log = resultTS.deductions;
+                lineItem.deduction_log = resultTS.updatedLog;
+              });
             });
+            const passData = {
+              orderData: orderData,
+              splitOrderArray: splitOrderArray,
+            };
+
             dialog.dataLoading({ visible: true });
             ApiShop.splitOrder(passData).then(r => {
               if (r.result && r.response) {
@@ -1945,24 +1991,36 @@ export class OrderSetting {
       });
     };
 
-    const renderFooter = (gvc: GVC) => gvc.bindView({
-      bind:ids.footer,
-      view:()=>{
-        const allOrdersHaveZeroItems = splitOrderArray.every(order =>
-          order.lineItems.every(item => item.count === 0)
-        );
-        let checkBTN = ``;
-        if (!allOrdersHaveZeroItems) {
-          checkBTN = BgWidget.save(gvc.event(handleSave), '拆分訂單')
-        } else {
-          checkBTN = BgWidget.disableSave('拆分訂單')
-        }
+    const renderFooter = (gvc: GVC) =>
+      gvc.bindView({
+        bind: ids.footer,
+        view: () => {
+          let allOrdersHaveZeroItems = false;
+          let origQtyZero = true;
+          let iSplitQtyCount = 0;
+          splitOrderArray.forEach(splitOrder => {
+            if (splitOrder.lineItems.every(item => item.count === 0)) {
+              allOrdersHaveZeroItems = true;
+            }
+            iSplitQtyCount += splitOrder.lineItems.reduce((count, lineItem) => {
+              return (count += lineItem.count);
+            }, 0);
+          });
+          const iQtyCount = dataArray.reduce((iCount, lineItem) => {
+            return (iCount += lineItem.count);
+          }, 0);
+          origQtyZero = iSplitQtyCount === iQtyCount;
+          let checkBTN = ``;
+          if (allOrdersHaveZeroItems || origQtyZero) {
+            checkBTN = BgWidget.disableSave('拆分訂單');
+          } else {
+            checkBTN = BgWidget.save(gvc.event(handleSave), '拆分訂單');
+          }
 
-        return html`
-          ${BgWidget.cancel(gvc.event(closeDialog))} ${checkBTN}
-        `
-      },divCreate:{class:`${gClass('footer')}`}
-    });
+          return html` ${BgWidget.cancel(gvc.event(closeDialog))} ${checkBTN} `;
+        },
+        divCreate: { class: `${gClass('footer')}` },
+      });
 
     const renderHint = (gvc: GVC) => {
       // mainCard 手機版專用
@@ -1977,50 +2035,55 @@ export class OrderSetting {
         normal: '#393939',
       };
 
-      // 合併須知
+      // 拆單須知
       const hits = [
         '原訂單將保留剩餘商品，訂單金額與折扣將調整；子訂單將包含選定商品，並按比例分配優惠折扣',
         '拆單後，運費及附加費用不變，將保留於原訂單內，若需要，請手動編輯訂單新增費用',
+        '請務必進入每一張新的子訂單，為其中的所有商品選擇正確的出貨庫存',
       ];
       return html`
         <div class="row">
-          <div class="col-12 ">
-            ${BgWidget.mainCard(html`
+          ${BgWidget.mainCard(html`
               <div style="${phoneCardStyle}">
                 <span class="tx_700">拆單需知</span>
-                <div class="w-100 d-flex">
-                  <ul class="mt-2 ms-4">
+                <div class="w-100 d-flex flex-column">
+                  <ul class="mt-2 ms-4 ${gClass('dialog-ul')}">
                     ${hits
-                      .map(hit => {
-                        return html` <li class="${gClass('list')}">${hit}</li>`;
-                      })
-                      .join('')}
+            .map(hit => {
+              return html` <li class="">${hit}</li>`;
+            })
+            .join('')}
                   </ul>
-                  <div class="${gClass('split-rule')} ms-auto d-flex align-items-end" onclick="${gvc.event(()=>{
-                    BgWidget.settingDialog({
-                      gvc: gvc,
-                      title: '拆單需知',
-                      width: 766,
-                      innerHTML: gvc => {
-                        return html`
-                          <ul class="${gClass('dialog-ul')}">
-                            <li>原訂單將保留剩餘商品，訂單金額與折扣將調整；子訂單將包含選定商品，並按比例分配優惠折扣</li>
+                  <div
+                    class="${gClass('split-rule')} ms-auto d-flex align-items-end justify-content-end"
+                    onclick="${gvc.event(() => {
+            BgWidget.settingDialog({
+              gvc: gvc,
+              title: '拆單需知',
+              width: 766,
+              innerHTML: gvc => {
+                return html` <ul class="${gClass('dialog-ul')}">
+                            <li>
+                              原訂單將保留剩餘商品，訂單金額與折扣將調整；子訂單將包含選定商品，並按比例分配優惠折扣
+                            </li>
                             <li>拆單後運費及附加費用不變，將保留於原訂單內，如需更改，請手動編輯訂單新增費用</li>
                             <li>子訂單會預設繼承母訂單的配送與付款方式，如需更改，請手動編輯訂單內容</li>
                             <li>子訂單若要重新開立發票，請至發票頁面手動建立</li>
                             <li>若發票已開立，系統不會自動作廢，需至訂單頁面手動作廢並重新開立</li>
                             <li>代收金額將更新，已建立的出貨單需取消並重新建立</li>
                           </ul>`;
-                      },
-                      footer_html: (gvc: GVC) => {
-                        return '';
-                      },
-                    });
-                  })}">詳細拆單規則</div>
+              },
+              footer_html: (gvc: GVC) => {
+                return '';
+              },
+            });
+          })}"
+                  >
+                    詳細拆單規則
+                  </div>
                 </div>
               </div>
             `)}
-          </div>
         </div>
       `;
     };
@@ -2028,8 +2091,9 @@ export class OrderSetting {
     const renderItemList = (gvc: GVC) => {
       function newSplitOrder() {
         splitOrderArray.push(structuredClone(orderCreateUnit));
-        gvc.notifyDataChange([ids.itemList, ids.summary , ids.footer]);
+        gvc.notifyDataChange([ids.itemList, ids.summary, ids.footer]);
       }
+
       function drawSplitOrder() {
         const titleDom = {
           title: '子訂單數量',
@@ -2044,11 +2108,22 @@ export class OrderSetting {
             return html`
               <div class="d-flex flex-column">
                 <div class="${commonClass}" style="width: ${titleDom.width};${titleDom?.style ?? ''}">
-                  <div class="tx_700">${titleDom.title}${index + 1}</div>
+                  <div class="tx_700">
+                    ${titleDom.title}${index + 1}
+                    <i
+                      class="fa-solid fa-xmark cursor_pointer"
+                      onclick="${gvc.event(() => {
+                        if (splitOrderArray.length > 1) {
+                          splitOrderArray.splice(index, 1);
+                          gvc.notifyDataChange([ids.itemList, ids.summary, ids.footer]);
+                        }
+                      })}"
+                    ></i>
+                  </div>
                   <div class="flex-fill"></div>
                 </div>
                 <div
-                  class="d-flex flex-column"
+                  class="d-flex flex-column flex-shrink-0"
                   style="width: ${titleDom.width};gap:16px;padding-top: 24px;${titleDom?.style ?? ''}"
                 >
                   ${splitOrderArray[index].lineItems
@@ -2059,30 +2134,39 @@ export class OrderSetting {
                           style="${commonHeight};"
                           type="number"
                           value="${item.count}"
-                          min="0"
                           onchange="${gvc.event(e => {
+                            if (Number(e.value) < 0) {
+                              e.value = '0';
+                            }
                             const temp = structuredClone(item.count);
                             item.count = Number(e.value);
                             let nowQty = 0;
-                            splitOrderArray.forEach((order, index) => {
-                              nowQty += order.lineItems[itemIndex].count;
+                            splitOrderArray.forEach((splitOrder, index) => {
+                              nowQty += splitOrder.lineItems[itemIndex].count;
                             });
-                            if (order.lineItems[itemIndex].count >= nowQty) {
-                            } else {
+                            //如果說over數量了 要改回來
+                            if (dataArray[itemIndex].count < nowQty) {
                               item.count = temp;
+                              e.value = temp;
                             }
-                            gvc.notifyDataChange([ids.itemList, ids.summary , ids.footer]);
+                            gvc.notifyDataChange([ids.summary, ids.footer , `${ids.origQTY}${itemIndex}`]);
+                            gvc.notifyDataChange([ids.summary, ids.footer, 'oriQty']);
                           })}"
                         />
                       `;
                     })
                     .join('')}
                 </div>
+                <div
+                  class="d-flex flex-column flex-grow-1"
+                  style="width: ${titleDom.width};gap:16px;padding-top: 24px;${titleDom?.style ?? ''}"
+                ></div>
               </div>
             `;
           })
           .join('');
       }
+
       const commonClass = 'd-flex align-items-center';
       const commonHeight = 'height:40px;';
       const addBTN = html`
@@ -2107,7 +2191,7 @@ export class OrderSetting {
             htmlArray: string[];
           }[] = [
             { title: '商品', key: 'name', width: '320px', htmlArray: [] },
-            { title: '出貨庫存', key: 'stock', width: '120px', htmlArray: [] },
+            // { title: '出貨庫存', key: 'stock', width: '120px', htmlArray: [] },
             { title: '單價', key: 'price', width: '100px', htmlArray: [] },
             {
               title: '總數',
@@ -2124,123 +2208,202 @@ export class OrderSetting {
               htmlArray: [],
             },
           ];
-          dataArray.forEach((item, lineItemIndex) => {
-            return html`
-              <div class="d-flex w-100">
-                ${dataRaws
-                  .map((dataRaw, dataRowIndex) => {
-                    switch (dataRaw.key) {
-                      case 'name': {
-                        const spec = item.spec.length > 0 ? Tool.truncateString(item.spec.join(''), 5) : '單一規格';
-                        const sku = '';
-                        dataRaw.htmlArray.push(
-                          html` <div class="${commonClass}" style="width: ${dataRaw.width};gap:12px;${commonHeight}">
-                            <img class="${gClass('product-preview-img')}" src="${item.preview_image}" alt="產品圖片" />
-                            <div class="d-flex flex-column flex-grow-1" style="gap:2px;">
-                              <div class="tx_normal_14" style="white-space: normal;line-height: normal;">
-                                ${Tool.truncateString(item.title??"", 10)} -${spec}
-                              </div>
-                              <div class="tx_normal_14 ${gClass('font-gray')}">
-                                存貨單位 (SKU): ${item.sku ?? '無SKU'}
-                              </div>
-                            </div>
-                          </div>`
-                        );
-                        break;
-                      }
-                      case 'stock': {
-                        dataRaw.htmlArray.push(html`
-                          <div
-                            class="tx_normal ${commonClass} justify-content-start"
-                            style="width: ${dataRaw.width};${commonHeight}"
-                          >
-                            AA倉庫
-                          </div>
-                        `);
-                        break;
-                      }
-                      case 'price': {
-                        dataRaw.htmlArray.push(html`
-                          <div
-                            class="tx_normal ${commonClass} justify-content-start"
-                            style="width: ${dataRaw.width};${commonHeight}"
-                          >
-                            ${item.sale_price}
-                          </div>
-                        `);
-                        break;
-                      }
-                      case 'totalQty': {
-                        dataRaw.htmlArray.push(html`
-                          <div
-                            class="tx_normal ${commonClass} justify-content-start"
-                            style="width: ${dataRaw.width};${commonHeight}"
-                          >
-                            ${item.count}
-                          </div>
-                        `);
-                        break;
-                      }
-                      case 'oriQty': {
-                        let splitQty = 0;
-                        splitOrderArray.forEach(order => {
-                          splitQty += Number(order.lineItems[lineItemIndex].count);
-                        });
-                        const minusQtyClass = `${gClass('minusQty')} ${splitQty > 0 ? '' : 'd-none'}`;
-                        dataRaw.htmlArray.push(html`
-                          <div
-                            class="tx_normal ${commonClass} justify-content-start"
-                            style="width: ${dataRaw.width};${commonHeight}"
-                          >
-                            ${item.count} <span class="${minusQtyClass}"> -> ${Number(item.count) - splitQty}</span>
-                          </div>
-                        `);
-                        break;
-                      }
-                    }
-                    return html``;
+
+          function drawLineItems(dataRaw: { title: string; key: string; width: string; style?: string }) {
+            switch (dataRaw.key) {
+              case 'name': {
+                return dataArray
+                  .map((item, lineItemIndex) => {
+                    const spec = item.spec.length > 0 ? Tool.truncateString(item.spec.join(''), 5) : '單一規格';
+                    return html` <div class="${commonClass}" style="width: ${dataRaw.width};gap:12px;${commonHeight}">
+                      ${BgWidget.validImageBox({
+                        gvc: gvc,
+                        image: item.preview_image ?? '',
+                        width: 42,
+                      })}
+                      <div class="d-flex flex-column flex-grow-1" style="gap:2px;">
+                        <div class="tx_normal_14" style="white-space: normal;line-height: normal;">
+                          ${Tool.truncateString(item.title ?? '', 10)} -${spec}
+                        </div>
+                        <div class="tx_normal_14 ${gClass('font-gray')}">存貨單位 (SKU): ${(item.sku&&item.sku.length > 0)?item.sku:'無SKU'}</div>
+                      </div>
+                    </div>`;
                   })
-                  .join('')}
-              </div>
-            `;
-          });
+                  .join('');
+              }
+              // case 'stock': {
+              //   dataRaw.htmlArray.push(html`
+              //         <div
+              //           class="tx_normal ${commonClass} justify-content-start"
+              //           style="width: ${dataRaw.width};${commonHeight}"
+              //         >
+              //           AA倉庫
+              //         </div>
+              //       `);
+              //   break;
+              // }
+              case 'price': {
+                return dataArray
+                  .map((item, lineItemIndex) => {
+                    const spec = item.spec.length > 0 ? Tool.truncateString(item.spec.join(''), 5) : '單一規格';
+                    return html`
+                      <div
+                        class="tx_normal ${commonClass} justify-content-start"
+                        style="width: ${dataRaw.width};${commonHeight}"
+                      >
+                        ${item.sale_price}
+                      </div>
+                    `;
+                  })
+                  .join('');
+              }
+              case 'totalQty': {
+                return dataArray
+                  .map((item, lineItemIndex) => {
+                    const spec = item.spec.length > 0 ? Tool.truncateString(item.spec.join(''), 5) : '單一規格';
+                    return html`
+                      <div
+                        class="tx_normal ${commonClass} justify-content-start"
+                        style="width: ${dataRaw.width};${commonHeight}"
+                      >
+                        ${item.count}
+                      </div>
+                    `;
+                  })
+                  .join('');
+              }
+              case 'oriQty': {
+                return dataArray
+                  .map((item, lineItemIndex) => {
+                    let splitQty = 0;
+                    splitOrderArray.forEach(order => {
+                      splitQty += Number(order.lineItems[lineItemIndex].count);
+                    });
+                    const minusQtyClass = `${gClass('minusQty')} ${splitQty > 0 ? '' : 'd-none'}`;
+                    return html`
+                      <div class="tx_normal ${commonClass} justify-content-start" style="width: ${dataRaw.width};${commonHeight}">
+                        ${item.count}
+                        <span class="${minusQtyClass}">
+                          <i class="fa-solid fa-arrow-right ${gClass('font-blue')} ${gClass('summary-right')}"></i
+                          >${Number(item.count) - splitQty}</span
+                        >
+                      </div>
+                    `;
+                  })
+                  .join('');
+              }
+              default:{
+                return ''
+              }
+            }
+          }
+
+          //繪製各行lineitem的資料
+          // dataArray.forEach((item, lineItemIndex) => {
+          //   // 由於是line優先 所以跑每一行所需要的資料 推進來
+          //   dataRaws
+          //     .map((dataRaw, dataRowIndex) => {
+          //       switch (dataRaw.key) {
+          //         case 'name': {
+          //           const spec = item.spec.length > 0 ? Tool.truncateString(item.spec.join(''), 5) : '單一規格';
+          //           dataRaw.htmlArray.push(
+          //             html` <div class="${commonClass}" style="width: ${dataRaw.width};gap:12px;${commonHeight}">
+          //               ${BgWidget.validImageBox({
+          //                 gvc: gvc,
+          //                 image: item.preview_image ?? '',
+          //                 width: 42,
+          //               })}
+          //               <div class="d-flex flex-column flex-grow-1" style="gap:2px;">
+          //                 <div class="tx_normal_14" style="white-space: normal;line-height: normal;">
+          //                   ${Tool.truncateString(item.title ?? '', 10)} -${spec}
+          //                 </div>
+          //                 <div class="tx_normal_14 ${gClass('font-gray')}">存貨單位 (SKU): ${item.sku ?? '無SKU'}</div>
+          //               </div>
+          //             </div>`
+          //           );
+          //           break;
+          //         }
+          //
+          //         case 'price': {
+          //           dataRaw.htmlArray.push(html`
+          //             <div
+          //               class="tx_normal ${commonClass} justify-content-start"
+          //               style="width: ${dataRaw.width};${commonHeight}"
+          //             >
+          //               ${item.sale_price}
+          //             </div>
+          //           `);
+          //           break;
+          //         }
+          //         case 'totalQty': {
+          //           dataRaw.htmlArray.push(html`
+          //             <div
+          //               class="tx_normal ${commonClass} justify-content-start"
+          //               style="width: ${dataRaw.width};${commonHeight}"
+          //             >
+          //               ${item.count}
+          //             </div>
+          //           `);
+          //           break;
+          //         }
+          //         case 'oriQty': {
+          //           let splitQty = 0;
+          //           splitOrderArray.forEach(order => {
+          //             splitQty += Number(order.lineItems[lineItemIndex].count);
+          //           });
+          //           const minusQtyClass = `${gClass('minusQty')} ${splitQty > 0 ? '' : 'd-none'}`;
+          //
+          //           dataRaw.htmlArray.push(
+          //             gvc.bindView({
+          //               bind: ids.origQTY + `${lineItemIndex}`,
+          //               view: () => {
+          //                 return `
+          //               ${item.count}
+          //               <span class="${minusQtyClass}">
+          //                 <i class="fa-solid fa-arrow-right ${gClass('font-blue')} ${gClass('summary-right')}"></i
+          //                 >${Number(item.count) - splitQty}</span
+          //               >
+          //               `;
+          //               },
+          //               divCreate: {
+          //                 class: `tx_normal ${commonClass} justify-content-start`,
+          //                 style: `width: ${dataRaw.width};${commonHeight}`,
+          //               },
+          //             })
+          //           );
+          //           break;
+          //         }
+          //       }
+          //       return html``;
+          //     })
+          //     .join('');
+          // });
           return html`
             ${dataRaws
               .map(item => {
                 return html`
-                  <div class="d-flex flex-column">
+                  <div class="d-flex flex-column flex-shrink-0">
                     <div class="${commonClass}" style="width: ${item.width};${item?.style ?? ''}">
                       <div class="tx_700">${item.title}</div>
                       <div class="flex-fill"></div>
                     </div>
-                    <div
-                      class="d-flex flex-column"
-                      style="width: ${item.width};gap:16px;padding-top: 24px;${item?.style ?? ''}"
-                    >
-                      ${item.htmlArray.join('')}
-                    </div>
+                    ${gvc.bindView({
+                      bind:item.key,
+                      view:()=>{
+                        return drawLineItems(item) +
+                          html`<div class="${commonClass} mt-3" style="width: ${item.width};"></div>`
+
+                      },divCreate:{class:"d-flex flex-column" , style:`width: ${item.width};gap:16px;padding-top: 24px;${item?.style ?? ''}`}
+                    })}
                   </div>
                 `;
               })
               .join('')}
-            ${drawSplitOrder()} ${addBTN}
+            <div class="d-flex flex-shrink-0" style="overflow-x: scroll;gap:5px;">${drawSplitOrder()} ${addBTN}</div>
           `;
         },
         divCreate: { style: '', class: `${gClass('itemList-section')}` },
       });
-    };
-
-    const renderBlock = (gvc: GVC) => {
-      const subBlock = splitOrderArray.map((order, index) => {
-        return html`<div class="${gClass('summary-subSummary')}"></div>`
-      }).join('')
-      return html`
-        <div class="d-flex" style="height:27px;">
-          <div class="${gClass('summary-title')}"></div>
-          <div class="${gClass('summary-oriSummary')}"></div>
-          ${subBlock}
-        </div>
-      `;
     };
     const renderSummary = (gvc: GVC) => {
       return gvc.bindView({
@@ -2255,6 +2418,7 @@ export class OrderSetting {
               })
               .join('');
           }
+
           function drawOriData(index: number) {
             //原先訂單的商品價格
             const sale_price = dataArray.reduce((total, data) => total + data.sale_price * Number(data.count), 0);
@@ -2268,8 +2432,8 @@ export class OrderSetting {
                 ),
               0
             );
-            const rate = 1 - split_price / (sale_price + orderData.shipment_fee);
-            const discount = Math.round(orderData.discount * rate);
+            const split_discount = splitOrderArray.reduce((total, order) => total + order.discount, 0);
+
             switch (index) {
               case 1:
                 //若是有修改價格 需藍字顯示出修改後內容
@@ -2292,7 +2456,7 @@ export class OrderSetting {
                     <div class="d-flex align-items-center">
                       <span class="text-decoration-line-through">-${orderData.discount}</span
                       ><i class="fa-solid fa-arrow-right ${gClass('font-blue')} ${gClass('summary-right')}"></i
-                      ><span class="${gClass('font-blue')}">-${discount}</span>
+                      ><span class="${gClass('font-blue')}">-${orderData.discount - split_discount}</span>
                     </div>
                   `;
                 }
@@ -2303,13 +2467,19 @@ export class OrderSetting {
                     <div class="d-flex align-items-center">
                       <span class="text-decoration-line-through">${orderData.total}</span
                       ><i class="fa-solid fa-arrow-right ${gClass('font-blue')} ${gClass('summary-right')}"></i
-                      ><span class="${gClass('font-blue')}">${sale_price - split_price - discount + orderData.shipment_fee}</span>
+                      ><span class="${gClass('font-blue')}"
+                        >${sale_price -
+                        split_price -
+                        (orderData.discount - split_discount) +
+                        orderData.shipment_fee}</span
+                      >
                     </div>
                   `;
                 }
                 return orderData.total;
             }
           }
+
           //rawIndex 第幾列 決定要繪製什麼類型的資料
           function drawSplitData(rawIndex: number) {
             function drawUnit(order: OrderDetail, lineIndex: number) {
@@ -2319,7 +2489,7 @@ export class OrderSetting {
                 0
               );
               const rate = total / orderData.total;
-              order.discount = Math.round(orderData.discount*rate)
+              order.discount = Math.round(orderData.discount * rate);
               //產品總價-折扣
               order.total = total - order.discount;
               switch (rawIndex) {
@@ -2333,6 +2503,7 @@ export class OrderSetting {
                   return order.total;
               }
             }
+
             //lineIndex 決定要把第幾個拆分訂單的資訊放進去
             return splitOrderArray
               .map((order, lineIndex) => {
@@ -2344,6 +2515,7 @@ export class OrderSetting {
               })
               .join('');
           }
+
           const titleRaw = [
             { title: '', style: 'height:58px;' },
             { title: '小計總額' },
@@ -2384,7 +2556,6 @@ export class OrderSetting {
     glitter.innerDialog((gvc: GVC) => {
       const temp: DataMap = {};
       applyClass();
-
       return gvc.bindView({
         bind: ids.page,
         view: () => html`
@@ -2392,9 +2563,9 @@ export class OrderSetting {
             ${renderHeader(gvc)}
             <div
               class="flex-fill scrollbar-appear"
-              style="${isDesktop ? 'padding: 24px 32px;' : 'padding: 0;'} overflow: hidden auto;"
+              style="${isDesktop ? 'padding: 24px 32px;' : 'padding: 0 24px;'} overflow: scroll;"
             >
-              ${renderHint(gvc)} ${renderItemList(gvc)} ${renderBlock(gvc)} ${renderSummary(gvc)}
+              ${renderHint(gvc)} ${renderItemList(gvc)} ${renderSummary(gvc)}
             </div>
             ${renderFooter(gvc)}
           </div>

@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-<<<<<<< HEAD
 exports.sendmail = void 0;
 async function sendmail(sender, recipient, subject, body, callback) {
     const AWS = require('aws-sdk');
@@ -37,7 +36,6 @@ async function sendmail(sender, recipient, subject, body, callback) {
     sendEmail(sender, recipient, subject, body);
 }
 exports.sendmail = sendmail;
-=======
 exports.sendmail = sendmail;
 async function sendmail(sender, recipient, subject, body, callback) {
     const AWS = require('aws-sdk');
@@ -73,5 +71,4 @@ async function sendmail(sender, recipient, subject, body, callback) {
     }
     sendEmail(sender, recipient, subject, body);
 }
->>>>>>> de7bf009 ([update] : glitter version.)
 //# sourceMappingURL=ses.js.map

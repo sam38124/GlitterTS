@@ -30,6 +30,7 @@ const process_1 = __importDefault(require("process"));
 const financial_service_js_1 = __importStar(require("../financial-service.js"));
 const private_config_js_1 = require("../../../services/private_config.js");
 const tool_js_1 = __importDefault(require("../../../modules/tool.js"));
+const redis_1 = __importDefault(require("../../../modules/redis"));
 const mime = require('mime');
 class PaymentTransaction {
     constructor(app, payment_select) {
@@ -52,11 +53,12 @@ class PaymentTransaction {
             throw new Error(`Failed to create MyClass instance: ${error}`);
         }
     }
-    async processPayment(carData) {
+    async processPayment(carData, return_url) {
         if (!this.kd) {
             await this.createInstance();
         }
         const id = 'redirect_' + tool_js_1.default.randomString(6);
+        await redis_1.default.setValue(id, return_url);
         switch (this.payment_select) {
             case 'ecPay':
             case 'newWebPay':
@@ -70,10 +72,28 @@ class PaymentTransaction {
                     TYPE: this.payment_select,
                 }).createOrderPage(carData);
                 return { form: subMitData };
-            case 'line_pay':
-                this.kd.ReturnURL = `${process_1.default.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
+            case 'paypal':
+                this.kd.ReturnURL = `${process_1.default.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                 this.kd.NotifyURL = `${process_1.default.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
+                return await new financial_service_js_1.PayPal(this.app, this.kd).checkout(carData);
+            case 'line_pay':
+                this.kd.ReturnURL = `${process_1.default.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${this.payment_select}`;
+                this.kd.NotifyURL = `${process_1.default.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${this.payment_select}`;
                 return await new financial_service_js_1.LinePay(this.app, this.kd).createOrder(carData);
+            case 'paynow': {
+                this.kd.ReturnURL = `${process_1.default.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
+                this.kd.NotifyURL = `${process_1.default.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true&type=${carData.customer_info.payment_select}`;
+                return await new financial_service_js_1.PayNow(this.app, this.kd).createOrder(carData);
+            }
+            case 'jkopay': {
+                this.kd.ReturnURL = `${process_1.default.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&return=${id}`;
+                this.kd.NotifyURL = `${process_1.default.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=jkopay&return=${id}`;
+                return await new financial_service_js_1.JKO(this.app, this.kd).createOrder(carData);
+            }
+            default: {
+                carData.method = 'off_line';
+                return ``;
+            }
         }
     }
 }

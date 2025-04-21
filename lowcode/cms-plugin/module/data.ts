@@ -104,6 +104,7 @@ export interface CartData {
 }
 
 export interface LineItem {
+    deduction_log: Record<string, number>;
     id: number;
     spec: string[];
     count: number;

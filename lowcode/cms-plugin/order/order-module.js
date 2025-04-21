@@ -248,9 +248,11 @@ export class OrderModule {
         });
     }
     static formatRecord(gvc, vm, orderID, record) {
-        const orderNumbers = record.match(/{{order=(\d+)}}/g) || [];
+        const orderNumbers = record.match(/{{order=(\d+[a-zA-Z]?)}}/g) || [];
+        console.log("orderNumbers - ", orderNumbers);
         orderNumbers.map((order) => {
             const pureOrder = order.replace(/{{order=|}}/g, '');
+            console.log("pureOrder -- ", pureOrder);
             record = record.replace(order, BgWidget.blueNote(`#${pureOrder}`, gvc.event(() => {
                 vm.data.cart_token = pureOrder;
                 vm.type = 'replace';

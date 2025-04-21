@@ -819,11 +819,6 @@ class LinePay {
             },
             data: body,
         };
-        console.log(`line-request->
-        URL:${url}
-        X-LINE-ChannelId:${this.LinePay_CLIENT_ID}
-        LinePay_SECRET:${this.LinePay_SECRET}
-        `);
         try {
             const response = await axios_1.default.request(config);
             await order_event_js_1.OrderEvent.insertOrder({
@@ -833,7 +828,13 @@ class LinePay {
             });
             console.log(`response.data===>`, response.data);
             await redis_1.default.setValue('linepay' + orderData.orderID, response.data.info.transactionId);
-            return response.data;
+            if (response.data.returnCode === '0000') {
+                return response.data;
+            }
+            else {
+                console.log(" Line Pay Error: ", response.data.returnCode, response.data.returnMessage);
+                return response.data;
+            }
         }
         catch (error) {
             console.error('Error linePay:', ((_b = error.response) === null || _b === void 0 ? void 0 : _b.data) || error.message);
@@ -967,7 +968,7 @@ class PayNow {
         });
         console.log(`webhook=>`, this.keyData.NotifyURL + `&orderID=${orderData.orderID}`);
         const url = `${this.BASE_URL}/api/v1/payment-intents`;
-        const key_ = await this.bindKey();
+        const key_ = (this.keyData.BETA) ? { private_key: "bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv", public_key: "sm22610RIIwOTz4STCFf0dF22G067lnd" } : await this.bindKey();
         const config = {
             method: 'post',
             maxBodyLength: Infinity,
@@ -1041,7 +1042,6 @@ class JKO {
             result_display_url: this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
             unredeem: 0
         };
-        console.log(`payload=>`, payload);
         const apiKey = process_1.default.env.jko_api_key || '';
         const secretKey = process_1.default.env.jko_api_secret || '';
         const digest = crypto_1.default.createHmac('sha256', secretKey).update(JSON.stringify(payload), 'utf8').digest('hex');

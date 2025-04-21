@@ -1162,7 +1162,7 @@ export class OrderSetting {
                         },
                         {
                             key: '出貨單號碼',
-                            value: html `<div style="width: 200px;">
+                            value: html ` <div style="width: 200px;">
                 ${BgWidget.grayNote(dd.orderData.user_info.shipment_number
                                 ? `#${dd.orderData.user_info.shipment_number}`
                                 : dd.orderData.orderSource === 'POS'
@@ -1264,7 +1264,7 @@ export class OrderSetting {
                                                 })
                                                 : '',
                                         ].filter(Boolean);
-                                        return html `<div class="d-flex align-items-center gap-2">${htmlArray.join('')}</div>`;
+                                        return html ` <div class="d-flex align-items-center gap-2">${htmlArray.join('')}</div>`;
                                     },
                                     divCreate: {
                                         style: 'min-width: 580px;',
@@ -1439,11 +1439,12 @@ export class OrderSetting {
             });
         }, 'batchEditOrders');
     }
-    static splitOrder(topGVC, orderData, callback) {
+    static splitOrder(topGVC, origOrderData, callback) {
         var _a, _b;
+        const orderData = structuredClone(origOrderData);
         function assignOrder(orderCreateUnit) {
             orderCreateUnit.cart_token = orderData.orderID;
-            orderCreateUnit.customer_info = orderData.user_info;
+            orderCreateUnit.customer_info = orderData.customer_info;
             orderCreateUnit.user_info = orderData.user_info;
             orderCreateUnit.voucher = orderData.voucherList;
             orderCreateUnit.lineItems = structuredClone(orderData.lineItems);
@@ -1464,8 +1465,6 @@ export class OrderSetting {
         const passData = structuredClone(orderCreateUnit);
         const isDesktop = document.body.clientWidth > 768;
         const vm = {
-            dataObject: {},
-            originDataObject: {},
             prefix: 'split-orders',
             splitCount: 1,
         };
@@ -1474,6 +1473,7 @@ export class OrderSetting {
             page: glitter.getUUID(),
             header: glitter.getUUID(),
             dashboard: glitter.getUUID(),
+            origQTY: glitter.getUUID(),
             itemList: glitter.getUUID(),
             block: glitter.getUUID(),
             summary: glitter.getUUID(),
@@ -1535,31 +1535,7 @@ export class OrderSetting {
           bottom: 0;
           z-index: 10;
         }
-        .${vm.prefix}-dashboard-gray {
-          color: #8d8d8d;
-          font-size: 16px;
-          font-weight: 400;
-        }
-        .${vm.prefix}-update {
-          width: 80px;
-          color: #4d86db;
-          font-weight: 400;
-          gap: 8px;
-          cursor: pointer;
-        }
-        .${vm.prefix}-list {
-          list-style: disc;
-          white-space: break-spaces;
-        }
-        .${vm.prefix}-box {
-          border-radius: 10px;
-          padding: 6px 10px;
-        }
-        .${vm.prefix}-check-info-box {
-          position: absolute;
-          width: 1000px;
-          overflow: auto;
-        }
+     
         .${vm.prefix}-order-row {
           display: flex;
           align-items: center;
@@ -1597,7 +1573,7 @@ export class OrderSetting {
           height:26px;
           color:#4D86DB;
           gap: 6px;
-          padding-left:18px;
+          padding:0 18px;
           display: flex;
           align-items: start;
           cursor:pointer;
@@ -1609,16 +1585,18 @@ export class OrderSetting {
         }
         .${vm.prefix}-itemList-section{
           min-width: 100%;
+          border-bottom: 1px solid #DDD;
           padding-top:24px;
           gap:5px;
-          display: flex;
+          display: inline-flex;
         }
         .${vm.prefix}-summary-section{
-          border-top: 1px solid #DDD;
+          min-width: 100%;
           border-bottom: 1px solid #DDD;
+          width:fit-content;
         }
         .${vm.prefix}-summary-title{
-          width:606px;
+          width:481px;
           flex-shrink:0;
           border-right: 1px solid #DDD;
           padding-left:18px;
@@ -1662,13 +1640,13 @@ export class OrderSetting {
         
         .${vm.prefix}-dialog-ul{
           padding:6px ;
-          list-style:disc;
           
         }
         .${vm.prefix}-dialog-ul li{
+          margin-bottom: 3px;
           list-style:disc;
           text-align:left;
-          list-style-position: inside;
+          white-space:break-spaces;
         }
       `);
         };
@@ -1691,31 +1669,57 @@ export class OrderSetting {
         });
         const handleSave = () => {
             const alertHTML = html `
-      <div class="d-flex flex-column">
-        <div class="tx_normal text-start">您即將拆分訂單，系統將產生 ${splitOrderArray.length} 筆子訂單，拆分後：</div>
-        <ul class="${gClass('dialog-ul')}">
-          <li>原訂單調整金額與折扣，運費及附加費維持不變。子訂單按比例分配優惠。</li>
-          <li>子訂單繼承母訂單設定，發票需手動作廢與重開。 </li>
-          <li>代收金額更新，已建立的出貨單需取消並重新建立。</li>
-        </ul>
-      </div>
+        <div class="d-flex flex-column">
+          <div class="tx_normal text-start">
+            您即將拆分訂單，系統將產生 ${splitOrderArray.length} 筆子訂單，拆分後：
+          </div>
+          <ul class="${gClass('dialog-ul')}">
+            <li>原訂單調整金額與折扣，運費及附加費維持不變。子訂單按比例分配優惠。</li>
+            <li>子訂單繼承母訂單設定，發票需手動作廢與重開。</li>
+            <li>代收金額更新，已建立的出貨單需取消並重新建立。</li>
+          </ul>
+        </div>
       `;
             dialog.checkYesOrNotWithCustomWidth({
                 callback: bool => {
                     if (bool) {
+                        function deductFromStoresTS(log, amountToDeduct) {
+                            const updatedLog = Object.assign({}, log);
+                            const deductions = {};
+                            let remainingAmount = Math.max(0, amountToDeduct);
+                            const sortedEntries = Object.entries(updatedLog).sort(([, valueA], [, valueB]) => valueB - valueA);
+                            for (const [storeKey, storeValue] of sortedEntries) {
+                                if (remainingAmount <= 0) {
+                                    break;
+                                }
+                                if (storeValue <= 0) {
+                                    continue;
+                                }
+                                const amountDeductedFromThisStore = Math.min(remainingAmount, storeValue);
+                                if (amountDeductedFromThisStore > 0) {
+                                    updatedLog[storeKey] -= amountDeductedFromThisStore;
+                                    deductions[storeKey] = amountDeductedFromThisStore;
+                                    remainingAmount -= amountDeductedFromThisStore;
+                                }
+                            }
+                            return {
+                                updatedLog: updatedLog,
+                                deductions: deductions,
+                            };
+                        }
                         orderData.lineItems.forEach((lineItem, index) => {
                             let count = 0;
-                            count = splitOrderArray.reduce((total, order) => { return total += Number(order.lineItems[index].count); }, 0);
-                            lineItem.count -= count;
+                            splitOrderArray.forEach(order => {
+                                lineItem.count -= order.lineItems[index].count;
+                                const resultTS = deductFromStoresTS(lineItem.deduction_log, order.lineItems[index].count);
+                                order.lineItems[index].deduction_log = resultTS.deductions;
+                                lineItem.deduction_log = resultTS.updatedLog;
+                            });
                         });
                         const passData = {
                             orderData: orderData,
-                            splitOrderArray: splitOrderArray
+                            splitOrderArray: splitOrderArray,
                         };
-                        ApiShop.combineOrder(vm.dataObject).then(r => {
-                            if (r.result && r.response) {
-                            }
-                        });
                         dialog.dataLoading({ visible: true });
                         ApiShop.splitOrder(passData).then(r => {
                             if (r.result && r.response) {
@@ -1735,18 +1739,31 @@ export class OrderSetting {
         const renderFooter = (gvc) => gvc.bindView({
             bind: ids.footer,
             view: () => {
-                const allOrdersHaveZeroItems = splitOrderArray.every(order => order.lineItems.every(item => item.count === 0));
+                let allOrdersHaveZeroItems = false;
+                let origQtyZero = true;
+                let iSplitQtyCount = 0;
+                splitOrderArray.forEach(splitOrder => {
+                    if (splitOrder.lineItems.every(item => item.count === 0)) {
+                        allOrdersHaveZeroItems = true;
+                    }
+                    iSplitQtyCount += splitOrder.lineItems.reduce((count, lineItem) => {
+                        return (count += lineItem.count);
+                    }, 0);
+                });
+                const iQtyCount = dataArray.reduce((iCount, lineItem) => {
+                    return (iCount += lineItem.count);
+                }, 0);
+                origQtyZero = iSplitQtyCount === iQtyCount;
                 let checkBTN = ``;
-                if (!allOrdersHaveZeroItems) {
-                    checkBTN = BgWidget.save(gvc.event(handleSave), '拆分訂單');
-                }
-                else {
+                if (allOrdersHaveZeroItems || origQtyZero) {
                     checkBTN = BgWidget.disableSave('拆分訂單');
                 }
-                return html `
-          ${BgWidget.cancel(gvc.event(closeDialog))} ${checkBTN}
-        `;
-            }, divCreate: { class: `${gClass('footer')}` }
+                else {
+                    checkBTN = BgWidget.save(gvc.event(handleSave), '拆分訂單');
+                }
+                return html ` ${BgWidget.cancel(gvc.event(closeDialog))} ${checkBTN} `;
+            },
+            divCreate: { class: `${gClass('footer')}` },
         });
         const renderHint = (gvc) => {
             const phoneCardStyle = isDesktop
@@ -1760,30 +1777,33 @@ export class OrderSetting {
             const hits = [
                 '原訂單將保留剩餘商品，訂單金額與折扣將調整；子訂單將包含選定商品，並按比例分配優惠折扣',
                 '拆單後，運費及附加費用不變，將保留於原訂單內，若需要，請手動編輯訂單新增費用',
+                '請務必進入每一張新的子訂單，為其中的所有商品選擇正確的出貨庫存',
             ];
             return html `
         <div class="row">
-          <div class="col-12 ">
-            ${BgWidget.mainCard(html `
+          ${BgWidget.mainCard(html `
               <div style="${phoneCardStyle}">
                 <span class="tx_700">拆單需知</span>
-                <div class="w-100 d-flex">
-                  <ul class="mt-2 ms-4">
+                <div class="w-100 d-flex flex-column">
+                  <ul class="mt-2 ms-4 ${gClass('dialog-ul')}">
                     ${hits
                 .map(hit => {
-                return html ` <li class="${gClass('list')}">${hit}</li>`;
+                return html ` <li class="">${hit}</li>`;
             })
                 .join('')}
                   </ul>
-                  <div class="${gClass('split-rule')} ms-auto d-flex align-items-end" onclick="${gvc.event(() => {
+                  <div
+                    class="${gClass('split-rule')} ms-auto d-flex align-items-end justify-content-end"
+                    onclick="${gvc.event(() => {
                 BgWidget.settingDialog({
                     gvc: gvc,
                     title: '拆單需知',
                     width: 766,
                     innerHTML: gvc => {
-                        return html `
-                          <ul class="${gClass('dialog-ul')}">
-                            <li>原訂單將保留剩餘商品，訂單金額與折扣將調整；子訂單將包含選定商品，並按比例分配優惠折扣</li>
+                        return html ` <ul class="${gClass('dialog-ul')}">
+                            <li>
+                              原訂單將保留剩餘商品，訂單金額與折扣將調整；子訂單將包含選定商品，並按比例分配優惠折扣
+                            </li>
                             <li>拆單後運費及附加費用不變，將保留於原訂單內，如需更改，請手動編輯訂單新增費用</li>
                             <li>子訂單會預設繼承母訂單的配送與付款方式，如需更改，請手動編輯訂單內容</li>
                             <li>子訂單若要重新開立發票，請至發票頁面手動建立</li>
@@ -1795,11 +1815,13 @@ export class OrderSetting {
                         return '';
                     },
                 });
-            })}">詳細拆單規則</div>
+            })}"
+                  >
+                    詳細拆單規則
+                  </div>
                 </div>
               </div>
             `)}
-          </div>
         </div>
       `;
         };
@@ -1818,15 +1840,26 @@ export class OrderSetting {
                 };
                 return splitOrderArray
                     .map((order, index) => {
-                    var _a, _b;
+                    var _a, _b, _c;
                     return html `
               <div class="d-flex flex-column">
                 <div class="${commonClass}" style="width: ${titleDom.width};${(_a = titleDom === null || titleDom === void 0 ? void 0 : titleDom.style) !== null && _a !== void 0 ? _a : ''}">
-                  <div class="tx_700">${titleDom.title}${index + 1}</div>
+                  <div class="tx_700">
+                    ${titleDom.title}${index + 1}
+                    <i
+                      class="fa-solid fa-xmark cursor_pointer"
+                      onclick="${gvc.event(() => {
+                        if (splitOrderArray.length > 1) {
+                            splitOrderArray.splice(index, 1);
+                            gvc.notifyDataChange([ids.itemList, ids.summary, ids.footer]);
+                        }
+                    })}"
+                    ></i>
+                  </div>
                   <div class="flex-fill"></div>
                 </div>
                 <div
-                  class="d-flex flex-column"
+                  class="d-flex flex-column flex-shrink-0"
                   style="width: ${titleDom.width};gap:16px;padding-top: 24px;${(_b = titleDom === null || titleDom === void 0 ? void 0 : titleDom.style) !== null && _b !== void 0 ? _b : ''}"
                 >
                   ${splitOrderArray[index].lineItems
@@ -1837,26 +1870,32 @@ export class OrderSetting {
                           style="${commonHeight};"
                           type="number"
                           value="${item.count}"
-                          min="0"
                           onchange="${gvc.event(e => {
+                            if (Number(e.value) < 0) {
+                                e.value = '0';
+                            }
                             const temp = structuredClone(item.count);
                             item.count = Number(e.value);
                             let nowQty = 0;
-                            splitOrderArray.forEach((order, index) => {
-                                nowQty += order.lineItems[itemIndex].count;
+                            splitOrderArray.forEach((splitOrder, index) => {
+                                nowQty += splitOrder.lineItems[itemIndex].count;
                             });
-                            if (order.lineItems[itemIndex].count >= nowQty) {
-                            }
-                            else {
+                            if (dataArray[itemIndex].count < nowQty) {
                                 item.count = temp;
+                                e.value = temp;
                             }
-                            gvc.notifyDataChange([ids.itemList, ids.summary, ids.footer]);
+                            gvc.notifyDataChange([ids.summary, ids.footer, `${ids.origQTY}${itemIndex}`]);
+                            gvc.notifyDataChange([ids.summary, ids.footer, 'oriQty']);
                         })}"
                         />
                       `;
                     })
                         .join('')}
                 </div>
+                <div
+                  class="d-flex flex-column flex-grow-1"
+                  style="width: ${titleDom.width};gap:16px;padding-top: 24px;${(_c = titleDom === null || titleDom === void 0 ? void 0 : titleDom.style) !== null && _c !== void 0 ? _c : ''}"
+                ></div>
               </div>
             `;
                 })
@@ -1879,7 +1918,6 @@ export class OrderSetting {
                 view: () => {
                     const dataRaws = [
                         { title: '商品', key: 'name', width: '320px', htmlArray: [] },
-                        { title: '出貨庫存', key: 'stock', width: '120px', htmlArray: [] },
                         { title: '單價', key: 'price', width: '100px', htmlArray: [] },
                         {
                             title: '總數',
@@ -1896,122 +1934,110 @@ export class OrderSetting {
                             htmlArray: [],
                         },
                     ];
-                    dataArray.forEach((item, lineItemIndex) => {
-                        return html `
-              <div class="d-flex w-100">
-                ${dataRaws
-                            .map((dataRaw, dataRowIndex) => {
-                            var _a, _b;
-                            switch (dataRaw.key) {
-                                case 'name': {
+                    function drawLineItems(dataRaw) {
+                        switch (dataRaw.key) {
+                            case 'name': {
+                                return dataArray
+                                    .map((item, lineItemIndex) => {
+                                    var _a, _b;
                                     const spec = item.spec.length > 0 ? Tool.truncateString(item.spec.join(''), 5) : '單一規格';
-                                    const sku = '';
-                                    dataRaw.htmlArray.push(html ` <div class="${commonClass}" style="width: ${dataRaw.width};gap:12px;${commonHeight}">
-                            <img class="${gClass('product-preview-img')}" src="${item.preview_image}" alt="產品圖片" />
-                            <div class="d-flex flex-column flex-grow-1" style="gap:2px;">
-                              <div class="tx_normal_14" style="white-space: normal;line-height: normal;">
-                                ${Tool.truncateString((_a = item.title) !== null && _a !== void 0 ? _a : "", 10)} -${spec}
-                              </div>
-                              <div class="tx_normal_14 ${gClass('font-gray')}">
-                                存貨單位 (SKU): ${(_b = item.sku) !== null && _b !== void 0 ? _b : '無SKU'}
-                              </div>
-                            </div>
-                          </div>`);
-                                    break;
-                                }
-                                case 'stock': {
-                                    dataRaw.htmlArray.push(html `
-                          <div
-                            class="tx_normal ${commonClass} justify-content-start"
-                            style="width: ${dataRaw.width};${commonHeight}"
-                          >
-                            AA倉庫
-                          </div>
-                        `);
-                                    break;
-                                }
-                                case 'price': {
-                                    dataRaw.htmlArray.push(html `
-                          <div
-                            class="tx_normal ${commonClass} justify-content-start"
-                            style="width: ${dataRaw.width};${commonHeight}"
-                          >
-                            ${item.sale_price}
-                          </div>
-                        `);
-                                    break;
-                                }
-                                case 'totalQty': {
-                                    dataRaw.htmlArray.push(html `
-                          <div
-                            class="tx_normal ${commonClass} justify-content-start"
-                            style="width: ${dataRaw.width};${commonHeight}"
-                          >
-                            ${item.count}
-                          </div>
-                        `);
-                                    break;
-                                }
-                                case 'oriQty': {
+                                    return html ` <div class="${commonClass}" style="width: ${dataRaw.width};gap:12px;${commonHeight}">
+                      ${BgWidget.validImageBox({
+                                        gvc: gvc,
+                                        image: (_a = item.preview_image) !== null && _a !== void 0 ? _a : '',
+                                        width: 42,
+                                    })}
+                      <div class="d-flex flex-column flex-grow-1" style="gap:2px;">
+                        <div class="tx_normal_14" style="white-space: normal;line-height: normal;">
+                          ${Tool.truncateString((_b = item.title) !== null && _b !== void 0 ? _b : '', 10)} -${spec}
+                        </div>
+                        <div class="tx_normal_14 ${gClass('font-gray')}">存貨單位 (SKU): ${(item.sku && item.sku.length > 0) ? item.sku : '無SKU'}</div>
+                      </div>
+                    </div>`;
+                                })
+                                    .join('');
+                            }
+                            case 'price': {
+                                return dataArray
+                                    .map((item, lineItemIndex) => {
+                                    const spec = item.spec.length > 0 ? Tool.truncateString(item.spec.join(''), 5) : '單一規格';
+                                    return html `
+                      <div
+                        class="tx_normal ${commonClass} justify-content-start"
+                        style="width: ${dataRaw.width};${commonHeight}"
+                      >
+                        ${item.sale_price}
+                      </div>
+                    `;
+                                })
+                                    .join('');
+                            }
+                            case 'totalQty': {
+                                return dataArray
+                                    .map((item, lineItemIndex) => {
+                                    const spec = item.spec.length > 0 ? Tool.truncateString(item.spec.join(''), 5) : '單一規格';
+                                    return html `
+                      <div
+                        class="tx_normal ${commonClass} justify-content-start"
+                        style="width: ${dataRaw.width};${commonHeight}"
+                      >
+                        ${item.count}
+                      </div>
+                    `;
+                                })
+                                    .join('');
+                            }
+                            case 'oriQty': {
+                                return dataArray
+                                    .map((item, lineItemIndex) => {
                                     let splitQty = 0;
                                     splitOrderArray.forEach(order => {
                                         splitQty += Number(order.lineItems[lineItemIndex].count);
                                     });
                                     const minusQtyClass = `${gClass('minusQty')} ${splitQty > 0 ? '' : 'd-none'}`;
-                                    dataRaw.htmlArray.push(html `
-                          <div
-                            class="tx_normal ${commonClass} justify-content-start"
-                            style="width: ${dataRaw.width};${commonHeight}"
-                          >
-                            ${item.count} <span class="${minusQtyClass}"> -> ${Number(item.count) - splitQty}</span>
-                          </div>
-                        `);
-                                    break;
-                                }
+                                    return html `
+                      <div class="tx_normal ${commonClass} justify-content-start" style="width: ${dataRaw.width};${commonHeight}">
+                        ${item.count}
+                        <span class="${minusQtyClass}">
+                          <i class="fa-solid fa-arrow-right ${gClass('font-blue')} ${gClass('summary-right')}"></i
+                          >${Number(item.count) - splitQty}</span
+                        >
+                      </div>
+                    `;
+                                })
+                                    .join('');
                             }
-                            return html ``;
-                        })
-                            .join('')}
-              </div>
-            `;
-                    });
+                            default: {
+                                return '';
+                            }
+                        }
+                    }
                     return html `
             ${dataRaws
                         .map(item => {
                         var _a, _b;
                         return html `
-                  <div class="d-flex flex-column">
+                  <div class="d-flex flex-column flex-shrink-0">
                     <div class="${commonClass}" style="width: ${item.width};${(_a = item === null || item === void 0 ? void 0 : item.style) !== null && _a !== void 0 ? _a : ''}">
                       <div class="tx_700">${item.title}</div>
                       <div class="flex-fill"></div>
                     </div>
-                    <div
-                      class="d-flex flex-column"
-                      style="width: ${item.width};gap:16px;padding-top: 24px;${(_b = item === null || item === void 0 ? void 0 : item.style) !== null && _b !== void 0 ? _b : ''}"
-                    >
-                      ${item.htmlArray.join('')}
-                    </div>
+                    ${gvc.bindView({
+                            bind: item.key,
+                            view: () => {
+                                return drawLineItems(item) +
+                                    html `<div class="${commonClass} mt-3" style="width: ${item.width};"></div>`;
+                            }, divCreate: { class: "d-flex flex-column", style: `width: ${item.width};gap:16px;padding-top: 24px;${(_b = item === null || item === void 0 ? void 0 : item.style) !== null && _b !== void 0 ? _b : ''}` }
+                        })}
                   </div>
                 `;
                     })
                         .join('')}
-            ${drawSplitOrder()} ${addBTN}
+            <div class="d-flex flex-shrink-0" style="overflow-x: scroll;gap:5px;">${drawSplitOrder()} ${addBTN}</div>
           `;
                 },
                 divCreate: { style: '', class: `${gClass('itemList-section')}` },
             });
-        };
-        const renderBlock = (gvc) => {
-            const subBlock = splitOrderArray.map((order, index) => {
-                return html `<div class="${gClass('summary-subSummary')}"></div>`;
-            }).join('');
-            return html `
-        <div class="d-flex" style="height:27px;">
-          <div class="${gClass('summary-title')}"></div>
-          <div class="${gClass('summary-oriSummary')}"></div>
-          ${subBlock}
-        </div>
-      `;
         };
         const renderSummary = (gvc) => {
             return gvc.bindView({
@@ -2030,8 +2056,7 @@ export class OrderSetting {
                         const sale_price = dataArray.reduce((total, data) => total + data.sale_price * Number(data.count), 0);
                         const split_price = splitOrderArray.reduce((total, order) => total +
                             order.lineItems.reduce((subTotal, lineItem) => subTotal + lineItem.sale_price * Number(lineItem.count), 0), 0);
-                        const rate = 1 - split_price / (sale_price + orderData.shipment_fee);
-                        const discount = Math.round(orderData.discount * rate);
+                        const split_discount = splitOrderArray.reduce((total, order) => total + order.discount, 0);
                         switch (index) {
                             case 1:
                                 if (split_price) {
@@ -2052,7 +2077,7 @@ export class OrderSetting {
                     <div class="d-flex align-items-center">
                       <span class="text-decoration-line-through">-${orderData.discount}</span
                       ><i class="fa-solid fa-arrow-right ${gClass('font-blue')} ${gClass('summary-right')}"></i
-                      ><span class="${gClass('font-blue')}">-${discount}</span>
+                      ><span class="${gClass('font-blue')}">-${orderData.discount - split_discount}</span>
                     </div>
                   `;
                                 }
@@ -2063,7 +2088,12 @@ export class OrderSetting {
                     <div class="d-flex align-items-center">
                       <span class="text-decoration-line-through">${orderData.total}</span
                       ><i class="fa-solid fa-arrow-right ${gClass('font-blue')} ${gClass('summary-right')}"></i
-                      ><span class="${gClass('font-blue')}">${sale_price - split_price - discount + orderData.shipment_fee}</span>
+                      ><span class="${gClass('font-blue')}"
+                        >${sale_price -
+                                        split_price -
+                                        (orderData.discount - split_discount) +
+                                        orderData.shipment_fee}</span
+                      >
                     </div>
                   `;
                                 }
@@ -2142,9 +2172,9 @@ export class OrderSetting {
             ${renderHeader(gvc)}
             <div
               class="flex-fill scrollbar-appear"
-              style="${isDesktop ? 'padding: 24px 32px;' : 'padding: 0;'} overflow: hidden auto;"
+              style="${isDesktop ? 'padding: 24px 32px;' : 'padding: 0 24px;'} overflow: scroll;"
             >
-              ${renderHint(gvc)} ${renderItemList(gvc)} ${renderBlock(gvc)} ${renderSummary(gvc)}
+              ${renderHint(gvc)} ${renderItemList(gvc)} ${renderSummary(gvc)}
             </div>
             ${renderFooter(gvc)}
           </div>

@@ -1022,7 +1022,9 @@ export class LinePay {
   }) {
     const confirm_url = `${this.keyData.ReturnURL}&LinePay=true&appName=${this.appName}&orderID=${orderData.orderID}`;
     const cancel_url = `${this.keyData.ReturnURL}&payment=false`;
+
     orderData.discount = parseInt(orderData.discount ?? 0, 10);
+
     const body = {
       amount: orderData.total,
       currency: 'TWD',
@@ -1280,8 +1282,8 @@ export class PayNow {
       expireDays: 3,
     });
     console.log(`webhook=>`, this.keyData.NotifyURL + `&orderID=${orderData.orderID}`);
-    const url = `${this.BASE_URL}/api/v1/payment-intents`;
-    const key_ = await this.bindKey();
+    const url = `${this.BASE_URL}/api/v1/payment-intents`
+    const key_ = (this.keyData.BETA)?{private_key:"bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv",public_key:"sm22610RIIwOTz4STCFf0dF22G067lnd"}:await this.bindKey();
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
@@ -1292,7 +1294,6 @@ export class PayNow {
       },
       data: data,
     };
-
     try {
       const response = await axios.request(config);
       (orderData as any).paynow_id = response.data.result.id;
@@ -1385,9 +1386,6 @@ export class JKO {
       result_display_url:this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
       unredeem:0
     };
-    //resul_url
-    //result_url
-    console.log(`payload=>`,payload)
     //平台 API KEY
     const apiKey: string = process.env.jko_api_key || '';
     //平台 Secret Key

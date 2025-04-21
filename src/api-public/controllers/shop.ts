@@ -689,8 +689,10 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
 async function redirect_link(req: express.Request, resp: express.Response) {
   try {
     //預防沒有APPName
+
     req.query.appName = req.query.appName || (req.get('g-app') as string) || (req.query['g-app'] as string);
     let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
+
     if (req.query.LinePay && req.query.LinePay === 'true') {
       const check_id = await redis.getValue(`linepay` + req.query.orderID);
 
@@ -703,6 +705,7 @@ async function redirect_link(req: express.Request, resp: express.Response) {
           [req.query.orderID]
         )
       )[0];
+      console.log(`order_data===>`, order_data);
       const keyData = (
         await Private_config.getConfig({
           appName: req.query.appName as string,

@@ -472,7 +472,10 @@ export declare class Shopping {
     splitOrder(obj: {
         orderData: Cart;
         splitOrderArray: OrderDetail[];
-    }): Promise<boolean>;
+    }): Promise<boolean | {
+        result: string;
+        reason: any;
+    }>;
     formatUseRebate(total: number, useRebate: number): Promise<{
         status: boolean;
         point: number;

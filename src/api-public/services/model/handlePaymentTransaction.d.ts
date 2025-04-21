@@ -4,6 +4,6 @@ declare class PaymentTransaction {
     private readonly payment_select;
     constructor(app: string, payment_select: string);
     createInstance(): Promise<void>;
-    processPayment(carData: any): Promise<any>;
+    processPayment(carData: any, return_url: string): Promise<any>;
 }
 export default PaymentTransaction;

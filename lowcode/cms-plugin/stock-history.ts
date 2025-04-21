@@ -12,7 +12,6 @@ import { StockVendors, VendorData } from './stock-vendors.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
-import { al } from '@faker-js/faker/dist/airline-CBNP41sR.js';
 
 const html = String.raw;
 

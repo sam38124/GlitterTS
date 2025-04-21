@@ -5,9 +5,10 @@ import {App} from '../../../services/app.js';
 import process from "process";
 import {User} from "../user";
 import { CustomerSessions } from '../customer-sessions';
-import FinancialService, { LinePay } from '../financial-service.js';
+import FinancialService, { JKO, LinePay, PayNow, PayPal } from '../financial-service.js';
 import { Private_config } from '../../../services/private_config.js';
 import Tool from '../../../modules/tool.js';
+import redis from '../../../modules/redis';
 
 const mime = require('mime');
 
@@ -40,11 +41,13 @@ class PaymentTransaction {
     }
   }
 
-  async processPayment(carData:any): Promise<any> {
+  async processPayment(carData:any , return_url:string): Promise<any> {
     if (!this.kd){
       await this.createInstance();
     }
     const id = 'redirect_' + Tool.randomString(6);
+    await redis.setValue(id, return_url);
+
     switch (this.payment_select) {
       case 'ecPay':
       case 'newWebPay':
@@ -58,43 +61,29 @@ class PaymentTransaction {
           TYPE: this.payment_select,
         }).createOrderPage(carData);
         return { form: subMitData };
-      // case 'paypal':
-      //   this.kd.ReturnURL = `${this.processEnvDomain}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
-      //   this.kd.NotifyURL = `${this.processEnvDomain}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
-      //   await Promise.all(saveStockArray.map(dd => dd()));
-      //   this.checkPoint('select paypal');
-      //   return await this.payPal.checkout(carData);
-      //
-      case 'line_pay':
-        this.kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
+      case 'paypal':
+        this.kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
         this.kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
-
+        return await new PayPal(this.app, this.kd).checkout(carData);
+      case 'line_pay':
+        this.kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${this.payment_select}`;
+        this.kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${this.payment_select}`;
         return await new LinePay(this.app, this.kd).createOrder(carData);
+      case 'paynow': {
+        this.kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
+        this.kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true&type=${carData.customer_info.payment_select}`;
+        return await new PayNow(this.app , this.kd).createOrder(carData);
+      }
+      case 'jkopay': {
+        this.kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&return=${id}`;
+        this.kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=jkopay&return=${id}`;
+        return await new JKO(this.app, this.kd).createOrder(carData);
+      }
 
-      // case 'paynow': {
-      //   this.kd.ReturnURL = `${this.processEnvDomain}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
-      //   this.kd.NotifyURL = `${this.processEnvDomain}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true&type=${carData.customer_info.payment_select}`;
-      //   await Promise.all(saveStockArray.map(dd => dd()));
-      //   this.checkPoint('select paynow');
-      //   return await this.payNow.createOrder(carData);
-      // }
-      //
-      // case 'jkopay': {
-      //   this.kd.ReturnURL = `${this.processEnvDomain}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&return=${id}`;
-      //   this.kd.NotifyURL = `${this.processEnvDomain}/api-public/v1/ec/notify?g-app=${this.app}&type=jkopay&return=${id}`;
-      //   this.checkPoint('select jkopay');
-      //   return await this.jko.createOrder(carData);
-      // }
-      //
-      // default:
-      //   carData.method = 'off_line';
-      //   await this.orderEvent.insertOrder({ cartData: carData, status: 0, app: this.app });
-      //   await Promise.all(saveStockArray.map(dd => dd()));
-      //   this.managerNotify.checkout({ orderData: carData, status: 0 });
-      //   for (const phone of new Set([carData.customer_info, carData.user_info].map(dd => dd && dd.phone))) {
-      //     await this.sms.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
-      //     console.info('訂單簡訊寄送成功');
-      //   }
+      default: {
+        carData.method = 'off_line';
+        return ``;
+      }
       //
       //   if (carData.customer_info.lineID) {
       //     await this.lineMessage.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);

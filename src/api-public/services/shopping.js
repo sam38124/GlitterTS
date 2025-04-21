@@ -1566,9 +1566,18 @@ class Shopping {
                                 }
                             }
                             else {
-                                const returnData = new stock_1.Stock(this.app, this.token).allocateStock(variant.stockList, item.count);
-                                variant.deduction_log = returnData.deductionLog;
-                                item.deduction_log = returnData.deductionLog;
+                                const useExistingLog = type === "split" &&
+                                    item.deduction_log &&
+                                    Object.keys(item.deduction_log).length > 0;
+                                if (!useExistingLog) {
+                                    const stockAllocator = new stock_1.Stock(this.app, this.token);
+                                    const allocationResult = stockAllocator.allocateStock(variant.stockList, item.count);
+                                    variant.deduction_log = allocationResult.deductionLog;
+                                    item.deduction_log = allocationResult.deductionLog;
+                                }
+                                else {
+                                    variant.deduction_log = item.deduction_log;
+                                }
                             }
                             saveStockArray.push(() => new Promise(async (resolve, reject) => {
                                 var _a;
@@ -1712,7 +1721,7 @@ class Shopping {
                 }
             }
             checkPoint('distribution code');
-            if (type !== 'manual' && type !== 'manual-preview') {
+            if (type !== 'manual' && type !== 'manual-preview' && type !== 'split') {
                 carData.lineItems = carData.lineItems.filter(dd => {
                     return !add_on_items.includes(dd) && !gift_product.includes(dd);
                 });
@@ -1946,8 +1955,11 @@ class Shopping {
             checkPoint('check user rebate');
             if (type === 'manual' || type === 'split') {
                 carData.orderSource = type;
+                const voucherTitle = (type === 'split') ? '拆分訂單調整折扣' : data.voucher.title;
+                const voucherValue = (type === 'split') ? data.discount : data.voucher.value;
+                const voucherTotal = (type === 'split') ? data.discount : data.voucher.discount_total;
                 let tempVoucher = {
-                    discount_total: data.voucher.discount_total,
+                    discount_total: voucherTotal,
                     end_ISO_Date: '',
                     for: 'all',
                     forKey: [],
@@ -1963,10 +1975,10 @@ class Shopping {
                     status: 1,
                     target: '',
                     targetList: [],
-                    title: data.voucher.title,
+                    title: voucherTitle,
                     trigger: 'auto',
                     type: 'voucher',
-                    value: data.voucher.value,
+                    value: voucherValue,
                     id: data.voucher.id,
                     bind: [],
                     bind_subtotal: 0,
@@ -1985,6 +1997,12 @@ class Shopping {
                 if (tempVoucher.reBackType == 'shipment_free' || type == 'split') {
                     carData.shipment_fee = 0;
                 }
+                if (type == 'split') {
+                    carData.editRecord.push({
+                        time: new Date().toISOString(),
+                        record: `拆分訂單建立來自\\n {{order=${carData.orderID.slice(0, -1)}}}`,
+                    });
+                }
                 if (tempVoucher.reBackType == 'rebate') {
                     let customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
                     if (!customerData) {
@@ -2001,6 +2019,9 @@ class Shopping {
                     status: data.pay_status,
                     app: this.app,
                 });
+                await Promise.all(saveStockArray.map(dd => {
+                    return dd();
+                }));
                 new notify_js_1.ManagerNotify(this.app).checkout({ orderData: carData, status: 0 });
                 const emailList = new Set([carData.customer_info, carData.user_info].map(dd => dd && dd.email));
                 for (const email of emailList) {
@@ -2221,7 +2242,7 @@ class Shopping {
         }
     }
     async repayOrder(orderID, return_url) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
         const app = this.app;
         async function getOrder(orderID) {
             try {
@@ -2270,16 +2291,17 @@ class Shopping {
             };
             const newOrderID = Date.now();
             const carData = {
+                orderID: `${newOrderID}`,
+                discount: (_b = orderData.discount) !== null && _b !== void 0 ? _b : 0,
                 customer_info: orderData.customer_info || {},
-                lineItems: (_b = orderData.lineItems) !== null && _b !== void 0 ? _b : [],
-                total: (_c = orderData.total) !== null && _c !== void 0 ? _c : 0,
-                email: (_f = (_d = sqlData.email) !== null && _d !== void 0 ? _d : (_e = orderData.user_info) === null || _e === void 0 ? void 0 : _e.email) !== null && _f !== void 0 ? _f : '',
+                lineItems: (_c = orderData.lineItems) !== null && _c !== void 0 ? _c : [],
+                total: (_d = orderData.total) !== null && _d !== void 0 ? _d : 0,
+                email: (_g = (_e = sqlData.email) !== null && _e !== void 0 ? _e : (_f = orderData.user_info) === null || _f === void 0 ? void 0 : _f.email) !== null && _g !== void 0 ? _g : '',
                 user_info: orderData.user_info,
-                shipment_fee: (_g = orderData.shipment_fee) !== null && _g !== void 0 ? _g : 0,
-                rebate: (_h = orderData.rebate) !== null && _h !== void 0 ? _h : 0,
+                shipment_fee: (_h = orderData.shipment_fee) !== null && _h !== void 0 ? _h : 0,
+                rebate: (_j = orderData.rebate) !== null && _j !== void 0 ? _j : 0,
                 goodsWeight: 0,
                 use_rebate: orderData.use_rebate || 0,
-                orderID: `${newOrderID}`,
                 shipment_support: shipment_setting.support,
                 shipment_info: shipment_setting.info,
                 shipment_selector: [
@@ -2287,7 +2309,7 @@ class Shopping {
                         name: dd.title,
                         value: dd.value,
                     })),
-                    ...((_j = shipment_setting.custom_delivery) !== null && _j !== void 0 ? _j : []).map((dd) => ({
+                    ...((_k = shipment_setting.custom_delivery) !== null && _k !== void 0 ? _k : []).map((dd) => ({
                         form: dd.form,
                         name: dd.name,
                         value: dd.id,
@@ -2295,8 +2317,8 @@ class Shopping {
                     })),
                 ].filter(option => shipment_setting.support.includes(option.value)),
                 use_wallet: 0,
-                method: (_k = sqlData.user_info) === null || _k === void 0 ? void 0 : _k.method,
-                user_email: (_o = (_l = sqlData.email) !== null && _l !== void 0 ? _l : (_m = orderData.user_info) === null || _m === void 0 ? void 0 : _m.email) !== null && _o !== void 0 ? _o : '',
+                method: (_l = sqlData.user_info) === null || _l === void 0 ? void 0 : _l.method,
+                user_email: (_p = (_m = sqlData.email) !== null && _m !== void 0 ? _m : (_o = orderData.user_info) === null || _o === void 0 ? void 0 : _o.email) !== null && _p !== void 0 ? _p : '',
                 useRebateInfo: sqlData.useRebateInfo,
                 custom_form_format: sqlData.custom_form_format,
                 custom_form_data: sqlData.custom_form_data,
@@ -2312,8 +2334,12 @@ class Shopping {
                 fbp: sqlData.fbp,
                 editRecord: [],
             };
-            console.log("orderData.customer_info.payment_select -- ", orderData.customer_info.payment_select);
-            const result = await new handlePaymentTransaction_js_1.default(this.app, orderData.customer_info.payment_select).processPayment(carData);
+            await order_event_js_1.OrderEvent.insertOrder({
+                cartData: orderData,
+                status: 0,
+                app: this.app,
+            });
+            const result = await new handlePaymentTransaction_js_1.default(this.app, orderData.customer_info.payment_select).processPayment(carData, return_url);
             return result;
         }
     }
@@ -2516,8 +2542,47 @@ class Shopping {
         }
     }
     async splitOrder(obj) {
-        var _a, _b;
         try {
+            async function processCheckoutsStaggered(splitOrderArray, orderData, context) {
+                const promises = splitOrderArray.map((order, index) => {
+                    return new Promise((resolve, reject) => {
+                        const delay = 1000 * index;
+                        setTimeout(() => {
+                            var _a, _b;
+                            const payload = {
+                                code_array: [],
+                                order_id: (_b = (_a = orderData === null || orderData === void 0 ? void 0 : orderData.splitOrders) === null || _a === void 0 ? void 0 : _a[index]) !== null && _b !== void 0 ? _b : '',
+                                line_items: order.lineItems,
+                                customer_info: order.customer_info,
+                                return_url: "",
+                                user_info: order.user_info,
+                                discount: order.discount,
+                                voucher: order.voucher,
+                                total: order.total,
+                                pay_status: Number(order.pay_status),
+                            };
+                            context.toCheckout(payload, 'split')
+                                .then(() => {
+                                resolve();
+                            })
+                                .catch((error) => {
+                                reject(error);
+                            });
+                        }, delay);
+                    });
+                });
+                try {
+                    await Promise.all(promises);
+                    return true;
+                }
+                catch (e) {
+                    console.error("處理拆分訂單結帳時至少發生一個錯誤 (從 Promise.all 捕獲):", e);
+                    return {
+                        result: 'failure',
+                        reason: e
+                    };
+                }
+            }
             const currentTime = new Date().toISOString();
             function generateOrderIds(orderId, arrayLength) {
                 const orderIdArray = [];
@@ -2552,21 +2617,7 @@ class Shopping {
                 cart_token: orderData.orderID,
                 orderData,
             });
-            for (const [index, order] of splitOrderArray.entries()) {
-                await this.toCheckout({
-                    code_array: [],
-                    order_id: (_b = (_a = orderData === null || orderData === void 0 ? void 0 : orderData.splitOrders) === null || _a === void 0 ? void 0 : _a[index]) !== null && _b !== void 0 ? _b : '',
-                    line_items: order.lineItems,
-                    customer_info: order.customer_info,
-                    return_url: "",
-                    user_info: order.user_info,
-                    discount: order.discount,
-                    voucher: order.voucher,
-                    total: order.total,
-                    pay_status: Number(order.pay_status)
-                }, 'split');
-            }
-            return true;
+            return await processCheckoutsStaggered(splitOrderArray, orderData, this);
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'splitOrder Error:' + e, null);
@@ -3561,7 +3612,6 @@ class Shopping {
                FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
               `, []));
                     timer.checkPoint("finish-query-response_data");
-                    console.log(sql);
                     resolve({
                         data: data,
                         total: (await database_js_1.default.query(`SELECT count(1)

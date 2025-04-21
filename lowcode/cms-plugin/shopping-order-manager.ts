@@ -28,6 +28,7 @@ import { CartData, LineItem } from './module/data.js';
 import { OrderModule } from './order/order-module.js';
 
 const html = String.raw;
+const css = String.raw;
 
 class OrderDetail {
   subtotal: number;
@@ -1134,7 +1135,6 @@ export class ShoppingOrderManager {
           });
           orderData = structuredClone(orderDataNew.response.data[0]);
           originData = structuredClone(orderData);
-          console.log('orderDataNew.response.data -- ', orderDataNew.response.data);
         }
 
         orderData.orderData.progress = orderData.orderData.progress ?? 'wait';
@@ -1202,7 +1202,8 @@ export class ShoppingOrderManager {
         }
 
         const funBTN = () => {
-          gvc.addStyle(html`
+          console.log("orderData.orderData.orderSource -- " , orderData.orderData.orderSource);
+          gvc.addStyle(css`
             .funInsignia{ border-radius: 10px; background: #EAEAEA; display: flex; padding: 6px 18px; justify-content:
             center; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
           `);
@@ -1212,8 +1213,9 @@ export class ShoppingOrderManager {
                 class="funInsignia"
                 style=""
                 onclick="${gvc.event(() => {
-                  console.log('orderData -- ', orderData);
-
+                  if (orderData.orderData.orderSource=="split"){
+                    return
+                  }
                   OrderSetting.splitOrder(gvc, orderData.orderData, () => gvc.notifyDataChange(vm.id));
                 })}"
               >
@@ -2149,6 +2151,7 @@ export class ShoppingOrderManager {
                                 }
                               })(),
                               ...orderData.orderData.voucherList.map((dd: any) => {
+                                console.log("orderData.orderData.voucherList -- " , orderData.orderData.voucherList);
                                 const descHTML = html` <div
                                   style="color: #8D8D8D; font-size: 14px; white-space: nowrap; text-overflow: ellipsis;"
                                 >
@@ -3640,6 +3643,7 @@ export class ShoppingOrderManager {
               count: variant.qty ?? '1',
               sale_price: variant.sale_price,
               sku: variant.sku,
+              deduction_log:{}
             });
             orderDetail.subtotal +=
               Number(orderDetail.lineItems[index].count) * orderDetail.lineItems[index].sale_price;

@@ -2286,9 +2286,25 @@ export class Shopping {
                     item.deduction_log = variant.deduction_log;
                   }
                 } else {
-                  const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, item.count);
-                  variant.deduction_log = returnData.deductionLog;
-                  item.deduction_log = returnData.deductionLog;
+                  // 判斷是否應使用項目上已存在的、非空的扣除日誌
+                  const useExistingLog =
+                    type === "split" &&      // 訂單來源需為 "split"
+                    item.deduction_log &&                   // 項目上必須存在 deduction_log
+                    Object.keys(item.deduction_log).length > 0; // 且該 log 不是空物件
+
+                  if (!useExistingLog) {
+                    // 較常走到這邊 設定為主邏輯 需要分配庫存並獲取新的 log
+                    const stockAllocator = new Stock(this.app, this.token); // 實例化 Stock 操作物件
+                    const allocationResult = stockAllocator.allocateStock(variant.stockList, item.count); // 執行分配
+
+                    // 將分配結果的 log 同時賦值給 variant 和 item
+                    variant.deduction_log = allocationResult.deductionLog;
+                    item.deduction_log = allocationResult.deductionLog; // 更新 item 的 log
+
+                  } else {
+                    // 否則，直接使用項目上的 log
+                    variant.deduction_log = item.deduction_log;
+                  }
                 }
 
                 saveStockArray.push(
@@ -2305,8 +2321,7 @@ export class Shopping {
                             `;
                             scheduledData = (await db.query(scheduledDataQuery, []))[0];
                           }
-                          // const scheduledData = (await db.query(scheduledDataQuery, []))[0];
-
+                          //這是結帳時 要以團購或是直播價來計算
                           if (scheduledData) {
                             const { content } = scheduledData;
                             const productData = content.item_list.find((pb: any) => pb.id === item.id);
@@ -2339,7 +2354,6 @@ export class Shopping {
                               callback: () => {},
                             });
                           }
-
                           if (content.product_category === 'kitchen' && variant.spec?.length) {
                             // 餐廳類別的庫存處理方式
                             variant.spec.forEach((d1: any, index: number) => {
@@ -2348,7 +2362,6 @@ export class Shopping {
                                 option.stock = parseInt(option.stock, 10) - item.count;
                               }
                             });
-
                             // 取得 store_config 並記錄扣庫存紀錄
                             const store_config = await userClass.getConfigV2({
                               key: 'store_manager',
@@ -2483,7 +2496,7 @@ export class Shopping {
       checkPoint('distribution code');
 
       // 自動新增訂單的優惠卷設定
-      if (type !== 'manual' && type !== 'manual-preview') {
+      if (type !== 'manual' && type !== 'manual-preview'  && type !== 'split') {
         // 過濾加購品與贈品
         carData.lineItems = carData.lineItems.filter(dd => {
           return !add_on_items.includes(dd) && !gift_product.includes(dd);
@@ -2751,8 +2764,10 @@ export class Shopping {
 
       // ================================ Preview UP ================================
       checkPoint('return preview');
+
       if (type === 'preview' || type === 'manual-preview') return { data: carData };
       // ================================ Add DOWN ================================
+
 
       // 購物金與錢包金額移除
       if (userData && userData.userID) {
@@ -2783,8 +2798,11 @@ export class Shopping {
       // 手動結帳地方判定
       if (type === 'manual' || type === 'split') {
         carData.orderSource = type;
+        const voucherTitle = (type === 'split')?'拆分訂單調整折扣':data.voucher.title
+        const voucherValue = (type === 'split')?data.discount:data.voucher.value
+        const voucherTotal = (type === 'split')?data.discount:data.voucher.discount_total
         let tempVoucher: VoucherData = {
-          discount_total: data.voucher.discount_total,
+          discount_total: voucherTotal,
           end_ISO_Date: '',
           for: 'all',
           forKey: [],
@@ -2800,10 +2818,10 @@ export class Shopping {
           status: 1,
           target: '',
           targetList: [],
-          title: data.voucher.title,
+          title: voucherTitle,
           trigger: 'auto',
           type: 'voucher',
-          value: data.voucher.value,
+          value: voucherValue,
           id: data.voucher.id,
           bind: [],
           bind_subtotal: 0,
@@ -2823,6 +2841,14 @@ export class Shopping {
         if (tempVoucher.reBackType == 'shipment_free' || type == 'split') {
           carData.shipment_fee = 0;
         }
+        if (type == 'split') {
+          carData.editRecord.push(
+            {
+              time: new Date().toISOString(),
+              record: `拆分訂單建立來自\\n {{order=${carData.orderID.slice(0, -1)}}}`,
+            }
+          )
+        }
 
         if (tempVoucher.reBackType == 'rebate') {
           let customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
@@ -2841,13 +2867,18 @@ export class Shopping {
             customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
           }
         }
-
         // 手動訂單新增
         await OrderEvent.insertOrder({
           cartData: carData,
           status: data.pay_status as any,
           app: this.app,
         });
+        //庫存整理
+        await Promise.all(
+          saveStockArray.map(dd => {
+            return dd();
+          })
+        );
 
         new ManagerNotify(this.app).checkout({ orderData: carData, status: 0 });
         const emailList = new Set([carData.customer_info, carData.user_info].map(dd => dd && dd.email));
@@ -2993,6 +3024,8 @@ export class Shopping {
           NotifyURL: '',
         };
         // 金流處理
+        //insert order
+        //savestock
         switch (carData.customer_info.payment_select) {
           case 'ecPay':
           case 'newWebPay':
@@ -3119,6 +3152,7 @@ export class Shopping {
               return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
             };
         }
+
       }
     } catch (e) {
       console.error(e);
@@ -3187,7 +3221,6 @@ export class Shopping {
       } = sqlData.orderData;
       if (!orderData) {
         throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
-
       }
       const keyData = (
         await Private_config.getConfig({
@@ -3224,8 +3257,11 @@ export class Shopping {
         ReturnURL: '',
         NotifyURL: '',
       };
+      //現在是new一個新的版本
+      //todo 新增一個fake單號 直接做付款的動作 同時做訂單上的更新把這個付款單號記錄下來
       const newOrderID = Date.now()
       const carData: Cart = {
+        orderID: `${newOrderID}`,
         discount: orderData.discount ?? 0,
         customer_info: orderData.customer_info || {},
         lineItems: orderData.lineItems??[],
@@ -3236,7 +3272,6 @@ export class Shopping {
         rebate: orderData.rebate??0,
         goodsWeight: 0,
         use_rebate: orderData.use_rebate || 0,
-        orderID: `${newOrderID}`,
         shipment_support: shipment_setting.support as any,
         shipment_info: shipment_setting.info as any,
         shipment_selector: [
@@ -3271,8 +3306,12 @@ export class Shopping {
         fbp: sqlData.fbp as string,
         editRecord: [],
       };
-      console.log("orderData.customer_info.payment_select -- " , orderData.customer_info.payment_select);
-      const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select).processPayment(carData);
+      await OrderEvent.insertOrder({
+        cartData: orderData,
+        status: 0,
+        app: this.app,
+      });
+      const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select).processPayment(carData , return_url);
 
       return result
     }
@@ -3572,6 +3611,53 @@ export class Shopping {
 
   async splitOrder(obj: { orderData: Cart; splitOrderArray: OrderDetail[] }) {
     try {
+      async function processCheckoutsStaggered(splitOrderArray: any[], orderData: any, context: any): Promise<boolean | { result: string; reason: any }> {
+
+        const promises = splitOrderArray.map((order, index) => {
+          // 為每個操作返回一個新的 Promise
+          return new Promise<void>((resolve, reject) => { // 可以定義更精確的 resolve 型別，這裡用 void 示意
+            const delay = 1000 * index; // 計算延遲時間
+
+            setTimeout(() => {
+              // 在 setTimeout 回呼中執行非同步操作
+              const payload = {
+                code_array: [],
+                order_id: orderData?.splitOrders?.[index] ?? '',
+                line_items: order.lineItems as any,
+                customer_info: order.customer_info,
+                return_url: "",
+                user_info: order.user_info,
+                discount: order.discount,
+                voucher: order.voucher,
+                total: order.total,
+                pay_status: Number(order.pay_status),
+              };
+
+              // 假設 context.toCheckout 本身返回一個 Promise
+              context.toCheckout(payload, 'split')
+                .then(() => {
+                  resolve(); // 當 toCheckout 成功時，resolve 外層的 Promise
+                })
+                .catch((error: any) => {
+                  reject(error); // 當 toCheckout 失敗時，reject 外層的 Promise
+                });
+
+            }, delay); // 使用計算出的延遲
+          });
+        }); // map 結束
+
+
+        try {
+          await Promise.all(promises);
+          return true; // 全部成功
+        } catch (e) {
+          console.error("處理拆分訂單結帳時至少發生一個錯誤 (從 Promise.all 捕獲):", e);
+          return {
+            result: 'failure',
+            reason: e // 返回捕獲到的錯誤
+          };
+        }
+      }
       const currentTime = new Date().toISOString();
       //給定訂單編號 產生 編號A 編號B... 依此類推
       function generateOrderIds(orderId: string, arrayLength: number): string[] {
@@ -3586,7 +3672,7 @@ export class Shopping {
 
         return orderIdArray;
       }
-      //整理原本訂單的總價 優惠卷
+      //整理原本訂單的總價 優惠卷的資訊 方便原本的訂單更新
       function refreshOrder(orderData: Cart, splitOrderArray: OrderDetail[]) {
         const { newTotal, newDiscount } = splitOrderArray.reduce(
           (acc, order) => {
@@ -3612,36 +3698,51 @@ export class Shopping {
         cart_token: orderData.orderID,
         orderData,
       })
-      for (const [index, order] of splitOrderArray.entries()) {
-        await this.toCheckout({
-          code_array: [],
-          order_id: orderData?.splitOrders?.[index] ?? '',
-          line_items: order.lineItems as any,
-          customer_info: order.customer_info,
-          return_url: "",
-          user_info: order.user_info,
-          discount: order.discount,
-          voucher:order.voucher,
-          total: order.total,
-          pay_status: Number(order.pay_status)
-        }, 'split');
-      }
+      // const promises = splitOrderArray.map((order, index) =>
+      //   {
+      //     return ()=>{
+      //       setTimeout(() => {
+      //         this.toCheckout({
+      //           code_array: [],
+      //           order_id: orderData?.splitOrders?.[index] ?? '',
+      //           line_items: order.lineItems as any,
+      //           customer_info: order.customer_info,
+      //           return_url: "",
+      //           user_info: order.user_info,
+      //           discount: order.discount,
+      //           voucher: order.voucher,
+      //           total: order.total,
+      //           pay_status: Number(order.pay_status),
+      //         }, 'split')
+      //       },1000*index)
+      //     }
+      //   }
+      // );
+      // const promises = splitOrderArray.map((order, index) =>
+      //   {
+      //     setTimeout(() => {
+      //       console.log("index -- " , index);
+      //       this.toCheckout({
+      //         code_array: [],
+      //         order_id: orderData?.splitOrders?.[index] ?? '',
+      //         line_items: order.lineItems as any,
+      //         customer_info: order.customer_info,
+      //         return_url: "",
+      //         user_info: order.user_info,
+      //         discount: order.discount,
+      //         voucher: order.voucher,
+      //         total: order.total,
+      //         pay_status: Number(order.pay_status),
+      //       }, 'split')
+      //     },1000*index)
+      //   }
+      // );
 
-      // try {
-      //   await db.query(
-      //     `UPDATE \`${this.app}\`.t_checkout
-      //    SET orderData = ?
-      //    WHERE cart_token = ?;`,
-      //     [JSON.stringify(orderData), orderData.orderID]
-      //   );
-      // }catch (e:any){
-      //   console.error(e);
-      //   throw exception.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
-      // }
+      return await processCheckoutsStaggered(splitOrderArray, orderData, this);
 
 
 
-      return true;
+
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'splitOrder Error:' + e, null);
     }
@@ -4115,7 +4216,6 @@ export class Shopping {
         // 恢復取消訂單的庫存
         orderData.lineItems = resetLineItems(orderData.lineItems);
         origin.orderData.lineItems = resetLineItems(origin.orderData.lineItems);
-
         // 釋放優惠券
         await this.releaseVoucherHistory(orderData.orderID, orderData.orderStatus === '-1' ? 0 : 1);
 
@@ -4886,7 +4986,6 @@ export class Shopping {
             []
           ))
           timer.checkPoint("finish-query-response_data");
-          console.log(sql)
           resolve({
             data: data,
             total: (

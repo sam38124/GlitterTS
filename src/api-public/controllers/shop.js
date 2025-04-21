@@ -584,6 +584,7 @@ async function redirect_link(req, resp) {
            FROM \`${req.query.appName}\`.t_checkout
            WHERE cart_token = ?
           `, [req.query.orderID]))[0];
+            console.log(`order_data===>`, order_data);
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: req.query.appName,
                 key: 'glitter_finance',
