@@ -309,7 +309,6 @@ class CheckoutEvent {
             }
             data.line_items = await Promise.all(data.line_items.map(async (item) => {
                 var _a, _b, _c, _d, _e;
-                console.log({ setUserID: `${(userData === null || userData === void 0 ? void 0 : userData.userID) || ''}` });
                 const getProductData = (await this.shopping.getProduct({
                     page: 0,
                     limit: 1,
@@ -322,9 +321,6 @@ class CheckoutEvent {
                 if (getProductData) {
                     const content = getProductData.content;
                     const variant = getVariant(content, item);
-                    console.log('=========');
-                    console.log(content.title);
-                    console.log(variant.spec, variant.sale_price);
                     const count = Number(item.count);
                     if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
                         !isNaN(count) &&

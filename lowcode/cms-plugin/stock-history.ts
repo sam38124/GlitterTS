@@ -269,13 +269,18 @@ export class StockHistory {
               },
               {
                 key: '總金額',
-                value: `<span class="fs-7">$ ${  dd.content.product_list.reduce((sum, item) => {
-                  if(dd.type==='restocking'){
-                    return sum + item.cost * (item.transfer_count ?? 0);
-                  }else{
-                    return sum + item.cost * (item.recent_count ?? 0);
-                  }
-                }, 0).toLocaleString()}</span>`,
+                value: html`<span class="fs-7"
+                  >$
+                  ${dd.content.product_list
+                    .reduce((sum, item) => {
+                      if (dd.type === 'restocking') {
+                        return sum + item.cost * (item.transfer_count ?? 0);
+                      } else {
+                        return sum + item.cost * (item.recent_count ?? 0);
+                      }
+                    }, 0)
+                    .toLocaleString()}</span
+                >`,
               },
               {
                 key: '供應商',
@@ -1131,23 +1136,13 @@ export class StockHistory {
                                       onclick="${gvc.event(() => {
                                         BgProduct.productsDialog({
                                           gvc: gvc,
-                                          default:  dvm.variantIds,
-                                          with_variants:true,
+                                          default: dvm.variantIds,
+                                          with_variants: true,
                                           callback: async value => {
-                                            dvm.variantIds=value
+                                            dvm.variantIds = value;
                                             gvc.notifyDataChange(dvm.tableId);
-                                          // alert(JSON.stringify(value))
                                           },
-                                        })
-                                        // BgWidget.variantDialog({
-                                        //   gvc,
-                                        //   title: '搜尋商品',
-                                        //   default: dvm.variantIds,
-                                        //   callback: resultData => {
-                                        //     dvm.variantIds = resultData;
-                                        //     gvc.notifyDataChange(dvm.tableId);
-                                        //   },
-                                        // });
+                                        });
                                       })}"
                                     >
                                       <div>新增${typeData.name}商品</div>
@@ -1262,6 +1257,7 @@ export class StockHistory {
                                     gvc.bindView({
                                       bind: dvm.radioCompId,
                                       view: () => {
+                                        dvm.variantIds = [];
                                         switch (vm.data.content.check_according) {
                                           case 'collection':
                                             return gvc.bindView(() => {
@@ -2005,8 +2001,10 @@ export class StockHistory {
                           if (dd.result && dd.response.value) {
                             dataList = dd.response.value.list;
                           }
-                          loading = false;
-                          gvc.notifyDataChange(id);
+                          setTimeout(() => {
+                            loading = false;
+                            gvc.notifyDataChange(id);
+                          }, 100);
                         });
                       }
                     },
@@ -2106,8 +2104,10 @@ export class StockHistory {
                           if (dd.result && dd.response.value) {
                             dataList = dd.response.value.list;
                           }
-                          loading = false;
-                          gvc.notifyDataChange(id);
+                          setTimeout(() => {
+                            loading = false;
+                            gvc.notifyDataChange(id);
+                          }, 100);
                         });
                       }
                     },
@@ -2170,8 +2170,10 @@ export class StockHistory {
                           if (dd.result && dd.response.value) {
                             dataList = dd.response.value.list;
                           }
-                          loading = false;
-                          gvc.notifyDataChange(id);
+                          setTimeout(() => {
+                            loading = false;
+                            gvc.notifyDataChange(id);
+                          }, 100);
                         });
                       }
                     },
@@ -2229,8 +2231,10 @@ export class StockHistory {
                           if (dd.result && dd.response.value) {
                             dataList = dd.response.value.list;
                           }
-                          loading = false;
-                          gvc.notifyDataChange(id);
+                          setTimeout(() => {
+                            loading = false;
+                            gvc.notifyDataChange(id);
+                          }, 100);
                         });
                       }
                     },
@@ -2295,8 +2299,10 @@ export class StockHistory {
                           if (dd.result && dd.response.value) {
                             dataList = dd.response.value.list;
                           }
-                          loading = false;
-                          gvc.notifyDataChange(id);
+                          setTimeout(() => {
+                            loading = false;
+                            gvc.notifyDataChange(id);
+                          }, 100);
                         });
                       }
                     },

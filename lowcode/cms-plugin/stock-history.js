@@ -238,7 +238,10 @@ export class StockHistory {
                             },
                             {
                                 key: '總金額',
-                                value: `<span class="fs-7">$ ${dd.content.product_list.reduce((sum, item) => {
+                                value: html `<span class="fs-7"
+                  >$
+                  ${dd.content.product_list
+                                    .reduce((sum, item) => {
                                     var _a, _b;
                                     if (dd.type === 'restocking') {
                                         return sum + item.cost * ((_a = item.transfer_count) !== null && _a !== void 0 ? _a : 0);
@@ -246,7 +249,9 @@ export class StockHistory {
                                     else {
                                         return sum + item.cost * ((_b = item.recent_count) !== null && _b !== void 0 ? _b : 0);
                                     }
-                                }, 0).toLocaleString()}</span>`,
+                                }, 0)
+                                    .toLocaleString()}</span
+                >`,
                             },
                             {
                                 key: '供應商',
@@ -1163,6 +1168,7 @@ export class StockHistory {
                                                     gvc.bindView({
                                                         bind: dvm.radioCompId,
                                                         view: () => {
+                                                            dvm.variantIds = [];
                                                             switch (vm.data.content.check_according) {
                                                                 case 'collection':
                                                                     return gvc.bindView(() => {
@@ -1821,8 +1827,10 @@ export class StockHistory {
                                         if (dd.result && dd.response.value) {
                                             dataList = dd.response.value.list;
                                         }
-                                        loading = false;
-                                        gvc.notifyDataChange(id);
+                                        setTimeout(() => {
+                                            loading = false;
+                                            gvc.notifyDataChange(id);
+                                        }, 100);
                                     });
                                 }
                             },
@@ -1909,8 +1917,10 @@ export class StockHistory {
                                         if (dd.result && dd.response.value) {
                                             dataList = dd.response.value.list;
                                         }
-                                        loading = false;
-                                        gvc.notifyDataChange(id);
+                                        setTimeout(() => {
+                                            loading = false;
+                                            gvc.notifyDataChange(id);
+                                        }, 100);
                                     });
                                 }
                             },
@@ -1970,8 +1980,10 @@ export class StockHistory {
                                         if (dd.result && dd.response.value) {
                                             dataList = dd.response.value.list;
                                         }
-                                        loading = false;
-                                        gvc.notifyDataChange(id);
+                                        setTimeout(() => {
+                                            loading = false;
+                                            gvc.notifyDataChange(id);
+                                        }, 100);
                                     });
                                 }
                             },
@@ -2026,8 +2038,10 @@ export class StockHistory {
                                         if (dd.result && dd.response.value) {
                                             dataList = dd.response.value.list;
                                         }
-                                        loading = false;
-                                        gvc.notifyDataChange(id);
+                                        setTimeout(() => {
+                                            loading = false;
+                                            gvc.notifyDataChange(id);
+                                        }, 100);
                                     });
                                 }
                             },
@@ -2089,8 +2103,10 @@ export class StockHistory {
                                         if (dd.result && dd.response.value) {
                                             dataList = dd.response.value.list;
                                         }
-                                        loading = false;
-                                        gvc.notifyDataChange(id);
+                                        setTimeout(() => {
+                                            loading = false;
+                                            gvc.notifyDataChange(id);
+                                        }, 100);
                                     });
                                 }
                             },

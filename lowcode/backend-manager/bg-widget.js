@@ -3539,7 +3539,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
               ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
             </div>
           </div>
-          <div class="d-flex align-items-center" style="gap: 6px">
+          <div class="d-flex align-items-center justify-content-end" style="gap: 6px; min-width: 115px;">
             <div>庫存量</div>
             <div style="color: #393939; font-size: 24px; font-weight: 600;">${opt.stock}</div>
           </div>
@@ -3637,7 +3637,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                             const newOptions = vm.options.slice(startIdx, endIdx);
                                             newOptions.forEach(option => {
                                                 const optionElement = document.createElement('div');
-                                                optionElement.classList.add('d-flex', 'align-items-center');
+                                                optionElement.classList.add('d-flex', 'align-items-center', 'justify-content-between');
                                                 optionElement.style.gap = '24px';
                                                 optionElement.innerHTML = printOptionSt(option);
                                                 dialogContainer.appendChild(optionElement);
