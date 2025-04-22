@@ -286,6 +286,7 @@ router.get('/order', async (req, resp) => {
                 payment_select: req.query.payment_select,
                 reconciliation_status: req.query.reconciliation_status && req.query.reconciliation_status.split(','),
                 manager_tag: req.query.manager_tag,
+                member_levels: req.query.member_levels,
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {

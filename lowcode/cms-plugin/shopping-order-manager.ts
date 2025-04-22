@@ -374,12 +374,6 @@ export class ShoppingOrderManager {
                 filter: vm.filter,
                 archived: `${query.isArchived}`,
                 is_shipment: query.isShipment,
-                manager_tag: (() => {
-                  if (vm.filter.manager_tag && vm.filter.manager_tag.length > 0) {
-                    return vm.filter.manager_tag.join(',');
-                  }
-                  return undefined;
-                })(),
               };
               if (vm.filter_type !== 'all') {
                 vm.apiJSON.is_pos = vm.filter_type === 'pos';

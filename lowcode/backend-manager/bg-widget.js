@@ -2157,7 +2157,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             bind: id,
             view: () => {
                 try {
-                    def || (def = []);
+                    def = Array.isArray(def) ? def : [];
                     return [
                         this.grayButton(loading ? button_title : '確認', gvc.event(() => {
                             loading = !loading;

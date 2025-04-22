@@ -128,6 +128,7 @@ export class BgListComponent {
                                                     this.vm.filter[item.key] = value;
                                                 })
                                                 : '';
+                                        break;
                                     case 'search_and_select':
                                         contentHTML +=
                                             item.data.length > 0

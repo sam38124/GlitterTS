@@ -2587,7 +2587,7 @@ ${obj.default ?? ''}</textarea
       bind: id,
       view: () => {
         try {
-          def ||= [];
+          def = Array.isArray(def) ? def : [];
           return [
             this.grayButton(
               loading ? button_title : '確認',

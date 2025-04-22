@@ -3546,9 +3546,10 @@ class Shopping {
     }
     async getCheckOut(query) {
         try {
+            const userClass = new user_js_1.User(this.app);
             const timer = new ut_timer_js_1.UtTimer('get-checkout-info');
             timer.checkPoint('start');
-            let querySql = ['1=1'];
+            const querySql = ['1=1'];
             let orderString = 'order by id desc';
             await this.initOrderCustomizeTagConifg();
             if (query.search && query.searchType) {
@@ -3725,12 +3726,35 @@ class Shopping {
                     querySql.push(`(${tagJoin.join(' OR ')})`);
                 }
             }
-            query.status && querySql.push(`o.status IN (${query.status})`);
+            if (query.status) {
+                querySql.push(`o.status IN (${query.status})`);
+            }
             const orderMath = [];
             query.email && orderMath.push(`(email=${database_js_1.default.escape(query.email)})`);
             query.phone && orderMath.push(`(email=${database_js_1.default.escape(query.phone)})`);
             if (orderMath.length) {
-                querySql.push(`(${orderMath.join(' or ')})`);
+                querySql.push(`(${orderMath.join(' OR ')})`);
+            }
+            if (query.member_levels) {
+                let temp = [];
+                const queryLevel = query.member_levels.split(',');
+                const queryIdLevel = queryLevel.filter(level => level !== 'null');
+                if (queryLevel.includes('null')) {
+                    temp = [`u.member_level IS NULL`, `u.member_level = ''`];
+                }
+                if (queryIdLevel.length > 0) {
+                    temp = [
+                        ...temp,
+                        `u.member_level IN (${queryIdLevel
+                            .map(level => {
+                            return database_js_1.default.escape(level);
+                        })
+                            .join(',')})`,
+                    ];
+                }
+                if (temp.length > 0) {
+                    querySql.push(`(${temp.join(' OR ')})`);
+                }
             }
             if (query.filter_type === 'true' || query.archived) {
                 if (query.archived === 'true') {
@@ -3747,13 +3771,19 @@ class Shopping {
             if (!(query.filter_type === 'true' || query.archived)) {
                 querySql.push(`((order_status is null) or (order_status NOT IN (-99)))`);
             }
-            let sql = `SELECT i.invoice_no,
-                        i.invoice_data,
-                        i.\`status\` as invoice_status,
-                        o.*
-                 FROM \`${this.app}\`.t_checkout o
-                          LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id and i.status = 1
-                 WHERE ${querySql.join(' and ')} ${orderString}`;
+            let sql = `
+          SELECT i.invoice_no,
+            i.invoice_data,
+            i.\`status\` as invoice_status,
+            o.*
+          FROM \`${this.app}\`.t_checkout o
+            ${query.member_levels ? `LEFT JOIN \`${this.app}\`.t_user u ON o.email = u.phone OR o.email = u.email` : ''}
+            LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id AND i.status = 1
+          WHERE ${querySql.join(' AND ')} ${orderString}
+        `;
+            console.log('-----');
+            console.log(sql);
+            console.log('-----');
             timer.checkPoint('start-query-sql');
             if (query.returnSearch == 'true') {
                 const data = await database_js_1.default.query(`SELECT *
@@ -3779,11 +3809,10 @@ class Shopping {
                 }
                 return data[0];
             }
-            const response_data = await new Promise(async (resolve, reject) => {
+            const response_data = await new Promise(async (resolve) => {
                 timer.checkPoint('start-query-response_data');
                 if (query.id) {
-                    const data = (await database_js_1.default.query(`SELECT *
-               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+                    const data = (await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
               `, []))[0];
                     resolve({
                         data: data,
@@ -3791,15 +3820,12 @@ class Shopping {
                     });
                 }
                 else {
-                    const data = await database_js_1.default.query(`SELECT *
-             FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+                    const data = await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
             `, []);
                     timer.checkPoint('finish-query-response_data');
                     resolve({
                         data: data,
-                        total: (await database_js_1.default.query(`SELECT count(1)
-                 FROM (${sql}) as subqyery
-                `, []))[0]['count(1)'],
+                        total: (await database_js_1.default.query(`SELECT count(1) FROM (${sql}) as subqyery`, []))[0]['count(1)'],
                     });
                 }
             });

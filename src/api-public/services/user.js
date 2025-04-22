@@ -1220,12 +1220,25 @@ class User {
                 }
             }
             if (query.member_levels) {
-                querySql.push(`member_level in (${query.member_levels
-                    .split(',')
-                    .map(level => {
-                    return database_1.default.escape(level);
-                })
-                    .join(',')})`);
+                let temp = [];
+                const queryLevel = query.member_levels.split(',');
+                const queryIdLevel = queryLevel.filter(level => level !== 'null');
+                if (queryLevel.includes('null')) {
+                    temp = [`member_level IS NULL`, `member_level = ''`];
+                }
+                if (queryIdLevel.length > 0) {
+                    temp = [
+                        ...temp,
+                        `member_level IN (${queryIdLevel
+                            .map(level => {
+                            return database_1.default.escape(level);
+                        })
+                            .join(',')})`,
+                    ];
+                }
+                if (temp.length > 0) {
+                    querySql.push(`(${temp.join(' OR ')})`);
+                }
             }
             if (query.search) {
                 const searchValue = `%${query.search}%`;
@@ -1354,7 +1367,9 @@ class User {
                 query.all_result ? getUserQuery() : [],
             ]);
             checkPoint('return data');
-            return Object.assign(Object.assign({ data: pageUsers }, (allUsers.length > 0 ? { allUsers } : {})), { total: (await database_1.default.query(countSQL, []))[0]['count(1)'], extra: {
+            const total = (await database_1.default.query(countSQL, []))[0]['count(1)'];
+            console.log(`user total: ${total}`);
+            return Object.assign(Object.assign({ data: pageUsers }, (allUsers.length > 0 ? { allUsers } : {})), { total: total, extra: {
                     noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
                 } });
         }
@@ -1419,8 +1434,7 @@ class User {
                         users: [],
                     });
                 }
-                const users = await database_1.default.query(`SELECT userID
-                                      FROM \`${this.app}\`.t_user;`, []);
+                const users = await database_1.default.query(`SELECT userID FROM \`${this.app}\`.t_user;`, []);
                 const levelItems = await this.getUserLevel(users.map((item) => {
                     return { userId: item.userID };
                 }));

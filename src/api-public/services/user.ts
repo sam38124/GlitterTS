@@ -1462,14 +1462,28 @@ export class User {
       }
 
       if (query.member_levels) {
-        querySql.push(
-          `member_level in (${query.member_levels
-            .split(',')
-            .map(level => {
-              return db.escape(level);
-            })
-            .join(',')})`
-        );
+        let temp: string[] = [];
+        const queryLevel = query.member_levels.split(',');
+        const queryIdLevel = queryLevel.filter(level => level !== 'null');
+
+        if (queryLevel.includes('null')) {
+          temp = [`member_level IS NULL`, `member_level = ''`];
+        }
+
+        if (queryIdLevel.length > 0) {
+          temp = [
+            ...temp,
+            `member_level IN (${queryIdLevel
+              .map(level => {
+                return db.escape(level);
+              })
+              .join(',')})`,
+          ];
+        }
+
+        if (temp.length > 0) {
+          querySql.push(`(${temp.join(' OR ')})`);
+        }
       }
 
       if (query.search) {
@@ -1647,13 +1661,16 @@ export class User {
       ]);
       checkPoint('return data');
 
+      const total = (await db.query(countSQL, []))[0]['count(1)'];
+      console.log(`user total: ${total}`);
+
       return {
         // 指定頁數和符合篩選條件的會員資料
         data: pageUsers,
         // 所有符合篩選條件的會員資料
         ...(allUsers.length > 0 ? { allUsers } : {}),
         // 所有符合篩選條件的會員數量
-        total: (await db.query(countSQL, []))[0]['count(1)'],
+        total: total,
         // 額外資料（例如未註冊的訂閱者資料）
         extra: {
           noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
@@ -1752,11 +1769,7 @@ export class User {
           });
         }
 
-        const users = await db.query(
-          `SELECT userID
-                                      FROM \`${this.app}\`.t_user;`,
-          []
-        );
+        const users = await db.query(`SELECT userID FROM \`${this.app}\`.t_user;`, []);
 
         const levelItems = await this.getUserLevel(
           users.map((item: { userID: number }) => {

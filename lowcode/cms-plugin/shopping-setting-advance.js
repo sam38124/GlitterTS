@@ -461,7 +461,7 @@ export class ShoppingSettingAdvance {
                             };
                             const isDesktop = document.body.clientWidth > 768;
                             const getIndexStyle = (index) => index === 0
-                                ? `height: 100%; padding: 0; min-width: ${isDesktop ? 250 : 125}px; max-width: ${isDesktop ? 250 : 125}px;position: sticky; left: 0; background: #fff; box-shadow: 1px 0px 0px 0px rgba(0, 0, 0, 0.10);`
+                                ? `height: 100%; padding: 0; min-width: ${isDesktop ? 250 : 200}px; max-width: ${isDesktop ? 250 : 200}px;position: sticky; left: 0; background: #fff; box-shadow: 1px 0px 0px 0px rgba(0, 0, 0, 0.10);`
                                 : 'height: 100%; padding: 0; text-align: center; justify-content: center; min-width: 126px;';
                             const resetPostList = (result, type) => {
                                 var _a, _b, _c;
@@ -726,13 +726,23 @@ export class ShoppingSettingAdvance {
                                     }
                                     else {
                                         const scrollDiv = document.getElementById('scrollDiv');
-                                        if (isDesktop && scrollDiv) {
-                                            scrollDiv.addEventListener('scroll', () => {
-                                                const status = scrollDiv.scrollLeft > 360;
+                                        if (scrollDiv) {
+                                            function setStatus(scrollDiv, delta = 360) {
+                                                const status = scrollDiv.scrollLeft > delta;
                                                 if (priceVM.showPriceDetail !== status) {
                                                     priceVM.showPriceDetail = status;
                                                 }
-                                            });
+                                            }
+                                            if (isDesktop) {
+                                                scrollDiv.addEventListener('scroll', () => {
+                                                    setStatus(scrollDiv);
+                                                });
+                                            }
+                                            else {
+                                                scrollDiv.addEventListener('touchmove', () => {
+                                                    setStatus(scrollDiv);
+                                                });
+                                            }
                                         }
                                     }
                                 },

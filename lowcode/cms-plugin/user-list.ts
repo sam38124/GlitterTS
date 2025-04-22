@@ -276,7 +276,7 @@ export class UserList {
                   UserList.setUserForm(gvc, () => gvc.notifyDataChange(vm.id));
                 })}"
               >
-                <i class="fa-regular fa-gear me-2 "></i>
+                <i class="fa-regular fa-gear me-2"></i>
                 自訂資料
               </button>
             </div>

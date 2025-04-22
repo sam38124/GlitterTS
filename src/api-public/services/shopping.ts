@@ -4894,14 +4894,17 @@ export class Shopping {
     is_reconciliation?: boolean;
     reconciliation_status?: string[];
     manager_tag?: string;
+    member_levels?: string;
   }) {
     try {
+      const userClass = new User(this.app);
       const timer = new UtTimer('get-checkout-info');
       timer.checkPoint('start');
 
-      let querySql = ['1=1'];
+      const querySql = ['1=1'];
       let orderString = 'order by id desc';
 
+      // 初始化訂單現有標籤
       await this.initOrderCustomizeTagConifg();
 
       if (query.search && query.searchType) {
@@ -4979,6 +4982,7 @@ export class Shopping {
             .join(' or ')})`
         );
       }
+
       if (query.orderStatus) {
         let orderArray = query.orderStatus.split(',');
         let temp = '';
@@ -4994,12 +4998,15 @@ export class Shopping {
 
         querySql.push(countingSQL);
       }
+
       if (query.is_shipment) {
         querySql.push(`(shipment_number IS NOT NULL) and (shipment_number != '')`);
       }
+
       if (query.is_reconciliation) {
         querySql.push(`((o.status in (1,-2)) or ((payment_method='cash_on_delivery' and progress='finish') ))`);
       }
+
       if (query.payment_select) {
         querySql.push(
           `payment_method in (${query.payment_select
@@ -5008,6 +5015,7 @@ export class Shopping {
             .join(',')})`
         );
       }
+
       if (query.progress) {
         //備貨中
         if (query.progress === 'in_stock') {
@@ -5024,6 +5032,7 @@ export class Shopping {
         temp += `progress IN (${newArray.map(status => `"${status}"`).join(',')})`;
         querySql.push(`(${temp})`);
       }
+
       if (query.distribution_code) {
         let codes = query.distribution_code.split(',');
         let temp = '';
@@ -5036,6 +5045,7 @@ export class Shopping {
       } else if (query.is_pos === 'false') {
         querySql.push(`(order_source!='POS' or order_source is null)`);
       }
+
       if (query.shipment) {
         let shipment = query.shipment.split(',');
         let temp = '';
@@ -5055,6 +5065,7 @@ export class Shopping {
                     `);
         }
       }
+
       if (query.shipment_time) {
         const shipment_time = query.shipment_time.split(',');
         if (shipment_time.length > 1) {
@@ -5091,14 +5102,41 @@ export class Shopping {
           querySql.push(`(${tagJoin.join(' OR ')})`);
         }
       }
-      query.status && querySql.push(`o.status IN (${query.status})`);
-      const orderMath = [];
 
-      // JSON_EXTRACT(orderData, '$.customer_info.phone')
+      if (query.status) {
+        querySql.push(`o.status IN (${query.status})`);
+      }
+
+      const orderMath = [];
       query.email && orderMath.push(`(email=${db.escape(query.email)})`);
       query.phone && orderMath.push(`(email=${db.escape(query.phone)})`);
       if (orderMath.length) {
-        querySql.push(`(${orderMath.join(' or ')})`);
+        querySql.push(`(${orderMath.join(' OR ')})`);
+      }
+
+      if (query.member_levels) {
+        let temp: string[] = [];
+        const queryLevel = query.member_levels.split(',');
+        const queryIdLevel = queryLevel.filter(level => level !== 'null');
+
+        if (queryLevel.includes('null')) {
+          temp = [`u.member_level IS NULL`, `u.member_level = ''`];
+        }
+
+        if (queryIdLevel.length > 0) {
+          temp = [
+            ...temp,
+            `u.member_level IN (${queryIdLevel
+              .map(level => {
+                return db.escape(level);
+              })
+              .join(',')})`,
+          ];
+        }
+
+        if (temp.length > 0) {
+          querySql.push(`(${temp.join(' OR ')})`);
+        }
       }
 
       if (query.filter_type === 'true' || query.archived) {
@@ -5111,17 +5149,28 @@ export class Shopping {
       } else if (query.filter_type === 'normal') {
         querySql.push(`((archived is null) or (archived!='true'))`);
       }
+
       if (!(query.filter_type === 'true' || query.archived)) {
         querySql.push(`((order_status is null) or (order_status NOT IN (-99)))`);
       }
-      let sql = `SELECT i.invoice_no,
-                        i.invoice_data,
-                        i.\`status\` as invoice_status,
-                        o.*
-                 FROM \`${this.app}\`.t_checkout o
-                          LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id and i.status = 1
-                 WHERE ${querySql.join(' and ')} ${orderString}`;
+
+      let sql = `
+          SELECT i.invoice_no,
+            i.invoice_data,
+            i.\`status\` as invoice_status,
+            o.*
+          FROM \`${this.app}\`.t_checkout o
+            ${query.member_levels ? `LEFT JOIN \`${this.app}\`.t_user u ON o.email = u.phone OR o.email = u.email` : ''}
+            LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id AND i.status = 1
+          WHERE ${querySql.join(' AND ')} ${orderString}
+        `;
+
+      console.log('-----');
+      console.log(sql);
+      console.log('-----');
+
       timer.checkPoint('start-query-sql');
+
       if (query.returnSearch == 'true') {
         const data = await db.query(
           `SELECT *
@@ -5150,13 +5199,13 @@ export class Shopping {
         }
         return data[0];
       }
-      const response_data: any = await new Promise(async (resolve, reject) => {
+
+      const response_data: any = await new Promise(async resolve => {
         timer.checkPoint('start-query-response_data');
         if (query.id) {
           const data = (
             await db.query(
-              `SELECT *
-               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+              `SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
               `,
               []
             )
@@ -5167,25 +5216,18 @@ export class Shopping {
           });
         } else {
           const data = await db.query(
-            `SELECT *
-             FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+            `SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
             `,
             []
           );
           timer.checkPoint('finish-query-response_data');
           resolve({
             data: data,
-            total: (
-              await db.query(
-                `SELECT count(1)
-                 FROM (${sql}) as subqyery
-                `,
-                []
-              )
-            )[0]['count(1)'],
+            total: (await db.query(`SELECT count(1) FROM (${sql}) as subqyery`, []))[0]['count(1)'],
           });
         }
       });
+
       const obMap = Array.isArray(response_data.data) ? response_data.data : [response_data.data];
       const keyData = (
         await Private_config.getConfig({
@@ -5193,6 +5235,7 @@ export class Shopping {
           key: 'glitter_finance',
         })
       )[0].value;
+
       await Promise.all(
         obMap
           .map(async (order: any) => {
@@ -5272,6 +5315,7 @@ export class Shopping {
             })
           )
       );
+
       timer.checkPoint('finish-query-all');
       return response_data;
     } catch (e) {
