@@ -702,6 +702,7 @@ export class UMOrder {
                                         };
                                     }),
                                     content_type: 'product',
+                                    eventID: orderData.orderID
                                 });
                                 Ad.gtagEvent('purchase', {
                                     transaction_id: vm.data.cart_token,

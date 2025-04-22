@@ -17,7 +17,7 @@ export class UserUpdate {
     await db.query(`UPDATE \`${app_name}\`.t_user
                     SET
                         phone = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.phone')),
-                        email = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email'))  where userID>?`,[
+                        email = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email'))  where userID=?`,[
       userID
     ])
   }

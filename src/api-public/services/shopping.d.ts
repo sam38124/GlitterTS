@@ -175,39 +175,6 @@ type Collection = {
     };
     hidden?: boolean;
 };
-type CartItem = {
-    id: string;
-    spec: string[];
-    count: number;
-    sale_price: number;
-    is_gift?: boolean;
-    collection: string[];
-    title: string;
-    preview_image: string;
-    shipment_obj: {
-        type: string;
-        value: number;
-    };
-    discount_price?: number;
-    weight: number;
-    rebate: number;
-    designated_logistics: {
-        type: 'all' | 'designated';
-        list: string[];
-    };
-    deduction_log?: {
-        [p: string]: number;
-    };
-    min_qty?: number;
-    max_qty?: number;
-    buy_history_count?: number;
-    sku: string;
-    stock: number;
-    show_understocking: 'true' | 'false';
-    is_add_on_items: CartItem | boolean;
-    pre_order: boolean;
-    is_hidden: boolean;
-};
 export type Cart = {
     archived?: string;
     customer_info: any;

@@ -1074,6 +1074,7 @@ export class CheckoutIndex {
                                         padding = 0;
                                     }
                                     const shipmentSupportSet = new Set(vm.cartData.shipment_support);
+                                    console.log(`shipmentSupportSet==>`, shipmentSupportSet);
                                     const shipmentList = this.getShipmentMethod(vm.cartData).filter((dd) => shipmentSupportSet.has(dd.value));
                                     console.log(`cartData.shipment_selector=>`, vm.cartData.shipment_selector);
                                     console.log(`shipmentSupportSet=>`, shipmentSupportSet);

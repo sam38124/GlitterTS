@@ -37,7 +37,9 @@ class AiPointes {
                 note: cf.note,
                 method: cf.method || '',
                 table: 't_ai_points',
-                title: 'AI Points加值', ratio: 10
+                title: 'AI Points加值', ratio: 10,
+                "notify_url": `${process.env.DOMAIN}/api-public/v1/ai/points/notify?g-app=${this.app}&type=${keyData.TYPE}`,
+                "return_url": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${keyData.TYPE}`,
             })))
         };
     }

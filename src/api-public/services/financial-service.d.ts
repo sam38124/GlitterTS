@@ -42,6 +42,8 @@ export default class FinancialService {
         table: string;
         title: string;
         ratio: number;
+        notify_url: string;
+        return_url: string;
     }): Promise<string>;
 }
 export declare class EzPay {
@@ -109,6 +111,8 @@ export declare class EcPay {
         CheckMacValue?: string;
         table: string;
         title: string;
+        notify_url: string;
+        return_url: string;
         ratio: number;
     }): Promise<string>;
 }

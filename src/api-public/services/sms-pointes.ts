@@ -29,6 +29,15 @@ export class SmsPoints {
             appName: this.app, key: 'glitter_finance'
         }))[0].value);
         const kd=keyData[keyData.TYPE]
+        console.log(`kd-is=>`,{
+            "HASH_IV": kd.HASH_IV,
+            "HASH_KEY": kd.HASH_KEY,
+            "ActionURL": kd.ActionURL,
+            "NotifyURL": `${process.env.DOMAIN}/api-public/v1/sms/points/notify?g-app=${this.app}&type=${keyData.TYPE}`,
+            "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${keyData.TYPE}`,
+            "MERCHANT_ID": kd.MERCHANT_ID,
+            TYPE:keyData.TYPE
+        })
         return {
             form: (await (new FinancialService(this.app, {
                 "HASH_IV": kd.HASH_IV,
@@ -44,6 +53,8 @@ export class SmsPoints {
                 note: cf.note,
                 method:cf.method || '',
                 table:'t_sms_points',
+                "notify_url": `${process.env.DOMAIN}/api-public/v1/sms/points/notify?g-app=${this.app}&type=${keyData.TYPE}`,
+                "return_url": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${keyData.TYPE}`,
                 title:'SMS Points加值',ratio:10
             })))
         }

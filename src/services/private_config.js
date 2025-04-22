@@ -171,7 +171,7 @@ class Private_config {
                     return [];
                 }
             })();
-            const onlinePayKeys = glitter_finance_js_1.onlinePayArray.map(item => item.key);
+            const onlinePayKeys = (0, glitter_finance_js_1.onlinePayArray)().map(item => item.key);
             const defShipment = shipment_config_js_1.ShipmentConfig.list.map(item => item.value);
             const customDelivery = ((_a = shipment_setting.custom_delivery) !== null && _a !== void 0 ? _a : []).map((item) => item.id);
             [...onlinePayKeys, 'payment_info_line_pay', 'payment_info_atm', 'cash_on_delivery'].forEach(type => {

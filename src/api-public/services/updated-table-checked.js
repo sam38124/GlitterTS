@@ -214,8 +214,8 @@ class UpdatedTableChecked {
         await UpdatedTableChecked.update({
             app_name: app_name,
             table_name: 't_user',
-            last_version: ['V1.3'],
-            new_version: 'V1.4',
+            last_version: ['V1.3', 'V1.4'],
+            new_version: 'V1.5',
             event: `UPDATE \`${app_name}\`.t_user
     SET
     phone = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.phone')),

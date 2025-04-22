@@ -1173,6 +1173,7 @@ export class CheckoutIndex {
                           }
                           const shipmentSupportSet = new Set(vm.cartData.shipment_support);
 
+                          console.log(`shipmentSupportSet==>`,shipmentSupportSet)
                           const shipmentList = this.getShipmentMethod(vm.cartData).filter((dd: { value: string }) =>
                             shipmentSupportSet.has(dd.value)
                           );

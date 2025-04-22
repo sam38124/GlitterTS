@@ -214,7 +214,7 @@ export class Private_config {
         }
       })();
 
-      const onlinePayKeys = onlinePayArray.map(item => item.key);
+      const onlinePayKeys = onlinePayArray().map(item => item.key);
       const defShipment = ShipmentConfig.list.map(item => item.value);
       const customDelivery = (shipment_setting.custom_delivery ?? []).map((item: any) => item.id);
 

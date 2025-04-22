@@ -21,6 +21,7 @@ const rebate_1 = require("../services/rebate");
 const pos_js_1 = require("../services/pos.js");
 const shopnex_line_message_1 = require("../services/model/shopnex-line-message");
 const caught_error_js_1 = require("../../modules/caught-error.js");
+const checkout_event_js_1 = require("../services/checkout-event.js");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
@@ -134,7 +135,7 @@ router.delete('/rebate', async (req, resp) => {
 });
 router.post('/checkout', async (req, resp) => {
     try {
-        const result = await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
+        const result = await new checkout_event_js_1.CheckoutEvent(req.get('g-app'), req.body.token).toCheckout({
             line_items: req.body.line_items,
             email: (req.body.token && req.body.token.account) || req.body.email,
             return_url: req.body.return_url,
@@ -178,7 +179,7 @@ router.post('/checkout/repay', async (req, resp) => {
 });
 router.post('/checkout/preview', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
+        return response_1.default.succ(resp, await new checkout_event_js_1.CheckoutEvent(req.get('g-app'), req.body.token).toCheckout({
             line_items: req.body.line_items,
             email: req.body.checkOutType === 'POS' ? undefined : (req.body.token && req.body.token.account) || req.body.email,
             return_url: req.body.return_url,
@@ -207,7 +208,7 @@ router.post('/checkout/preview', async (req, resp) => {
 router.post('/manager/checkout', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
+            return response_1.default.succ(resp, await new checkout_event_js_1.CheckoutEvent(req.get('g-app'), req.body.token).toCheckout({
                 line_items: req.body.line_items,
                 email: req.body.customer_info.email,
                 return_url: req.body.return_url,
@@ -232,7 +233,7 @@ router.post('/manager/checkout', async (req, resp) => {
 router.post('/manager/checkout/preview', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
+            return response_1.default.succ(resp, await new checkout_event_js_1.CheckoutEvent(req.get('g-app'), req.body.token).toCheckout({
                 line_items: req.body.line_items,
                 email: (req.body.token && req.body.token.account) || req.body.email,
                 return_url: req.body.return_url,
@@ -1090,7 +1091,7 @@ router.get('/check-login-for-order', async (req, resp) => {
 });
 router.post('/pos/checkout', async (req, resp) => {
     async function checkoutPos() {
-        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
+        return response_1.default.succ(resp, await new checkout_event_js_1.CheckoutEvent(req.get('g-app'), req.body.token).toCheckout({
             order_id: req.body.orderID,
             line_items: req.body.lineItems,
             email: req.body.customer_info.email,

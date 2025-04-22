@@ -105,6 +105,8 @@ export default class FinancialService {
     table: string;
     title: string;
     ratio: number;
+    notify_url:string;
+    return_url:string;
   }): Promise<string> {
     if (this.keyData.TYPE === 'newWebPay') {
       return await new EzPay(this.appName, this.keyData).saveMoney(orderData);
@@ -621,6 +623,8 @@ export class EcPay {
     CheckMacValue?: string;
     table: string;
     title: string;
+    notify_url:string;
+    return_url:string;
     ratio: number;
   }) {
     await this.key_initial();
@@ -631,7 +635,7 @@ export class EcPay {
       TotalAmount: orderData.total,
       TradeDesc: '商品資訊',
       ItemName: orderData.title,
-      ReturnURL: this.keyData.NotifyURL,
+      ReturnURL: orderData.notify_url,
       ChoosePayment:
         orderData.method && orderData.method !== 'ALL'
           ? (() => {
@@ -674,9 +678,8 @@ export class EcPay {
       DeviceSource: '',
       EncryptType: '1',
       PaymentType: 'aio',
-      OrderResultURL: this.keyData.ReturnURL,
+      OrderResultURL: orderData.return_url,
     };
-
     const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
     orderData.CheckMacValue = chkSum;
     await db.execute(

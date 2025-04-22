@@ -44,6 +44,8 @@ export class Wallet {
                 method:cf.method || '',
                 table:'t_wallet',
                 title:'錢包儲值',
+                "notify_url":  `${process.env.DOMAIN}/api-public/v1/wallet/notify?g-app=${this.app}&type=${keyData.TYPE}`,
+                "return_url": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${keyData.TYPE}`,
                 ratio:1
             })))
         }

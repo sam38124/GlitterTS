@@ -436,7 +436,13 @@ export class UMLogin {
                         GlobalUser.loginRedirect='';
                         gvc.glitter.href = red;
                     }else {
-                        gvc.glitter.href = '/account_userinfo';
+                        //蔡先生的Proshake頁面，沒時間先這樣改
+                        if((window as any).appName==='proshake_v2'){
+                            gvc.glitter.href = '/user_info';
+                        }else{
+                            gvc.glitter.href = '/account_userinfo';
+                        }
+
                     }
                 }
             });

@@ -31,6 +31,7 @@ class FbApi {
                     axios_1.default
                         .post(cf.link, JSON.stringify({
                         data: [{
+                                "eventID": data.orderID,
                                 "event_name": "Purchase",
                                 "event_time": (new Date().getTime() / 1000).toFixed(0),
                                 "action_source": "website",

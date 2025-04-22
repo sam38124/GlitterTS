@@ -21,7 +21,6 @@ import { saasConfig } from '../../config.js';
 import { SMS } from './sms.js';
 import { LineMessage } from './line-message';
 import { EcInvoice } from './EcInvoice';
-import { onlinePayArray } from '../models/glitter-finance.js';
 import { App } from '../../services/app.js';
 import { Stock } from './stock';
 import { OrderEvent } from './order-event.js';
@@ -35,7 +34,11 @@ import { ProductInitial } from './product-initial.js';
 import { UtTimer } from '../utils/ut-timer.js';
 import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
 import PaymentTransaction from './model/handlePaymentTransaction.js';
+<<<<<<< HEAD
 import { Language, LanguageLocation } from '../../Language.js';
+=======
+import { CartItem, CheckoutEvent } from './checkout-event.js';
+>>>>>>> bbef563e ([update] : glitter version.)
 
 type BindItem = {
   id: string;
@@ -309,36 +312,7 @@ type Collection = {
   hidden?: boolean;
 };
 
-type CartItem = {
-  id: string;
-  spec: string[];
-  count: number;
-  sale_price: number;
-  is_gift?: boolean;
-  collection: string[];
-  title: string;
-  preview_image: string;
-  shipment_obj: { type: string; value: number };
-  discount_price?: number;
-  weight: number;
-  rebate: number;
-  designated_logistics: {
-    type: 'all' | 'designated';
-    list: string[];
-  };
-  deduction_log?: {
-    [p: string]: number;
-  };
-  min_qty?: number;
-  max_qty?: number;
-  buy_history_count?: number;
-  sku: string;
-  stock: number;
-  show_understocking: 'true' | 'false';
-  is_add_on_items: CartItem | boolean;
-  pre_order: boolean;
-  is_hidden: boolean;
-};
+
 
 type MultiSaleType = 'store' | 'level' | 'tags';
 
@@ -1962,6 +1936,7 @@ export class Shopping {
     );
   }
 
+<<<<<<< HEAD
   async toCheckout(
     data: {
       line_items: CartItem[];
@@ -3351,6 +3326,9 @@ export class Shopping {
       throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Func Error:' + e, null);
     }
   }
+=======
+
+>>>>>>> bbef563e ([update] : glitter version.)
 
   async repayOrder(orderID: string, return_url: string) {
     const app = this.app;
@@ -3900,7 +3878,41 @@ export class Shopping {
         cart_token: orderData.orderID,
         orderData,
       });
+<<<<<<< HEAD
       return await processCheckoutsStaggered(splitOrderArray, orderData, this);
+=======
+      for (const [index, order] of splitOrderArray.entries()) {
+        await (new CheckoutEvent(this.app, this.token)).toCheckout(
+          {
+            code_array: [],
+            order_id: orderData?.splitOrders?.[index] ?? '',
+            line_items: order.lineItems as any,
+            customer_info: order.customer_info,
+            return_url: '',
+            user_info: order.user_info,
+            discount: order.discount,
+            voucher: order.voucher,
+            total: order.total,
+            pay_status: Number(order.pay_status),
+          },
+          'split'
+        );
+      }
+
+      // try {
+      //   await db.query(
+      //     `UPDATE \`${this.app}\`.t_checkout
+      //    SET orderData = ?
+      //    WHERE cart_token = ?;`,
+      //     [JSON.stringify(orderData), orderData.orderID]
+      //   );
+      // }catch (e:any){
+      //   console.error(e);
+      //   throw exception.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
+      // }
+
+      return true;
+>>>>>>> bbef563e ([update] : glitter version.)
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'splitOrder Error:' + e, null);
     }

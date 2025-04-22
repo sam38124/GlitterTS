@@ -447,7 +447,7 @@ class EcPay {
             TotalAmount: orderData.total,
             TradeDesc: '商品資訊',
             ItemName: orderData.title,
-            ReturnURL: this.keyData.NotifyURL,
+            ReturnURL: orderData.notify_url,
             ChoosePayment: orderData.method && orderData.method !== 'ALL'
                 ? (() => {
                     const find = [
@@ -489,7 +489,7 @@ class EcPay {
             DeviceSource: '',
             EncryptType: '1',
             PaymentType: 'aio',
-            OrderResultURL: this.keyData.ReturnURL,
+            OrderResultURL: orderData.return_url,
         };
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         orderData.CheckMacValue = chkSum;

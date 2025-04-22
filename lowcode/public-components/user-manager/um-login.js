@@ -421,7 +421,12 @@ export class UMLogin {
                         gvc.glitter.href = red;
                     }
                     else {
-                        gvc.glitter.href = '/account_userinfo';
+                        if (window.appName === 'proshake_v2') {
+                            gvc.glitter.href = '/user_info';
+                        }
+                        else {
+                            gvc.glitter.href = '/account_userinfo';
+                        }
                     }
                 }
             });

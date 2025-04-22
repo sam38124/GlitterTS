@@ -48,7 +48,6 @@ const config_js_1 = require("../../config.js");
 const sms_js_1 = require("./sms.js");
 const line_message_1 = require("./line-message");
 const EcInvoice_1 = require("./EcInvoice");
-const glitter_finance_js_1 = require("../models/glitter-finance.js");
 const app_js_1 = require("../../services/app.js");
 const stock_1 = require("./stock");
 const order_event_js_1 = require("./order-event.js");
@@ -1973,7 +1972,7 @@ class Shopping {
             keyData.cash_on_delivery = (_4 = keyData.cash_on_delivery) !== null && _4 !== void 0 ? _4 : { shipmentSupport: [] };
             carData.payment_info_line_pay = keyData.payment_info_line_pay;
             carData.payment_info_atm = keyData.payment_info_atm;
-            const defaultPayArray = glitter_finance_js_1.onlinePayArray.map(item => item.key);
+            const defaultPayArray = onlinePayArray.map(item => item.key);
             keyData.cash_on_delivery.shipmentSupport = (_5 = keyData.cash_on_delivery.shipmentSupport) !== null && _5 !== void 0 ? _5 : [];
             carData.shipment_support = checkoutPayment
                 ? ((_6 = (() => {
@@ -2050,7 +2049,7 @@ class Shopping {
                     (formulaSet.has('use_rebate') ? 0 : carData.use_rebate);
                 return (!data.minimumTotal || total >= data.minimumTotal) && (!data.maximumTotal || total <= data.maximumTotal);
             }
-            carData.payment_setting = glitter_finance_js_1.onlinePayArray.filter((dd) => {
+            carData.payment_setting = onlinePayArray.filter((dd) => {
                 const k = keyData[dd.key];
                 if (!k || !k.toggle || !getCartFormulaPass(k))
                     return false;
