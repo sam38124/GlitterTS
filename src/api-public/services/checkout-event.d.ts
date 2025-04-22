@@ -1,5 +1,6 @@
 import { IToken } from '../models/Auth.js';
 import { Shopping } from './shopping.js';
+type CheckoutInsertType = 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' | 'split';
 export type CartItem = {
     id: string;
     spec: string[];
@@ -76,7 +77,7 @@ export declare class CheckoutEvent {
         fbc?: string;
         fbp?: string;
         temp_cart_id?: string;
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' | 'split', replace_order_id?: string): Promise<any>;
+    }, type?: CheckoutInsertType, replace_order_id?: string): Promise<any>;
     setPaymentSetting(obj: {
         carData: any;
         keyData: any;
@@ -90,3 +91,4 @@ export declare class CheckoutEvent {
         };
     }): boolean;
 }
+export {};

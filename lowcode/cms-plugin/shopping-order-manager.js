@@ -1895,11 +1895,13 @@ export class ShoppingOrderManager {
                                             })(),
                                             ...orderData.orderData.voucherList.map((dd) => {
                                                 var _a;
-                                                const descHTML = html ` <div
-                                  style="color: #8D8D8D; font-size: 14px; white-space: nowrap; text-overflow: ellipsis;"
-                                >
-                                  ${dd.title}
-                                </div>`;
+                                                const descHTML = dd.title
+                                                    ? html ` <div
+                                      style="color: #8D8D8D; font-size: 14px; white-space: nowrap; text-overflow: ellipsis;"
+                                    >
+                                      ${dd.title}
+                                    </div>`
+                                                    : '';
                                                 const rebackMaps = {
                                                     add_on_items: {
                                                         title: '加購優惠',
@@ -1920,6 +1922,9 @@ export class ShoppingOrderManager {
                                                         title: dd.id == 0 ? '手動調整' : '折扣',
                                                         description: descHTML,
                                                         total: (() => {
+                                                            if (orderData.orderData.orderSource === 'split') {
+                                                                return `- $${orderData.orderData.discount.toLocaleString()}`;
+                                                            }
                                                             const status = dd.discount_total > 0;
                                                             const isMinus = status ? '-' : '';
                                                             const isNegative = status ? 1 : -1;

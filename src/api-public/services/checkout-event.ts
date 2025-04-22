@@ -22,6 +22,8 @@ import { SMS } from './sms.js';
 import { LineMessage } from './line-message.js';
 import { Cart, Shopping, VoucherData } from './shopping.js';
 
+type CheckoutInsertType = 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' | 'split';
+
 export type CartItem = {
   id: string;
   spec: string[];
@@ -65,7 +67,7 @@ export class CheckoutEvent {
   }
 
   //取得有開啟的金流
-   getPaymentSetting() {
+  getPaymentSetting() {
     return JSON.parse(JSON.stringify(onlinePayArray()));
   }
 
@@ -108,7 +110,7 @@ export class CheckoutEvent {
       fbp?: string;
       temp_cart_id?: string;
     },
-    type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' | 'split' = 'add',
+    type: CheckoutInsertType = 'add',
     replace_order_id?: string
   ) {
     try {
@@ -237,8 +239,9 @@ export class CheckoutEvent {
       }
 
       const checkOutType = data.checkOutType ?? 'manual';
+
       const getUserDataAsync = async (
-        type: string,
+        type: CheckoutInsertType,
         token: IToken | undefined,
         data: {
           email?: string;
@@ -253,8 +256,8 @@ export class CheckoutEvent {
           return {};
         }
 
-        // 根據 token 獲取用戶數據
-        if (token?.userID && type !== 'POS' && checkOutType !== 'POS') {
+        // 非 POS, split 者，根據 token 獲取用戶數據
+        if (token?.userID && !['split', 'POS'].includes(type) && !['split', 'POS'].includes(checkOutType)) {
           return await userClass.getUserData(`${token.userID}`, 'userID');
         }
 
@@ -479,6 +482,7 @@ export class CheckoutEvent {
             const content = getProductData.content;
             const variant = getVariant(content, item);
             const count = Number(item.count);
+
             if (
               (Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
               !isNaN(count) &&
@@ -903,7 +907,7 @@ export class CheckoutEvent {
       (carData as any).payment_info_atm = keyData.payment_info_atm;
       (keyData as any).cash_on_delivery.shipmentSupport = (keyData as any).cash_on_delivery.shipmentSupport ?? [];
       //取得支援的Payment
-      await this.setPaymentSetting({carData:carData,checkoutPayment:checkoutPayment,keyData:keyData});
+      await this.setPaymentSetting({ carData: carData, checkoutPayment: checkoutPayment, keyData: keyData });
 
       // 防止帶入購物金時，總計小於0
       let subtotal = 0;
@@ -1361,7 +1365,7 @@ export class CheckoutEvent {
   public async setPaymentSetting(obj: { carData: any; keyData: any; checkoutPayment: string }) {
     let { carData, keyData, checkoutPayment } = obj;
     // 線上金流是否可使用判斷，填入付款資訊與方式
-    let payment_setting = (this.getPaymentSetting()).filter((dd: any) => {
+    let payment_setting = this.getPaymentSetting().filter((dd: any) => {
       const k = (keyData as any)[dd.key];
       if (!k || !k.toggle || !this.getCartFormulaPass(carData, k)) return false;
 
@@ -1404,28 +1408,33 @@ export class CheckoutEvent {
       }
     });
     //取得支援付款方式
-    (carData as any).payment_setting=payment_setting
+    (carData as any).payment_setting = payment_setting;
     //避免初次載入沒有預設金流的BUG
-    checkoutPayment = checkoutPayment || ((carData as any).payment_setting[0] && (carData as any).payment_setting[0].key);
-    console.log('checkoutPayment',checkoutPayment);
-    console.log('onlinePayArray',onlinePayArray);
+    checkoutPayment =
+      checkoutPayment || ((carData as any).payment_setting[0] && (carData as any).payment_setting[0].key);
+    console.log('checkoutPayment', checkoutPayment);
+    console.log('onlinePayArray', onlinePayArray);
     // 透過特定金流，取得指定物流
     carData.shipment_support =
       (() => {
         if (checkoutPayment === 'cash_on_delivery') {
-          console.log(`shipment_support-cash-delivery`)
+          console.log(`shipment_support-cash-delivery`);
           return (keyData as any).cash_on_delivery;
-        } else if (this.getPaymentSetting().map((item:any) => item.key).includes(checkoutPayment)) {
-          console.log(`shipment_support-online-pay-${checkoutPayment}`)
+        } else if (
+          this.getPaymentSetting()
+            .map((item: any) => item.key)
+            .includes(checkoutPayment)
+        ) {
+          console.log(`shipment_support-online-pay-${checkoutPayment}`);
           return keyData[checkoutPayment];
         } else if (checkoutPayment === 'atm') {
-          console.log(`shipment_support-atm`)
+          console.log(`shipment_support-atm`);
           return keyData.payment_info_atm;
         } else if (checkoutPayment === 'line') {
-          console.log(`shipment_support-line`)
+          console.log(`shipment_support-line`);
           return keyData.payment_info_line_pay;
         } else {
-          console.log(`shipment_support-custom`)
+          console.log(`shipment_support-custom`);
           // 自訂線下付款
           const customPay = keyData.payment_info_custom.find((c: { id: string }) => c.id === checkoutPayment);
           return customPay ?? {};

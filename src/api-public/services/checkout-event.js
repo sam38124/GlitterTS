@@ -145,7 +145,7 @@ class CheckoutEvent {
                     !((token === null || token === void 0 ? void 0 : token.userID) || (data.user_info && data.user_info.email) || (data.user_info && data.user_info.phone))) {
                     return {};
                 }
-                if ((token === null || token === void 0 ? void 0 : token.userID) && type !== 'POS' && checkOutType !== 'POS') {
+                if ((token === null || token === void 0 ? void 0 : token.userID) && !['split', 'POS'].includes(type) && !['split', 'POS'].includes(checkOutType)) {
                     return await userClass.getUserData(`${token.userID}`, 'userID');
                 }
                 return ((data.user_info.email && (await userClass.getUserData(data.user_info.email, 'email_or_phone'))) ||
@@ -309,6 +309,7 @@ class CheckoutEvent {
             }
             data.line_items = await Promise.all(data.line_items.map(async (item) => {
                 var _a, _b, _c, _d, _e;
+                console.log({ setUserID: `${(userData === null || userData === void 0 ? void 0 : userData.userID) || ''}` });
                 const getProductData = (await this.shopping.getProduct({
                     page: 0,
                     limit: 1,
@@ -321,6 +322,9 @@ class CheckoutEvent {
                 if (getProductData) {
                     const content = getProductData.content;
                     const variant = getVariant(content, item);
+                    console.log('=========');
+                    console.log(content.title);
+                    console.log(variant.spec, variant.sale_price);
                     const count = Number(item.count);
                     if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
                         !isNaN(count) &&
@@ -1014,7 +1018,7 @@ class CheckoutEvent {
     async setPaymentSetting(obj) {
         var _a, _b;
         let { carData, keyData, checkoutPayment } = obj;
-        let payment_setting = (this.getPaymentSetting()).filter((dd) => {
+        let payment_setting = this.getPaymentSetting().filter((dd) => {
             const k = keyData[dd.key];
             if (!k || !k.toggle || !this.getCartFormulaPass(carData, k))
                 return false;
@@ -1058,7 +1062,8 @@ class CheckoutEvent {
             }
         });
         carData.payment_setting = payment_setting;
-        checkoutPayment = checkoutPayment || (carData.payment_setting[0] && carData.payment_setting[0].key);
+        checkoutPayment =
+            checkoutPayment || (carData.payment_setting[0] && carData.payment_setting[0].key);
         console.log('checkoutPayment', checkoutPayment);
         console.log('onlinePayArray', glitter_finance_js_1.onlinePayArray);
         carData.shipment_support =
@@ -1067,7 +1072,9 @@ class CheckoutEvent {
                     console.log(`shipment_support-cash-delivery`);
                     return keyData.cash_on_delivery;
                 }
-                else if (this.getPaymentSetting().map((item) => item.key).includes(checkoutPayment)) {
+                else if (this.getPaymentSetting()
+                    .map((item) => item.key)
+                    .includes(checkoutPayment)) {
                     console.log(`shipment_support-online-pay-${checkoutPayment}`);
                     return keyData[checkoutPayment];
                 }

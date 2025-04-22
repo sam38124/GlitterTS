@@ -308,8 +308,6 @@ type Collection = {
   hidden?: boolean;
 };
 
-
-
 type MultiSaleType = 'store' | 'level' | 'tags';
 
 export type Cart = {
@@ -1932,8 +1930,6 @@ export class Shopping {
     );
   }
 
-
-
   async repayOrder(orderID: string, return_url: string) {
     const app = this.app;
 
@@ -2390,10 +2386,10 @@ export class Shopping {
 
   async splitOrder(obj: { orderData: Cart; splitOrderArray: OrderDetail[] }) {
     try {
+      const checkoutEvent = new CheckoutEvent(this.app, this.token);
       async function processCheckoutsStaggered(
         splitOrderArray: any[],
-        orderData: any,
-        context: any
+        orderData: any
       ): Promise<boolean | { result: string; reason: any }> {
         const promises = splitOrderArray.map((order, index) => {
           // 為每個操作返回一個新的 Promise
@@ -2417,7 +2413,7 @@ export class Shopping {
               };
 
               // 假設 context.toCheckout 本身返回一個 Promise
-              context
+              checkoutEvent
                 .toCheckout(payload, 'split')
                 .then(() => {
                   resolve(); // 當 toCheckout 成功時，resolve 外層的 Promise
@@ -2482,7 +2478,7 @@ export class Shopping {
         cart_token: orderData.orderID,
         orderData,
       });
-      return await processCheckoutsStaggered(splitOrderArray, orderData, this);
+      return await processCheckoutsStaggered(splitOrderArray, orderData);
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'splitOrder Error:' + e, null);
     }
@@ -3849,9 +3845,7 @@ export class Shopping {
                   order.orderData.cash_flow = (
                     await new PayNow(this.app, keyData['paynow']).confirmAndCaptureOrder(order.orderData.paynow_id)
                   ).result;
-                }catch (e) {
-
-                }
+                } catch (e) {}
               }
               if (order.orderData.user_info.shipment_refer === 'paynow') {
                 const pay_now = new PayNowLogistics(this.app);

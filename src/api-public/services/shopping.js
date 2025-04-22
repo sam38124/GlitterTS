@@ -36,6 +36,7 @@ const ut_timer_js_1 = require("../utils/ut-timer.js");
 const auto_fcm_js_1 = require("../../public-config-initial/auto-fcm.js");
 const handlePaymentTransaction_js_1 = __importDefault(require("./model/handlePaymentTransaction.js"));
 const Language_js_1 = require("../../Language.js");
+const checkout_event_js_1 = require("./checkout-event.js");
 class OrderDetail {
     constructor(subtotal, shipment) {
         this.discount = 0;
@@ -1642,7 +1643,8 @@ class Shopping {
     }
     async splitOrder(obj) {
         try {
-            async function processCheckoutsStaggered(splitOrderArray, orderData, context) {
+            const checkoutEvent = new checkout_event_js_1.CheckoutEvent(this.app, this.token);
+            async function processCheckoutsStaggered(splitOrderArray, orderData) {
                 const promises = splitOrderArray.map((order, index) => {
                     return new Promise((resolve, reject) => {
                         const delay = 1000 * index;
@@ -1660,7 +1662,7 @@ class Shopping {
                                 total: order.total,
                                 pay_status: Number(order.pay_status),
                             };
-                            context
+                            checkoutEvent
                                 .toCheckout(payload, 'split')
                                 .then(() => {
                                 resolve();
@@ -1717,7 +1719,7 @@ class Shopping {
                 cart_token: orderData.orderID,
                 orderData,
             });
-            return await processCheckoutsStaggered(splitOrderArray, orderData, this);
+            return await processCheckoutsStaggered(splitOrderArray, orderData);
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'splitOrder Error:' + e, null);
@@ -2797,8 +2799,7 @@ class Shopping {
                         try {
                             order.orderData.cash_flow = (await new financial_service_js_1.PayNow(this.app, keyData['paynow']).confirmAndCaptureOrder(order.orderData.paynow_id)).result;
                         }
-                        catch (e) {
-                        }
+                        catch (e) { }
                     }
                     if (order.orderData.user_info.shipment_refer === 'paynow') {
                         const pay_now = new paynow_logistics_js_1.PayNowLogistics(this.app);
