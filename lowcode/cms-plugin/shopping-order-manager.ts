@@ -1205,10 +1205,19 @@ export class ShoppingOrderManager {
         }
 
         const funBTN = () => {
-          console.log("orderData.orderData.orderSource -- " , orderData.orderData.orderSource);
           gvc.addStyle(css`
-            .funInsignia{ border-radius: 10px; background: #EAEAEA; display: flex; padding: 6px 18px; justify-content:
-            center; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
+            .funInsignia {
+              border-radius: 10px;
+              background: #eaeaea;
+              display: flex;
+              padding: 6px 18px;
+              justify-content: center;
+              align-items: center;
+              gap: 8px;
+              font-size: 16px;
+              font-weight: 700;
+              cursor: pointer;
+            }
           `);
           return {
             splitOrder: () => {
@@ -1216,8 +1225,8 @@ export class ShoppingOrderManager {
                 class="funInsignia"
                 style=""
                 onclick="${gvc.event(() => {
-                  if (orderData.orderData.orderSource=="split"){
-                    return
+                  if (orderData.orderData.orderSource == 'split') {
+                    return;
                   }
                   OrderSetting.splitOrder(gvc, orderData.orderData, () => gvc.notifyDataChange(vm.id));
                 })}"
@@ -2188,7 +2197,6 @@ export class ShoppingOrderManager {
                                 }
                               })(),
                               ...orderData.orderData.voucherList.map((dd: any) => {
-                                console.log("orderData.orderData.voucherList -- " , orderData.orderData.voucherList);
                                 const descHTML = html` <div
                                   style="color: #8D8D8D; font-size: 14px; white-space: nowrap; text-overflow: ellipsis;"
                                 >
@@ -3733,7 +3741,7 @@ export class ShoppingOrderManager {
               count: variant.qty ?? '1',
               sale_price: variant.sale_price,
               sku: variant.sku,
-              deduction_log:{}
+              deduction_log: {},
             });
             orderDetail.subtotal +=
               Number(orderDetail.lineItems[index].count) * orderDetail.lineItems[index].sale_price;

@@ -39,7 +39,7 @@ class Workers {
     static query(data) {
         const t0 = performance.now();
         const divisor = data.divisor && data.divisor > 1 ? data.divisor : 1;
-        const result = new Promise((resolve) => {
+        const result = new Promise(resolve => {
             let completed = 0;
             let resultArray = [];
             const chunkSize = Math.ceil(data.queryList.length / divisor);
@@ -53,7 +53,7 @@ class Workers {
                 const worker = new worker_threads_1.Worker(__filename, {
                     workerData: workerData,
                 });
-                worker.on('message', (response) => {
+                worker.on('message', response => {
                     completed += 1;
                     resultArray = resultArray.concat(response.tempArray.map((item, idx) => ({
                         index: workerData[idx].originalIndex,
@@ -63,7 +63,7 @@ class Workers {
                         resultArray.sort((a, b) => a.index - b.index);
                         resolve({
                             status: 'success',
-                            resultArray: resultArray.map((item) => item.data),
+                            resultArray: resultArray.map(item => item.data),
                         });
                     }
                 });

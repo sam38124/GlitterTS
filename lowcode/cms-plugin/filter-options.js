@@ -200,6 +200,14 @@ export class FilterOptions {
                     },
                 },
                 {
+                    key: 'member_levels',
+                    type: 'multi_checkbox',
+                    name: '會員等級',
+                    data: levelData.map((dd) => {
+                        return { key: dd.id, name: dd.tag_name };
+                    }),
+                },
+                {
                     key: 'manager_tag',
                     type: 'search_and_select',
                     name: '訂單管理標籤',

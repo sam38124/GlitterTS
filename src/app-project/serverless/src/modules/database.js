@@ -89,7 +89,7 @@ const queryLambada = async (cf, fun) => {
         password: config_1.default.DB_PWD,
         supportBigNumbers: true,
     };
-    Object.keys(cf).map((key) => {
+    Object.keys(cf).map(key => {
         cs[key] = cf[key];
     });
     const sp = promise_1.default.createPool(cs);
