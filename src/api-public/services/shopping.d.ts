@@ -1,6 +1,7 @@
 import { IToken } from '../models/Auth.js';
 import { DeliveryData } from './delivery.js';
 import { LanguageLocation } from '../../Language.js';
+import { CartItem } from './checkout-event.js';
 type BindItem = {
     id: string;
     spec: string[];
@@ -372,44 +373,6 @@ export declare class Shopping {
         value: string;
     }[], value: number | string): number;
     getShipmentFee(user_info: any, lineItems: CartItem[], shipment: any): number;
-    toCheckout(data: {
-        line_items: CartItem[];
-        customer_info?: any;
-        email?: string;
-        return_url: string;
-        order_id?: string;
-        user_info: any;
-        code?: string;
-        use_rebate?: number;
-        use_wallet?: number;
-        checkOutType?: 'manual' | 'auto' | 'POS' | 'group_buy';
-        pos_store?: string;
-        voucher?: any;
-        discount?: number;
-        total?: number;
-        pay_status?: number;
-        custom_form_format?: any;
-        custom_form_data?: any;
-        custom_receipt_form?: any;
-        distribution_code?: string;
-        code_array: string[];
-        give_away?: {
-            id: number;
-            spec: string[];
-            count: number;
-            voucher_id: string;
-        }[];
-        language?: LanguageLocation;
-        pos_info?: any;
-        invoice_select?: string;
-        pre_order?: boolean;
-        voucherList?: any;
-        isExhibition?: boolean;
-        client_ip_address?: string;
-        fbc?: string;
-        fbp?: string;
-        temp_cart_id?: string;
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' | 'split', replace_order_id?: string): Promise<any>;
     repayOrder(orderID: string, return_url: string): Promise<any>;
     getReturnOrder(query: {
         page: number;

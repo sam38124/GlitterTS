@@ -181,6 +181,7 @@ export class UMLogin {
                                                     <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="${Language.text('please_enter_verification_code')}" />
                                                 </div>
                                                 ${this.sendCodeAgain(gvc, vm.prefix, () => {
+                                                    
                                         this.sendVerifyPhoneCode(widget, `reg-${item.key}`);
                                     })}`;
                                 }
@@ -538,7 +539,7 @@ export class UMLogin {
                     onclick="${gvc.event(() => {
                         if (n == 0) {
                             event();
-                            n = 10;
+                            n = 30;
                             setTimeout(() => {
                                 gvc.notifyDataChange(id);
                             }, 100);
@@ -972,7 +973,7 @@ export class UMLogin {
         });
     }
 
-    static sendVerifyPhoneCode(widget: any, id: string) {
+    async  sendVerifyPhoneCode(widget: any, id: string) {
         const phone = this.checkValue(id);
 
         if (!phone) {
@@ -984,13 +985,18 @@ export class UMLogin {
             return;
         }
 
-        ApiUser.phoneVerify(phone).then((r) => {
-            if (r.result && r.response.result) {
-                widget.event('success', { title: Language.text('verification_code_sent') });
-            } else {
-                widget.event('error', { title: Language.text('system_error') });
-            }
-        });
+        if ((await ApiUser.getPhoneCount(phone)).response.result) {
+            widget.event('error', { title: Language.text('phone_number_already_exists') });
+        } else {
+            ApiUser.phoneVerify(phone).then((r) => {
+                if (r.result && r.response.result) {
+                    widget.event('success', { title: Language.text('verification_code_sent') });
+                } else {
+                    widget.event('error', { title: Language.text('system_error') });
+                }
+            });
+        }
+
     }
 
     static verifySubmitCode(widget: any, vm: VM) {

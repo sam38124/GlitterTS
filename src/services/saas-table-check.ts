@@ -275,11 +275,12 @@ function chunkArray(array: any, groupSize: number) {
 
 export async function compare_sql_table(scheme: string, table: string, sql: string): Promise<any> {
   try {
-    const tempKey = 'tempcompare' + table;
-    const trans = await db.Transaction.build();
-    await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
-    await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
-    await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
+    await db.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
+    // const tempKey = 'tempcompare' + table;
+    // const trans = await db.Transaction.build();
+    // await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
+    // await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
+    // await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
     // const compareStruct = `SELECT COLUMN_NAME,
     //                           DATA_TYPE,
     //                           CHARACTER_MAXIMUM_LENGTH
@@ -346,8 +347,8 @@ export async function compare_sql_table(scheme: string, table: string, sql: stri
     //     await loopToAlter();
     // }
     // await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
-    await trans.commit();
-    await trans.release();
+    // await trans.commit();
+    // await trans.release();
     return true;
   } catch (e) {
     console.log(e);

@@ -500,10 +500,10 @@ export class User {
                 redirect_uri: redirect,
               }),
             })
-            .then(response => {
+            .then((response:any) => {
               resolve(response.data);
             })
-            .catch(error => {
+            .catch((error:any) => {
               console.error(error);
               resolve(false);
             });
@@ -1592,10 +1592,10 @@ export class User {
           user.latest_order_date = (
             await db.query(
               `select created_time
-                                                    from \`${this.app}\`.t_checkout
-                                                    where email in ('${email}', '${phone}')
-                                                      and ${orderCountingSQL}
-                                                    order by created_time desc limit 0,1`,
+               from \`${this.app}\`.t_checkout
+               where email in ('${email}', '${phone}')
+                 and ${orderCountingSQL}
+               order by created_time desc limit 0,1`,
               []
             )
           )[0];
@@ -1603,10 +1603,10 @@ export class User {
           user.latest_order_total = (
             await db.query(
               `select total
-                                                     from \`${this.app}\`.t_checkout
-                                                     where email in ('${email}', '${phone}')
-                                                       and ${orderCountingSQL}
-                                                     order by created_time desc limit 0,1`,
+               from \`${this.app}\`.t_checkout
+               where email in ('${email}', '${phone}')
+                 and ${orderCountingSQL}
+               order by created_time desc limit 0,1`,
               []
             )
           )[0];
@@ -1614,9 +1614,9 @@ export class User {
           user.checkout_total = (
             await db.query(
               `select sum(total)
-                                                 from \`${this.app}\`.t_checkout
-                                                 where email in ('${email}', '${phone}')
-                                                   and ${orderCountingSQL} `,
+               from \`${this.app}\`.t_checkout
+               where email in ('${email}', '${phone}')
+                 and ${orderCountingSQL} `,
               []
             )
           )[0];
@@ -1624,9 +1624,9 @@ export class User {
           user.checkout_count = (
             await db.query(
               `select count(1)
-                                                 from \`${this.app}\`.t_checkout
-                                                 where email in ('${email}', '${phone}')
-                                                   and ${orderCountingSQL} `,
+               from \`${this.app}\`.t_checkout
+               where email in ('${email}', '${phone}')
+                 and ${orderCountingSQL} `,
               []
             )
           )[0];
@@ -1734,7 +1734,7 @@ export class User {
         const usuallyBuyingStandard = 9.99;
         const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
         const neverBuyingData = await db.query(
-          `SELECT userID,  email
+          `SELECT userID, email
            FROM \`${this.app}\`.t_user
            WHERE userID not in (${buyingList
              .map(item => item.userID)
@@ -1769,7 +1769,11 @@ export class User {
           });
         }
 
-        const users = await db.query(`SELECT userID FROM \`${this.app}\`.t_user;`, []);
+        const users = await db.query(
+          `SELECT userID
+           FROM \`${this.app}\`.t_user;`,
+          []
+        );
 
         const levelItems = await this.getUserLevel(
           users.map((item: { userID: number }) => {
@@ -2196,8 +2200,10 @@ export class User {
 
   public async updateUserData(userID: string, par: any, manager: boolean = false) {
     const getUser = await db.query(
-      `SELECT * FROM \`${this.app}\`.t_user WHERE userID = ${db.escape(userID)}
-        `,
+      `SELECT *
+       FROM \`${this.app}\`.t_user
+       WHERE userID = ${db.escape(userID)}
+      `,
       []
     );
     const userData = getUser[0] ?? {};
@@ -2221,7 +2227,9 @@ export class User {
         if (userDataVerify === par.userData.verify_code) {
           const pwd = await tool.hashPwd(par.userData.pwd);
           await db.query(
-            `UPDATE \`${this.app}\`.t_user SET pwd = ? WHERE userID = ${db.escape(userID)}
+            `UPDATE \`${this.app}\`.t_user
+             SET pwd = ?
+             WHERE userID = ${db.escape(userID)}
             `,
             [pwd]
           );
@@ -2238,7 +2246,7 @@ export class User {
           await db.query(
             `SELECT count(1)
              FROM \`${this.app}\`.t_user
-             WHERE (userData->>'$.email' = ${db.escape(par.userData.email)})
+             WHERE (userData ->>'$.email' = ${db.escape(par.userData.email)})
                AND (userID != ${db.escape(userID)})`,
             []
           )
@@ -2268,7 +2276,7 @@ export class User {
           await db.query(
             `SELECT count(1)
              FROM \`${this.app}\`.t_user
-             WHERE (userData->>'$.phone' = ${db.escape(par.userData.phone)})
+             WHERE (userData ->>'$.phone' = ${db.escape(par.userData.phone)})
                AND (userID != ${db.escape(userID)}) `,
             []
           )
@@ -2297,7 +2305,10 @@ export class User {
 
       if (par.userData.phone) {
         await db.query(
-          `UPDATE \`${this.app}\`.t_checkout SET email = ? WHERE id > 0 AND email = ?
+          `UPDATE \`${this.app}\`.t_checkout
+           SET email = ?
+           WHERE id > 0
+             AND email = ?
           `,
           [par.userData.phone, `${userData.userData.phone}`]
         );
@@ -2306,7 +2317,10 @@ export class User {
 
       if (par.userData.email) {
         await db.query(
-          `UPDATE \`${this.app}\`.t_checkout SET email = ? WHERE id > 0 AND email = ?
+          `UPDATE \`${this.app}\`.t_checkout
+           SET email = ?
+           WHERE id > 0
+             AND email = ?
           `,
           [par.userData.email, `${userData.userData.email}`]
         );
@@ -2332,7 +2346,10 @@ export class User {
       }
 
       const data = await db.query(
-        `UPDATE \`${this.app}\`.t_user SET ? WHERE 1 = 1 AND userID = ?
+        `UPDATE \`${this.app}\`.t_user
+         SET ?
+         WHERE 1 = 1
+           AND userID = ?
         `,
         [par, userID]
       );
@@ -2349,7 +2366,9 @@ export class User {
 
   public async batchGetUser(userId: string[]) {
     try {
-      const sql = `SELECT * FROM \`${this.app}\`.t_user WHERE userID = ?`;
+      const sql = `SELECT *
+                   FROM \`${this.app}\`.t_user
+                   WHERE userID = ?`;
       const dataArray: any = [];
 
       const stack: Stack = {
@@ -2754,6 +2773,7 @@ export class User {
           find_app_301.router = JSON.parse(config.value).list;
         }
       }
+      User.configData[this.app+config.key+(config.user_id ?? this.token!.userID)]=JSON.parse(config.value)
     } catch (e) {
       console.error(e);
       throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
@@ -2776,8 +2796,36 @@ export class User {
     }
   }
 
+  //CONFIG 的暫存避免頻繁撈取SQL資料
+  public static configData: any = {};
+
   public async getConfigV2(config: { key: string; user_id: string }): Promise<any> {
+    const app=this.app;
     try {
+      function checkConfigCache(){
+        if (
+          !config.key.split(',').find(dd => {
+            return !User.configData[app+dd + config.user_id];
+          })
+        ) {
+          if (config.key.includes(',')) {
+            return config.key.split(',').map(dd => {
+              return {
+                key:dd,
+                value:User.configData[app+dd + config.user_id]
+              };
+            });
+          } else {
+            return User.configData[app+config.key + config.user_id];
+          }
+        }
+      }
+      //當有暫存時
+      if(checkConfigCache()){
+        console.log(`[${this.app}] config cache hit`)
+        return JSON.parse(JSON.stringify(checkConfigCache()));
+      }
+
       const that = this;
 
       const getData = await db.execute(
@@ -2847,15 +2895,18 @@ export class User {
       }
 
       if (config.key.includes(',')) {
-        return Promise.all(
+        (await Promise.all(
           config.key.split(',').map(async dd => ({
             key: dd,
             value: await loop(getData.find((d1: any) => d1.key === dd)),
           }))
-        );
+        )).map((dd)=>{
+          User.configData[app+dd.key + config.user_id]=dd.value
+        })
       } else {
-        return loop(getData[0]);
+        User.configData[app+config.key + config.user_id] = await loop(getData[0]);
       }
+      return JSON.parse(JSON.stringify(checkConfigCache()));
     } catch (e) {
       console.error(e);
       throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);

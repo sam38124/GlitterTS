@@ -69,12 +69,12 @@ class Schedule {
                     if ((config === null || config === void 0 ? void 0 : config.auto_cancel_order_timer) && config.auto_cancel_order_timer > 0) {
                         const orders = await database_1.default.query(`SELECT * FROM \`${app}\`.t_checkout
                                 WHERE 
-                                    status = 0 
+                                    status = 0
+                                  AND order_status='0'
+                                  AND progress='wait'
+                                  AND payment_method != 'cash_on_delivery'
                                     AND created_time < NOW() - INTERVAL ${config.auto_cancel_order_timer} HOUR
                                     AND (orderData->>'$.proof_purchase' IS NULL)
-                                    AND order_status='0'
-                                    AND progress='wait'
-                                    AND payment_method != 'cash_on_delivery'
                                 ORDER BY id DESC;`, []);
                         await Promise.all(orders.map(async (order) => {
                             order.orderData.orderStatus = '-1';

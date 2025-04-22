@@ -205,6 +205,7 @@ export declare class User {
         key: string;
         user_id: string;
     }): Promise<any>;
+    static configData: any;
     getConfigV2(config: {
         key: string;
         user_id: string;

@@ -78,12 +78,12 @@ export class Schedule {
             const orders = await db.query(
               `SELECT * FROM \`${app}\`.t_checkout
                                 WHERE 
-                                    status = 0 
+                                    status = 0
+                                  AND order_status='0'
+                                  AND progress='wait'
+                                  AND payment_method != 'cash_on_delivery'
                                     AND created_time < NOW() - INTERVAL ${config.auto_cancel_order_timer} HOUR
                                     AND (orderData->>'$.proof_purchase' IS NULL)
-                                    AND order_status='0'
-                                    AND progress='wait'
-                                    AND payment_method != 'cash_on_delivery'
                                 ORDER BY id DESC;`,
               []
             );
@@ -117,9 +117,11 @@ export class Schedule {
           if (await this.perload(app)) {
             const users = await db.query(`select * from \`${app}\`.t_user  `, []);
             for (const user of users) {
+              //更新會籍
               await new User(app).checkMember(user, true);
+              //Migrate到column當中
               await UserUpdate.update(app, user.userID);
-              //限制速率每秒最多100筆更新
+              //限制速率每秒最多20筆更新
               await new Promise((resolve, reject) => {
                 setTimeout(() => {
                   resolve(true);
