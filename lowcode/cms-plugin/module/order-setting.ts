@@ -120,11 +120,20 @@ export class OrderSetting {
   }
 
   // 所有狀態 Badge
-  static getAllStatusBadge(orderData: CartData) {
+  static getAllStatusBadge(order: CartData) {
     const paymentBadges: Record<string, string> = {
-      '0': orderData.orderData.proof_purchase ? BgWidget.warningInsignia('待核款') : BgWidget.notifyInsignia('未付款'),
+      '0': (() => {
+        if (order.orderData.proof_purchase) {
+          return BgWidget.warningInsignia('待核款');
+        }
+        if (order.orderData.customer_info.payment_select == 'cash_on_delivery') {
+          return BgWidget.warningInsignia('貨到付款');
+        }
+        return BgWidget.notifyInsignia('未付款');
+      })(),
       '1': BgWidget.infoInsignia('已付款'),
       '3': BgWidget.warningInsignia('部分付款'),
+      '-1': BgWidget.notifyInsignia('付款失敗'),
       '-2': BgWidget.notifyInsignia('已退款'),
     };
 
@@ -132,7 +141,9 @@ export class OrderSetting {
       finish: BgWidget.infoInsignia('已取貨'),
       shipping: BgWidget.warningInsignia('已出貨'),
       arrived: BgWidget.warningInsignia('已送達'),
-      wait: BgWidget.notifyInsignia('未出貨'),
+      wait: order.orderData.user_info.shipment_number
+        ? BgWidget.secondaryInsignia('備貨中')
+        : BgWidget.notifyInsignia('未出貨'),
       pre_order: BgWidget.notifyInsignia('待預購'),
       returns: BgWidget.notifyInsignia('已退貨'),
     };
@@ -140,15 +151,23 @@ export class OrderSetting {
     const orderStatusBadges: Record<string, string> = {
       '1': BgWidget.infoInsignia('已完成'),
       '0': BgWidget.warningInsignia('處理中'),
+      '-1': BgWidget.notifyInsignia('已取消'),
     };
 
-    orderData.orderData.orderStatus = orderData.orderData.orderStatus ?? '0';
+    const orderSourceBadges: Record<string, string> = {
+      manual: BgWidget.primaryInsignia('手動', { type: 'border' }),
+      combine: BgWidget.warningInsignia('合併', { type: 'border' }),
+      POS: BgWidget.primaryInsignia('POS', { type: 'border' }),
+      split: BgWidget.warningInsignia('拆分', { type: 'border' }),
+      default: '',
+    };
+
     return {
-      paymentBadge: () => paymentBadges[`${orderData.status}`] || BgWidget.notifyInsignia('付款失敗'),
-      outShipBadge: () => outShipBadges[orderData.orderData.progress ?? 'wait'] || BgWidget.notifyInsignia('未知狀態'),
-      orderStatusBadge: () =>
-        orderStatusBadges[`${orderData.orderData.orderStatus}`] || BgWidget.notifyInsignia('已取消'),
-      archivedBadge: () => (orderData.orderData.archived === 'true' ? BgWidget.secondaryInsignia('已封存') : ''),
+      sourceBadge: () => orderSourceBadges[order.orderData.orderSource ?? 'default'] || orderSourceBadges['default'],
+      paymentBadge: () => paymentBadges[`${order.status}`] || paymentBadges['0'],
+      outShipBadge: () => outShipBadges[order.orderData.progress ?? 'wait'] || outShipBadges['wait'],
+      orderStatusBadge: () => orderStatusBadges[`${order.orderData.orderStatus ?? 0}`] || orderStatusBadges['0'],
+      archivedBadge: () => (order.orderData.archived === 'true' ? BgWidget.secondaryInsignia('已封存') : ''),
     };
   }
 
@@ -2097,7 +2116,7 @@ export class OrderSetting {
                 <ul class="mt-2 ms-4 ${gClass('dialog-ul')}">
                   ${hits
                     .map(hit => {
-                      return html` <li class="">${hit}</li>`;
+                      return html` <li>${hit}</li>`;
                     })
                     .join('')}
                 </ul>
@@ -2475,7 +2494,7 @@ export class OrderSetting {
                       view: () => {
                         return (
                           drawLineItems(item) +
-                          html` <div class="${commonClass} mt-3" style="width: ${item.width};"></div>`
+                          html`<div class="${commonClass} mt-3" style="width: ${item.width};"></div>`
                         );
                       },
                       divCreate: {
@@ -2493,6 +2512,7 @@ export class OrderSetting {
         divCreate: { style: '', class: `${gClass('itemList-section')}` },
       });
     };
+
     const renderSummary = (gvc: GVC) => {
       return gvc.bindView({
         bind: ids.summary,

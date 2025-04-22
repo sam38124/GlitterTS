@@ -383,25 +383,16 @@ export class ShoppingOrderManager {
                 async function getDatalist() {
                   const payment_support = await PaymentConfig.getSupportPayment();
                   return data.response.data.map((dd: any) => {
+                    const vt = OrderSetting.getAllStatusBadge(dd);
                     dd.orderData.total = dd.orderData.total || 0;
                     dd.orderData.customer_info = dd.orderData.customer_info ?? {};
+
                     if (query.isShipment) {
                       return [
                         {
                           key: '訂單編號',
                           value: html` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
-                            ${dd.cart_token}${(() => {
-                              switch (dd.order_source) {
-                                case 'manual':
-                                  return BgWidget.primaryInsignia('手動', { type: 'border' });
-                                case 'combine':
-                                  return BgWidget.warningInsignia('合併', { type: 'border' });
-                                case 'POS':
-                                  return BgWidget.primaryInsignia('POS', { type: 'border' });
-                                default:
-                                  return '';
-                              }
-                            })()}
+                            ${dd.cart_token}${vt.sourceBadge()}
                           </div>`,
                         },
                         {
@@ -416,26 +407,7 @@ export class ShoppingOrderManager {
                         },
                         {
                           key: '出貨狀態',
-                          value: (() => {
-                            switch (dd.orderData.progress ?? 'wait') {
-                              case 'pre_order':
-                                return BgWidget.notifyInsignia('待預購');
-                              case 'wait':
-                                if (dd.orderData.user_info.shipment_number) {
-                                  return BgWidget.secondaryInsignia('備貨中');
-                                } else {
-                                  return BgWidget.notifyInsignia('未出貨');
-                                }
-                              case 'shipping':
-                                return BgWidget.warningInsignia('已出貨');
-                              case 'finish':
-                                return BgWidget.infoInsignia('已取貨');
-                              case 'arrived':
-                                return BgWidget.warningInsignia('已送達');
-                              case 'returns':
-                                return BgWidget.dangerInsignia('已退貨');
-                            }
-                          })(),
+                          value: vt.outShipBadge(),
                         },
                         {
                           key: '出貨單號碼',
@@ -450,23 +422,7 @@ export class ShoppingOrderManager {
                         {
                           key: '訂單編號',
                           value: html` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
-                            ${dd.cart_token}${(() => {
-                              switch (dd.orderData.orderSource) {
-                                case 'manual':
-                                  return BgWidget.primaryInsignia('手動', { type: 'border' });
-                                case 'combine':
-                                  return BgWidget.warningInsignia('合併', { type: 'border' });
-                                case 'POS':
-                                  if (vm.filter_type === 'pos') {
-                                    return '';
-                                  }
-                                  return BgWidget.primaryInsignia('POS', { type: 'border' });
-                                case 'split':
-                                  return BgWidget.warningInsignia('拆分', { type: 'border' });
-                                default:
-                                  return '';
-                              }
-                            })()}
+                            ${dd.cart_token}${vt.sourceBadge()}
                           </div>`,
                         },
                         {
@@ -485,62 +441,15 @@ export class ShoppingOrderManager {
                         },
                         {
                           key: '付款狀態',
-                          value: (() => {
-                            switch (dd.status) {
-                              case 0:
-                                if (dd.orderData.proof_purchase) {
-                                  return BgWidget.warningInsignia('待核款');
-                                }
-                                if (dd.orderData.customer_info.payment_select == 'cash_on_delivery') {
-                                  return BgWidget.warningInsignia('貨到付款');
-                                }
-                                return BgWidget.notifyInsignia('未付款');
-                              case 3:
-                                return BgWidget.warningInsignia('部分付款');
-                              case 1:
-                                return BgWidget.infoInsignia('已付款');
-                              case -1:
-                                return BgWidget.notifyInsignia('付款失敗');
-                              case -2:
-                                return BgWidget.notifyInsignia('已退款');
-                            }
-                          })(),
+                          value: vt.paymentBadge(),
                         },
                         {
                           key: '出貨狀態',
-                          value: (() => {
-                            switch (dd.orderData.progress ?? 'wait') {
-                              case 'pre_order':
-                                return BgWidget.notifyInsignia('待預購');
-                              case 'wait':
-                                if (dd.orderData.user_info.shipment_number) {
-                                  return BgWidget.secondaryInsignia('備貨中');
-                                } else {
-                                  return BgWidget.notifyInsignia('未出貨');
-                                }
-                              case 'shipping':
-                                return BgWidget.warningInsignia('已出貨');
-                              case 'finish':
-                                return BgWidget.infoInsignia('已取貨');
-                              case 'arrived':
-                                return BgWidget.warningInsignia('已送達');
-                              case 'returns':
-                                return BgWidget.dangerInsignia('已退貨');
-                            }
-                          })(),
+                          value: vt.outShipBadge(),
                         },
                         {
                           key: '訂單狀態',
-                          value: (() => {
-                            switch (dd.orderData.orderStatus ?? '0') {
-                              case '-1':
-                                return BgWidget.notifyInsignia('已取消');
-                              case '0':
-                                return BgWidget.warningInsignia('處理中');
-                              case '1':
-                                return BgWidget.infoInsignia('已完成');
-                            }
-                          })(),
+                          value: vt.orderStatusBadge(),
                         },
                         {
                           key: '運送方式',
@@ -579,7 +488,7 @@ export class ShoppingOrderManager {
                           return vm.headerConfig.includes(item.key);
                         })
                         .map((dd: any) => {
-                          dd.value = html` <div style="line-height:40px;">${dd.value}</div>`;
+                          dd.value = html`<div style="line-height: 40px;">${dd.value}</div>`;
                           return dd;
                         });
                     }
@@ -1223,7 +1132,6 @@ export class ShoppingOrderManager {
             splitOrder: () => {
               return html` <div
                 class="funInsignia"
-                style=""
                 onclick="${gvc.event(() => {
                   if (orderData.orderData.orderSource == 'split') {
                     return;
