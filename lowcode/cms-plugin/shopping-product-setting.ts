@@ -4,7 +4,7 @@ import { GVC } from '../glitterBundle/GVController.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ApiPost } from '../glitter-base/route/post.js';
 import { ApiUser } from '../glitter-base/route/user.js';
-import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
+import { BgProduct } from '../backend-manager/bg-product.js';
 import { FilterOptions } from './filter-options.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { Tool } from '../modules/tool.js';
@@ -113,21 +113,7 @@ export class ShoppingProductSetting {
 
               return gvc.bindView({
                 bind: glitter.getUUID(),
-                view: async () => {
-                  FilterOptions.productFunnel.map(async item => {
-                    if (item.key === 'collection') {
-                      item.data = await BgProduct.getCollectonCheckData();
-                    }
-                    if (item.key === 'general_tag') {
-                      item.data = await BgProduct.getProductGeneralTag();
-                    }
-                    if (item.key === 'manager_tag') {
-                      item.data = await BgProduct.getProductManagerTag();
-                    }
-
-                    return item;
-                  });
-
+                view: () => {
                   return BgWidget.container(html`
                     <div class="title-container">
                       ${BgWidget.title(
@@ -222,7 +208,9 @@ export class ShoppingProductSetting {
                             const id = gvc.glitter.getUUID();
                             return gvc.bindView({
                               bind: id,
-                              view: () => {
+                              view: async () => {
+                                const productFunnel = await FilterOptions.getProductFunnel();
+
                                 const filterList = [
                                   BgWidget.selectFilter({
                                     gvc,
@@ -246,7 +234,7 @@ export class ShoppingProductSetting {
                                   ),
                                   BgWidget.funnelFilter({
                                     gvc,
-                                    callback: () => ListComp.showRightMenu(FilterOptions.productFunnel),
+                                    callback: () => ListComp.showRightMenu(productFunnel),
                                   }),
                                   BgWidget.updownFilter({
                                     gvc,
@@ -260,7 +248,7 @@ export class ShoppingProductSetting {
                                   }),
                                 ];
 
-                                const filterTags = ListComp.getFilterTags(FilterOptions.productFunnel);
+                                const filterTags = ListComp.getFilterTags(productFunnel);
                                 return BgListComponent.listBarRWD(filterList, filterTags);
                               },
                             });

@@ -557,12 +557,12 @@ export class Shopping {
       // 當非管理員時，檢查是否顯示隱形商品
       if (query.filter_visible) {
         if (query.filter_visible === 'true') {
-          querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
+          querySql.push(`(content->>'$.visible' IS NULL || content->>'$.visible' = 'true')`);
         } else {
           querySql.push(`(content->>'$.visible' = 'false')`);
         }
       } else if (!query.is_manger && `${query.show_hidden}` !== 'true') {
-        querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
+        querySql.push(`(content->>'$.visible' IS NULL || content->>'$.visible' = 'true')`);
       }
 
       // 判斷有帶入商品類型時，顯示商品類型，反之預設折是一班商品
@@ -2485,8 +2485,8 @@ export class Shopping {
                 } else {
                   // 判斷是否應使用項目上已存在的、非空的扣除日誌
                   const useExistingLog =
-                    type === "split" &&      // 訂單來源需為 "split"
-                    item.deduction_log &&                   // 項目上必須存在 deduction_log
+                    type === 'split' && // 訂單來源需為 "split"
+                    item.deduction_log && // 項目上必須存在 deduction_log
                     Object.keys(item.deduction_log).length > 0; // 且該 log 不是空物件
 
                   if (!useExistingLog) {
@@ -2497,7 +2497,6 @@ export class Shopping {
                     // 將分配結果的 log 同時賦值給 variant 和 item
                     variant.deduction_log = allocationResult.deductionLog;
                     item.deduction_log = allocationResult.deductionLog; // 更新 item 的 log
-
                   } else {
                     // 否則，直接使用項目上的 log
                     variant.deduction_log = item.deduction_log;
@@ -2693,7 +2692,7 @@ export class Shopping {
       checkPoint('distribution code');
 
       // 自動新增訂單的優惠卷設定
-      if (type !== 'manual' && type !== 'manual-preview'  && type !== 'split') {
+      if (type !== 'manual' && type !== 'manual-preview' && type !== 'split') {
         // 過濾加購品與贈品
         carData.lineItems = carData.lineItems.filter(dd => {
           return !add_on_items.includes(dd) && !gift_product.includes(dd);
@@ -2965,7 +2964,6 @@ export class Shopping {
       if (type === 'preview' || type === 'manual-preview') return { data: carData };
       // ================================ Add DOWN ================================
 
-
       // 購物金與錢包金額移除
       if (userData && userData.userID) {
         await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
@@ -2995,9 +2993,9 @@ export class Shopping {
       // 手動結帳地方判定
       if (type === 'manual' || type === 'split') {
         carData.orderSource = type;
-        const voucherTitle = (type === 'split')?'拆分訂單調整折扣':data.voucher.title
-        const voucherValue = (type === 'split')?data.discount:data.voucher.value
-        const voucherTotal = (type === 'split')?data.discount:data.voucher.discount_total
+        const voucherTitle = type === 'split' ? '拆分訂單調整折扣' : data.voucher.title;
+        const voucherValue = type === 'split' ? data.discount : data.voucher.value;
+        const voucherTotal = type === 'split' ? data.discount : data.voucher.discount_total;
         let tempVoucher: VoucherData = {
           discount_total: voucherTotal,
           end_ISO_Date: '',
@@ -3039,12 +3037,10 @@ export class Shopping {
           carData.shipment_fee = 0;
         }
         if (type == 'split') {
-          carData.editRecord.push(
-            {
-              time: new Date().toISOString(),
-              record: `拆分訂單建立來自\\n {{order=${carData.orderID.slice(0, -1)}}}`,
-            }
-          )
+          carData.editRecord.push({
+            time: new Date().toISOString(),
+            record: `拆分訂單建立來自\\n {{order=${carData.orderID.slice(0, -1)}}}`,
+          });
         }
 
         if (tempVoucher.reBackType == 'rebate') {
@@ -3349,7 +3345,6 @@ export class Shopping {
               return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
             };
         }
-
       }
     } catch (e) {
       console.error(e);
@@ -3513,7 +3508,10 @@ export class Shopping {
         status: 0,
         app: this.app,
       });
-      const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select).processPayment(carData , return_url);
+      const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select).processPayment(
+        carData,
+        return_url
+      );
 
       return result;
     }
@@ -3589,7 +3587,7 @@ export class Shopping {
       if (query.archived === 'true') {
         querySql.push(`(archived="${query.archived}")`);
       } else if (query.archived === 'false') {
-        querySql.push(`((archived is null) or (archived!='true'))`);
+        querySql.push(`((archived IS NULL) or (archived!='true'))`);
       }
       //退貨貨款狀態
       query.status && querySql.push(`status IN (${query.status})`);
@@ -3810,11 +3808,15 @@ export class Shopping {
 
   async splitOrder(obj: { orderData: Cart; splitOrderArray: OrderDetail[] }) {
     try {
-      async function processCheckoutsStaggered(splitOrderArray: any[], orderData: any, context: any): Promise<boolean | { result: string; reason: any }> {
-
+      async function processCheckoutsStaggered(
+        splitOrderArray: any[],
+        orderData: any,
+        context: any
+      ): Promise<boolean | { result: string; reason: any }> {
         const promises = splitOrderArray.map((order, index) => {
           // 為每個操作返回一個新的 Promise
-          return new Promise<void>((resolve, reject) => { // 可以定義更精確的 resolve 型別，這裡用 void 示意
+          return new Promise<void>((resolve, reject) => {
+            // 可以定義更精確的 resolve 型別，這裡用 void 示意
             const delay = 1000 * index; // 計算延遲時間
 
             setTimeout(() => {
@@ -3824,7 +3826,7 @@ export class Shopping {
                 order_id: orderData?.splitOrders?.[index] ?? '',
                 line_items: order.lineItems as any,
                 customer_info: order.customer_info,
-                return_url: "",
+                return_url: '',
                 user_info: order.user_info,
                 discount: order.discount,
                 voucher: order.voucher,
@@ -3833,27 +3835,26 @@ export class Shopping {
               };
 
               // 假設 context.toCheckout 本身返回一個 Promise
-              context.toCheckout(payload, 'split')
+              context
+                .toCheckout(payload, 'split')
                 .then(() => {
                   resolve(); // 當 toCheckout 成功時，resolve 外層的 Promise
                 })
                 .catch((error: any) => {
                   reject(error); // 當 toCheckout 失敗時，reject 外層的 Promise
                 });
-
             }, delay); // 使用計算出的延遲
           });
         }); // map 結束
-
 
         try {
           await Promise.all(promises);
           return true; // 全部成功
         } catch (e) {
-          console.error("處理拆分訂單結帳時至少發生一個錯誤 (從 Promise.all 捕獲):", e);
+          console.error('處理拆分訂單結帳時至少發生一個錯誤 (從 Promise.all 捕獲):', e);
           return {
             result: 'failure',
-            reason: e // 返回捕獲到的錯誤
+            reason: e, // 返回捕獲到的錯誤
           };
         }
       }
@@ -3898,7 +3899,7 @@ export class Shopping {
       await this.putOrder({
         cart_token: orderData.orderID,
         orderData,
-      })
+      });
       return await processCheckoutsStaggered(splitOrderArray, orderData, this);
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'splitOrder Error:' + e, null);
@@ -4894,14 +4895,16 @@ export class Shopping {
     is_reconciliation?: boolean;
     reconciliation_status?: string[];
     manager_tag?: string;
+    member_levels?: string;
   }) {
     try {
       const timer = new UtTimer('get-checkout-info');
       timer.checkPoint('start');
 
-      let querySql = ['1=1'];
-      let orderString = 'order by id desc';
+      const querySql = ['o.id IS NOT NULL'];
+      let orderString = 'order by created_time desc';
 
+      // 初始化訂單現有標籤
       await this.initOrderCustomizeTagConifg();
 
       if (query.search && query.searchType) {
@@ -4958,7 +4961,7 @@ export class Shopping {
         let search: string[] = [];
         query.reconciliation_status!!.map(status => {
           if (status === 'pending_entry') {
-            search.push(`total_received is NULL`);
+            search.push(`total_received IS NULL`);
           } else if (status === 'completed_entry') {
             search.push(`total_received = total`);
           } else if (status === 'refunded') {
@@ -4966,9 +4969,9 @@ export class Shopping {
           } else if (status === 'completed_offset') {
             search.push(`(total_received < total) && ((total_received + offset_amount) = total)`);
           } else if (status === 'pending_offset') {
-            search.push(`(total_received < total)  &&  (offset_amount is null)`);
+            search.push(`(total_received < total)  &&  (offset_amount IS NULL)`);
           } else if (status === 'pending_refund') {
-            search.push(`(total_received > total)   &&  (offset_amount is null)`);
+            search.push(`(total_received > total)   &&  (offset_amount IS NULL)`);
           }
         });
         querySql.push(
@@ -4979,6 +4982,7 @@ export class Shopping {
             .join(' or ')})`
         );
       }
+
       if (query.orderStatus) {
         let orderArray = query.orderStatus.split(',');
         let temp = '';
@@ -4994,12 +4998,15 @@ export class Shopping {
 
         querySql.push(countingSQL);
       }
+
       if (query.is_shipment) {
         querySql.push(`(shipment_number IS NOT NULL) and (shipment_number != '')`);
       }
+
       if (query.is_reconciliation) {
         querySql.push(`((o.status in (1,-2)) or ((payment_method='cash_on_delivery' and progress='finish') ))`);
       }
+
       if (query.payment_select) {
         querySql.push(
           `payment_method in (${query.payment_select
@@ -5008,13 +5015,14 @@ export class Shopping {
             .join(',')})`
         );
       }
+
       if (query.progress) {
         //備貨中
         if (query.progress === 'in_stock') {
           query.progress = 'wait';
           querySql.push(`shipment_number is NOT null`);
         } else if (query.progress === 'wait') {
-          querySql.push(`shipment_number is null`);
+          querySql.push(`shipment_number IS NULL`);
         }
         let newArray = query.progress.split(',');
         let temp = '';
@@ -5024,6 +5032,7 @@ export class Shopping {
         temp += `progress IN (${newArray.map(status => `"${status}"`).join(',')})`;
         querySql.push(`(${temp})`);
       }
+
       if (query.distribution_code) {
         let codes = query.distribution_code.split(',');
         let temp = '';
@@ -5034,8 +5043,9 @@ export class Shopping {
       if (query.is_pos === 'true') {
         querySql.push(`order_source='POS'`);
       } else if (query.is_pos === 'false') {
-        querySql.push(`(order_source!='POS' or order_source is null)`);
+        querySql.push(`(order_source!='POS' or order_source IS NULL)`);
       }
+
       if (query.shipment) {
         let shipment = query.shipment.split(',');
         let temp = '';
@@ -5055,6 +5065,7 @@ export class Shopping {
                     `);
         }
       }
+
       if (query.shipment_time) {
         const shipment_time = query.shipment_time.split(',');
         if (shipment_time.length > 1) {
@@ -5091,37 +5102,94 @@ export class Shopping {
           querySql.push(`(${tagJoin.join(' OR ')})`);
         }
       }
-      query.status && querySql.push(`o.status IN (${query.status})`);
-      const orderMath = [];
 
-      // JSON_EXTRACT(orderData, '$.customer_info.phone')
+      if (query.status) {
+        querySql.push(`o.status IN (${query.status})`);
+      }
+
+      const orderMath = [];
       query.email && orderMath.push(`(email=${db.escape(query.email)})`);
       query.phone && orderMath.push(`(email=${db.escape(query.phone)})`);
       if (orderMath.length) {
-        querySql.push(`(${orderMath.join(' or ')})`);
+        querySql.push(`(${orderMath.join(' OR ')})`);
+      }
+
+      if (query.member_levels) {
+        let temp: string[] = [];
+        const queryLevel = query.member_levels.split(',');
+        const queryIdLevel = queryLevel.filter(level => level !== 'null');
+
+        if (queryLevel.includes('null')) {
+          temp = [`u.member_level IS NULL`, `u.member_level = ''`];
+        }
+
+        if (queryIdLevel.length > 0) {
+          temp = [
+            ...temp,
+            `u.member_level IN (${queryIdLevel
+              .map(level => {
+                return db.escape(level);
+              })
+              .join(',')})`,
+          ];
+        }
+
+        if (temp.length > 0) {
+          querySql.push(`(${temp.join(' OR ')})`);
+        }
       }
 
       if (query.filter_type === 'true' || query.archived) {
         if (query.archived === 'true') {
-          querySql.push(`(archived="${query.archived}") 
-                    AND (order_status IS NULL OR order_status NOT IN (-99))`);
+          querySql.push(`(archived="${query.archived}") AND (order_status IS NULL OR order_status NOT IN (-99))`);
         } else {
-          querySql.push(`((archived="${query.archived}") or (archived is null))`);
+          querySql.push(`((archived="${query.archived}") or (archived IS NULL))`);
         }
       } else if (query.filter_type === 'normal') {
-        querySql.push(`((archived is null) or (archived!='true'))`);
+        querySql.push(`((archived IS NULL) or (archived!='true'))`);
       }
+
       if (!(query.filter_type === 'true' || query.archived)) {
-        querySql.push(`((order_status is null) or (order_status NOT IN (-99)))`);
+        querySql.push(`((order_status IS NULL) or (order_status NOT IN (-99)))`);
       }
-      let sql = `SELECT i.invoice_no,
-                        i.invoice_data,
-                        i.\`status\` as invoice_status,
-                        o.*
-                 FROM \`${this.app}\`.t_checkout o
-                          LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id and i.status = 1
-                 WHERE ${querySql.join(' and ')} ${orderString}`;
-      timer.checkPoint('start-query-sql');
+
+      // 定義基礎查詢結構
+      const baseSelect = `
+        SELECT
+          o.*,
+          i.invoice_no,
+          i.invoice_data,
+          i.\`status\` as invoice_status
+        FROM`;
+
+      const joinClause = `LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id AND i.status = 1`;
+      const whereClause = `WHERE ${querySql.join(' AND ')}`;
+
+      let sql: string;
+
+      if (query.member_levels) {
+        // 查詢會員等級資料
+        sql = `
+          (
+            (
+              ${baseSelect} \`${this.app}\`.t_user u 
+              LEFT JOIN \`${this.app}\`.t_checkout o ON o.email = u.phone
+              ${joinClause}
+              ${whereClause}
+            )
+            UNION
+            (
+              ${baseSelect} \`${this.app}\`.t_user u 
+              LEFT JOIN \`${this.app}\`.t_checkout o ON o.email = u.email
+              ${joinClause}
+              ${whereClause}
+            )
+          ) ${orderString}`;
+      } else {
+        // 直接查詢結帳資料
+        sql = `${baseSelect} \`${this.app}\`.t_checkout o ${joinClause} ${whereClause} ${orderString}`;
+      }
+
       if (query.returnSearch == 'true') {
         const data = await db.query(
           `SELECT *
@@ -5150,42 +5218,35 @@ export class Shopping {
         }
         return data[0];
       }
-      const response_data: any = await new Promise(async (resolve, reject) => {
-        timer.checkPoint('start-query-response_data');
+
+      const response_data: any = await new Promise(async resolve => {
         if (query.id) {
           const data = (
             await db.query(
-              `SELECT *
-               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+              `SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
               `,
               []
             )
           )[0];
+          timer.checkPoint('get response_data (has query.id)');
           resolve({
             data: data,
             result: !!data,
           });
         } else {
           const data = await db.query(
-            `SELECT *
-             FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+            `SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
             `,
             []
           );
-          timer.checkPoint('finish-query-response_data');
+          timer.checkPoint('get response_data (not query.id)');
           resolve({
             data: data,
-            total: (
-              await db.query(
-                `SELECT count(1)
-                 FROM (${sql}) as subqyery
-                `,
-                []
-              )
-            )[0]['count(1)'],
+            total: (await db.query(`SELECT count(1) FROM (${sql}) as subqyery`, []))[0]['count(1)'],
           });
         }
       });
+
       const obMap = Array.isArray(response_data.data) ? response_data.data : [response_data.data];
       const keyData = (
         await Private_config.getConfig({
@@ -5193,6 +5254,7 @@ export class Shopping {
           key: 'glitter_finance',
         })
       )[0].value;
+
       await Promise.all(
         obMap
           .map(async (order: any) => {
@@ -5259,7 +5321,7 @@ export class Shopping {
                   page: 0,
                   limit: 1,
                   search: order.cart_token,
-                  searchType: order.orderData.order_number,
+                  searchType: order.orderData?.order_number,
                 })
               ).data[0];
               order.invoice_number = invoice && invoice.invoice_no;
@@ -5272,7 +5334,9 @@ export class Shopping {
             })
           )
       );
+
       timer.checkPoint('finish-query-all');
+
       return response_data;
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'getCheckOut Error:' + e, null);

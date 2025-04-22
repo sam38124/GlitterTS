@@ -232,14 +232,14 @@ class Shopping {
             }
             if (query.filter_visible) {
                 if (query.filter_visible === 'true') {
-                    querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
+                    querySql.push(`(content->>'$.visible' IS NULL || content->>'$.visible' = 'true')`);
                 }
                 else {
                     querySql.push(`(content->>'$.visible' = 'false')`);
                 }
             }
             else if (!query.is_manger && `${query.show_hidden}` !== 'true') {
-                querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
+                querySql.push(`(content->>'$.visible' IS NULL || content->>'$.visible' = 'true')`);
             }
             if (query.productType) {
                 query.productType.split(',').map(dd => {
@@ -1728,7 +1728,7 @@ class Shopping {
                                 }
                             }
                             else {
-                                const useExistingLog = type === "split" &&
+                                const useExistingLog = type === 'split' &&
                                     item.deduction_log &&
                                     Object.keys(item.deduction_log).length > 0;
                                 if (!useExistingLog) {
@@ -2117,9 +2117,9 @@ class Shopping {
             checkPoint('check user rebate');
             if (type === 'manual' || type === 'split') {
                 carData.orderSource = type;
-                const voucherTitle = (type === 'split') ? '拆分訂單調整折扣' : data.voucher.title;
-                const voucherValue = (type === 'split') ? data.discount : data.voucher.value;
-                const voucherTotal = (type === 'split') ? data.discount : data.voucher.discount_total;
+                const voucherTitle = type === 'split' ? '拆分訂單調整折扣' : data.voucher.title;
+                const voucherValue = type === 'split' ? data.discount : data.voucher.value;
+                const voucherTotal = type === 'split' ? data.discount : data.voucher.discount_total;
                 let tempVoucher = {
                     discount_total: voucherTotal,
                     end_ISO_Date: '',
@@ -2553,7 +2553,7 @@ class Shopping {
                 querySql.push(`(archived="${query.archived}")`);
             }
             else if (query.archived === 'false') {
-                querySql.push(`((archived is null) or (archived!='true'))`);
+                querySql.push(`((archived IS NULL) or (archived!='true'))`);
             }
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
@@ -2716,14 +2716,15 @@ class Shopping {
                                 order_id: (_b = (_a = orderData === null || orderData === void 0 ? void 0 : orderData.splitOrders) === null || _a === void 0 ? void 0 : _a[index]) !== null && _b !== void 0 ? _b : '',
                                 line_items: order.lineItems,
                                 customer_info: order.customer_info,
-                                return_url: "",
+                                return_url: '',
                                 user_info: order.user_info,
                                 discount: order.discount,
                                 voucher: order.voucher,
                                 total: order.total,
                                 pay_status: Number(order.pay_status),
                             };
-                            context.toCheckout(payload, 'split')
+                            context
+                                .toCheckout(payload, 'split')
                                 .then(() => {
                                 resolve();
                             })
@@ -2738,10 +2739,10 @@ class Shopping {
                     return true;
                 }
                 catch (e) {
-                    console.error("處理拆分訂單結帳時至少發生一個錯誤 (從 Promise.all 捕獲):", e);
+                    console.error('處理拆分訂單結帳時至少發生一個錯誤 (從 Promise.all 捕獲):', e);
                     return {
                         result: 'failure',
-                        reason: e
+                        reason: e,
                     };
                 }
             }
@@ -3548,8 +3549,8 @@ class Shopping {
         try {
             const timer = new ut_timer_js_1.UtTimer('get-checkout-info');
             timer.checkPoint('start');
-            let querySql = ['1=1'];
-            let orderString = 'order by id desc';
+            const querySql = ['o.id IS NOT NULL'];
+            let orderString = 'order by created_time desc';
             await this.initOrderCustomizeTagConifg();
             if (query.search && query.searchType) {
                 switch (query.searchType) {
@@ -3596,7 +3597,7 @@ class Shopping {
                 let search = [];
                 query.reconciliation_status.map(status => {
                     if (status === 'pending_entry') {
-                        search.push(`total_received is NULL`);
+                        search.push(`total_received IS NULL`);
                     }
                     else if (status === 'completed_entry') {
                         search.push(`total_received = total`);
@@ -3608,10 +3609,10 @@ class Shopping {
                         search.push(`(total_received < total) && ((total_received + offset_amount) = total)`);
                     }
                     else if (status === 'pending_offset') {
-                        search.push(`(total_received < total)  &&  (offset_amount is null)`);
+                        search.push(`(total_received < total)  &&  (offset_amount IS NULL)`);
                     }
                     else if (status === 'pending_refund') {
-                        search.push(`(total_received > total)   &&  (offset_amount is null)`);
+                        search.push(`(total_received > total)   &&  (offset_amount IS NULL)`);
                     }
                 });
                 querySql.push(`(${search
@@ -3651,7 +3652,7 @@ class Shopping {
                     querySql.push(`shipment_number is NOT null`);
                 }
                 else if (query.progress === 'wait') {
-                    querySql.push(`shipment_number is null`);
+                    querySql.push(`shipment_number IS NULL`);
                 }
                 let newArray = query.progress.split(',');
                 let temp = '';
@@ -3671,7 +3672,7 @@ class Shopping {
                 querySql.push(`order_source='POS'`);
             }
             else if (query.is_pos === 'false') {
-                querySql.push(`(order_source!='POS' or order_source is null)`);
+                querySql.push(`(order_source!='POS' or order_source IS NULL)`);
             }
             if (query.shipment) {
                 let shipment = query.shipment.split(',');
@@ -3725,36 +3726,81 @@ class Shopping {
                     querySql.push(`(${tagJoin.join(' OR ')})`);
                 }
             }
-            query.status && querySql.push(`o.status IN (${query.status})`);
+            if (query.status) {
+                querySql.push(`o.status IN (${query.status})`);
+            }
             const orderMath = [];
             query.email && orderMath.push(`(email=${database_js_1.default.escape(query.email)})`);
             query.phone && orderMath.push(`(email=${database_js_1.default.escape(query.phone)})`);
             if (orderMath.length) {
-                querySql.push(`(${orderMath.join(' or ')})`);
+                querySql.push(`(${orderMath.join(' OR ')})`);
+            }
+            if (query.member_levels) {
+                let temp = [];
+                const queryLevel = query.member_levels.split(',');
+                const queryIdLevel = queryLevel.filter(level => level !== 'null');
+                if (queryLevel.includes('null')) {
+                    temp = [`u.member_level IS NULL`, `u.member_level = ''`];
+                }
+                if (queryIdLevel.length > 0) {
+                    temp = [
+                        ...temp,
+                        `u.member_level IN (${queryIdLevel
+                            .map(level => {
+                            return database_js_1.default.escape(level);
+                        })
+                            .join(',')})`,
+                    ];
+                }
+                if (temp.length > 0) {
+                    querySql.push(`(${temp.join(' OR ')})`);
+                }
             }
             if (query.filter_type === 'true' || query.archived) {
                 if (query.archived === 'true') {
-                    querySql.push(`(archived="${query.archived}") 
-                    AND (order_status IS NULL OR order_status NOT IN (-99))`);
+                    querySql.push(`(archived="${query.archived}") AND (order_status IS NULL OR order_status NOT IN (-99))`);
                 }
                 else {
-                    querySql.push(`((archived="${query.archived}") or (archived is null))`);
+                    querySql.push(`((archived="${query.archived}") or (archived IS NULL))`);
                 }
             }
             else if (query.filter_type === 'normal') {
-                querySql.push(`((archived is null) or (archived!='true'))`);
+                querySql.push(`((archived IS NULL) or (archived!='true'))`);
             }
             if (!(query.filter_type === 'true' || query.archived)) {
-                querySql.push(`((order_status is null) or (order_status NOT IN (-99)))`);
+                querySql.push(`((order_status IS NULL) or (order_status NOT IN (-99)))`);
             }
-            let sql = `SELECT i.invoice_no,
-                        i.invoice_data,
-                        i.\`status\` as invoice_status,
-                        o.*
-                 FROM \`${this.app}\`.t_checkout o
-                          LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id and i.status = 1
-                 WHERE ${querySql.join(' and ')} ${orderString}`;
-            timer.checkPoint('start-query-sql');
+            const baseSelect = `
+        SELECT
+          o.*,
+          i.invoice_no,
+          i.invoice_data,
+          i.\`status\` as invoice_status
+        FROM`;
+            const joinClause = `LEFT JOIN \`${this.app}\`.t_invoice_memory i ON o.cart_token = i.order_id AND i.status = 1`;
+            const whereClause = `WHERE ${querySql.join(' AND ')}`;
+            let sql;
+            if (query.member_levels) {
+                sql = `
+          (
+            (
+              ${baseSelect} \`${this.app}\`.t_user u 
+              LEFT JOIN \`${this.app}\`.t_checkout o ON o.email = u.phone
+              ${joinClause}
+              ${whereClause}
+            )
+            UNION
+            (
+              ${baseSelect} \`${this.app}\`.t_user u 
+              LEFT JOIN \`${this.app}\`.t_checkout o ON o.email = u.email
+              ${joinClause}
+              ${whereClause}
+            )
+          ) ${orderString}`;
+            }
+            else {
+                sql = `${baseSelect} \`${this.app}\`.t_checkout o ${joinClause} ${whereClause} ${orderString}`;
+            }
             if (query.returnSearch == 'true') {
                 const data = await database_js_1.default.query(`SELECT *
            FROM \`${this.app}\`.t_checkout
@@ -3779,27 +3825,23 @@ class Shopping {
                 }
                 return data[0];
             }
-            const response_data = await new Promise(async (resolve, reject) => {
-                timer.checkPoint('start-query-response_data');
+            const response_data = await new Promise(async (resolve) => {
                 if (query.id) {
-                    const data = (await database_js_1.default.query(`SELECT *
-               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+                    const data = (await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
               `, []))[0];
+                    timer.checkPoint('get response_data (has query.id)');
                     resolve({
                         data: data,
                         result: !!data,
                     });
                 }
                 else {
-                    const data = await database_js_1.default.query(`SELECT *
-             FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+                    const data = await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
             `, []);
-                    timer.checkPoint('finish-query-response_data');
+                    timer.checkPoint('get response_data (not query.id)');
                     resolve({
                         data: data,
-                        total: (await database_js_1.default.query(`SELECT count(1)
-                 FROM (${sql}) as subqyery
-                `, []))[0]['count(1)'],
+                        total: (await database_js_1.default.query(`SELECT count(1) FROM (${sql}) as subqyery`, []))[0]['count(1)'],
                     });
                 }
             });
@@ -3864,11 +3906,12 @@ class Shopping {
                 catch (e) { }
             })
                 .concat(obMap.map(async (order) => {
+                var _a;
                 const invoice = (await new invoice_js_1.Invoice(this.app).getInvoice({
                     page: 0,
                     limit: 1,
                     search: order.cart_token,
-                    searchType: order.orderData.order_number,
+                    searchType: (_a = order.orderData) === null || _a === void 0 ? void 0 : _a.order_number,
                 })).data[0];
                 order.invoice_number = invoice && invoice.invoice_no;
             }))

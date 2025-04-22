@@ -90,19 +90,7 @@ export class ShoppingProductSetting {
                             vm.dataList = [];
                             return gvc.bindView({
                                 bind: glitter.getUUID(),
-                                view: () => __awaiter(this, void 0, void 0, function* () {
-                                    FilterOptions.productFunnel.map((item) => __awaiter(this, void 0, void 0, function* () {
-                                        if (item.key === 'collection') {
-                                            item.data = yield BgProduct.getCollectonCheckData();
-                                        }
-                                        if (item.key === 'general_tag') {
-                                            item.data = yield BgProduct.getProductGeneralTag();
-                                        }
-                                        if (item.key === 'manager_tag') {
-                                            item.data = yield BgProduct.getProductManagerTag();
-                                        }
-                                        return item;
-                                    }));
+                                view: () => {
                                     return BgWidget.container(html `
                     <div class="title-container">
                       ${BgWidget.title((() => {
@@ -169,7 +157,8 @@ export class ShoppingProductSetting {
                                             const id = gvc.glitter.getUUID();
                                             return gvc.bindView({
                                                 bind: id,
-                                                view: () => {
+                                                view: () => __awaiter(this, void 0, void 0, function* () {
+                                                    const productFunnel = yield FilterOptions.getProductFunnel();
                                                     const filterList = [
                                                         BgWidget.selectFilter({
                                                             gvc,
@@ -189,7 +178,7 @@ export class ShoppingProductSetting {
                                                         }), vm.query || '', '搜尋'),
                                                         BgWidget.funnelFilter({
                                                             gvc,
-                                                            callback: () => ListComp.showRightMenu(FilterOptions.productFunnel),
+                                                            callback: () => ListComp.showRightMenu(productFunnel),
                                                         }),
                                                         BgWidget.updownFilter({
                                                             gvc,
@@ -202,9 +191,9 @@ export class ShoppingProductSetting {
                                                             options: FilterOptions.productListOrderBy,
                                                         }),
                                                     ];
-                                                    const filterTags = ListComp.getFilterTags(FilterOptions.productFunnel);
+                                                    const filterTags = ListComp.getFilterTags(productFunnel);
                                                     return BgListComponent.listBarRWD(filterList, filterTags);
-                                                },
+                                                }),
                                             });
                                         })(),
                                         gvc.bindView({
@@ -483,7 +472,7 @@ export class ShoppingProductSetting {
                                     ].join('')))}
                     ${BgWidget.minHeightContainer(240)}
                   `);
-                                }),
+                                },
                             });
                         case 'replace':
                             setTimeout(() => {

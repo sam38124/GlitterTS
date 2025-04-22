@@ -339,6 +339,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
           reconciliation_status:
             req.query.reconciliation_status && ((req.query.reconciliation_status as string).split(',') as any),
           manager_tag: req.query.manager_tag as string,
+          member_levels: req.query.member_levels as string,
         })
       );
     } else if (await UtPermission.isAppUser(req)) {

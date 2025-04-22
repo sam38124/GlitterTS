@@ -11,9 +11,19 @@ import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
+import { BgProduct } from '../backend-manager/bg-product.js';
 import { OrderModule } from './order/order-module.js';
 const html = String.raw;
 export class FilterOptions {
+    static getLevelData() {
+        var _a, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            const normalMember = ApiUser.normalMember;
+            normalMember.id = 'null';
+            const levelConfig = yield ApiUser.getPublicConfig('member_level_config', 'manager');
+            return [normalMember, ...((_c = (_b = (_a = levelConfig === null || levelConfig === void 0 ? void 0 : levelConfig.response) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.levels) !== null && _c !== void 0 ? _c : [])];
+        });
+    }
     static getUserFunnel() {
         return __awaiter(this, void 0, void 0, function* () {
             const generalTags = yield new Promise(resolve => {
@@ -27,7 +37,7 @@ export class FilterOptions {
                     }
                 });
             });
-            const levelData = (yield ApiUser.getPublicConfig('member_level_config', 'manager')).response.value.levels;
+            const levelData = yield this.getLevelData();
             return [
                 {
                     key: 'created_time',
@@ -139,6 +149,7 @@ export class FilterOptions {
     }
     static getOrderFunnel() {
         return __awaiter(this, void 0, void 0, function* () {
+            const levelData = yield this.getLevelData();
             return [
                 { key: 'orderStatus', type: 'multi_checkbox', name: '訂單狀態', data: this.orderStatusOptions },
                 { key: 'payload', type: 'multi_checkbox', name: '付款狀態', data: this.payloadStatusOptions },
@@ -162,9 +173,7 @@ export class FilterOptions {
                     key: 'shipment',
                     type: 'multi_checkbox',
                     name: '運送方式',
-                    data: yield ShipmentConfig.shipmentMethod({
-                        type: 'support',
-                    }),
+                    data: yield ShipmentConfig.shipmentMethod({ type: 'support' }),
                 },
                 {
                     key: 'created_time',
@@ -189,6 +198,14 @@ export class FilterOptions {
                             { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
                         ],
                     },
+                },
+                {
+                    key: 'member_levels',
+                    type: 'multi_checkbox',
+                    name: '會員等級',
+                    data: levelData.map((dd) => {
+                        return { key: dd.id, name: dd.tag_name };
+                    }),
                 },
                 {
                     key: 'manager_tag',
@@ -251,6 +268,50 @@ export class FilterOptions {
             ];
         });
     }
+    static getProductFunnel() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return [
+                {
+                    key: 'status',
+                    type: 'multi_checkbox',
+                    name: '商品狀態',
+                    data: [
+                        { key: 'inRange', name: '上架' },
+                        { key: 'beforeStart', name: '待上架' },
+                        { key: 'afterEnd', name: '下架' },
+                        { key: 'draft', name: '草稿' },
+                    ],
+                },
+                {
+                    key: 'channel',
+                    type: 'multi_checkbox',
+                    name: '銷售管道',
+                    data: [
+                        { key: 'normal', name: 'APP & 官網' },
+                        { key: 'pos', name: 'POS' },
+                    ],
+                },
+                {
+                    key: 'collection',
+                    type: 'multi_checkbox',
+                    name: '商品分類',
+                    data: yield BgProduct.getCollectonCheckData(),
+                },
+                {
+                    key: 'general_tag',
+                    type: 'search_and_select',
+                    name: '商品標籤',
+                    data: yield BgProduct.getProductGeneralTag(),
+                },
+                {
+                    key: 'manager_tag',
+                    type: 'search_and_select',
+                    name: '商品管理標籤',
+                    data: yield BgProduct.getProductManagerTag(),
+                },
+            ];
+        });
+    }
 }
 FilterOptions.userFilterFrame = {
     created_time: ['', ''],
@@ -292,6 +353,7 @@ FilterOptions.orderFilterFrame = {
     shipment: [],
     created_time: ['', ''],
     manager_tag: [],
+    member_levels: [],
 };
 FilterOptions.returnOrderFilterFrame = {
     progress: [],
@@ -500,46 +562,6 @@ FilterOptions.productFilterFrame = {
     general_tag: [],
     manager_tag: [],
 };
-FilterOptions.productFunnel = [
-    {
-        key: 'status',
-        type: 'multi_checkbox',
-        name: '商品狀態',
-        data: [
-            { key: 'inRange', name: '上架' },
-            { key: 'beforeStart', name: '待上架' },
-            { key: 'afterEnd', name: '下架' },
-            { key: 'draft', name: '草稿' },
-        ],
-    },
-    {
-        key: 'channel',
-        type: 'multi_checkbox',
-        name: '銷售管道',
-        data: [
-            { key: 'normal', name: 'APP & 官網' },
-            { key: 'pos', name: 'POS' },
-        ],
-    },
-    {
-        key: 'collection',
-        type: 'multi_checkbox',
-        name: '商品分類',
-        data: [],
-    },
-    {
-        key: 'general_tag',
-        type: 'search_and_select',
-        name: '商品標籤',
-        data: [],
-    },
-    {
-        key: 'manager_tag',
-        type: 'search_and_select',
-        name: '商品管理標籤',
-        data: [],
-    },
-];
 FilterOptions.productOrderBy = [
     { key: 'default', value: '預設' },
     { key: 'max_price', value: '價格高 > 低' },

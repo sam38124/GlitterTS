@@ -127,7 +127,7 @@ export interface LineItem {
   title?: string;
   sku: string;
   preview_image?: string;
-  deduction_log:any;
+  deduction_log?: any;
 }
 
 interface CustomerInfo {

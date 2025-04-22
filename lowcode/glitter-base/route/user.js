@@ -799,6 +799,14 @@ export class ApiUser {
         });
     }
 }
+ApiUser.normalMember = {
+    id: '',
+    duration: { type: 'noLimit', value: 0 },
+    tag_name: '一般會員',
+    condition: { type: 'total', value: 0 },
+    dead_line: { type: 'noLimit' },
+    create_date: '2024-01-01T00:00:00.000Z',
+};
 ApiUser.getting_config = [];
 function getConfig() {
     const saasConfig = window.parent.saasConfig;

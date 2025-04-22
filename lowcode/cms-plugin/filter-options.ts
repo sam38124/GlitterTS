@@ -2,6 +2,7 @@ import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
+import { BgProduct } from '../backend-manager/bg-product.js';
 import { OrderModule } from './order/order-module.js';
 
 const html = String.raw;
@@ -20,6 +21,15 @@ export class FilterOptions {
     last_order_total: { key: '', value: '' },
   };
 
+  static async getLevelData() {
+    const normalMember = ApiUser.normalMember;
+    normalMember.id = 'null';
+
+    const levelConfig = await ApiUser.getPublicConfig('member_level_config', 'manager');
+
+    return [normalMember, ...(levelConfig?.response?.value?.levels ?? [])];
+  }
+
   static async getUserFunnel() {
     const generalTags = await new Promise<{ key: string; name: string }[]>(resolve => {
       ApiUser.getPublicConfig('user_general_tags', 'manager').then((dd: any) => {
@@ -30,7 +40,9 @@ export class FilterOptions {
         }
       });
     });
-    const levelData = (await ApiUser.getPublicConfig('member_level_config', 'manager')).response.value.levels;
+
+    const levelData = await this.getLevelData();
+
     return [
       {
         key: 'created_time',
@@ -170,6 +182,7 @@ export class FilterOptions {
     shipment: [],
     created_time: ['', ''],
     manager_tag: [],
+    member_levels: [],
   };
 
   static returnOrderFilterFrame = {
@@ -229,6 +242,8 @@ export class FilterOptions {
   ];
 
   static async getOrderFunnel() {
+    const levelData = await this.getLevelData();
+
     return [
       { key: 'orderStatus', type: 'multi_checkbox', name: '訂單狀態', data: this.orderStatusOptions },
       { key: 'payload', type: 'multi_checkbox', name: '付款狀態', data: this.payloadStatusOptions },
@@ -252,9 +267,7 @@ export class FilterOptions {
         key: 'shipment',
         type: 'multi_checkbox',
         name: '運送方式',
-        data: await ShipmentConfig.shipmentMethod({
-          type: 'support',
-        }),
+        data: await ShipmentConfig.shipmentMethod({ type: 'support' }),
       },
       {
         key: 'created_time',
@@ -279,6 +292,14 @@ export class FilterOptions {
             { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
           ],
         },
+      },
+      {
+        key: 'member_levels',
+        type: 'multi_checkbox',
+        name: '會員等級',
+        data: levelData.map((dd: any) => {
+          return { key: dd.id, name: dd.tag_name };
+        }),
       },
       {
         key: 'manager_tag',
@@ -519,46 +540,48 @@ export class FilterOptions {
     manager_tag: [],
   };
 
-  static productFunnel = [
-    {
-      key: 'status',
-      type: 'multi_checkbox',
-      name: '商品狀態',
-      data: [
-        { key: 'inRange', name: '上架' },
-        { key: 'beforeStart', name: '待上架' },
-        { key: 'afterEnd', name: '下架' },
-        { key: 'draft', name: '草稿' },
-      ],
-    },
-    {
-      key: 'channel',
-      type: 'multi_checkbox',
-      name: '銷售管道',
-      data: [
-        { key: 'normal', name: 'APP & 官網' },
-        { key: 'pos', name: 'POS' },
-      ],
-    },
-    {
-      key: 'collection',
-      type: 'multi_checkbox',
-      name: '商品分類',
-      data: [],
-    },
-    {
-      key: 'general_tag',
-      type: 'search_and_select',
-      name: '商品標籤',
-      data: [],
-    },
-    {
-      key: 'manager_tag',
-      type: 'search_and_select',
-      name: '商品管理標籤',
-      data: [],
-    },
-  ];
+  static async getProductFunnel() {
+    return [
+      {
+        key: 'status',
+        type: 'multi_checkbox',
+        name: '商品狀態',
+        data: [
+          { key: 'inRange', name: '上架' },
+          { key: 'beforeStart', name: '待上架' },
+          { key: 'afterEnd', name: '下架' },
+          { key: 'draft', name: '草稿' },
+        ],
+      },
+      {
+        key: 'channel',
+        type: 'multi_checkbox',
+        name: '銷售管道',
+        data: [
+          { key: 'normal', name: 'APP & 官網' },
+          { key: 'pos', name: 'POS' },
+        ],
+      },
+      {
+        key: 'collection',
+        type: 'multi_checkbox',
+        name: '商品分類',
+        data: await BgProduct.getCollectonCheckData(),
+      },
+      {
+        key: 'general_tag',
+        type: 'search_and_select',
+        name: '商品標籤',
+        data: await BgProduct.getProductGeneralTag(),
+      },
+      {
+        key: 'manager_tag',
+        type: 'search_and_select',
+        name: '商品管理標籤',
+        data: await BgProduct.getProductManagerTag(),
+      },
+    ];
+  }
 
   static productOrderBy = [
     { key: 'default', value: '預設' },

@@ -374,12 +374,6 @@ export class ShoppingOrderManager {
                 filter: vm.filter,
                 archived: `${query.isArchived}`,
                 is_shipment: query.isShipment,
-                manager_tag: (() => {
-                  if (vm.filter.manager_tag && vm.filter.manager_tag.length > 0) {
-                    return vm.filter.manager_tag.join(',');
-                  }
-                  return undefined;
-                })(),
               };
               if (vm.filter_type !== 'all') {
                 vm.apiJSON.is_pos = vm.filter_type === 'pos';
@@ -1212,8 +1206,18 @@ export class ShoppingOrderManager {
 
         const funBTN = () => {
           gvc.addStyle(css`
-            .funInsignia{ border-radius: 10px; background: #EAEAEA; display: flex; padding: 6px 18px; justify-content:
-            center; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
+            .funInsignia {
+              border-radius: 10px;
+              background: #eaeaea;
+              display: flex;
+              padding: 6px 18px;
+              justify-content: center;
+              align-items: center;
+              gap: 8px;
+              font-size: 16px;
+              font-weight: 700;
+              cursor: pointer;
+            }
           `);
           return {
             splitOrder: () => {
@@ -1221,8 +1225,8 @@ export class ShoppingOrderManager {
                 class="funInsignia"
                 style=""
                 onclick="${gvc.event(() => {
-                  if (orderData.orderData.orderSource=="split"){
-                    return
+                  if (orderData.orderData.orderSource == 'split') {
+                    return;
                   }
                   OrderSetting.splitOrder(gvc, orderData.orderData, () => gvc.notifyDataChange(vm.id));
                 })}"
@@ -3737,7 +3741,7 @@ export class ShoppingOrderManager {
               count: variant.qty ?? '1',
               sale_price: variant.sale_price,
               sku: variant.sku,
-              deduction_log:[]
+              deduction_log: {},
             });
             orderDetail.subtotal +=
               Number(orderDetail.lineItems[index].count) * orderDetail.lineItems[index].sale_price;

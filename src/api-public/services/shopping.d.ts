@@ -558,6 +558,7 @@ export declare class Shopping {
         is_reconciliation?: boolean;
         reconciliation_status?: string[];
         manager_tag?: string;
+        member_levels?: string;
     }): Promise<any>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
     shareVoucherRebate(cartData: any): Promise<void>;
