@@ -693,6 +693,7 @@ export class BgNotify {
                             postData.content = text;
                           },
                           style: `overflow-y: auto;`,
+                          quick_insert: BgWidget.richTextQuickList,
                         })}`
                 ),
               ]);
@@ -1564,6 +1565,7 @@ export class BgNotify {
                                 postData.content = text;
                               },
                               style: `overflow-y: auto;`,
+                              quick_insert: BgWidget.richTextQuickList,
                             })}`,
                         ].join('');
                       },

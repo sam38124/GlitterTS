@@ -599,6 +599,7 @@ export class BgNotify {
                                     postData.content = text;
                                 },
                                 style: `overflow-y: auto;`,
+                                quick_insert: BgWidget.richTextQuickList,
                             })}`),
                     ]);
                     return htmlList.filter(str => str.length > 0).join(BgWidget.mbContainer(16));
@@ -1431,6 +1432,7 @@ export class BgNotify {
                                                 postData.content = text;
                                             },
                                             style: `overflow-y: auto;`,
+                                            quick_insert: BgWidget.richTextQuickList,
                                         })}`,
                                     ].join('');
                                 },

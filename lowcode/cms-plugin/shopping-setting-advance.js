@@ -990,34 +990,9 @@ export class ShoppingSettingAdvance {
                                                 postMD.email_notice = content;
                                             },
                                             title: '內容編輯',
-                                            quick_insert: (() => {
-                                                return [
-                                                    {
-                                                        title: '商家名稱',
-                                                        value: '@{{app_name}}',
-                                                    },
-                                                    {
-                                                        title: '會員姓名',
-                                                        value: '@{{user_name}}',
-                                                    },
-                                                    {
-                                                        title: '姓名',
-                                                        value: '@{{姓名}}',
-                                                    },
-                                                    {
-                                                        title: '電話',
-                                                        value: '@{{電話}}',
-                                                    },
-                                                    {
-                                                        title: '地址',
-                                                        value: '@{{地址}}',
-                                                    },
-                                                    {
-                                                        title: '信箱',
-                                                        value: '@{{信箱}}',
-                                                    },
-                                                ];
-                                            })(),
+                                            quick_insert: BgWidget.richTextQuickList.filter(item => {
+                                                return !['訂單號碼', '訂單金額'].includes(item.title);
+                                            }),
                                         })}
                         `;
                                     }

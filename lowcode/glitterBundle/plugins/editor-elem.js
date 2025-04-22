@@ -32,7 +32,7 @@ export class EditorElem {
                         obj.callback(e.value);
                     })}"
             />
-            <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+            <div style="width: 1px;height: 25px;background-color: white;"></div>
             <i
               class="fa-regular fa-eye text-black ms-2"
               style="cursor: pointer;"
@@ -204,17 +204,13 @@ export class EditorElem {
     }
     static flexMediaManager(obj) {
         obj.gvc.addStyle(`
-            .p-hover-image:hover {
-                opacity: 1 !important; /* 在父元素悬停时，底层元素可见 */
-            }
-        `);
+      .p-hover-image:hover {
+        opacity: 1 !important; /* 在父元素悬停时，底层元素可见 */
+      }
+    `);
         const data = obj.data;
         return obj.gvc.bindView(() => {
-            obj.gvc.addMtScript([
-                {
-                    src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
-                },
-            ], () => { }, () => { });
+            obj.gvc.addMtScript([{ src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js` }], () => { }, () => { });
             const id = obj.gvc.glitter.getUUID();
             const bid = obj.gvc.glitter.getUUID();
             return {
@@ -228,7 +224,7 @@ export class EditorElem {
             </div>`;
                     }
                     return html `
-            <div class="" style="gap:10px; ">
+            <div style="gap:10px; ">
               <ul id="${bid}" class="d-flex " style="gap:10px;overflow-x: auto;">
                 ${data
                         .map((dd, index) => {
@@ -302,10 +298,10 @@ export class EditorElem {
     static flexMediaManagerV2(obj) {
         const data = obj.data;
         obj.gvc.addStyle(`
-            .p-hover-image:hover {
-                opacity: 1 !important;
-            }
-        `);
+      .p-hover-image:hover {
+        opacity: 1 !important;
+      }
+    `);
         return obj.gvc.bindView(() => {
             obj.gvc.addMtScript([
                 {
@@ -391,7 +387,7 @@ export class EditorElem {
                             }));
                         })}"
                       >
-                        <span class="tx_700" style="">ALT</span>
+                        <span class="tx_700">ALT</span>
                       </button>
                       <i
                         class="fa-regular fa-eye"
@@ -442,11 +438,11 @@ export class EditorElem {
                         if (window.Sortable) {
                             try {
                                 obj.gvc.addStyle(`
-                                    ul {
-                                        list-style: none;
-                                        padding: 0;
-                                    }
-                                `);
+                  ul {
+                    list-style: none;
+                    padding: 0;
+                  }
+                `);
                                 function swapArr(arr, index1, index2) {
                                     const data = arr[index1];
                                     arr.splice(index1, 1);
@@ -524,9 +520,11 @@ export class EditorElem {
                             type: 'getData',
                             value: obj.dontRefactor
                                 ? obj.initial
-                                : `style {
-    ${addNewlineAfterSemicolon(obj.initial)}
-}`,
+                                : `
+                      style {
+                        ${addNewlineAfterSemicolon(obj.initial)}
+                      }
+                    `,
                             language: 'css',
                             refactor: !obj.dontRefactor,
                         }, domain);
@@ -671,19 +669,6 @@ export class EditorElem {
             };
         });
     }
-    static pageEditor(cf) {
-        const href = new URL(location.href);
-        href.searchParams.set('page', cf.page);
-        href.searchParams.set('type', 'editor');
-        href.searchParams.set('editorPosition', '0');
-        href.searchParams.set('blogEditor', 'true');
-        cf.par.map(dd => {
-            href.searchParams.set(dd.key, dd.value);
-        });
-        return html `
-            <iframe class="rounded-3"
-                    ${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
-    }
     static iframeComponent(cf) {
         const href = new URL(location.href);
         href.searchParams.set('page', cf.page);
@@ -692,9 +677,7 @@ export class EditorElem {
         cf.par.map(dd => {
             href.searchParams.set(dd.key, dd.value);
         });
-        return html `
-            <iframe class="rounded-3"
-                    ${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
+        return html ` <iframe class="rounded-3" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
     }
     static codeEditor(obj) {
         const codeID = obj.gvc.glitter.getUUID();
@@ -709,9 +692,8 @@ export class EditorElem {
                         const childWindow = (document.getElementById(frameID) || window.parent.document.getElementById(frameID)).contentWindow;
                         childWindow.postMessage({
                             type: 'getData',
-                            value: `${obj.structStart ? obj.structStart : `(()=>{`}
-${(_a = obj.initial) !== null && _a !== void 0 ? _a : ''}
-${obj.structEnd ? obj.structEnd : '})()'}`,
+                            value: `${obj.structStart ? obj.structStart : `(()=>{`} ${(_a = obj.initial) !== null && _a !== void 0 ? _a : ''}
+                ${obj.structEnd ? obj.structEnd : '})()'}`,
                             language: 'javascript',
                             refactor: true,
                             structStart: obj.structStart,
@@ -801,7 +783,10 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
               ></iframe>
             `;
                     },
-                    divCreate: { class: `w-100 `, style: `height:${height}px;` },
+                    divCreate: {
+                        class: `w-100`,
+                        style: `height: ${height}px;`,
+                    },
                     onDestroy: () => {
                         gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd) => {
                             return dd.id === frameID;
@@ -913,33 +898,33 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 'https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css',
             ]);
             gvc.addStyle(`
-                #${richID} li {
-                    list-style: revert;
-                }
-                #${richID} iframe.fr-draggable{
-                    height: 600px;
-                }
-                #insertImage-1 {
-                    display: none !important;
-                }
-                #insertImage-2 {
-                    display: none !important;
-                }
-                .fr-sticky-dummy {
-                    display: none !important;
-                }
-                ${obj.hiddenBorder
+        #${richID} li {
+          list-style: revert;
+        }
+        #${richID} iframe.fr-draggable {
+          height: 600px;
+        }
+        #insertImage-1 {
+          display: none !important;
+        }
+        #insertImage-2 {
+          display: none !important;
+        }
+        .fr-sticky-dummy {
+          display: none !important;
+        }
+        ${obj.hiddenBorder
                 ? css `
-                        .fr-box {
-                          border: none !important;
-                        }
+                .fr-box {
+                  border: none !important;
+                }
 
-                        .fr-box > div {
-                          border: none !important;
-                        }
-                      `
+                .fr-box > div {
+                  border: none !important;
+                }
+              `
                 : ''}
-            `);
+      `);
             function generateFontSizeArray() {
                 let fontSizes = [];
                 for (let size = 8; size <= 30; size += 1) {
@@ -984,19 +969,24 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                             var _a;
                             resolve(html `
                   ${obj.quick_insert && obj.quick_insert.length
-                                ? `
-                         <div class="d-flex align-items-center border-bottom w-100 p-3 flex-wrap" style="gap:8px;">
-                            快速插入
-                            ${obj.quick_insert
+                                ? html `
+                        <div class="d-flex align-items-center w-100 p-2 flex-wrap" style="gap:8px;">
+                          快速插入
+                          ${obj.quick_insert
                                     .map(dd => {
-                                    return `<div onclick="${gvc.event(() => {
+                                    return html `<div
+                                style="cursor: pointer;"
+                                onclick="${gvc.event(() => {
                                         editor.selection.restore();
                                         editor.html.insert(dd.value);
-                                    })}">${BgWidget.normalInsignia(dd.title)}</div>`;
+                                    })}"
+                              >
+                                ${BgWidget.normalInsignia(dd.title)}
+                              </div>`;
                                 })
                                     .join('')}
                         </div>
-                        `
+                      `
                                 : ``}
                   <div
                     class="w-100 bg-white d-flex align-items-center justify-content-center flex-column "
@@ -1056,10 +1046,10 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         showOnMobile: true,
                                         refreshAfterCallback: true,
                                         callback: function () {
-                                            console.log(this.html.get());
+                                            console.info(this.html.get());
                                         },
                                         refresh: function () {
-                                            console.log(this.selection.element());
+                                            console.info(this.selection.element());
                                         },
                                     });
                                     editor = new FroalaEditor('#' + richID, {
@@ -1146,7 +1136,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 }, 200);
                                             },
                                             mouseup: function () {
-                                                console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
+                                                console.info('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
                                                 editor.selection.save();
                                             },
                                         },
@@ -1370,28 +1360,28 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
     static uploadFile(obj) {
         const glitter = window.glitter;
         const $ = glitter.$;
-        return `${EditorElem.h3(obj.title)}
-${obj.gvc.bindView(() => {
+        return html `${EditorElem.h3(obj.title)}
+    ${obj.gvc.bindView(() => {
             const id = glitter.getUUID();
             return {
                 bind: id,
                 view: () => {
                     var _a;
                     return html `<input
-          class="flex-fill form-control "
-          placeholder="請輸入檔案連結"
-          value="${(_a = obj.def) !== null && _a !== void 0 ? _a : ''}"
-          onchange="${obj.gvc.event((e) => {
+              class="flex-fill form-control "
+              placeholder="請輸入檔案連結"
+              value="${(_a = obj.def) !== null && _a !== void 0 ? _a : ''}"
+              onchange="${obj.gvc.event((e) => {
                         obj.callback(e.value);
                     })}"
-          ${obj.readonly ? `readonly` : ``}
-        />
-        <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
-        ${!obj.readonly
+              ${obj.readonly ? `readonly` : ``}
+            />
+            <div style="width: 1px;height: 25px;background-color: white;"></div>
+            ${!obj.readonly
                         ? html `<i
-              class="fa-regular fa-upload  ms-2 fs-5"
-              style="cursor: pointer;color:black;"
-              onclick="${obj.gvc.event(() => {
+                  class="fa-regular fa-upload  ms-2 fs-5"
+                  style="cursor: pointer;color:black;"
+                  onclick="${obj.gvc.event(() => {
                             glitter.ut.chooseMediaCallback({
                                 single: true,
                                 accept: '*',
@@ -1427,15 +1417,14 @@ ${obj.gvc.bindView(() => {
                                 },
                             });
                         })}"
-            ></i>`
+                ></i>`
                         : ``} `;
                 },
                 divCreate: {
                     class: `d-flex align-items-center mb-2`,
                 },
             };
-        })}
-          `;
+        })} `;
     }
     static uploadFileFunction(obj) {
         var _a;
@@ -1489,7 +1478,7 @@ ${obj.gvc.bindView(() => {
             obj.callback(e.value);
         })}"
         />
-        <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+        <div style="width: 1px;height: 25px;background-color: white;"></div>
         <i
           class="fa-regular fa-upload text-white ms-2"
           style="cursor: pointer;"
@@ -1556,7 +1545,7 @@ ${obj.gvc.bindView(() => {
             obj.callback(e.value);
         })}"
         />
-        <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+        <div style="width: 1px;height: 25px;background-color: white;"></div>
         <i
           class="fa-regular fa-upload text-white ms-2"
           style="cursor: pointer;"
@@ -1784,11 +1773,11 @@ ${obj.gvc.bindView(() => {
                     divCreate: {
                         class: `dropdown-menu`,
                         style: `
-                                        transform: translateY(40px);
-                                        max-height: 200px;
-                                        overflow-y: scroll;
-                                        position: fixed;
-                                    `,
+                    transform: translateY(40px);
+                    max-height: 200px;
+                    overflow-y: scroll;
+                    position: fixed;
+                  `,
                     },
                 };
             })}
@@ -1825,7 +1814,7 @@ ${obj.gvc.bindView(() => {
                 return {
                     bind: id2,
                     view: () => {
-                        return html ` <div class="" style="position: absolute;transform: translateY(-50%);top:50%;left:20px;">
+                        return html ` <div style="position: absolute;transform: translateY(-50%);top:50%;left:20px;">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <g clip-path="url(#clip0_12704_238948)">
                           <path
@@ -1931,7 +1920,7 @@ ${obj.gvc.bindView(() => {
                 return {
                     bind: id2,
                     view: () => {
-                        return html ` <div class="" style="position: absolute;transform: translateY(-50%);top:50%;left:20px;">
+                        return html ` <div style="position: absolute;transform: translateY(-50%);top:50%;left:20px;">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <g clip-path="url(#clip0_12704_238948)">
                           <path
@@ -2129,8 +2118,7 @@ ${obj.gvc.bindView(() => {
             return {
                 bind: id,
                 view: () => {
-                    return `
-   ${EditorElem.colorBtn({
+                    return html ` ${EditorElem.colorBtn({
                         gvc: obj.gvc,
                         def: obj.def,
                         callback: value => {
@@ -2138,14 +2126,20 @@ ${obj.gvc.bindView(() => {
                             obj.gvc.notifyDataChange(id);
                         },
                     })}
-
-            <input class="flex-fill ms-2" value="${obj.def}" placeholder="" style="border:none;width:100px;" onclick="${obj.gvc.event((e, event) => {
+            <input
+              class="flex-fill ms-2"
+              value="${obj.def}"
+              placeholder=""
+              style="border:none;width:100px;"
+              onclick="${obj.gvc.event((e, event) => {
                         document.querySelector(`[gvc-id='${obj.gvc.id(id)}'] .pcr-button`).click();
-                    })}" onchange="${obj.gvc.event((e, event) => {
+                    })}"
+              onchange="${obj.gvc.event((e, event) => {
                         obj.callback(e.value);
                         obj.gvc.notifyDataChange(id);
                         document.querySelector('.pcr-app.visible').classList.remove('visible');
-                    })}">`;
+                    })}"
+            />`;
                 },
                 divCreate: {
                     class: `mt-2 d-flex align-items-center`,
@@ -2156,8 +2150,7 @@ ${obj.gvc.bindView(() => {
     }
     static colorBtn(obj) {
         const gvc = obj.gvc;
-        const css = String.raw;
-        gvc.addStyle(css `
+        gvc.addStyle(`
       .pcr-button {
         width: 18px !important;
         height: 18px !important;
@@ -2483,7 +2476,6 @@ ${obj.gvc.bindView(() => {
                   class="editor_item d-flex px-2 my-0 hi me-n1  ${dd.toggle || childSelect || obj.isOptionSelected(dd)
                             ? `active`
                             : ``}"
-                  style=""
                   onclick="${gvc.event(() => {
                             if (dd.type === 'container') {
                                 dd.toggle = !dd.toggle;
@@ -2546,11 +2538,11 @@ ${obj.gvc.bindView(() => {
                         if (window.Sortable) {
                             try {
                                 gvc.addStyle(`
-                                    ul {
-                                        list-style: none;
-                                        padding: 0;
-                                    }
-                                `);
+                  ul {
+                    list-style: none;
+                    padding: 0;
+                  }
+                `);
                                 function swapArr(arr, index1, index2) {
                                     const data = arr[index1];
                                     arr.splice(index1, 1);
@@ -2592,17 +2584,16 @@ ${obj.gvc.bindView(() => {
                 ], () => { }, () => { });
                 if (obj.hoverGray) {
                     gvc.addStyle(`
-                          
-                            #${parId} .li_item:hover{
-                                background-color: #F7F7F7;
-                            }
-                            #${parId} .li_item:hover .option{
-                                background-color:#DDD;
-                            }
-                            #${parId} .li_item:hover .pen{
-                                display:block;
-                            }
-                        `);
+              #${parId} .li_item:hover {
+                background-color: #f7f7f7;
+              }
+              #${parId} .li_item:hover .option {
+                background-color: #ddd;
+              }
+              #${parId} .li_item:hover .pen {
+                display: block;
+              }
+            `);
                 }
                 return {
                     bind: parId,
@@ -2828,11 +2819,11 @@ ${obj.gvc.bindView(() => {
                                 if (window.Sortable) {
                                     try {
                                         obj.gvc.addStyle(`
-                                                ul {
-                                                    list-style: none;
-                                                    padding: 0;
-                                                }
-                                            `);
+                        ul {
+                          list-style: none;
+                          padding: 0;
+                        }
+                      `);
                                         function swapArr(arr, index1, index2) {
                                             const data = arr[index1];
                                             arr.splice(index1, 1);
@@ -2965,16 +2956,16 @@ ${obj.gvc.bindView(() => {
                 ], () => { }, () => { });
                 if (obj.hoverGray) {
                     gvc.addStyle(`
-                            #${parId}:hover{
-                                background-color: #F7F7F7;
-                            }
-                            #${parId} :hover .option{
-                                background-color:#DDD;
-                            }
-                            #${parId} :hover .pen{
-                                display:block;
-                            }
-                        `);
+              #${parId}:hover {
+                background-color: #f7f7f7;
+              }
+              #${parId} :hover .option {
+                background-color: #ddd;
+              }
+              #${parId} :hover .pen {
+                display: block;
+              }
+            `);
                 }
                 return {
                     bind: parId,
@@ -3200,11 +3191,11 @@ ${obj.gvc.bindView(() => {
                                 if (window.Sortable) {
                                     try {
                                         obj.gvc.addStyle(`
-                                                ul {
-                                                    list-style: none;
-                                                    padding: 0;
-                                                }
-                                            `);
+                        ul {
+                          list-style: none;
+                          padding: 0;
+                        }
+                      `);
                                         function swapArr(arr, index1, index2) {
                                             const data = arr[index1];
                                             arr.splice(index1, 1);
@@ -3377,7 +3368,6 @@ ${obj.gvc.bindView(() => {
           </div>
         </div>
         <div
-          class=""
           style="max-height:calc(100vh - 150px);overflow-y:auto;width: ${width ||
                 gvc.glitter.ut.frSize({
                     1400: 1200,

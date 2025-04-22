@@ -2468,7 +2468,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     >
       <div class="fs-5 mb-0"><strong>${title}</strong></div>
       ${messageList && messageList.length > 0
-            ? `<div class="mt-2" style="white-space: normal; word-break: break-all;">${h}</div>`
+            ? html `<div class="mt-2" style="white-space: normal; word-break: break-all;">${h}</div>`
             : ``}
     </div>`;
     }
@@ -4746,6 +4746,40 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     </div>`;
     }
 }
+BgWidget.richTextQuickList = [
+    {
+        title: '商家名稱',
+        value: '@{{app_name}}',
+    },
+    {
+        title: '訂單號碼',
+        value: '@{{訂單號碼}}',
+    },
+    {
+        title: '會員姓名',
+        value: '@{{user_name}}',
+    },
+    {
+        title: '訂單金額',
+        value: '@{{訂單金額}}',
+    },
+    {
+        title: '姓名',
+        value: '@{{姓名}}',
+    },
+    {
+        title: '電話',
+        value: '@{{電話}}',
+    },
+    {
+        title: '地址',
+        value: '@{{地址}}',
+    },
+    {
+        title: '信箱',
+        value: '@{{信箱}}',
+    },
+];
 BgWidget.dotlottieJS = 'https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs';
 BgWidget.getContainerWidth = (obj) => {
     const clientWidth = document.body.clientWidth;
