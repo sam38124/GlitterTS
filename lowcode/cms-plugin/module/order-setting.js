@@ -1491,6 +1491,7 @@ export class OrderSetting {
             });
         }
         orderData.orderSource = 'split';
+        let storeList = [];
         const dataArray = orderData.lineItems;
         const parentPageConfig = (_b = (_a = window.parent) === null || _a === void 0 ? void 0 : _a.glitter) === null || _b === void 0 ? void 0 : _b.pageConfig;
         const latestPageConfig = parentPageConfig === null || parentPageConfig === void 0 ? void 0 : parentPageConfig[parentPageConfig.length - 1];
@@ -1504,6 +1505,7 @@ export class OrderSetting {
         const isDesktop = document.body.clientWidth > 768;
         const vm = {
             prefix: 'split-orders',
+            loading: true,
             splitCount: 1,
         };
         const ids = {
@@ -1634,7 +1636,7 @@ export class OrderSetting {
           width:fit-content;
         }
         .${vm.prefix}-summary-title{
-          width:481px;
+          width:606px;
           flex-shrink:0;
           border-right: 1px solid #DDD;
           padding-left:18px;
@@ -1820,46 +1822,46 @@ export class OrderSetting {
             return html `
         <div class="row">
           ${BgWidget.mainCard(html `
-              <div style="${phoneCardStyle}">
-                <span class="tx_700">拆單需知</span>
-                <div class="w-100 d-flex flex-column">
-                  <ul class="mt-2 ms-4 ${gClass('dialog-ul')}">
-                    ${hits
+            <div style="${phoneCardStyle}">
+              <span class="tx_700">拆單需知</span>
+              <div class="w-100 d-flex flex-column">
+                <ul class="mt-2 ms-4 ${gClass('dialog-ul')}">
+                  ${hits
                 .map(hit => {
                 return html ` <li class="">${hit}</li>`;
             })
                 .join('')}
-                  </ul>
-                  <div
-                    class="${gClass('split-rule')} ms-auto d-flex align-items-end justify-content-end"
-                    onclick="${gvc.event(() => {
+                </ul>
+                <div
+                  class="${gClass('split-rule')} ms-auto d-flex align-items-end justify-content-end"
+                  onclick="${gvc.event(() => {
                 BgWidget.settingDialog({
                     gvc: gvc,
                     title: '拆單需知',
                     width: 766,
                     innerHTML: gvc => {
                         return html ` <ul class="${gClass('dialog-ul')}">
-                            <li>
-                              原訂單將保留剩餘商品，訂單金額與折扣將調整；子訂單將包含選定商品，並按比例分配優惠折扣
-                            </li>
-                            <li>拆單後運費及附加費用不變，將保留於原訂單內，如需更改，請手動編輯訂單新增費用</li>
-                            <li>子訂單會預設繼承母訂單的配送與付款方式，如需更改，請手動編輯訂單內容</li>
-                            <li>子訂單若要重新開立發票，請至發票頁面手動建立</li>
-                            <li>若發票已開立，系統不會自動作廢，需至訂單頁面手動作廢並重新開立</li>
-                            <li>代收金額將更新，已建立的出貨單需取消並重新建立</li>
-                          </ul>`;
+                          <li>
+                            原訂單將保留剩餘商品，訂單金額與折扣將調整；子訂單將包含選定商品，並按比例分配優惠折扣
+                          </li>
+                          <li>拆單後運費及附加費用不變，將保留於原訂單內，如需更改，請手動編輯訂單新增費用</li>
+                          <li>子訂單會預設繼承母訂單的配送與付款方式，如需更改，請手動編輯訂單內容</li>
+                          <li>子訂單若要重新開立發票，請至發票頁面手動建立</li>
+                          <li>若發票已開立，系統不會自動作廢，需至訂單頁面手動作廢並重新開立</li>
+                          <li>代收金額將更新，已建立的出貨單需取消並重新建立</li>
+                        </ul>`;
                     },
                     footer_html: (gvc) => {
                         return '';
                     },
                 });
             })}"
-                  >
-                    詳細拆單規則
-                  </div>
+                >
+                  詳細拆單規則
                 </div>
               </div>
-            `)}
+            </div>
+          `)}
         </div>
       `;
         };
@@ -1955,6 +1957,7 @@ export class OrderSetting {
                 view: () => {
                     const dataRaws = [
                         { title: '商品', key: 'name', width: '320px', htmlArray: [] },
+                        { title: '出貨庫存', key: 'stock', width: '120px', htmlArray: [] },
                         { title: '單價', key: 'price', width: '100px', htmlArray: [] },
                         {
                             title: '總數',
@@ -1988,11 +1991,54 @@ export class OrderSetting {
                         <div class="tx_normal_14" style="white-space: normal;line-height: normal;">
                           ${Tool.truncateString((_b = item.title) !== null && _b !== void 0 ? _b : '', 10)} -${spec}
                         </div>
-                        <div class="tx_normal_14 ${gClass('font-gray')}">存貨單位 (SKU): ${(item.sku && item.sku.length > 0) ? item.sku : '無SKU'}</div>
+                        <div class="tx_normal_14 ${gClass('font-gray')}">
+                          存貨單位 (SKU): ${item.sku && item.sku.length > 0 ? item.sku : '無SKU'}
+                        </div>
                       </div>
                     </div>`;
                                 })
                                     .join('');
+                            }
+                            case 'stock': {
+                                if (storeList.length > 0) {
+                                    return dataArray.map((item) => {
+                                        var _a;
+                                        let maxEntry = {
+                                            key: "",
+                                            title: "",
+                                            value: 0
+                                        };
+                                        console.log("item.deduction_log -- ", item.deduction_log);
+                                        Object.entries(item.deduction_log).forEach((log) => {
+                                            if (maxEntry.value < log[1]) {
+                                                maxEntry = {
+                                                    key: log[0],
+                                                    title: log[0],
+                                                    value: log[1]
+                                                };
+                                            }
+                                        });
+                                        maxEntry.title = storeList.find((store) => {
+                                            return store.id == maxEntry.key;
+                                        }).name;
+                                        return html `
+                  <div
+                    class="tx_normal ${commonClass} justify-content-start"
+                    style="width: ${dataRaw.width};${commonHeight}"
+                  >
+                    ${(_a = maxEntry.title) !== null && _a !== void 0 ? _a : "出貨庫存錯誤"}
+                  </div>
+                `;
+                                    }).join('');
+                                }
+                                return html `
+                  <div
+                    class="tx_normal ${commonClass} justify-content-start"
+                    style="width: ${dataRaw.width};${commonHeight}"
+                  >
+                    AA倉庫
+                  </div>
+                `;
                             }
                             case 'price': {
                                 return dataArray
@@ -2033,7 +2079,10 @@ export class OrderSetting {
                                     });
                                     const minusQtyClass = `${gClass('minusQty')} ${splitQty > 0 ? '' : 'd-none'}`;
                                     return html `
-                      <div class="tx_normal ${commonClass} justify-content-start" style="width: ${dataRaw.width};${commonHeight}">
+                      <div
+                        class="tx_normal ${commonClass} justify-content-start"
+                        style="width: ${dataRaw.width};${commonHeight}"
+                      >
                         ${item.count}
                         <span class="${minusQtyClass}">
                           <i class="fa-solid fa-arrow-right ${gClass('font-blue')} ${gClass('summary-right')}"></i
@@ -2062,9 +2111,13 @@ export class OrderSetting {
                     ${gvc.bindView({
                             bind: item.key,
                             view: () => {
-                                return drawLineItems(item) +
-                                    html `<div class="${commonClass} mt-3" style="width: ${item.width};"></div>`;
-                            }, divCreate: { class: "d-flex flex-column", style: `width: ${item.width};gap:16px;padding-top: 24px;${(_b = item === null || item === void 0 ? void 0 : item.style) !== null && _b !== void 0 ? _b : ''}` }
+                                return (drawLineItems(item) +
+                                    html ` <div class="${commonClass} mt-3" style="width: ${item.width};"></div>`);
+                            },
+                            divCreate: {
+                                class: 'd-flex flex-column',
+                                style: `width: ${item.width};gap:16px;padding-top: 24px;${(_b = item === null || item === void 0 ? void 0 : item.style) !== null && _b !== void 0 ? _b : ''}`,
+                            },
                         })}
                   </div>
                 `;
@@ -2204,18 +2257,33 @@ export class OrderSetting {
             applyClass();
             return gvc.bindView({
                 bind: ids.page,
-                view: () => html `
-          <div class="d-flex flex-column ${gClass('full-screen')}">
-            ${renderHeader(gvc)}
-            <div
-              class="flex-fill scrollbar-appear"
-              style="${isDesktop ? 'padding: 24px 32px;' : 'padding: 0 24px;'} overflow: scroll;"
-            >
-              ${renderHint(gvc)} ${renderItemList(gvc)} ${renderSummary(gvc)}
+                view: () => {
+                    if (vm.loading) {
+                        glitter.share.loading_dialog.dataLoading({ text: '載入中...', visible: true });
+                        ApiUser.getPublicConfig('store_manager', 'manager').then((dd) => {
+                            if (dd.result && dd.response.value) {
+                                storeList = dd.response.value.list;
+                                vm.loading = false;
+                                gvc.notifyDataChange(ids.page);
+                            }
+                        });
+                    }
+                    else {
+                        glitter.share.loading_dialog.dataLoading({ text: '載入中...', visible: false });
+                    }
+                    return html `
+            <div class="d-flex flex-column ${gClass('full-screen')}">
+              ${renderHeader(gvc)}
+              <div
+                class="flex-fill scrollbar-appear"
+                style="${isDesktop ? 'padding: 24px 32px;' : 'padding: 0 24px;'} overflow: scroll;"
+              >
+                ${renderHint(gvc)} ${renderItemList(gvc)} ${renderSummary(gvc)}
+              </div>
+              ${renderFooter(gvc)}
             </div>
-            ${renderFooter(gvc)}
-          </div>
-        `,
+          `;
+                },
             });
         }, 'splitOrder');
     }

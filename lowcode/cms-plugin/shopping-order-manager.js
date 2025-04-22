@@ -1093,7 +1093,6 @@ export class ShoppingOrderManager {
                         });
                     }
                     const funBTN = () => {
-                        console.log("orderData.orderData.orderSource -- ", orderData.orderData.orderSource);
                         gvc.addStyle(css `
             .funInsignia{ border-radius: 10px; background: #EAEAEA; display: flex; padding: 6px 18px; justify-content:
             center; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
@@ -1802,7 +1801,7 @@ export class ShoppingOrderManager {
                     ${document.body.clientWidth > 768 ? getBadgeList() : ''}
                   </div>
                   ${document.body.clientWidth > 768 ? '' : html ` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
-                  <div class="d-none justify-content-end">${funBTN().splitOrder()}</div>
+                  <div class="d-flex justify-content-end">${funBTN().splitOrder()}</div>
                   ${BgWidget.container1x2({
                                     html: [
                                         !is_shipment ? '' : shipment_card,
@@ -1990,7 +1989,6 @@ export class ShoppingOrderManager {
                                             })(),
                                             ...orderData.orderData.voucherList.map((dd) => {
                                                 var _a;
-                                                console.log("orderData.orderData.voucherList -- ", orderData.orderData.voucherList);
                                                 const descHTML = html ` <div
                                   style="color: #8D8D8D; font-size: 14px; white-space: nowrap; text-overflow: ellipsis;"
                                 >
@@ -3412,7 +3410,7 @@ export class ShoppingOrderManager {
                             count: (_b = variant.qty) !== null && _b !== void 0 ? _b : '1',
                             sale_price: variant.sale_price,
                             sku: variant.sku,
-                            deduction_log: {}
+                            deduction_log: []
                         });
                         orderDetail.subtotal +=
                             Number(orderDetail.lineItems[index].count) * orderDetail.lineItems[index].sale_price;

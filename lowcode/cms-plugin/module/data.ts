@@ -115,6 +115,10 @@ export interface CartData {
   created_time: string;
 }
 
+interface DeductionLogEntry {
+  [key: string]: number; // 物件，鍵是字串，值是數字
+}
+
 export interface LineItem {
   id: number;
   spec: string[];
@@ -123,7 +127,7 @@ export interface LineItem {
   title?: string;
   sku: string;
   preview_image?: string;
-  deduction_log?:any
+  deduction_log:any;
 }
 
 interface CustomerInfo {
