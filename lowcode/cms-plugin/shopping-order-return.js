@@ -106,7 +106,7 @@ export class ShoppingReturnOrderManager {
                                         archived: vm.filter_type === 'normal' ? `false` : `true`,
                                     }).then(data => {
                                         function getDatalist() {
-                                            return data.response.data.map((dd) => {
+                                            return (data.response.data || []).map((dd) => {
                                                 return [
                                                     {
                                                         key: '退貨單編號',

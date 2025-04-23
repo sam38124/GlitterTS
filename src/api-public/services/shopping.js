@@ -1492,12 +1492,6 @@ class Shopping {
                         break;
                 }
             }
-            if (query.archived === 'true') {
-                querySql.push(`(archived="${query.archived}")`);
-            }
-            else if (query.archived === 'false') {
-                querySql.push(`((archived IS NULL) or (archived!='true'))`);
-            }
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);

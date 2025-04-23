@@ -2168,12 +2168,6 @@ export class Shopping {
             break;
         }
       }
-      //退貨單封存相關
-      if (query.archived === 'true') {
-        querySql.push(`(archived="${query.archived}")`);
-      } else if (query.archived === 'false') {
-        querySql.push(`((archived IS NULL) or (archived!='true'))`);
-      }
       //退貨貨款狀態
       query.status && querySql.push(`status IN (${query.status})`);
       query.email && querySql.push(`email=${db.escape(query.email)}`);
