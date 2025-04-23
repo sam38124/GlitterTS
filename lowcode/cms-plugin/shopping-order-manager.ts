@@ -3914,13 +3914,46 @@ export class ShoppingOrderManager {
         ${gvc.bindView({
           bind: 'addProduct',
           view: () => {
-            return html`
-              <div
-                class="w-100 d-flex justify-content-center align-items-center"
-                style="color: #36B;"
-                onclick="${gvc.event(() => {
+            return BgWidget.plusButton({
+              title: '新增一個商品',
+              event: gvc.event(() => {
+                BgWidget.dialog({
+                  gvc,
+                  title: '選擇商品種類',
+                  innerHTML: gvc => {
+                    const buttonHTML = [
+                      { title: '一般商品', value: 'product' },
+                      { title: '加購品', value: 'addProduct' },
+                      { title: '贈品', value: 'giveaway' },
+                      { title: '隱形商品', value: 'hidden' },
+                    ]
+                      .map(item => {
+                        return html`<div class="col-6 p-2">
+                          ${BgWidget.customButton({
+                            button: {
+                              color: 'snow',
+                              size: 'md',
+                              class: 'w-100',
+                              style: 'min-height: 60px;',
+                            },
+                            text: {
+                              name: item.title,
+                            },
+                            event: gvc.event(() => {
+                              gvc.closeDialog();
+                              productDialog(item.value);
+                            }),
+                          })}
+                        </div>`;
+                      })
+                      .join('');
+                    return html`<div class="row px-1">${buttonHTML}</div>`;
+                  },
+                });
+
+                function productDialog(type: string) {
                   let confirm = true;
-                  (window.parent as any).glitter.innerDialog(
+                  return (window.parent as any).glitter.innerDialog(
                     (gvc: GVC) => {
                       newOrder.query = '';
                       newOrder.search = '';
@@ -3970,7 +4003,6 @@ export class ShoppingOrderManager {
                                       value="${newOrder.query ?? ''}"
                                     />
                                   </div>
-
                                   ${BgWidget.updownFilter({
                                     gvc,
                                     callback: (value: any) => {
@@ -3996,6 +4028,8 @@ export class ShoppingOrderManager {
                                           search: newOrder.query,
                                           orderBy: newOrder.orderString,
                                           status: 'inRange',
+                                          filter_visible: `${type !== 'hidden'}`,
+                                          productType: type === 'hidden' ? 'product' : type,
                                         }).then(data => {
                                           searchLoading = true;
                                           newOrder.productArray = data.response.data;
@@ -4140,6 +4174,9 @@ export class ShoppingOrderManager {
                                     newOrder.productTemp = [];
                                     newOrder.productArray.map((product: any) => {
                                       if (product.select) {
+                                        if (type === 'giveaway') {
+                                          product.content.variants.forEach((item: any) => (item.sale_price = 0));
+                                        }
                                         newOrder.productTemp.push(product);
                                       }
                                     });
@@ -4181,37 +4218,12 @@ export class ShoppingOrderManager {
                       },
                     }
                   );
-                })}"
-              >
-                新增一個商品
-                <svg
-                  style="margin-left: 5px;"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                >
-                  <path
-                    d="M1.5 7.23926H12.5"
-                    stroke="#3366BB"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M6.76172 1.5L6.76172 12.5"
-                    stroke="#3366BB"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </div>
-            `;
+                }
+              }),
+            });
           },
           divCreate: {
-            style: `width: 100%;display: flex;align-items: center;margin:24px 0;cursor: pointer;`,
+            style: 'width: 100%; display: flex; align-items: center; margin: 24px 0;',
           },
         })}
         ${BgWidget.horizontalLine()} ${showOrderDetail()}

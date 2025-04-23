@@ -280,9 +280,9 @@ export class ShoppingProductSetting {
                                         return undefined;
                                       })(),
                                       filter_visible: `${type !== 'hidden'}`,
+                                      productType: type === 'hidden' ? 'product' : type,
                                       collection: vm.filter.collection,
                                       accurate_search_collection: true,
-                                      productType: type === 'hidden' ? 'product' : type,
                                       general_tag: (() => {
                                         if (vm.filter.general_tag && vm.filter.general_tag.length > 0) {
                                           return vm.filter.general_tag.join(',');

@@ -3574,23 +3574,55 @@ export class ShoppingOrderManager {
         ${gvc.bindView({
             bind: 'addProduct',
             view: () => {
-                return html `
-              <div
-                class="w-100 d-flex justify-content-center align-items-center"
-                style="color: #36B;"
-                onclick="${gvc.event(() => {
-                    let confirm = true;
-                    window.parent.glitter.innerDialog((gvc) => {
-                        newOrder.query = '';
-                        newOrder.search = '';
-                        newOrder.productArray = [];
-                        return gvc.bindView({
-                            bind: 'addDialog',
-                            view: () => {
-                                var _a;
-                                let width = window.innerWidth > 1000 ? 690 : 350;
-                                let searchLoading = false;
-                                return html ` <div
+                return BgWidget.plusButton({
+                    title: '新增一個商品',
+                    event: gvc.event(() => {
+                        BgWidget.dialog({
+                            gvc,
+                            title: '選擇商品種類',
+                            innerHTML: gvc => {
+                                const buttonHTML = [
+                                    { title: '一般商品', value: 'product' },
+                                    { title: '加購品', value: 'addProduct' },
+                                    { title: '贈品', value: 'giveaway' },
+                                    { title: '隱形商品', value: 'hidden' },
+                                ]
+                                    .map(item => {
+                                    return html `<div class="col-6 p-2">
+                          ${BgWidget.customButton({
+                                        button: {
+                                            color: 'snow',
+                                            size: 'md',
+                                            class: 'w-100',
+                                            style: 'min-height: 60px;',
+                                        },
+                                        text: {
+                                            name: item.title,
+                                        },
+                                        event: gvc.event(() => {
+                                            gvc.closeDialog();
+                                            productDialog(item.value);
+                                        }),
+                                    })}
+                        </div>`;
+                                })
+                                    .join('');
+                                return html `<div class="row px-1">${buttonHTML}</div>`;
+                            },
+                        });
+                        function productDialog(type) {
+                            let confirm = true;
+                            return window.parent.glitter.innerDialog((gvc) => {
+                                newOrder.query = '';
+                                newOrder.search = '';
+                                newOrder.productArray = [];
+                                return gvc.bindView({
+                                    bind: 'addDialog',
+                                    view: () => {
+                                        var _a;
+                                        let width = window.innerWidth > 1000 ? 690 : 350;
+                                        let searchLoading = false;
+                                        return html ` <div
                             style="display: flex;width: ${width}px;flex-direction: column;align-items: flex-start;gap: 18px;border-radius: 10px;background: #FFF;"
                           >
                             <div
@@ -3621,73 +3653,74 @@ export class ShoppingOrderManager {
                                       style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;"
                                       placeholder="輸入商品名稱或商品貨號"
                                       oninput="${gvc.event(e => {
-                                    searchLoading = false;
-                                    newOrder.query = e.value;
-                                    newOrder.productArray = [];
-                                    gvc.notifyDataChange('productArray');
-                                })}"
+                                            searchLoading = false;
+                                            newOrder.query = e.value;
+                                            newOrder.productArray = [];
+                                            gvc.notifyDataChange('productArray');
+                                        })}"
                                       value="${(_a = newOrder.query) !== null && _a !== void 0 ? _a : ''}"
                                     />
                                   </div>
-
                                   ${BgWidget.updownFilter({
-                                    gvc,
-                                    callback: (value) => {
-                                        searchLoading = false;
-                                        newOrder.orderString = value;
-                                        newOrder.productArray = [];
-                                        gvc.notifyDataChange('productArray');
-                                    },
-                                    default: newOrder.orderString || 'default',
-                                    options: FilterOptions.productOrderBy,
-                                })}
+                                            gvc,
+                                            callback: (value) => {
+                                                searchLoading = false;
+                                                newOrder.orderString = value;
+                                                newOrder.productArray = [];
+                                                gvc.notifyDataChange('productArray');
+                                            },
+                                            default: newOrder.orderString || 'default',
+                                            options: FilterOptions.productOrderBy,
+                                        })}
                                 </div>
                                 <div
                                   style="height:350px;display: flex;justify-content: center;align-items: flex-start;padding-right: 24px;align-self: stretch;overflow-y: scroll;"
                                 >
                                   ${gvc.bindView({
-                                    bind: 'productArray',
-                                    view: () => {
-                                        if (!searchLoading) {
-                                            ApiShop.getProduct({
-                                                page: 0,
-                                                limit: 50,
-                                                search: newOrder.query,
-                                                orderBy: newOrder.orderString,
-                                                status: 'inRange',
-                                            }).then(data => {
-                                                searchLoading = true;
-                                                newOrder.productArray = data.response.data;
-                                                gvc.notifyDataChange('productArray');
-                                            });
-                                            return BgWidget.spinner();
-                                        }
-                                        if (newOrder.productArray.length == 0) {
-                                            return html ` <div
+                                            bind: 'productArray',
+                                            view: () => {
+                                                if (!searchLoading) {
+                                                    ApiShop.getProduct({
+                                                        page: 0,
+                                                        limit: 50,
+                                                        search: newOrder.query,
+                                                        orderBy: newOrder.orderString,
+                                                        status: 'inRange',
+                                                        filter_visible: `${type !== 'hidden'}`,
+                                                        productType: type === 'hidden' ? 'product' : type,
+                                                    }).then(data => {
+                                                        searchLoading = true;
+                                                        newOrder.productArray = data.response.data;
+                                                        gvc.notifyDataChange('productArray');
+                                                    });
+                                                    return BgWidget.spinner();
+                                                }
+                                                if (newOrder.productArray.length == 0) {
+                                                    return html ` <div
                                           class="w-100 h-100 d-flex align-items-center justify-content-center"
                                           style="color:#8D8D8D;"
                                         >
                                           查無此商品
                                         </div>`;
-                                        }
-                                        return newOrder.productArray
-                                            .map((product, productIndex) => {
-                                            return gvc.bindView({
-                                                bind: `product${productIndex}`,
-                                                view: () => {
-                                                    return html `
+                                                }
+                                                return newOrder.productArray
+                                                    .map((product, productIndex) => {
+                                                    return gvc.bindView({
+                                                        bind: `product${productIndex}`,
+                                                        view: () => {
+                                                            return html `
                                                 ${(() => {
-                                                        if (product.select) {
-                                                            return html ` <svg
+                                                                if (product.select) {
+                                                                    return html ` <svg
                                                       xmlns="http://www.w3.org/2000/svg"
                                                       width="16"
                                                       height="16"
                                                       viewBox="0 0 16 16"
                                                       fill="none"
                                                       onclick="${gvc.event(() => {
-                                                                product.select = false;
-                                                                gvc.notifyDataChange(`product${productIndex}`);
-                                                            })}"
+                                                                        product.select = false;
+                                                                        gvc.notifyDataChange(`product${productIndex}`);
+                                                                    })}"
                                                     >
                                                       <rect width="16" height="16" rx="3" fill="#393939" />
                                                       <path
@@ -3698,29 +3731,29 @@ export class ShoppingOrderManager {
                                                         stroke-linejoin="round"
                                                       />
                                                     </svg>`;
-                                                        }
-                                                        else {
-                                                            return html `
+                                                                }
+                                                                else {
+                                                                    return html `
                                                       <div
                                                         style="display: flex;align-items: center;justify-content: center;height: 60px;width: 16px;cursor: pointer;"
                                                         onclick="${gvc.event(() => {
-                                                                product.select = true;
-                                                                if (product.content.variants.length > 1) {
-                                                                    product.selectIndex = window.parent.document.querySelector('.varitantSelect').value;
-                                                                }
-                                                                gvc.notifyDataChange(`product${productIndex}`);
-                                                            })}"
+                                                                        product.select = true;
+                                                                        if (product.content.variants.length > 1) {
+                                                                            product.selectIndex = window.parent.document.querySelector('.varitantSelect').value;
+                                                                        }
+                                                                        gvc.notifyDataChange(`product${productIndex}`);
+                                                                    })}"
                                                       >
                                                         <div
                                                           style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;cursor: pointer;"
                                                         ></div>
                                                       </div>
                                                     `;
-                                                        }
-                                                    })()}
+                                                                }
+                                                            })()}
                                                 <div
                                                   style="width: 50px;height: 50px;border-radius: 5px;background: url('${product
-                                                        .content.preview_image[0]}') lightgray 50% / cover no-repeat;"
+                                                                .content.preview_image[0]}') lightgray 50% / cover no-repeat;"
                                                 ></div>
                                                 <div class="flex-fill d-flex flex-column">
                                                   <div
@@ -3729,17 +3762,17 @@ export class ShoppingOrderManager {
                                                     ${product.content.title}
                                                   </div>
                                                   ${product.content.variants.length > 1
-                                                        ? html `
+                                                                ? html `
                                                         <select
                                                           class="w-100 d-flex align-items-center form-select varitantSelect"
                                                           style="border-radius: 10px;border: 1px solid #DDD;padding: 6px 18px;"
                                                           onchange="${gvc.event(e => {
-                                                            product.selectIndex = e.value;
-                                                        })}"
+                                                                    product.selectIndex = e.value;
+                                                                })}"
                                                         >
                                                           ${product.content.variants
-                                                            .map((variant, index) => {
-                                                            return html `
+                                                                    .map((variant, index) => {
+                                                                    return html `
                                                                 <option
                                                                   value="${index}"
                                                                   ${product.selectIndex == index ? 'selected' : ''}
@@ -3747,11 +3780,11 @@ export class ShoppingOrderManager {
                                                                   ${variant.spec.join(', ')}
                                                                 </option>
                                                               `;
-                                                        })
-                                                            .join('')}
+                                                                })
+                                                                    .join('')}
                                                         </select>
                                                       `
-                                                        : html ` <div
+                                                                : html ` <div
                                                         class="d-flex align-items-center"
                                                         style="height: 34px;color: #8D8D8D;font-size: 14px;font-weight: 400;"
                                                       >
@@ -3759,25 +3792,25 @@ export class ShoppingOrderManager {
                                                       </div>`}
                                                 </div>
                                               `;
-                                                },
-                                                divCreate: {
-                                                    style: `
+                                                        },
+                                                        divCreate: {
+                                                            style: `
                                                 display: flex;
                                                 padding: 0px 12px;
                                                 align-items: center;
                                                 gap: 18px;
                                                 align-self: stretch;
                                               `,
-                                                },
-                                            });
-                                        })
-                                            .join('');
-                                    },
-                                    divCreate: {
-                                        class: `d-flex flex-column h-100`,
-                                        style: `gap: 18px;width:100%;`,
-                                    },
-                                })}
+                                                        },
+                                                    });
+                                                })
+                                                    .join('');
+                                            },
+                                            divCreate: {
+                                                class: `d-flex flex-column h-100`,
+                                                style: `gap: 18px;width:100%;`,
+                                            },
+                                        })}
                                 </div>
                               </div>
                               <div
@@ -3785,83 +3818,61 @@ export class ShoppingOrderManager {
                                 style="display: flex;padding: 12px 20px;align-items: center;justify-content: end;gap: 10px;"
                               >
                                 ${BgWidget.cancel(gvc.event(() => {
-                                    confirm = false;
-                                    gvc.closeDialog();
-                                }))}
+                                            confirm = false;
+                                            gvc.closeDialog();
+                                        }))}
                                 ${BgWidget.save(gvc.event(() => {
-                                    confirm = true;
-                                    newOrder.productTemp = [];
-                                    newOrder.productArray.map((product) => {
-                                        if (product.select) {
-                                            newOrder.productTemp.push(product);
-                                        }
-                                    });
-                                    gvc.closeDialog();
-                                }))}
+                                            confirm = true;
+                                            newOrder.productTemp = [];
+                                            newOrder.productArray.map((product) => {
+                                                if (product.select) {
+                                                    if (type === 'giveaway') {
+                                                        product.content.variants.forEach((item) => (item.sale_price = 0));
+                                                    }
+                                                    newOrder.productTemp.push(product);
+                                                }
+                                            });
+                                            gvc.closeDialog();
+                                        }))}
                               </div>
                             </div>
                           </div>`;
-                            },
-                        });
-                    }, 'addProduct', {
-                        dismiss: () => {
-                            if (confirm) {
-                                orderDetailRefresh = true;
-                                if (newOrder.productCheck.length > 0) {
-                                    const updateProductCheck = (tempData) => {
-                                        var _a;
-                                        const productData = newOrder.productCheck.find((p) => {
-                                            return p.id === tempData.id && p.selectIndex === tempData.selectIndex;
-                                        });
-                                        if (productData) {
-                                            const index = parseInt((_a = productData.selectIndex) !== null && _a !== void 0 ? _a : '0', 10);
-                                            productData.content.variants[index].qty++;
-                                            tempData.add = true;
+                                    },
+                                });
+                            }, 'addProduct', {
+                                dismiss: () => {
+                                    if (confirm) {
+                                        orderDetailRefresh = true;
+                                        if (newOrder.productCheck.length > 0) {
+                                            const updateProductCheck = (tempData) => {
+                                                var _a;
+                                                const productData = newOrder.productCheck.find((p) => {
+                                                    return p.id === tempData.id && p.selectIndex === tempData.selectIndex;
+                                                });
+                                                if (productData) {
+                                                    const index = parseInt((_a = productData.selectIndex) !== null && _a !== void 0 ? _a : '0', 10);
+                                                    productData.content.variants[index].qty++;
+                                                    tempData.add = true;
+                                                }
+                                                else {
+                                                    newOrder.productCheck.push(tempData);
+                                                }
+                                            };
+                                            newOrder.productTemp.forEach(updateProductCheck);
                                         }
                                         else {
-                                            newOrder.productCheck.push(tempData);
+                                            newOrder.productCheck = newOrder.productTemp;
                                         }
-                                    };
-                                    newOrder.productTemp.forEach(updateProductCheck);
-                                }
-                                else {
-                                    newOrder.productCheck = newOrder.productTemp;
-                                }
-                                gvc.notifyDataChange(['listProduct', 'addProduct']);
-                            }
-                        },
-                    });
-                })}"
-              >
-                新增一個商品
-                <svg
-                  style="margin-left: 5px;"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                >
-                  <path
-                    d="M1.5 7.23926H12.5"
-                    stroke="#3366BB"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M6.76172 1.5L6.76172 12.5"
-                    stroke="#3366BB"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </div>
-            `;
+                                        gvc.notifyDataChange(['listProduct', 'addProduct']);
+                                    }
+                                },
+                            });
+                        }
+                    }),
+                });
             },
             divCreate: {
-                style: `width: 100%;display: flex;align-items: center;margin:24px 0;cursor: pointer;`,
+                style: 'width: 100%; display: flex; align-items: center; margin: 24px 0;',
             },
         })}
         ${BgWidget.horizontalLine()} ${showOrderDetail()}
