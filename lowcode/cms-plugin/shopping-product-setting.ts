@@ -309,7 +309,7 @@ export class ShoppingProductSetting {
                                                   width: 40,
                                                   class: 'rounded border me-2',
                                                 })}
-                                                <div class="d-flex flex-column" style="">
+                                                <div class="d-flex flex-column">
                                                   ${dd.content.shopee_id
                                                     ? html`<div style="margin-bottom: -10px;">
                                                         <div
@@ -1534,7 +1534,7 @@ export class ShoppingProductSetting {
           const categoryTitle = categoryTitleMap[postMD.product_category] || '商品';
           return [
             BgWidget.container(html`
-              <div class="title-container flex-column flex-sm-row" style="">
+              <div class="title-container flex-column flex-sm-row">
                 <div class="d-flex align-items-center w-100">
                   ${BgWidget.goBack(
                     obj.gvc.event(() => {

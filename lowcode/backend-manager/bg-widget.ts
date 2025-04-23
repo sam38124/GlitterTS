@@ -224,14 +224,14 @@ export class BgWidget {
   }
 
   static disableButton(text: string, obj?: { icon?: string; textStyle?: string }) {
-    return html` <button class="btn btn-gray-disable" style="" type="button">
+    return html` <button class="btn btn-gray-disable" type="button">
       <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
       ${text.length > 0 ? html`<span class="tx_700" style="${obj?.textStyle ?? ''}">${text}</span>` : ''}
     </button>`;
   }
 
   static grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string; class?: string }) {
-    return html` <button class="btn btn-gray ${obj?.class || ''}" style="" type="button" onclick="${event}">
+    return html` <button class="btn btn-gray ${obj?.class || ''}" type="button" onclick="${event}">
       <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
       ${text.length > 0 ? html`<span class="tx_700" style="${obj?.textStyle ?? ''}">${text}</span>` : ''}
     </button>`;
@@ -353,7 +353,6 @@ export class BgWidget {
       ></i>
       <div class="w-100 d-none" style="position: absolute;left: 0;top: 100%;z-index:2;">
         <div
-          class=""
           style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index:3;"
           onclick="${gvc.event(e => {
             if (e.parentElement) {
@@ -704,67 +703,48 @@ export class BgWidget {
           gvc.notifyDataChange('editDialog');
         };
         reload();
-        return `<div class="${vm.edit_mode ? `m-n3` : `m-n2`}">${gvc.bindView({
-          bind: 'editDialog',
-          view: async () => {
-            reload = () => {
-              gvc.recreateView();
-            };
-            return html`
-              <div class="d-flex flex-column" style="left: 0;top:0;background-color: white;z-index:1;">
-                ${BgWidget.tableV3({
-                  gvc: gvc,
-                  getData: vmi => {
-                    if (!vm.loading) {
-                      function getDatalist() {
-                        return vm.language_list.label.map((dd: any) => {
-                          return [
-                            vm.edit_mode
-                              ? undefined
-                              : {
-                                  key: '',
-                                  value: html`
-                                    <div
-                                      class="w-100"
-                                      style="justify-content: center; align-items: center; gap: 4px; display: flex;color: #3366BB;cursor: pointer;"
-                                      data-bs-toggle="dropdown"
-                                      aria-haspopup="true"
-                                      aria-expanded="false"
-                                      onclick="${gvc.event(() => {
-                                        obj.callback!(dd.tag);
-                                        gvc.closeDialog();
-                                      })}"
-                                    >
+        return html`<div class="${vm.edit_mode ? `m-n3` : `m-n2`}">
+          ${gvc.bindView({
+            bind: 'editDialog',
+            view: async () => {
+              reload = () => {
+                gvc.recreateView();
+              };
+              return html`
+                <div class="d-flex flex-column" style="left: 0;top:0;background-color: white;z-index:1;">
+                  ${BgWidget.tableV3({
+                    gvc: gvc,
+                    getData: vmi => {
+                      if (!vm.loading) {
+                        function getDatalist() {
+                          return vm.language_list.label.map((dd: any) => {
+                            return [
+                              vm.edit_mode
+                                ? undefined
+                                : {
+                                    key: '',
+                                    value: html`
                                       <div
-                                        style="font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                        class="w-100"
+                                        style="justify-content: center; align-items: center; gap: 4px; display: flex;color: #3366BB;cursor: pointer;"
+                                        data-bs-toggle="dropdown"
+                                        aria-haspopup="true"
+                                        aria-expanded="false"
+                                        onclick="${gvc.event(() => {
+                                          obj.callback!(dd.tag);
+                                          gvc.closeDialog();
+                                        })}"
                                       >
-                                        選擇
+                                        <div
+                                          style="font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                        >
+                                          選擇
+                                        </div>
                                       </div>
-                                    </div>
-                                  `,
-                                },
-                            {
-                              key: '標籤',
-                              value: html` <div
-                                class="d-flex flex-shrink-0"
-                                style="width:${elementLength}px;font-size: 16px;font-style: normal;font-weight: 700;"
-                              >
-                                ${BgWidget.editeInput({
-                                  gvc: gvc,
-                                  title: ``,
-                                  placeHolder: '請輸入標籤',
-                                  callback: text => {
-                                    dd.tag = text;
+                                    `,
                                   },
-                                  type: 'text',
-                                  default: dd.tag || '',
-                                  readonly: !vm.edit_mode,
-                                })}
-                              </div>`,
-                            },
-                            ...Language.languageSupport().map(d1 => {
-                              return {
-                                key: d1.value,
+                              {
+                                key: '標籤',
                                 value: html` <div
                                   class="d-flex flex-shrink-0"
                                   style="width:${elementLength}px;font-size: 16px;font-style: normal;font-weight: 700;"
@@ -772,59 +752,78 @@ export class BgWidget {
                                   ${BgWidget.editeInput({
                                     gvc: gvc,
                                     title: ``,
-                                    placeHolder: '請輸入內文',
+                                    placeHolder: '請輸入標籤',
                                     callback: text => {
-                                      dd[d1.key] = text;
+                                      dd.tag = text;
                                     },
                                     type: 'text',
-                                    default: dd[d1.key] || '',
+                                    default: dd.tag || '',
                                     readonly: !vm.edit_mode,
                                   })}
                                 </div>`,
-                              };
-                            }),
-                          ].filter(dd => {
-                            return dd;
-                          });
-                        });
-                      }
-
-                      vmi.pageSize = 1;
-                      vmi.originalData = vm.language_list.label;
-                      vmi.tableData = getDatalist();
-                      vmi.loading = vm.loading;
-                      vmi.callback();
-                    }
-                  },
-                  rowClick: (data, index) => {},
-                  filter: vm.edit_mode
-                    ? [
-                        {
-                          name: '批量移除',
-                          event: () => {
-                            const dialog = new ShareDialog(gvc.glitter);
-                            dialog.checkYesOrNot({
-                              text: '是否確認刪除所選項目？',
-                              callback: response => {
-                                if (response) {
-                                  vm.language_list.label = vm.language_list.label.filter((dd: any) => {
-                                    return !dd.checked;
-                                  });
-                                  save();
-                                }
                               },
+                              ...Language.languageSupport().map(d1 => {
+                                return {
+                                  key: d1.value,
+                                  value: html` <div
+                                    class="d-flex flex-shrink-0"
+                                    style="width:${elementLength}px;font-size: 16px;font-style: normal;font-weight: 700;"
+                                  >
+                                    ${BgWidget.editeInput({
+                                      gvc: gvc,
+                                      title: ``,
+                                      placeHolder: '請輸入內文',
+                                      callback: text => {
+                                        dd[d1.key] = text;
+                                      },
+                                      type: 'text',
+                                      default: dd[d1.key] || '',
+                                      readonly: !vm.edit_mode,
+                                    })}
+                                  </div>`,
+                                };
+                              }),
+                            ].filter(dd => {
+                              return dd;
                             });
+                          });
+                        }
+
+                        vmi.pageSize = 1;
+                        vmi.originalData = vm.language_list.label;
+                        vmi.tableData = getDatalist();
+                        vmi.loading = vm.loading;
+                        vmi.callback();
+                      }
+                    },
+                    rowClick: (data, index) => {},
+                    filter: vm.edit_mode
+                      ? [
+                          {
+                            name: '批量移除',
+                            event: () => {
+                              const dialog = new ShareDialog(gvc.glitter);
+                              dialog.checkYesOrNot({
+                                text: '是否確認刪除所選項目？',
+                                callback: response => {
+                                  if (response) {
+                                    vm.language_list.label = vm.language_list.label.filter((dd: any) => {
+                                      return !dd.checked;
+                                    });
+                                    save();
+                                  }
+                                },
+                              });
+                            },
                           },
-                        },
-                      ]
-                    : [],
-                })}
-              </div>
-            `;
-          },
-          divCreate: {},
-          onCreate: () => {},
-        })}</div>`;
+                        ]
+                      : [],
+                  })}
+                </div>
+              `;
+            },
+          })}
+        </div>`;
       },
       footer_html: (gvc: GVC) => {
         if (vm.edit_mode) {
@@ -1151,13 +1150,20 @@ ${obj.default ?? ''}</textarea
 
     // 新增 elementClass style
     obj.gvc.addStyle(`
-            #${dropMenu.elementClass} {
-                font-size: 14px;
-                margin-top: 8px;
-                white-space: normal;
-                word-break: break-all;
-            }
-        `);
+      #${dropMenu.elementClass} {
+        font-size: 14px;
+        margin-top: 8px;
+        white-space: normal;
+        word-break: break-all;
+      }
+      .tag-icon-bgr {
+        width: 25px;
+        height: 25px;
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+      }
+    `);
 
     return obj.gvc.bindView({
       bind: vm.id,
@@ -1174,7 +1180,9 @@ ${obj.default ?? ''}</textarea
                   if (linkComp.loading) {
                     return html` <div
                       class="bgw-input border rounded-3"
-                      style="${linkComp.text.length > 0 ? '' : 'padding: 9.5px 12px;'} ${obj.style ?? ''}"
+                      style="${linkComp.text.length > 0
+                        ? 'padding: 8px 18px; height: 41.75px'
+                        : 'padding: 9.5px 12px;'} ${obj.style ?? ''}"
                       id="${dropMenu.elementClass}"
                       onclick="${obj.gvc.event(() => {
                         componentFresh();
@@ -1220,122 +1228,171 @@ ${obj.default ?? ''}</textarea
                     `;
                   }
                 },
-                divCreate: {},
-                onCreate: () => {},
               })}
               ${obj.gvc.bindView({
                 bind: dropMenu.id,
-                view: () => {
+                view: async () => {
                   if (dropMenu.loading) {
                     return '';
                   } else {
-                    let h1 = '';
-                    if (dropMenu.prevList.length > 0) {
-                      h1 += html` <div
-                          class="m-3 cursor_pointer"
-                          style="font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;"
-                          onclick=${obj.gvc.event(() => {
-                            dataList = dropMenu.prevList[dropMenu.prevList.length - 1];
-                            dropMenu.prevList.pop();
-                            dropMenu.recentParent.pop();
-                            dropMenu.search = '';
-                            obj.gvc.notifyDataChange(dropMenu.id);
-                          })}
-                        >
-                          <i class="fa-solid fa-chevron-left me-2 hoverF2"></i>
-                          <span>${dropMenu.recentParent[dropMenu.recentParent.length - 1]}</span>
-                        </div>
-                        <input
-                          class="form-control m-2"
-                          style="width: 92%"
-                          type="text"
-                          placeholder="搜尋"
-                          onchange="${obj.gvc.event(e => {
-                            dropMenu.search = e.value;
-                            obj.gvc.notifyDataChange(dropMenu.id);
-                          })}"
-                          oninput="${obj.gvc.event(e => {
-                            if (obj.pattern) {
-                              const value = e.value;
-                              const regex = new RegExp(`[^${obj.pattern}]`, 'g');
-                              const validValue = value.replace(regex, '');
-                              if (value !== validValue) {
-                                e.value = validValue;
-                              }
-                            }
-                          })}"
-                          value="${dropMenu.search}"
-                        />`;
-                    }
-                    let h2 = '';
-                    dataList
-                      .filter(tag => {
-                        return tag.name.includes(dropMenu.search);
-                      })
-                      .map(tag => {
-                        h2 += html`
-                          <div
-                            class="m-2"
-                            style="cursor:pointer;display: flex; align-items: center; justify-content: space-between;"
-                          >
-                            <div
-                              class="w-100 p-1 link-item-container hoverF2 cursor_pointer text-wrap"
+                    const barHTML =
+                      dropMenu.prevList.length > 0
+                        ? html` <div
+                              class="m-3 cursor_pointer"
+                              style="font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;"
                               onclick=${obj.gvc.event(() => {
-                                if (tag.link && tag.link.length > 0 && !tag.ignoreFirst) {
-                                  callbackEvent(tag);
-                                } else {
+                                dataList = dropMenu.prevList[dropMenu.prevList.length - 1];
+                                dropMenu.prevList.pop();
+                                dropMenu.recentParent.pop();
+                                dropMenu.search = '';
+                                obj.gvc.notifyDataChange(dropMenu.id);
+                              })}
+                            >
+                              <i class="fa-solid fa-chevron-left me-2 hoverF2"></i>
+                              <span>${dropMenu.recentParent[dropMenu.recentParent.length - 1]}</span>
+                            </div>
+                            <input
+                              class="form-control m-2"
+                              style="width: 92%"
+                              type="text"
+                              placeholder="搜尋"
+                              onchange="${obj.gvc.event(e => {
+                                dropMenu.search = e.value;
+                                obj.gvc.notifyDataChange(dropMenu.id);
+                              })}"
+                              oninput="${obj.gvc.event(e => {
+                                if (obj.pattern) {
+                                  const value = e.value;
+                                  const regex = new RegExp(`[^${obj.pattern}]`, 'g');
+                                  const validValue = value.replace(regex, '');
+                                  if (value !== validValue) {
+                                    e.value = validValue;
+                                  }
+                                }
+                              })}"
+                              value="${dropMenu.search}"
+                            />`
+                        : '';
+
+                    function getProductHTML() {
+                      return BgWidget.tableV3({
+                        gvc: obj.gvc,
+                        getData: vmi => {
+                          const limit = 10;
+
+                          ApiShop.getProduct({
+                            page: vmi.page - 1,
+                            limit: limit,
+                            search: dropMenu.search.trim(),
+                            searchType: 'title',
+                            status: 'inRange',
+                          }).then(data => {
+                            dataList = (data.response.data || []).map((item: any) => {
+                              const { id, title, preview_image } = item.content;
+                              const icon = preview_image && preview_image[0] ? preview_image[0] : '';
+
+                              return {
+                                name: title,
+                                icon: icon,
+                                link: `/products?product_id=${id}`,
+                              };
+                            });
+
+                            vmi.tableData = dataList.map(item => {
+                              return [
+                                {
+                                  key: '商品名稱',
+                                  value: html` <div class="d-flex align-items-center" style="line-height: 32px;">
+                                    ${BgWidget.validImageBox({
+                                      gvc: obj.gvc,
+                                      image: item.icon,
+                                      width: 32,
+                                      class: 'rounded border me-2',
+                                    })}
+                                    <div class="d-flex flex-column">
+                                      <div>${Tool.truncateString(item.name)}</div>
+                                    </div>
+                                  </div>`,
+                                },
+                              ];
+                            });
+
+                            vmi.pageSize = Math.ceil(data.response.total / limit);
+                            vmi.originalData = data.response.data;
+                            vmi.loading = false;
+                            vmi.callback();
+                          });
+                        },
+                        rowClick: (_, index) => {
+                          callbackEvent(dataList[index]);
+                        },
+                        filter: [],
+                      });
+                    }
+
+                    function getDataListHTML() {
+                      return dataList
+                        .filter(tag => {
+                          return tag.name.includes(dropMenu.search);
+                        })
+                        .map(tag => {
+                          return html`
+                            <div
+                              class="m-2"
+                              style="cursor:pointer;display: flex; align-items: center; justify-content: space-between;"
+                            >
+                              <div
+                                class="w-100 p-1 link-item-container hoverF2 cursor_pointer text-wrap"
+                                onclick=${obj.gvc.event(() => {
+                                  if (tag.link && tag.link.length > 0 && !tag.ignoreFirst) {
+                                    callbackEvent(tag);
+                                  } else {
+                                    dropMenu.prevList.push(dataList);
+                                    dropMenu.recentParent.push(tag.name);
+                                    tag.items && (dataList = tag.items);
+                                    obj.gvc.notifyDataChange(dropMenu.id);
+                                  }
+                                })}
+                              >
+                                <div
+                                  style="min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;"
+                                >
+                                  ${tag.icon.includes('https://')
+                                    ? html` <div
+                                        class="tag-icon-bgr"
+                                        style="background-image: url('${tag.icon}');"
+                                      ></div>`
+                                    : html`<i class="${tag.icon.length > 0 ? tag.icon : 'fa-regular fa-image'}"></i>`}
+                                </div>
+                                ${tag.name}
+                              </div>
+                              <div
+                                class="py-1 px-3 hoverF2 ${tag.items && tag.items.length > 0 ? '' : 'd-none'}"
+                                onclick=${obj.gvc.event(() => {
                                   dropMenu.prevList.push(dataList);
                                   dropMenu.recentParent.push(tag.name);
                                   tag.items && (dataList = tag.items);
                                   obj.gvc.notifyDataChange(dropMenu.id);
-                                }
-                              })}
-                            >
-                              <div
-                                style="min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;"
+                                })}
                               >
-                                ${(() => {
-                                  if (tag.icon.includes('https://')) {
-                                    return html` <div
-                                      style="
-                                                                                width: 25px; height: 25px;
-                                                                                background-image: url('${tag.icon}');
-                                                                                background-position: center;
-                                                                                background-size: cover;
-                                                                                background-repeat: no-repeat;
-                                                                            "
-                                    ></div>`;
-                                  }
-                                  return html`<i
-                                    class="${tag.icon.length > 0 ? tag.icon : 'fa-regular fa-image'}"
-                                  ></i>`;
-                                })()}
+                                <i class="fa-solid fa-chevron-right cursor_pointer"></i>
                               </div>
-                              ${tag.name}
                             </div>
-                            <div
-                              class="py-1 px-3 hoverF2 ${tag.items && tag.items.length > 0 ? '' : 'd-none'}"
-                              onclick=${obj.gvc.event(() => {
-                                dropMenu.prevList.push(dataList);
-                                dropMenu.recentParent.push(tag.name);
-                                tag.items && (dataList = tag.items);
-                                obj.gvc.notifyDataChange(dropMenu.id);
-                              })}
-                            >
-                              <i class="fa-solid fa-chevron-right cursor_pointer"></i>
-                            </div>
-                          </div>
-                        `;
-                      });
+                          `;
+                        })
+                        .join('');
+                    }
+
+                    const listHTML = dropMenu.recentParent[0] === '所有商品' ? getProductHTML() : getDataListHTML();
+
                     return html`
                       <div class="border border-2 rounded-2 p-2" style="width: ${dropMenu.elementWidth}px;">
-                        ${h1}
-                        <div style="overflow-y: auto; max-height: 42.5vh;">${h2}</div>
+                        ${barHTML}
+                        <div style="overflow-y: auto; max-height: 42.5vh;">${listHTML}</div>
                       </div>
                     `;
                   }
                 },
-
                 divCreate: {
                   style: 'position: absolute; top: 44px; left: 0; z-index: 1; background-color: #fff;',
                 },
@@ -1343,7 +1400,6 @@ ${obj.default ?? ''}</textarea
             </div>`;
         }
       },
-      divCreate: {},
       onCreate: () => {
         if (vm.loading) {
           const acticleList: MenuItem[] = [];
@@ -1364,22 +1420,12 @@ ${obj.default ?? ''}</textarea
               });
             }),
             new Promise<void>(resolve => {
-              ApiShop.getProduct({ page: 0, limit: 50000, search: '' }).then((data: any) => {
-                if (data.result) {
-                  (data.response.data || []).map(
-                    (item: { content: { id: string; title: string; preview_image: string[] } }) => {
-                      const { id, title, preview_image } = item.content;
-                      const icon = preview_image && preview_image[0] ? preview_image[0] : '';
-                      productList.push({
-                        name: title,
-                        icon: icon,
-                        link: `/products?product_id=${id}`,
-                      });
-                    }
-                  );
-                  resolve();
-                }
+              productList.push({
+                name: '',
+                icon: '',
+                link: `/products?product_id=`,
               });
+              resolve();
             }),
             new Promise<void>(resolve => {
               Article.get({
@@ -1839,12 +1885,12 @@ ${obj.default ?? ''}</textarea
         divCreate: {
           class: `card`,
           style: `
-                        width: 100%;
-                        overflow: hidden;
-                        border-radius: 10px;
-                        background: #fff;
-                        box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
-                    `,
+            width: 100%;
+            overflow: hidden;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
+          `,
         },
         onCreate: () => {
           if (vm.loading) {
@@ -1991,7 +2037,6 @@ ${obj.default ?? ''}</textarea
             </div>`;
           }
         },
-        divCreate: {},
         onCreate: () => {
           if (vm.loading) {
             getData();
@@ -2439,7 +2484,6 @@ ${obj.default ?? ''}</textarea
             return '';
           }
         },
-        divCreate: {},
         onCreate: () => {
           if (vm.loading) {
             setTimeout(() => obj.getData(vm));
@@ -3319,7 +3363,6 @@ ${obj.default ?? ''}</textarea
           </div>
         </div>`;
       },
-      divCreate: {},
       onCreate: () => {
         if (obj.openOnInit) {
           const si = setInterval(() => {
@@ -4501,7 +4544,6 @@ ${obj.default ?? ''}</textarea
                 </div>
               </div>`;
             },
-            onCreate: () => {},
           })}
         </div>`;
       },
@@ -5298,7 +5340,6 @@ ${obj.default ?? ''}</textarea
           </div>`;
         }
       },
-      divCreate: {},
       onCreate: () => {
         if (imageVM.loading) {
           this.isImageUrlValid(obj.image).then(isValid => {
@@ -5374,7 +5415,6 @@ ${obj.default ?? ''}</textarea
             </div>`;
           },
           divCreate: { class: 'h-100' },
-          onCreate: () => {},
         })}
       </div>`;
     }, windowID);
@@ -5511,7 +5551,6 @@ ${obj.default ?? ''}</textarea
               return ``;
             }
           },
-          divCreate: {},
         };
       })()
     );
