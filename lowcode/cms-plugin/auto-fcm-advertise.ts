@@ -4,9 +4,7 @@ import { ShoppingDiscountSetting } from './shopping-discount-setting.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { FilterOptions } from './filter-options.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { ApiPost } from '../glitter-base/route/post.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import { ApiSmtp } from '../glitter-base/route/smtp.js';
 import { ApiFcm } from '../glitter-base/route/fcm.js';
 
 const html = String.raw;
@@ -24,7 +22,7 @@ type PostData = {
   boolean: 'and' | 'or';
   title: string;
   content: string;
-  link:string;
+  link: string;
   sendTime: { date: string; time: string } | undefined;
   sendGroup: string[];
   email?: string[];
@@ -55,7 +53,7 @@ export class AutoFcmAdvertise {
       boolean: 'or',
       name: '',
       title: '',
-      link:'',
+      link: '',
       content: '',
       sendTime: { date: startDate, time: startTime },
       sendGroup: [],
@@ -187,7 +185,7 @@ export class AutoFcmAdvertise {
             ApiUser.getUserList({
               page: 0,
               limit: 99999,
-              only_id:true
+              only_id: true,
             }).then(dd => {
               dd.response.data.map((user: any) => {
                 postData.userList.push({
@@ -453,300 +451,303 @@ export class AutoFcmAdvertise {
           return {
             bind: vm.containerId,
             view: () => {
-              return [
-                BgWidget.mainCard(
-                  [
-                    html` <div class="tx_700">選擇收件對象</div>`,
-                    html` <div class="tx_normal fw-normal mt-3">根據</div>`,
-                    html` <div
-                      style="display: flex; ${document.body.clientWidth > 768
-                        ? 'gap: 18px;'
-                        : 'flex-direction: column;'}"
-                    >
-                      <div style="width: ${document.body.clientWidth > 768 ? '400px' : '100%'};">
-                        ${BgWidget.select({
-                          gvc: gvc,
-                          default: postData.tag,
-                          callback: key => {
-                            postData.tag = key;
-                            vm.loading = true;
-                            gvc.notifyDataChange(vm.id);
-                          },
-                          options: FilterOptions.emailOptions,
-                          style: 'margin: 8px 0;',
-                        })}
-                      </div>
-                      <div style="width: 100%; display: flex; align-items: center;">
-                        ${gvc.bindView({
-                          bind: vm.id,
-                          view: () => {
-                            const getDefault = (def: any) => {
-                              const data = postData.tagList.find(data => data.tag === postData.tag);
-                              return data ? data.filter : def;
-                            };
-                            const callback = (value?: any) => {
-                              if (typeof value === 'string' || typeof value === 'number') {
-                                const intFiltter = parseInt(`${value}`, 10);
-                                value = intFiltter > 0 ? intFiltter : 0;
-                                if (isNaN(intFiltter) || intFiltter < 0) {
-                                  const dialog = new ShareDialog(gvc.glitter);
-                                  dialog.infoMessage({ text: '請輸入正整數或0' });
-                                  return;
+              return (
+                [
+                  BgWidget.mainCard(
+                    [
+                      html` <div class="tx_700">選擇收件對象</div>`,
+                      html` <div class="tx_normal fw-normal mt-3">根據</div>`,
+                      html` <div
+                        style="display: flex; ${document.body.clientWidth > 768
+                          ? 'gap: 18px;'
+                          : 'flex-direction: column;'}"
+                      >
+                        <div style="width: ${document.body.clientWidth > 768 ? '400px' : '100%'};">
+                          ${BgWidget.select({
+                            gvc: gvc,
+                            default: postData.tag,
+                            callback: key => {
+                              postData.tag = key;
+                              vm.loading = true;
+                              gvc.notifyDataChange(vm.id);
+                            },
+                            options: FilterOptions.emailOptions,
+                            style: 'margin: 8px 0;',
+                          })}
+                        </div>
+                        <div style="width: 100%; display: flex; align-items: center;">
+                          ${gvc.bindView({
+                            bind: vm.id,
+                            view: () => {
+                              const getDefault = (def: any) => {
+                                const data = postData.tagList.find(data => data.tag === postData.tag);
+                                return data ? data.filter : def;
+                              };
+                              const callback = (value?: any) => {
+                                if (typeof value === 'string' || typeof value === 'number') {
+                                  const intFiltter = parseInt(`${value}`, 10);
+                                  value = intFiltter > 0 ? intFiltter : 0;
+                                  if (isNaN(intFiltter) || intFiltter < 0) {
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    dialog.infoMessage({ text: '請輸入正整數或0' });
+                                    return;
+                                  }
                                 }
-                              }
-                              filterEvent(value);
-                            };
-                            switch (postData.tag) {
-                              case 'all':
-                                dialog.dataLoading({ visible: true, text: '取得所有會員資料中...' });
-                                new Promise(resolve => {
-                                  ApiUser.getUserList({
-                                    page: 0,
-                                    limit: 99999,
-                                    only_id:true
-                                  }).then(dd => {
-                                    if (dd.response.data) {
-                                      const ids: number[] = [];
-                                      vm.dataList = dd.response.data
-                                        .filter((item: { userData: { email: string } }) => {
-                                          return item.userData.email && item.userData.email.length > 0;
-                                        })
-                                        .map((item: { userID: number; userData: { name: string; email: string } }) => {
-                                          ids.push(item.userID);
-                                          return {
-                                            key: item.userID,
-                                            value: item.userData.name ?? '（尚無姓名）',
-                                            note: item.userData.email,
-                                          };
-                                        });
-                                      resolve(ids);
-                                    }
-                                  });
-                                }).then(data => {
-                                  dialog.dataLoading({ visible: false });
-                                  callback(data);
-                                });
-                                return '';
-                              case 'level':
-                              case 'group':
-                              case 'birth':
-                              case 'tags':
-                                return BgWidget.selectDropList({
-                                  gvc: gvc,
-                                  callback: callback,
-                                  default: getDefault([]),
-                                  options: vm.loading ? [] : vm.dataList,
-                                  placeholder: vm.loading ? '資料載入中...' : undefined,
-                                  style: 'margin: 8px 0; width: 100%;',
-                                });
-                              case 'customers':
-                                return BgWidget.grayButton(
-                                  '點擊選取顧客',
-                                  gvc.event(() => {
-                                    BgWidget.selectDropDialog({
-                                      gvc: gvc,
-                                      title: '搜尋特定顧客',
-                                      tag: 'set_send_users',
-                                      updownOptions: FilterOptions.userOrderBy,
-                                      callback: callback,
-                                      default: getDefault([]),
-                                      api: (data: { query: string; orderString: string }) => {
-                                        return new Promise(resolve => {
-                                          ApiUser.getUserList({
-                                            page: 0,
-                                            limit: 99999,
-                                            only_id:true,
-                                            search: data.query
-                                          }).then(dd => {
-                                            if (dd.response.data) {
-                                              vm.dataList = dd.response.data
-                                                .filter((item: { userData: { email: string } }) => {
-                                                  return item.userData.email && item.userData.email.length > 0;
-                                                })
-                                                .map(
-                                                  (item: {
-                                                    userID: number;
-                                                    userData: { name: string; email: string };
-                                                  }) => {
-                                                    return {
-                                                      key: item.userID,
-                                                      value: item.userData.name ?? '（尚無姓名）',
-                                                      note: item.userData.email,
-                                                    };
-                                                  }
-                                                );
-                                              resolve(vm.dataList);
+                                filterEvent(value);
+                              };
+                              switch (postData.tag) {
+                                case 'all':
+                                  dialog.dataLoading({ visible: true, text: '取得所有會員資料中...' });
+                                  new Promise(resolve => {
+                                    ApiUser.getUserList({
+                                      page: 0,
+                                      limit: 99999,
+                                      only_id: true,
+                                    }).then(dd => {
+                                      if (dd.response.data) {
+                                        const ids: number[] = [];
+                                        vm.dataList = dd.response.data
+                                          .filter((item: { userData: { email: string } }) => {
+                                            return item.userData.email && item.userData.email.length > 0;
+                                          })
+                                          .map(
+                                            (item: { userID: number; userData: { name: string; email: string } }) => {
+                                              ids.push(item.userID);
+                                              return {
+                                                key: item.userID,
+                                                value: item.userData.name ?? '（尚無姓名）',
+                                                note: item.userData.email,
+                                              };
                                             }
-                                          });
-                                        });
-                                      },
-                                      style: 'width: 100%;',
+                                          );
+                                        resolve(ids);
+                                      }
                                     });
-                                  }),
-                                  { textStyle: 'font-weight: 400;' }
-                                );
-                              case 'expiry':
-                                return BgWidget.editeInput({
-                                  gvc: gvc,
-                                  title: '',
-                                  default: getDefault('0'),
-                                  placeHolder: '請輸入剩餘多少天',
-                                  callback: callback,
-                                  endText: '天',
-                                });
-                              case 'remain':
-                                return BgWidget.editeInput({
-                                  gvc: gvc,
-                                  title: '',
-                                  default: getDefault('0'),
-                                  placeHolder: '請輸入大於多少',
-                                  callback: callback,
-                                  startText: '大於',
-                                  endText: '點',
-                                });
-                              case 'uncheckout':
-                                return BgWidget.editeInput({
-                                  gvc: gvc,
-                                  title: '',
-                                  default: getDefault('0'),
-                                  placeHolder: '請輸入超過幾天未結帳',
-                                  callback: callback,
-                                  endText: '天',
-                                });
-                              default:
-                                return '';
-                            }
-                          },
-                          divCreate: { class: 'w-100' },
-                          onCreate: () => {
-                            if (vm.loading) {
-                              getOptions(postData.tag).then(opts => {
-                                vm.dataList = opts as { key: string; value: string }[];
-                                vm.loading = false;
-                                gvc.notifyDataChange(vm.id);
-                              });
-                            }
-                          },
-                        })}
-                      </div>
-                    </div>`,
-                    gvc.bindView({
-                      bind: vm.tagsId,
-                      view: () => getTagsHTML(),
-                      divCreate: { style: 'margin-top: 8px;' },
-                    }),
-                  ].join('')
-                ),
-                BgWidget.mainCard(
-                  [
-                    html` <div class="tx_700">推播內容</div>`,
-                    gvc.bindView({
-                      bind: vm.emailId,
-                      view: () => {
-                        return [
-                          BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '推播標題',
-                            default: postData.title,
-                            placeHolder: '請輸入推播標題',
-                            callback: text => {
-                              postData.title = text;
+                                  }).then(data => {
+                                    dialog.dataLoading({ visible: false });
+                                    callback(data);
+                                  });
+                                  return '';
+                                case 'level':
+                                case 'group':
+                                case 'birth':
+                                case 'tags':
+                                  return BgWidget.selectDropList({
+                                    gvc: gvc,
+                                    callback: callback,
+                                    default: getDefault([]),
+                                    options: vm.loading ? [] : vm.dataList,
+                                    placeholder: vm.loading ? '資料載入中...' : undefined,
+                                    style: 'margin: 8px 0; width: 100%;',
+                                  });
+                                case 'customers':
+                                  return BgWidget.grayButton(
+                                    '點擊選取顧客',
+                                    gvc.event(() => {
+                                      BgWidget.selectDropDialog({
+                                        gvc: gvc,
+                                        title: '搜尋特定顧客',
+                                        tag: 'set_send_users',
+                                        updownOptions: FilterOptions.userOrderBy,
+                                        callback: callback,
+                                        default: getDefault([]),
+                                        api: (data: { query: string; orderString: string }) => {
+                                          return new Promise(resolve => {
+                                            ApiUser.getUserList({
+                                              page: 0,
+                                              limit: 99999,
+                                              only_id: true,
+                                              search: data.query,
+                                            }).then(dd => {
+                                              if (dd.response.data) {
+                                                vm.dataList = dd.response.data
+                                                  .filter((item: { userData: { email: string } }) => {
+                                                    return item.userData.email && item.userData.email.length > 0;
+                                                  })
+                                                  .map(
+                                                    (item: {
+                                                      userID: number;
+                                                      userData: { name: string; email: string };
+                                                    }) => {
+                                                      return {
+                                                        key: item.userID,
+                                                        value: item.userData.name ?? '（尚無姓名）',
+                                                        note: item.userData.email,
+                                                      };
+                                                    }
+                                                  );
+                                                resolve(vm.dataList);
+                                              }
+                                            });
+                                          });
+                                        },
+                                        style: 'width: 100%;',
+                                      });
+                                    }),
+                                    { textStyle: 'font-weight: 400;' }
+                                  );
+                                case 'expiry':
+                                  return BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: '',
+                                    default: getDefault('0'),
+                                    placeHolder: '請輸入剩餘多少天',
+                                    callback: callback,
+                                    endText: '天',
+                                  });
+                                case 'remain':
+                                  return BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: '',
+                                    default: getDefault('0'),
+                                    placeHolder: '請輸入大於多少',
+                                    callback: callback,
+                                    startText: '大於',
+                                    endText: '點',
+                                  });
+                                case 'uncheckout':
+                                  return BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: '',
+                                    default: getDefault('0'),
+                                    placeHolder: '請輸入超過幾天未結帳',
+                                    callback: callback,
+                                    endText: '天',
+                                  });
+                                default:
+                                  return '';
+                              }
                             },
-                            global_language: true,
-                          }),
-                          BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '推播內文',
-                            default: postData.content,
-                            placeHolder: '請輸入推播內文',
-                            callback: text => {
-                              postData.content = text;
+                            divCreate: { class: 'w-100' },
+                            onCreate: () => {
+                              if (vm.loading) {
+                                getOptions(postData.tag).then(opts => {
+                                  vm.dataList = opts as { key: string; value: string }[];
+                                  vm.loading = false;
+                                  gvc.notifyDataChange(vm.id);
+                                });
+                              }
                             },
-                            global_language: true,
-                          }),
-                          BgWidget.linkList({
-                            gvc: gvc,
-                            title: '跳轉頁面',
-                            default: postData.link || '',
-                            placeHolder: '為空則為首頁',
-                            callback: text => {
-                              postData.link = text;
-                            },
-                          })
-                        ].join('');
-                      },
-                      divCreate: {
-                        class: 'mt-2',
-                      },
-                    }),
-                  ].join('')
-                ),
-                BgWidget.mainCard(
-                  html` <div class="tx_700 mb-3">發送時間</div>
-                    ${EditorElem.radio({
-                      gvc: gvc,
-                      title: '',
-                      def: postData.sendTime === undefined ? 'now' : 'set',
-                      array: [
-                        {
-                          title: '立即發送',
-                          value: 'now',
-                        },
-                        {
-                          title: '排定發送時間',
-                          value: 'set',
-                          innerHtml: html` <div
-                            class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
-                            style="gap: 12px"
-                          >
-                            ${EditorElem.editeInput({
+                          })}
+                        </div>
+                      </div>`,
+                      gvc.bindView({
+                        bind: vm.tagsId,
+                        view: () => getTagsHTML(),
+                        divCreate: { style: 'margin-top: 8px;' },
+                      }),
+                    ].join('')
+                  ),
+                  BgWidget.mainCard(
+                    [
+                      html` <div class="tx_700">推播內容</div>`,
+                      gvc.bindView({
+                        bind: vm.emailId,
+                        view: () => {
+                          return [
+                            BgWidget.editeInput({
                               gvc: gvc,
-                              title: '',
-                              type: 'date',
-                              style: inputStyle,
-                              default: startDate,
-                              placeHolder: '',
-                              callback: date => {
-                                postData.sendTime = {
-                                  date: date,
-                                  time: postData.sendTime?.time ?? '',
-                                };
+                              title: '推播標題',
+                              default: postData.title,
+                              placeHolder: '請輸入推播標題',
+                              callback: text => {
+                                postData.title = text;
                               },
-                            })}
-                            ${EditorElem.editeInput({
+                              global_language: true,
+                            }),
+                            BgWidget.editeInput({
                               gvc: gvc,
-                              title: '',
-                              type: 'time',
-                              style: inputStyle,
-                              default: startTime,
-                              placeHolder: '',
-                              callback: time => {
-                                postData.sendTime = {
-                                  date: postData.sendTime?.date ?? '',
-                                  time: time,
-                                };
+                              title: '推播內文',
+                              default: postData.content,
+                              placeHolder: '請輸入推播內文',
+                              callback: text => {
+                                postData.content = text;
                               },
-                            })}
-                          </div>`,
+                              global_language: true,
+                            }),
+                            BgWidget.linkList({
+                              gvc: gvc,
+                              title: '跳轉頁面',
+                              default: postData.link || '',
+                              placeHolder: '為空則為首頁',
+                              callback: text => {
+                                postData.link = text;
+                              },
+                            }),
+                          ].join('');
                         },
-                      ],
-                      callback: text => {
-                        if (text === 'now') {
-                          postData.sendTime = undefined;
-                        }
-                        if (text === 'set') {
-                          postData.sendTime = { date: startDate, time: startTime };
-                        }
-                      },
-                    })}`
-                ),
-              ].join(BgWidget.mbContainer(16));
+                        divCreate: {
+                          class: 'mt-2',
+                        },
+                      }),
+                    ].join('')
+                  ),
+                  BgWidget.mainCard(
+                    html` <div class="tx_700 mb-3">發送時間</div>
+                      ${EditorElem.radio({
+                        gvc: gvc,
+                        title: '',
+                        def: postData.sendTime === undefined ? 'now' : 'set',
+                        array: [
+                          {
+                            title: '立即發送',
+                            value: 'now',
+                          },
+                          {
+                            title: '排定發送時間',
+                            value: 'set',
+                            innerHtml: html` <div
+                              class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+                              style="gap: 12px"
+                            >
+                              ${EditorElem.editeInput({
+                                gvc: gvc,
+                                title: '',
+                                type: 'date',
+                                style: inputStyle,
+                                default: startDate,
+                                placeHolder: '',
+                                callback: date => {
+                                  postData.sendTime = {
+                                    date: date,
+                                    time: postData.sendTime?.time ?? '',
+                                  };
+                                },
+                              })}
+                              ${EditorElem.editeInput({
+                                gvc: gvc,
+                                title: '',
+                                type: 'time',
+                                style: inputStyle,
+                                default: startTime,
+                                placeHolder: '',
+                                callback: time => {
+                                  postData.sendTime = {
+                                    date: postData.sendTime?.date ?? '',
+                                    time: time,
+                                  };
+                                },
+                              })}
+                            </div>`,
+                          },
+                        ],
+                        callback: text => {
+                          if (text === 'now') {
+                            postData.sendTime = undefined;
+                          }
+                          if (text === 'set') {
+                            postData.sendTime = { date: startDate, time: startTime };
+                          }
+                        },
+                      })}`
+                  ),
+                ].join(BgWidget.mbContainer(16)) + BgWidget.mbContainer(240)
+              );
             },
-            divCreate: {},
           };
         })
       )}
-      ${BgWidget.mbContainer(240)}
+      ${BgWidget.mbContainer(480)}
       <div class="update-bar-container">
         ${BgWidget.save(
           gvc.event(() => {

@@ -1254,7 +1254,7 @@ ${obj.default ?? ''}</textarea
                             </div>
                             <input
                               class="form-control m-2"
-                              style="width: 92%"
+                              style="width: calc(100% - 16.875px)"
                               type="text"
                               placeholder="搜尋"
                               onchange="${obj.gvc.event(e => {
