@@ -120,45 +120,45 @@ export class OrderSetting {
   }
 
   // 所有狀態 Badge
-  static getAllStatusBadge(order: CartData) {
+  static getAllStatusBadge(order: CartData, size: 'sm' | 'md' = 'md') {
     const paymentBadges: Record<string, string> = {
       '0': (() => {
         if (order.orderData.proof_purchase) {
-          return BgWidget.warningInsignia('待核款');
+          return BgWidget.warningInsignia('待核款', { size });
         }
         if (order.orderData.customer_info.payment_select == 'cash_on_delivery') {
-          return BgWidget.warningInsignia('貨到付款');
+          return BgWidget.warningInsignia('貨到付款', { size });
         }
-        return BgWidget.notifyInsignia('未付款');
+        return BgWidget.notifyInsignia('未付款', { size });
       })(),
-      '1': BgWidget.infoInsignia('已付款'),
-      '3': BgWidget.warningInsignia('部分付款'),
-      '-1': BgWidget.notifyInsignia('付款失敗'),
-      '-2': BgWidget.notifyInsignia('已退款'),
+      '1': BgWidget.infoInsignia('已付款', { size }),
+      '3': BgWidget.warningInsignia('部分付款', { size }),
+      '-1': BgWidget.notifyInsignia('付款失敗', { size }),
+      '-2': BgWidget.notifyInsignia('已退款', { size }),
     };
 
     const outShipBadges: Record<string, string> = {
-      finish: BgWidget.infoInsignia('已取貨'),
-      shipping: BgWidget.warningInsignia('已出貨'),
-      arrived: BgWidget.warningInsignia('已送達'),
+      finish: BgWidget.infoInsignia('已取貨', { size }),
+      shipping: BgWidget.warningInsignia('已出貨', { size }),
+      arrived: BgWidget.warningInsignia('已送達', { size }),
       wait: order.orderData.user_info.shipment_number
-        ? BgWidget.secondaryInsignia('備貨中')
-        : BgWidget.notifyInsignia('未出貨'),
-      pre_order: BgWidget.notifyInsignia('待預購'),
-      returns: BgWidget.notifyInsignia('已退貨'),
+        ? BgWidget.secondaryInsignia('備貨中', { size })
+        : BgWidget.notifyInsignia('未出貨', { size }),
+      pre_order: BgWidget.notifyInsignia('待預購', { size }),
+      returns: BgWidget.notifyInsignia('已退貨', { size }),
     };
 
     const orderStatusBadges: Record<string, string> = {
-      '1': BgWidget.infoInsignia('已完成'),
-      '0': BgWidget.warningInsignia('處理中'),
-      '-1': BgWidget.notifyInsignia('已取消'),
+      '1': BgWidget.infoInsignia('已完成', { size }),
+      '0': BgWidget.warningInsignia('處理中', { size }),
+      '-1': BgWidget.notifyInsignia('已取消', { size }),
     };
 
     const orderSourceBadges: Record<string, string> = {
-      manual: BgWidget.primaryInsignia('手動', { type: 'border' }),
-      combine: BgWidget.warningInsignia('合併', { type: 'border' }),
-      POS: BgWidget.primaryInsignia('POS', { type: 'border' }),
-      split: BgWidget.warningInsignia('拆分', { type: 'border' }),
+      manual: BgWidget.primaryInsignia('手動', { type: 'border', size }),
+      combine: BgWidget.successInsignia('合併', { type: 'border', size }),
+      POS: BgWidget.primaryInsignia('POS', { type: 'border', size }),
+      split: BgWidget.successInsignia('拆分', { type: 'border', size }),
       default: '',
     };
 

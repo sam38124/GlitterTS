@@ -18,7 +18,7 @@ interface UserQuery {
     member_levels?: string;
     groupType?: string;
     groupTag?: string;
-    filter_type?: string;
+    filter_type?: 'block' | 'normal' | 'watch' | 'excel';
     tags?: string;
     all_result?: boolean;
 }
@@ -54,6 +54,11 @@ export declare class User {
     app: string;
     token?: IToken;
     constructor(app: string, token?: IToken);
+    static typeMap: {
+        block: number;
+        normal: number;
+        watch: number;
+    };
     static generateUserID(): string;
     findAuthUser(email?: string): Promise<any>;
     emailVerify(account: string): Promise<{

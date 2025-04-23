@@ -305,7 +305,7 @@ router.post('/forget', async (req, resp) => {
         const sql = `select *
                      from \`${req.get('g-app')}\`.t_user
                      where account = ${database_1.default.escape(req.body.email)}
-                       and status = 1`;
+                       and status <> 0`;
         const userData = (await database_1.default.execute(sql, []));
         if (userData.length > 0) {
             await new user_1.User(req.get('g-app')).forgetPassword(req.body.email);

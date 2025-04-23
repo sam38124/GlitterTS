@@ -1681,7 +1681,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             table: false,
         };
         gvc.addStyle(`
-      .tb_v3 {
+      .tb-v3 {
         text-align: left !important;
         padding-right: 0.25rem !important;
         padding-left: 0.25rem !important;
@@ -1692,6 +1692,33 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         padding: 24px;
         font-size: 24px;
         font-weight: 700;
+      }
+      .td-tooltip {
+        position: absolute;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        white-space: nowrap;
+        visibility: hidden;
+        opacity: 0;
+        transition:
+          opacity 0.3s,
+          visibility 0.3s;
+      }
+      .td-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #333 transparent transparent transparent;
       }
     `);
         return gvc.bindView(() => {
@@ -1894,7 +1921,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         return vm.tableData[0]
                                             .map((dd, index) => {
                                             return html ` <div
-                              class="${ids.headerCell} ${ids.textClass} tb_v3 tx_700"
+                              class="${ids.headerCell} ${ids.textClass} tb-v3 tx_700"
                               style="min-width: ${widthList[index]}px;"
                             >
                               ${dd.key}
@@ -1941,7 +1968,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     ${vm.tableData
                             .map((dd, trIndex) => {
                             return html ` <tr
-                          class="${trIndex === 0 ? ids.tr : ''}"
+                          class="${trIndex === 0 ? ids.tr : ''} ${dd.find(d3 => d3.tooltip)
+                                ? 'tr-tooltip-container'
+                                : ''}"
                           onclick="${gvc.event(() => {
                                 obj.rowClick && obj.rowClick(dd, trIndex);
                             })}"
@@ -1964,12 +1993,19 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 ${dd.length === 1 ? 'border-radius: 10px;' : ''}
                               `;
                                 return html ` <td
-                                class="${ids.textClass} ${tdClass} tb_v3 tx_normal"
+                                class="${ids.textClass} ${tdClass} tb-v3 tx_normal position-relative"
                                 style="${style}"
                                 ${obj.filter.length !== 0 && tdIndex === 0 ? `gvc-checkbox="checkbox${trIndex}"` : ''}
                                 onclick="${d3.stopClick ? gvc.event((_, event) => event.stopPropagation()) : ''}"
                               >
-                                <div class="text-nowrap" style="color: #393939 !important;">${d3.value}</div>
+                                <div
+                                  class="text-nowrap ${d3.tooltip ? 'hover-element' : ''}"
+                                  style="color: #393939 !important;"
+                                  ${d3.tooltip ? `data-tooltip="${d3.tooltip}"` : ''}
+                                >
+                                  ${d3.value}
+                                </div>
+                                ${d3.tooltip ? html `<div class="td-tooltip">${d3.tooltip}</div>` : ''}
                               </td>`;
                             })
                                 .join('')}
@@ -2038,6 +2074,27 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                     clearInterval(si);
                                 }
                             }, 50);
+                        }
+                        else {
+                            const tooltipContainers = document.querySelectorAll('.tr-tooltip-container');
+                            tooltipContainers.forEach(container => {
+                                const hoverElement = container.querySelector('.hover-element');
+                                const tooltip = container.querySelector('.td-tooltip');
+                                if (hoverElement && tooltip) {
+                                    const tooltipText = hoverElement.getAttribute('data-tooltip');
+                                    if (tooltipText) {
+                                        tooltip.textContent = tooltipText;
+                                    }
+                                    hoverElement.addEventListener('mouseenter', () => {
+                                        tooltip.style.visibility = 'visible';
+                                        tooltip.style.opacity = '1';
+                                    });
+                                    hoverElement.addEventListener('mouseleave', () => {
+                                        tooltip.style.visibility = 'hidden';
+                                        tooltip.style.opacity = '0';
+                                    });
+                                }
+                            });
                         }
                     }
                 },

@@ -1,35 +1,26 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import { BgWidget } from '../backend-manager/bg-widget.js';
 export class OrderInfo {
-    static reconciliationStatus(dd, text_only = false) {
+    static reconciliationStatus(dd, text_only = false, size = 'md') {
         var _a;
         const received_c = ((_a = dd.total_received) !== null && _a !== void 0 ? _a : 0) + dd.offset_amount;
         const res_ = (() => {
             if (dd.total_received === null) {
-                return BgWidget.warningInsignia('待入帳');
+                return BgWidget.warningInsignia('待入帳', { size });
             }
             else if (dd.total_received === dd.total) {
-                return BgWidget.successInsignia('已入帳');
+                return BgWidget.successInsignia('已入帳', { size });
             }
             else if (dd.total_received > dd.total && received_c === dd.total) {
-                return BgWidget.secondaryInsignia('已退款');
+                return BgWidget.secondaryInsignia('已退款', { size });
             }
             else if (dd.total_received < dd.total && received_c === dd.total) {
-                return BgWidget.primaryInsignia('已沖帳');
+                return BgWidget.primaryInsignia('已沖帳', { size });
             }
             else if (received_c < dd.total) {
-                return BgWidget.dangerInsignia('待沖帳');
+                return BgWidget.dangerInsignia('待沖帳', { size });
             }
             else if (received_c > dd.total) {
-                return BgWidget.dangerInsignia('待退款');
+                return BgWidget.dangerInsignia('待退款', { size });
             }
         })();
         if (text_only) {
@@ -80,21 +71,22 @@ export class OrderInfo {
         return gvc.bindView({
             bind: vm.id,
             view: () => {
-                if (vm.loading)
+                if (vm.loading) {
                     return '載入中';
+                }
                 const pay = vm.dataList.find((d) => d.key === order.orderData.customer_info.payment_select);
                 return (pay === null || pay === void 0 ? void 0 : pay.name) || '線下付款';
             },
             divCreate: {
                 style: 'width: 150px',
             },
-            onCreate: () => __awaiter(this, void 0, void 0, function* () {
+            onCreate: () => {
                 if (vm.loading) {
                     vm.dataList = payment_support;
                     vm.loading = false;
-                    gvc.notifyDataChange(vm.id);
+                    setTimeout(() => gvc.notifyDataChange(vm.id), 100);
                 }
-            }),
+            },
         });
     }
 }

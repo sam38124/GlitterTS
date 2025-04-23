@@ -314,19 +314,42 @@ export class ShoppingOrderManager {
                     ApiShop.getOrder(vm.apiJSON).then((data) => __awaiter(this, void 0, void 0, function* () {
                         function getDatalist() {
                             return __awaiter(this, void 0, void 0, function* () {
-                                const payment_support = yield PaymentConfig.getSupportPayment();
+                                const [payment_support, watchUserList] = yield Promise.all([
+                                    PaymentConfig.getSupportPayment(),
+                                    ApiUser.getUserListOrders({
+                                        page: 0,
+                                        limit: 99999,
+                                        filter_type: 'watch',
+                                    }),
+                                ]).then(dataArray => {
+                                    return [dataArray[0], dataArray[1].response.data];
+                                });
+                                const watchUsers = [
+                                    ...new Set(watchUserList
+                                        .map((item) => {
+                                        return [item.account, item.email, item.phone];
+                                    })
+                                        .flat()),
+                                ];
                                 return data.response.data.map((dd) => {
                                     var _a;
                                     const vt = OrderSetting.getAllStatusBadge(dd);
                                     dd.orderData.total = dd.orderData.total || 0;
                                     dd.orderData.customer_info = (_a = dd.orderData.customer_info) !== null && _a !== void 0 ? _a : {};
+                                    const isWatchUser = watchUsers.includes(dd.orderData.email);
+                                    const backgroundColor = isWatchUser ? `background-color: #ffe9b2` : '';
+                                    const tooltipText = isWatchUser ? '此份訂單的顧客為觀察名單' : '';
                                     if (query.isShipment) {
                                         return [
                                             {
                                                 key: '訂單編號',
-                                                value: html ` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
+                                                value: html ` <div
+                            class="d-flex align-items-center gap-2"
+                            style="min-width: 200px; ${backgroundColor}"
+                          >
                             ${dd.cart_token}${vt.sourceBadge()}
                           </div>`,
+                                                tooltip: tooltipText,
                                             },
                                             {
                                                 key: '出貨日期',
@@ -336,7 +359,7 @@ export class ShoppingOrderManager {
                                             },
                                             {
                                                 key: '訂購人',
-                                                value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
+                                                value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名',
                                             },
                                             {
                                                 key: '出貨狀態',
@@ -355,9 +378,13 @@ export class ShoppingOrderManager {
                                         return [
                                             {
                                                 key: '訂單編號',
-                                                value: html ` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
+                                                value: html ` <div
+                            class="d-flex align-items-center gap-2"
+                            style="min-width: 200px; ${backgroundColor}"
+                          >
                             ${dd.cart_token}${vt.sourceBadge()}
                           </div>`,
+                                                tooltip: tooltipText,
                                             },
                                             {
                                                 key: '訂單日期',
@@ -367,7 +394,7 @@ export class ShoppingOrderManager {
                                             },
                                             {
                                                 key: '訂購人',
-                                                value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
+                                                value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名',
                                             },
                                             {
                                                 key: '訂單金額',
@@ -1021,10 +1048,10 @@ export class ShoppingOrderManager {
                         };
                     };
                     function getBadgeList() {
-                        const vt = OrderSetting.getAllStatusBadge(orderData);
-                        return html ` <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        const vt = OrderSetting.getAllStatusBadge(orderData, 'sm');
+                        return html ` <div class="d-flex justify-content-end align-items-center gap-3">
             ${vt.archivedBadge()}
-            ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}${OrderInfo.reconciliationStatus(orderData)}
+            ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}${OrderInfo.reconciliationStatus(orderData, false, 'sm')}
           </div>`;
                     }
                     if (!['CVSStoreID', 'CVSStoreName', 'CVSAddress'].find(dd => {
@@ -1700,14 +1727,21 @@ export class ShoppingOrderManager {
                       <div class="align-items-center" style="gap:10px;color: #393939;font-size: 24px;font-weight: 700;">
                         #${is_shipment ? orderData.orderData.user_info.shipment_number : orderData.cart_token}
                       </div>
-
-                      ${BgWidget.grayNote(`訂單成立時間 : ${Tool.formatDateTime(orderData.created_time)}`)}
+                      <div class="d-flex align-items-center gap-2">
+                        ${BgWidget.grayNote(`訂單成立時間 : ${Tool.formatDateTime(orderData.created_time)}`)}
+                        ${document.body.clientWidth > 768 ? getBadgeList() : ''}
+                      </div>
                     </div>
                     <div class="flex-fill"></div>
-                    ${document.body.clientWidth > 768 ? getBadgeList() : ''}
+                    <div
+                      class="${orderData.orderData.orderSource === 'split' ? 'd-none' : 'd-flex'} justify-content-end"
+                    >
+                      ${funBTN().splitOrder()}
+                    </div>
                   </div>
-                  ${document.body.clientWidth > 768 ? '' : html ` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
-                  <div class="d-flex justify-content-end">${funBTN().splitOrder()}</div>
+                  ${document.body.clientWidth > 768
+                                    ? BgWidget.mbContainer(18)
+                                    : html ` <div class="mt-1 mb-3 mx-1">${getBadgeList()}</div>`}
                   ${BgWidget.container1x2({
                                     html: [
                                         !is_shipment ? '' : shipment_card,
@@ -1893,7 +1927,7 @@ export class ShoppingOrderManager {
                                                     return [];
                                                 }
                                             })(),
-                                            ...orderData.orderData.voucherList.map((dd) => {
+                                            ...(orderData.orderData.voucherList || []).map((dd) => {
                                                 var _a;
                                                 const descHTML = dd.title
                                                     ? html ` <div
@@ -2608,6 +2642,9 @@ export class ShoppingOrderManager {
                                     </div>
                                     <div style="color: #393939;font-weight: 400;word-break:break-all;">
                                       ${(_l = (_k = (_j = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _j === void 0 ? void 0 : _j.email) !== null && _k !== void 0 ? _k : orderData.orderData.user_info.email) !== null && _l !== void 0 ? _l : ''}
+                                    </div>
+                                    <div style="color: #393939;font-weight: 700;">
+                                      ${userData.status === 2 ? '* 此顧客列為觀察名單' : ''}
                                     </div>
                                   </div>`,
                                             BgWidget.horizontalLine(),

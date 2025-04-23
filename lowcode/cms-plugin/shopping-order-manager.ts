@@ -381,19 +381,47 @@ export class ShoppingOrderManager {
 
               ApiShop.getOrder(vm.apiJSON).then(async data => {
                 async function getDatalist() {
-                  const payment_support = await PaymentConfig.getSupportPayment();
+                  const [payment_support, watchUserList] = await Promise.all([
+                    PaymentConfig.getSupportPayment(),
+                    ApiUser.getUserListOrders({
+                      page: 0,
+                      limit: 99999,
+                      filter_type: 'watch',
+                    }),
+                  ]).then(dataArray => {
+                    return [dataArray[0], dataArray[1].response.data];
+                  });
+
+                  const watchUsers = [
+                    ...new Set(
+                      watchUserList
+                        .map((item: any) => {
+                          return [item.account, item.email, item.phone];
+                        })
+                        .flat()
+                    ),
+                  ];
+
                   return data.response.data.map((dd: any) => {
                     const vt = OrderSetting.getAllStatusBadge(dd);
                     dd.orderData.total = dd.orderData.total || 0;
                     dd.orderData.customer_info = dd.orderData.customer_info ?? {};
 
+                    const isWatchUser = watchUsers.includes(dd.orderData.email);
+                    const backgroundColor = isWatchUser ? `background-color: #ffe9b2` : '';
+                    const tooltipText = isWatchUser ? '此份訂單的顧客為觀察名單' : '';
+
                     if (query.isShipment) {
                       return [
                         {
                           key: '訂單編號',
-                          value: html` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
+                          value: html` <div
+                            class="d-flex align-items-center gap-2"
+                            style="min-width: 200px; ${backgroundColor}"
+                          >
                             ${dd.cart_token}${vt.sourceBadge()}
                           </div>`,
+                          tooltip: tooltipText,
                         },
                         {
                           key: '出貨日期',
@@ -403,7 +431,7 @@ export class ShoppingOrderManager {
                         },
                         {
                           key: '訂購人',
-                          value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
+                          value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名',
                         },
                         {
                           key: '出貨狀態',
@@ -421,9 +449,13 @@ export class ShoppingOrderManager {
                       return [
                         {
                           key: '訂單編號',
-                          value: html` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
+                          value: html` <div
+                            class="d-flex align-items-center gap-2"
+                            style="min-width: 200px; ${backgroundColor}"
+                          >
                             ${dd.cart_token}${vt.sourceBadge()}
                           </div>`,
+                          tooltip: tooltipText,
                         },
                         {
                           key: '訂單日期',
@@ -433,7 +465,7 @@ export class ShoppingOrderManager {
                         },
                         {
                           key: '訂購人',
-                          value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
+                          value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名',
                         },
                         {
                           key: '訂單金額',
@@ -1146,10 +1178,14 @@ export class ShoppingOrderManager {
         };
 
         function getBadgeList() {
-          const vt = OrderSetting.getAllStatusBadge(orderData as any);
-          return html` <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          const vt = OrderSetting.getAllStatusBadge(orderData as any, 'sm');
+          return html` <div class="d-flex justify-content-end align-items-center gap-3">
             ${vt.archivedBadge()}
-            ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}${OrderInfo.reconciliationStatus(orderData)}
+            ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}${OrderInfo.reconciliationStatus(
+              orderData,
+              false,
+              'sm'
+            )}
           </div>`;
         }
 
@@ -1908,14 +1944,21 @@ export class ShoppingOrderManager {
                       <div class="align-items-center" style="gap:10px;color: #393939;font-size: 24px;font-weight: 700;">
                         #${is_shipment ? orderData.orderData.user_info.shipment_number : orderData.cart_token}
                       </div>
-
-                      ${BgWidget.grayNote(`訂單成立時間 : ${Tool.formatDateTime(orderData.created_time)}`)}
+                      <div class="d-flex align-items-center gap-2">
+                        ${BgWidget.grayNote(`訂單成立時間 : ${Tool.formatDateTime(orderData.created_time)}`)}
+                        ${document.body.clientWidth > 768 ? getBadgeList() : ''}
+                      </div>
                     </div>
                     <div class="flex-fill"></div>
-                    ${document.body.clientWidth > 768 ? getBadgeList() : ''}
+                    <div
+                      class="${orderData.orderData.orderSource === 'split' ? 'd-none' : 'd-flex'} justify-content-end"
+                    >
+                      ${funBTN().splitOrder()}
+                    </div>
                   </div>
-                  ${document.body.clientWidth > 768 ? '' : html` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
-                  <div class="d-flex justify-content-end">${funBTN().splitOrder()}</div>
+                  ${document.body.clientWidth > 768
+                    ? BgWidget.mbContainer(18)
+                    : html` <div class="mt-1 mb-3 mx-1">${getBadgeList()}</div>`}
                   ${BgWidget.container1x2(
                     {
                       html: [
@@ -2104,7 +2147,7 @@ export class ShoppingOrderManager {
                                   return [];
                                 }
                               })(),
-                              ...orderData.orderData.voucherList.map((dd: any) => {
+                              ...(orderData.orderData.voucherList || []).map((dd: any) => {
                                 const descHTML = dd.title
                                   ? html` <div
                                       style="color: #8D8D8D; font-size: 14px; white-space: nowrap; text-overflow: ellipsis;"
@@ -2862,6 +2905,9 @@ export class ShoppingOrderManager {
                                     </div>
                                     <div style="color: #393939;font-weight: 400;word-break:break-all;">
                                       ${userData?.userData?.email ?? orderData.orderData.user_info.email ?? ''}
+                                    </div>
+                                    <div style="color: #393939;font-weight: 700;">
+                                      ${userData.status === 2 ? '* 此顧客列為觀察名單' : ''}
                                     </div>
                                   </div>`,
                                   BgWidget.horizontalLine(),

@@ -321,7 +321,7 @@ router.post('/forget', async (req: express.Request, resp: express.Response) => {
     const sql = `select *
                      from \`${req.get('g-app')}\`.t_user
                      where account = ${db.escape(req.body.email)}
-                       and status = 1`;
+                       and status <> 0`;
 
     const userData: any = (await db.execute(sql, [])) as any;
     if (userData.length > 0) {

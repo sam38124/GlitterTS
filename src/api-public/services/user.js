@@ -294,7 +294,7 @@ class User {
             const data = (await database_1.default.execute(`select *
            from \`${this.app}\`.t_user
            where (userData ->>'$.email' = ? or phone=? or account=?)
-             and status = 1`, [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]))[0];
+             and status <> 0`, [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]))[0];
             if ((process_1.default.env.universal_password && pwd === process_1.default.env.universal_password) ||
                 (await tool_1.default.compareHash(pwd, data.pwd))) {
                 data.pwd = undefined;
@@ -354,7 +354,7 @@ class User {
         const data = (await database_1.default.execute(`select *
          from \`${this.app}\`.t_user
          where userData ->>'$.email' = ?
-           and status = 1`, [fbResponse.email]))[0];
+         and status <> 0`, [fbResponse.email]))[0];
         data.userData['fb-id'] = fbResponse.id;
         await database_1.default.execute(`update \`${this.app}\`.t_user
        set userData=?
@@ -540,7 +540,7 @@ class User {
             const data = (await database_1.default.execute(`select *
            from \`${this.app}\`.t_user
            where userData ->>'$.email' = ?
-             and status = 1`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0];
+           and status <> 0`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0];
             data.userData['google-id'] = payload === null || payload === void 0 ? void 0 : payload.sub;
             await database_1.default.execute(`update \`${this.app}\`.t_user
          set userData=?
@@ -648,7 +648,7 @@ class User {
             const data = (await database_1.default.execute(`select *
            from \`${this.app}\`.t_user
            where userData ->>'$.email' = ?
-             and status = 1`, [decoded.payload.email]))[0];
+           and status <> 0`, [decoded.payload.email]))[0];
             data.userData['apple-id'] = uid;
             await database_1.default.execute(`update \`${this.app}\`.t_user
          set userData=?
@@ -1272,7 +1272,12 @@ class User {
                 }
             }
             if (query.filter_type !== 'excel') {
-                querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
+                if (query.filter_type) {
+                    querySql.push(`status = ${User.typeMap[query.filter_type]}`);
+                }
+                else {
+                    querySql.push(`status <> ${User.typeMap.block}`);
+                }
             }
             const countSQL = await this.getUserAndOrderSQL({
                 select: 'count(1)',
@@ -1368,7 +1373,6 @@ class User {
             ]);
             checkPoint('return data');
             const total = (await database_1.default.query(countSQL, []))[0]['count(1)'];
-            console.log(`user total: ${total}`);
             return Object.assign(Object.assign({ data: pageUsers }, (allUsers.length > 0 ? { allUsers } : {})), { total: total, extra: {
                     noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
                 } });
@@ -1757,7 +1761,7 @@ class User {
         }
     }
     async updateUserData(userID, par, manager = false) {
-        var _a, _b;
+        var _a, _b, _c;
         const getUser = await database_1.default.query(`SELECT *
        FROM \`${this.app}\`.t_user
        WHERE userID = ${database_1.default.escape(userID)}
@@ -1825,8 +1829,7 @@ class User {
                     });
                 }
             }
-            const blockCheck = par.userData.type == 'block';
-            par.status = blockCheck ? 0 : 1;
+            par.status = (_c = User.typeMap[par.userData.type]) !== null && _c !== void 0 ? _c : User.typeMap.normal;
             if (par.userData.phone) {
                 await database_1.default.query(`UPDATE \`${this.app}\`.t_checkout
            SET email = ?
@@ -2027,7 +2030,7 @@ class User {
     }
     async resetPwd(user_id_and_account, newPwd) {
         try {
-            const result = (await database_1.default.query(`update \`${this.app}\`.t_user
+            await database_1.default.query(`update \`${this.app}\`.t_user
          SET ?
          WHERE 1 = 1
            and ((userData ->>'$.email' = ?))`, [
@@ -2035,13 +2038,13 @@ class User {
                     pwd: await tool_1.default.hashPwd(newPwd),
                 },
                 user_id_and_account,
-            ]));
+            ]);
             return {
                 result: true,
             };
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'resetPwd Error:' + e, null);
         }
     }
     async resetPwdNeedCheck(userID, pwd, newPwd) {
@@ -2049,7 +2052,7 @@ class User {
             const data = (await database_1.default.execute(`select *
            from \`${this.app}\`.t_user
            where userID = ?
-             and status = 1`, [userID]))[0];
+           and status <> 0`, [userID]))[0];
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
                 const result = (await database_1.default.query(`update \`${this.app}\`.t_user
            SET ?
@@ -2214,7 +2217,7 @@ class User {
                         return config.key.split(',').map(dd => {
                             return {
                                 key: dd,
-                                value: User.configData[app + dd + config.user_id]
+                                value: User.configData[app + dd + config.user_id],
                             };
                         });
                     }
@@ -2286,7 +2289,7 @@ class User {
                 (await Promise.all(config.key.split(',').map(async (dd) => ({
                     key: dd,
                     value: await loop(getData.find((d1) => d1.key === dd)),
-                })))).map((dd) => {
+                })))).map(dd => {
                     User.configData[app + dd.key + config.user_id] = dd.value;
                 });
             }
@@ -2517,5 +2520,10 @@ class User {
     }
 }
 exports.User = User;
+User.typeMap = {
+    block: 0,
+    normal: 1,
+    watch: 2,
+};
 User.configData = {};
 //# sourceMappingURL=user.js.map

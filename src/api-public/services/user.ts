@@ -54,7 +54,7 @@ interface UserQuery {
   member_levels?: string;
   groupType?: string;
   groupTag?: string;
-  filter_type?: string;
+  filter_type?: 'block' | 'normal' | 'watch' | 'excel';
   tags?: string;
   all_result?: boolean;
 }
@@ -105,15 +105,21 @@ type MemberConfig = {
 };
 
 export class User {
-  public app: string;
-  public token?: IToken;
+  app: string;
+  token?: IToken;
 
   constructor(app: string, token?: IToken) {
     this.app = app;
     this.token = token;
   }
 
-  public static generateUserID() {
+  static typeMap = {
+    block: 0,
+    normal: 1,
+    watch: 2,
+  };
+
+  static generateUserID() {
     let userID = '';
     const characters = '0123456789';
     const charactersLength = characters.length;
@@ -124,7 +130,7 @@ export class User {
     return userID;
   }
 
-  public async findAuthUser(email?: string) {
+  async findAuthUser(email?: string) {
     try {
       //SAAS 平台才需要檢查是否有邀請
       if (['shopnex'].includes(this.app)) {
@@ -146,7 +152,7 @@ export class User {
     }
   }
 
-  public async emailVerify(account: string) {
+  async emailVerify(account: string) {
     const time: any = await redis.getValue(`verify-${account}-last-time`);
     //超過30秒可在次發送
     if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
@@ -166,7 +172,7 @@ export class User {
     }
   }
 
-  public async phoneVerify(account: string) {
+  async phoneVerify(account: string) {
     const time: any = await redis.getValue(`verify-phone-${account}-last-time`);
     let last_count: any = parseInt(`${(await redis.getValue(`verify-phone-${account}-last-count`)) || '0'}`, 10);
     last_count++;
@@ -195,7 +201,7 @@ export class User {
     }
   }
 
-  public async createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean) {
+  async createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean) {
     try {
       const login_config = await this.getConfigV2({
         key: 'login_config',
@@ -302,7 +308,7 @@ export class User {
   }
 
   // 用戶初次建立的initial函式
-  public async createUserHook(userID: string) {
+  async createUserHook(userID: string) {
     // 發送歡迎信件
     const usData: any = await this.getUserData(userID, 'userID');
     usData.userData.repeatPwd = undefined;
@@ -339,7 +345,7 @@ export class User {
     await UserUpdate.update(this.app, userID);
   }
 
-  public async updateAccount(account: string, userID: string): Promise<any> {
+  async updateAccount(account: string, userID: string): Promise<any> {
     try {
       const configAd = await App.getAdConfig(this.app, 'glitter_loginConfig');
       switch (configAd.verify) {
@@ -366,14 +372,14 @@ export class User {
     }
   }
 
-  public async login(account: string, pwd: string) {
+  async login(account: string, pwd: string) {
     try {
       const data: any = (
         (await db.execute(
           `select *
            from \`${this.app}\`.t_user
            where (userData ->>'$.email' = ? or phone=? or account=?)
-             and status = 1`,
+             and status <> 0`,
           [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]
         )) as any
       )[0];
@@ -396,7 +402,7 @@ export class User {
     }
   }
 
-  public async loginWithFb(token: string) {
+  async loginWithFb(token: string) {
     let config = {
       method: 'get',
       maxBodyLength: Infinity,
@@ -449,7 +455,7 @@ export class User {
         `select *
          from \`${this.app}\`.t_user
          where userData ->>'$.email' = ?
-           and status = 1`,
+         and status <> 0`,
         [fbResponse.email]
       )) as any
     )[0];
@@ -471,7 +477,7 @@ export class User {
     return usData;
   }
 
-  public async loginWithLine(code: string, redirect: string) {
+  async loginWithLine(code: string, redirect: string) {
     try {
       const lineData = await this.getConfigV2({
         key: 'login_line_setting',
@@ -500,10 +506,10 @@ export class User {
                 redirect_uri: redirect,
               }),
             })
-            .then((response:any) => {
+            .then((response: any) => {
               resolve(response.data);
             })
-            .catch((error:any) => {
+            .catch((error: any) => {
               console.error(error);
               resolve(false);
             });
@@ -599,7 +605,7 @@ export class User {
     }
   }
 
-  public async loginWithGoogle(code: string, redirect: string) {
+  async loginWithGoogle(code: string, redirect: string) {
     try {
       const config = await this.getConfigV2({
         key: 'login_google_setting',
@@ -671,7 +677,7 @@ export class User {
           `select *
            from \`${this.app}\`.t_user
            where userData ->>'$.email' = ?
-             and status = 1`,
+           and status <> 0`,
           [payload?.email]
         )) as any
       )[0];
@@ -697,7 +703,7 @@ export class User {
   }
 
   //POS切換
-  public async loginWithPin(user_id: string, pin: string) {
+  async loginWithPin(user_id: string, pin: string) {
     try {
       if (await UtPermission.isManagerTokenCheck(this.app, `${this.token!!.userID}`)) {
         const per_c = new SharePermission(this.app, this.token!!);
@@ -733,7 +739,7 @@ export class User {
     }
   }
 
-  public async loginWithApple(token: string) {
+  async loginWithApple(token: string) {
     try {
       const config = await this.getConfigV2({
         key: 'login_apple_setting',
@@ -809,7 +815,7 @@ export class User {
           `select *
            from \`${this.app}\`.t_user
            where userData ->>'$.email' = ?
-             and status = 1`,
+           and status <> 0`,
           [decoded.payload.email]
         )) as any
       )[0];
@@ -834,7 +840,7 @@ export class User {
     }
   }
 
-  public async getUserData(query: string, type: 'userID' | 'account' | 'email_or_phone' = 'userID') {
+  async getUserData(query: string, type: 'userID' | 'account' | 'email_or_phone' = 'userID') {
     try {
       const sql = `select *
                    from \`${this.app}\`.t_user
@@ -885,7 +891,7 @@ export class User {
     }
   }
 
-  public async checkMember(
+  async checkMember(
     userData: any,
     trigger: boolean
   ): Promise<
@@ -1154,7 +1160,7 @@ export class User {
     }
   }
 
-  public find30DayPeriodWith3000Spent(
+  find30DayPeriodWith3000Spent(
     transactions: {
       total_amount: number;
       date: string;
@@ -1252,7 +1258,7 @@ export class User {
     return orderByMap[orderBy] || 'u.id DESC';
   }
 
-  public async getUserList(query: UserQuery) {
+  async getUserList(query: UserQuery) {
     try {
       const checkPoint = new UtTimer('GET-USER-LIST').checkPoint;
 
@@ -1523,7 +1529,11 @@ export class User {
       }
 
       if (query.filter_type !== 'excel') {
-        querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
+        if (query.filter_type) {
+          querySql.push(`status = ${User.typeMap[query.filter_type]}`);
+        } else {
+          querySql.push(`status <> ${User.typeMap.block}`);
+        }
       }
 
       const countSQL = await this.getUserAndOrderSQL({
@@ -1662,7 +1672,6 @@ export class User {
       checkPoint('return data');
 
       const total = (await db.query(countSQL, []))[0]['count(1)'];
-      console.log(`user total: ${total}`);
 
       return {
         // 指定頁數和符合篩選條件的會員資料
@@ -1681,7 +1690,7 @@ export class User {
     }
   }
 
-  public async getUserGroups(
+  async getUserGroups(
     type?: string[],
     tag?: string,
     hide_level?: boolean
@@ -1810,7 +1819,7 @@ export class User {
     }
   }
 
-  public normalMember = {
+  normalMember = {
     id: '',
     duration: { type: 'noLimit', value: 0 },
     tag_name: '一般會員',
@@ -1819,7 +1828,7 @@ export class User {
     create_date: '2024-01-01T00:00:00.000Z',
   };
 
-  public async getLevelConfig() {
+  async getLevelConfig() {
     const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
     const levelList = levelData.levels || [];
 
@@ -1980,7 +1989,7 @@ export class User {
     };
   }
 
-  public async getUserLevel(
+  async getUserLevel(
     data: {
       userId?: string;
       email?: string;
@@ -2035,7 +2044,7 @@ export class User {
     return dataList;
   }
 
-  public async subscribe(email: string, tag: string) {
+  async subscribe(email: string, tag: string) {
     try {
       await db.queryLambada(
         {
@@ -2054,7 +2063,7 @@ export class User {
     }
   }
 
-  public async registerFcm(userID: string, deviceToken: string) {
+  async registerFcm(userID: string, deviceToken: string) {
     try {
       await db.queryLambada(
         {
@@ -2073,7 +2082,7 @@ export class User {
     }
   }
 
-  public async deleteSubscribe(email: string) {
+  async deleteSubscribe(email: string) {
     try {
       await db.query(
         `delete
@@ -2089,7 +2098,7 @@ export class User {
     }
   }
 
-  public async getSubScribe(query: any) {
+  async getSubScribe(query: any) {
     try {
       const querySql: any = [];
       query.page = query.page ?? 0;
@@ -2143,7 +2152,7 @@ export class User {
     }
   }
 
-  public async getFCM(query: any) {
+  async getFCM(query: any) {
     try {
       query.page = query.page ?? 0;
       query.limit = query.limit ?? 50;
@@ -2172,7 +2181,7 @@ export class User {
     }
   }
 
-  public async deleteUser(query: { id?: string; email?: string }) {
+  async deleteUser(query: { id?: string; email?: string }) {
     try {
       //確保單一進來的元素不會被解析成字串
       if (query.id) {
@@ -2198,7 +2207,7 @@ export class User {
     }
   }
 
-  public async updateUserData(userID: string, par: any, manager: boolean = false) {
+  async updateUserData(userID: string, par: any, manager: boolean = false) {
     const getUser = await db.query(
       `SELECT *
        FROM \`${this.app}\`.t_user
@@ -2300,8 +2309,7 @@ export class User {
         }
       }
 
-      const blockCheck = par.userData.type == 'block';
-      par.status = blockCheck ? 0 : 1;
+      par.status = User.typeMap[par.userData.type as 'block' | 'normal' | 'watch'] ?? User.typeMap.normal;
 
       if (par.userData.phone) {
         await db.query(
@@ -2364,7 +2372,7 @@ export class User {
     }
   }
 
-  public async batchGetUser(userId: string[]) {
+  async batchGetUser(userId: string[]) {
     try {
       const sql = `SELECT *
                    FROM \`${this.app}\`.t_user
@@ -2404,7 +2412,7 @@ export class User {
     }
   }
 
-  public async batchUpdateUserData(trackName: string, users: { id: string; data: any }[]) {
+  async batchUpdateUserData(trackName: string, users: { id: string; data: any }[]) {
     try {
       const stack: Stack = {
         appName: this.app as string,
@@ -2440,7 +2448,7 @@ export class User {
     }
   }
 
-  public async batchAddtag(userId: string[], tags: string[]) {
+  async batchAddtag(userId: string[], tags: string[]) {
     try {
       const users = await this.batchGetUser(userId);
 
@@ -2459,7 +2467,7 @@ export class User {
     }
   }
 
-  public async batchRemovetag(userId: string[], tags: string[]) {
+  async batchRemovetag(userId: string[], tags: string[]) {
     try {
       const users = await this.batchGetUser(userId);
       const postMap: Map<string, boolean> = new Map(tags.map(tag => [tag, true]));
@@ -2479,7 +2487,7 @@ export class User {
     }
   }
 
-  public async batchManualLevel(userId: string[], level: string[]) {
+  async batchManualLevel(userId: string[], level: string[]) {
     try {
       const users = await this.batchGetUser(userId);
 
@@ -2499,7 +2507,7 @@ export class User {
     }
   }
 
-  public async clearUselessData(userData: any, manager: boolean) {
+  async clearUselessData(userData: any, manager: boolean) {
     let config = await App.getAdConfig(this.app, 'glitterUserForm');
     let register_form =
       (
@@ -2532,7 +2540,7 @@ export class User {
     });
   }
 
-  public async checkUpdate(cf: { updateUserData: any; manager: boolean; userID: string }) {
+  async checkUpdate(cf: { updateUserData: any; manager: boolean; userID: string }) {
     let originUserData = (
       await db.query(
         `select userData
@@ -2558,9 +2566,9 @@ export class User {
     return originUserData;
   }
 
-  public async resetPwd(user_id_and_account: string, newPwd: string) {
+  async resetPwd(user_id_and_account: string, newPwd: string) {
     try {
-      const result = (await db.query(
+      await db.query(
         `update \`${this.app}\`.t_user
          SET ?
          WHERE 1 = 1
@@ -2571,23 +2579,23 @@ export class User {
           },
           user_id_and_account,
         ]
-      )) as any;
+      );
       return {
         result: true,
       };
     } catch (e) {
-      throw exception.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'resetPwd Error:' + e, null);
     }
   }
 
-  public async resetPwdNeedCheck(userID: string, pwd: string, newPwd: string) {
+  async resetPwdNeedCheck(userID: string, pwd: string, newPwd: string) {
     try {
       const data: any = (
         (await db.execute(
           `select *
            from \`${this.app}\`.t_user
            where userID = ?
-             and status = 1`,
+           and status <> 0`,
           [userID]
         )) as any
       )[0];
@@ -2615,7 +2623,7 @@ export class User {
     }
   }
 
-  public async updateAccountBack(token: string) {
+  async updateAccountBack(token: string) {
     try {
       const sql = `select userData
                    from \`${this.app}\`.t_user
@@ -2632,7 +2640,7 @@ export class User {
     }
   }
 
-  public async verifyPASS(token: string) {
+  async verifyPASS(token: string) {
     try {
       const par = {
         status: 1,
@@ -2649,7 +2657,7 @@ export class User {
     }
   }
 
-  public async checkUserExists(account: string) {
+  async checkUserExists(account: string) {
     try {
       return (
         (
@@ -2667,7 +2675,7 @@ export class User {
     }
   }
 
-  public async checkMailAndPhoneExists(
+  async checkMailAndPhoneExists(
     email?: string,
     phone?: string
   ): Promise<{
@@ -2715,7 +2723,7 @@ export class User {
     }
   }
 
-  public async checkUserIdExists(id: number) {
+  async checkUserIdExists(id: number) {
     try {
       const count = (
         await db.query(
@@ -2731,7 +2739,7 @@ export class User {
     }
   }
 
-  public async setConfig(config: { key: string; value: any; user_id?: string }) {
+  async setConfig(config: { key: string; value: any; user_id?: string }) {
     try {
       if (typeof config.value !== 'string') {
         config.value = JSON.stringify(config.value);
@@ -2773,14 +2781,14 @@ export class User {
           find_app_301.router = JSON.parse(config.value).list;
         }
       }
-      User.configData[this.app+config.key+(config.user_id ?? this.token!.userID)]=JSON.parse(config.value)
+      User.configData[this.app + config.key + (config.user_id ?? this.token!.userID)] = JSON.parse(config.value);
     } catch (e) {
       console.error(e);
       throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
     }
   }
 
-  public async getConfig(config: { key: string; user_id: string }) {
+  async getConfig(config: { key: string; user_id: string }) {
     try {
       return await db.execute(
         `select *
@@ -2797,32 +2805,32 @@ export class User {
   }
 
   //CONFIG 的暫存避免頻繁撈取SQL資料
-  public static configData: any = {};
+  static configData: any = {};
 
-  public async getConfigV2(config: { key: string; user_id: string }): Promise<any> {
-    const app=this.app;
+  async getConfigV2(config: { key: string; user_id: string }): Promise<any> {
+    const app = this.app;
     try {
-      function checkConfigCache(){
+      function checkConfigCache() {
         if (
           !config.key.split(',').find(dd => {
-            return !User.configData[app+dd + config.user_id];
+            return !User.configData[app + dd + config.user_id];
           })
         ) {
           if (config.key.includes(',')) {
             return config.key.split(',').map(dd => {
               return {
-                key:dd,
-                value:User.configData[app+dd + config.user_id]
+                key: dd,
+                value: User.configData[app + dd + config.user_id],
               };
             });
           } else {
-            return User.configData[app+config.key + config.user_id];
+            return User.configData[app + config.key + config.user_id];
           }
         }
       }
       //當有暫存時
-      if(checkConfigCache()){
-        console.log(`[${this.app}] config cache hit`)
+      if (checkConfigCache()) {
+        console.log(`[${this.app}] config cache hit`);
         return JSON.parse(JSON.stringify(checkConfigCache()));
       }
 
@@ -2895,16 +2903,18 @@ export class User {
       }
 
       if (config.key.includes(',')) {
-        (await Promise.all(
-          config.key.split(',').map(async dd => ({
-            key: dd,
-            value: await loop(getData.find((d1: any) => d1.key === dd)),
-          }))
-        )).map((dd)=>{
-          User.configData[app+dd.key + config.user_id]=dd.value
-        })
+        (
+          await Promise.all(
+            config.key.split(',').map(async dd => ({
+              key: dd,
+              value: await loop(getData.find((d1: any) => d1.key === dd)),
+            }))
+          )
+        ).map(dd => {
+          User.configData[app + dd.key + config.user_id] = dd.value;
+        });
       } else {
-        User.configData[app+config.key + config.user_id] = await loop(getData[0]);
+        User.configData[app + config.key + config.user_id] = await loop(getData[0]);
       }
       return JSON.parse(JSON.stringify(checkConfigCache()));
     } catch (e) {
@@ -2913,7 +2923,7 @@ export class User {
     }
   }
 
-  public async checkLeakData(key: string, value: any) {
+  async checkLeakData(key: string, value: any) {
     switch (key) {
       case 'store-information': {
         value.language_setting ??= { def: 'zh-TW', support: ['zh-TW'] };
@@ -2964,7 +2974,7 @@ export class User {
     return value;
   }
 
-  public async checkEmailExists(email: string) {
+  async checkEmailExists(email: string) {
     try {
       const count = (
         await db.query(
@@ -2980,7 +2990,7 @@ export class User {
     }
   }
 
-  public async checkPhoneExists(phone: string) {
+  async checkPhoneExists(phone: string) {
     try {
       const count = (
         await db.query(
@@ -2996,7 +3006,7 @@ export class User {
     }
   }
 
-  public async getUnreadCount() {
+  async getUnreadCount() {
     try {
       const last_read_time = await db.query(
         `SELECT value
@@ -3023,7 +3033,7 @@ export class User {
     }
   }
 
-  public async checkAdminPermission() {
+  async checkAdminPermission() {
     try {
       const result = await db.query(
         `select count(1)
@@ -3045,7 +3055,7 @@ export class User {
     } catch (e) {}
   }
 
-  public async getNotice(cf: { query: any }) {
+  async getNotice(cf: { query: any }) {
     try {
       const query = [`user_id=${this.token?.userID}`];
       let last_time_read = 0;
@@ -3081,7 +3091,7 @@ export class User {
     }
   }
 
-  public async forgetPassword(email: string) {
+  async forgetPassword(email: string) {
     const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-forget', 'zh-TW');
     const code = Tool.randomNumber(6);
     await redis.setValue(`forget-${email}`, code);
@@ -3089,7 +3099,7 @@ export class User {
     sendmail(`${data.name} <${process.env.smtp}>`, email, data.title, data.content.replace('@{{code}}', code));
   }
 
-  public static async ipInfo(ip: string) {
+  static async ipInfo(ip: string) {
     try {
       let config = {
         method: 'get',
@@ -3123,7 +3133,7 @@ export class User {
     }
   }
 
-  public async getCheckoutCountingModeSQL(table?: string) {
+  async getCheckoutCountingModeSQL(table?: string) {
     const asTable = table ? `${table}.` : '';
     const storeInfo = await this.getConfigV2({ key: 'store-information', user_id: 'manager' });
 

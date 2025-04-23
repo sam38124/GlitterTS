@@ -35,6 +35,7 @@ type TData = {
   title?: string;
   value: string;
   stopClick?: boolean;
+  tooltip?: string;
 };
 
 type TableV3 = {
@@ -2039,7 +2040,7 @@ ${obj.default ?? ''}</textarea
     };
 
     gvc.addStyle(`
-      .tb_v3 {
+      .tb-v3 {
         text-align: left !important;
         padding-right: 0.25rem !important;
         padding-left: 0.25rem !important;
@@ -2050,6 +2051,33 @@ ${obj.default ?? ''}</textarea
         padding: 24px;
         font-size: 24px;
         font-weight: 700;
+      }
+      .td-tooltip {
+        position: absolute;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        white-space: nowrap;
+        visibility: hidden;
+        opacity: 0;
+        transition:
+          opacity 0.3s,
+          visibility 0.3s;
+      }
+      .td-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #333 transparent transparent transparent;
       }
     `);
 
@@ -2291,7 +2319,7 @@ ${obj.default ?? ''}</textarea
                         return vm.tableData[0]
                           .map((dd, index: number) => {
                             return html` <div
-                              class="${ids.headerCell} ${ids.textClass} tb_v3 tx_700"
+                              class="${ids.headerCell} ${ids.textClass} tb-v3 tx_700"
                               style="min-width: ${widthList[index]}px;"
                             >
                               ${dd.key}
@@ -2338,7 +2366,9 @@ ${obj.default ?? ''}</textarea
                     ${vm.tableData
                       .map((dd, trIndex: number) => {
                         return html` <tr
-                          class="${trIndex === 0 ? ids.tr : ''}"
+                          class="${trIndex === 0 ? ids.tr : ''} ${dd.find(d3 => d3.tooltip)
+                            ? 'tr-tooltip-container'
+                            : ''}"
                           onclick="${gvc.event(() => {
                             obj.rowClick && obj.rowClick(dd, trIndex);
                           })}"
@@ -2360,13 +2390,21 @@ ${obj.default ?? ''}</textarea
                                 ${dd.length > 1 && tdIndex === dd.length - 1 ? 'border-radius: 0 10px 10px 0;' : ''}
                                 ${dd.length === 1 ? 'border-radius: 10px;' : ''}
                               `;
+
                               return html` <td
-                                class="${ids.textClass} ${tdClass} tb_v3 tx_normal"
+                                class="${ids.textClass} ${tdClass} tb-v3 tx_normal position-relative"
                                 style="${style}"
                                 ${obj.filter.length !== 0 && tdIndex === 0 ? `gvc-checkbox="checkbox${trIndex}"` : ''}
                                 onclick="${d3.stopClick ? gvc.event((_, event) => event.stopPropagation()) : ''}"
                               >
-                                <div class="text-nowrap" style="color: #393939 !important;">${d3.value}</div>
+                                <div
+                                  class="text-nowrap ${d3.tooltip ? 'hover-element' : ''}"
+                                  style="color: #393939 !important;"
+                                  ${d3.tooltip ? `data-tooltip="${d3.tooltip}"` : ''}
+                                >
+                                  ${d3.value}
+                                </div>
+                                ${d3.tooltip ? html`<div class="td-tooltip">${d3.tooltip}</div>` : ''}
                               </td>`;
                             })
                             .join('')}
@@ -2435,6 +2473,7 @@ ${obj.default ?? ''}</textarea
                   }
 
                   created.table = !created.table;
+
                   gvc.notifyDataChange(ids.container);
                   clearInterval(si);
                 }
@@ -2442,6 +2481,35 @@ ${obj.default ?? ''}</textarea
                   clearInterval(si);
                 }
               }, 50);
+            } else {
+              // 獲取所有工具提示容器
+              const tooltipContainers = document.querySelectorAll('.tr-tooltip-container');
+
+              // 為每個容器添加事件監聽器
+              tooltipContainers.forEach(container => {
+                const hoverElement = container.querySelector('.hover-element');
+                const tooltip = container.querySelector('.td-tooltip') as HTMLElement;
+
+                if (hoverElement && tooltip) {
+                  // 從 data-tooltip 屬性取得提示文字
+                  const tooltipText = hoverElement.getAttribute('data-tooltip');
+                  if (tooltipText) {
+                    tooltip.textContent = tooltipText;
+                  }
+
+                  // 滑鼠移入時顯示工具提示
+                  hoverElement.addEventListener('mouseenter', () => {
+                    tooltip.style.visibility = 'visible';
+                    tooltip.style.opacity = '1';
+                  });
+
+                  // 滑鼠移出時隱藏工具提示
+                  hoverElement.addEventListener('mouseleave', () => {
+                    tooltip.style.visibility = 'hidden';
+                    tooltip.style.opacity = '0';
+                  });
+                }
+              });
             }
           }
         },

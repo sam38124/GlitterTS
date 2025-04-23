@@ -1270,7 +1270,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND status = 1;
+                          AND status <> 0;
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         countArray[index] = data[0]['count(1)'];
@@ -1316,7 +1316,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
                             , INTERVAL ${index} DAY))
-                          AND status = 1;
+                          AND status <> 0;
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         countArray[index] = data[0]['count(1)'];
@@ -1359,7 +1359,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND status = 1;
+                          AND status <> 0;
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         countArray[index] = data[0]['count(1)'];
