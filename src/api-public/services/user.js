@@ -501,6 +501,13 @@ class User {
                             audience: config.app_id,
                         }));
                     }
+                    else if (redirect === 'android') {
+                        const client = new google_auth_library_1.OAuth2Client(config.android_app_id);
+                        resolve(await client.verifyIdToken({
+                            idToken: code,
+                            audience: config.android_app_id,
+                        }));
+                    }
                     else {
                         const oauth2Client = new google_auth_library_1.OAuth2Client(config.id, config.secret, redirect);
                         const { tokens } = await oauth2Client.getToken(code);
@@ -1069,7 +1076,7 @@ class User {
                             });
                         })
                         : users.map((item) => item.userID).filter(item => item);
-                    query.id = ids.length > 0 ? ids.filter(id => id).join(',') : '0,0';
+                    query.id = ids.length > 0 ? ids.filter((id) => id).join(',') : '0,0';
                 }
                 else {
                     query.id = '0,0';
@@ -1306,10 +1313,15 @@ class User {
                 checkPoint('getUsers');
                 if (param) {
                     const dataArray = [];
-                    for (let i = 0; i < getUsers.length; i += processChunk) {
-                        const data = await processUserData(getUsers.slice(i, i + processChunk));
-                        dataArray.push(data);
-                        checkPoint(`processUserData ${i}`);
+                    if (query.only_id !== 'true') {
+                        for (let i = 0; i < getUsers.length; i += processChunk) {
+                            const data = await processUserData(getUsers.slice(i, i + processChunk));
+                            dataArray.push(data);
+                            checkPoint(`processUserData ${i}`);
+                        }
+                    }
+                    else {
+                        return getUsers;
                     }
                     return dataArray.flat();
                 }

@@ -1285,8 +1285,9 @@ export class PayNow {
       expireDays: 3,
     });
     console.log(`webhook=>`, this.keyData.NotifyURL + `&orderID=${orderData.orderID}`);
-    const url = `${this.BASE_URL}/api/v1/payment-intents`
-    const key_ = (this.keyData.BETA)?{private_key:"bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv",public_key:"sm22610RIIwOTz4STCFf0dF22G067lnd"}:await this.bindKey();
+    const url = `${this.BASE_URL}/api/v1/payment-intents`;
+    const key_ = (`${this.keyData.BETA}`==='true') ? {private_key:"bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv",public_key:"sm22610RIIwOTz4STCFf0dF22G067lnd"}:await this.bindKey();
+    console.log(`key_===>`,key_)
     const config = {
       method: 'post',
       maxBodyLength: Infinity,

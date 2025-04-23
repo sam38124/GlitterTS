@@ -843,6 +843,7 @@ export class BgSNS {
                         ApiUser.getUserList({
                             page: 0,
                             limit: 99999,
+                            only_id: true
                         }).then(dd => {
                             dd.response.data.map((user) => {
                                 if (user.userData.email && user.userData.email.length > 0 && user.userData.phone) {
@@ -1191,9 +1192,10 @@ export class BgSNS {
                                                 text: '取得所有會員資料中...',
                                             });
                                             new Promise(resolve => {
-                                                ApiUser.getUserListOrders({
+                                                ApiUser.getUserList({
                                                     page: 0,
                                                     limit: 99999,
+                                                    only_id: true
                                                 }).then(dd => {
                                                     if (dd.response.data) {
                                                         const ids = [];
@@ -1241,11 +1243,11 @@ export class BgSNS {
                                                     default: getDefault([]),
                                                     api: (data) => {
                                                         return new Promise(resolve => {
-                                                            ApiUser.getUserListOrders({
+                                                            ApiUser.getUserList({
                                                                 page: 0,
                                                                 limit: 99999,
+                                                                only_id: true,
                                                                 search: data.query,
-                                                                orderString: data.orderString,
                                                             }).then(dd => {
                                                                 if (dd.response.data) {
                                                                     vm.dataList = dd.response.data

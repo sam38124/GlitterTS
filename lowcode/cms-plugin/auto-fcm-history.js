@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from './bg-widget.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
@@ -17,12 +17,12 @@ import { FormWidget } from '../official_view_component/official/form.js';
 import { Chat } from '../glitter-base/route/chat.js';
 import { FilterOptions } from '../cms-plugin/filter-options.js';
 import { ShoppingDiscountSetting } from '../cms-plugin/shopping-discount-setting.js';
-import { BgListComponent } from './bg-list-component.js';
+import { ApiSmtp } from '../glitter-base/route/smtp.js';
+import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { Tool } from '../modules/tool.js';
-import { ApiLineMessage } from '../glitter-base/route/line.js';
 const html = String.raw;
-const inputStyle = 'font-size: 16px; height: 40px; width: 300px;';
-export class BgLine {
+const inputStyle = 'font-size: 16px; height:40px; width:300px;';
+export class BgNotify {
     static email(gvc, type = 'list', callback = () => { }) {
         const vm = {
             type: 'list',
@@ -48,6 +48,7 @@ export class BgLine {
                 view: () => {
                     let vmi = undefined;
                     function getDatalist() {
+                        let interval = 0;
                         return vm.dataList.map((dd) => {
                             return [
                                 {
@@ -62,7 +63,7 @@ export class BgLine {
                         });
                     }
                     return BgWidget.container(BgWidget.mainCard([
-                        BgWidget.searchPlace(gvc.event((e, event) => {
+                        BgWidget.searchPlace(gvc.event(e => {
                             vm.query = e.value;
                             gvc.notifyDataChange(id);
                         }), vm.query || '', '搜尋信箱或標籤'),
@@ -103,7 +104,7 @@ export class BgLine {
                                 {
                                     name: '批量移除',
                                     event: checkedData => {
-                                        const dialog = new ShareDialog(gvc.glitter);
+                                        const dialog = new ShareDialog(glitter);
                                         dialog.checkYesOrNot({
                                             text: '是否確認刪除所選項目？',
                                             callback: response => {
@@ -133,7 +134,7 @@ export class BgLine {
             };
         });
     }
-    static lineSetting(gvc) {
+    static emailSetting(gvc) {
         const glitter = gvc.glitter;
         const vm = {
             type: 'list',
@@ -151,7 +152,7 @@ export class BgLine {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
               <div class="title-container">
-                ${BgWidget.title('訊息定型文')}
+                ${BgWidget.title('信件樣式')}
                 <div class="flex-fill"></div>
                 ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.data = undefined;
@@ -171,7 +172,7 @@ export class BgLine {
                                         page: vmi.page - 1,
                                         limit: limit,
                                         search: vm.query ? [`title->${vm.query}`] : undefined,
-                                        type: 'notify-line-config',
+                                        type: 'notify-email-config',
                                     }).then(data => {
                                         function getDatalist() {
                                             return data.response.data.map((dd) => {
@@ -241,18 +242,16 @@ export class BgLine {
                             type: 'replace',
                         });
                     }
-                    else {
-                        return this.emailEditor({
-                            vm: vm,
-                            gvc: gvc,
-                            type: 'add',
-                        });
-                    }
+                    return this.emailEditor({
+                        vm: vm,
+                        gvc: gvc,
+                        type: 'add',
+                    });
                 },
             };
         });
     }
-    static lineHistory(gvc) {
+    static emailHistory(gvc) {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
@@ -274,7 +273,7 @@ export class BgLine {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
               <div class="title-container">
-                ${BgWidget.title('寄件紀錄')}
+                ${BgWidget.title('推播紀錄')}
                 <div class="flex-fill"></div>
               </div>
               ${BgWidget.container(BgWidget.mainCard([
@@ -284,29 +283,19 @@ export class BgLine {
                                     bind: id,
                                     view: () => {
                                         const filterList = [
-                                            BgWidget.selectFilter({
-                                                gvc,
-                                                callback: (value) => {
-                                                    vm.queryType = value;
-                                                    gvc.notifyDataChange(vm.tableId);
-                                                    gvc.notifyDataChange(id);
-                                                },
-                                                default: vm.queryType || 'email',
-                                                options: FilterOptions.snsSelect,
-                                            }),
                                             BgWidget.searchFilter(gvc.event(e => {
                                                 vm.query = `${e.value}`.trim();
                                                 gvc.notifyDataChange(vm.tableId);
                                                 gvc.notifyDataChange(id);
-                                            }), vm.query || '', '搜尋所有訊息內容'),
+                                            }), vm.query || '', '搜尋所有信件內容'),
                                             BgWidget.funnelFilter({
                                                 gvc,
                                                 callback: () => {
-                                                    return ListComp.showRightMenu(FilterOptions.snsFunnel);
+                                                    return ListComp.showRightMenu(FilterOptions.emailFunnel);
                                                 },
                                             }),
                                         ];
-                                        const filterTags = ListComp.getFilterTags(FilterOptions.snsFunnel);
+                                        const filterTags = ListComp.getFilterTags(FilterOptions.emailFunnel);
                                         return BgListComponent.listBarRWD(filterList, filterTags);
                                     },
                                 });
@@ -319,7 +308,7 @@ export class BgLine {
                                         getData: vmi => {
                                             var _a, _b;
                                             const limit = 20;
-                                            ApiLineMessage.history({
+                                            ApiFcm.history({
                                                 page: vmi.page - 1,
                                                 limit: limit,
                                                 search: (_a = vm.query) !== null && _a !== void 0 ? _a : '',
@@ -382,9 +371,9 @@ export class BgLine {
                                                                             case 0:
                                                                                 return BgWidget.warningInsignia('尚未寄送');
                                                                             case 1:
-                                                                                return BgWidget.secondaryInsignia('已寄出');
+                                                                                return BgWidget.infoInsignia('已寄出');
                                                                             case 2:
-                                                                                return BgWidget.notifyInsignia('取消預約');
+                                                                                return BgWidget.secondaryInsignia('取消寄送');
                                                                         }
                                                                     })(),
                                                                 },
@@ -401,9 +390,6 @@ export class BgLine {
                                             });
                                         },
                                         rowClick: (data, index) => {
-                                            vm.dataList[index].content.status = vm.dataList[index].status;
-                                            vm.data = vm.dataList[index].content;
-                                            vm.type = 'replace';
                                         },
                                         filter: [],
                                     });
@@ -427,32 +413,34 @@ export class BgLine {
         var _a;
         const gvc = obj.gvc;
         const vm = obj.vm;
+        const dialog = new ShareDialog(gvc.glitter);
         const postData = (_a = vm.data) !== null && _a !== void 0 ? _a : {
             content: '',
             title: '',
-            type: 'notify-line-config',
+            type: 'notify-email-config',
             name: '',
         };
-        let pointCount = 1;
         return BgWidget.container(html `
       <div class="title-container">
         ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
         }))}
-        ${BgWidget.title(obj.readonly ? '訊息詳細內容' : '編輯訊息定型文')}
+        ${BgWidget.title(obj.readonly ? '信件詳細內容' : '編輯信件樣式')}
         <div class="flex-fill"></div>
         ${obj.readonly
-            ? [
-                html `<div class="me-2">${BgWidget.secondaryInsignia(vm.data.typeName)}</div>`,
-                (() => {
-                    switch (vm.data.status) {
-                        case 0:
-                            return BgWidget.warningInsignia('尚未寄送');
-                        case 1:
-                            return BgWidget.secondaryInsignia('已寄出');
-                    }
-                })(),
-            ].join('')
+            ? html `<div class="d-flex gap-2">
+              ${BgWidget.secondaryInsignia(vm.data.typeName)}
+              ${(() => {
+                switch (vm.data.status) {
+                    case 0:
+                        return BgWidget.warningInsignia('尚未寄送');
+                    case 1:
+                        return BgWidget.infoInsignia('已寄出');
+                    case 2:
+                        return BgWidget.secondaryInsignia('取消寄送');
+                }
+            })()}
+            </div>`
             : ''}
       </div>
       ${BgWidget.mbContainer(18)}
@@ -461,16 +449,12 @@ export class BgLine {
             return {
                 bind: bi,
                 view: () => {
-                    var _a, _b;
+                    var _a;
                     let htmlList = [];
                     if (obj.readonly) {
-                        const sendGroupHTML = ((_a = vm.data.sendGroup) !== null && _a !== void 0 ? _a : []).map((str) => html ` <div class="c_filter_tag">${str}</div>`);
-                        const emailHTML = vm.data.userList.map((data) => html ` <div class="c_filter_tag">${data.email}</div>`);
+                        const sendGroupHTML = ((_a = vm.data.sendGroup) !== null && _a !== void 0 ? _a : []).map((str) => html `<div class="c_filter_tag">${str}</div>`);
+                        const emailHTML = vm.data.email.map((str) => html `<div class="c_filter_tag">${str}</div>`);
                         htmlList = htmlList.concat([
-                            BgWidget.mainCard(html `
-                    <div class="tx_normal fw-normal">收訊者信箱</div>
-                    <div class="c_filter_container">${emailHTML.join('')}</div>
-                  `),
                             BgWidget.mainCard(html `
                     <div class="tx_normal fw-normal">篩選條件</div>
                     <div class="c_filter_container">
@@ -481,7 +465,11 @@ export class BgLine {
                             >`)}
                     </div>
                   `),
-                            BgWidget.mainCard(html ` <div class="tx_700 mb-3">發送時間</div>
+                            BgWidget.mainCard(html `
+                    <div class="tx_normal fw-normal">電子信箱</div>
+                    <div class="c_filter_container">${emailHTML.join('')}</div>
+                  `),
+                            BgWidget.mainCard(html `<div class="tx_700 mb-3">發送時間</div>
                       ${EditorElem.radio({
                                 gvc: gvc,
                                 title: '',
@@ -494,7 +482,7 @@ export class BgLine {
                                     {
                                         title: '排定發送時間',
                                         value: 'set',
-                                        innerHtml: html ` <div
+                                        innerHtml: html `<div
                               class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
                               style="gap: 12px"
                             >
@@ -527,29 +515,77 @@ export class BgLine {
                         ]);
                     }
                     htmlList = htmlList.concat([
-                        BgWidget.mainCard(html ` ${BgWidget.editeInput({
+                        BgWidget.mainCard(BgWidget.editeInput({
                             gvc: gvc,
-                            title: '訊息主題',
-                            default: (_b = postData.title) !== null && _b !== void 0 ? _b : '',
-                            readonly: true,
-                            placeHolder: '請輸入訊息主題',
+                            title: '寄件者名稱',
+                            default: postData.name,
+                            placeHolder: '請輸入寄件者名稱',
                             callback: text => {
+                                postData.name = text;
+                            },
+                            readonly: obj.readonly,
+                        })),
+                        BgWidget.mainCard(BgWidget.editeInput({
+                            gvc: gvc,
+                            title: '信件主旨',
+                            default: postData.title,
+                            placeHolder: '請輸入信件主旨',
+                            callback: text => {
+                                if (text === 'default') {
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    dialog.infoMessage({ text: 'default 為系統預設值，請更改其他信件主旨' });
+                                    postData.title = '';
+                                    obj.gvc.notifyDataChange(bi);
+                                    return;
+                                }
                                 postData.title = text;
                             },
-                        })}
-                    <div class="d-flex align-items-center my-3">
-                      <div class="tx_normal fw-normal me-2">訊息內文</div>
+                            readonly: obj.readonly,
+                        })),
+                        BgWidget.mainCard(html `<div class="d-flex w-100 align-items-center justify-content-between p-0 mb-2">
+                      <div class="tx_normal fw-normal me-2">信件內文</div>
+                      <div class="d-flex align-items-center gap-2">
+                        ${obj.readonly
+                            ? ''
+                            : BgWidget.customButton({
+                                button: {
+                                    color: 'snow',
+                                    size: 'md',
+                                },
+                                text: {
+                                    name: '範例',
+                                },
+                                event: obj.gvc.event(() => {
+                                    if (postData.content.length > 0) {
+                                        dialog.checkYesOrNot({
+                                            callback: bool => {
+                                                if (bool) {
+                                                    postData.content = defaultEmailText();
+                                                    obj.gvc.notifyDataChange(bi);
+                                                }
+                                            },
+                                            text: '此操作會覆蓋當前的內文，<br />確定要執行嗎？',
+                                        });
+                                    }
+                                    else {
+                                        postData.content = defaultEmailText();
+                                        obj.gvc.notifyDataChange(bi);
+                                    }
+                                }),
+                            })}
+                        ${BgWidget.aiChatButton({ gvc, select: 'writer' })}
+                      </div>
                     </div>
-                    ${EditorElem.editeText({
-                            gvc: gvc,
-                            title: '',
-                            readonly: true,
-                            default: postData.content || '',
-                            placeHolder: '',
-                            callback: text => {
-                                postData.content = text;
-                            },
-                        })}`),
+                    ${obj.readonly
+                            ? html `<div class="p-1">${postData.content}</div>`
+                            : EditorElem.richText({
+                                gvc: gvc,
+                                def: postData.content,
+                                callback: text => {
+                                    postData.content = text;
+                                },
+                                style: `overflow-y: auto;`,
+                            })}`),
                     ]);
                     return htmlList.filter(str => str.length > 0).join(BgWidget.mbContainer(16));
                 },
@@ -558,7 +594,7 @@ export class BgLine {
         }))}
       ${BgWidget.mbContainer(240)}
       <div class="update-bar-container">
-        ${obj.type === 'replace' && !obj.readonly
+        ${!obj.readonly && obj.type === 'replace'
             ? BgWidget.danger(obj.gvc.event(() => {
                 const dialog = new ShareDialog(gvc.glitter);
                 dialog.checkYesOrNot({
@@ -583,22 +619,31 @@ export class BgLine {
                 });
             }))
             : ''}
-        ${BgWidget.danger(gvc.event(() => {
-            const dialog = new ShareDialog(gvc.glitter);
-            dialog.dataLoading({ text: '取消預約中', visible: true });
-            ApiLineMessage.delete({
-                id: vm.data.name,
-            }).then(r => {
-                dialog.dataLoading({ visible: false });
-                if (r.result) {
-                    vm.status = 'list';
-                    dialog.successMessage({ text: '上傳成功' });
-                }
-                else {
-                    dialog.errorMessage({ text: '上傳失敗' });
-                }
-            });
-        }), obj.readonly ? '取消預約' : undefined)}
+        ${obj.readonly && vm.data.status === 0
+            ? BgWidget.danger(gvc.event(() => {
+                const dialog = new ShareDialog(gvc.glitter);
+                dialog.checkYesOrNot({
+                    callback: bool => {
+                        if (bool) {
+                            dialog.dataLoading({ text: '取消排定中...', visible: true });
+                            ApiSmtp.cancel(vm.data.id).then(data => {
+                                dialog.dataLoading({ visible: false });
+                                if (data.result) {
+                                    dialog.successMessage({ text: '取消排定發送成功' });
+                                    setTimeout(() => {
+                                        vm.type = 'list';
+                                    }, 100);
+                                }
+                                else {
+                                    dialog.errorMessage({ text: '取消排定發送失敗' });
+                                }
+                            });
+                        }
+                    },
+                    text: '確定取消排定發送的信件嗎？',
+                });
+            }), '取消排定發送')
+            : ''}
         ${BgWidget.cancel(gvc.event(() => {
             vm.type = 'list';
         }), obj.readonly ? '關閉' : undefined)}
@@ -607,7 +652,7 @@ export class BgLine {
             : BgWidget.save(gvc.event(() => {
                 const dialog = new ShareDialog(gvc.glitter);
                 if (obj.type === 'replace') {
-                    dialog.dataLoading({ text: '變更訊息中', visible: true });
+                    dialog.dataLoading({ text: '變更信件', visible: true });
                     ApiPost.put({
                         postData: postData,
                         token: window.parent.saasConfig.config.token,
@@ -624,7 +669,7 @@ export class BgLine {
                     });
                 }
                 else {
-                    dialog.dataLoading({ text: '新增訊息', visible: true });
+                    dialog.dataLoading({ text: '新增信件', visible: true });
                     ApiPost.post({
                         postData: postData,
                         token: window.parent.saasConfig.config.token,
@@ -644,7 +689,7 @@ export class BgLine {
       </div>
     `);
     }
-    static lineSender(gvc) {
+    static emailSender(gvc) {
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(gvc.glitter);
         const startDate = ShoppingDiscountSetting.getDateTime(1).date;
@@ -658,7 +703,7 @@ export class BgLine {
             dataList: [],
         };
         const postData = {
-            type: 'notify-line-config',
+            type: 'notify-sns-config',
             tag: '',
             tagList: [],
             userList: [],
@@ -798,11 +843,10 @@ export class BgLine {
                             only_id: true
                         }).then(dd => {
                             dd.response.data.map((user) => {
-                                if (user.userData.lineID) {
+                                if (user.userData.email && user.userData.email.length > 0) {
                                     postData.userList.push({
                                         id: user.userID,
-                                        email: user.account,
-                                        lineID: user.userData.lineID,
+                                        email: user.userData.email,
                                     });
                                 }
                             });
@@ -816,11 +860,10 @@ export class BgLine {
                             id: tagData.filter.join(','),
                         }).then(dd => {
                             dd.response.data.map((user) => {
-                                if (user.userData.lineID) {
+                                if (user.userData.email && user.userData.email.length > 0) {
                                     postData.userList.push({
                                         id: user.userID,
-                                        email: user.account,
-                                        lineID: user.userData.lineID,
+                                        email: user.userData.email,
                                     });
                                 }
                             });
@@ -838,11 +881,10 @@ export class BgLine {
                                     group: { type: 'level', tag: id },
                                 }).then(data => {
                                     data.response.data.map((user) => {
-                                        if (user.userData.lineID) {
-                                            postData.userList.push({
+                                        if (user.userData.email) {
+                                            list.push({
                                                 id: user.userID,
-                                                email: user.account,
-                                                lineID: user.userData.lineID,
+                                                email: user.userData.email,
                                             });
                                         }
                                     });
@@ -875,11 +917,10 @@ export class BgLine {
                                         dataArray = dataArray.concat(data.response.extra.noRegisterUsers);
                                     }
                                     dataArray.map((user) => {
-                                        if (user && user.userData.lineID) {
-                                            postData.userList.push({
+                                        if (user && user.userData.email) {
+                                            list.push({
                                                 id: user.userID,
-                                                email: user.account,
-                                                lineID: user.userData.lineID,
+                                                email: user.userData.email,
                                             });
                                         }
                                     });
@@ -904,11 +945,10 @@ export class BgLine {
                             filter: { birth: tagData.filter },
                         }).then(data => {
                             data.response.data.map((user) => {
-                                if (user.userData.lineID) {
+                                if (user.userData.email) {
                                     postData.userList.push({
                                         id: user.userID,
-                                        email: user.account,
-                                        lineID: user.userData.lineID,
+                                        email: user.userData.email,
                                     });
                                 }
                             });
@@ -926,7 +966,6 @@ export class BgLine {
                                     postData.userList.push({
                                         id: user.userID,
                                         email: user.userData.email,
-                                        lineID: user.userData.lineID,
                                     });
                                 }
                             });
@@ -942,11 +981,10 @@ export class BgLine {
                             filter: { rebate: { key: 'moreThan', value: tagData.filter } },
                         }).then(data => {
                             data.response.data.map((user) => {
-                                if (user.userData.lineID) {
+                                if (user.userData.email) {
                                     postData.userList.push({
                                         id: user.userID,
-                                        email: user.account,
-                                        lineID: user.userData.lineID,
+                                        email: user.userData.email,
                                     });
                                 }
                             });
@@ -966,7 +1004,7 @@ export class BgLine {
             const formatName = value && value.length > 0 ? `${name}：${value}` : name;
             return {
                 name: formatName,
-                html: html ` <div class="c_filter_tag">
+                html: html `<div class="c_filter_tag">
           ${formatName}
           <i
             class="fa-solid fa-xmark ms-1"
@@ -997,20 +1035,16 @@ export class BgLine {
             });
             postData.sendGroup = badgeList.map(item => item.name);
             return [
-                html ` <div class="tx_normal fw-normal">標籤判斷</div>
+                html `<div class="tx_normal fw-normal">標籤判斷</div>
           ${BgWidget.grayNote('當有多個篩選條件時，進階判斷顧客符合的交集')}
           <div style="margin: 8px 0;">
-            ${BgWidget.switchTextButton(gvc, postData.boolean === 'and', {
-                    left: '或',
-                    right: '且',
-                }, bool => {
+            ${BgWidget.switchTextButton(gvc, postData.boolean === 'and', { left: '或', right: '且' }, bool => {
                     postData.boolean = bool ? 'and' : 'or';
                     setUserList();
                     gvc.notifyDataChange(vm.tagsId);
                 })}
           </div>`,
-                html `
-          <div class="tx_normal fw-normal">預計寄件顧客人數</div>
+                html `<div class="tx_normal fw-normal">預計寄件顧客人數</div>
           <div style="display:flex; align-items: center; gap: 18px; margin: 8px 0;">
             <div class="tx_normal">${postData.userList.length}人</div>
             ${BgWidget.grayButton('查看名單', gvc.event(() => {
@@ -1040,7 +1074,7 @@ export class BgLine {
                                             return {
                                                 key: item.userID,
                                                 value: item.userData.name,
-                                                note: item.account,
+                                                note: item.userData.email,
                                             };
                                         });
                                         if (postData.userList.length > userVM.dataList.length) {
@@ -1066,8 +1100,7 @@ export class BgLine {
                         readonly: true,
                     });
                 }), { textStyle: 'font-weight: 400;' })}
-          </div>
-        `,
+          </div> `,
                 html `
           <div class="tx_normal fw-normal">篩選條件</div>
           <div class="c_filter_container">
@@ -1084,7 +1117,7 @@ export class BgLine {
         }
         return BgWidget.container(html `
       <div class="title-container">
-        ${BgWidget.title('LINE手動發送')}
+        ${BgWidget.title('手動寄件')}
         <div class="flex-fill"></div>
       </div>
       ${BgWidget.mbContainer(18)}
@@ -1094,9 +1127,9 @@ export class BgLine {
                 view: () => {
                     return [
                         BgWidget.mainCard([
-                            html ` <div class="tx_700">選擇收訊對象</div>`,
+                            html ` <div class="tx_700">選擇收件對象</div>`,
                             html ` <div class="tx_normal fw-normal mt-3">根據</div>`,
-                            html ` <div
+                            html `<div
                       style="display: flex; ${document.body.clientWidth > 768
                                 ? 'gap: 18px;'
                                 : 'flex-direction: column;'}"
@@ -1136,10 +1169,7 @@ export class BgLine {
                                     };
                                     switch (postData.tag) {
                                         case 'all':
-                                            dialog.dataLoading({
-                                                visible: true,
-                                                text: '取得所有會員資料中...',
-                                            });
+                                            dialog.dataLoading({ visible: true, text: '取得所有會員資料中...' });
                                             new Promise(resolve => {
                                                 ApiUser.getUserList({
                                                     page: 0,
@@ -1195,19 +1225,20 @@ export class BgLine {
                                                             ApiUser.getUserList({
                                                                 page: 0,
                                                                 limit: 99999,
-                                                                search: data.query, only_id: true,
+                                                                only_id: true,
+                                                                search: data.query
                                                             }).then(dd => {
                                                                 if (dd.response.data) {
                                                                     vm.dataList = dd.response.data
                                                                         .filter((item) => {
-                                                                        return item.account && item.account.length > 0;
+                                                                        return item.userData.email && item.userData.email.length > 0;
                                                                     })
                                                                         .map((item) => {
                                                                         var _a;
                                                                         return {
                                                                             key: item.userID,
                                                                             value: (_a = item.userData.name) !== null && _a !== void 0 ? _a : '（尚無姓名）',
-                                                                            note: item.account,
+                                                                            note: item.userData.email,
                                                                         };
                                                                     });
                                                                     resolve(vm.dataList);
@@ -1270,8 +1301,8 @@ export class BgLine {
                             }),
                         ].join('')),
                         BgWidget.mainCard([
-                            html ` <div class="tx_700">訊息內容</div>`,
-                            html ` <div class="tx_normal fw-normal mt-3">定型文樣式</div>`,
+                            html ` <div class="tx_700">信件內容</div>`,
+                            html ` <div class="tx_normal fw-normal mt-3">信件樣式</div>`,
                             (() => {
                                 const selectVM = {
                                     id: glitter.getUUID(),
@@ -1301,7 +1332,7 @@ export class BgLine {
                                             ApiPost.getManagerPost({
                                                 page: 0,
                                                 limit: 9999,
-                                                type: 'notify-line-config',
+                                                type: 'notify-email-config',
                                             }).then(res => {
                                                 if (res.result) {
                                                     selectVM.dataList = res.response.data.map((data) => {
@@ -1331,9 +1362,26 @@ export class BgLine {
                                 bind: vm.emailId,
                                 view: () => {
                                     return [
-                                        html `
-                            <div class="d-flex w-100 align-items-center justify-content-between p-0 my-2">
-                              <div class="tx_normal fw-normal">訊息內容</div>
+                                        BgWidget.editeInput({
+                                            gvc: gvc,
+                                            title: '寄件者名稱',
+                                            default: postData.name,
+                                            placeHolder: '請輸入寄件者名稱',
+                                            callback: text => {
+                                                postData.name = text;
+                                            },
+                                        }),
+                                        BgWidget.editeInput({
+                                            gvc: gvc,
+                                            title: '信件主旨',
+                                            default: postData.title,
+                                            placeHolder: '請輸入信件主旨',
+                                            callback: text => {
+                                                postData.title = text;
+                                            },
+                                        }),
+                                        html `<div class="d-flex w-100 align-items-center justify-content-between p-0 my-2">
+                              <div class="tx_normal fw-normal me-2">信件內文</div>
                               <div class="d-flex align-items-center gap-2">
                                 ${BgWidget.customButton({
                                             button: {
@@ -1364,21 +1412,19 @@ export class BgLine {
                                 ${BgWidget.aiChatButton({ gvc, select: 'writer' })}
                               </div>
                             </div>
-                            ${EditorElem.editeText({
+                            ${EditorElem.richText({
                                             gvc: gvc,
-                                            title: '',
-                                            default: postData.content || '',
-                                            placeHolder: '',
+                                            def: postData.content,
                                             callback: text => {
                                                 postData.content = text;
                                             },
-                                        })}
-                          `,
+                                            style: `overflow-y: auto;`,
+                                        })}`,
                                     ].join('');
                                 },
                             }),
                         ].join('')),
-                        BgWidget.mainCard(html ` <div class="tx_700 mb-3">發送時間</div>
+                        BgWidget.mainCard(html `<div class="tx_700 mb-3">發送時間</div>
                     ${EditorElem.radio({
                             gvc: gvc,
                             title: '',
@@ -1391,7 +1437,7 @@ export class BgLine {
                                 {
                                     title: '排定發送時間',
                                     value: 'set',
-                                    innerHtml: html ` <div
+                                    innerHtml: html `<div
                             class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
                             style="gap: 12px"
                           >
@@ -1461,10 +1507,10 @@ export class BgLine {
                 return;
             }
             dialog.dataLoading({
-                text: postData.sendTime ? '訊息排定中...' : '訊息發送中...',
+                text: postData.sendTime ? '信件排定中...' : '信件發送中...',
                 visible: true,
             });
-            ApiLineMessage.send(Object.assign({}, postData)).then(data => {
+            ApiSmtp.send(Object.assign(Object.assign({}, postData), { email: postData.userList.map(user => user.email) })).then(data => {
                 dialog.dataLoading({ visible: false });
                 if (data.result) {
                     dialog.successMessage({
@@ -1499,7 +1545,7 @@ export class BgLine {
         ${BgWidget.title(`編輯推播通知`)}
         <div class="flex-fill"></div>
       </div>
-      ${BgWidget.container(html ` <div class="d-flex px-0" style="gap: 10px;">
+      ${BgWidget.container(html `<div class="d-flex px-0" style="gap: 10px;">
             <div style="width: 100%">
               ${BgWidget.mainCard(obj.gvc.bindView(() => {
             const bi = obj.gvc.glitter.getUUID();
@@ -1640,6 +1686,7 @@ export class BgLine {
                 view: () => {
                     let vmi = undefined;
                     function getDatalist() {
+                        let interval = 0;
                         return vm.dataList.map((dd) => {
                             var _a;
                             return [
@@ -1664,7 +1711,7 @@ export class BgLine {
               <div class="flex-fill"></div>
             </div>
             ${BgWidget.container(BgWidget.mainCard([
-                        BgWidget.searchPlace(gvc.event((e, event) => {
+                        BgWidget.searchPlace(gvc.event(e => {
                             vm.query = e.value;
                             gvc.notifyDataChange(id);
                         }), vm.query || '', '搜尋信箱或者標籤'),
@@ -1708,7 +1755,6 @@ export class BgLine {
                                             text: '是否確認刪除所選項目？',
                                             callback: response => {
                                                 if (response) {
-                                                    const dialog = new ShareDialog(gvc.glitter);
                                                     dialog.dataLoading({ visible: true });
                                                     ApiUser.deleteSubscribe({
                                                         email: checkedData.map((dd) => dd.email).join(`,`),
@@ -1764,7 +1810,7 @@ export class BgLine {
                         }))}
               </div>
               ${BgWidget.container(BgWidget.mainCard([
-                            BgWidget.searchPlace(gvc.event((e, event) => {
+                            BgWidget.searchPlace(gvc.event(e => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有信件內容'),
@@ -1791,7 +1837,7 @@ export class BgLine {
                                                     },
                                                     {
                                                         key: '發送推播',
-                                                        value: html ` <button
+                                                        value: html `<button
                                     class="btn btn-primary-c px-4"
                                     style="width:20px !important;height: 30px;"
                                     onclick="${gvc.event((e, event) => {
@@ -1800,7 +1846,7 @@ export class BgLine {
                                                                 let dataList = [];
                                                                 return html `
                                           <div style="max-height: calc(100vh - 100px);overflow-y: auto;">
-                                            ${BgWidget.container(BgWidget.mainCard([
+                                            ${BgWidget.container(BgWidget.card([
                                                                     html `
                                                     <div class="title-container">
                                                       ${BgWidget.goBack(gvc.event(() => {
@@ -1861,7 +1907,7 @@ export class BgLine {
                                                       </button>
                                                     </div>
                                                   ` +
-                                                                        BgLine.fcmDevice(gvc, 'select', data => {
+                                                                        BgNotify.fcmDevice(gvc, 'select', data => {
                                                                             dataList = data;
                                                                         }),
                                                                 ].join('')))}
@@ -1893,7 +1939,7 @@ export class BgLine {
                                     {
                                         name: '批量移除',
                                         event: checkedData => {
-                                            const dialog = new ShareDialog(gvc.glitter);
+                                            const dialog = new ShareDialog(glitter);
                                             dialog.checkYesOrNot({
                                                 text: '是否確認刪除所選項目？',
                                                 callback: response => {
@@ -1997,7 +2043,7 @@ export class BgLine {
                 ${BgWidget.title(`用戶回饋內容`)}
                 <div class="flex-fill"></div>
               </div>
-              ${BgWidget.mainCard(` ${FormWidget.editorView({
+              ${BgWidget.card(` ${FormWidget.editorView({
                             gvc: gvc,
                             array: [
                                 {
@@ -2143,7 +2189,7 @@ export class BgLine {
                             },
                             filter: [
                                 {
-                                    name: '批量移除',
+                                    name: '批量刪除',
                                     event: () => {
                                         const dialog = new ShareDialog(gvc.glitter);
                                         dialog.checkYesOrNot({
@@ -2216,6 +2262,55 @@ export class BgLine {
                         return vm.dataList.map((dd) => {
                             return [
                                 {
+                                    key: (() => {
+                                        clearInterval(interval);
+                                        if (!vm.dataList.find((dd) => {
+                                            return !dd.checked;
+                                        })) {
+                                            interval = setTimeout(() => {
+                                                ApiUser.getFCM({
+                                                    page: vmi.page - 1,
+                                                    limit: 100000,
+                                                    search: vm.query || undefined,
+                                                }).then(data => {
+                                                    callback(data.response.data);
+                                                });
+                                            }, 10);
+                                        }
+                                        return EditorElem.checkBoxOnly({
+                                            gvc: gvc,
+                                            def: !vm.dataList.find((dd) => {
+                                                return !dd.checked;
+                                            }),
+                                            callback: result => {
+                                                vm.dataList.map((dd) => {
+                                                    dd.checked = result;
+                                                });
+                                                vmi.data = getDatalist();
+                                                vmi.callback();
+                                                gvc.notifyDataChange(filterID);
+                                                callback(vm.dataList.filter((dd) => {
+                                                    return dd.checked;
+                                                }));
+                                            },
+                                        });
+                                    })(),
+                                    value: EditorElem.checkBoxOnly({
+                                        gvc: gvc,
+                                        def: dd.checked,
+                                        callback: result => {
+                                            dd.checked = result;
+                                            vmi.data = getDatalist();
+                                            vmi.callback();
+                                            gvc.notifyDataChange(filterID);
+                                            callback(vm.dataList.filter((dd) => {
+                                                return dd.checked;
+                                            }));
+                                        },
+                                        style: 'height:25px;',
+                                    }),
+                                },
+                                {
                                     key: '名稱',
                                     value: `<span class="fs-7">${dd.user_data ? dd.user_data.userData.name : `訪客`}</span>`,
                                 },
@@ -2240,7 +2335,7 @@ export class BgLine {
                 ${BgWidget.title(`客服訊息`)}
                 <div class="flex-fill"></div>
               </div>
-              ${BgWidget.mainCard(` ${FormWidget.editorView({
+              ${BgWidget.card(` ${FormWidget.editorView({
                             gvc: gvc,
                             array: [
                                 {
@@ -2384,10 +2479,7 @@ export class BgLine {
                                                                     class: 'form-label fs-base ',
                                                                     style: '',
                                                                 },
-                                                                input: {
-                                                                    class: '',
-                                                                    style: '',
-                                                                },
+                                                                input: { class: '', style: '' },
                                                                 container: {
                                                                     class: '',
                                                                     style: '',
@@ -2453,7 +2545,7 @@ export class BgLine {
                                         },
                                     };
                                 }),
-                                html ` <div class="d-flex">
+                                html `<div class="d-flex">
                           <div class="flex-fill"></div>
                           <div
                             class=" btn-primary-c btn my-2 me-2"
@@ -2608,10 +2700,33 @@ export class BgLine {
         });
     }
 }
-BgLine.maxSize = 160;
-BgLine.longSMS = 153;
-BgLine.ticket = 1.5;
 function defaultEmailText() {
-    return `【商店名稱】親愛的顧客，限時優惠！全館商品即日起至9月30日享85折優惠，結帳時輸入優惠代碼：SALE2024，立即享受折扣！詳情請見：https://shopnex.tw/index。`;
+    return `親愛的 [使用者名稱],
+
+    歡迎來到 [你的公司或社群名稱]！我們很高興你選擇了我們，並成為我們社群的一員。
+    
+    在這裡，我們致力於提供 [描述你的服務或社群的價值]。我們的團隊一直在努力讓你有一個令人愉快和有價值的體驗。
+    
+    以下是一些建議的下一步：
+    
+    1. **完善個人資料：** 請登入您的帳戶，完善您的個人資料，這有助於我們更好地瞭解您的需求。
+    
+    2. **參與社群：** 加入我們的社交媒體，訂閱我們的通訊，參與我們的討論，您將有機會與其他社群成員建立聯繫。
+    
+    3. **探索我們的服務：** 探索我們的網站/應用程式，瞭解我們提供的所有功能和服務。
+    
+    如果您在使用過程中遇到任何問題，或者有任何反饋，請隨時與我們聯繫。我們的支援團隊隨時準備協助您。
+    
+    再次感謝您加入 [你的公司或社群名稱]，我們期待與您建立長期的合作關係！
+    
+    祝您有美好的一天！
+    
+    最誠摯的問候，
+    
+    [你的名稱]
+    [你的職務]
+    [你的公司或社群名稱]
+    [聯絡電子郵件]
+    [聯絡電話]`.replace(/\n/g, `<br>`);
 }
-window.glitter.setModule(import.meta.url, BgLine);
+window.glitter.setModule(import.meta.url, BgNotify);

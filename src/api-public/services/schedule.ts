@@ -13,6 +13,7 @@ import { LineMessage } from './line-message';
 import { ApiPublic } from './public-table-check.js';
 import { App } from '../../services/app.js';
 import { UserUpdate } from './user-update.js';
+import { Firebase } from '../../modules/firebase.js';
 
 type ScheduleItem = {
   second: number;
@@ -293,6 +294,34 @@ export class Schedule {
     console.log(`resetVoucherHistory-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
   }
 
+  async autoSendFCM(sec: number) {
+    let clock = new Date();
+    console.log(`autoSendLine`);
+    for (const app of Schedule.app) {
+      try {
+        if (await this.perload(app)) {
+          const emails = await db.query(
+            `SELECT * FROM \`${app}\`.t_triggers
+                     WHERE 
+                        tag = 'sendFCM' AND 
+                        status = 0 AND
+                        DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`,
+            []
+          );
+          for (const email of emails) {
+            if (email.status === 0) {
+              new Firebase(app).chunkSendFcm(email.content, email.id);
+              // new Mail(app).chunkSendMail(email.content, email.id);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
+      }
+    }
+    setTimeout(() => this.autoSendMail(sec), sec * 1000);
+    console.log(`autoSendMail-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
+  }
   async autoSendMail(sec: number) {
     let clock = new Date();
     console.log(`autoSendLine`);
@@ -410,6 +439,7 @@ export class Schedule {
       { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },
       { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
       { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
+      { second: 30, status: true, func: 'autoSendFCM', desc: '自動排程寄送FCM' },
       { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
       { second: 3600 * 24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
       // { second: 3600 * 24, status: false, func: 'initialSampleApp', desc: '重新刷新示範商店' },

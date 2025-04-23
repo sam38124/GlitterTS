@@ -336,7 +336,7 @@ export class ApiUser {
     search?: string;
     id?: string;
     search_type?: string;
-    only_id?: string;
+    only_id?: boolean;
   }) {
     return BaseApi.create({
       url:
@@ -345,7 +345,9 @@ export class ApiUser {
           let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
           json.search && par.push(`search=${json.search}`);
           json.search_type && par.push(`searchType=${json.search_type}`);
+          json.only_id && par.push(`only_id=${json.only_id}`);
           json.id && par.push(`id=${json.id}`);
+          
           return par.join('&');
         })()}`,
       type: 'GET',

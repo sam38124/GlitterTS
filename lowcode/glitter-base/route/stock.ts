@@ -3,6 +3,7 @@ import { BaseApi } from '../../glitterBundle/api/base.js';
 export type StockHistoryType = 'restocking' | 'transfer' | 'checking';
 
 export type ContentProduct = {
+<<<<<<< HEAD
   variant_id: number;
   cost: number;
   note: string;
@@ -15,6 +16,21 @@ export type ContentProduct = {
   sku?: '';
   stock?: number;
   barcode?: string;
+=======
+    variant_id: number;
+    product_id:number;
+    cost: number;
+    note: string;
+    transfer_count: number; // 預計進貨數, 預計調入數
+    recent_count?: number; // 實際進貨數, 實際調入數
+    check_count: number; // 盤點數
+    replenishment_count?: number; // 此次補貨數
+    title?: string;
+    spec?: string;
+    sku?: '';
+    stock?: number;
+    barcode?: string;
+>>>>>>> fc8c15cb ([update] : glitter version.)
 };
 
 export type StockHistoryData = {

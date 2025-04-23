@@ -25,6 +25,7 @@ router.get('/', async (req, resp) => {
             list: async () => {
                 if (!isManager)
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+                console.log(`query===>`, query);
                 return await user.getUserList(query);
             },
             account: async () => {

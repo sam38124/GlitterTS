@@ -1097,6 +1097,7 @@ ${obj.default ?? ''}</textarea
             : html` <i class="fa-solid fa-chevron-right"></i>`}`;
       });
       return html` <div
+        class="h-100"
         style="display: flex; flex-wrap: wrap; align-items: center; font-size: 14px; font-weight: 500; gap: 6px; line-height: 140%;cursor: default;"
       >
         <div style="width: 28px;height: 28px;display: flex; align-items: center; justify-content:center;">

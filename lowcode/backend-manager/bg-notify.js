@@ -855,6 +855,7 @@ export class BgNotify {
                         ApiUser.getUserList({
                             page: 0,
                             limit: 99999,
+                            only_id: true
                         }).then(dd => {
                             dd.response.data.map((user) => {
                                 if (user.userData.email && user.userData.email.length > 0) {
@@ -1185,9 +1186,10 @@ export class BgNotify {
                                         case 'all':
                                             dialog.dataLoading({ visible: true, text: '取得所有會員資料中...' });
                                             new Promise(resolve => {
-                                                ApiUser.getUserListOrders({
+                                                ApiUser.getUserList({
                                                     page: 0,
                                                     limit: 99999,
+                                                    only_id: true
                                                 }).then(dd => {
                                                     if (dd.response.data) {
                                                         const ids = [];
@@ -1235,11 +1237,11 @@ export class BgNotify {
                                                     default: getDefault([]),
                                                     api: (data) => {
                                                         return new Promise(resolve => {
-                                                            ApiUser.getUserListOrders({
+                                                            ApiUser.getUserList({
                                                                 page: 0,
                                                                 limit: 99999,
-                                                                search: data.query,
-                                                                orderString: data.orderString,
+                                                                only_id: true,
+                                                                search: data.query
                                                             }).then(dd => {
                                                                 if (dd.response.data) {
                                                                     vm.dataList = dd.response.data

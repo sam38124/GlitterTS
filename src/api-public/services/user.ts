@@ -57,6 +57,7 @@ interface UserQuery {
   filter_type?: 'block' | 'normal' | 'watch' | 'excel';
   tags?: string;
   all_result?: boolean;
+  only_id:string;
 }
 
 interface GroupUserItem {
@@ -623,7 +624,15 @@ export class User {
                 audience: config.app_id, // 這裡是你的應用的 client_id
               })
             );
-          } else {
+          }else  if (redirect === 'android') {
+            const client = new OAuth2Client(config.android_app_id);
+            resolve(
+              await client.verifyIdToken({
+                idToken: code,
+                audience: config.android_app_id, // 這裡是你的應用的 client_id
+              })
+            );
+          }else {
             const oauth2Client = new OAuth2Client(config.id, config.secret, redirect);
             // 使用授权码交换令牌
             const { tokens } = await oauth2Client.getToken(code);
@@ -1262,15 +1271,11 @@ export class User {
     try {
       const checkPoint = new UtTimer('GET-USER-LIST').checkPoint;
 
-      // if (this.app === 't_1725992531001') {
-      //   await new InitialFakeData('t_1725992531001').run();
-      //   checkPoint('Run InitialFakeData');
-      // }
 
+      // return
       const orderCountingSQL = await this.getCheckoutCountingModeSQL();
       const querySql: string[] = ['1=1'];
       const noRegisterUsers: any[] = [];
-
       query.page = query.page ?? 0;
       query.limit = query.limit ?? 50;
 
@@ -1299,7 +1304,7 @@ export class User {
               })
             : users.map((item: { userID: number }) => item.userID).filter(item => item);
 
-          query.id = ids.length > 0 ? ids.filter(id => id).join(',') : '0,0';
+          query.id = ids.length > 0 ? ids.filter((id) => id).join(',') : '0,0';
         } else {
           query.id = '0,0';
         }
@@ -1568,11 +1573,16 @@ export class User {
         if (param) {
           const dataArray = [];
 
-          for (let i = 0; i < getUsers.length; i += processChunk) {
-            const data = await processUserData(getUsers.slice(i, i + processChunk));
-            dataArray.push(data);
-            checkPoint(`processUserData ${i}`);
+          if(query.only_id!=='true'){
+            for (let i = 0; i < getUsers.length; i += processChunk) {
+              const data = await processUserData(getUsers.slice(i, i + processChunk));
+              dataArray.push(data);
+              checkPoint(`processUserData ${i}`);
+            }
+          }else{
+            return  getUsers
           }
+
 
           return dataArray.flat();
         }

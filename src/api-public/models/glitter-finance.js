@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onlinePayArray = void 0;
+exports.onlinePayArray = onlinePayArray;
 function onlinePayArray() {
     return [
         { key: 'newWebPay', name: '藍新金流' },
@@ -13,6 +13,5 @@ function onlinePayArray() {
         { key: 'ut_credit_card', name: '聯合信用卡', type: 'pos' },
     ];
 }
-exports.onlinePayArray = onlinePayArray;
 ;
 //# sourceMappingURL=glitter-finance.js.map

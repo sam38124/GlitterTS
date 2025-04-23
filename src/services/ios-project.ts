@@ -11,26 +11,30 @@ import SnapKit
 import UIKit
 import Glitter_IOS
 import FirebaseMessaging
+import WebKit
+
+
 class ViewController: UIViewController {
     
     public static var vc:ViewController? = nil
     public static var redirect:String = ""
+    public static var agent="iosGlitter Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1"
     public let webView = GlitterActivity.create(glitterConfig: GlitterActivity.GlitterConfig(parameters:"?a=1",projectRout: URL(string: "${domain}/index-app")! )).initWkWebView()
-    
     override func viewDidLoad() {
         webView.webView!.allowsBackForwardNavigationGestures = true;
         NotificationCenter.default.addObserver(self, selector: #selector(keyBoardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyBoardWillHide(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
         ViewController.vc=self
-        if(ViewController.redirect != ""){
-            webView.webView!.evaluateJavaScript("""
-location.href=new URL("\(ViewController.redirect)",location.href)
-""")
-        }
+      
         self.view.backgroundColor = .white
+        
+        webView.webView!.customUserAgent=ViewController.agent
         super.viewDidLoad()
+        
     }
  
+   
+    
     override func viewWillAppear(_ animated: Bool) {
         self.view.addSubview(self.webView.view)
     }
@@ -68,6 +72,8 @@ extension UIViewController {
         child.removeFromParent()
     }
 }
+
+
 
 `
     }

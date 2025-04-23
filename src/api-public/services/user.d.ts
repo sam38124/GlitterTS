@@ -21,6 +21,7 @@ interface UserQuery {
     filter_type?: 'block' | 'normal' | 'watch' | 'excel';
     tags?: string;
     all_result?: boolean;
+    only_id: string;
 }
 interface GroupUserItem {
     userID: number;

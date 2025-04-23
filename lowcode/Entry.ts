@@ -146,7 +146,7 @@ export class Entry {
       }
       (window as any).renderClock = (window as any).renderClock ?? createClock();
       console.log(`Entry-time:`, (window as any).renderClock.stop());
-      glitter.share.editerVersion = 'V_20.6.8';
+      glitter.share.editerVersion = 'V_20.7.4';
       glitter.share.start = new Date();
       const vm = { appConfig: [] };
       (window as any).saasConfig = {
@@ -327,7 +327,7 @@ export class Entry {
             ApplicationConfig.device_type = res.device_type;
             ApplicationConfig.initial(glitter)
             if(res.redirect){
-              location.href = res.redirect;
+              glitter.href = res.redirect;
             }
             (window as any).is_application=true;
           }

@@ -109,8 +109,6 @@ return {
                     customer_email: orderData.customer_info.email,
                     note: orderData.user_info.note ?? '',
                 });
-
-
             });
             const json2csvParser = new Parser();
             const csv = json2csvParser.parse(exportData);
@@ -138,6 +136,7 @@ return {
                 await openai.beta.threads.messages.create(cf[type], { role: (b.user_id==='robot') ? 'assistant':'user', content: b.message.text })
             }
         }
+
         await new Private_config(req.body.token).setConfig({
             appName: req.get('g-app') as string,
             key: 'ai_config',

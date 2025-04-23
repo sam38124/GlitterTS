@@ -10,6 +10,7 @@ const config_1 = require("../config");
 const database_1 = __importDefault(require("../modules/database"));
 const web_socket_js_1 = require("../services/web-socket.js");
 const caught_error_js_1 = require("./caught-error.js");
+const exception_js_1 = __importDefault(require("./exception.js"));
 class Firebase {
     constructor(app) {
         this.app = '';
@@ -144,6 +145,131 @@ class Firebase {
             resolve(true);
         });
     }
+    async postFCM(data) {
+        data.msgid = '';
+        try {
+            if (Boolean(data.sendTime)) {
+                if (isLater(data.sendTime)) {
+                    return { result: false, message: '排定發送的時間需大於現在時間' };
+                }
+                const insertData = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                           SET ?;`, [
+                    {
+                        tag: 'sendFCM',
+                        content: JSON.stringify(data),
+                        trigger_time: formatDateTime(data.sendTime),
+                        status: 0,
+                    },
+                ]);
+                this.chunkSendFcm(data, insertData.insertId, formatDateTime(data.sendTime));
+            }
+            else {
+                const insertData = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                           SET ?;`, [
+                    {
+                        tag: 'sendFCM',
+                        content: JSON.stringify(data),
+                        trigger_time: formatDateTime(),
+                        status: 1,
+                    },
+                ]);
+                this.chunkSendFcm(data, insertData.insertId);
+            }
+            return { result: true, message: '寄送成功' };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
+        }
+    }
+    async chunkSendFcm(data, id, date) {
+        try {
+            let msgid = '';
+            for (const b of chunkArray(Array.from(new Set(data.userList.map((dd) => {
+                return dd.id;
+            }))), 10)) {
+                let check = b.length;
+                await new Promise(resolve => {
+                    for (const d of b) {
+                        this.sendMessage({
+                            userID: d,
+                            title: data.title,
+                            body: data.content,
+                            tag: 'promote',
+                            link: data.link,
+                        });
+                    }
+                });
+            }
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'chunkSendSns Error:' + e, null);
+        }
+    }
+    async getFCM(query) {
+        var _a, _b;
+        try {
+            const whereList = ['1 = 1'];
+            switch (query.searchType) {
+                case 'email':
+                    break;
+                case 'name':
+                    whereList.push(`(UPPER(JSON_EXTRACT(content, '$.name')) LIKE UPPER('%${(_a = query.search) !== null && _a !== void 0 ? _a : ''}%'))`);
+                    break;
+                case 'title':
+                    whereList.push(`(UPPER(JSON_EXTRACT(content, '$.title')) LIKE UPPER('%${(_b = query.search) !== null && _b !== void 0 ? _b : ''}%'))`);
+                    break;
+            }
+            if (query.status) {
+                whereList.push(`(status in (${query.status}))`);
+            }
+            if (query.mailType) {
+                const maiTypeString = query.mailType.replace(/[^,]+/g, "'$&'");
+                whereList.push(`(JSON_EXTRACT(content, '$.type') in (${maiTypeString}))`);
+            }
+            const whereSQL = `(tag = 'sendFCM') AND ${whereList.join(' AND ')}`;
+            const emails = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
+                 WHERE ${whereSQL}
+                 ORDER BY id DESC
+                 ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`, []);
+            const total = await database_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_triggers
+                 WHERE ${whereSQL};`, []);
+            for (const email of emails) {
+                email.content.typeName = "手動發送";
+            }
+            return { data: emails, total: total[0].c };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getMail Error:' + e, null);
+        }
+    }
 }
 exports.Firebase = Firebase;
+function isLater(dateTimeObj) {
+    const currentDateTime = new Date();
+    const { date, time } = dateTimeObj;
+    const dateTimeString = `${date}T${time}:00`;
+    const providedDateTime = new Date(dateTimeString);
+    return currentDateTime > providedDateTime;
+}
+function chunkArray(array, groupSize) {
+    const result = [];
+    for (let i = 0; i < array.length; i += groupSize) {
+        result.push(array.slice(i, i + groupSize));
+    }
+    return result;
+}
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+}
+function formatDateTime(sendTime) {
+    const dateTimeString = sendTime ? sendTime.date + ' ' + sendTime.time : undefined;
+    const dateObject = dateTimeString ? new Date(dateTimeString) : new Date();
+    return formatDate(dateObject);
+}
 //# sourceMappingURL=firebase.js.map

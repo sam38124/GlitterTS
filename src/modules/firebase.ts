@@ -4,6 +4,8 @@ import {ConfigSetting} from "../config";
 import db from "../modules/database";
 import {WebSocket} from "../services/web-socket.js";
 import { CaughtError } from './caught-error.js';
+import exception from './exception.js';
+import { AutoSendEmail } from '../api-public/services/auto-send-email.js';
 
 export class Firebase {
     public app: string = ''
@@ -160,4 +162,171 @@ export class Firebase {
         })
 
     }
+
+
+    async postFCM(data: any): Promise<{ result: boolean; message: string }> {
+        data.msgid = '';
+        try {
+            if (Boolean(data.sendTime)) {
+                if (isLater(data.sendTime)) {
+                    return { result: false, message: '排定發送的時間需大於現在時間' };
+                }
+                const insertData = await db.query(
+                  `INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                           SET ?;`,
+                  [
+                      {
+                          tag: 'sendFCM',
+                          content: JSON.stringify(data),
+                          trigger_time: formatDateTime(data.sendTime),
+                          status: 0,
+                      },
+                  ]
+                );
+
+                this.chunkSendFcm(data, insertData.insertId, formatDateTime(data.sendTime));
+            } else {
+                const insertData = await db.query(
+                  `INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                           SET ?;`,
+                  [
+                      {
+                          tag: 'sendFCM',
+                          content: JSON.stringify(data),
+                          trigger_time: formatDateTime(),
+                          status: 1,
+                      },
+                  ]
+                );
+                this.chunkSendFcm(data, insertData.insertId);
+            }
+            return { result: true, message: '寄送成功' };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
+        }
+    }
+
+    async chunkSendFcm(data: any, id: number, date?: string) {
+        try {
+            let msgid = '';
+            for (const b of chunkArray(Array.from(new Set(data.userList.map((dd:any)=>{
+                return dd.id
+            }))), 10)) {
+                let check = b.length;
+
+                await new Promise(resolve => {
+                    for (const d of b) {
+                        this.sendMessage({
+                            userID: d as string,
+                            title: data.title,
+                            body: data.content,
+                            tag:'promote',
+                            link:data.link,
+                        })
+                        // this.sendMessage({ data: data.content, phone: d, date: date }, res => {
+                        //     check--;
+                        //     console.log(' res -- ', res);
+                        //     if (check === 0) {
+                        //         db.query(
+                        //           `UPDATE \`${this.app}\`.t_triggers
+                        //   SET status = ${date ? 0 : 1},
+                        //       content = JSON_SET(content, '$.name', '${res.msgid}')
+                        //   WHERE id = ?;`,
+                        //           [id]
+                        //         );
+                        //         resolve(true);
+                        //     }
+                        // });
+                    }
+                });
+            }
+            // await db.query(`UPDATE \`${this.app}\`.t_triggers SET status = ${date?0:1} , content = JSON_SET(content, '$.name', '變數A') WHERE id = ?;`, [ id]);
+            // await db.query(`-- UPDATE \`${this.app}\`.t_triggers SET ? WHERE id = ?;`, [{ status: 1 , content : `JSON_SET(content, '$.name', '變數A')`}, id]);
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'chunkSendSns Error:' + e, null);
+        }
+    }
+
+
+    async getFCM(query: { type: string; page: number; limit: number; search?: string; searchType?: string; mailType?: string; status?: string }) {
+        try {
+            const whereList: string[] = ['1 = 1'];
+            switch (query.searchType) {
+                case 'email':
+                    // whereList.push(`(JSON_SEARCH(content->'$.email', 'one', '%${query.search ?? ''}%', NULL, '$[*]') IS NOT NULL)`);
+                    break;
+                case 'name':
+                    whereList.push(`(UPPER(JSON_EXTRACT(content, '$.name')) LIKE UPPER('%${query.search ?? ''}%'))`);
+                    break;
+                case 'title':
+                    whereList.push(`(UPPER(JSON_EXTRACT(content, '$.title')) LIKE UPPER('%${query.search ?? ''}%'))`);
+                    break;
+            }
+
+            if (query.status) {
+                whereList.push(`(status in (${query.status}))`);
+            }
+
+            if (query.mailType) {
+                const maiTypeString = query.mailType.replace(/[^,]+/g, "'$&'");
+                whereList.push(`(JSON_EXTRACT(content, '$.type') in (${maiTypeString}))`);
+            }
+
+            const whereSQL = `(tag = 'sendFCM') AND ${whereList.join(' AND ')}`;
+
+
+            const emails = await db.query(
+              `SELECT * FROM \`${this.app}\`.t_triggers
+                 WHERE ${whereSQL}
+                 ORDER BY id DESC
+                 ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`,
+              []
+            );
+
+            const total = await db.query(
+              `SELECT count(id) as c FROM \`${this.app}\`.t_triggers
+                 WHERE ${whereSQL};`,
+              []
+            );
+
+            for (const email of emails) {
+                email.content.typeName="手動發送"
+            }
+            return { data: emails, total: total[0].c };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getMail Error:' + e, null);
+        }
+    }
+}
+
+function isLater(dateTimeObj: { date: string; time: string }) {
+    const currentDateTime = new Date();
+    const { date, time } = dateTimeObj;
+    const dateTimeString = `${date}T${time}:00`;
+    const providedDateTime = new Date(dateTimeString);
+    return currentDateTime > providedDateTime;
+}
+
+function chunkArray(array: any, groupSize: number) {
+    const result = [];
+    for (let i = 0; i < array.length; i += groupSize) {
+        result.push(array.slice(i, i + groupSize));
+    }
+    return result;
+}
+function formatDate(date: any) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+}
+
+function formatDateTime(sendTime?: { date: string; time: string }) {
+    const dateTimeString = sendTime ? sendTime.date + ' ' + sendTime.time : undefined;
+    const dateObject = dateTimeString ? new Date(dateTimeString) : new Date();
+    return formatDate(dateObject);
 }

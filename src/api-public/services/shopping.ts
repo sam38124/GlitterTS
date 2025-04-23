@@ -36,6 +36,7 @@ import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
 import PaymentTransaction from './model/handlePaymentTransaction.js';
 import { Language, LanguageLocation } from '../../Language.js';
 import { CartItem, CheckoutEvent } from './checkout-event.js';
+
 type BindItem = {
   id: string;
   spec: string[];
@@ -426,7 +427,7 @@ export class Shopping {
       query.show_hidden = query.show_hidden ?? 'true';
 
       // 初始化商品與管理員標籤 Config
-      await Promise.all([this.initProductCustomizeTagConifg(), this.initProductGeneralTagConifg()]);
+      // await Promise.all([this.initProductCustomizeTagConifg(), this.initProductGeneralTagConifg()]);
 
       const orderMapping: Record<string, string> = {
         title: `ORDER BY JSON_EXTRACT(content, '$.title')`,
@@ -1199,25 +1200,31 @@ export class Shopping {
   async initProductCustomizeTagConifg() {
     try {
       const managerTags = await new User(this.app).getConfigV2({ key: 'product_manager_tags', user_id: 'manager' });
-
+      console.log(`initProductCustomizeTagConifg=>getData=>`, managerTags);
       if (managerTags && Array.isArray(managerTags.list)) {
         return managerTags;
       }
-
+      console.log(
+        `query_sql=>`,
+        `SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
+                                  FROM \`${this.app}\`.t_manager_post
+                                  WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'`
+      );
       const getData = await db.query(
         `
-          SELECT 
-            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
-          FROM \`${this.app}\`.t_manager_post
-          WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
+            SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
+            FROM \`${this.app}\`.t_manager_post
+            WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
         `,
         []
       );
+
       const unique_tags_string = getData[0]?.unique_tags ?? '';
+      console.log(`JSON_STRING=>`, `[${unique_tags_string}]`);
       const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
       const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
       const data = { list: [...new Set(unique_tags_flot)] };
-
+      console.log(`product_manager_tags=>setData=>`, managerTags);
       await new User(this.app).setConfig({
         key: 'product_manager_tags',
         user_id: 'manager',
@@ -1226,7 +1233,7 @@ export class Shopping {
 
       return data;
     } catch (error) {
-      throw exception.BadRequestError('BAD_REQUEST', 'Set product customize tag conifg Error:' + e, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'Set product customize tag conifg Error:' + error, null);
     }
   }
 
@@ -1251,18 +1258,19 @@ export class Shopping {
       if (generalTags && Array.isArray(generalTags.list)) {
         return generalTags;
       }
-
+      console.log(`initProductCustomizeTagConifg=>getData=>`, generalTags);
       const getData = await db.query(
         `
-          SELECT 
-            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_tag.language')) SEPARATOR ',') AS unique_tags
-          FROM \`${this.app}\`.t_manager_post
-          WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
+            SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_tag.language')) SEPARATOR ',') AS unique_tags
+            FROM \`${this.app}\`.t_manager_post
+            WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
         `,
         []
       );
       const unique_tags_string = getData[0]?.unique_tags ?? '';
+      console.log(`JSON_STRING=>`, `[${unique_tags_string}]`);
       const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
+      console.log(`JSON_DATA=>`, unique_tags_array);
       const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
       const list: { [k in LanguageLocation]?: string[] } = {};
 
@@ -1285,7 +1293,7 @@ export class Shopping {
 
       return data;
     } catch (error) {
-      throw exception.BadRequestError('BAD_REQUEST', 'Set product general tag conifg Error:' + e, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'Set product general tag conifg Error:' + error, null);
     }
   }
 
@@ -1321,10 +1329,9 @@ export class Shopping {
 
       const getData = await db.query(
         `
-          SELECT 
-            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) SEPARATOR ',') AS unique_tags
-          FROM \`${this.app}\`.t_checkout
-          WHERE JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) IS NOT NULL
+            SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) SEPARATOR ',') AS unique_tags
+            FROM \`${this.app}\`.t_checkout
+            WHERE JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) IS NOT NULL
         `,
         []
       );
@@ -1937,9 +1944,9 @@ export class Shopping {
       try {
         const result = await db.query(
           `
-            SELECT *
-            FROM \`${app}\`.t_checkout
-            WHERE cart_token = ?`,
+              SELECT *
+              FROM \`${app}\`.t_checkout
+              WHERE cart_token = ?`,
           [orderID]
         );
         return result[0];
@@ -2436,6 +2443,7 @@ export class Shopping {
           };
         }
       }
+
       const currentTime = new Date().toISOString();
 
       //給定訂單編號 產生 編號A 編號B... 依此類推
@@ -2451,6 +2459,7 @@ export class Shopping {
 
         return orderIdArray;
       }
+
       //整理原本訂單的總價 優惠卷的資訊 方便原本的訂單更新
       function refreshOrder(orderData: Cart, splitOrderArray: OrderDetail[]) {
         const { newTotal, newDiscount } = splitOrderArray.reduce(
@@ -3035,7 +3044,9 @@ export class Shopping {
         {}
       );
       await db.query(
-        `UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
+        `UPDATE \`${this.app}\`.t_checkout
+         SET ?
+         WHERE id = ?;
         `,
         [updateData, origin.id]
       );
@@ -3801,7 +3812,8 @@ export class Shopping {
         if (query.id) {
           const data = (
             await db.query(
-              `SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+              `SELECT *
+               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
               `,
               []
             )
@@ -3813,14 +3825,21 @@ export class Shopping {
           });
         } else {
           const data = await db.query(
-            `SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+            `SELECT *
+             FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
             `,
             []
           );
           timer.checkPoint('get response_data (not query.id)');
           resolve({
             data: data,
-            total: (await db.query(`SELECT count(1) FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+            total: (
+              await db.query(
+                `SELECT count(1)
+                                    FROM (${sql}) as subqyery`,
+                []
+              )
+            )[0]['count(1)'],
           });
         }
       });
@@ -4269,25 +4288,27 @@ export class Shopping {
         } else if (Object.keys(variant.stockList).length === 0) {
           variant.stockList[storeConfig.list[0].id] = { count: variant.stock };
         }
-
-        const insertData = await db.query(
-          `INSERT INTO \`${this.app}\`.t_variants SET ? 
-          `,
-          [
-            {
-              content: JSON.stringify(variant),
-              product_id: content.id,
-            },
-          ]
-        );
-
+        const insertObj:any = {
+          content: JSON.stringify(variant),
+          product_id: content.id,
+        };
         const originalVariant = originVariants.find(
           (item: any) => JSON.parse(item.spec).join(',') === variant.spec.join(',')
         );
 
+        //如果有找到原先的variant不要替換掉ID
         if (originalVariant) {
-          sourceMap[originalVariant.id] = insertData.insertId;
+          insertObj.id = originalVariant.id;
+          sourceMap[originalVariant.id] = originalVariant.id;
         }
+
+        const insertData = await db.query(
+          `INSERT INTO \`${this.app}\`.t_variants
+           SET ?
+          `,
+          [insertObj]
+        );
+
 
         return insertData;
       });
@@ -5039,7 +5060,8 @@ export class Shopping {
 
       if (productArray.length) {
         const data = await db.query(
-          `REPLACE INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
+          `REPLACE
+          INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
           `,
           [
             productArray.map((product: any) => {
@@ -5091,9 +5113,9 @@ export class Shopping {
         for (const b of language) {
           const find_conflict = await db.query(
             `SELECT count(1)
-           FROM \`${this.app}\`.t_manager_post
-           WHERE content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
-             AND id != ${content.id}`,
+             FROM \`${this.app}\`.t_manager_post
+             WHERE content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
+               AND id != ${content.id}`,
             []
           );
           if (find_conflict[0]['count(1)'] > 0) {
@@ -5116,7 +5138,9 @@ export class Shopping {
 
       // 更新商品
       await db.query(
-        `UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
+        `UPDATE \`${this.app}\`.\`t_manager_post\`
+         SET ?
+         WHERE id = ?
         `,
         [
           {
@@ -5438,7 +5462,7 @@ export class Shopping {
         if (query.id_list?.includes('-')) {
           data.data = data.data.filter((dd: any) => {
             return query.id_list?.split(',').find(d1 => {
-              return d1 === [dd.product_id, ...dd.variant_content.spec].join('-');
+              return d1 === `${dd.product_id}-${dd.variant_content.spec.join('-')}`;
             });
           });
         }
@@ -5542,8 +5566,8 @@ export class Shopping {
         let variants = (
           await db.query(
             `SELECT *
-           FROM \`${this.app}\`.t_variants
-           WHERE product_id = ?`,
+             FROM \`${this.app}\`.t_variants
+             WHERE product_id = ?`,
             [data.product_id]
           )
         ).map((dd: any) => {

@@ -28,6 +28,8 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
     const actionMap: Record<string, () => Promise<any>> = {
       list: async () => {
         if (!isManager) throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        console.log(`query===>`,query)
+
         return await user.getUserList(query);
       },
       account: async () => {

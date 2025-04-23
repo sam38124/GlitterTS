@@ -737,6 +737,15 @@ export class Setting_editor {
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
                 moduleName: '訂閱裝置管理',
             },
+            {
+                icon: '',
+                page: 'auto_fcm_history',
+                group: '品牌APP',
+                title: 'APP推播紀錄',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
+                moduleName: '訂閱裝置管理',
+            },
             // {
             //     icon: '',
             //     page: 'auto_fcm_template',

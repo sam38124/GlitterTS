@@ -594,9 +594,9 @@ export class Stock {
             const typeData = typeConfig[json.type];
 
             json.content.product_list.map((item) => {
-                delete item.title;
-                delete item.spec;
-                delete item.sku;
+                // delete item.title;
+                // delete item.spec;
+                // delete item.sku;
                 return item;
             });
             json.content.changeLogs = [

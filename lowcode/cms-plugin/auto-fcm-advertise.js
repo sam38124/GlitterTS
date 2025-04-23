@@ -31,13 +31,14 @@ export class AutoFcmAdvertise {
             dataList: [],
         };
         const postData = {
-            type: 'notify-sns-config',
+            type: 'notify-fcm-config',
             tag: '',
             tagList: [],
             userList: [],
             boolean: 'or',
             name: '',
             title: '',
+            link: '',
             content: '',
             sendTime: { date: startDate, time: startTime },
             sendGroup: [],
@@ -168,6 +169,7 @@ export class AutoFcmAdvertise {
                         ApiUser.getUserList({
                             page: 0,
                             limit: 99999,
+                            only_id: true
                         }).then(dd => {
                             dd.response.data.map((user) => {
                                 postData.userList.push({
@@ -464,9 +466,10 @@ export class AutoFcmAdvertise {
                                         case 'all':
                                             dialog.dataLoading({ visible: true, text: '取得所有會員資料中...' });
                                             new Promise(resolve => {
-                                                ApiUser.getUserListOrders({
+                                                ApiUser.getUserList({
                                                     page: 0,
                                                     limit: 99999,
+                                                    only_id: true
                                                 }).then(dd => {
                                                     if (dd.response.data) {
                                                         const ids = [];
@@ -514,11 +517,11 @@ export class AutoFcmAdvertise {
                                                     default: getDefault([]),
                                                     api: (data) => {
                                                         return new Promise(resolve => {
-                                                            ApiUser.getUserListOrders({
+                                                            ApiUser.getUserList({
                                                                 page: 0,
                                                                 limit: 99999,
-                                                                search: data.query,
-                                                                orderString: data.orderString,
+                                                                only_id: true,
+                                                                search: data.query
                                                             }).then(dd => {
                                                                 if (dd.response.data) {
                                                                     vm.dataList = dd.response.data
@@ -618,6 +621,15 @@ export class AutoFcmAdvertise {
                                             },
                                             global_language: true,
                                         }),
+                                        BgWidget.linkList({
+                                            gvc: gvc,
+                                            title: '跳轉頁面',
+                                            default: postData.link || '',
+                                            placeHolder: '為空則為首頁',
+                                            callback: text => {
+                                                postData.link = text;
+                                            },
+                                        })
                                     ].join('');
                                 },
                                 divCreate: {

@@ -230,7 +230,7 @@ export class StockHistory {
                             {
                                 key: '庫存點名稱',
                                 value: html `<span class="fs-7"
-                  >${(() => {
+                >${(() => {
                                     const store = vm.storeList.find(s => s.id === dd.content.store_in);
                                     return store ? store.name : '';
                                 })()}</span
@@ -238,9 +238,7 @@ export class StockHistory {
                             },
                             {
                                 key: '總金額',
-                                value: html `<span class="fs-7"
-                  >$
-                  ${dd.content.product_list
+                                value: `<span class="fs-7">$ ${dd.content.product_list
                                     .reduce((sum, item) => {
                                     var _a, _b;
                                     if (dd.type === 'restocking') {
@@ -250,13 +248,12 @@ export class StockHistory {
                                         return sum + item.cost * ((_b = item.recent_count) !== null && _b !== void 0 ? _b : 0);
                                     }
                                 }, 0)
-                                    .toLocaleString()}</span
-                >`,
+                                    .toLocaleString()}</span>`,
                             },
                             {
                                 key: '供應商',
                                 value: html `<span class="fs-7"
-                  >${(() => {
+                >${(() => {
                                     const vendor = vm.vendorList.find(v => v.id === dd.content.vendor);
                                     return vendor ? vendor.name : '';
                                 })()}</span
@@ -280,7 +277,7 @@ export class StockHistory {
                             {
                                 key: '調出庫存點',
                                 value: html `<span class="fs-7"
-                  >${(() => {
+                >${(() => {
                                     const store = vm.storeList.find(s => s.id === dd.content.store_out);
                                     return store ? store.name : '';
                                 })()}</span
@@ -289,7 +286,7 @@ export class StockHistory {
                             {
                                 key: '調入庫存點',
                                 value: html `<span class="fs-7"
-                  >${(() => {
+                >${(() => {
                                     const store = vm.storeList.find(s => s.id === dd.content.store_in);
                                     return store ? store.name : '';
                                 })()}</span
@@ -317,7 +314,7 @@ export class StockHistory {
                             {
                                 key: '盤點範圍',
                                 value: html `<span class="fs-7"
-                  >${(() => {
+                >${(() => {
                                     const range = productSelect.find(ps => ps.value === dd.content.check_according);
                                     return range ? range.title : '';
                                 })()}</span
@@ -326,7 +323,7 @@ export class StockHistory {
                             {
                                 key: '庫存點',
                                 value: html `<span class="fs-7"
-                  >${(() => {
+                >${(() => {
                                     const store = vm.storeList.find(s => s.id === dd.content.store_out);
                                     return store ? store.name : '';
                                 })()}</span
@@ -358,13 +355,13 @@ export class StockHistory {
             });
         }
         return BgWidget.container(html ` <div class="title-container">
-          ${BgWidget.title(`${typeData.name}單列表`)}
-          <div class="flex-fill"></div>
-          ${BgWidget.grayButton(`新增${typeData.name}單`, gvc.event(() => {
+        ${BgWidget.title(`${typeData.name}單列表`)}
+        <div class="flex-fill"></div>
+        ${BgWidget.grayButton(`新增${typeData.name}單`, gvc.event(() => {
             vm.view = 'create';
         }))}
-        </div>
-        ${BgWidget.container(BgWidget.mainCard([
+      </div>
+      ${BgWidget.container(BgWidget.mainCard([
             (() => {
                 const id = gvc.glitter.getUUID();
                 return gvc.bindView({
@@ -950,12 +947,12 @@ export class StockHistory {
         }
         return BgWidget.container([
             html ` <div class="title-container">
-            ${BgWidget.goBack(gvc.event(() => {
+          ${BgWidget.goBack(gvc.event(() => {
                 vm.view = 'mainList';
             }))}
-            <div>${BgWidget.title(`新增${typeData.name}單`)}</div>
-          </div>
-          <div class="flex-fill"></div>`,
+          <div>${BgWidget.title(`新增${typeData.name}單`)}</div>
+        </div>
+        <div class="flex-fill"></div>`,
             html ` <div
           class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
           style="gap: 24px"
@@ -1000,7 +997,7 @@ export class StockHistory {
                         </div>`,
                                 ...this.getFormStructure(gvc, vm, dvm),
                                 html ` <div class="tx_normal">備註</div>
-                          ${EditorElem.editeText({
+                        ${EditorElem.editeText({
                                     gvc: gvc,
                                     title: '',
                                     default: (_b = vm.data.content.note) !== null && _b !== void 0 ? _b : '',
@@ -1044,7 +1041,7 @@ export class StockHistory {
                                                         filter: [],
                                                         hiddenPageSplit: true,
                                                     }),
-                                                    html `<div
+                                                    html ` <div
                                       class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
                                       style="color: #36B; font-size: 16px; font-weight: 400;"
                                       onclick="${gvc.event(() => {
@@ -1075,10 +1072,10 @@ export class StockHistory {
                                                                 return sum + item.cost * item.transfer_count;
                                                             }, 0);
                                                             return html ` <div class="flex-fill"></div>
-                                          <div class="d-flex justify-content-between tx_700" style="width: 200px;">
-                                            <div>進貨總成本</div>
-                                            <div>$ ${total.toLocaleString()}</div>
-                                          </div>`;
+                                        <div class="d-flex justify-content-between tx_700" style="width: 200px;">
+                                          <div>進貨總成本</div>
+                                          <div>$ ${total.toLocaleString()}</div>
+                                        </div>`;
                                                         },
                                                         divCreate: { class: 'd-flex w-100' },
                                                     }),
@@ -1124,7 +1121,7 @@ export class StockHistory {
                                                         filter: [],
                                                         hiddenPageSplit: true,
                                                     }),
-                                                    html `<div
+                                                    html ` <div
                                       class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
                                       style="color: #36B; font-size: 16px; font-weight: 400;"
                                       onclick="${gvc.event(() => {
@@ -1168,7 +1165,6 @@ export class StockHistory {
                                                     gvc.bindView({
                                                         bind: dvm.radioCompId,
                                                         view: () => {
-                                                            dvm.variantIds = [];
                                                             switch (vm.data.content.check_according) {
                                                                 case 'collection':
                                                                     return gvc.bindView(() => {
@@ -1495,13 +1491,13 @@ export class StockHistory {
         }, 0);
         return BgWidget.container([
             html ` <div class="title-container">
-            ${BgWidget.goBack(gvc.event(() => {
+          ${BgWidget.goBack(gvc.event(() => {
                 vm.view = 'mainList';
             }))}
-            <div>${BgWidget.title(vm.data.order_id)}</div>
-            <span class="mt-1 ms-2 fs-7">${StockHistory.getStatusBadge(vm.data.type, vm.data.status)}</span>
-          </div>
-          <div class="flex-fill"></div>`,
+          <div>${BgWidget.title(vm.data.order_id)}</div>
+          <span class="mt-1 ms-2 fs-7">${StockHistory.getStatusBadge(vm.data.type, vm.data.status)}</span>
+        </div>
+        <div class="flex-fill"></div>`,
             html ` <div
           class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
           style="gap: 24px"
@@ -1627,13 +1623,13 @@ export class StockHistory {
                             }
                             const priceHTML = (obj) => {
                                 var _a, _b;
-                                return html `<div class="d-flex w-100 mb-2">
+                                return html ` <div class="d-flex w-100 mb-2">
                             <div class="flex-fill"></div>
                             <div class="d-flex justify-content-between" style="width: 250px;">
                               <div class="${(_a = obj.className) !== null && _a !== void 0 ? _a : ''}">${obj.name}</div>
                               ${obj.incompletion
-                                    ? html `<div style="color: #8D8D8D">商品尚未核對完成</div>`
-                                    : html `<div class="${(_b = obj.className) !== null && _b !== void 0 ? _b : ''}">$ ${obj.price.toLocaleString()}</div>`}
+                                    ? html ` <div style="color: #8D8D8D">商品尚未核對完成</div>`
+                                    : html ` <div class="${(_b = obj.className) !== null && _b !== void 0 ? _b : ''}">$ ${obj.price.toLocaleString()}</div>`}
                             </div>
                           </div>`;
                             };
@@ -1667,14 +1663,14 @@ export class StockHistory {
                         return a.time > b.time ? -1 : 1;
                     })
                         .map(log => {
-                        return html `<div class="d-flex justify-content-between align-items-center mt-2">
+                        return html ` <div class="d-flex justify-content-between align-items-center mt-2">
                         <div class="d-flex align-items-center">
                           <div class="me-3">${log.time}</div>
                           <div class="me-1">${log.text}</div>
                           ${log.status === 1 || log.status === 5
                             ? html `<i
-                                class="fa-thin fa-square-list cursor_pointer"
-                                onclick="${gvc.event(() => {
+                              class="fa-thin fa-square-list cursor_pointer"
+                              onclick="${gvc.event(() => {
                                 BgWidget.dialog({
                                     gvc,
                                     title: `${typeData.name}紀錄`,
@@ -1727,7 +1723,7 @@ export class StockHistory {
                                     },
                                 });
                             })}"
-                              ></i>`
+                            ></i>`
                             : ''}
                         </div>
                         <div>${log.user && log.user_name ? `${log.user_name}編輯` : '系統自動變更'}</div>
@@ -1746,11 +1742,12 @@ export class StockHistory {
         switch (vm.type) {
             case 'restocking':
                 return [
-                    html `<div class="row">
-            <div class="col-12 col-md-6">
-              <div class="tx_normal">供應商</div>
-              ${BgWidget.mbContainer(8)}
-              ${gvc.bindView((() => {
+                    html `
+            <div class="row">
+              <div class="col-12 col-md-6">
+                <div class="tx_normal">供應商</div>
+                ${BgWidget.mbContainer(8)}
+                ${gvc.bindView((() => {
                         const id = glitter.getUUID();
                         let dataList = [];
                         let loading = true;
@@ -1786,13 +1783,13 @@ export class StockHistory {
                                             gvc.notifyDataChange(id);
                                         },
                                         clickElement: {
-                                            html: html `<div>新增供應商</div>
-                              <div>
-                                <i
-                                  class="fa-solid fa-plus ps-2"
-                                  style="font-size: 16px; height: 14px; width: 14px;"
-                                ></i>
-                              </div>`,
+                                            html: html ` <div>新增供應商</div>
+                                <div>
+                                  <i
+                                    class="fa-solid fa-plus ps-2"
+                                    style="font-size: 16px; height: 14px; width: 14px;"
+                                  ></i>
+                                </div>`,
                                             event: gvc2 => {
                                                 const newVendorData = StockVendors.emptyData();
                                                 BgWidget.settingDialog({
@@ -1827,20 +1824,18 @@ export class StockHistory {
                                         if (dd.result && dd.response.value) {
                                             dataList = dd.response.value.list;
                                         }
-                                        setTimeout(() => {
-                                            loading = false;
-                                            gvc.notifyDataChange(id);
-                                        }, 100);
+                                        loading = false;
+                                        gvc.notifyDataChange(id);
                                     });
                                 }
                             },
                         };
                     })())}
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="tx_normal">庫存點</div>
-              ${BgWidget.mbContainer(8)}
-              ${gvc.bindView((() => {
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="tx_normal">庫存點</div>
+                ${BgWidget.mbContainer(8)}
+                ${gvc.bindView((() => {
                         const id = glitter.getUUID();
                         let dataList = [];
                         let loading = true;
@@ -1876,13 +1871,13 @@ export class StockHistory {
                                             gvc.notifyDataChange(id);
                                         },
                                         clickElement: {
-                                            html: html `<div>新增庫存點</div>
-                              <div>
-                                <i
-                                  class="fa-solid fa-plus ps-2"
-                                  style="font-size: 16px; height: 14px; width: 14px;"
-                                ></i>
-                              </div>`,
+                                            html: html ` <div>新增庫存點</div>
+                                <div>
+                                  <i
+                                    class="fa-solid fa-plus ps-2"
+                                    style="font-size: 16px; height: 14px; width: 14px;"
+                                  ></i>
+                                </div>`,
                                             event: gvc2 => {
                                                 const newStoreData = StockStores.emptyData();
                                                 BgWidget.settingDialog({
@@ -1917,25 +1912,25 @@ export class StockHistory {
                                         if (dd.result && dd.response.value) {
                                             dataList = dd.response.value.list;
                                         }
-                                        setTimeout(() => {
-                                            loading = false;
-                                            gvc.notifyDataChange(id);
-                                        }, 100);
+                                        loading = false;
+                                        gvc.notifyDataChange(id);
                                     });
                                 }
                             },
                         };
                     })())}
+              </div>
             </div>
-          </div> `,
+          `,
                 ];
             case 'transfer':
                 return [
-                    html `<div class="row">
-            <div class="col-12 col-md-6">
-              <div class="tx_normal">調出庫存點</div>
-              ${BgWidget.mbContainer(8)}
-              ${gvc.bindView((() => {
+                    html `
+            <div class="row">
+              <div class="col-12 col-md-6">
+                <div class="tx_normal">調出庫存點</div>
+                ${BgWidget.mbContainer(8)}
+                ${gvc.bindView((() => {
                         const id = glitter.getUUID();
                         let dataList = [];
                         let loading = true;
@@ -1980,20 +1975,18 @@ export class StockHistory {
                                         if (dd.result && dd.response.value) {
                                             dataList = dd.response.value.list;
                                         }
-                                        setTimeout(() => {
-                                            loading = false;
-                                            gvc.notifyDataChange(id);
-                                        }, 100);
+                                        loading = false;
+                                        gvc.notifyDataChange(id);
                                     });
                                 }
                             },
                         };
                     })())}
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="tx_normal">調入庫存點</div>
-              ${BgWidget.mbContainer(8)}
-              ${gvc.bindView((() => {
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="tx_normal">調入庫存點</div>
+                ${BgWidget.mbContainer(8)}
+                ${gvc.bindView((() => {
                         const id = glitter.getUUID();
                         let dataList = [];
                         let loading = true;
@@ -2038,25 +2031,25 @@ export class StockHistory {
                                         if (dd.result && dd.response.value) {
                                             dataList = dd.response.value.list;
                                         }
-                                        setTimeout(() => {
-                                            loading = false;
-                                            gvc.notifyDataChange(id);
-                                        }, 100);
+                                        loading = false;
+                                        gvc.notifyDataChange(id);
                                     });
                                 }
                             },
                         };
                     })())}
+              </div>
             </div>
-          </div> `,
+          `,
                 ];
             case 'checking':
                 return [
-                    html `<div class="row">
-            <div class="col-12 col-md-6">
-              <div class="tx_normal">盤點庫存點</div>
-              ${BgWidget.mbContainer(8)}
-              ${gvc.bindView((() => {
+                    html `
+            <div class="row">
+              <div class="col-12 col-md-6">
+                <div class="tx_normal">盤點庫存點</div>
+                ${BgWidget.mbContainer(8)}
+                ${gvc.bindView((() => {
                         const id = glitter.getUUID();
                         let dataList = [];
                         let loading = true;
@@ -2103,17 +2096,16 @@ export class StockHistory {
                                         if (dd.result && dd.response.value) {
                                             dataList = dd.response.value.list;
                                         }
-                                        setTimeout(() => {
-                                            loading = false;
-                                            gvc.notifyDataChange(id);
-                                        }, 100);
+                                        loading = false;
+                                        gvc.notifyDataChange(id);
                                     });
                                 }
                             },
                         };
                     })())}
+              </div>
             </div>
-          </div> `,
+          `,
                 ];
         }
     }
@@ -2422,11 +2414,11 @@ export class StockHistory {
     }
     static vendorForm(gvc, data) {
         var _a, _b, _c, _d, _e;
-        return html `<div class="row">
+        return html ` <div class="row">
       ${[
-            html `<div class="tx_normal">供應商名稱</div>
-          ${BgWidget.mbContainer(4)}
-          ${BgWidget.editeInput({
+            html ` <div class="tx_normal">供應商名稱</div>
+        ${BgWidget.mbContainer(4)}
+        ${BgWidget.editeInput({
                 gvc: gvc,
                 title: '',
                 default: (_a = data.name) !== null && _a !== void 0 ? _a : '',
@@ -2435,9 +2427,9 @@ export class StockHistory {
                     data.name = text;
                 },
             })}`,
-            html `<div class="tx_normal">供應商地址</div>
-          ${BgWidget.mbContainer(4)}
-          ${BgWidget.editeInput({
+            html ` <div class="tx_normal">供應商地址</div>
+        ${BgWidget.mbContainer(4)}
+        ${BgWidget.editeInput({
                 gvc: gvc,
                 title: '',
                 default: (_b = data.address) !== null && _b !== void 0 ? _b : '',
@@ -2446,9 +2438,9 @@ export class StockHistory {
                     data.address = text;
                 },
             })}`,
-            html `<div class="tx_normal">聯絡人姓名</div>
-          ${BgWidget.mbContainer(4)}
-          ${BgWidget.editeInput({
+            html ` <div class="tx_normal">聯絡人姓名</div>
+        ${BgWidget.mbContainer(4)}
+        ${BgWidget.editeInput({
                 gvc: gvc,
                 title: '',
                 default: (_c = data.manager_name) !== null && _c !== void 0 ? _c : '',
@@ -2457,9 +2449,9 @@ export class StockHistory {
                     data.manager_name = text;
                 },
             })}`,
-            html `<div class="tx_normal">電話</div>
-          ${BgWidget.mbContainer(4)}
-          ${BgWidget.editeInput({
+            html ` <div class="tx_normal">電話</div>
+        ${BgWidget.mbContainer(4)}
+        ${BgWidget.editeInput({
                 gvc: gvc,
                 title: '',
                 default: (_d = data.manager_phone) !== null && _d !== void 0 ? _d : '',
@@ -2487,11 +2479,11 @@ export class StockHistory {
     }
     static storeForm(gvc, data) {
         var _a, _b, _c, _d, _e;
-        return html `<div class="row">
+        return html ` <div class="row">
       ${[
-            html `<div class="tx_normal">庫存點名稱</div>
-          ${BgWidget.mbContainer(4)}
-          ${BgWidget.editeInput({
+            html ` <div class="tx_normal">庫存點名稱</div>
+        ${BgWidget.mbContainer(4)}
+        ${BgWidget.editeInput({
                 gvc: gvc,
                 title: '',
                 default: (_a = data.name) !== null && _a !== void 0 ? _a : '',
@@ -2500,9 +2492,9 @@ export class StockHistory {
                     data.name = text;
                 },
             })}`,
-            html `<div class="tx_normal">庫存點地址</div>
-          ${BgWidget.mbContainer(4)}
-          ${BgWidget.editeInput({
+            html ` <div class="tx_normal">庫存點地址</div>
+        ${BgWidget.mbContainer(4)}
+        ${BgWidget.editeInput({
                 gvc: gvc,
                 title: '',
                 default: (_b = data.address) !== null && _b !== void 0 ? _b : '',
@@ -2511,9 +2503,9 @@ export class StockHistory {
                     data.address = text;
                 },
             })}`,
-            html `<div class="tx_normal">聯絡人姓名</div>
-          ${BgWidget.mbContainer(4)}
-          ${BgWidget.editeInput({
+            html ` <div class="tx_normal">聯絡人姓名</div>
+        ${BgWidget.mbContainer(4)}
+        ${BgWidget.editeInput({
                 gvc: gvc,
                 title: '',
                 default: (_c = data.manager_name) !== null && _c !== void 0 ? _c : '',
@@ -2522,9 +2514,9 @@ export class StockHistory {
                     data.manager_name = text;
                 },
             })}`,
-            html `<div class="tx_normal">電話</div>
-          ${BgWidget.mbContainer(4)}
-          ${BgWidget.editeInput({
+            html ` <div class="tx_normal">電話</div>
+        ${BgWidget.mbContainer(4)}
+        ${BgWidget.editeInput({
                 gvc: gvc,
                 title: '',
                 default: (_d = data.manager_phone) !== null && _d !== void 0 ? _d : '',
@@ -2653,7 +2645,7 @@ export class StockHistory {
                     return arr
                         .map(item => {
                         var _a;
-                        return html `<div style="${document.body.clientWidth > 768 ? `width: ${(_a = item.width) !== null && _a !== void 0 ? _a : 20}%;` : ''}">
+                        return html ` <div style="${document.body.clientWidth > 768 ? `width: ${(_a = item.width) !== null && _a !== void 0 ? _a : 20}%;` : ''}">
                 <div class="tx_700" style="margin-bottom: 8px;">${item.title}</div>
                 <div class="tx_normal">${item.value}</div>
               </div>`;
@@ -2890,7 +2882,7 @@ export class StockHistory {
                       <div class="tx_normal">取消後將無法復原，確定要取消此${typeData.name}單嗎？</div>
                       ${BgWidget.mbContainer(8)}
                       <div class="tx_gray_14">
-                        ※提醒您，取消${typeData.name}單後，請新增「${typeData.name}退回單」並將
+                          ※提醒您，取消${typeData.name}單後，請新增「${typeData.name}退回單」並將
                       </div>
                       <div class="tx_gray_14">商品及發票一併退還給供應商，確保退貨流程完整。</div>
                     </div>
@@ -2963,7 +2955,7 @@ export class StockHistory {
                                 {
                                     key: '最終盤點數量',
                                     value: html `<span class="fs-7"
-                        >${(() => {
+                      >${(() => {
                                         if (dd.recent_count === undefined) {
                                             return 0;
                                         }
@@ -2982,9 +2974,9 @@ export class StockHistory {
                             let vmi = undefined;
                             return [
                                 BgWidget.grayNote(html `以下商品在盤點期間內有銷售等變動，導致實際庫存已發生變化。<br />
-                        最終庫存數量將依此公式調整：<span style="font-weight: 700">原盤點數量 + 庫存變動數量</span
-                        ><br />
-                        若最終庫存數量小於0，該商品規格庫存調整成0，盤點單顯示負數`),
+                      最終庫存數量將依此公式調整：<span style="font-weight: 700">原盤點數量 + 庫存變動數量</span
+                      ><br />
+                      若最終庫存數量小於0，該商品規格庫存調整成0，盤點單顯示負數`),
                                 BgWidget.tableV3({
                                     gvc: gvc,
                                     getData: vd => {
@@ -3159,10 +3151,14 @@ export class StockHistory {
                     const spec = item.variant_content.spec;
                     const sku = item.variant_content.sku;
                     const barcode = item.variant_content.barcode;
-                    product_list.push(Object.assign(Object.assign({ variant_id: item.id, cost: 0, note: '', transfer_count: 0, check_count: 0 }, (origin !== null && origin !== void 0 ? origin : {})), { title: title, spec: spec && spec.length > 0 ? spec.join('/') : '單一規格', sku: sku !== null && sku !== void 0 ? sku : '', barcode: barcode !== null && barcode !== void 0 ? barcode : '' }));
+                    product_list.push(Object.assign(Object.assign({ variant_id: item.id, cost: 0, note: '', transfer_count: 0, product_id: item.product_content.id, check_count: 0 }, (origin !== null && origin !== void 0 ? origin : {})), { title: title, spec: spec && spec.length > 0 ? spec.join('/') : '單一規格', sku: sku !== null && sku !== void 0 ? sku : '', barcode: barcode !== null && barcode !== void 0 ? barcode : '' }));
                 });
             }
-            callback(product_list);
+            callback(origins.filter((d1) => {
+                return !product_list.find((dd) => {
+                    return d1.variant_id === dd.variant_id;
+                });
+            }).concat(product_list));
         });
     }
     static getVariantInfo(dataList, callback) {

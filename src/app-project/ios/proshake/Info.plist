@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>我們會使用您的資料來提供更個人化的廣告體驗。</string>
 	<key>CFBundleAllowMixedLocalizations</key>
 	<true/>
 	<key>CFBundleLocalizations</key>
@@ -34,14 +36,14 @@
 				<string>line3rdp.com.shopnex.t-1725992531001</string>
 			</array>
 		</dict>
-        <dict>
-            <key>CFBundleTypeRole</key>
-            <string>Editor</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-                <string>com.shopnex.t-1725992531001</string>
-            </array>
-        </dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.shopnex.t-1725992531001</string>
+			</array>
+		</dict>
 	</array>
 	<key>FacebookAppID</key>
 	<string>591945996522192</string>
@@ -52,7 +54,7 @@
 		<string>fbapi</string>
 		<string>fb-messenger-share-api</string>
 		<string>fbauth2</string>
-        <string>line</string>
+		<string>line</string>
 		<string>fbshareextension</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>

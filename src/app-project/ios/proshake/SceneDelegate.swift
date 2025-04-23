@@ -52,8 +52,26 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             return
         }
         
+        print("url.absoluteString:\(url.absoluteString)")
         if(url.absoluteString.contains("line3rdp")){
             LoginManager.shared.application(UIApplication.shared, open: url, options: [:])
+        }else if(url.absoluteString.contains("\(Bundle.main.bundleIdentifier!)://")){
+            // 解析參數
+            let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            let queryItems = components?.queryItems
+            print(queryItems);
+            if let path = queryItems?.first(where: { $0.name == "path" })?.value {
+                if let decoded = path.removingPercentEncoding {
+                    ViewController.redirect=decoded
+                    print("ViewController.redirect+\(ViewController.redirect)")
+                    if((ViewController.vc != nil) && (ViewController.vc?.webView != nil) && (ViewController.vc?.webView.webView != nil)){
+                        ViewController.vc!.webView.webView!.evaluateJavaScript("""
+            location.href=new URL(`\(ViewController.redirect)`,location.href)
+            """)
+                        ViewController.redirect=""
+                    }
+                }
+            }
         }else{
             ApplicationDelegate.shared.application(
                 UIApplication.shared,

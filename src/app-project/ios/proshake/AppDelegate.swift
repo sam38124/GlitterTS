@@ -1,4 +1,5 @@
 import UIKit
+import AppTrackingTransparency
 import Glitter_IOS
 import Firebase
 import UserNotifications
@@ -9,7 +10,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate,UNUserNotificationCenterDe
     public static var fireBaseToken=""
     
 
-    
+    func application(_ app: UIApplication,
+                     open url: URL,
+                     options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+
+        // 解析參數
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        let queryItems = components?.queryItems
+        print(queryItems);
+        if let path = queryItems?.first(where: { $0.name == "path" })?.value {
+            ViewController.redirect=path
+            if((ViewController.vc != nil) && (ViewController.vc?.webView != nil) && (ViewController.vc?.webView.webView != nil)){
+                ViewController.vc!.webView.webView!.evaluateJavaScript("""
+    location.href=new URL("\(ViewController.redirect)",location.href)
+    """)
+                ViewController.redirect=""
+            }
+        }
+
+        return true
+    }
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         Notification.createShareInterface()
@@ -17,6 +37,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate,UNUserNotificationCenterDe
         BasicUtil.createShareInterface()
         FirebaseApp.configure();
         Ecommerce.createShareInterface()
+        
+        
         //註冊推播
         Messaging.messaging().delegate = self
         if #available(iOS 10.0, *) {
@@ -26,7 +48,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate,UNUserNotificationCenterDe
             let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
             UNUserNotificationCenter.current().requestAuthorization(
                 options: authOptions,
-                completionHandler: {_, _ in })
+                completionHandler: {_, _ in
+                    DispatchQueue.main.asyncAfter(deadline: .now()+1.0, execute: {
+                        if #available(iOS 14, *) {
+                            ATTrackingManager.requestTrackingAuthorization { status in
+                                switch status {
+                                case .authorized:
+                                    if((ViewController.vc?.webView.webView) != nil && (!(ViewController.agent).contains("allow_track"))){
+                                        ViewController.agent+=" allow_track"
+                                        DispatchQueue.main.async {
+                                            ViewController.vc!.webView.webView?.customUserAgent=ViewController.agent
+                                            ViewController.vc!.webView.webView?.reload()
+                                        }
+                                    }
+                                case .denied, .restricted, .notDetermined:
+                                    print("🚫 使用者拒絕或尚未決定")
+                                @unknown default:
+                                    break
+                                }
+                            }
+                        }
+                    })
+                    
+                })
         } else {
             let settings: UIUserNotificationSettings =
             UIUserNotificationSettings(types: [.alert, .badge, .sound], categories: nil)
@@ -74,11 +118,11 @@ extension AppDelegate {
         print("點擊推播通知：\(userInfo["link"] )")
         ViewController.redirect=userInfo["link"] as! String
         if(userInfo["link"] != nil){
-//            if((ViewController.vc != nil) && ViewController.vc!.webView.webView != nil){
-//                ViewController.vc!.webView.webView!.evaluateJavaScript("""
-//location.href=new URL("\(ViewController.redirect)",location.href)
-//""")
-//            }
+            if((ViewController.vc != nil) && ViewController.vc!.webView.webView != nil){
+                ViewController.vc!.webView.webView!.evaluateJavaScript("""
+glitter.href="\(ViewController.redirect)";
+""")
+            }
         }
         completionHandler()
     }
