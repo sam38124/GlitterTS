@@ -462,6 +462,9 @@ export class UMLogin {
             if (!vm.loginConfig[item.type]) {
                 return '';
             }
+            if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Android && item.type === 'apple') {
+                return ``;
+            }
             const event = loginEvents.find((data) => data.key === item.type);
             if (!event) {
                 return '';

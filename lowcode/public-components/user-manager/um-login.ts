@@ -483,6 +483,10 @@ export class UMLogin {
             return '';
           }
 
+          //Android版本不需要有APPLE登入
+          if(gvc.glitter.deviceType===gvc.glitter.deviceTypeEnum.Android && item.type === 'apple'){
+            return ``
+          }
           const event = loginEvents.find((data) => data.key === item.type);
           if (!event) {
             return '';
