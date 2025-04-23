@@ -2133,6 +2133,7 @@ ${obj.default ?? ''}</textarea
               target.style.position = checked ? 'sticky' : 'relative';
               target.style.top = checked ? '0' : '';
               target.style.left = checked ? '0' : '';
+              target.style.zIndex = checked ? '1' : '';
             }
 
             // 初始化勾選框顯示

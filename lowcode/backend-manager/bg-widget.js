@@ -1768,6 +1768,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             target.style.position = checked ? 'sticky' : 'relative';
                             target.style.top = checked ? '0' : '';
                             target.style.left = checked ? '0' : '';
+                            target.style.zIndex = checked ? '1' : '';
                         }
                         function initCheckData() {
                             const checkedMap = new Map(vm.checkedArray.map(item => [item.dataPin, item]));
