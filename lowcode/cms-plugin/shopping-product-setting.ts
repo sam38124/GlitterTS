@@ -1598,10 +1598,18 @@ export class ShoppingProductSetting {
                                   dialog.dataLoading({ visible: false });
                                   if (data.result && data.response.data && data.response.data.content) {
                                     const copy = data.response.data.content;
-                                    postMD = {
-                                      ...postMD,
-                                      ...copy,
-                                    };
+                                    postMD = { ...postMD, ...copy };
+
+                                    // 新代入庫存重設
+                                    postMD.variants.forEach(variant => {
+                                      variant.stock = 0;
+                                      for (const key in stockList) {
+                                        if (stockList.hasOwnProperty(key)) {
+                                          stockList[key].count = 0;
+                                        }
+                                      }
+                                    });
+
                                     if (!copy.language_data) {
                                       const language_data: any = postMD.language_data['zh-TW'];
                                       language_data.title = copy.title;

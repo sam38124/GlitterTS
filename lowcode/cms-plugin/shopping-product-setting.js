@@ -1340,6 +1340,14 @@ export class ShoppingProductSetting {
                                                     if (data.result && data.response.data && data.response.data.content) {
                                                         const copy = data.response.data.content;
                                                         postMD = Object.assign(Object.assign({}, postMD), copy);
+                                                        postMD.variants.forEach(variant => {
+                                                            variant.stock = 0;
+                                                            for (const key in stockList) {
+                                                                if (stockList.hasOwnProperty(key)) {
+                                                                    stockList[key].count = 0;
+                                                                }
+                                                            }
+                                                        });
                                                         if (!copy.language_data) {
                                                             const language_data = postMD.language_data['zh-TW'];
                                                             language_data.title = copy.title;
