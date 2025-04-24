@@ -115,7 +115,13 @@ class Shopping {
             const exh_config = await userClass.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
             const userID = (_a = query.setUserID) !== null && _a !== void 0 ? _a : (this.token ? `${this.token.userID}` : '');
             const querySql = [`(content->>'$.type'='product')`];
-            const idStr = query.id_list ? query.id_list.split(',').filter(Boolean).join(',') : '';
+            const idStr = query.id_list
+                ? query.id_list
+                    .split(',')
+                    .filter(Boolean)
+                    .map(id => database_js_1.default.escape(id))
+                    .join(',')
+                : '';
             query.language = (_b = query.language) !== null && _b !== void 0 ? _b : store_info.language_setting.def;
             query.show_hidden = (_c = query.show_hidden) !== null && _c !== void 0 ? _c : 'true';
             const orderMapping = {
@@ -772,24 +778,18 @@ class Shopping {
         var _a, _b;
         try {
             const managerTags = await new user_js_1.User(this.app).getConfigV2({ key: 'product_manager_tags', user_id: 'manager' });
-            console.log(`initProductCustomizeTagConifg=>getData=>`, managerTags);
             if (managerTags && Array.isArray(managerTags.list)) {
                 return managerTags;
             }
-            console.log(`query_sql=>`, `SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
-                                  FROM \`${this.app}\`.t_manager_post
-                                  WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'`);
             const getData = await database_js_1.default.query(`
             SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
             FROM \`${this.app}\`.t_manager_post
             WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
         `, []);
             const unique_tags_string = (_b = (_a = getData[0]) === null || _a === void 0 ? void 0 : _a.unique_tags) !== null && _b !== void 0 ? _b : '';
-            console.log(`JSON_STRING=>`, `[${unique_tags_string}]`);
             const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
             const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
             const data = { list: [...new Set(unique_tags_flot)] };
-            console.log(`product_manager_tags=>setData=>`, managerTags);
             await new user_js_1.User(this.app).setConfig({
                 key: 'product_manager_tags',
                 user_id: 'manager',
@@ -820,16 +820,13 @@ class Shopping {
             if (generalTags && Array.isArray(generalTags.list)) {
                 return generalTags;
             }
-            console.log(`initProductCustomizeTagConifg=>getData=>`, generalTags);
             const getData = await database_js_1.default.query(`
             SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_tag.language')) SEPARATOR ',') AS unique_tags
             FROM \`${this.app}\`.t_manager_post
             WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
         `, []);
             const unique_tags_string = (_b = (_a = getData[0]) === null || _a === void 0 ? void 0 : _a.unique_tags) !== null && _b !== void 0 ? _b : '';
-            console.log(`JSON_STRING=>`, `[${unique_tags_string}]`);
             const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
-            console.log(`JSON_DATA=>`, unique_tags_array);
             const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
             const list = {};
             unique_tags_flot.map(item => {
@@ -917,13 +914,14 @@ class Shopping {
         })).data
             .map((dd) => dd.content)
             .filter((voucher) => {
+            const status = voucher.status;
             const startDate = new Date(voucher.start_ISO_Date).getTime();
             const endDate = voucher.end_ISO_Date ? new Date(voucher.end_ISO_Date).getTime() : Infinity;
-            return startDate < now && now < endDate;
+            return status && startDate < now && now < endDate;
         });
         const validVouchers = await Promise.all(allVoucher.map(async (voucher) => {
             const isLimited = await this.checkVoucherLimited(userID, voucher.id);
-            return isLimited && voucher.status === 1 ? voucher : null;
+            return isLimited ? voucher : null;
         }));
         return validVouchers.filter(Boolean);
     }
@@ -958,10 +956,20 @@ class Shopping {
                 return [];
             }
         })();
+        const product_customize_tag = (() => {
+            try {
+                return json.product.content.product_customize_tag || [];
+            }
+            catch (error) {
+                return [];
+            }
+        })();
         const userData = json.userData;
         const recommendData = json.recommendData;
         function checkValidProduct(caseName, caseList) {
             switch (caseName) {
+                case 'manager_tag':
+                    return caseList.some(d1 => product_customize_tag.includes(d1));
                 case 'collection':
                     return caseList.some(d1 => collection.includes(d1));
                 case 'product':
@@ -1796,6 +1804,8 @@ class Shopping {
             const filterItems = cart.lineItems
                 .filter(item => {
                 switch (caseName) {
+                    case 'manager_tag':
+                        return item.product_customize_tag.some(col => caseList.includes(col));
                     case 'collection':
                         return item.collection.some(col => caseList.includes(col));
                     case 'product':
@@ -1848,6 +1858,7 @@ class Shopping {
                     }
                     break;
             }
+            console.log(voucher.title, voucher.bind.length);
             if (voucher.method === 'percent' &&
                 voucher.conditionType === 'order' &&
                 voucher.rule === 'min_count' &&

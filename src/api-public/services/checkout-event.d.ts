@@ -8,6 +8,7 @@ export type CartItem = {
     sale_price: number;
     is_gift?: boolean;
     collection: string[];
+    product_customize_tag: string[];
     title: string;
     preview_image: string;
     shipment_obj: {

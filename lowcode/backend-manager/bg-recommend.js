@@ -1009,7 +1009,7 @@ export class BgRecommend {
                                                                                                 value: 'collection',
                                                                                             },
                                                                                             {
-                                                                                                title: '單一商品',
+                                                                                                title: '特定商品',
                                                                                                 value: 'product',
                                                                                             },
                                                                                         ],

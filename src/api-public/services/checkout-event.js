@@ -355,6 +355,7 @@ class CheckoutEvent {
                                 stockList: variant.stockList,
                                 weight: parseInt(variant.weight || '0', 10),
                                 designated_logistics: (_c = content.designated_logistics) !== null && _c !== void 0 ? _c : { type: 'all', list: [] },
+                                product_customize_tag: content.product_customize_tag || [],
                             });
                             const shipmentValue = (() => {
                                 if (!variant.shipment_type || variant.shipment_type === 'none')

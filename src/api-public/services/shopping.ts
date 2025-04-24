@@ -59,6 +59,8 @@ type InvoiceData = {
   invoiceDate: string;
 };
 
+type VoucherForType = 'all' | 'collection' | 'product' | 'manager_tag';
+
 export interface VoucherData {
   id: number;
   title: string;
@@ -68,7 +70,7 @@ export interface VoucherData {
   add_on_products?: string[] | ProductItem[];
   trigger: 'auto' | 'code' | 'distribution';
   value: string;
-  for: 'collection' | 'product' | 'all';
+  for: VoucherForType;
   rule: 'min_price' | 'min_count';
   productOffStart: 'price_asc' | 'price_desc' | 'price_all';
   conditionType: 'order' | 'item';
@@ -158,7 +160,7 @@ interface orderVoucherData {
   method: 'percent' | 'fixed';
   trigger: 'auto' | 'code';
   value: string;
-  for: 'collection' | 'product';
+  for: VoucherForType;
   rule: 'min_price' | 'min_count';
   forKey: string[];
   ruleValue: number;
@@ -422,7 +424,13 @@ export class Shopping {
       const exh_config = await userClass.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
       const userID = query.setUserID ?? (this.token ? `${this.token.userID}` : '');
       const querySql = [`(content->>'$.type'='product')`];
-      const idStr = query.id_list ? query.id_list.split(',').filter(Boolean).join(',') : '';
+      const idStr = query.id_list
+        ? query.id_list
+            .split(',')
+            .filter(Boolean)
+            .map(id => db.escape(id))
+            .join(',')
+        : '';
       query.language = query.language ?? store_info.language_setting.def;
       query.show_hidden = query.show_hidden ?? 'true';
 
@@ -1200,16 +1208,9 @@ export class Shopping {
   async initProductCustomizeTagConifg() {
     try {
       const managerTags = await new User(this.app).getConfigV2({ key: 'product_manager_tags', user_id: 'manager' });
-      console.log(`initProductCustomizeTagConifg=>getData=>`, managerTags);
       if (managerTags && Array.isArray(managerTags.list)) {
         return managerTags;
       }
-      console.log(
-        `query_sql=>`,
-        `SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
-                                  FROM \`${this.app}\`.t_manager_post
-                                  WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'`
-      );
       const getData = await db.query(
         `
             SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
@@ -1220,11 +1221,9 @@ export class Shopping {
       );
 
       const unique_tags_string = getData[0]?.unique_tags ?? '';
-      console.log(`JSON_STRING=>`, `[${unique_tags_string}]`);
       const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
       const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
       const data = { list: [...new Set(unique_tags_flot)] };
-      console.log(`product_manager_tags=>setData=>`, managerTags);
       await new User(this.app).setConfig({
         key: 'product_manager_tags',
         user_id: 'manager',
@@ -1258,7 +1257,6 @@ export class Shopping {
       if (generalTags && Array.isArray(generalTags.list)) {
         return generalTags;
       }
-      console.log(`initProductCustomizeTagConifg=>getData=>`, generalTags);
       const getData = await db.query(
         `
             SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_tag.language')) SEPARATOR ',') AS unique_tags
@@ -1268,9 +1266,7 @@ export class Shopping {
         []
       );
       const unique_tags_string = getData[0]?.unique_tags ?? '';
-      console.log(`JSON_STRING=>`, `[${unique_tags_string}]`);
       const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
-      console.log(`JSON_DATA=>`, unique_tags_array);
       const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
       const list: { [k in LanguageLocation]?: string[] } = {};
 
@@ -1378,16 +1374,17 @@ export class Shopping {
     ).data
       .map((dd: { content: VoucherData }) => dd.content)
       .filter((voucher: VoucherData) => {
+        const status = voucher.status;
         const startDate = new Date(voucher.start_ISO_Date).getTime();
         const endDate = voucher.end_ISO_Date ? new Date(voucher.end_ISO_Date).getTime() : Infinity;
-        return startDate < now && now < endDate;
+        return status && startDate < now && now < endDate;
       });
 
     // 處理需 async and await 的驗證
     const validVouchers = await Promise.all(
       allVoucher.map(async (voucher: VoucherData) => {
         const isLimited = await this.checkVoucherLimited(userID, voucher.id);
-        return isLimited && voucher.status === 1 ? voucher : null;
+        return isLimited ? voucher : null;
       })
     );
 
@@ -1437,11 +1434,20 @@ export class Shopping {
         return [];
       }
     })();
+    const product_customize_tag = (() => {
+      try {
+        return json.product.content.product_customize_tag || [];
+      } catch (error) {
+        return [];
+      }
+    })();
     const userData = json.userData;
     const recommendData = json.recommendData;
 
     function checkValidProduct(caseName: string, caseList: any[]): boolean {
       switch (caseName) {
+        case 'manager_tag':
+          return caseList.some(d1 => product_customize_tag.includes(d1));
         case 'collection':
           return caseList.some(d1 => collection.includes(d1));
         case 'product':
@@ -2574,13 +2580,15 @@ export class Shopping {
 
     // 篩選符合商品判斷方法
     function switchValidProduct(
-      caseName: 'collection' | 'product' | 'all',
+      caseName: VoucherForType,
       caseList: string[],
       caseOffStart: 'price_desc' | 'price_asc' | 'price_all'
     ): any {
       const filterItems = cart.lineItems
         .filter(item => {
           switch (caseName) {
+            case 'manager_tag':
+              return item.product_customize_tag.some(col => caseList.includes(col));
             case 'collection':
               return item.collection.some(col => caseList.includes(col));
             case 'product':
@@ -4282,7 +4290,7 @@ export class Shopping {
         } else if (Object.keys(variant.stockList).length === 0) {
           variant.stockList[storeConfig.list[0].id] = { count: variant.stock };
         }
-        const insertObj:any = {
+        const insertObj: any = {
           content: JSON.stringify(variant),
           product_id: content.id,
         };
@@ -4302,7 +4310,6 @@ export class Shopping {
           `,
           [insertObj]
         );
-
 
         return insertData;
       });

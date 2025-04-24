@@ -37,6 +37,7 @@ function getVoucherText(gvc, voucherData) {
     const productForList = [
         { title: Language.text('all_products'), value: 'all' },
         { title: Language.text('product_categories'), value: 'collection' },
+        { title: Language.text('products'), value: 'manager_tag' },
         { title: Language.text('products'), value: 'product' },
     ];
     const getRebateDescription = (voucherData, rebateTitle) => {

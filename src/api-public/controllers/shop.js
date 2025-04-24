@@ -505,7 +505,11 @@ router.post('/splitOrder', async (req, resp) => {
 });
 router.get('/voucher', async (req, resp) => {
     try {
-        let query = [`(content->>'$.type'='voucher')`];
+        const isManager = await ut_permission_1.UtPermission.isManager(req);
+        let query = [`(content->>'$.type' = 'voucher')`];
+        if (!isManager) {
+            query.push(`(content->>'$.status' = 1)`);
+        }
         if (req.query.search) {
             query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
         }
@@ -525,7 +529,6 @@ router.get('/voucher', async (req, resp) => {
                 return new Date(start_ISO_Date).getTime() < now && (!end_ISO_Date || new Date(end_ISO_Date).getTime() > now);
             });
         }
-        const isManager = await ut_permission_1.UtPermission.isManager(req);
         if (isManager && !req.query.user_email) {
             return response_1.default.succ(resp, vouchers);
         }

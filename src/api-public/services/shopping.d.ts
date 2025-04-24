@@ -22,6 +22,7 @@ type InvoiceData = {
     itemList: any;
     invoiceDate: string;
 };
+type VoucherForType = 'all' | 'collection' | 'product' | 'manager_tag';
 export interface VoucherData {
     id: number;
     title: string;
@@ -31,7 +32,7 @@ export interface VoucherData {
     add_on_products?: string[] | ProductItem[];
     trigger: 'auto' | 'code' | 'distribution';
     value: string;
-    for: 'collection' | 'product' | 'all';
+    for: VoucherForType;
     rule: 'min_price' | 'min_count';
     productOffStart: 'price_asc' | 'price_desc' | 'price_all';
     conditionType: 'order' | 'item';
@@ -96,7 +97,7 @@ interface orderVoucherData {
     method: 'percent' | 'fixed';
     trigger: 'auto' | 'code';
     value: string;
-    for: 'collection' | 'product';
+    for: VoucherForType;
     rule: 'min_price' | 'min_count';
     forKey: string[];
     ruleValue: number;

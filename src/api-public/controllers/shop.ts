@@ -600,7 +600,13 @@ router.post('/splitOrder', async (req: express.Request, resp: express.Response) 
 // 優惠券
 router.get('/voucher', async (req: express.Request, resp: express.Response) => {
   try {
-    let query = [`(content->>'$.type'='voucher')`];
+    const isManager = await UtPermission.isManager(req);
+
+    let query = [`(content->>'$.type' = 'voucher')`];
+
+    if (!isManager) {
+      query.push(`(content->>'$.status' = 1)`);
+    }
 
     if (req.query.search) {
       query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
@@ -626,8 +632,6 @@ router.get('/voucher', async (req: express.Request, resp: express.Response) => {
         return new Date(start_ISO_Date).getTime() < now && (!end_ISO_Date || new Date(end_ISO_Date).getTime() > now);
       });
     }
-
-    const isManager = await UtPermission.isManager(req);
 
     // 後台列表直接回傳
     if (isManager && !req.query.user_email) {

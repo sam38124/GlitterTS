@@ -725,7 +725,7 @@ export class BgRecommend {
                                     gvc.notifyDataChange(vm.previewId);
                                   },
                                   filter: {
-                                    page: ['一頁商店', '隱形賣場','所有商品'],
+                                    page: ['一頁商店', '隱形賣場', '所有商品'],
                                   },
                                 })}`,
                               gvc.bindView({
@@ -1153,7 +1153,7 @@ export class BgRecommend {
                                                               value: 'collection',
                                                             },
                                                             {
-                                                              title: '單一商品',
+                                                              title: '特定商品',
                                                               value: 'product',
                                                             },
                                                           ],

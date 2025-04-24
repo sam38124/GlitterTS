@@ -1084,11 +1084,8 @@ export class BgShopping {
                                 title: '',
                                 def: voucherData.for,
                                 array: [
-                                    {
-                                        title: '商品系列',
-                                        value: 'collection',
-                                    },
-                                    { title: '單一商品', value: 'product' },
+                                    { title: '商品系列', value: 'collection' },
+                                    { title: '特定商品', value: 'product' },
                                     { title: '所有商品', value: 'all' },
                                 ],
                                 callback: text => {
