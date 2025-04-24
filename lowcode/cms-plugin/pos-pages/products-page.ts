@@ -480,7 +480,7 @@ export class ProductsPage {
                           return html`
                             <div class="w-100 d-flex">
                               <div style="font-size: 18px;font-style: normal;font-weight: 700;">${data.left}</div>
-                              <div class="ms-auto" style="font-size: 16px;font-weight: 700;">${data.right}</div>
+                              <div class="ms-auto" style="font-size: 16px;font-weight: 700;">$ ${data.right}</div>
                             </div>
                           `;
                         })
