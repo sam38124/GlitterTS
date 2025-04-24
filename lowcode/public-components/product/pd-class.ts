@@ -809,7 +809,7 @@ export class PdClass {
                     ? '#ff5353'
                     : titleFontColor}; font-size: 24px; font-weight: 700; line-height: normal"
                 >
-                  ${Currency.convertCurrencyText(v.sale_price)}
+                  ${Currency.convertCurrencyText(prod.productType.giveaway ? 0 : v.sale_price)}
                 </div>
                 ${lineThroughPrice > 0 && lineThroughPrice > v.sale_price
                   ? html`

@@ -603,18 +603,25 @@ class CheckoutEvent {
                 for (const giveawayData of carData.voucherList.filter(dd => dd.reBackType === 'giveaway')) {
                     if (!((_2 = giveawayData.add_on_products) === null || _2 === void 0 ? void 0 : _2.length))
                         continue;
-                    const productPromises = giveawayData.add_on_products.map(async (id) => {
-                        const getGiveawayData = (await this.shopping.getProduct({
+                    const productPromises = giveawayData.add_on_products
+                        .map(async (id) => {
+                        var _a;
+                        const getGiveawayData = await this.shopping.getProduct({
                             page: 0,
                             limit: 1,
                             id: `${id}`,
                             status: 'inRange',
                             channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
                             whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
-                        })).data.content;
-                        getGiveawayData.voucher_id = giveawayData.id;
-                        return getGiveawayData;
-                    });
+                        });
+                        if ((_a = getGiveawayData === null || getGiveawayData === void 0 ? void 0 : getGiveawayData.data) === null || _a === void 0 ? void 0 : _a.content) {
+                            const giveawayContent = getGiveawayData.data.content;
+                            giveawayContent.voucher_id = giveawayData.id;
+                            return giveawayContent;
+                        }
+                        return null;
+                    })
+                        .filter(Boolean);
                     giveawayData.add_on_products = await Promise.all(productPromises);
                 }
             }

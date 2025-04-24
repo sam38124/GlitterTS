@@ -844,21 +844,26 @@ export class CheckoutEvent {
         for (const giveawayData of carData.voucherList!!.filter(dd => dd.reBackType === 'giveaway')) {
           if (!giveawayData.add_on_products?.length) continue;
 
-          const productPromises = giveawayData.add_on_products.map(async id => {
-            const getGiveawayData = (
-              await this.shopping.getProduct({
+          const productPromises = giveawayData.add_on_products
+            .map(async id => {
+              const getGiveawayData = await this.shopping.getProduct({
                 page: 0,
                 limit: 1,
                 id: `${id}`,
                 status: 'inRange',
                 channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
                 whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
-              })
-            ).data.content;
+              });
 
-            getGiveawayData.voucher_id = giveawayData.id;
-            return getGiveawayData;
-          });
+              if (getGiveawayData?.data?.content) {
+                const giveawayContent = getGiveawayData.data.content;
+                giveawayContent.voucher_id = giveawayData.id;
+                return giveawayContent;
+              }
+
+              return null;
+            })
+            .filter(Boolean);
 
           // 等待所有 add_on_products 產品資料同時獲取
           giveawayData.add_on_products = await Promise.all(productPromises);
