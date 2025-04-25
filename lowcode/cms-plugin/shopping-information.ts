@@ -600,6 +600,11 @@ export class ShoppingInformation {
                 )}
                 ${createToggle('顯示商品剩餘庫存', '啟用此功能，顧客會在商品頁面看到此商品剩餘的庫存數', 'stock_view')}
                 ${createToggle(
+                  '線上商店開放預購商品',
+                  '啟用此功能，顧客可以在線上商店的商品無庫存時，進行預購',
+                  'pre_order_status'
+                )}
+                ${createToggle(
                   '商品卡片顯示區間價格',
                   '啟用後，若商品有多個規格、不同價位，前台商品卡片將會使用價格區間來顯示，關閉則顯示該商品規格中最低價者',
                   'interval_price_card'

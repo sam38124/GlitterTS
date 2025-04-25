@@ -307,6 +307,7 @@ class CheckoutEvent {
                     return prod.variants.find((dd) => dd.spec.join('-') === item.spec.join('-'));
                 }
             }
+            const store_info = await new user_js_1.User(this.app).getConfigV2({ key: 'store-information', user_id: 'manager' });
             data.line_items = await Promise.all(data.line_items.map(async (item) => {
                 var _a, _b, _c, _d, _e;
                 const getProductData = (await this.shopping.getProduct({
@@ -326,13 +327,14 @@ class CheckoutEvent {
                         !isNaN(count) &&
                         count > 0) {
                         const isPOS = checkOutType === 'POS';
+                        const isPreOrderStore = store_info.pre_order_status;
                         const isUnderstockingVisible = variant.show_understocking !== 'false';
                         const isManualType = type === 'manual' || type === 'manual-preview';
                         if (isPOS && isUnderstockingVisible && !data.isExhibition) {
                             variant.stock = ((_b = (_a = variant.stockList) === null || _a === void 0 ? void 0 : _a[data.pos_store]) === null || _b === void 0 ? void 0 : _b.count) || 0;
                         }
                         if (variant.stock < item.count && isUnderstockingVisible && !isManualType) {
-                            if (isPOS) {
+                            if (isPOS || isPreOrderStore) {
                                 item.pre_order = true;
                             }
                             else {
@@ -727,6 +729,8 @@ class CheckoutEvent {
             checkPoint('return preview');
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
+            console.log(1);
+            console.log(carData.lineItems);
             if (userData && userData.userID) {
                 await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
                     order_id: carData.orderID,
@@ -875,6 +879,8 @@ class CheckoutEvent {
                 }
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
+            console.log(2);
+            console.log(carData.lineItems);
             const id = 'redirect_' + tool_js_1.default.randomString(6);
             const redirect_url = new URL(data.return_url);
             redirect_url.searchParams.set('cart_token', carData.orderID);

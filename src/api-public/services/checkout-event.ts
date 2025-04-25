@@ -464,6 +464,8 @@ export class CheckoutEvent {
         }
       }
 
+      const store_info = await new User(this.app).getConfigV2({ key: 'store-information', user_id: 'manager' });
+
       data.line_items = await Promise.all(
         data.line_items.map(async item => {
           const getProductData = (
@@ -490,6 +492,7 @@ export class CheckoutEvent {
               count > 0
             ) {
               const isPOS = checkOutType === 'POS';
+              const isPreOrderStore = store_info.pre_order_status;
               const isUnderstockingVisible = variant.show_understocking !== 'false';
               const isManualType = type === 'manual' || type === 'manual-preview';
 
@@ -498,7 +501,7 @@ export class CheckoutEvent {
               }
 
               if (variant.stock < item.count && isUnderstockingVisible && !isManualType) {
-                if (isPOS) {
+                if (isPOS || isPreOrderStore) {
                   item.pre_order = true;
                 } else {
                   item.count = variant.stock;

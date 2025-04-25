@@ -179,9 +179,7 @@ export class PaymentPage {
                                     >
                                       <div style="height: 20px;"></div>
                                       <div
-                                        style="width: 70px;height: 70px;
-                                                                                min-width: 70px;min-height: 70px;
-                                                                                border-radius: 5px;background: 50%/cover url('${data.preview_image ||
+                                        style="width: 70px;height: 70px; min-width: 70px;min-height: 70px; border-radius: 5px;background: 50%/cover url('${data.preview_image ||
                                         'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}')"
                                       ></div>
                                       <div
@@ -210,19 +208,13 @@ export class PaymentPage {
                                             return ``;
                                         }
                                         else {
-                                            return `<div>${BgWidget.dangerInsignia('需預購')}</div>`;
+                                            return html `<div>${BgWidget.dangerInsignia('需預購')}</div>`;
                                         }
                                     })()}
                                         ${data.title}
                                       </div>
                                       <span
-                                        style="color: #949494;
-                                                                                font-size: 16px;
-                                                                                font-style: normal;
-                                                                                font-weight: 500;
-                                                                                line-height: normal;
-                                                                                letter-spacing: 0.64px;
-                                                                                text-transform: uppercase;"
+                                        style="color: #949494; font-size: 16px; font-style: normal; font-weight: 500; line-height: normal; letter-spacing: 0.64px; text-transform: uppercase;"
                                       >
                                         ${(() => {
                                         return data.spec.length > 0

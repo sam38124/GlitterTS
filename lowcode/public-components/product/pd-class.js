@@ -492,6 +492,7 @@ export class PdClass {
         const titleFontColor = obj.titleFontColor;
         const prod = obj.prod;
         const vm = obj.vm;
+        const dialog = new ShareDialog(gvc.glitter);
         const ids = {
             price: glitter.getUUID(),
             wishStatus: glitter.getUUID(),
@@ -701,10 +702,11 @@ export class PdClass {
                         view: () => {
                             const variant = PdClass.getVariant(prod, vm);
                             const cartItem = new ApiCart().cart.line_items.find(item => PdClass.ObjCompare(item.spec, vm.specs, true));
-                            if (variant &&
-                                (variant.stock < parseInt(vm.quantity, 10) ||
-                                    (cartItem && variant.stock < cartItem.count + parseInt(vm.quantity, 10))) &&
-                                `${variant.show_understocking}` !== 'false') {
+                            const quantity = parseInt(vm.quantity, 10);
+                            const isOverStock = variant && (variant.stock < quantity || (cartItem && variant.stock < cartItem.count + quantity));
+                            const showUnderStocking = `${variant === null || variant === void 0 ? void 0 : variant.show_understocking}` !== 'false';
+                            const isPreOrderEnabled = window.store_info.pre_order_status;
+                            if (isOverStock && showUnderStocking && !isPreOrderEnabled) {
                                 return '';
                             }
                             return html `
@@ -723,6 +725,9 @@ export class PdClass {
                                     const variant = PdClass.getVariant(prod, vm);
                                     if (!variant || variant.show_understocking === 'false') {
                                         return 50;
+                                    }
+                                    if (variant.stock < 1 && isPreOrderEnabled) {
+                                        return 20;
                                     }
                                     return variant.stock < 50 ? variant.stock : 50;
                                 })()),
@@ -774,9 +779,8 @@ export class PdClass {
                             value: variant.sale_price,
                             currency: 'TWD',
                         });
-                        if (variant.stock < parseInt(vm.quantity, 10) &&
-                            `${variant.show_understocking}` !== 'false' &&
-                            document.body.clientWidth > 800) {
+                        const isOutOfStock = variant.stock < parseInt(vm.quantity, 10) && `${variant.show_understocking}` !== 'false';
+                        if (!window.store_info.pre_order_status && isOutOfStock) {
                             return html ` <button class="no-stock w-100" disabled>${Language.text('out_of_stock')}</button>`;
                         }
                         if (obj.is_gift) {
@@ -853,7 +857,6 @@ export class PdClass {
                   style="height:44px;width:44px;cursor: pointer;"
                   onclick="${gvc.event(() => {
                             navigator.clipboard.writeText(`${window.location.href}`);
-                            const dialog = new ShareDialog(gvc.glitter);
                             dialog.successMessage({ text: Language.text('copy_link_success') });
                         })}"
                 >
@@ -883,7 +886,6 @@ export class PdClass {
                                                             GlobalUser.loginRedirect = location.href;
                                                             return;
                                                         }
-                                                        const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.dataLoading({ visible: true });
                                                         ApiShop.getWishList().then(getRes => {
                                                             if (getRes.result && getRes.response.data) {
@@ -987,7 +989,7 @@ export class PdClass {
                             }
                         })}"
                 >
-                  ${Language.text('add_to_cart')}
+                  ${isOutOfStock ? Language.text('preorder_item') : Language.text('add_to_cart')}
                 </button>`);
                         viewMap.push(html `<button
                   class="add-cart-imd-btn fw-bold fs-sm"
@@ -1192,9 +1194,11 @@ export class PdClass {
                     bind: ids.addCartButton,
                     view: () => {
                         const variant = PdClass.getVariant(prod, vm);
-                        const cartItem = new ApiCart().cart.line_items.find(item => {
-                            return PdClass.ObjCompare(item.spec, vm.specs, true);
-                        });
+                        const cartItem = new ApiCart().cart.line_items.find(item => PdClass.ObjCompare(item.spec, vm.specs, true));
+                        const quantity = parseInt(vm.quantity, 10);
+                        const isOverStock = variant && (variant.stock < quantity || (cartItem && variant.stock < cartItem.count + quantity));
+                        const showUnderStocking = `${variant === null || variant === void 0 ? void 0 : variant.show_understocking}` !== 'false';
+                        const isPreOrderEnabled = window.store_info.pre_order_status;
                         if (!variant) {
                             return html ` <button class="no-stock w-100" disabled>發生錯誤</button>`;
                         }
@@ -1259,19 +1263,19 @@ export class PdClass {
                                 view: () => {
                                     vm.quantity = vm.quantity || '1';
                                     const supportMinus = parseInt(vm.quantity, 10) > 1;
-                                    function getSupportAds() {
-                                        return !(variant.stock < parseInt(vm.quantity, 10) + 1 &&
-                                            `${variant.show_understocking}` !== 'false');
+                                    function getSupportAdd() {
+                                        return (!(variant.stock < parseInt(vm.quantity, 10) + 1 &&
+                                            `${variant.show_understocking}` !== 'false') || isPreOrderEnabled);
                                     }
                                     function hasStock() {
-                                        return !((variant.stock < parseInt(vm.quantity, 10) || variant.stock < 1) &&
-                                            `${variant.show_understocking}` !== 'false');
+                                        return (!((variant.stock < parseInt(vm.quantity, 10) || variant.stock < 1) &&
+                                            `${variant.show_understocking}` !== 'false') || isPreOrderEnabled);
                                     }
-                                    let supportAdds = getSupportAds();
+                                    let supportAdds = getSupportAdd();
                                     if (!hasStock()) {
                                         vm.quantity = `${variant.stock}`;
                                     }
-                                    if (!hasStock()) {
+                                    if (!hasStock() && isOverStock && showUnderStocking && !isPreOrderEnabled) {
                                         return ``;
                                     }
                                     return html `
@@ -1304,6 +1308,9 @@ export class PdClass {
                                             if (!variant || variant.show_understocking === 'false') {
                                                 return 50;
                                             }
+                                            if (variant.stock < 1 && isPreOrderEnabled) {
+                                                return 20;
+                                            }
                                             return variant.stock < 50 ? variant.stock : 50;
                                         })()),
                                     ].map((item, index) => {
@@ -1335,7 +1342,8 @@ export class PdClass {
                                 },
                             };
                         }));
-                        if (variant.stock < 1 && `${variant.show_understocking}` !== 'false') {
+                        const isOutOfStock = variant.stock < parseInt(vm.quantity, 10) && `${variant.show_understocking}` !== 'false';
+                        if (!window.store_info.pre_order_status && isOutOfStock) {
                             viewMap.push(html ` <button class="no-stock w-100 " style="height:44px;" disabled>
                         ${Language.text('out_of_stock')}
                       </button>`);
@@ -1374,7 +1382,7 @@ export class PdClass {
                                 gvc.closeDialog();
                             })}"
                       >
-                        ${Language.text('add_to_cart')}
+                        ${isOutOfStock ? Language.text('preorder_item') : Language.text('add_to_cart')}
                       </button>`);
                         }
                         else if (type === 'buyNow') {

@@ -125,14 +125,22 @@ export class CheckoutIndex {
     }
 
     function giftBadge() {
-      return html` <div class="${gClass('add-item-badge')}" style="background:  #FFE9B2;">
+      return html` <div class="${gClass('add-item-badge')}" style="background: #FFE9B2;">
         <div class="${gClass('add-item-text')}">${Language.text('gift')}</div>
       </div>`;
     }
 
     function hiddenBadge() {
-      return html` <div class="${gClass('add-item-badge')}" style="background: #EAEAEA;color:white !important;">
-        <div class="${gClass('add-item-text')}">${Language.text('hidden_goods')}</div>
+      return html` <div class="${gClass('add-item-badge')}" style="background: #EAEAEA;">
+        <div class="${gClass('add-item-text')}" style="color: #FFF !important;">${Language.text('hidden_goods')}</div>
+      </div>`;
+    }
+
+    function preOrderBadge() {
+      return html` <div class="${gClass('add-item-badge')}" style="background: #da1313;">
+        <span class="${gClass('add-item-text')}" style="color: #FFF !important;"
+          >${Language.text('preorder_item')}</span
+        >
       </div>`;
     }
 
@@ -329,6 +337,7 @@ export class CheckoutIndex {
         }
 
         .${classPrefix}-add-item-badge {
+          width: 76px;
           height: 22px;
           padding-left: 6px;
           padding-right: 6px;
@@ -345,7 +354,7 @@ export class CheckoutIndex {
         .${classPrefix}-add-item-text {
           color: #393939;
           font-size: 14px;
-          font-weight: 400;
+          font-weight: 500;
           word-wrap: break-word;
         }
 
@@ -362,10 +371,10 @@ export class CheckoutIndex {
           color: #ff5353ff;
         }
 
-        .img-106px {
-          width: 106px;
-          min-width: 106px;
-          height: 106px;
+        .img-96px {
+          width: 96px;
+          min-width: 96px;
+          height: 96px;
           border-radius: 3px;
           background-position: center;
           background-size: cover;
@@ -416,6 +425,27 @@ export class CheckoutIndex {
             gap: 12px;
             margin: 24px 0;
           }
+
+        .${classPrefix}-button-bgr {
+          width: 100%;
+          border: 0;
+          border-radius: 0.375rem;
+          height: 36px;
+          background: #393939;
+          padding: 0;
+          margin: 18px 0;
+        }
+
+        .${classPrefix}-button-bgr-disable {
+          width: 100%;
+          border: 0;
+          border-radius: 0.375rem;
+          height: 36px;
+          background: #dddddd;
+          padding: 0;
+          margin: 18px 0;
+          cursor: not-allowed !important;
+        }
         }
       `);
     }
@@ -1178,6 +1208,8 @@ export class CheckoutIndex {
                               shipmentSupportSet.has(dd.value)
                             );
                             const localShip = shipmentSupportSet.has(localStorage.getItem('shipment-select'));
+                            const isPreOrderEnabled = (window as any).store_info.pre_order_status;
+
                             if (shipmentList.length === 0) {
                               vm.cartData.user_info.shipment = 'none';
                               localStorage.setItem('shipment-select', 'none');
@@ -1223,7 +1255,6 @@ export class CheckoutIndex {
                                           try {
                                             return vm.cartData.lineItems
                                               .map((item: any, index: number) => {
-                                                // min_qty
                                                 function getBadgeClass() {
                                                   if (item.is_add_on_items) {
                                                     return addItemBadge();
@@ -1231,9 +1262,10 @@ export class CheckoutIndex {
                                                     return giftBadge();
                                                   } else if (item.is_hidden) {
                                                     return hiddenBadge();
-                                                  } else {
-                                                    return ``;
+                                                  } else if (item.pre_order) {
+                                                    return preOrderBadge();
                                                   }
+                                                  return ``;
                                                 }
 
                                                 const title =
@@ -1271,20 +1303,27 @@ export class CheckoutIndex {
                                                         ></div>
                                                       </div>
                                                       <div
-                                                        class="d-flex  flex-column  position-relative"
+                                                        class="d-flex flex-column position-relative"
                                                         style="gap: 2px; position: relative; width:calc(100% - 115px);"
                                                       >
-                                                        <span
-                                                          class="fw-bold pe-4"
-                                                          style="gap:5px;font-size:${document.body.clientWidth > 800
-                                                            ? `16`
-                                                            : `14`}px;max-width:calc(100% - 10px); display: -webkit-box; -webkit-line-clamp: 2;  -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; "
-                                                          >${title}</span
+                                                        <div
+                                                          class="d-flex ${document.body.clientWidth > 800
+                                                            ? 'align-items-center'
+                                                            : 'flex-column pe-4'} gap-2"
                                                         >
+                                                          <div
+                                                            class="fw-bold"
+                                                            style="gap:5px;font-size:${document.body.clientWidth > 800
+                                                              ? `16`
+                                                              : `14`}px;max-width:calc(100% - 10px); display: -webkit-box; -webkit-line-clamp: 2;  -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; "
+                                                          >
+                                                            ${item.title}
+                                                          </div>
+                                                          ${getBadgeClass()}
+                                                        </div>
                                                         <div class="${gClass(['66text'])} fs-sm">
                                                           ${spec ? spec.join(' / ') : ''}
                                                         </div>
-                                                        <div>${getBadgeClass()}</div>
                                                         <div
                                                           class="d-flex flex-column align-items-start "
                                                           style="gap:2px;"
@@ -1299,18 +1338,15 @@ export class CheckoutIndex {
                                                               );
                                                             })()}
                                                           </div>
-                                                          ${(() => {
-                                                            if (item.is_gift || item.sale_price >= item.origin_price) {
-                                                              return '';
-                                                            }
-                                                            return html` <div
-                                                              style="text-decoration: line-through; font-size: 12px;"
-                                                            >
-                                                              ${Currency.convertCurrencyText(
-                                                                parseFloat(item.origin_price)
-                                                              )}
-                                                            </div>`;
-                                                          })()}
+                                                          <div
+                                                            style="text-decoration: line-through; font-size: 12px; height: 20px;"
+                                                          >
+                                                            ${item.is_gift || item.sale_price >= item.origin_price
+                                                              ? ''
+                                                              : Currency.convertCurrencyText(
+                                                                  parseFloat(item.origin_price)
+                                                                )}
+                                                          </div>
                                                         </div>
                                                         <div class="w-100 d-flex">
                                                           <div class="flex-fill"></div>
@@ -1371,6 +1407,9 @@ export class CheckoutIndex {
                                                                   (() => {
                                                                     if (item.show_understocking === 'false') {
                                                                       return 50;
+                                                                    }
+                                                                    if (item.stock < 1 && isPreOrderEnabled) {
+                                                                      return 20;
                                                                     }
                                                                     return item.stock < 50 ? item.stock : 50;
                                                                   })()
@@ -1475,16 +1514,18 @@ export class CheckoutIndex {
                                                         }
 
                                                         if (count > max_qty) {
-                                                          return `<div class="text-danger">${Language.text('max_p_count').replace('_c_', max_qty)}</div>`;
+                                                          return html`<div class="text-danger">
+                                                            ${Language.text('max_p_count').replace('_c_', max_qty)}
+                                                          </div>`;
                                                         } else {
-                                                          return ``;
+                                                          return '';
                                                         }
                                                       })()}
                                                     </div>
                                                   </div>
                                                 `;
                                               })
-                                              .join(`<div class="border-bottom w-100"></div>`);
+                                              .join(html`<div class="border-bottom w-100"></div>`);
                                           } catch (e) {
                                             console.error(`error 1 =>`, e);
                                             return '';
@@ -1527,25 +1568,26 @@ export class CheckoutIndex {
                                                           style="gap:10px;"
                                                         >
                                                           <div
-                                                            class="img-fluid img-106px"
+                                                            class="img-fluid img-96px"
                                                             style="background-image: url('${pd.preview_image[0]}');"
                                                           ></div>
-                                                          <div class="d-flex flex-column" style="gap:5px;">
+                                                          <div
+                                                            class="d-flex flex-column"
+                                                            style="gap: 5px; width: 130px;"
+                                                          >
                                                             <div class="${gClass('banner-text')} banner-font-15">
                                                               ${pd.title}
                                                             </div>
                                                             <div class="text-danger ntd-font-14">
                                                               ${Currency.convertCurrencyText(0)}
                                                             </div>
-                                                            ${pd.min_price > 0
-                                                              ? html`
-                                                                  <div
-                                                                    style="text-decoration: line-through; font-size: 12px;"
-                                                                  >
-                                                                    ${Currency.convertCurrencyText(pd.min_price)}
-                                                                  </div>
-                                                                `
-                                                              : ''}
+                                                            <div
+                                                              style="text-decoration: line-through; font-size: 12px; height: 20px;"
+                                                            >
+                                                              ${pd.min_price > 0
+                                                                ? Currency.convertCurrencyText(pd.min_price)
+                                                                : ''}
+                                                            </div>
                                                             <button
                                                               class="${gClass('button-bgr')} mb-0 mt-2"
                                                               style="${isSelected
@@ -1749,11 +1791,14 @@ export class CheckoutIndex {
                                                           style="gap:10px;"
                                                         >
                                                           <div
-                                                            class="img-fluid img-106px"
+                                                            class="img-fluid img-96px"
                                                             style="background-image: url('${dd.content
                                                               .preview_image[0]}');"
                                                           ></div>
-                                                          <div class="d-flex flex-column" style="gap:5px;">
+                                                          <div
+                                                            class="d-flex flex-column"
+                                                            style="gap: 5px; width: 130px;"
+                                                          >
                                                             <div class="${gClass('banner-text')} banner-font-15">
                                                               ${dd.content.title}
                                                             </div>
@@ -3126,7 +3171,7 @@ export class CheckoutIndex {
 
                                           <div
                                             class="w-100 d-flex align-items-center justify-content-center position-fixed bottom-0 start-0 p-2 shadow bg-white"
-                                            style="min-height:76px;z-index:10;"
+                                            style="min-height:60px;max-height:72px;z-index:10;"
                                           >
                                             ${(() => {
                                               if (verify.length > 0) {
@@ -3159,8 +3204,8 @@ export class CheckoutIndex {
                                                         verify.length > 0 ? 'button-bgr-disable' : 'button-bgr'
                                                       )}"
                                                       style="${document.body.clientWidth < 800
-                                                        ? `min-width:100px;`
-                                                        : `min-width:380px;`}"
+                                                        ? `min-width: 100px;`
+                                                        : `min-width: 300px;`}"
                                                       onclick="${gvc.event(() => {
                                                         const that = this;
                                                         if (onlineData?.interaction?.status == 3) {
