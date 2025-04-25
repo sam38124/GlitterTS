@@ -14,6 +14,7 @@ import { ApiPublic } from './public-table-check.js';
 import { App } from '../../services/app.js';
 import { UserUpdate } from './user-update.js';
 import { Firebase } from '../../modules/firebase.js';
+import { Invoice } from './invoice.js';
 
 type ScheduleItem = {
   second: number;
@@ -294,6 +295,36 @@ export class Schedule {
     console.log(`resetVoucherHistory-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
   }
 
+  async autoTriggerInvoice(sec: number) {
+    let clock = new Date();
+    console.log(`autoTriggerInvoice`);
+    for (const app of Schedule.app) {
+      if (app === 't_1725992531001') {
+        try {
+          if (await this.perload(app)) {
+            const orders = await db.query(
+              `SELECT * FROM \`${app}\`.t_triggers
+                     WHERE 
+                        tag = 'triggerInvoice' AND 
+                        status = 0 AND
+                        DATE_FORMAT(trigger_time, '%Y-%m-%d %H') = DATE_FORMAT(NOW(), '%Y-%m-%d %H');`,
+              []
+            );
+            for (const order of orders) {
+              if (order.content.cart_token) {
+                new Invoice(app).postCheckoutInvoice(order.content.cart_token, false);
+              }
+            }
+          }
+        } catch (e) {
+          console.error('BAD_REQUEST', 'autoTriggerInvoice Error: ' + e, null);
+        }
+      }
+    }
+    setTimeout(() => this.autoTriggerInvoice(sec), sec * 1000);
+    console.log(`autoTriggerInvoice-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
+  }
+
   async autoSendFCM(sec: number) {
     let clock = new Date();
     console.log(`autoSendLine`);
@@ -444,6 +475,7 @@ export class Schedule {
       { second: 3600 * 24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
       // { second: 3600 * 24, status: false, func: 'initialSampleApp', desc: '重新刷新示範商店' },
       { second: 30, status: true, func: 'autoCancelOrder', desc: '自動取消未付款未出貨訂單' },
+      { second: 30, status: true, func: 'autoTriggerInvoice', desc: '自動開立發票' },
     ];
     try {
       scheduleList.forEach(schedule => {

@@ -5,22 +5,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Invoice = void 0;
 const app_js_1 = __importDefault(require("../../app.js"));
-const invoice_js_1 = require("./ezpay/invoice.js");
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
+const tool_js_1 = __importDefault(require("../../modules/tool.js"));
+const invoice_js_1 = require("./ezpay/invoice.js");
 const EcInvoice_js_1 = require("./EcInvoice.js");
 const shopping_js_1 = require("./shopping.js");
-const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 class Invoice {
     constructor(appName) {
         this.appName = appName;
     }
+    static checkWhiteList(config, invoice_data) {
+        if (config.point === 'beta' && invoice_data.BuyerEmail && config.whiteList && config.whiteList.length > 0) {
+            return config.whiteList.find((dd) => dd.email === invoice_data.BuyerEmail);
+        }
+        return true;
+    }
     async postInvoice(cf) {
         try {
             const config = await app_js_1.default.getAdConfig(this.appName, 'invoice_setting');
+            let invoiceResult = {};
             switch (config.fincial) {
                 case 'ezpay':
-                    return await invoice_js_1.EzInvoice.postInvoice({
+                    invoiceResult = await invoice_js_1.EzInvoice.postInvoice({
                         hashKey: config.hashkey,
                         hash_IV: config.hashiv,
                         merchNO: config.merchNO,
@@ -28,7 +35,7 @@ class Invoice {
                         beta: config.point === 'beta',
                     });
                 case 'ecpay':
-                    return await EcInvoice_js_1.EcInvoice.postInvoice({
+                    invoiceResult = await EcInvoice_js_1.EcInvoice.postInvoice({
                         hashKey: config.hashkey,
                         hash_IV: config.hashiv,
                         merchNO: config.merchNO,
@@ -40,27 +47,29 @@ class Invoice {
                         print: cf.print,
                     });
             }
+            await database_js_1.default.query(`
+          UPDATE \`${this.appName}\`.t_triggers SET status = 1 
+          WHERE tag = 'triggerInvoice' AND content->>'$.cart_token' = ?;
+        `, [cf.order_id]);
+            return invoiceResult;
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', e.message, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postInvoice Error: ' + e.message, null);
         }
     }
     async postCheckoutInvoice(orderID, print, obj) {
         const order = typeof orderID === 'string'
-            ? (await database_js_1.default.query(`SELECT *
-             FROM \`${this.appName}\`.t_checkout
-             where cart_token = ?`, [orderID]))[0]['orderData']
+            ? (await database_js_1.default.query(`SELECT * FROM \`${this.appName}\`.t_checkout WHERE cart_token = ?
+              `, [orderID]))[0]['orderData']
             : orderID;
-        const count_invoice = (await database_js_1.default.query(`SELECT count(1)
-                                           from \`${this.appName}\`.t_invoice_memory
-                                           where order_id = ?
-                                             and status = 1`, [order.orderID]))[0]['count(1)'];
+        const count_invoice = (await database_js_1.default.query(`SELECT count(1) FROM \`${this.appName}\`.t_invoice_memory WHERE order_id = ? AND status = 1
+        `, [order.orderID]))[0]['count(1)'];
         if (count_invoice) {
             return false;
         }
-        const config = await app_js_1.default.getAdConfig(this.appName, 'invoice_setting');
         let can_discount_tax_5 = 0;
         let can_discount_tax_0 = 0;
+        const config = await app_js_1.default.getAdConfig(this.appName, 'invoice_setting');
         const line_item = await Promise.all(order.lineItems.map(async (dd) => {
             const product = await new shopping_js_1.Shopping(this.appName).getProduct({
                 id: `${dd.id}`,
@@ -106,9 +115,7 @@ class Invoice {
             ItemAmt: (all_discount <= can_discount_tax_5 ? all_discount : can_discount_tax_5) * -1,
             ItemTaxType: 1,
         });
-        if (line_item.find(dd => {
-            return dd.ItemTaxType === 3;
-        })) {
+        if (line_item.find(dd => dd.ItemTaxType === 3)) {
             let free_tax_discount = all_discount - can_discount_tax_5;
             line_item.push({
                 ItemName: '免稅折扣',
@@ -174,11 +181,7 @@ class Invoice {
                     : undefined,
                 Donation: order.user_info.invoice_type === 'donate' ? '1' : '0',
                 LoveCode: order.user_info.invoice_type === 'donate' ? order.user_info.love_code : undefined,
-                TaxType: line_item.find(dd => {
-                    return dd.ItemTaxType === 3;
-                })
-                    ? '9'
-                    : '1',
+                TaxType: line_item.find(dd => dd.ItemTaxType === 3) ? '9' : '1',
                 SalesAmount: order.total,
                 InvType: '07',
                 Items: line_item.map((dd, index) => {
@@ -233,28 +236,15 @@ class Invoice {
         }
     }
     async updateInvoice(obj) {
-        let data = await database_js_1.default.query(`SELECT *
-       FROM \`${this.appName}\`.t_invoice_memory
-       where order_id = ?`, [obj.orderID]);
-        data = data[0];
+        const data = (await database_js_1.default.query(`SELECT * FROM \`${this.appName}\`.t_invoice_memory WHERE order_id = ?
+        `, [obj.orderID]))[0];
         data.invoice_data.remark = obj.invoice_data;
         await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_invoice_memory
-       set invoice_data = ?
-       WHERE order_id = ?`, [JSON.stringify(data.invoice_data), obj.orderID]);
-    }
-    static checkWhiteList(config, invoice_data) {
-        if (config.point === 'beta' && invoice_data.BuyerEmail && config.whiteList && config.whiteList.length > 0) {
-            return config.whiteList.find((dd) => {
-                return dd.email === invoice_data.BuyerEmail;
-            });
-        }
-        else {
-            return true;
-        }
+       SET invoice_data = ? WHERE order_id = ?`, [JSON.stringify(data.invoice_data), obj.orderID]);
     }
     async getInvoice(query) {
         try {
-            let querySql = [`1=1`];
+            const querySql = [`1=1`];
             if (query.search) {
                 switch (query.searchType) {
                     case 'invoice_number':
@@ -281,40 +271,42 @@ class Invoice {
                         break;
                 }
             }
-            if (query.invoice_type) {
-                const invoice_type = query.invoice_type;
-            }
             if (query.created_time) {
                 const created_time = query.created_time.split(',');
                 if (created_time.length > 1) {
                     querySql.push(`
-                        (create_date BETWEEN ${database_js_1.default.escape(`${created_time[0]} 00:00:00`)} 
-                        AND ${database_js_1.default.escape(`${created_time[1]} 23:59:59`)})
-                    `);
+            (create_date BETWEEN ${database_js_1.default.escape(`${created_time[0]} 00:00:00`)} 
+            AND ${database_js_1.default.escape(`${created_time[1]} 23:59:59`)})
+          `);
                 }
             }
             if (query.invoice_type) {
                 const data = query.invoice_type;
                 if (data == 'B2B') {
                     querySql.push(`
-                            JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') IS NULL
-                            OR CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier')) = 0`);
+            JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') IS NULL
+            OR CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier')) = 0
+          `);
                 }
                 else {
-                    querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') IS NOT NULL
-                              AND CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier')) > 0`);
+                    querySql.push(`
+            JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') IS NOT NULL
+            AND CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier')) > 0
+          `);
                 }
             }
             if (query.issue_method) {
                 if (query.issue_method == 'manual') {
-                    console.log('query.issue_method -- ', query.issue_method);
-                    querySql.push(`JSON_EXTRACT(invoice_data, '$.remark.issueType') IS NOT NULL
-                              AND CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.remark.issueType')) > 0`);
+                    querySql.push(`
+            JSON_EXTRACT(invoice_data, '$.remark.issueType') IS NOT NULL
+            AND CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.remark.issueType')) > 0
+          `);
                 }
                 else {
                     querySql.push(`
-                            JSON_EXTRACT(invoice_data, '$.remark.issueType') IS NULL
-                            OR CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.remark.issueType')) = 0`);
+            JSON_EXTRACT(invoice_data, '$.remark.issueType') IS NULL
+            OR CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.remark.issueType')) = 0
+          `);
                 }
             }
             query.status && querySql.push(`status IN (${query.status})`);
@@ -333,26 +325,26 @@ class Invoice {
                         return `order by id desc`;
                 }
             })();
-            let sql = `SELECT *
-                 FROM \`${this.appName}\`.t_invoice_memory
-                 WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
+            const sql = `
+        SELECT *
+        FROM \`${this.appName}\`.t_invoice_memory
+        WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
       `;
             return {
-                data: await database_js_1.default.query(`SELECT *
-           FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
-                total: (await database_js_1.default.query(`SELECT count(1)
-             FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                data: await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+          `, []),
+                total: (await database_js_1.default.query(`SELECT count(1) FROM (${sql}) as subqyery
+            `, []))[0]['count(1)'],
             };
         }
         catch (e) {
             console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getInvoice Error:' + e, null);
         }
     }
     async getAllowance(query) {
         try {
             let querySql = [`1=1`];
-            console.log('searchType -- ', query.searchType);
             if (query.search) {
                 querySql.push(`${query.searchType} LIKE '%${query.search}%'`);
             }
@@ -360,9 +352,9 @@ class Invoice {
                 const created_time = query.created_time.split(',');
                 if (created_time.length > 1) {
                     querySql.push(`
-                        (create_date BETWEEN ${database_js_1.default.escape(`${created_time[0]} 00:00:00`)} 
-                        AND ${database_js_1.default.escape(`${created_time[1]} 23:59:59`)})
-                    `);
+            (create_date BETWEEN ${database_js_1.default.escape(`${created_time[0]} 00:00:00`)} 
+            AND ${database_js_1.default.escape(`${created_time[1]} 23:59:59`)})
+          `);
                 }
             }
             query.status && querySql.push(`status IN (${query.status})`);
@@ -381,32 +373,21 @@ class Invoice {
                         return `order by id desc`;
                 }
             })();
-            let sql = `SELECT *
-                 FROM \`${this.appName}\`.t_allowance_memory
-                 WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
+            let sql = `
+        SELECT *
+        FROM \`${this.appName}\`.t_allowance_memory
+        WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
       `;
             return {
-                data: await database_js_1.default.query(`SELECT *
-           FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
-                total: (await database_js_1.default.query(`SELECT count(1)
-             FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                data: await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+          `, []),
+                total: (await database_js_1.default.query(`SELECT count(1) FROM (${sql}) as subqyery
+            `, []))[0]['count(1)'],
             };
         }
         catch (e) {
             console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
-        }
-    }
-    async querySql(querySql, query) {
-        let sql = `SELECT *
-               FROM \`${this.appName}\`.t_invoice_memory
-               WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
-    `;
-        try {
-            return await database_js_1.default.query(sql, []);
-        }
-        catch (e) {
-            console.log('get invoice failed:', e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getAllowance Error:' + e, null);
         }
     }
 }

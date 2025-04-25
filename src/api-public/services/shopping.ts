@@ -3046,9 +3046,7 @@ export class Shopping {
         {}
       );
       await db.query(
-        `UPDATE \`${this.app}\`.t_checkout
-         SET ?
-         WHERE id = ?;
+        `UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
         `,
         [updateData, origin.id]
       );
@@ -3090,15 +3088,35 @@ export class Shopping {
       // 若符合有效訂單設定，則發放類型為購物金的優惠券
       const orderCountingSQL = await new User(this.app).getCheckoutCountingModeSQL();
       const orderCount = await db.query(
-        `SELECT *
-         FROM \`${this.app}\`.t_checkout
-         WHERE id = ?
-           AND ${orderCountingSQL};
+        `SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${orderCountingSQL};
         `,
         [origin.id]
       );
       if (orderCount[0]) {
         await this.shareVoucherRebate(orderCount[0]);
+      }
+
+      // 若符合有效訂單設定，則發放類型為購物金的優惠券
+      const invoiceCountingConfig = await new User(this.app).getInvoiceCountingModeSQL();
+      const invoiceCount = await db.query(
+        `SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${invoiceCountingConfig.sql_string};
+        `,
+        [origin.id]
+      );
+      if (invoiceCount[0]) {
+        const cart_token = invoiceCount[0].cart_token;
+
+        const json = {
+          tag: 'triggerInvoice',
+          content: JSON.stringify({ cart_token }),
+          trigger_time: Tool.getCurrentDateTime({
+            inputDate: new Date().toISOString(),
+            addSeconds: invoiceCountingConfig.invoice_mode.afterDays * 86400,
+          }),
+          status: 0,
+        };
+
+        await db.query(`INSERT INTO \`${this.app}\`.t_triggers SET ?;`, [json]);
       }
 
       return {
@@ -4071,7 +4089,6 @@ export class Shopping {
         } catch (e) {
           console.error(e);
         }
-        new Invoice(this.app).postCheckoutInvoice(order_id, false);
       }
     } catch (error) {
       throw exception.BadRequestError('BAD_REQUEST', 'Release Checkout Error:' + e, null);

@@ -1,36 +1,75 @@
 import app from '../../app.js';
-import response from '../../modules/response.js';
-import { EzInvoice } from './ezpay/invoice.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import { EcInvoice, EcInvoiceInterface } from './EcInvoice.js';
-import { EcPay } from './financial-service.js';
-import { Shopping } from './shopping.js';
 import Tool from '../../modules/tool.js';
+import { EzInvoice } from './ezpay/invoice.js';
+import { EcInvoice, EcInvoiceInterface } from './EcInvoice.js';
+import { Shopping } from './shopping.js';
+
+type InvoiceOrder = {
+  user_info: {
+    name: string;
+    note: string;
+    email: string;
+    phone: string;
+    address: string;
+    gui_number?: string;
+    company?: string;
+    invoice_type: 'company' | 'me' | 'donate';
+    send_type: 'email' | 'carrier';
+    carrier_num: string;
+  };
+  total: number;
+  lineItems: [
+    {
+      id: number;
+      spec: string[];
+      count: number;
+      title: string;
+      collection: string[];
+      sale_price: number;
+      preview_image: string;
+      discount_price: number;
+    },
+  ];
+  use_wallet: number;
+  use_rebate: number;
+  shipment_fee: number;
+  discount: number;
+  orderID: number;
+};
 
 export class Invoice {
-  public appName: string;
+  appName: string;
 
   constructor(appName: string) {
     this.appName = appName;
   }
 
-  //判斷發票類型開立
-  public async postInvoice(cf: { invoice_data: any; print: boolean; order_id: string; orderData: any }) {
+  static checkWhiteList(config: any, invoice_data: any) {
+    if (config.point === 'beta' && invoice_data.BuyerEmail && config.whiteList && config.whiteList.length > 0) {
+      return config.whiteList.find((dd: any) => dd.email === invoice_data.BuyerEmail);
+    }
+    return true;
+  }
+
+  // 判斷發票類型開立
+  async postInvoice(cf: { invoice_data: any; print: boolean; order_id: string; orderData: any }) {
     try {
       const config = await app.getAdConfig(this.appName, 'invoice_setting');
+      let invoiceResult = {};
+
       switch (config.fincial) {
         case 'ezpay':
-          return await EzInvoice.postInvoice({
+          invoiceResult = await EzInvoice.postInvoice({
             hashKey: config.hashkey,
             hash_IV: config.hashiv,
             merchNO: config.merchNO,
             invoice_data: cf.invoice_data,
             beta: config.point === 'beta',
           });
-        //     ecpay跟
         case 'ecpay':
-          return await EcInvoice.postInvoice({
+          invoiceResult = await EcInvoice.postInvoice({
             hashKey: config.hashkey,
             hash_IV: config.hashiv,
             merchNO: config.merchNO,
@@ -42,70 +81,51 @@ export class Invoice {
             print: cf.print,
           });
       }
+
+      // 更新排程開立發票資料
+      await db.query(
+        `
+          UPDATE \`${this.appName}\`.t_triggers SET status = 1 
+          WHERE tag = 'triggerInvoice' AND content->>'$.cart_token' = ?;
+        `,
+        [cf.order_id]
+      );
+
+      return invoiceResult;
     } catch (e: any) {
-      throw exception.BadRequestError('BAD_REQUEST', e.message, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'postInvoice Error: ' + e.message, null);
     }
   }
 
-  //訂單開發票
-  public async postCheckoutInvoice(orderID: string | any, print: boolean, obj?: { offlineInvoice?: boolean }) {
-    const order: {
-      user_info: {
-        name: string;
-        note: string;
-        email: string;
-        phone: string;
-        address: string;
-        gui_number?: string;
-        company?: string;
-        invoice_type: 'company' | 'me' | 'donate';
-        send_type: 'email' | 'carrier';
-        carrier_num: string;
-      };
-      total: number;
-      lineItems: [
-        {
-          id: number;
-          spec: string[];
-          count: number;
-          title: string;
-          collection: string[];
-          sale_price: number;
-          preview_image: string;
-          discount_price: number;
-        },
-      ];
-      use_wallet: number;
-      use_rebate: number;
-      shipment_fee: number;
-      discount: number;
-      orderID: number;
-    } =
+  // 訂單開立發票
+  async postCheckoutInvoice(orderID: string | any, print: boolean, obj?: { offlineInvoice?: boolean }) {
+    const order: InvoiceOrder =
       typeof orderID === 'string'
         ? (
             await db.query(
-              `SELECT *
-             FROM \`${this.appName}\`.t_checkout
-             where cart_token = ?`,
+              `SELECT * FROM \`${this.appName}\`.t_checkout WHERE cart_token = ?
+              `,
               [orderID]
             )
           )[0]['orderData']
         : orderID;
+
     const count_invoice = (
       await db.query(
-        `SELECT count(1)
-                                           from \`${this.appName}\`.t_invoice_memory
-                                           where order_id = ?
-                                             and status = 1`,
+        `SELECT count(1) FROM \`${this.appName}\`.t_invoice_memory WHERE order_id = ? AND status = 1
+        `,
         [order.orderID]
       )
     )[0]['count(1)'];
+
     if (count_invoice) {
       return false;
     }
-    const config = await app.getAdConfig(this.appName, 'invoice_setting');
+
     let can_discount_tax_5 = 0;
     let can_discount_tax_0 = 0;
+    const config = await app.getAdConfig(this.appName, 'invoice_setting');
+
     const line_item = await Promise.all(
       order.lineItems.map(async dd => {
         const product = await new Shopping(this.appName).getProduct({
@@ -129,10 +149,12 @@ export class Invoice {
         };
       })
     );
+
     order.use_rebate = parseInt(`${order.use_rebate || '0'}`, 10);
     order.discount = parseInt(`${order.discount || '0'}`, 10);
     order.shipment_fee = parseInt(`${order.shipment_fee || '0'}`, 10);
-    //所有折扣扣除應稅折扣
+
+    // 所有折扣扣除應稅折扣
     let all_discount = order.use_rebate + order.discount;
     if (order.shipment_fee) {
       can_discount_tax_5 = can_discount_tax_5 + order.shipment_fee;
@@ -153,12 +175,9 @@ export class Invoice {
       ItemAmt: (all_discount <= can_discount_tax_5 ? all_discount : can_discount_tax_5) * -1,
       ItemTaxType: 1,
     });
-    //所有折扣扣除應稅折扣
-    if (
-      line_item.find(dd => {
-        return dd.ItemTaxType === 3;
-      })
-    ) {
+
+    // 所有折扣扣除應稅折扣
+    if (line_item.find(dd => dd.ItemTaxType === 3)) {
       let free_tax_discount = all_discount - can_discount_tax_5;
       line_item.push({
         ItemName: '免稅折扣',
@@ -226,11 +245,7 @@ export class Invoice {
             : undefined,
         Donation: order.user_info.invoice_type === 'donate' ? '1' : '0',
         LoveCode: order.user_info.invoice_type === 'donate' ? (order.user_info as any).love_code : undefined,
-        TaxType: line_item.find(dd => {
-          return dd.ItemTaxType === 3;
-        })
-          ? '9'
-          : '1',
+        TaxType: line_item.find(dd => dd.ItemTaxType === 3) ? '9' : '1',
         SalesAmount: order.total,
         InvType: '07',
         Items: line_item.map((dd, index) => {
@@ -246,8 +261,8 @@ export class Invoice {
           };
         }),
       };
-      if(order.user_info.invoice_type === 'company'){
-        json={
+      if (order.user_info.invoice_type === 'company') {
+        json = {
           ...json,
           ClearanceMark: '1',
           Print: '1',
@@ -255,7 +270,7 @@ export class Invoice {
           LoveCode: '',
           CarrierType: '',
           CarrierNum: '',
-        }
+        };
       }
       if (print) {
         const cover = {
@@ -293,26 +308,217 @@ export class Invoice {
     }
   }
 
-  public async updateInvoice(obj: { orderID: string; invoice_data: any }) {
-    let data = await db.query(
-      `SELECT *
-       FROM \`${this.appName}\`.t_invoice_memory
-       where order_id = ?`,
-      [obj.orderID]
-    );
-    data = data[0];
+  // 更新發票
+  async updateInvoice(obj: { orderID: string; invoice_data: any }) {
+    const data = (
+      await db.query(
+        `SELECT * FROM \`${this.appName}\`.t_invoice_memory WHERE order_id = ?
+        `,
+        [obj.orderID]
+      )
+    )[0];
     data.invoice_data.remark = obj.invoice_data;
+
     await db.query(
       `UPDATE \`${this.appName}\`.t_invoice_memory
-       set invoice_data = ?
-       WHERE order_id = ?`,
+       SET invoice_data = ? WHERE order_id = ?`,
       [JSON.stringify(data.invoice_data), obj.orderID]
     );
-    // console.log("data -- " , data.invoice_data)
   }
 
-  //儲值開立發票
-  // public async postCheckoutInvoice(orderID: string|any ,print:boolean) {
+  // 取得發票
+  async getInvoice(query: {
+    page: number;
+    limit: number;
+    search?: string;
+    searchType?: string;
+    orderString?: string;
+    created_time?: string;
+    invoice_type?: string;
+    issue_method?: string;
+    status?: string;
+    filter?: any;
+  }) {
+    try {
+      const querySql = [`1=1`];
+
+      if (query.search) {
+        switch (query.searchType) {
+          case 'invoice_number':
+            querySql.push(`invoice_no LIKE '%${query.search}%'`);
+            break;
+          case 'name':
+            querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerName') LIKE '%${query.search}%'`);
+            break;
+          case 'business_number':
+            querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') LIKE '%${query.search}%'`);
+            break;
+          case 'phone':
+            querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerPhone') LIKE '%${query.search}%'`);
+            break;
+          case 'product_name':
+            querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.Items[*].ItemName') LIKE '%${query.search}%'`);
+            break;
+          case 'product_number':
+            querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.Items[*].ItemNumber') LIKE '%${query.search}%'`);
+            break;
+          case 'order_number':
+          default:
+            querySql.push(`order_id LIKE '%${query.search}%'`);
+            break;
+        }
+      }
+
+      if (query.created_time) {
+        const created_time = query.created_time.split(',');
+        if (created_time.length > 1) {
+          querySql.push(`
+            (create_date BETWEEN ${db.escape(`${created_time[0]} 00:00:00`)} 
+            AND ${db.escape(`${created_time[1]} 23:59:59`)})
+          `);
+        }
+      }
+      // 發票種類: B2B,B2C 發票開立方式: 自動,手動
+      if (query.invoice_type) {
+        const data = query.invoice_type;
+        if (data == 'B2B') {
+          querySql.push(`
+            JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') IS NULL
+            OR CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier')) = 0
+          `);
+        } else {
+          querySql.push(`
+            JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') IS NOT NULL
+            AND CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier')) > 0
+          `);
+        }
+      }
+      if (query.issue_method) {
+        if (query.issue_method == 'manual') {
+          querySql.push(`
+            JSON_EXTRACT(invoice_data, '$.remark.issueType') IS NOT NULL
+            AND CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.remark.issueType')) > 0
+          `);
+        } else {
+          querySql.push(`
+            JSON_EXTRACT(invoice_data, '$.remark.issueType') IS NULL
+            OR CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.remark.issueType')) = 0
+          `);
+        }
+      }
+      query.status && querySql.push(`status IN (${query.status})`);
+      query.orderString = (() => {
+        switch (query.orderString) {
+          case 'created_time_desc':
+            return `order by create_date desc`;
+          case 'created_time_asc':
+            return `order by create_date ASC`;
+          case 'order_total_desc':
+            return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') DESC`;
+          case 'order_total_asc':
+            return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') ASC`;
+          case 'default':
+          default:
+            return `order by id desc`;
+        }
+      })();
+      const sql = `
+        SELECT *
+        FROM \`${this.appName}\`.t_invoice_memory
+        WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
+      `;
+      return {
+        data: await db.query(
+          `SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+          `,
+          []
+        ),
+        total: (
+          await db.query(
+            `SELECT count(1) FROM (${sql}) as subqyery
+            `,
+            []
+          )
+        )[0]['count(1)'],
+      };
+    } catch (e) {
+      console.error(e);
+      throw exception.BadRequestError('BAD_REQUEST', 'getInvoice Error:' + e, null);
+    }
+  }
+
+  // 取得折讓單
+  async getAllowance(query: {
+    page: number;
+    limit: number;
+    search?: string;
+    searchType?: string;
+    orderString?: string;
+    created_time?: string;
+    invoice_type?: string;
+    issue_method?: string;
+    status?: string;
+    filter?: string;
+  }) {
+    try {
+      let querySql = [`1=1`];
+
+      if (query.search) {
+        querySql.push(`${query.searchType} LIKE '%${query.search}%'`);
+      }
+
+      if (query.created_time) {
+        const created_time = query.created_time.split(',');
+        if (created_time.length > 1) {
+          querySql.push(`
+            (create_date BETWEEN ${db.escape(`${created_time[0]} 00:00:00`)} 
+            AND ${db.escape(`${created_time[1]} 23:59:59`)})
+          `);
+        }
+      }
+      query.status && querySql.push(`status IN (${query.status})`);
+      query.orderString = (() => {
+        switch (query.orderString) {
+          case 'created_time_desc':
+            return `order by create_date desc`;
+          case 'created_time_asc':
+            return `order by create_date ASC`;
+          case 'order_total_desc':
+            return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') DESC`;
+          case 'order_total_asc':
+            return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') ASC`;
+          case 'default':
+          default:
+            return `order by id desc`;
+        }
+      })();
+      let sql = `
+        SELECT *
+        FROM \`${this.appName}\`.t_allowance_memory
+        WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
+      `;
+      return {
+        data: await db.query(
+          `SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+          `,
+          []
+        ),
+        total: (
+          await db.query(
+            `SELECT count(1) FROM (${sql}) as subqyery
+            `,
+            []
+          )
+        )[0]['count(1)'],
+      };
+    } catch (e) {
+      console.error(e);
+      throw exception.BadRequestError('BAD_REQUEST', 'getAllowance Error:' + e, null);
+    }
+  }
+
+  // 儲值開立發票
+  // async postCheckoutInvoice(orderID: string|any ,print:boolean) {
   //     const order: {
   //         user_info: {
   //             name: string;
@@ -466,7 +672,6 @@ export class Invoice {
   //                 "TaxType": "1",
   //                 "InvType": "07"
   //             }
-  //             console.log(`cover.CustomerEmail==>`,cover.CustomerEmail)
   //             if(order.user_info.invoice_type==='company'){
   //                 cover.CustomerName=await EcInvoice.getCompanyName({
   //                     company_id:order.user_info.gui_number as any,
@@ -485,215 +690,4 @@ export class Invoice {
   //         return 'no_need'
   //     }
   // }
-
-  public static checkWhiteList(config: any, invoice_data: any) {
-    if (config.point === 'beta' && invoice_data.BuyerEmail && config.whiteList && config.whiteList.length > 0) {
-      return config.whiteList.find((dd: any) => {
-        return dd.email === invoice_data.BuyerEmail;
-      });
-    } else {
-      return true;
-    }
-  }
-
-  public async getInvoice(query: {
-    page: number;
-    limit: number;
-    search?: string;
-    searchType?: string;
-    orderString?: string;
-    created_time?: string;
-    invoice_type?: string;
-    issue_method?: string;
-    status?: string;
-    filter?: any;
-  }) {
-    try {
-      let querySql = [`1=1`];
-      if (query.search) {
-        switch (query.searchType) {
-          case 'invoice_number':
-            querySql.push(`invoice_no LIKE '%${query.search}%'`);
-            break;
-          case 'name':
-            querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerName') LIKE '%${query.search}%'`);
-            break;
-          case 'business_number':
-            querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') LIKE '%${query.search}%'`);
-            break;
-          case 'phone':
-            querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerPhone') LIKE '%${query.search}%'`);
-            break;
-          case 'product_name':
-            querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.Items[*].ItemName') LIKE '%${query.search}%'`);
-            break;
-          case 'product_number':
-            querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.Items[*].ItemNumber') LIKE '%${query.search}%'`);
-            break;
-          case 'order_number':
-          default:
-            querySql.push(`order_id LIKE '%${query.search}%'`);
-
-            break;
-        }
-      }
-
-      if (query.invoice_type) {
-        const invoice_type = query.invoice_type;
-      }
-
-      if (query.created_time) {
-        const created_time = query.created_time.split(',');
-        if (created_time.length > 1) {
-          querySql.push(`
-                        (create_date BETWEEN ${db.escape(`${created_time[0]} 00:00:00`)} 
-                        AND ${db.escape(`${created_time[1]} 23:59:59`)})
-                    `);
-        }
-      }
-      // 發票種類 B2B B2C , 發票開立方式 自動 手動
-      if (query.invoice_type) {
-        const data = query.invoice_type;
-        if (data == 'B2B') {
-          querySql.push(`
-                            JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') IS NULL
-                            OR CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier')) = 0`);
-        } else {
-          querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') IS NOT NULL
-                              AND CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier')) > 0`);
-        }
-      }
-      if (query.issue_method) {
-        if (query.issue_method == 'manual') {
-          console.log('query.issue_method -- ', query.issue_method);
-          querySql.push(`JSON_EXTRACT(invoice_data, '$.remark.issueType') IS NOT NULL
-                              AND CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.remark.issueType')) > 0`);
-        } else {
-          querySql.push(`
-                            JSON_EXTRACT(invoice_data, '$.remark.issueType') IS NULL
-                            OR CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.remark.issueType')) = 0`);
-        }
-      }
-      // query.invoice_type && querySql.push(`JSON_UNQUOTE(JSON_EXTRACT(invoice_data, '$.orderStatus')) IN (${query.invoice_type})`);
-      // query.issue_method && querySql.push(`JSON_UNQUOTE(JSON_EXTRACT(invoice_data, '$.orderStatus')) IN (${query.issue_method})`);
-      query.status && querySql.push(`status IN (${query.status})`);
-      query.orderString = (() => {
-        switch (query.orderString) {
-          case 'created_time_desc':
-            return `order by create_date desc`;
-          case 'created_time_asc':
-            return `order by create_date ASC`;
-          case 'order_total_desc':
-            return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') DESC`;
-          case 'order_total_asc':
-            return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') ASC`;
-          case 'default':
-          default:
-            return `order by id desc`;
-        }
-      })();
-      let sql = `SELECT *
-                 FROM \`${this.appName}\`.t_invoice_memory
-                 WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
-      `;
-      return {
-        data: await db.query(
-          `SELECT *
-           FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
-          []
-        ),
-        total: (
-          await db.query(
-            `SELECT count(1)
-             FROM (${sql}) as subqyery`,
-            []
-          )
-        )[0]['count(1)'],
-      };
-    } catch (e) {
-      console.error(e);
-      throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
-    }
-  }
-
-  public async getAllowance(query: {
-    page: number;
-    limit: number;
-    search?: string;
-    searchType?: string;
-    orderString?: string;
-    created_time?: string;
-    invoice_type?: string;
-    issue_method?: string;
-    status?: string;
-    filter?: string;
-  }) {
-    try {
-      let querySql = [`1=1`];
-      console.log('searchType -- ', query.searchType);
-      if (query.search) {
-        querySql.push(`${query.searchType} LIKE '%${query.search}%'`);
-      }
-
-      if (query.created_time) {
-        const created_time = query.created_time.split(',');
-        if (created_time.length > 1) {
-          querySql.push(`
-                        (create_date BETWEEN ${db.escape(`${created_time[0]} 00:00:00`)} 
-                        AND ${db.escape(`${created_time[1]} 23:59:59`)})
-                    `);
-        }
-      }
-      query.status && querySql.push(`status IN (${query.status})`);
-      query.orderString = (() => {
-        switch (query.orderString) {
-          case 'created_time_desc':
-            return `order by create_date desc`;
-          case 'created_time_asc':
-            return `order by create_date ASC`;
-          case 'order_total_desc':
-            return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') DESC`;
-          case 'order_total_asc':
-            return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') ASC`;
-          case 'default':
-          default:
-            return `order by id desc`;
-        }
-      })();
-      let sql = `SELECT *
-                 FROM \`${this.appName}\`.t_allowance_memory
-                 WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
-      `;
-      return {
-        data: await db.query(
-          `SELECT *
-           FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
-          []
-        ),
-        total: (
-          await db.query(
-            `SELECT count(1)
-             FROM (${sql}) as subqyery`,
-            []
-          )
-        )[0]['count(1)'],
-      };
-    } catch (e) {
-      console.error(e);
-      throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
-    }
-  }
-
-  public async querySql(querySql: string[], query: { page: number; limit: number; id?: string; order_by?: string }) {
-    let sql = `SELECT *
-               FROM \`${this.appName}\`.t_invoice_memory
-               WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
-    `;
-
-    try {
-      return await db.query(sql, []);
-    } catch (e) {
-      console.log('get invoice failed:', e);
-    }
-  }
 }

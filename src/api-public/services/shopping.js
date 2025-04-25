@@ -1858,7 +1858,6 @@ class Shopping {
                     }
                     break;
             }
-            console.log(voucher.title, voucher.bind.length);
             if (voucher.method === 'percent' &&
                 voucher.conditionType === 'order' &&
                 voucher.rule === 'min_count' &&
@@ -2178,9 +2177,7 @@ class Shopping {
             update.orderData.lineItems = update.orderData.lineItems.filter((item) => item.count > 0);
             this.writeRecord(origin, update);
             const updateData = Object.entries(update).reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: typeof value === 'object' ? JSON.stringify(value) : value })), {});
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-         SET ?
-         WHERE id = ?;
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
         `, [updateData, origin.id]);
             if (Array.isArray(update.orderData.tags)) {
                 await this.setOrderCustomizeTagConifg(update.orderData.tags);
@@ -2208,13 +2205,26 @@ class Shopping {
                 app_name: this.app,
             });
             const orderCountingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
-            const orderCount = await database_js_1.default.query(`SELECT *
-         FROM \`${this.app}\`.t_checkout
-         WHERE id = ?
-           AND ${orderCountingSQL};
+            const orderCount = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${orderCountingSQL};
         `, [origin.id]);
             if (orderCount[0]) {
                 await this.shareVoucherRebate(orderCount[0]);
+            }
+            const invoiceCountingConfig = await new user_js_1.User(this.app).getInvoiceCountingModeSQL();
+            const invoiceCount = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${invoiceCountingConfig.sql_string};
+        `, [origin.id]);
+            if (invoiceCount[0]) {
+                const cart_token = invoiceCount[0].cart_token;
+                const json = {
+                    tag: 'triggerInvoice',
+                    content: JSON.stringify({ cart_token }),
+                    trigger_time: tool_js_1.default.getCurrentDateTime({
+                        inputDate: new Date().toISOString(),
+                        addSeconds: invoiceCountingConfig.invoice_mode.afterDays * 86400,
+                    }),
+                    status: 0,
+                };
+                await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_triggers SET ?;`, [json]);
             }
             return {
                 result: 'success',
@@ -2962,7 +2972,6 @@ class Shopping {
                 catch (e) {
                     console.error(e);
                 }
-                new invoice_js_1.Invoice(this.app).postCheckoutInvoice(order_id, false);
             }
         }
         catch (error) {

@@ -57,7 +57,7 @@ interface UserQuery {
   filter_type?: 'block' | 'normal' | 'watch' | 'excel';
   tags?: string;
   all_result?: boolean;
-  only_id:string;
+  only_id: string;
 }
 
 interface GroupUserItem {
@@ -104,6 +104,12 @@ type MemberConfig = {
     value: number;
   };
 };
+
+interface StoreDataMode {
+  payload: string[];
+  progress: string[];
+  orderStatus: string[];
+}
 
 export class User {
   app: string;
@@ -624,7 +630,7 @@ export class User {
                 audience: config.app_id, // 這裡是你的應用的 client_id
               })
             );
-          }else  if (redirect === 'android') {
+          } else if (redirect === 'android') {
             const client = new OAuth2Client(config.android_app_id);
             resolve(
               await client.verifyIdToken({
@@ -632,7 +638,7 @@ export class User {
                 audience: config.android_app_id, // 這裡是你的應用的 client_id
               })
             );
-          }else {
+          } else {
             const oauth2Client = new OAuth2Client(config.id, config.secret, redirect);
             // 使用授权码交换令牌
             const { tokens } = await oauth2Client.getToken(code);
@@ -1271,7 +1277,6 @@ export class User {
     try {
       const checkPoint = new UtTimer('GET-USER-LIST').checkPoint;
 
-
       // return
       const orderCountingSQL = await this.getCheckoutCountingModeSQL();
       const querySql: string[] = ['1=1'];
@@ -1304,7 +1309,7 @@ export class User {
               })
             : users.map((item: { userID: number }) => item.userID).filter(item => item);
 
-          query.id = ids.length > 0 ? ids.filter((id) => id).join(',') : '0,0';
+          query.id = ids.length > 0 ? ids.filter(id => id).join(',') : '0,0';
         } else {
           query.id = '0,0';
         }
@@ -1573,16 +1578,15 @@ export class User {
         if (param) {
           const dataArray = [];
 
-          if(query.only_id!=='true'){
+          if (query.only_id !== 'true') {
             for (let i = 0; i < getUsers.length; i += processChunk) {
               const data = await processUserData(getUsers.slice(i, i + processChunk));
               dataArray.push(data);
               checkPoint(`processUserData ${i}`);
             }
-          }else{
-            return  getUsers
+          } else {
+            return getUsers;
           }
-
 
           return dataArray.flat();
         }
@@ -2948,6 +2952,13 @@ export class User {
           progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
           orderStatus: ['1', '0'],
         };
+
+        value.invoice_mode ??= {
+          payload: ['1', '3', '0'],
+          progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
+          orderStatus: ['1', '0'],
+          afterDays: 0,
+        };
         break;
       }
       case 'menu-setting':
@@ -3144,8 +3155,38 @@ export class User {
   }
 
   async getCheckoutCountingModeSQL(table?: string) {
-    const asTable = table ? `${table}.` : '';
     const storeInfo = await this.getConfigV2({ key: 'store-information', user_id: 'manager' });
+    const sqlQuery = await this.getOrderModeQuery(storeInfo.checkout_mode, table);
+
+    if (sqlQuery.length === 0) {
+      return '1 = 0'; // 無需累計的判斷式
+    }
+
+    return sqlQuery.join(' AND ');
+  }
+
+  async getInvoiceCountingModeSQL(table?: string): Promise<{
+    invoice_mode: any;
+    sql_string: string;
+  }> {
+    const storeInfo = await this.getConfigV2({ key: 'store-information', user_id: 'manager' });
+    const sqlQuery = await this.getOrderModeQuery(storeInfo.invoice_mode, table);
+
+    if (sqlQuery.length === 0) {
+      return {
+        invoice_mode: storeInfo.invoice_mode,
+        sql_string: '1 = 0', // 無需累計的判斷式
+      };
+    }
+
+    return {
+      invoice_mode: storeInfo.invoice_mode,
+      sql_string: sqlQuery.join(' AND '),
+    };
+  }
+
+  async getOrderModeQuery(storeData: StoreDataMode, table?: string): Promise<string[]> {
+    const asTable = table ? `${table}.` : '';
 
     const sqlQuery: string[] = [];
     const sqlObject: Record<string, { key: string; options: Set<string>; addNull: Set<string> }> = {
@@ -3166,7 +3207,7 @@ export class User {
       },
     };
 
-    Object.entries(storeInfo.checkout_mode).forEach(([key, mode]: [string, unknown]) => {
+    Object.entries(storeData).forEach(([key, mode]) => {
       const obj = sqlObject[key];
       if (!Array.isArray(mode) || mode.length === 0 || !obj) return;
 
@@ -3187,10 +3228,6 @@ export class User {
       }
     });
 
-    if (sqlQuery.length === 0) {
-      return '1 = 0'; // 無需累計的判斷式
-    }
-
-    return sqlQuery.join(' AND ');
+    return sqlQuery;
   }
 }

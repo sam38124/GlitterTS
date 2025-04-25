@@ -605,7 +605,7 @@ export declare class Shopping {
         orderID: any;
         orderData: any;
     }): Promise<{
-        result: string | boolean | undefined;
+        result: {};
     }>;
     batchPostCustomerInvoice(dataArray: InvoiceData[]): Promise<any>;
     voidInvoice(obj: {

@@ -1076,7 +1076,7 @@ class User {
                             });
                         })
                         : users.map((item) => item.userID).filter(item => item);
-                    query.id = ids.length > 0 ? ids.filter((id) => id).join(',') : '0,0';
+                    query.id = ids.length > 0 ? ids.filter(id => id).join(',') : '0,0';
                 }
                 else {
                     query.id = '0,0';
@@ -2316,7 +2316,7 @@ class User {
         }
     }
     async checkLeakData(key, value) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         switch (key) {
             case 'store-information': {
                 (_a = value.language_setting) !== null && _a !== void 0 ? _a : (value.language_setting = { def: 'zh-TW', support: ['zh-TW'] });
@@ -2329,6 +2329,12 @@ class User {
                     progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
                     orderStatus: ['1', '0'],
                 });
+                (_c = value.invoice_mode) !== null && _c !== void 0 ? _c : (value.invoice_mode = {
+                    payload: ['1', '3', '0'],
+                    progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
+                    orderStatus: ['1', '0'],
+                    afterDays: 0,
+                });
                 break;
             }
             case 'menu-setting':
@@ -2338,7 +2344,7 @@ class User {
                 }
                 break;
             case 'store_manager':
-                (_c = value.list) !== null && _c !== void 0 ? _c : (value.list = [
+                (_d = value.list) !== null && _d !== void 0 ? _d : (value.list = [
                     {
                         id: 'store_default',
                         name: '庫存點1(預設)',
@@ -2488,8 +2494,29 @@ class User {
         }
     }
     async getCheckoutCountingModeSQL(table) {
-        const asTable = table ? `${table}.` : '';
         const storeInfo = await this.getConfigV2({ key: 'store-information', user_id: 'manager' });
+        const sqlQuery = await this.getOrderModeQuery(storeInfo.checkout_mode, table);
+        if (sqlQuery.length === 0) {
+            return '1 = 0';
+        }
+        return sqlQuery.join(' AND ');
+    }
+    async getInvoiceCountingModeSQL(table) {
+        const storeInfo = await this.getConfigV2({ key: 'store-information', user_id: 'manager' });
+        const sqlQuery = await this.getOrderModeQuery(storeInfo.invoice_mode, table);
+        if (sqlQuery.length === 0) {
+            return {
+                invoice_mode: storeInfo.invoice_mode,
+                sql_string: '1 = 0',
+            };
+        }
+        return {
+            invoice_mode: storeInfo.invoice_mode,
+            sql_string: sqlQuery.join(' AND '),
+        };
+    }
+    async getOrderModeQuery(storeData, table) {
+        const asTable = table ? `${table}.` : '';
         const sqlQuery = [];
         const sqlObject = {
             orderStatus: {
@@ -2508,7 +2535,7 @@ class User {
                 addNull: new Set(['wait']),
             },
         };
-        Object.entries(storeInfo.checkout_mode).forEach(([key, mode]) => {
+        Object.entries(storeData).forEach(([key, mode]) => {
             const obj = sqlObject[key];
             if (!Array.isArray(mode) || mode.length === 0 || !obj)
                 return;
@@ -2525,10 +2552,7 @@ class User {
                 sqlQuery.push(`(${sqlTemp.join(' OR ')})`);
             }
         });
-        if (sqlQuery.length === 0) {
-            return '1 = 0';
-        }
-        return sqlQuery.join(' AND ');
+        return sqlQuery;
     }
 }
 exports.User = User;

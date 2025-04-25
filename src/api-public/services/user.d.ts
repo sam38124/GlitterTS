@@ -51,6 +51,11 @@ type MemberLevel = {
     };
     create_date: string;
 };
+interface StoreDataMode {
+    payload: string[];
+    progress: string[];
+    orderStatus: string[];
+}
 export declare class User {
     app: string;
     token?: IToken;
@@ -231,5 +236,10 @@ export declare class User {
     forgetPassword(email: string): Promise<void>;
     static ipInfo(ip: string): Promise<any>;
     getCheckoutCountingModeSQL(table?: string): Promise<string>;
+    getInvoiceCountingModeSQL(table?: string): Promise<{
+        invoice_mode: any;
+        sql_string: string;
+    }>;
+    getOrderModeQuery(storeData: StoreDataMode, table?: string): Promise<string[]>;
 }
 export {};

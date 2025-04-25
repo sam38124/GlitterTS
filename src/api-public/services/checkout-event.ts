@@ -1147,6 +1147,7 @@ export class CheckoutEvent {
           app: this.app,
         });
         if (data.invoice_select !== 'nouse') {
+          // POS 結帳者，不考慮發票開立時機設定，直接開立
           (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(
             carData,
             carData.user_info.send_type !== 'carrier'
@@ -1211,6 +1212,7 @@ export class CheckoutEvent {
           app: this.app,
         });
         if (carData.use_wallet > 0) {
+          // 使用錢包結帳者，不考慮發票開立時機設定
           new Invoice(this.app).postCheckoutInvoice(carData.orderID, false);
         }
         await Promise.all(saveStockArray.map(dd => dd()));
