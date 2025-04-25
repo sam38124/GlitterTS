@@ -3188,6 +3188,10 @@ export class User {
   async getOrderModeQuery(storeData: StoreDataMode, table?: string): Promise<string[]> {
     const asTable = table ? `${table}.` : '';
 
+    if (storeData.progress.includes('in_stock') && !storeData.progress.includes('wait')) {
+      storeData.progress.push('wait');
+    }
+
     const sqlQuery: string[] = [];
     const sqlObject: Record<string, { key: string; options: Set<string>; addNull: Set<string> }> = {
       orderStatus: {

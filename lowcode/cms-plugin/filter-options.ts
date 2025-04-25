@@ -236,8 +236,8 @@ export class FilterOptions {
     { key: 'arrived', name: '已到貨' },
     { key: 'shipping', name: '已出貨' },
     { key: 'pre_order', name: '待預購' },
-    { key: 'wait', name: '未出貨' },
     { key: 'in_stock', name: '備貨中' },
+    { key: 'wait', name: '未出貨' },
     { key: 'returns', name: '已退貨' },
   ];
 
@@ -683,7 +683,6 @@ export class FilterOptions {
     { key: 'name', value: '收訊人名稱' },
     { key: 'title', value: '內容' },
   ];
-
 
   static emailOptions = [
     { key: 'def', value: '請選擇根據的條件' },

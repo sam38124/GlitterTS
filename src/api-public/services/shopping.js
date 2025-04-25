@@ -2211,8 +2211,10 @@ class Shopping {
                 await this.shareVoucherRebate(orderCount[0]);
             }
             const invoiceCountingConfig = await new user_js_1.User(this.app).getInvoiceCountingModeSQL();
-            const invoiceCount = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${invoiceCountingConfig.sql_string};
-        `, [origin.id]);
+            const sqll = `SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${invoiceCountingConfig.sql_string};
+      `;
+            console.log(sqll);
+            const invoiceCount = await database_js_1.default.query(sqll, [origin.id]);
             if (invoiceCount[0]) {
                 const cart_token = invoiceCount[0].cart_token;
                 const json = {

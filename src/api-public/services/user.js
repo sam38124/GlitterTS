@@ -2517,6 +2517,9 @@ class User {
     }
     async getOrderModeQuery(storeData, table) {
         const asTable = table ? `${table}.` : '';
+        if (storeData.progress.includes('in_stock') && !storeData.progress.includes('wait')) {
+            storeData.progress.push('wait');
+        }
         const sqlQuery = [];
         const sqlObject = {
             orderStatus: {
