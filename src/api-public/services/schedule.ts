@@ -299,26 +299,24 @@ export class Schedule {
     let clock = new Date();
     console.log(`autoTriggerInvoice`);
     for (const app of Schedule.app) {
-      if (app === 't_1725992531001') {
-        try {
-          if (await this.perload(app)) {
-            const orders = await db.query(
-              `SELECT * FROM \`${app}\`.t_triggers
-                     WHERE 
-                        tag = 'triggerInvoice' AND 
-                        status = 0 AND
-                        DATE_FORMAT(trigger_time, '%Y-%m-%d %H') = DATE_FORMAT(NOW(), '%Y-%m-%d %H');`,
-              []
-            );
-            for (const order of orders) {
-              if (order.content.cart_token) {
-                new Invoice(app).postCheckoutInvoice(order.content.cart_token, false);
-              }
+      try {
+        if (await this.perload(app)) {
+          const orders = await db.query(
+            `SELECT * FROM \`${app}\`.t_triggers
+                   WHERE 
+                      tag = 'triggerInvoice' AND 
+                      status = 0 AND
+                      DATE_FORMAT(trigger_time, '%Y-%m-%d %H') = DATE_FORMAT(NOW(), '%Y-%m-%d %H');`,
+            []
+          );
+          for (const order of orders) {
+            if (order.content.cart_token) {
+              new Invoice(app).postCheckoutInvoice(order.content.cart_token, false);
             }
           }
-        } catch (e) {
-          console.error('BAD_REQUEST', 'autoTriggerInvoice Error: ' + e, null);
         }
+      } catch (e) {
+        console.error('BAD_REQUEST', 'autoTriggerInvoice Error: ' + e, null);
       }
     }
     setTimeout(() => this.autoTriggerInvoice(sec), sec * 1000);
