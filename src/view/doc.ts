@@ -77,7 +77,7 @@ export class Doc {
                                             style="width: 52px; height: 52px;"
                                         >
                                             <img
-                                                src="https://squarestudio.tw/LionDesign/page/plugin/lionDesign/img/index/lin.jpg"
+                                                src="https://shopnex.tw//landing-page/about-src/cto.png"
                                                 class="rounded-circle"
                                                 width="48"
                                                 alt="Avatar"

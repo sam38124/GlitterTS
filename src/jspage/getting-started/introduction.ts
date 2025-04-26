@@ -147,7 +147,7 @@ init((gvc, glitter, gBundle) => {
                         }, {
                             name: "Daniel",
                             career:"Developer",
-                            src:'https://squarestudio.tw/LionDesign/page/plugin/lionDesign/img/index/lin.jpg',
+                            src:'https://shopnex.tw//landing-page/about-src/cto.png',
                             social:``
                         }, {
                             name: "Zack",
