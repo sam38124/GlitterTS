@@ -8,8 +8,9 @@ export class CaughtError {
       //非本地開發再插入錯誤
       if(process.env.is_local !== 'true'){
         console.error('Uncaught Exception:', err);
+        //如果連線太多，重啟應用
         if(err.message.includes('Too many connections')){
-
+          process.exit(1); // 終止應用程式
         }else{
           await db.query(
             `insert into \`${process.env.GLITTER_DB}\`.error_log (message, stack)

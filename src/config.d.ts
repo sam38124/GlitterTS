@@ -16,8 +16,8 @@ export declare const config: {
     PARAMS_NEED_ENCRYPT_IN_LOG: string[];
     PWD_SALT_ROUND: number;
     LOG_PATH: string;
-    DB_CONN_LIMIT: number;
-    DB_QUEUE_LIMIT: number;
+    readonly DB_CONN_LIMIT: number;
+    readonly DB_QUEUE_LIMIT: number;
     DB_SHOW_INFO: boolean;
     readonly SNSAccount: string | undefined;
     readonly SNSPWD: string | undefined;
@@ -38,7 +38,7 @@ export declare const config: {
     readonly sshIP: string | undefined;
     readonly AWS_S3_PREFIX_DOMAIN_NAME: string;
     readonly SINGLE_TYPE: boolean;
-    getRoute: (r: string, type?: 'public' | 'normal') => string;
+    getRoute: (r: string, type?: "public" | "normal") => string;
     public_route: {
         user: string;
         invoice: string;

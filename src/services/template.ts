@@ -5,6 +5,7 @@ import { IToken } from '../models/Auth.js';
 import process from 'process';
 import { UtDatabase } from '../api-public/utils/ut-database.js';
 import { LanguageLocation } from '../Language.js';
+import { ServerCache } from '../modules/server-cache.js';
 
 export class Template {
   public token?: IToken;

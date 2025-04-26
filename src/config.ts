@@ -40,8 +40,12 @@ export const config = {
   PWD_SALT_ROUND: 5,
   LOG_PATH: path.resolve('../../log'),
   /*Database*/
-  DB_CONN_LIMIT: 0,
-  DB_QUEUE_LIMIT: 0,
+  get DB_CONN_LIMIT() {
+    return parseInt(process.env.DB_CONN_LIMIT as string,10);
+  },
+  get DB_QUEUE_LIMIT() {
+    return parseInt(process.env.DB_QUEUE_LIMIT as string,10);
+  },
   DB_SHOW_INFO: false,
   get SNSAccount() {
     return process.env.SNSAccount;

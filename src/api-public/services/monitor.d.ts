@@ -1,4 +1,3 @@
-/// <reference types="cookie-parser" />
 import express from "express";
 import { IToken } from "../models/Auth.js";
 export declare class Monitor {

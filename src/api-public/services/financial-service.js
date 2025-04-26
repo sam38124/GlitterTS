@@ -763,7 +763,7 @@ class LinePay {
                         .map(data => {
                         return data.count * data.sale_price;
                     })
-                        .reduce((a, b) => a + b, 0) - orderData.discount,
+                        .reduce((a, b) => a + b, 0) - (orderData.discount + parseInt(`${orderData.use_rebate || 0}`, 10)),
                     products: orderData.lineItems
                         .map(data => {
                         return {
@@ -780,7 +780,7 @@ class LinePay {
                             name: '折扣',
                             imageUrl: '',
                             quantity: 1,
-                            price: orderData.discount * -1,
+                            price: (orderData.discount + parseInt(`${orderData.use_rebate || 0}`, 10)) * -1,
                         },
                     ]),
                 },
@@ -790,6 +790,7 @@ class LinePay {
                 cancelUrl: cancel_url,
             },
         };
+        console.log(`body===>`, JSON.stringify(body));
         body.packages.push({
             id: 'shipping',
             amount: orderData.shipment_fee,
@@ -832,7 +833,7 @@ class LinePay {
                 return response.data;
             }
             else {
-                console.log(" Line Pay Error: ", response.data.returnCode, response.data.returnMessage);
+                console.log(' Line Pay Error: ', response.data.returnCode, response.data.returnMessage);
                 return response.data;
             }
         }
@@ -968,7 +969,12 @@ class PayNow {
         });
         console.log(`webhook=>`, this.keyData.NotifyURL + `&orderID=${orderData.orderID}`);
         const url = `${this.BASE_URL}/api/v1/payment-intents`;
-        const key_ = (`${this.keyData.BETA}` === 'true') ? { private_key: "bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv", public_key: "sm22610RIIwOTz4STCFf0dF22G067lnd" } : await this.bindKey();
+        const key_ = `${this.keyData.BETA}` === 'true'
+            ? {
+                private_key: 'bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv',
+                public_key: 'sm22610RIIwOTz4STCFf0dF22G067lnd',
+            }
+            : await this.bindKey();
         console.log(`key_===>`, key_);
         const config = {
             method: 'post',
@@ -1041,7 +1047,7 @@ class JKO {
             store_id: this.keyData.STORE_ID,
             result_url: this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
             result_display_url: this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
-            unredeem: 0
+            unredeem: 0,
         };
         const apiKey = process_1.default.env.jko_api_key || '';
         const secretKey = process_1.default.env.jko_api_secret || '';

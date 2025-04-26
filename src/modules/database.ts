@@ -2,25 +2,15 @@ import mysql from 'mysql2/promise';
 import config from '../config';
 import Logger from './logger';
 import exception from './exception';
+import process from 'process';
 
 const TAG = '[Database]';
 let pool: mysql.Pool;
 
 const createPool = async () => {
   const logger = new Logger();
-  if(pool){
-    try {
-      // 销毁连接池中的所有连接
-      await pool.end()
-    }catch (e) {
-
-    }
-    await new Promise((resolve, reject)=>{
-      setTimeout(()=>{
-        resolve(true)
-      },500)
-    })
-  }
+  console.log(`config.DB_CONN_LIMIT=>`,config.DB_CONN_LIMIT)
+  console.log(`config.DB_QUEUE_LIMIT=>`,config.DB_QUEUE_LIMIT)
   pool = mysql.createPool({
     connectionLimit: config.DB_CONN_LIMIT,
     queueLimit: config.DB_QUEUE_LIMIT,
@@ -28,11 +18,12 @@ const createPool = async () => {
     port: config.DB_PORT,
     user: config.DB_USER,
     password: config.DB_PWD,
-    supportBigNumbers: true,
-    // 啟用連線保持活躍
-    enableKeepAlive: true,
-    // 每 10 秒發送一次保持活躍訊號
-    keepAliveInitialDelay: 10000,
+    supportBigNumbers: true
+
+    // // 啟用連線保持活躍
+    // enableKeepAlive: true,
+    // // 每 10 秒發送一次保持活躍訊號
+    // keepAliveInitialDelay: 10000,
   });
   try {
     return pool;
@@ -70,12 +61,14 @@ const execute = async (sql: string, params: any[]): Promise<any> => {
     throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to exect statement because params=null');
   }
   try {
-    const connection = await pool.getConnection();
     const [results] = await pool.execute(sql, params);
-    connection.release();
     return results;
   } catch (err) {
     logger.error(TAG, 'Failed to exect statement ' + sql + ' because ' + err);
+    //連線過多重啟應用
+    if(`${err}`.includes('Too many connections')){
+      process.exit(1)
+    }
     throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to exect statement ' + sql + ' because ' + err);
   }
 };
@@ -87,13 +80,14 @@ const query = async (sql: string, params: unknown[]): Promise<any> => {
   const logger = new Logger();
   const TAG = '[Database][Query]';
   try {
-    const connection = await pool.getConnection();
-    await pool.query(`SET time_zone = '+00:00';`, []);
     const [results] = await pool.query(sql, params);
-    connection.release();
     return results;
   } catch (err) {
     logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
+    //連線過多重啟應用
+    if(`${err}`.includes('Too many connections')){
+      process.exit(1)
+    }
     throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to query statement ' + sql + ' because ' + err);
   }
 };

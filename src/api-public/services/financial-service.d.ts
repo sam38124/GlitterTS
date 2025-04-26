@@ -190,6 +190,7 @@ export declare class LinePay {
         user_email: string;
         method: string;
         discount?: any;
+        use_rebate?: number;
     }): Promise<any>;
 }
 export declare class PayNow {

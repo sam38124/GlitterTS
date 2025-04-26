@@ -105,8 +105,8 @@ export default class FinancialService {
     table: string;
     title: string;
     ratio: number;
-    notify_url:string;
-    return_url:string;
+    notify_url: string;
+    return_url: string;
   }): Promise<string> {
     if (this.keyData.TYPE === 'newWebPay') {
       return await new EzPay(this.appName, this.keyData).saveMoney(orderData);
@@ -623,8 +623,8 @@ export class EcPay {
     CheckMacValue?: string;
     table: string;
     title: string;
-    notify_url:string;
-    return_url:string;
+    notify_url: string;
+    return_url: string;
     ratio: number;
   }) {
     await this.key_initial();
@@ -1022,12 +1022,12 @@ export class LinePay {
     user_email: string;
     method: string;
     discount?: any;
+    use_rebate?:number
   }) {
     const confirm_url = `${this.keyData.ReturnURL}&LinePay=true&appName=${this.appName}&orderID=${orderData.orderID}`;
     const cancel_url = `${this.keyData.ReturnURL}&payment=false`;
 
     orderData.discount = parseInt(orderData.discount ?? 0, 10);
-
     const body = {
       amount: orderData.total,
       currency: 'TWD',
@@ -1041,7 +1041,7 @@ export class LinePay {
               .map(data => {
                 return data.count * data.sale_price;
               })
-              .reduce((a, b) => a + b, 0) - orderData.discount,
+              .reduce((a, b) => a + b, 0) - (orderData.discount+parseInt(`${orderData.use_rebate || 0}`,10)),
           products: orderData.lineItems
             .map(data => {
               return {
@@ -1058,7 +1058,7 @@ export class LinePay {
                 name: '折扣',
                 imageUrl: '',
                 quantity: 1,
-                price: orderData.discount * -1,
+                price: (orderData.discount+parseInt(`${orderData.use_rebate || 0}`,10)) * -1,
               },
             ]),
         },
@@ -1082,6 +1082,7 @@ export class LinePay {
         },
       ],
     });
+
     const uri = '/payments/request';
     const nonce = new Date().getTime().toString();
     const url = `${this.LinePay_BASE_URL}/v3${uri}`;
@@ -1115,11 +1116,10 @@ export class LinePay {
       await redis.setValue('linepay' + orderData.orderID, response.data.info.transactionId);
       if (response.data.returnCode === '0000') {
         return response.data;
-      }else {
-        console.log(" Line Pay Error: ", response.data.returnCode, response.data.returnMessage);
+      } else {
+        console.log(' Line Pay Error: ', response.data.returnCode, response.data.returnMessage);
         return response.data;
       }
-
     } catch (error: any) {
       console.error('Error linePay:', error.response?.data || error.message);
       throw error;
@@ -1286,8 +1286,14 @@ export class PayNow {
     });
     console.log(`webhook=>`, this.keyData.NotifyURL + `&orderID=${orderData.orderID}`);
     const url = `${this.BASE_URL}/api/v1/payment-intents`;
-    const key_ = (`${this.keyData.BETA}`==='true') ? {private_key:"bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv",public_key:"sm22610RIIwOTz4STCFf0dF22G067lnd"}:await this.bindKey();
-    console.log(`key_===>`,key_)
+    const key_ =
+      `${this.keyData.BETA}` === 'true'
+        ? {
+            private_key: 'bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv',
+            public_key: 'sm22610RIIwOTz4STCFf0dF22G067lnd',
+          }
+        : await this.bindKey();
+    console.log(`key_===>`, key_);
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
@@ -1384,11 +1390,11 @@ export class JKO {
       currency: 'TWD',
       total_price: orderData.total,
       final_price: orderData.total,
-      platform_order_id:orderData.orderID,
+      platform_order_id: orderData.orderID,
       store_id: this.keyData.STORE_ID,
       result_url: this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
-      result_display_url:this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
-      unredeem:0
+      result_display_url: this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
+      unredeem: 0,
     };
     //平台 API KEY
     const apiKey: string = process.env.jko_api_key || '';
@@ -1419,7 +1425,6 @@ export class JKO {
         app: this.appName,
       });
       return response.data;
-
     } catch (error: any) {
       console.error('Error jkoPay:', error.response?.data || error.message);
       throw error;
