@@ -3151,7 +3151,7 @@ class Shopping {
                     insertObj.id = originalVariant.id;
                     sourceMap[originalVariant.id] = originalVariant.id;
                 }
-                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants
+                const insertData = await database_js_1.default.query(`replace INTO \`${this.app}\`.t_variants
            SET ?
           `, [insertObj]);
                 return insertData;

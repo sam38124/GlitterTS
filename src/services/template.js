@@ -219,6 +219,7 @@ class Template {
             'blogs',
             'blog_tag_setting',
             'blog_global_setting',
+            'pos_setting',
             'checkout',
             'fb_live',
             'ig_live',

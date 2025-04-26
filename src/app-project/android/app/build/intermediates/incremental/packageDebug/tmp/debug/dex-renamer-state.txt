@@ -1,0 +1,19 @@
+#Thu Apr 24 16:21:06 CST 2025
+base.0=/Users/jianzhi.wang/Downloads/1745390273443/app/build/intermediates/dex/debug/mergeExtDexDebug/classes.dex
+base.1=/Users/jianzhi.wang/Downloads/1745390273443/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex
+base.2=/Users/jianzhi.wang/Downloads/1745390273443/app/build/intermediates/dex/debug/mergeProjectDexDebug/1/classes.dex
+base.3=/Users/jianzhi.wang/Downloads/1745390273443/app/build/intermediates/dex/debug/mergeProjectDexDebug/4/classes.dex
+base.4=/Users/jianzhi.wang/Downloads/1745390273443/app/build/intermediates/dex/debug/mergeExtDexDebug/classes2.dex
+base.5=/Users/jianzhi.wang/Downloads/1745390273443/app/build/intermediates/dex/debug/mergeExtDexDebug/classes3.dex
+path.0=classes.dex
+path.1=0/classes.dex
+path.2=1/classes.dex
+path.3=4/classes.dex
+path.4=classes2.dex
+path.5=classes3.dex
+renamed.0=classes.dex
+renamed.1=classes2.dex
+renamed.2=classes3.dex
+renamed.3=classes4.dex
+renamed.4=classes5.dex
+renamed.5=classes6.dex

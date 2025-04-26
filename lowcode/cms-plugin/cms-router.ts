@@ -67,6 +67,11 @@ export class CmsRouter{
                                    resolve(cl.main(gvc))
                                })
                                break
+                           case 'pos_setting':
+                               gvc.glitter.getModule(new URL('./cms-plugin/pos-config-setting.js', gvc.glitter.root_path).href, (cl) => {
+                                   resolve(cl.main(gvc))
+                               })
+                               break
                            case 'auto_fcm_push':
                                gvc.glitter.getModule(new URL('./cms-plugin/auto-fcm-push.js', gvc.glitter.root_path).href, (cl) => {
                                    resolve(cl.main(gvc))

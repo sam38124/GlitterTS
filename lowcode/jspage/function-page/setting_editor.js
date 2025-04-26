@@ -1519,6 +1519,14 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
+            page: 'pos_setting',
+            group: 'POS實體門市',
+            title: 'POS設定',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/cash-register-regular (1).svg',
+        },
+        {
+            icon: '',
             page: 'shop_list',
             group: 'POS實體門市',
             title: '門市設定',

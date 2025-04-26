@@ -865,6 +865,7 @@ export class POSSetting {
             PayConfig.pos_config = res.response.value;
             vm.loading = false;
             gvc.notifyDataChange(vm.id);
+            console.log(`PayConfig.pos_config=>`, PayConfig.pos_config);
         });
         if (vm.type === 'home') {
             vm.type = 'menu';

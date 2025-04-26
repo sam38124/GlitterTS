@@ -776,6 +776,14 @@ export class Setting_editor {
             // },
             {
                 icon: '',
+                page: 'pos_setting',
+                group: 'POS實體門市',
+                title: 'POS設定',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/cash-register-regular (1).svg',
+            },
+            {
+                icon: '',
                 page: 'shop_list',
                 group: 'POS實體門市',
                 title: '門市設定',
@@ -959,7 +967,6 @@ export class Setting_editor {
                 if (['app-design', 'app-upload', 'cloud_subscrible', 'notify_message_list'].includes(item.page)) {
                     return userPlan > 2;
                 }
-
                 return true;
             });
 
@@ -1052,7 +1059,6 @@ export class Setting_editor {
                                 if (loading) {
                                     return BgWidget.spinner({ text: { visible: false } });
                                 }
-
                                 function renderHTML(items: any) {
                                     const authConfig = permissionData.config.auth;
                                     let list: any = [];
@@ -1319,7 +1325,6 @@ export class Setting_editor {
                                     return html`
                                         <div class="p-2">${renderItem(list)}</div>`;
                                 }
-
                                 return renderHTML(items);
                             })()}
                         </div>

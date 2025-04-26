@@ -4322,7 +4322,7 @@ export class Shopping {
         }
 
         const insertData = await db.query(
-          `INSERT INTO \`${this.app}\`.t_variants
+          `replace INTO \`${this.app}\`.t_variants
            SET ?
           `,
           [insertObj]

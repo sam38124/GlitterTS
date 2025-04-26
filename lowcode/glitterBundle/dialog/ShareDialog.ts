@@ -9,6 +9,7 @@ interface DataLoadingOptions {
 
 interface MessageOptions {
   text?: string;
+  callback?: () => void;
 }
 
 interface ErrorMessageOptions extends MessageOptions {
@@ -32,6 +33,7 @@ export class ShareDialog {
   public successMessage: (obj: MessageOptions) => void;
   public warningMessage: (obj: ConfirmDialogOptions) => void;
   public checkYesOrNot: (obj: ConfirmDialogOptions) => void;
+  public confirmMessage: (obj: ConfirmDialogOptions) => void;
   public checkYesOrNotWithCustomWidth: (obj: ConfirmDialogOptions) => void;
   public customCheck: (obj: ConfirmDialogOptions) => void;
 
@@ -77,6 +79,9 @@ export class ShareDialog {
 
     this.checkYesOrNot = (obj: ConfirmDialogOptions): void => {
       this.openConfirmDialog('checkYesOrNot', obj);
+    };
+    this.confirmMessage = (obj: ConfirmDialogOptions): void => {
+      this.openConfirmDialog('confirmMessage', obj);
     };
 
     this.customCheck = (obj: ConfirmDialogOptions): void => {

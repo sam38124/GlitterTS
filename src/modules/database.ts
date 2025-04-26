@@ -8,6 +8,19 @@ let pool: mysql.Pool;
 
 const createPool = async () => {
   const logger = new Logger();
+  if(pool){
+    try {
+      // 销毁连接池中的所有连接
+      await pool.end()
+    }catch (e) {
+
+    }
+    await new Promise((resolve, reject)=>{
+      setTimeout(()=>{
+        resolve(true)
+      },500)
+    })
+  }
   pool = mysql.createPool({
     connectionLimit: config.DB_CONN_LIMIT,
     queueLimit: config.DB_QUEUE_LIMIT,
@@ -63,7 +76,7 @@ const execute = async (sql: string, params: any[]): Promise<any> => {
     return results;
   } catch (err) {
     logger.error(TAG, 'Failed to exect statement ' + sql + ' because ' + err);
-    throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to execute statement.');
+    throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to exect statement ' + sql + ' because ' + err);
   }
 };
 
@@ -81,7 +94,7 @@ const query = async (sql: string, params: unknown[]): Promise<any> => {
     return results;
   } catch (err) {
     logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
-    throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to execute statement.');
+    throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to query statement ' + sql + ' because ' + err);
   }
 };
 

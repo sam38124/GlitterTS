@@ -39,6 +39,9 @@ export class ShareDialog {
         this.checkYesOrNot = (obj) => {
             this.openConfirmDialog('checkYesOrNot', obj);
         };
+        this.confirmMessage = (obj) => {
+            this.openConfirmDialog('confirmMessage', obj);
+        };
         this.customCheck = (obj) => {
             this.openConfirmDialog('input_text', obj);
         };

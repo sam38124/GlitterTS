@@ -462,7 +462,7 @@ export class User {
         `select *
          from \`${this.app}\`.t_user
          where userData ->>'$.email' = ?
-         and status <> 0`,
+           and status <> 0`,
         [fbResponse.email]
       )) as any
     )[0];
@@ -692,7 +692,7 @@ export class User {
           `select *
            from \`${this.app}\`.t_user
            where userData ->>'$.email' = ?
-           and status <> 0`,
+             and status <> 0`,
           [payload?.email]
         )) as any
       )[0];
@@ -830,7 +830,7 @@ export class User {
           `select *
            from \`${this.app}\`.t_user
            where userData ->>'$.email' = ?
-           and status <> 0`,
+             and status <> 0`,
           [decoded.payload.email]
         )) as any
       )[0];
@@ -2609,7 +2609,7 @@ export class User {
           `select *
            from \`${this.app}\`.t_user
            where userID = ?
-           and status <> 0`,
+             and status <> 0`,
           [userID]
         )) as any
       )[0];
@@ -2842,9 +2842,10 @@ export class User {
           }
         }
       }
+
       //當有暫存時
       if (checkConfigCache()) {
-        console.log(`[${this.app}] config cache hit`);
+        // console.log(`[${this.app}] config cache hit`);
         return JSON.parse(JSON.stringify(checkConfigCache()));
       }
 
@@ -2947,6 +2948,7 @@ export class User {
           value.chat_toggle = config.toggle;
         }
 
+        value.pos_support_finction = value.pos_support_finction ?? [];
         value.checkout_mode ??= {
           payload: ['1', '3', '0'],
           progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],

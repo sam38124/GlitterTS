@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width,height=device-height, initial-scale=1, minimum-scale=1, maximum-scale=1,user-scalable=no,initial-scale=1.0001,maximum-scale=1.0001,viewport-fit=cover">
+<html lang="en">
+<head>
+</head>
+
+<style>
+    .selectComponentHover{
+        border: 4px solid dodgerblue !important;
+        border-radius: 5px !important;
+        box-sizing: border-box !important;
+    }
+  #toast {
+    position: absolute;
+    z-index: 2147483646;
+    background-color: black;
+    opacity: .8;
+    color: white;
+    bottom: 100px;
+    max-width: calc(100% - 20px);
+    transform: translateX(-50%);
+    left: 50%;
+    font-size: 14px;
+    border-radius: 10px;
+    padding: 10px;
+    display: none;
+  }
+
+  body{
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    white-space: normal;
+      overflow-y:auto !important;
+  }
+  iframe{
+    width: 100%;
+    height: 100%;
+    border-width: 0;
+    padding: 0;
+    margin: 0;
+    white-space: normal;
+    position: relative;
+  }
+  html{
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+  }
+  .toggleInner h3{
+      color:white !important;
+  }
+  .alert-success h3{
+      color: #d0b9b9 !important;
+  }
+  .page-loading {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-transition: all .4s .2s ease-in-out;
+    transition: all .4s .2s ease-in-out;
+    background-color: #fff;
+    opacity: 0;
+    visibility: hidden;
+    z-index: 99;
+  }
+
+  .dark-mode .page-loading {
+    background-color: #131022;
+  }
+
+  .page-loading.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .page-loading-inner {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    -webkit-transition: opacity .2s ease-in-out;
+    transition: opacity .2s ease-in-out;
+    opacity: 0;
+  }
+
+  .page-loading.active > .page-loading-inner {
+    opacity: 1;
+  }
+
+  .page-loading-inner > span {
+    display: block;
+    font-size: 1rem;
+    font-weight: normal;
+    color: #9397ad;
+  }
+
+  .dark-mode .page-loading-inner > span {
+    color: #fff;
+    opacity: .6;
+  }
+
+  .page-spinner {
+    display: inline-block;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: .75rem;
+    vertical-align: text-bottom;
+    border: .15em solid #b4b7c9;
+    border-right-color: transparent;
+    border-radius: 50%;
+    -webkit-animation: spinner .75s linear infinite;
+    animation: spinner .75s linear infinite;
+  }
+
+  .dark-mode .page-spinner {
+    border-color: rgba(255, 255, 255, .4);
+    border-right-color: transparent;
+  }
+
+  @-webkit-keyframes spinner {
+    100% {
+      -webkit-transform: rotate(360deg);
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes spinner {
+    100% {
+      -webkit-transform: rotate(360deg);
+      transform: rotate(360deg);
+    }
+  }
+</style>
+<script>
+    (window).appName=`proshake_v2`;
+    (window).glitterBackend=`https://liondesign.tw`;
+</script>
+<script>
+    function preload(data){
+        let joinArray=['__']
+        function loop(array) {
+            array.map((dd) => {
+                if (dd.type === 'container') {
+                    loop(dd.data.setting)
+                } else if (dd.type === 'component') {
+                    joinArray.push(dd.data.tag)
+                }
+            })
+        }
+        data.response.result.map((d2) => {
+            loop(d2.config)
+        })
+        joinArray=joinArray.filter((value, index, self)=>{
+            return value
+        })
+        joinArray.map((tag)=>{
+            window.glitterInitialHelper.setQueue(`getPageData-${tag}`, (callback) => {
+                glitterInitialHelper.getPageData(joinArray.join(','),(dd)=>{
+                    const data=JSON.parse(JSON.stringify(dd))
+                    data.response.result=data.response.result.filter((d2)=>{
+                        return d2.tag===tag
+                    })
+                    callback({
+                        response: data.response, result: true
+                    })
+                    preload(data)
+                })
+            })
+        })
+    }
+    window.glitterInitialHelper = {
+        share: {},
+        setQueue: (tag, fun, callback) => {
+
+            window.glitterInitialHelper.share[tag] = window.glitterInitialHelper.share[tag] ?? {
+                callback: [],
+                data: undefined,
+                isRunning: false
+            }
+            if (window.glitterInitialHelper.share[tag].data) {
+                callback && callback((()=>{
+                    try {
+                        return JSON.parse(JSON.stringify(window.glitterInitialHelper.share[tag].data))
+                    }catch (e) {
+                        console.log(`parseError`,window.glitterInitialHelper.share[tag].data)
+                    }
+                })())
+            } else {
+                window.glitterInitialHelper.share[tag].callback.push(callback)
+
+                if (!window.glitterInitialHelper.share[tag].isRunning) {
+                    window.glitterInitialHelper.share[tag].isRunning = true
+                    fun((response) => {
+                        window.glitterInitialHelper.share[tag].callback.map((callback) => {
+                            callback && callback((()=>{
+                                try {
+                                    return JSON.parse(JSON.stringify(response))
+                                }catch (e) {
+                                    console.log(`parseError`,window.glitterInitialHelper.share[tag].data)
+                                }
+                            })())
+                        })
+                        window.glitterInitialHelper.share[tag].data = response
+                        window.glitterInitialHelper.share[tag].callback = []
+                    })
+                }
+            }
+
+        },
+        getPlugin: (callback) => {
+            window.glitterInitialHelper.setQueue('getPlugin', (callback) => {
+                const myHeaders = new Headers();
+                const requestOptions = {
+                    method: 'GET',
+                    headers: myHeaders
+                };
+
+                function execute() {
+                    fetch(`${window.glitterBackend}/api/v1/app/plugin?appName=${window.appName}`, requestOptions)
+                        .then(response => response.json())
+                        .then(result => {
+                            callback({
+                                response: result, result: true
+                            })
+                        })
+                        .catch(error => {
+                            console.log(error)
+                            setTimeout(() => {
+                                execute()
+                            }, 100)
+                        });
+                }
+
+                execute()
+            }, callback)
+        },
+        preloadComponent: {
+            data: {}
+        },
+        getPageData: (tag, callback) => {
+
+            window.glitterInitialHelper.setQueue(`getPageData-${tag}`, (callback) => {
+                const myHeaders = new Headers();
+                const requestOptions = {
+                    method: 'GET',
+                    headers: myHeaders
+                };
+
+                function execute() {
+                    fetch(window.glitterBackend + `/api/v1/template?appName=${window.appName}&tag=${encodeURIComponent(tag)}`, requestOptions)
+                        .then(response => response.json())
+                        .then(response => {
+                            for(const b of response.result){
+                                if(b.group==='glitter-article'){
+                                    glitterInitialHelper.getPageData(b.page_config.template, (data) => { preload(data) })
+                                }
+                            }
+                            callback({
+                                response: response, result: true
+                            })
+                        }).catch(error => {
+                        console.log(error)
+                        setTimeout(() => {
+                            execute()
+                        }, 100)
+                    });
+                }
+
+                execute()
+            }, callback)
+        }
+    }
+    let clockF = () => {
+        return {
+            start: new Date(),
+            stop: function () {
+                return ((new Date()).getTime() - (this.start).getTime())
+            },
+            zeroing: function () {
+                this.start = new Date()
+            }
+        }
+    }
+    let renderClock = clockF();
+    (window.renderClock) = renderClock;
+    if (location.pathname.slice(-1) !== '/' && !location.pathname.endsWith("html")) {
+        location.pathname = location.pathname + "/"
+    }
+    glitterInitialHelper.getPlugin()
+    const url = new URL(location.href)
+    glitterInitialHelper.getPageData(url.searchParams.get('page'), (data) => { preload(data) })
+</script>
+<script src="https://liondesign.tw/proshake_v2/glitterBundle/jquery.js"></script>
+<script src="https://liondesign.tw/proshake_v2/glitterBundle/GlitterInitial.js" type="module"></script>
+<link href="https://liondesign.tw/proshake_v2/glitterBundle/Glitter.css" rel="stylesheet">
+<body>
+ <div id="glitterPage" class="flex-fill h-100">
+   <div class="page-loading active">
+    <div class="page-loading-inner">
+      <div class="page-spinner"></div>
+    </div>
+  </div>
+ </div>
+ <aside id="drawerEl" style="z-index:99999;">
+     <div id='Navigation' style="width: 100%;height: 100%;z-index:99999;"></div>
+ </aside>
+</body>
+</html>

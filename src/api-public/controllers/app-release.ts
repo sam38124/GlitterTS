@@ -108,8 +108,8 @@ router.post('/release/android/download', async (req: express.Request, resp: expr
         appDomain: req.get('g-app') as string,
         project_router: copyFile,
         domain_url: domain,
+        config:config
       });
-
       await Release.compressFiles(copyFile, `${copyFile}.zip`);
       const url = await Release.uploadFile(`${copyFile}.zip`, `${copyFile}.zip`);
       Release.deleteFile(`${copyFile}.zip`);

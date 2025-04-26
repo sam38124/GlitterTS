@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools" package="com.ncdesign.kenda">
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+          package="www.smilebio.io">
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-feature android:name="android.hardware.location.network" />
-    <uses-feature android:name="android.hardware.location.gps" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
             android:name=".MyAPP"
             android:allowBackup="true"
             android:label="@string/app_name"
-            android:icon="@mipmap/ic_launcher"
-            android:roundIcon="@mipmap/ic_launcher_round"
+            android:icon="@mipmap/ic_launcher_png"
+            android:roundIcon="@mipmap/ic_launcher_png"
             android:supportsRtl="true"
             android:largeHeap="true"
             android:networkSecurityConfig="@xml/network_security_config"
@@ -25,25 +22,23 @@
                 android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.LAUNCHER"/>
+                <!-- 自定義 scheme，如 myapp://open -->
+                <data android:scheme="www.smilebio.io" />
             </intent-filter>
 
         </activity>
         <service
-                android:name=".MyFirebaseMessagingService"
+                android:name=".service.MyFirebaseMessagingService"
                 android:exported="true">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
         </service>
 
-        <service
-                android:name=".MyFirebaseInstanceIDService"
-                android:exported="true">
-            <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
-            </intent-filter>
-        </service>
+
     </application>
 </manifest>

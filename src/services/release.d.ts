@@ -24,7 +24,10 @@ export declare class Release {
         project_router: string;
         glitter_domain: string;
         domain_url: string;
+        config: AppReleaseConfig;
     }): Promise<void>;
+    static downloadImage(url: string, outputPath: string): Promise<void>;
+    static generateAndroidIcon(sourceIcon: string, outputDir: string): Promise<void>;
     static resetProjectRouter(cf: {
         project_router: string;
         targetString: string;

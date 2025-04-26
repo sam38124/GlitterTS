@@ -1,3 +1,3 @@
 export declare class AndroidProject {
-    static appKt(domain: string): string;
+    static appKt(package_name: string, domain: string): string;
 }

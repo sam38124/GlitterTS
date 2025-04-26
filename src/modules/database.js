@@ -12,6 +12,18 @@ const TAG = '[Database]';
 let pool;
 const createPool = async () => {
     const logger = new logger_1.default();
+    if (pool) {
+        try {
+            await pool.end();
+        }
+        catch (e) {
+        }
+        await new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve(true);
+            }, 500);
+        });
+    }
     pool = promise_1.default.createPool({
         connectionLimit: config_1.default.DB_CONN_LIMIT,
         queueLimit: config_1.default.DB_QUEUE_LIMIT,
@@ -66,7 +78,7 @@ const execute = async (sql, params) => {
     }
     catch (err) {
         logger.error(TAG, 'Failed to exect statement ' + sql + ' because ' + err);
-        throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to execute statement.');
+        throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to exect statement ' + sql + ' because ' + err);
     }
 };
 const limit = (map) => {
@@ -85,7 +97,7 @@ const query = async (sql, params) => {
     }
     catch (err) {
         logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
-        throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to execute statement.');
+        throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to query statement ' + sql + ' because ' + err);
     }
 };
 const queryLambada = async (cf, fun) => {

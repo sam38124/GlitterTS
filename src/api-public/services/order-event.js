@@ -16,7 +16,7 @@ class OrderEvent {
             user_id: 'manager',
         });
         console.log(`store_info.pickup_mode=>`, store_info.pickup_mode);
-        if (store_info.pickup_mode) {
+        if (store_info.pickup_mode || store_info.pos_support_finction.includes("order_sort")) {
             obj.cartData.user_info.shipment_number = parseInt(store_info.pickup_now || '0', 10) + 1;
             if (obj.cartData.user_info.shipment_number < parseInt(store_info.pickup_start || '0', 10)) {
                 obj.cartData.user_info.shipment_number = parseInt(store_info.pickup_start || '0', 10);

@@ -354,7 +354,7 @@ class User {
         const data = (await database_1.default.execute(`select *
          from \`${this.app}\`.t_user
          where userData ->>'$.email' = ?
-         and status <> 0`, [fbResponse.email]))[0];
+           and status <> 0`, [fbResponse.email]))[0];
         data.userData['fb-id'] = fbResponse.id;
         await database_1.default.execute(`update \`${this.app}\`.t_user
        set userData=?
@@ -547,7 +547,7 @@ class User {
             const data = (await database_1.default.execute(`select *
            from \`${this.app}\`.t_user
            where userData ->>'$.email' = ?
-           and status <> 0`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0];
+             and status <> 0`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0];
             data.userData['google-id'] = payload === null || payload === void 0 ? void 0 : payload.sub;
             await database_1.default.execute(`update \`${this.app}\`.t_user
          set userData=?
@@ -655,7 +655,7 @@ class User {
             const data = (await database_1.default.execute(`select *
            from \`${this.app}\`.t_user
            where userData ->>'$.email' = ?
-           and status <> 0`, [decoded.payload.email]))[0];
+             and status <> 0`, [decoded.payload.email]))[0];
             data.userData['apple-id'] = uid;
             await database_1.default.execute(`update \`${this.app}\`.t_user
          set userData=?
@@ -2064,7 +2064,7 @@ class User {
             const data = (await database_1.default.execute(`select *
            from \`${this.app}\`.t_user
            where userID = ?
-           and status <> 0`, [userID]))[0];
+             and status <> 0`, [userID]))[0];
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
                 const result = (await database_1.default.query(`update \`${this.app}\`.t_user
            SET ?
@@ -2239,7 +2239,6 @@ class User {
                 }
             }
             if (checkConfigCache()) {
-                console.log(`[${this.app}] config cache hit`);
                 return JSON.parse(JSON.stringify(checkConfigCache()));
             }
             const that = this;
@@ -2324,7 +2323,8 @@ class User {
                     const config = await this.getConfigV2({ key: 'message_setting', user_id: 'manager' });
                     value.chat_toggle = config.toggle;
                 }
-                (_b = value.checkout_mode) !== null && _b !== void 0 ? _b : (value.checkout_mode = {
+                value.pos_support_finction = (_b = value.pos_support_finction) !== null && _b !== void 0 ? _b : [];
+                (_c = value.checkout_mode) !== null && _c !== void 0 ? _c : (value.checkout_mode = {
                     payload: ['1', '3', '0'],
                     progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
                     orderStatus: ['1', '0'],

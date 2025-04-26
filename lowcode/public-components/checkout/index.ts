@@ -2214,6 +2214,7 @@ export class CheckoutIndex {
                                                   },
                                                 };
                                               })
+<<<<<<< HEAD
                                             : ``}
                                           <!-- 選取超商 -->
                                           ${ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment)
@@ -2241,6 +2242,282 @@ export class CheckoutIndex {
                                                           },
                                                           () => {}
                                                         );
+=======
+                                            );
+                                          });
+                                          vm.cartData.user_info.invoice_method = method;
+                                          vm.cartData.user_info.invoice_type =
+                                            vm.cartData.user_info.invoice_type || 'me';
+                                          vm.cartData.user_info.send_type = vm.cartData.user_info.send_type || 'email';
+
+                                          const form_array = JSON.parse(JSON.stringify(vm_info.list));
+
+                                          form_array.map((dd: any) => {
+                                            if (
+                                              dd.key === 'send_type' &&
+                                              vm.cartData.user_info.send_type === 'carrier'
+                                            ) {
+                                              dd.col = 3;
+                                            }
+                                            dd.form_config.title_style = {
+                                              list: [
+                                                {
+                                                  class: ['company', 'gui_number', 'carrier_num'].includes(dd.key)
+                                                    ? gClass('label') + ' mt-2'
+                                                    : gClass('label') + ' mb-2',
+                                                  style:
+                                                    'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',
+                                                  stylist: [],
+                                                  dataType: 'code',
+                                                  style_from: 'code',
+                                                  classDataType: 'static',
+                                                },
+                                              ],
+                                              class: 'form-label',
+                                              style:
+                                                'font-size: 20px;font-style: normal;font-weight: 400;line-height: 140%; color:#393939 !important;',
+                                              stylist: [],
+                                              version: 'v2',
+                                              dataType: 'static',
+                                              style_from: 'code',
+                                              classDataType: 'static',
+                                            };
+                                            dd.form_config.input_style = {
+                                              list: [
+                                                {
+                                                  class: gClass('input'),
+                                                  style:
+                                                    'return `border-radius: ${widget.formData.radius}px !important;`',
+                                                  stylist: [],
+                                                  dataType: 'code',
+                                                  style_from: 'code',
+                                                  classDataType: 'static',
+                                                },
+                                              ],
+                                              class: ' mb-3',
+                                              style: 'background: #FFF;',
+                                              stylist: [],
+                                              version: 'v2',
+                                              dataType: 'static',
+                                              style_from: 'code',
+                                              classDataType: 'static',
+                                            };
+                                            return dd;
+                                          });
+                                          return [
+                                            html` <div
+                                              class="d-flex ms-2 my-3"
+                                              style="gap:10px;cursor:pointer;"
+                                              onclick="${gvc.event(() => {
+                                                vm.cartData.user_info_same = !vm.cartData.user_info_same;
+                                                if (vm.cartData.user_info_same) {
+                                                  vm.cartData.user_info.name = vm.cartData.customer_info.name;
+                                                  vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
+                                                  vm.cartData.user_info.email = vm.cartData.customer_info.email;
+                                                }
+                                                gvc.notifyDataChange(id);
+                                              })}"
+                                            >
+                                              <input
+                                                class="form-check-input form-checkbox  ${checkbox}"
+                                                type="checkbox"
+                                                ${vm.cartData.user_info_same ? `checked` : ''}
+                                              />
+                                              ${Language.text('same_as_buyer_info')}
+                                            </div>`,
+                                            FormWidget.editorView({
+                                              gvc: gvc,
+                                              array: form_array.map((dd: any, index: number) => {
+                                                dd.col = '6';
+                                                if (index === form_array.length - 1) {
+                                                  dd.col = '12';
+                                                }
+                                                return dd;
+                                              }),
+                                              refresh: () => {
+                                                this.storeLocalData(vm.cartData);
+                                                gvc.notifyDataChange(id);
+                                              },
+                                              formData: vm.cartData.user_info,
+                                            }),
+                                          ].join('<div class="my-2"></div>');
+                                        } catch (e) {
+                                          console.error(`error 4 =>`, e);
+                                          return '';
+                                        }
+                                      },
+                                      divCreate: {
+                                        class: `w-100 mt-2`,
+                                      },
+                                    };
+                                  })}
+                                  ${(() => {
+                                    const verify = [];
+                                    const shipment = vm.cartData.shipment_selector.find(
+                                      (item: any) => item.value === vm.cartData.user_info.shipment
+                                    );
+                                    if (shipment.isExcludedByTotal) {
+                                      verify.push(
+                                        '提示：若總金額超過20,000元，結帳系統無法提供四大超商配送，請調整購買項目'
+                                      );
+                                    }
+                                    if (shipment.isExcludedByWeight) {
+                                      verify.push(
+                                        '提示：若訂單總重超過20公斤，無法提供中華郵政/黑貓宅配服務，請調整購買項目'
+                                      );
+                                    }
+                                    return html`
+                                      <div style="height:100px;"></div>
+
+                                      <div
+                                        class="w-100 d-flex align-items-center justify-content-center position-fixed bottom-0 start-0 p-2 shadow bg-white"
+                                        style="min-height:76px;z-index:10;"
+                                      >
+                                        ${(() => {
+                                          if (verify.length > 0) {
+                                            return verify
+                                              .map(dd => {
+                                                return `<div class="text-danger" style="font-size: 13px;">${dd}</div>`;
+                                              })
+                                              .join('');
+                                          } else {
+                                            return ` <div
+                                          class="d-flex align-items-center justify-content-end"
+                                          style="width:1180px;max-width: 100%;gap:24px;"
+                                        >
+                                          <div class="d-flex align-items-end fs-base" style="gap:5px;">
+                                            <span style="white-space:nowrap;" class="fw-bold fs-sm">
+                                              ${Language.text('total_amount')}</span
+                                            >
+                                            <div class="${gClass(['price-row', 'text-1', 'bold'])}">
+                                              <div class="fs-5 fw-bold ${gClass('price-text')}">
+                                                ${Currency.convertCurrencyText(vm.cartData.total)}
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div class="flex-fill d-block d-sm-none"></div>
+                                          <div class="">
+                                            <button
+                                              class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
+                                              style="${
+                                                document.body.clientWidth < 800
+                                                  ? `min-width:100px;`
+                                                  : `min-width:380px;`
+                                              }"
+                                              onclick="${gvc.event(() => {
+                                                const that = this;
+                                                if (onlineData?.interaction?.status == 3) {
+                                                  const dialog = new ShareDialog(gvc.glitter);
+                                                  dialog.infoMessage({
+                                                    text: `很抱歉，團購的結帳時間已截止，無法再進行訂單結算。感謝您的支持，期待下次再為您服務！`,
+                                                  });
+                                                  return;
+                                                }
+
+                                                if (
+                                                  (window as any).login_config.login_in_to_order &&
+                                                  !GlobalUser.token
+                                                ) {
+                                                  GlobalUser.loginRedirect = location.href;
+                                                  gvc.glitter.href = '/login';
+                                                  return;
+                                                }
+
+                                                function next() {
+                                                  if (vm.cartData.user_info_same) {
+                                                    vm.cartData.user_info.name = vm.cartData.customer_info.name;
+                                                    vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
+                                                    vm.cartData.user_info.email = vm.cartData.customer_info.email;
+                                                  }
+                                                  if (verify.length > 0) {
+                                                    return;
+                                                  }
+
+                                                  if (shipmentList.length === 0) {
+                                                    vm.cartData.user_info.shipment = 'none';
+                                                  }
+
+                                                  const dialog = new ShareDialog(gvc.glitter);
+                                                  if (!that.checkFormData(gvc, vm.cartData, widget)) {
+                                                    return;
+                                                  }
+                                                  for (const item of vm.cartData.lineItems) {
+                                                    const title =
+                                                      (item.language_data &&
+                                                        item.language_data[Language.getLanguage()].title) ||
+                                                      item.title;
+                                                    let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                                    let max_qty =
+                                                      (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
+                                                    let count = 0;
+                                                    for (const b of vm.cartData.lineItems) {
+                                                      if (b.id === item.id) {
+                                                        count += b.count;
+                                                      }
+                                                    }
+                                                    if (count < min) {
+                                                      dialog.errorMessage({
+                                                        text: Language.text('min_p_count_d')
+                                                          .replace('_c_', min)
+                                                          .replace('_p_', `『${title}』`),
+                                                      });
+                                                      return;
+                                                    }
+                                                    if (count > max_qty) {
+                                                      dialog.errorMessage({
+                                                        text: Language.text('max_p_count_d')
+                                                          .replace('_c_', max_qty)
+                                                          .replace('_p_', `『${title}』`),
+                                                      });
+                                                      return;
+                                                    }
+                                                    if (max_qty > 0 && count + item.buy_history_count > max_qty) {
+                                                      dialog.errorMessage({
+                                                        text: Language.text('trigger_maximum_item').replace(
+                                                          '_p_',
+                                                          `『${title}』`
+                                                        ),
+                                                      });
+                                                      return;
+                                                    }
+                                                  }
+                                                  [
+                                                    'MerchantTradeNo',
+                                                    'LogisticsSubType',
+                                                    'CVSStoreID',
+                                                    'CVSStoreName',
+                                                    'CVSTelephone',
+                                                    'CVSOutSide',
+                                                    'ExtraData',
+                                                    'CVSAddress',
+                                                  ].map(dd => {
+                                                    if (gvc.glitter.getUrlParameter(dd)) {
+                                                      vm.cartData.user_info[dd] = decodeURI(
+                                                        glitter.getUrlParameter(dd)
+                                                      );
+                                                    }
+                                                  });
+                                                  dialog.dataLoading({ visible: true });
+                                                  vm.cartData.user_info.note =
+                                                    (vm.cartData.user_info.note ?? '') + (check_out_sub.note ?? '');
+                                                  ApiShop.toCheckout({
+                                                    line_items: vm.cartData.lineItems.map((dd: any) => {
+                                                      return {
+                                                        id: dd.id,
+                                                        spec: dd.spec,
+                                                        count: dd.count,
+                                                      };
+                                                    }),
+                                                    customer_info: vm.cartData.customer_info,
+                                                    return_url: (() => {
+                                                      const originalUrl =
+                                                        glitter.root_path + 'order_detail' + location.search;
+                                                      const urlObject = new URL(originalUrl);
+                                                      urlObject.searchParams.set('EndCheckout', '1');
+                                                      const newUrl = urlObject.toString();
+                                                      if ((ApplicationConfig.device_type !== 'web') && ['jkopay','line_pay'].includes(vm.cartData.customer_info.payment_select)) {
+                                                        return `${ApplicationConfig.bundle_id}://?path=${encodeURIComponent(newUrl)}`;
+>>>>>>> 77e777e6 ([update] : glitter version.)
                                                       } else {
                                                         const form_id = gvc.glitter.getUUID();
                                                         $('body').append(

@@ -1,0 +1,234 @@
+{
+  "project_info": {
+    "project_number": "215644290249",
+    "project_id": "ncdesign-2c737",
+    "storage_bucket": "ncdesign-2c737.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215644290249:android:3d2db29819e9f44bdc6118",
+        "android_client_info": {
+          "package_name": "com.ncdesign.cleander"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "215644290249-918s04gkg55qe3dfl20m353hegto1456.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ncdesign.cleander",
+            "certificate_hash": "52d4b02eb75bed2049f2b20378f8d39533577897"
+          }
+        },
+        {
+          "client_id": "215644290249-9k0u0ljquq4k5cncq75t1h33u42vfmb7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDq455tOuAgut2g9C649mOS7Xzi9da530M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "215644290249-03mbtfpjinjdvkmd8lovtrvbqoh668gj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "215644290249-2qnombngj2sbr2hjbtquhjnapn7utsa4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "www.smilebio.io"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215644290249:android:8908bfc446518932dc6118",
+        "android_client_info": {
+          "package_name": "www.smilebio.io"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "215644290249-9k0u0ljquq4k5cncq75t1h33u42vfmb7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDq455tOuAgut2g9C649mOS7Xzi9da530M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "215644290249-03mbtfpjinjdvkmd8lovtrvbqoh668gj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "215644290249-2qnombngj2sbr2hjbtquhjnapn7utsa4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "www.smilebio.io"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215644290249:android:f55fb13fa6ebbeb1dc6118",
+        "android_client_info": {
+          "package_name": "proshake.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "215644290249-9k0u0ljquq4k5cncq75t1h33u42vfmb7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDq455tOuAgut2g9C649mOS7Xzi9da530M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "215644290249-03mbtfpjinjdvkmd8lovtrvbqoh668gj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "215644290249-2qnombngj2sbr2hjbtquhjnapn7utsa4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "www.smilebio.io"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215644290249:android:07e774da3d616284dc6118",
+        "android_client_info": {
+          "package_name": "proshake.io"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "215644290249-9k0u0ljquq4k5cncq75t1h33u42vfmb7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDq455tOuAgut2g9C649mOS7Xzi9da530M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "215644290249-03mbtfpjinjdvkmd8lovtrvbqoh668gj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "215644290249-2qnombngj2sbr2hjbtquhjnapn7utsa4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "www.smilebio.io"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215644290249:android:7adbd8f50434ba21dc6118",
+        "android_client_info": {
+          "package_name": "shopnex.cc"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "215644290249-9k0u0ljquq4k5cncq75t1h33u42vfmb7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDq455tOuAgut2g9C649mOS7Xzi9da530M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "215644290249-03mbtfpjinjdvkmd8lovtrvbqoh668gj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "215644290249-2qnombngj2sbr2hjbtquhjnapn7utsa4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "www.smilebio.io"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215644290249:android:3558892802dda637dc6118",
+        "android_client_info": {
+          "package_name": "www.smilebio.io"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "215644290249-9k0u0ljquq4k5cncq75t1h33u42vfmb7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDq455tOuAgut2g9C649mOS7Xzi9da530M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "215644290249-03mbtfpjinjdvkmd8lovtrvbqoh668gj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "215644290249-2qnombngj2sbr2hjbtquhjnapn7utsa4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "www.smilebio.io"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
