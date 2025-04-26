@@ -316,6 +316,7 @@ export class Glitter {
             }
             var scritem: any = urlArray[index]
             var haveURL = false
+            //@ts-ignore
             if (!option ?? {multiple: false}.multiple) {
                 glitter.$('head').children().map(function (data: any) {
                     if (glitter.$('head').children().get(data).src === (scritem.src ?? scritem)) {

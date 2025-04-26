@@ -1,5 +1,21 @@
 import { Glitter } from '../Glitter.js';
 export class HtmlGenerate {
+    static editeInput(obj) {
+        var _a;
+        return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
+<input class="form-control" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
+            obj.callback(e.value);
+        })}" value="${(_a = obj.default) !== null && _a !== void 0 ? _a : ''}">`;
+    }
+    ;
+    static editeText(obj) {
+        var _a;
+        return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
+<textarea class="form-control" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
+            obj.callback(e.value);
+        })}" style="height: 100px;">${(_a = obj.default) !== null && _a !== void 0 ? _a : ''}</textarea>`;
+    }
+    ;
     constructor(setting, hover = []) {
         this.setting = setting;
         const editContainer = window.glitter.getUUID();
@@ -375,22 +391,6 @@ ${e.line}
             return JSON.stringify(setting);
         };
     }
-    static editeInput(obj) {
-        var _a;
-        return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
-<input class="form-control" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
-            obj.callback(e.value);
-        })}" value="${(_a = obj.default) !== null && _a !== void 0 ? _a : ''}">`;
-    }
-    ;
-    static editeText(obj) {
-        var _a;
-        return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
-<textarea class="form-control" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
-            obj.callback(e.value);
-        })}" style="height: 100px;">${(_a = obj.default) !== null && _a !== void 0 ? _a : ''}</textarea>`;
-    }
-    ;
 }
 HtmlGenerate.resourceHook = (src) => {
     return src;

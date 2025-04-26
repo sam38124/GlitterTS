@@ -2,6 +2,9 @@
 import { GVCType } from "./module/PageManager.js";
 const $ = window.$;
 class LifeCycle {
+    notifyDataChange() {
+        $('body').html(this.onCreateView());
+    }
     constructor() {
         this.onResume = function () {
         };
@@ -17,9 +20,6 @@ class LifeCycle {
         this.cssInitial = function () {
             return '';
         };
-    }
-    notifyDataChange() {
-        $('body').html(this.onCreateView());
     }
 }
 export class GVC {

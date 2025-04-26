@@ -18,6 +18,9 @@ export var GVCType;
     GVCType[GVCType["Dialog"] = 1] = "Dialog";
 })(GVCType || (GVCType = {}));
 export class PageConfig {
+    getElement() {
+        return Glitter.glitter.$(`#page${this.id}`);
+    }
     constructor(par) {
         this.scrollTop = 0;
         this.tag = par.tag;
@@ -30,9 +33,6 @@ export class PageConfig {
         this.type = par.type;
         this.animation = par.animation;
         this.backGroundColor = par.backGroundColor;
-    }
-    getElement() {
-        return Glitter.glitter.$(`#page${this.id}`);
     }
 }
 export class PageManager {
