@@ -390,6 +390,13 @@ export class BgWidget {
             size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
         });
     }
+    static watchingInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('watching', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
+    }
     static normalInsignia(text, args) {
         var _a, _b;
         return this.insignia('normal', text, {
@@ -407,6 +414,20 @@ export class BgWidget {
     static secondaryInsignia(text, args) {
         var _a, _b;
         return this.insignia('secondary', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
+    }
+    static grayInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('gray', text, {
+            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
+            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+        });
+    }
+    static darkInsignia(text, args) {
+        var _a, _b;
+        return this.insignia('dark', text, {
             type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
             size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
         });

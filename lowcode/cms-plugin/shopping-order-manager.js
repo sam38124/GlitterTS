@@ -331,24 +331,30 @@ export class ShoppingOrderManager {
                                     })
                                         .flat()),
                                 ];
+                                function cartTokenComponent(cart_token, source_badge, is_watch_user) {
+                                    return html `<div style="min-width:200px;">
+                      <div style="position: relative; height: 40px;">
+                        <div
+                          style="position: absolute; bottom: 9px; height: 9px; width: 127px; ${is_watch_user
+                                        ? 'background-color: #ffe9b2'
+                                        : ''}"
+                        ></div>
+                        <span style="position: absolute; bottom: 0;">${cart_token}${source_badge}</span>
+                      </div>
+                    </div>`;
+                                }
                                 return data.response.data.map((dd) => {
                                     var _a;
                                     const vt = OrderSetting.getAllStatusBadge(dd);
                                     dd.orderData.total = dd.orderData.total || 0;
                                     dd.orderData.customer_info = (_a = dd.orderData.customer_info) !== null && _a !== void 0 ? _a : {};
                                     const isWatchUser = watchUsers.includes(dd.orderData.email);
-                                    const backgroundColor = isWatchUser ? `background-color: #ffe9b2` : '';
                                     const tooltipText = isWatchUser ? '此份訂單的顧客為觀察名單' : '';
                                     if (query.isShipment) {
                                         return [
                                             {
                                                 key: '訂單編號',
-                                                value: html ` <div
-                            class="d-flex align-items-center gap-2"
-                            style="min-width: 200px; ${backgroundColor}"
-                          >
-                            ${dd.cart_token}${vt.sourceBadge()}
-                          </div>`,
+                                                value: cartTokenComponent(dd.cart_token, vt.sourceBadge(), isWatchUser),
                                                 tooltip: tooltipText,
                                             },
                                             {
@@ -378,12 +384,7 @@ export class ShoppingOrderManager {
                                         return [
                                             {
                                                 key: '訂單編號',
-                                                value: html ` <div
-                            class="d-flex align-items-center gap-2"
-                            style="min-width: 200px; ${backgroundColor}"
-                          >
-                            ${dd.cart_token}${vt.sourceBadge()}
-                          </div>`,
+                                                value: cartTokenComponent(dd.cart_token, vt.sourceBadge(), isWatchUser),
                                                 tooltip: tooltipText,
                                             },
                                             {
@@ -2603,7 +2604,7 @@ export class ShoppingOrderManager {
                                             html ` <div class="d-flex flex-column" style="gap:8px;">
                                     <div
                                       class="d-flex align-items-center"
-                                      style="font-weight: 700; gap:8px;cursor:pointer;"
+                                      style="gap: 8px; cursor: pointer;"
                                       onclick="${gvc.event(() => {
                                                 if (userData.userID) {
                                                     child_vm.userID = userData.userID;
@@ -2611,40 +2612,50 @@ export class ShoppingOrderManager {
                                                 }
                                             })}"
                                     >
-                                      ${(() => {
-                                                var _a;
-                                                const name = (_a = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _a === void 0 ? void 0 : _a.name;
-                                                if (name) {
-                                                    return html `<span style="color: #4D86DB;">${name}</span>`;
-                                                }
-                                                return html `<span style="color: #393939;">訪客</span>`;
-                                            })()}
-                                      ${(() => {
-                                                if (userDataLoading) {
-                                                    return BgWidget.secondaryInsignia('讀取中');
-                                                }
-                                                if (userData.member == undefined) {
-                                                    return BgWidget.secondaryInsignia('訪客');
-                                                }
-                                                if ((userData === null || userData === void 0 ? void 0 : userData.member.length) > 0) {
-                                                    for (let i = 0; i < userData.member.length; i++) {
-                                                        if (userData.member[i].trigger) {
-                                                            return BgWidget.primaryInsignia(userData.member[i].tag_name);
+                                      ${[
+                                                (() => {
+                                                    var _a;
+                                                    const name = (_a = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _a === void 0 ? void 0 : _a.name;
+                                                    if (name) {
+                                                        return html `<span style="font-weight: 500; color: #4D86DB;">${name}</span>`;
+                                                    }
+                                                    return html `<span style="font-weight: normal; color: #393939;">訪客</span>`;
+                                                })(),
+                                                (() => {
+                                                    if (userData.status === 0) {
+                                                        return '';
+                                                    }
+                                                    if (userDataLoading) {
+                                                        return BgWidget.grayInsignia('讀取中');
+                                                    }
+                                                    if (userData.member === undefined) {
+                                                        return BgWidget.grayInsignia('訪客');
+                                                    }
+                                                    if ((userData === null || userData === void 0 ? void 0 : userData.member.length) > 0) {
+                                                        for (let i = 0; i < userData.member.length; i++) {
+                                                            if (userData.member[i].trigger) {
+                                                                return BgWidget.darkInsignia(userData.member[i].tag_name);
+                                                            }
                                                         }
                                                     }
-                                                    return BgWidget.primaryInsignia('一般會員');
-                                                }
-                                                return BgWidget.secondaryInsignia('訪客');
-                                            })()}
+                                                    return BgWidget.darkInsignia('一般會員');
+                                                })(),
+                                                (() => {
+                                                    if (userData.status === 0) {
+                                                        return BgWidget.dangerInsignia('黑名單');
+                                                    }
+                                                    if (userData.status === 2) {
+                                                        return BgWidget.watchingInsignia('觀察名單');
+                                                    }
+                                                    return '';
+                                                })(),
+                                            ].join('')}
                                     </div>
                                     <div style="color: #393939;font-weight: 400;">
                                       ${(_h = (_g = (_f = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _f === void 0 ? void 0 : _f.phone) !== null && _g !== void 0 ? _g : orderData.orderData.user_info.phone) !== null && _h !== void 0 ? _h : '此會員未填手機'}
                                     </div>
                                     <div style="color: #393939;font-weight: 400;word-break:break-all;">
                                       ${(_l = (_k = (_j = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _j === void 0 ? void 0 : _j.email) !== null && _k !== void 0 ? _k : orderData.orderData.user_info.email) !== null && _l !== void 0 ? _l : ''}
-                                    </div>
-                                    <div style="color: #393939;font-weight: 700;">
-                                      ${userData.status === 2 ? '* 此顧客列為觀察名單' : ''}
                                     </div>
                                   </div>`,
                                             BgWidget.horizontalLine(),

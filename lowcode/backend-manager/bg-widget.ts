@@ -557,6 +557,13 @@ export class BgWidget {
     });
   }
 
+  static watchingInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('watching', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
+  }
+
   static normalInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
     return this.insignia('normal', text, {
       type: args?.type ?? 'fill',
@@ -573,6 +580,20 @@ export class BgWidget {
 
   static secondaryInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
     return this.insignia('secondary', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
+  }
+
+  static grayInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('gray', text, {
+      type: args?.type ?? 'fill',
+      size: args?.size ?? 'md',
+    });
+  }
+
+  static darkInsignia(text: string, args?: { type?: 'fill' | 'border'; size?: 'sm' | 'md' }) {
+    return this.insignia('dark', text, {
       type: args?.type ?? 'fill',
       size: args?.size ?? 'md',
     });
