@@ -24,7 +24,7 @@ export class DataAnalyze {
                     src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714105121170-apexcharts.min.js',
                 },
             ], () => { }, () => { });
-            ApiShop.ecDataAnalyze('active_recent_2week,active_recent_year,recent_register_today,order_today,sales_per_month_1_month'.split(',')).then((res) => __awaiter(this, void 0, void 0, function* () {
+            ApiShop.ecDataAnalyze('recent_register_today,order_today,sales_per_month_1_month'.split(',')).then((res) => __awaiter(this, void 0, void 0, function* () {
                 vm.loading = false;
                 vm.data = res.response;
                 gvc.notifyDataChange(id);
@@ -70,22 +70,6 @@ export class DataAnalyze {
                     </div>
                     <div class="row p-0" style="width: 896px; max-width: 100%; gap:15px 0px; ">
                       ${[
-                            {
-                                title: '今日瀏覽人數',
-                                value: html `${vm.data.active_recent_2week.count_array
-                                    .map((dd) => {
-                                    return dd;
-                                })
-                                    .reverse()[0]
-                                    .toLocaleString()}
-                          ${BgWidget.grayNote(`(本月: ${vm.data.active_recent_year.count_array
-                                    .map((dd) => {
-                                    return dd;
-                                })
-                                    .reverse()[0]
-                                    .toLocaleString()})`, 'font-weight: 500;')}`,
-                                icon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/users-duotone-solid.svg',
-                            },
                             {
                                 title: '今日會員註冊',
                                 value: html `${vm.data.recent_register_today['today'].toLocaleString()}
@@ -172,10 +156,6 @@ export class DataAnalyze {
                             {
                                 class: 'col-12 col-lg-4 col-md-6',
                                 event: DataAnalyzeModule.orderAverage(gvc),
-                            },
-                            {
-                                class: 'col-12 col-lg-4 col-md-6',
-                                event: DataAnalyzeModule.viewPeople(gvc),
                             },
                             {
                                 class: 'col-12 col-lg-4 col-md-6',

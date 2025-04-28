@@ -35,7 +35,6 @@ export class DataAnalyze {
                             DataAnalyzeModule.salesAmount(gvc, vm),
                             DataAnalyzeModule.orderAmount(gvc, vm),
                             DataAnalyzeModule.orderAverage(gvc, vm),
-                            DataAnalyzeModule.viewPeople(gvc, vm),
                             DataAnalyzeModule.registerPeople(gvc, vm),
                             DataAnalyzeModule.transferRatio(gvc, vm),
                         ]

@@ -790,7 +790,6 @@ class LinePay {
                 cancelUrl: cancel_url,
             },
         };
-        console.log(`body===>`, JSON.stringify(body));
         body.packages.push({
             id: 'shipping',
             amount: orderData.shipment_fee,

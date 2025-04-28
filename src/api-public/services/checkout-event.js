@@ -729,8 +729,6 @@ class CheckoutEvent {
             checkPoint('return preview');
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
-            console.log(1);
-            console.log(carData.lineItems);
             if (userData && userData.userID) {
                 await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
                     order_id: carData.orderID,
@@ -879,8 +877,6 @@ class CheckoutEvent {
                 }
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
-            console.log(2);
-            console.log(carData.lineItems);
             const id = 'redirect_' + tool_js_1.default.randomString(6);
             const redirect_url = new URL(data.return_url);
             redirect_url.searchParams.set('cart_token', carData.orderID);

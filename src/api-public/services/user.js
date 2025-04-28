@@ -2315,7 +2315,7 @@ class User {
         }
     }
     async checkLeakData(key, value) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         switch (key) {
             case 'store-information': {
                 (_a = value.language_setting) !== null && _a !== void 0 ? _a : (value.language_setting = { def: 'zh-TW', support: ['zh-TW'] });
@@ -2329,7 +2329,7 @@ class User {
                     progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
                     orderStatus: ['1', '0'],
                 });
-                (_c = value.invoice_mode) !== null && _c !== void 0 ? _c : (value.invoice_mode = {
+                (_d = value.invoice_mode) !== null && _d !== void 0 ? _d : (value.invoice_mode = {
                     payload: ['1', '3', '0'],
                     progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
                     orderStatus: ['1', '0'],
@@ -2344,7 +2344,7 @@ class User {
                 }
                 break;
             case 'store_manager':
-                (_d = value.list) !== null && _d !== void 0 ? _d : (value.list = [
+                (_e = value.list) !== null && _e !== void 0 ? _e : (value.list = [
                     {
                         id: 'store_default',
                         name: '庫存點1(預設)',
