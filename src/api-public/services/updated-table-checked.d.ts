@@ -5,6 +5,7 @@ export declare class UpdatedTableChecked {
         table_name: string;
         last_version: string[];
         new_version: string;
+        beta?: boolean;
         event: string | (() => Promise<any>);
     }): Promise<void>;
 }

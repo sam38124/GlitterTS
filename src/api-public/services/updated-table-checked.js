@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdatedTableChecked = void 0;
 const database_1 = __importDefault(require("../../modules/database"));
 const checkout_js_1 = require("./checkout.js");
+const public_user_config_1 = require("./migrate-event/public-user-config");
 const user_update_js_1 = require("./user-update.js");
 class UpdatedTableChecked {
     static async startCheck(app_name) {
@@ -204,29 +205,48 @@ class UpdatedTableChecked {
             table_name: 't_user',
             last_version: ['V1.2'],
             new_version: 'V1.3',
-            event: `ALTER TABLE \`${app_name}\`.\`t_user\`
-      ADD COLUMN \`email\` VARCHAR(50) NULL AFTER \`member_level\`,
-      ADD COLUMN \`phone\` VARCHAR(50) NULL AFTER \`email\`,
-      ADD INDEX \`index8\` (\`email\` ASC) VISIBLE,
-      ADD INDEX \`index9\` (\`phone\` ASC) VISIBLE;
-      ;`,
+            event: `
+        ALTER TABLE \`${app_name}\`.\`t_user\`
+        ADD COLUMN \`email\` VARCHAR(50) NULL AFTER \`member_level\`,
+        ADD COLUMN \`phone\` VARCHAR(50) NULL AFTER \`email\`,
+        ADD INDEX \`index8\` (\`email\` ASC) VISIBLE,
+        ADD INDEX \`index9\` (\`phone\` ASC) VISIBLE;
+      `,
         });
         await UpdatedTableChecked.update({
             app_name: app_name,
             table_name: 't_user',
             last_version: ['V1.3', 'V1.4'],
             new_version: 'V1.5',
-            event: `UPDATE \`${app_name}\`.t_user
-    SET
-    phone = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.phone')),
-      email = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email'))  where id>0`,
+            event: `
+        UPDATE \`${app_name}\`.t_user
+        SET
+          phone = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.phone')),
+          email = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) WHERE id > 0
+      `,
+        });
+        await UpdatedTableChecked.update({
+            app_name: 't_1725992531001',
+            table_name: 't_user_public_config',
+            last_version: ['V1.0', ''],
+            new_version: 'V1.1',
+            beta: true,
+            event: () => {
+                return new Promise(async (resolve) => {
+                    const migrateClass = new public_user_config_1.MigratePublicUserConfig('t_1725992531001');
+                    await migrateClass.setLogisticsGroup();
+                    resolve(true);
+                });
+            },
         });
     }
     static async update(obj) {
         var _a;
-        const data_ = await database_1.default.query(`SELECT TABLE_NAME, TABLE_COMMENT
-       FROM information_schema.tables
-       WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?;`, [obj.app_name, obj.table_name]);
+        const data_ = await database_1.default.query(`
+        SELECT TABLE_NAME, TABLE_COMMENT
+        FROM information_schema.tables
+        WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?;
+      `, [obj.app_name, obj.table_name]);
         if (obj.last_version.includes((_a = data_[0]['TABLE_COMMENT']) !== null && _a !== void 0 ? _a : '')) {
             console.log(`資料庫更新開始: ${obj.app_name}-${obj.last_version}-to-${obj.new_version}`);
             if (typeof obj.event === 'string') {
@@ -235,8 +255,10 @@ class UpdatedTableChecked {
             else {
                 while (!(await obj.event())) { }
             }
-            await database_1.default.query(`ALTER TABLE \`${obj.app_name}\`.\`${obj.table_name}\` COMMENT = '${obj.new_version}';`, []);
-            console.log(`資料庫更新結束: ${obj.app_name}-${obj.last_version}-to-${obj.new_version}`);
+            if (!obj.beta) {
+                await database_1.default.query(`ALTER TABLE \`${obj.app_name}\`.\`${obj.table_name}\` COMMENT = '${obj.new_version}';`, []);
+                console.log(`資料庫更新結束: ${obj.app_name}-${obj.last_version}-to-${obj.new_version}`);
+            }
         }
     }
 }

@@ -828,7 +828,8 @@ export class ShoppingSettingAdvance {
                     obj.gvc.bindView(() => {
                       let loading = true;
                       let dataList: any = [];
-                      postMD.designated_logistics = postMD.designated_logistics ?? { type: 'all', list: [] };
+                      postMD.designated_logistics = postMD.designated_logistics ?? { group: '' };
+
                       return {
                         bind: 'designatedLogistics',
                         view: () => {
@@ -860,94 +861,30 @@ export class ShoppingSettingAdvance {
                                             key: 'designated',
                                             value: '指定物流',
                                           },
-                                        ],
+                                        ].filter(item => {
+                                          return !(item.key === 'designated' && dataList.length === 0);
+                                        }),
                                         style: 'width: 100%;',
                                       })}
                                       <div>
                                         ${(() => {
                                           switch (postMD.designated_logistics.type) {
                                             case 'designated':
-                                              return (() => {
-                                                const designatedVM = {
-                                                  id: gvc.glitter.getUUID(),
-                                                  loading: true,
-                                                  dataList: [] as any,
-                                                };
-                                                return gvc.bindView({
-                                                  bind: designatedVM.id,
-                                                  view: () => {
-                                                    if (designatedVM.loading) {
-                                                      return BgWidget.spinner({ text: { visible: false } });
-                                                    } else {
-                                                      return BgWidget.selectDropList({
-                                                        gvc: gvc,
-                                                        callback: (value: []) => {
-                                                          postMD.designated_logistics.list = value;
-                                                          gvc.notifyDataChange(id);
-                                                        },
-                                                        default: postMD.designated_logistics.list ?? [],
-                                                        options: designatedVM.dataList,
-                                                        style: 'width: 100%;',
-                                                      });
-                                                    }
-                                                  },
-                                                  divCreate: {
-                                                    style: 'width: 100%;',
-                                                  },
-                                                  onCreate: () => {
-                                                    if (designatedVM.loading) {
-                                                      ApiPageConfig.getPrivateConfig(
-                                                        (window.parent as any).appName,
-                                                        'logistics_setting'
-                                                      )
-                                                        .then((dd: any) => {
-                                                          if (!dd.result || !dd.response.result[0]) {
-                                                            throw new Error(
-                                                              'Failed to fetch logistics setting or empty result.'
-                                                            );
-                                                          }
-
-                                                          const shipment_setting = dd.response.result[0].value;
-
-                                                          // 合併 ShipmentConfig.list 和 shipment_setting.custom_delivery
-                                                          const combinedList = [
-                                                            ...ShipmentConfig.list.map(dd => ({
-                                                              name: dd.title,
-                                                              value: dd.value,
-                                                            })),
-                                                            ...(shipment_setting.custom_delivery ?? []).map(
-                                                              (dd: any) => ({
-                                                                form: dd.form,
-                                                                name: dd.name,
-                                                                value: dd.id,
-                                                              })
-                                                            ),
-                                                          ];
-
-                                                          // 過濾出 shipment_setting.support 中支援的項目
-                                                          const supportedList = combinedList.filter(d1 =>
-                                                            shipment_setting.support.some((d2: any) => d2 === d1.value)
-                                                          );
-
-                                                          // 轉換為 designatedVM.dataList 所需的格式
-                                                          designatedVM.dataList = supportedList.map(item => ({
-                                                            key: item.value,
-                                                            value: item.name,
-                                                          }));
-
-                                                          // 更新狀態並通知資料變更
-                                                          designatedVM.loading = false;
-                                                          gvc.notifyDataChange(designatedVM.id);
-                                                        })
-                                                        .catch(error => {
-                                                          console.error('Error fetching logistics setting:', error);
-                                                          designatedVM.loading = false;
-                                                          gvc.notifyDataChange(designatedVM.id);
-                                                        });
-                                                    }
-                                                  },
-                                                });
-                                              })();
+                                              return BgWidget.selectFilter({
+                                                gvc: gvc,
+                                                callback: text => {
+                                                  postMD.designated_logistics.group = text;
+                                                  gvc.notifyDataChange(id);
+                                                },
+                                                default: postMD.designated_logistics.group,
+                                                options: dataList.map((data: any) => {
+                                                  return {
+                                                    key: data.key,
+                                                    value: data.name,
+                                                  };
+                                                }),
+                                                style: 'width: 100%;',
+                                              });
                                             default:
                                               return '';
                                           }
@@ -961,19 +898,17 @@ export class ShoppingSettingAdvance {
                         },
                         onCreate: () => {
                           if (loading) {
-                            ApiPageConfig.getPrivateConfig((window.parent as any).appName, 'glitter_delivery').then(
-                              res => {
-                                dataList = (() => {
-                                  try {
-                                    return res.response.result[0].value;
-                                  } catch (error) {
-                                    return dataList;
-                                  }
-                                })();
-                                loading = false;
-                                gvc.notifyDataChange('designatedLogistics');
-                              }
-                            );
+                            ApiUser.getPublicConfig('logistics_group', 'manager').then(r => {
+                              dataList = (() => {
+                                try {
+                                  return r.response.value;
+                                } catch (error) {
+                                  return dataList;
+                                }
+                              })();
+                              loading = false;
+                              gvc.notifyDataChange('designatedLogistics');
+                            });
                           }
                         },
                       };

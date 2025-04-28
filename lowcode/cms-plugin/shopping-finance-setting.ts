@@ -21,6 +21,12 @@ type CustomFinance = {
   shipmentSupport: string[];
 };
 
+type ShipmentGroupData = {
+  key: string;
+  name: string;
+  list: string[];
+};
+
 const html = String.raw;
 
 export class ShoppingFinanceSetting {
@@ -1656,6 +1662,7 @@ export class ShoppingFinanceSetting {
               [
                 { title: '基本設定', key: 'delivery_setting' },
                 { title: '物流追蹤', key: 'delivery_track' },
+                { title: '群組設定', key: 'delivery_group' },
                 { title: '配送備註', key: 'delivery_note' },
               ],
               gvc,
@@ -2847,7 +2854,265 @@ export class ShoppingFinanceSetting {
                 };
               }),
             ]);
+          } else if (vm.page === 'delivery_group') {
+            const dvm = {
+              id: gvc.glitter.getUUID(),
+              loading: true,
+              dataList: [] as ShipmentGroupData[],
+            };
+
+            function updateGroup(dialogGVC: GVC) {
+              dialog.dataLoading({ visible: true });
+              ApiUser.setPublicConfig({
+                user_id: 'manager',
+                key: 'logistics_group',
+                value: dvm.dataList,
+              }).then(() => {
+                dialog.dataLoading({ visible: false });
+                dialog.successMessage({ text: '設定成功' });
+                dialogGVC.closeDialog();
+
+                dvm.loading = true;
+                gvc.notifyDataChange(dvm.id);
+              });
+            }
+
+            function editGroupDialog(item?: ShipmentGroupData) {
+              const cloneData = structuredClone(item);
+              const postData = item
+                ? structuredClone(item)
+                : {
+                    key: Tool.randomString(8),
+                    name: '',
+                    list: [],
+                  };
+
+              return BgWidget.settingDialog({
+                gvc,
+                title: '設定群組',
+                innerHTML: iGVC => {
+                  const id = iGVC.glitter.getUUID();
+                  let loading = true;
+                  let dataList: any = [];
+
+                  return iGVC.bindView({
+                    bind: id,
+                    view: () => {
+                      if (loading) {
+                        return BgWidget.spinner();
+                      }
+                      return [
+                        html`<div class="tx_700">群組名稱</div>`,
+                        BgWidget.editeInput({
+                          gvc: iGVC,
+                          title: '',
+                          default: postData.name,
+                          placeHolder: '請輸入群組名稱',
+                          callback: value => {
+                            postData.name = value;
+                          },
+                        }),
+                        html`<div class="tx_700">包含的物流</div>`,
+                        BgWidget.multiCheckboxContainer(
+                          iGVC,
+                          dataList,
+                          postData.list,
+                          text => {
+                            postData.list = text;
+                          },
+                          { single: false }
+                        ),
+                      ].join(BgWidget.mbContainer(12));
+                    },
+                    onCreate: () => {
+                      if (loading) {
+                        ApiPageConfig.getPrivateConfig((window.parent as any).appName, 'logistics_setting').then(
+                          (dd: any) => {
+                            if (dd.result && dd.response.result[0]) {
+                              const shipment_setting = dd.response.result[0].value;
+
+                              // 合併 ShipmentConfig.list 和 shipment_setting.custom_delivery
+                              const combinedList = [
+                                ...ShipmentConfig.list.map(dd => ({
+                                  name: dd.title,
+                                  value: dd.value,
+                                })),
+                                ...(shipment_setting.custom_delivery ?? []).map((dd: any) => ({
+                                  form: dd.form,
+                                  name: dd.name,
+                                  value: dd.id,
+                                })),
+                              ];
+
+                              // 過濾出 shipment_setting.support 中支援的項目
+                              const supportedList = combinedList.filter(d1 =>
+                                shipment_setting.support.some((d2: any) => d2 === d1.value)
+                              );
+
+                              // 轉換為 dataList 所需的格式
+                              dataList = supportedList.map(data => ({
+                                key: data.value,
+                                name: data.name,
+                              }));
+                            }
+
+                            // 更新狀態並通知資料變更
+                            loading = false;
+                            iGVC.notifyDataChange(id);
+                          }
+                        );
+                      }
+                    },
+                  });
+                },
+                footer_html: fGVC => {
+                  return [
+                    item
+                      ? BgWidget.danger(
+                          fGVC.event(() => {
+                            dialog.checkYesOrNot({
+                              text: '若刪除此群組，有使用到此群組的商品將會改成全部物流皆可使用，確定要刪除此物流群組？',
+                              callback: bool => {
+                                if (bool) {
+                                  dvm.dataList = dvm.dataList.filter(data => data.key !== item?.key);
+                                  updateGroup(fGVC);
+                                }
+                              },
+                            });
+                          })
+                        )
+                      : '',
+                    BgWidget.cancel(
+                      fGVC.event(() => {
+                        if (item) {
+                          item = cloneData;
+                        }
+                        fGVC.closeDialog();
+                      })
+                    ),
+                    BgWidget.save(
+                      fGVC.event(() => {
+                        for (const data of dvm.dataList) {
+                          if (data.key !== postData.key) {
+                            if (data.name === postData.name) {
+                              dialog.infoMessage({ text: `群組名「${postData.name}」已經存在` });
+                              return;
+                            }
+
+                            if (Tool.ObjCompare(postData.list, data.list)) {
+                              dialog.infoMessage({ text: '此群組的物流組合已經存在，請調整您點選的物流' });
+                              return;
+                            }
+                          }
+                        }
+
+                        if (item) {
+                          const target = dvm.dataList.find(data => data.key === item?.key);
+                          target && Object.assign(target, postData);
+                        } else {
+                          dvm.dataList.push(postData);
+                        }
+
+                        updateGroup(fGVC);
+                      })
+                    ),
+                  ].join('');
+                },
+              });
+            }
+
+            view = view.concat([
+              html` <div class="px-md-0 px-2">
+                ${BgWidget.normalInsignia('可以將多個物流設定成一個群組集中，在商品設定頁可以一次管理物流方式')}
+              </div>`,
+              gvc.bindView(() => {
+                return {
+                  bind: dvm.id,
+                  view: () => {
+                    if (dvm.loading) {
+                      return BgWidget.spinner();
+                    }
+                    return dvm.dataList
+                      .map(item => {
+                        const dd = {
+                          title: item.name,
+                          value: item.key,
+                          list: item.list,
+                          type: 'font_awesome',
+                          src: html`<i class="fa-solid fa-object-group fs-4"></i>`,
+                        };
+
+                        return html`
+                          <div class="col-12 col-md-4 p-0 p-md-2">
+                            <div
+                              class="w-100 position-relative main-card"
+                              style="padding: 24px; background: white; overflow: hidden; justify-content: space-between; align-items: center; gap: 18px; display: inline-flex;"
+                            >
+                              <div
+                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex;"
+                              >
+                                <div>${dd.type === 'font_awesome' ? dd.src : html` <img src="${dd.src}" />`}</div>
+                                <div
+                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                >
+                                  <div class="tx_normal">${dd.title}</div>
+                                </div>
+                              </div>
+                              <div>
+                                ${BgWidget.customButton({
+                                  button: { color: 'gray', size: 'sm' },
+                                  text: { name: '設定群組' },
+                                  event: gvc.event(() => editGroupDialog(item)),
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(8)}
+                        `;
+                      })
+                      .concat([
+                        html` <div
+                          class="col-12 col-md-4 p-0 p-md-2"
+                          style="cursor: pointer;"
+                          onclick="${gvc.event(() => editGroupDialog())}"
+                        >
+                          <div
+                            class="w-100 main-card"
+                            style="max-height:73.59px;padding: 24px; background: white; overflow: hidden; flex-direction: column; justify-content: center; align-items: center; gap: 18px; display: inline-flex"
+                          >
+                            <div
+                              class="fw-bold"
+                              style="align-self: stretch; justify-content: center; align-items: center; gap: 14px; display: inline-flex;color:#4D86DB;"
+                            >
+                              <i class="fa-regular fa-circle-plus fs-5"></i>
+                              <div class="fs-5">新增物流群組</div>
+                            </div>
+                          </div>
+                        </div>`,
+                      ])
+                      .join('');
+                  },
+                  divCreate: {
+                    class: 'row guide3-3 mt-3 px-1',
+                  },
+                  onCreate: () => {
+                    if (dvm.loading) {
+                      ApiUser.getPublicConfig('logistics_group', 'manager').then(r => {
+                        if (r.result) {
+                          dvm.dataList = r.response.value ?? [];
+                        }
+                        setTimeout(() => {
+                          dvm.loading = false;
+                          gvc.notifyDataChange(dvm.id);
+                        }, 100);
+                      });
+                    }
+                  },
+                };
+              }),
+            ]);
           }
+
           // view.push(
           //   html`<div
           //     style="width: 100%;padding: 14px 16px;background: #FFF; display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;"
