@@ -317,7 +317,7 @@ export class FilterOptions {
       'logistics_setting'
     );
 
-    let configData: any = response.response.result[0]?.value || {};
+    let configData: any = response.response.result?.[0]?.value || {};
     if (!configData.language_data) {
       configData.language_data = {
         'en-US': { info: '' },

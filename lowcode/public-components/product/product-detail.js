@@ -13,49 +13,12 @@ import { PdClass } from './pd-class.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { UmClass } from '../user-manager/um-class.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
+import { ProductModule } from '../modules/product-module.js';
 const html = String.raw;
 export class ProductDetail {
-    static tab(data, gvc, select, callback, style) {
-        return html ` <div
-            style="width: 100%; justify-content: center; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style !== null && style !== void 0 ? style : ''};"
-        >
-            ${data
-            .map((dd) => {
-            if (select === dd.key) {
-                return html ` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                            <div
-                                style="align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
-                                onclick="${gvc.event(() => {
-                    callback(dd.key);
-                })}"
-                            >
-                                ${dd.title}
-                            </div>
-                            <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
-                        </div>`;
-            }
-            else {
-                return html ` <div
-                            style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex"
-                            onclick="${gvc.event(() => {
-                    callback(dd.key);
-                })}"
-                        >
-                            <div
-                                style="align-self: stretch; text-align: center; color: #8D8D8D; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
-                            >
-                                ${dd.title}
-                            </div>
-                            <div style="align-self: stretch; height: 0px"></div>
-                        </div>`;
-            }
-        })
-            .join('')}
-        </div>`;
-    }
     static main(gvc, widget, subData) {
         var _a;
-        ProductDetail.titleFontColor = (_a = gvc.glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
+        ProductModule.titleFontColor = (_a = gvc.glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
         const css = String.raw;
         const product_id = gvc.glitter.getUrlParameter('product_id');
         const url = new URL(location.href);
@@ -86,9 +49,9 @@ export class ProductDetail {
         };
         function spinner() {
             return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto mt-5">
-                <div class="spinner-border" role="status"></div>
-                <span class="mt-3">${Language.text('loading')}</span>
-            </div>`;
+        <div class="spinner-border" role="status"></div>
+        <span class="mt-3">${Language.text('loading')}</span>
+      </div>`;
         }
         return gvc.bindView({
             bind: ids.page,
@@ -99,22 +62,22 @@ export class ProductDetail {
                 }
                 if (Object.keys(vm.data).length === 0) {
                     return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
-                        <lottie-player
-                            style="max-width: 100%;width: 300px;"
-                            src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                            speed="1"
-                            loop="true"
-                            background="transparent"
-                        ></lottie-player>
-                        <span class="mb-5 fs-5">這個商品目前尚未上架喔！</span>
-                    </div>`;
+            <lottie-player
+              style="max-width: 100%;width: 300px;"
+              src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+              speed="1"
+              loop="true"
+              background="transparent"
+            ></lottie-player>
+            <span class="mb-5 fs-5">這個商品目前尚未上架喔！</span>
+          </div>`;
                 }
                 const prod = vm.data.content;
                 PdClass.addSpecStyle(gvc);
                 vm.specs =
                     vm.specs.length > 0
                         ? vm.specs
-                        : prod.specs.map((spec) => {
+                        : prod.specs.map(spec => {
                             return spec.option[0].title;
                         });
                 const book_mark = [
@@ -135,8 +98,16 @@ export class ProductDetail {
                     function loop(array) {
                         for (const b of array) {
                             if (b.title === title) {
-                                domain = (b.language_data && b.language_data[Language.getLanguage()] && b.language_data[Language.getLanguage()].seo.domain) || b.code;
-                                title = (b.language_data && b.language_data[Language.getLanguage()] && b.language_data[Language.getLanguage()].title) || title;
+                                domain =
+                                    (b.language_data &&
+                                        b.language_data[Language.getLanguage()] &&
+                                        b.language_data[Language.getLanguage()].seo.domain) ||
+                                        b.code;
+                                title =
+                                    (b.language_data &&
+                                        b.language_data[Language.getLanguage()] &&
+                                        b.language_data[Language.getLanguage()].title) ||
+                                        title;
                                 break;
                             }
                             else if (b.array) {
@@ -160,30 +131,30 @@ export class ProductDetail {
                     });
                 }
                 return html ` <div class="mx-auto pb-5" style="max-width:1100px;word-break: break-all;white-space: normal;">
-                    <div class="breadcrumb mb-0 d-flex align-items-center py-3" style="cursor:pointer; gap:10px;">
-                        ${book_mark
-                    .map((dd) => {
+          <div class="breadcrumb mb-0 d-flex align-items-center py-3" style="cursor:pointer; gap:10px;">
+            ${book_mark
+                    .map(dd => {
                     return html ` <li
-                                    class="breadcrumb-item "
-                                    style="margin-top: 0px;color:${ProductDetail.titleFontColor};"
-                                    onclick="${gvc.event(() => {
+                  class="breadcrumb-item "
+                  style="margin-top: 0px;color:${ProductModule.titleFontColor};"
+                  onclick="${gvc.event(() => {
                         dd.event();
                     })}"
-                                >
-                                    ${dd.title}
-                                </li>`;
+                >
+                  ${dd.title}
+                </li>`;
                 })
                     .join('<i class="fa-solid fa-angle-right"></i>')}
-                    </div>
-                    ${PdClass.selectSpec({
+          </div>
+          ${PdClass.selectSpec({
                     gvc,
-                    titleFontColor: ProductDetail.titleFontColor,
+                    titleFontColor: ProductModule.titleFontColor,
                     prod,
                     vm,
                     preview: true,
                 })}
-                    <div class="d-flex flex-column align-items-center mt-2" style="width:100%;">
-                        ${gvc.bindView((() => {
+          <div class="d-flex flex-column align-items-center mt-2" style="width:100%;">
+            ${gvc.bindView((() => {
                     var _a, _b;
                     const id = glitter.getUUID();
                     const commentCount = (_b = (_a = vm.data.content.comments) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0;
@@ -191,27 +162,29 @@ export class ProductDetail {
                     return {
                         bind: id,
                         view: () => {
-                            return this.tab([
+                            return ProductModule.tab([
                                 {
                                     title: Language.text('product_description'),
                                     key: 'default',
                                 },
-                                ...(window.store_info.customer_comment) ? [
-                                    {
-                                        title: `${Language.text('customer_reviews')} (${maxDisplayCount})`,
-                                        key: 'comment',
-                                    }
-                                ] : []
+                                ...(window.store_info.customer_comment
+                                    ? [
+                                        {
+                                            title: `${Language.text('customer_reviews')} (${maxDisplayCount})`,
+                                            key: 'comment',
+                                        },
+                                    ]
+                                    : []),
                             ].concat(vm.content_manager
-                                .filter((cont) => {
+                                .filter(cont => {
                                 return prod.content_array.includes(cont.id);
                             })
-                                .map((cont) => {
+                                .map(cont => {
                                 return {
                                     title: cont.title,
                                     key: cont.id,
                                 };
-                            })), gvc, vm.content_tag, (text) => {
+                            })), gvc, vm.content_tag, text => {
                                 vm.content_tag = text;
                                 gvc.notifyDataChange(id);
                                 gvc.notifyDataChange(ids.content);
@@ -222,7 +195,7 @@ export class ProductDetail {
                         },
                     };
                 })())}
-                        ${gvc.bindView({
+            ${gvc.bindView({
                     bind: ids.content,
                     view: () => {
                         if (vm.content_tag === 'default') {
@@ -245,7 +218,7 @@ export class ProductDetail {
                                     gvc,
                                     tag: '',
                                     title: '撰寫評論',
-                                    innerHTML: (gvcd) => {
+                                    innerHTML: gvcd => {
                                         const postData = {
                                             product_id: vm.data.id,
                                             rate: 5,
@@ -253,9 +226,9 @@ export class ProductDetail {
                                             comment: '',
                                         };
                                         return html `
-                                                    <div class="mt-1">
-                                                        <div class="tx_normal fw-normal mb-1">${Language.text('rating')}</div>
-                                                        ${gvcd.bindView((() => {
+                          <div class="mt-1">
+                            <div class="tx_normal fw-normal mb-1">${Language.text('rating')}</div>
+                            ${gvcd.bindView((() => {
                                             const id = glitter.getUUID();
                                             function setRate(rate) {
                                                 postData.rate = rate;
@@ -268,22 +241,22 @@ export class ProductDetail {
                                                         .fill('')
                                                         .map((_, index) => {
                                                         return html ` <div class="rating-item">
-                                                                                    ${postData.rate > index
+                                          ${postData.rate > index
                                                             ? html `<i
-                                                                                              class="fa-solid fa-star fs-4"
-                                                                                              style="cursor: pointer"
-                                                                                              onclick="${gvcd.event(() => {
+                                                class="fa-solid fa-star fs-4"
+                                                style="cursor: pointer"
+                                                onclick="${gvcd.event(() => {
                                                                 setRate(index + 1);
                                                             })}"
-                                                                                          ></i>`
+                                              ></i>`
                                                             : html `<i
-                                                                                              class="fa-regular fa-star fs-4"
-                                                                                              style="cursor: pointer"
-                                                                                              onclick="${gvcd.event(() => {
+                                                class="fa-regular fa-star fs-4"
+                                                style="cursor: pointer"
+                                                onclick="${gvcd.event(() => {
                                                                 setRate(index + 1);
                                                             })}"
-                                                                                          ></i>`}
-                                                                                </div>`;
+                                              ></i>`}
+                                        </div>`;
                                                     })
                                                         .join('');
                                                 },
@@ -292,31 +265,31 @@ export class ProductDetail {
                                                 },
                                             };
                                         })())}
-                                                    </div>
-                                                    <div class="mt-2">
-                                                        <div class="tx_normal fw-normal mb-1">${Language.text('title')}</div>
-                                                        <input
-                                                            class="bgw-input"
-                                                            type="text"
-                                                            oninput="${gvcd.event((e) => {
+                          </div>
+                          <div class="mt-2">
+                            <div class="tx_normal fw-normal mb-1">${Language.text('title')}</div>
+                            <input
+                              class="bgw-input"
+                              type="text"
+                              oninput="${gvcd.event(e => {
                                             postData.title = e.value;
                                         })}"
-                                                        />
-                                                    </div>
-                                                    <div class="mt-2">
-                                                        <div class="tx_normal fw-normal mb-1">${Language.text('comment')}</div>
-                                                        <textarea
-                                                            class="bgw-input"
-                                                            rows="3"
-                                                            oninput="${gvcd.event((e) => {
+                            />
+                          </div>
+                          <div class="mt-2">
+                            <div class="tx_normal fw-normal mb-1">${Language.text('comment')}</div>
+                            <textarea
+                              class="bgw-input"
+                              rows="3"
+                              oninput="${gvcd.event(e => {
                                             postData.comment = e.value;
                                         })}"
-                                                        ></textarea>
-                                                    </div>
-                                                    <div class="d-flex justify-content-end mt-2 mb-1">
-                                                        <div
-                                                            class="um-solid-btn"
-                                                            onclick="${gvcd.event(() => {
+                            ></textarea>
+                          </div>
+                          <div class="d-flex justify-content-end mt-2 mb-1">
+                            <div
+                              class="um-solid-btn"
+                              onclick="${gvcd.event(() => {
                                             if (postData.title === '' || postData.comment === '') {
                                                 PdClass.jumpAlert({
                                                     gvc,
@@ -336,11 +309,11 @@ export class ProductDetail {
                                                 gvc.notifyDataChange(ids.page);
                                             });
                                         })}"
-                                                        >
-                                                            ${Language.text('submit')}
-                                                        </div>
-                                                    </div>
-                                                `;
+                            >
+                              ${Language.text('submit')}
+                            </div>
+                          </div>
+                        `;
                                     },
                                 });
                             };
@@ -353,66 +326,74 @@ export class ProductDetail {
                                     return a.date > b.date ? -1 : 1;
                                 })
                                     .slice(0, 15)
-                                    .map((item) => {
-                                    return html `<div style="padding: 20px; min-width: ${document.body.clientWidth > 768 ? '780px' : `calc(${document.body.clientWidth}px - 1.5rem)`};">
-                                                    <div class="row">
-                                                        <div class="col-12 col-md">
-                                                            <div class="row mb-6">
-                                                                <div class="col-12">
-                                                                    <!-- Rating -->
-                                                                    <div class="rating fs-sm text-dark d-flex">
-                                                                        ${[...new Array(5)]
+                                    .map(item => {
+                                    return html `<div
+                          style="padding: 20px; min-width: ${document.body.clientWidth > 768
+                                        ? '780px'
+                                        : `calc(${document.body.clientWidth}px - 1.5rem)`};"
+                        >
+                          <div class="row">
+                            <div class="col-12 col-md">
+                              <div class="row mb-6">
+                                <div class="col-12">
+                                  <!-- Rating -->
+                                  <div class="rating fs-sm text-dark d-flex">
+                                    ${[...new Array(5)]
                                         .fill('')
                                         .map((_, index) => {
                                         return html ` <div class="rating-item">
-                                                                                    ${item.rate > index ? html `<i class="fa-solid fa-star"></i>` : html `<i class="fa-regular fa-star"></i>`}
-                                                                                </div>`;
+                                          ${item.rate > index
+                                            ? html `<i class="fa-solid fa-star"></i>`
+                                            : html `<i class="fa-regular fa-star"></i>`}
+                                        </div>`;
                                     })
                                         .join('')}
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-12">
-                                                                    <!-- Time -->
-                                                                    <span class="fs-xs text-muted"> ${item.userName}, <time datetime="${item.date}">${item.date}</time> </span>
-                                                                </div>
-                                                            </div>
-                                                            <!-- Title -->
-                                                            <p class="mb-2 fs-lg fw-bold">${item.title}</p>
-                                                            <!-- Text -->
-                                                            <p class="text-gray-500">${item.comment.replace(/\n/g, '<br/>')}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>`;
+                                  </div>
+                                </div>
+                                <div class="col-12">
+                                  <!-- Time -->
+                                  <span class="fs-xs text-muted">
+                                    ${item.userName}, <time datetime="${item.date}">${item.date}</time>
+                                  </span>
+                                </div>
+                              </div>
+                              <!-- Title -->
+                              <p class="mb-2 fs-lg fw-bold">${item.title}</p>
+                              <!-- Text -->
+                              <p class="text-gray-500">${item.comment.replace(/\n/g, '<br/>')}</p>
+                            </div>
+                          </div>
+                        </div>`;
                                 })
                                     .join('');
                             };
                             return html ` <div class="d-flex justify-content-center">
-                                            <div
-                                                class="um-solid-btn"
-                                                onclick="${gvc.event(() => {
+                      <div
+                        class="um-solid-btn"
+                        onclick="${gvc.event(() => {
                                 addCommentDialog();
                             })}"
-                                            >
-                                                ${Language.text('write_comment')}
-                                            </div>
-                                        </div>
-                                        <div class="d-flex flex-column gap-2">${commentList()}</div>`;
+                      >
+                        ${Language.text('write_comment')}
+                      </div>
+                    </div>
+                    <div class="d-flex flex-column gap-2">${commentList()}</div>`;
                         }
-                        const template = vm.content_manager.find((cont) => cont.id === vm.content_tag);
-                        const jsonData = prod.content_json.find((data) => data.id === vm.content_tag);
+                        const template = vm.content_manager.find(cont => cont.id === vm.content_tag);
+                        const jsonData = prod.content_json.find(data => data.id === vm.content_tag);
                         if (!template) {
                             return '';
                         }
                         let htmlString = template.data.content;
                         if (jsonData) {
-                            jsonData.list.map((data) => {
+                            jsonData.list.map(data => {
                                 var _a, _b, _c;
-                                const cssStyle = template.data.tags.find((item) => item.key === data.key);
+                                const cssStyle = template.data.tags.find(item => item.key === data.key);
                                 const regex = new RegExp(`@{{${data.key}}}`, 'g');
                                 htmlString = htmlString.replace(regex, html `<span
-                                                style="font-size: ${(_a = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_size) !== null && _a !== void 0 ? _a : 16}px; color: ${(_b = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_color) !== null && _b !== void 0 ? _b : '${titleFontColor}'}; background: ${(_c = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_bgr) !== null && _c !== void 0 ? _c : '#fff'};"
-                                                >${data.value}</span
-                                            >`);
+                        style="font-size: ${(_a = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_size) !== null && _a !== void 0 ? _a : 16}px; color: ${(_b = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_color) !== null && _b !== void 0 ? _b : '${titleFontColor}'}; background: ${(_c = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_bgr) !== null && _c !== void 0 ? _c : '#fff'};"
+                        >${data.value}</span
+                      >`);
                             });
                         }
                         return htmlString.replace(/@{{[^}]+}}/g, '');
@@ -430,9 +411,9 @@ export class ProductDetail {
                         class: `pd_detail_content fr-view`,
                     },
                 })}
-                    </div>
-                    <div style="margin-top: 150px;"></div>
-                    ${((_c = prod.relative_product) !== null && _c !== void 0 ? _c : []).length
+          </div>
+          <div style="margin-top: 150px;"></div>
+          ${((_c = prod.relative_product) !== null && _c !== void 0 ? _c : []).length
                     ? gvc.bindView(() => {
                         const swipID = gvc.glitter.getUUID();
                         return {
@@ -460,31 +441,36 @@ export class ProductDetail {
                                         return ``;
                                     }
                                     resolve(html `
-                                              <div class="w-100 d-flex align-items-center justify-content-center ">
-                                                  <div class="mx-auto" style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                                                      <div
-                                                          style="font-size:18px;align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
-                                                      >
-                                                          ${Language.text('related_products')}
-                                                      </div>
-                                                      <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
-                                                  </div>
-                                              </div>
-                                              <div class="w-100 row p-0 align-items-center justify-content-center mt-4 mt-lg-4 mx-0">
-                                                  ${product
+                        <div class="w-100 d-flex align-items-center justify-content-center ">
+                          <div
+                            class="mx-auto"
+                            style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex"
+                          >
+                            <div
+                              style="font-size:18px;align-self: stretch; text-align: center; color: ${ProductModule.titleFontColor}; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
+                            >
+                              ${Language.text('related_products')}
+                            </div>
+                            <div
+                              style="align-self: stretch; height: 0px; border: 1px ${ProductModule.titleFontColor} solid"
+                            ></div>
+                          </div>
+                        </div>
+                        <div class="w-100 row p-0 align-items-center justify-content-center mt-4 mt-lg-4 mx-0">
+                          ${product
                                         .map((dd) => {
                                         return html `<div class="col-6 col-sm-4 col-lg-3">
-                                                              ${glitter.htmlGenerate.renderComponent({
+                                ${glitter.htmlGenerate.renderComponent({
                                             appName: window.appName,
                                             tag: 'product_widget',
                                             gvc: gvc,
                                             subData: dd,
                                         })}
-                                                          </div>`;
+                              </div>`;
                                     })
                                         .join('')}
-                                              </div>
-                                          `);
+                        </div>
+                      `);
                                 }));
                             }),
                             divCreate: {
@@ -494,11 +480,16 @@ export class ProductDetail {
                         };
                     })
                     : ''}
-                    <div style="margin-top: 100px;"></div>
-                </div>`;
+          <div style="margin-top: 100px;"></div>
+        </div>`;
             }),
             divCreate: {
-                style: css `min-height: 1000px;word-break: break-all;white-space: normal;`, class: `container`
+                style: css `
+          min-height: 1000px;
+          word-break: break-all;
+          white-space: normal;
+        `,
+                class: `container`,
             },
             onCreate: () => {
                 var _a;
@@ -517,7 +508,7 @@ export class ProductDetail {
                             ApiUser.getPublicConfig('text-manager', 'manager', window.appName),
                             ApiShop.getProduct(inputObj),
                             ApiShop.getWishList(),
-                        ]).then((results) => {
+                        ]).then(results => {
                             var _a, _b;
                             const [publicConfig, productData, wishListData] = results;
                             if (publicConfig.result && publicConfig.response.value) {
@@ -531,7 +522,11 @@ export class ProductDetail {
                                     else {
                                         vm.data = productData.response.data;
                                     }
-                                    glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title), [(_a = window.home_seo.title_prefix) !== null && _a !== void 0 ? _a : '', vm.data.content.seo.domain || vm.data.content.title, (_b = window.home_seo.title_suffix) !== null && _b !== void 0 ? _b : ''].join(''));
+                                    glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title), [
+                                        (_a = window.home_seo.title_prefix) !== null && _a !== void 0 ? _a : '',
+                                        vm.data.content.seo.domain || vm.data.content.title,
+                                        (_b = window.home_seo.title_suffix) !== null && _b !== void 0 ? _b : '',
+                                    ].join(''));
                                 }
                                 catch (e) {
                                     vm.data = {};
@@ -549,5 +544,4 @@ export class ProductDetail {
         });
     }
 }
-ProductDetail.titleFontColor = '';
 window.glitter.setModule(import.meta.url, ProductDetail);

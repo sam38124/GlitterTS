@@ -145,7 +145,6 @@ white-space: normal;`;
                 if (max) {
                   cf.maxDate = new Date(`${max} 23:59:59`);
                 }
-                console.log(`cf===>`,cf)
                 //@ts-ignore
                 let fp = flatpickr('#' + input_id, cf);
                 if(min){

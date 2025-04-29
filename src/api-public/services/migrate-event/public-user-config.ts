@@ -91,7 +91,7 @@ export class MigratePublicUserConfig {
         const findGroup = groupArray.find(group => compareArray(group.list, data.list));
 
         if (findGroup) {
-          data.group = findGroup.key;
+          data.group = [findGroup.key];
 
           const updateResult = await db.query(
             `UPDATE \`${app_name}\`.t_manager_post SET ? WHERE id = ?

@@ -2863,18 +2863,20 @@ export class ShoppingFinanceSetting {
 
             function updateGroup(dialogGVC: GVC) {
               dialog.dataLoading({ visible: true });
-              ApiUser.setPublicConfig({
-                user_id: 'manager',
-                key: 'logistics_group',
-                value: dvm.dataList,
-              }).then(() => {
-                dialog.dataLoading({ visible: false });
-                dialog.successMessage({ text: '設定成功' });
-                dialogGVC.closeDialog();
+              setTimeout(() => {
+                ApiUser.setPublicConfig({
+                  user_id: 'manager',
+                  key: 'logistics_group',
+                  value: dvm.dataList,
+                }).then(() => {
+                  dialog.dataLoading({ visible: false });
+                  dialog.successMessage({ text: '設定成功' });
+                  dialogGVC.closeDialog();
 
-                dvm.loading = true;
-                gvc.notifyDataChange(dvm.id);
-              });
+                  dvm.loading = true;
+                  gvc.notifyDataChange(dvm.id);
+                });
+              }, 100);
             }
 
             function editGroupDialog(item?: ShipmentGroupData) {
@@ -3001,6 +3003,11 @@ export class ShoppingFinanceSetting {
 
                             if (Tool.ObjCompare(postData.list, data.list)) {
                               dialog.infoMessage({ text: '此群組的物流組合已經存在，請調整您點選的物流' });
+                              return;
+                            }
+
+                            if (postData.list.length === 0) {
+                              dialog.infoMessage({ text: '請勾選至少一種物流的組合' });
                               return;
                             }
                           }

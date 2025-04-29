@@ -20,6 +20,7 @@ export type CartItem = {
     rebate: number;
     designated_logistics: {
         type: 'all' | 'designated';
+        group: string[];
         list: string[];
     };
     deduction_log?: {

@@ -40,6 +40,7 @@ export type CartItem = {
   rebate: number;
   designated_logistics: {
     type: 'all' | 'designated';
+    group: string[];
     list: string[];
   };
   deduction_log?: {
@@ -338,7 +339,7 @@ export class CheckoutEvent {
       shipment_setting.custom_delivery = shipment_setting.custom_delivery
         ? await Promise.all(
             shipment_setting.custom_delivery.map(async (form: any) => {
-              const config = await new User(this.app).getConfigV2({
+              const config = await userClass.getConfigV2({
                 user_id: 'manager',
                 key: `form_delivery_${form.id}`,
               });
@@ -464,7 +465,7 @@ export class CheckoutEvent {
         }
       }
 
-      const store_info = await new User(this.app).getConfigV2({ key: 'store-information', user_id: 'manager' });
+      const store_info = await userClass.getConfigV2({ key: 'store-information', user_id: 'manager' });
 
       data.line_items = await Promise.all(
         data.line_items.map(async item => {
@@ -942,20 +943,30 @@ export class CheckoutEvent {
 
       const excludedValuesByTotal = new Set(['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C']);
       const excludedValuesByWeight = new Set(['normal', 'black_cat']);
+      const logisticsGroupResult = await userClass.getConfig({ key: 'logistics_group', user_id: 'manager' });
+      const logisticsGroup = logisticsGroupResult[0]?.value ?? [];
 
       const isExcludedByTotal = (dd: any) => {
         return carData.total > 20000 && excludedValuesByTotal.has(dd.value);
       };
+
       const isExcludedByWeight = (dd: any) => {
         return carData.goodsWeight > 20 && excludedValuesByWeight.has(dd.value);
       };
+
       const isIncludedInDesignatedLogistics = (dd: any) => {
         return carData.lineItems.every(item => {
-          return (
-            item.designated_logistics === undefined ||
-            item.designated_logistics.type === 'all' ||
-            item.designated_logistics.list.includes(dd.value)
-          );
+          if (item.designated_logistics === undefined || item.designated_logistics.type === 'all') {
+            return true;
+          }
+
+          for (const group of logisticsGroup) {
+            if (item.designated_logistics.group.includes(group.key) && group.list.includes(dd.value)) {
+              return true;
+            }
+          }
+
+          return false;
         });
       };
 

@@ -792,13 +792,13 @@ export class ShoppingSettingAdvance {
                                         ${(() => {
                                                         switch (postMD.designated_logistics.type) {
                                                             case 'designated':
-                                                                return BgWidget.selectFilter({
+                                                                return BgWidget.selectDropList({
                                                                     gvc: gvc,
-                                                                    callback: text => {
-                                                                        postMD.designated_logistics.group = text;
+                                                                    callback: (value) => {
+                                                                        postMD.designated_logistics.group = value;
                                                                         gvc.notifyDataChange(id);
                                                                     },
-                                                                    default: postMD.designated_logistics.group,
+                                                                    default: postMD.designated_logistics.group || [],
                                                                     options: dataList.map((data) => {
                                                                         return {
                                                                             key: data.key,

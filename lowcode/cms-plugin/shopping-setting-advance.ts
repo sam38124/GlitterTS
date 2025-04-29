@@ -1,10 +1,8 @@
 import { GVC } from '../glitterBundle/GVController.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
-import { ApiPageConfig } from '../api/pageConfig.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { LanguageLocation } from '../glitter-base/global/language.js';
-import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { QuestionInfo } from './module/question-info.js';
 import { Tool } from '../modules/tool.js';
 import { Product, MultiSaleType } from '../public-models/product.js';
@@ -870,13 +868,13 @@ export class ShoppingSettingAdvance {
                                         ${(() => {
                                           switch (postMD.designated_logistics.type) {
                                             case 'designated':
-                                              return BgWidget.selectFilter({
+                                              return BgWidget.selectDropList({
                                                 gvc: gvc,
-                                                callback: text => {
-                                                  postMD.designated_logistics.group = text;
+                                                callback: (value: []) => {
+                                                  postMD.designated_logistics.group = value;
                                                   gvc.notifyDataChange(id);
                                                 },
-                                                default: postMD.designated_logistics.group,
+                                                default: postMD.designated_logistics.group || [],
                                                 options: dataList.map((data: any) => {
                                                   return {
                                                     key: data.key,

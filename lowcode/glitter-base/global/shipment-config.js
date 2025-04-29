@@ -9,11 +9,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 export class ShipmentConfig {
     static shipmentMethod(cf) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
             const saasConfig = window.parent.saasConfig;
             const response = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting');
-            let configData = ((_a = response.response.result[0]) === null || _a === void 0 ? void 0 : _a.value) || {};
+            let configData = ((_b = (_a = response.response.result) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value) || {};
             if (!configData.language_data) {
                 configData.language_data = {
                     'en-US': { info: '' },
@@ -21,12 +21,12 @@ export class ShipmentConfig {
                     'zh-TW': { info: configData.info || '' },
                 };
             }
-            configData.support = (_b = configData.support) !== null && _b !== void 0 ? _b : [];
+            configData.support = (_c = configData.support) !== null && _c !== void 0 ? _c : [];
             const shipmentOptions = ShipmentConfig.list
                 .map(dd => {
                 return { key: dd.value, name: dd.title };
             })
-                .concat(((_c = configData.custom_delivery) !== null && _c !== void 0 ? _c : []).map((dd) => {
+                .concat(((_d = configData.custom_delivery) !== null && _d !== void 0 ? _d : []).map((dd) => {
                 return { key: dd.id, name: dd.name };
             }))
                 .filter(dd => {

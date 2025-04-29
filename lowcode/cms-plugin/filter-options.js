@@ -217,11 +217,11 @@ export class FilterOptions {
         });
     }
     static getReconciliationFunnel() {
-        var _a, _b;
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const saasConfig = window.parent.saasConfig;
             const response = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting');
-            let configData = ((_a = response.response.result[0]) === null || _a === void 0 ? void 0 : _a.value) || {};
+            let configData = ((_b = (_a = response.response.result) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value) || {};
             if (!configData.language_data) {
                 configData.language_data = {
                     'en-US': { info: '' },
@@ -233,7 +233,7 @@ export class FilterOptions {
                 .map(dd => {
                 return { key: dd.value, name: dd.title };
             })
-                .concat(((_b = configData.custom_delivery) !== null && _b !== void 0 ? _b : []).map((dd) => {
+                .concat(((_c = configData.custom_delivery) !== null && _c !== void 0 ? _c : []).map((dd) => {
                 return { key: dd.id, name: dd.name };
             }));
             return [
