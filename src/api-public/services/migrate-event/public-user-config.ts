@@ -92,7 +92,6 @@ export class MigratePublicUserConfig {
 
         if (findGroup) {
           data.group = findGroup.key;
-          delete data.list;
 
           const updateResult = await db.query(
             `UPDATE \`${app_name}\`.t_manager_post SET ? WHERE id = ?

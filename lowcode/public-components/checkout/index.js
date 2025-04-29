@@ -1395,20 +1395,20 @@ export class CheckoutIndex {
                                                     class="img-fluid img-106px"
                                                     style="background-image: url('${pd.preview_image[0]}');"
                                                   ></div>
-                                                  <div class="d-flex flex-column" style="gap:5px;">
+                                                  <div class="d-flex flex-column" style="width: 130px;">
                                                     <div class="${gClass('banner-text')} banner-font-15">
                                                       ${pd.title}
                                                     </div>
                                                     <div class="text-danger ntd-font-14">
                                                       ${Currency.convertCurrencyText(0)}
                                                     </div>
-                                                    ${pd.min_price > 0
-                                                        ? html `
-                                                          <div style="text-decoration: line-through; font-size: 12px;">
-                                                            ${Currency.convertCurrencyText(pd.min_price)}
-                                                          </div>
-                                                        `
+                                                    <div
+                                                      style="text-decoration: line-through; font-size: 12px; height: 20px;"
+                                                    >
+                                                      ${pd.min_price > 0
+                                                        ? Currency.convertCurrencyText(pd.min_price)
                                                         : ''}
+                                                    </div>
                                                     <button
                                                       class="${gClass('button-bgr')} mb-0 mt-2"
                                                       style="${isSelected

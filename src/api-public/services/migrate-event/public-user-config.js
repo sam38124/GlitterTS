@@ -73,7 +73,6 @@ class MigratePublicUserConfig {
                 const findGroup = groupArray.find(group => compareArray(group.list, data.list));
                 if (findGroup) {
                     data.group = findGroup.key;
-                    delete data.list;
                     const updateResult = await database_js_1.default.query(`UPDATE \`${app_name}\`.t_manager_post SET ? WHERE id = ?
             `, [{ content: JSON.stringify(product.content) }, product.id]);
                     if (updateResult.affectedRows === 0) {
