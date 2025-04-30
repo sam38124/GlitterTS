@@ -2143,7 +2143,38 @@ export class CheckoutIndex {
                                             }),
                                           ].join('');
                                         } catch (e) {
-                                          console.error(`error 3 =>`, e);
+                                          console.error(`error 3-1 =>`, e);
+                                          return '';
+                                        }
+                                      })()}
+                                      ${(() => {
+                                        try {
+                                          vm.cartData.user_info.custom_form_payment =
+                                            vm.cartData.user_info.custom_form_payment ?? {};
+
+                                          const formData = vm.cartData.payment_customer_form.find((dd: any) => {
+                                            return vm.cartData.customer_info.payment_select === dd.id;
+                                          })?.list;
+
+                                          if (!formData) {
+                                            return '';
+                                          }
+                                          const form_array = JSON.parse(JSON.stringify(formData));
+                                          form_array.map((dd: any) => {
+                                            return formatterFormElement(dd);
+                                          });
+                                          return [
+                                            FormWidget.editorView({
+                                              gvc: gvc,
+                                              array: form_array,
+                                              refresh: () => {
+                                                this.storeLocalData(vm.cartData);
+                                              },
+                                              formData: vm.cartData.user_info.custom_form_payment,
+                                            }),
+                                          ].join('');
+                                        } catch (e) {
+                                          console.error(`error 3-2 =>`, e);
                                           return '';
                                         }
                                       })()}

@@ -1939,7 +1939,38 @@ export class CheckoutIndex {
                                             ].join('');
                                         }
                                         catch (e) {
-                                            console.error(`error 3 =>`, e);
+                                            console.error(`error 3-1 =>`, e);
+                                            return '';
+                                        }
+                                    })()}
+                                      ${(() => {
+                                        var _a, _b;
+                                        try {
+                                            vm.cartData.user_info.custom_form_payment =
+                                                (_a = vm.cartData.user_info.custom_form_payment) !== null && _a !== void 0 ? _a : {};
+                                            const formData = (_b = vm.cartData.payment_customer_form.find((dd) => {
+                                                return vm.cartData.customer_info.payment_select === dd.id;
+                                            })) === null || _b === void 0 ? void 0 : _b.list;
+                                            if (!formData) {
+                                                return '';
+                                            }
+                                            const form_array = JSON.parse(JSON.stringify(formData));
+                                            form_array.map((dd) => {
+                                                return formatterFormElement(dd);
+                                            });
+                                            return [
+                                                FormWidget.editorView({
+                                                    gvc: gvc,
+                                                    array: form_array,
+                                                    refresh: () => {
+                                                        this.storeLocalData(vm.cartData);
+                                                    },
+                                                    formData: vm.cartData.user_info.custom_form_payment,
+                                                }),
+                                            ].join('');
+                                        }
+                                        catch (e) {
+                                            console.error(`error 3-2 =>`, e);
                                             return '';
                                         }
                                     })()}

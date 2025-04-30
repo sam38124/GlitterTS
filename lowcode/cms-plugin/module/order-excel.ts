@@ -44,46 +44,51 @@ export class OrderExcel {
   ];
 
   // 匯出可選欄位
-  static headerColumn = {
-    訂單: [
-      '訂單編號',
-      '訂單來源',
-      '訂單建立時間',
-      '會員信箱',
-      '訂單處理狀態',
-      '付款狀態',
-      '出貨狀態',
-      '訂單小計',
-      '訂單運費',
-      '訂單使用優惠券',
-      '訂單折扣',
-      '訂單使用購物金',
-      '分銷連結代碼',
-      '分銷連結名稱',
-    ],
-    商品: ['商品名稱', '商品規格', '商品SKU', '商品購買數量', '商品價格', '商品折扣'],
-    顧客: [
-      '顧客姓名',
-      '顧客手機',
-      '顧客信箱',
-      '收件人姓名',
-      '收件人手機',
-      '收件人信箱',
-      '付款方式',
-      '配送方式',
-      '收貨地址',
-      '代收金額',
-      '出貨單號碼',
-      '出貨單日期',
-      '發票號碼',
-      '會員等級',
-      '備註',
-    ],
-    對帳資訊: ['對帳狀態', '入帳金額', '入帳日期', '應沖金額', '沖帳原因'],
+  static headerColumn = async () => {
+    const customizeMap = await this.getCustomizeMap();
+
+    return {
+      訂單: [
+        '訂單編號',
+        '訂單來源',
+        '訂單建立時間',
+        '會員信箱',
+        '訂單處理狀態',
+        '付款狀態',
+        '出貨狀態',
+        '訂單小計',
+        '訂單運費',
+        '訂單使用優惠券',
+        '訂單折扣',
+        '訂單使用購物金',
+        '分銷連結代碼',
+        '分銷連結名稱',
+      ],
+      商品: ['商品名稱', '商品規格', '商品SKU', '商品購買數量', '商品價格', '商品折扣'],
+      顧客: [
+        '顧客姓名',
+        '顧客手機',
+        '顧客信箱',
+        '收件人姓名',
+        '收件人手機',
+        '收件人信箱',
+        '付款方式',
+        '配送方式',
+        '收貨地址',
+        '代收金額',
+        '出貨單號碼',
+        '出貨單日期',
+        '發票號碼',
+        '會員等級',
+        '備註',
+      ],
+      對帳資訊: ['對帳狀態', '入帳金額', '入帳日期', '應沖金額', '沖帳原因'],
+      客製化資訊: [...customizeMap.keys()],
+    };
   };
 
   // 選項元素
-  static optionsView(gvc: GVC, callback: (dataArray: string[]) => void) {
+  static async optionsView(gvc: GVC, callback: (dataArray: string[]) => void) {
     let columnList = new Set<string>();
     const randomString = BgWidget.getCheckedClass(gvc);
 
@@ -144,14 +149,27 @@ export class OrderExcel {
                   </div>
                 `;
               },
-              divCreate: { class: 'col-12 col-md-4 mb-3' },
+              divCreate: {
+                class: (() => {
+                  let maxLength = Math.max(...fields.map(field => field.length));
+                  switch (true) {
+                    case maxLength < 12:
+                      return 'col-12 col-md-4 mb-3';
+                    case maxLength >= 12 && maxLength < 20:
+                      return 'col-12 col-md-6 mb-3';
+                    case maxLength > 20:
+                      return 'col-12 col-md-12 mb-3';
+                  }
+                })(),
+              },
             });
           })
           .join('')}
       </div>
     `;
 
-    return checkboxContainer(this.headerColumn);
+    const getColumn = await this.headerColumn();
+    return checkboxContainer(getColumn);
   }
 
   // 匯出方法
@@ -174,7 +192,8 @@ export class OrderExcel {
     ]);
 
     // 是否將訂單拆分商品欄位
-    const showLineItems = this.headerColumn['商品'].some(a => column.includes(a));
+    const getColumn = await this.headerColumn();
+    const showLineItems = getColumn['商品'].some(a => column.includes(a));
 
     // 格式化資料時間
     const formatDate = (date?: string | number) =>
@@ -303,32 +322,52 @@ export class OrderExcel {
         沖帳原因: order.offset_reason ?? '-',
       });
     };
+
+    // 客製化資訊
+    const getCustomizeJSON = async (order: any) => {
+      const customizeMap = await this.getCustomizeMap(order);
+      const json = Object.fromEntries(customizeMap);
+
+      return formatJSON(json);
+    };
+
     // 匯出訂單 Excel
-    function exportOrdersToExcel(dataArray: any[]) {
+    async function exportOrdersToExcel(dataArray: any[]) {
       if (!dataArray.length) {
         dialog.errorMessage({ text: '無訂單資料可以匯出' });
         return;
       }
 
-      const printArray = dataArray.flatMap(order => {
+      const printArray = [];
+
+      for (const order of dataArray) {
         const orderData = order.orderData;
-        return showLineItems
-          ? orderData.lineItems.map((item: any) => ({
+        const customizeJSON = await getCustomizeJSON(order);
+
+        if (showLineItems) {
+          printArray.push(
+            orderData.lineItems.map((item: any) => ({
               ...getOrderJSON(order, orderData),
               ...getProductJSON(item),
               ...getUserJSON(order, orderData),
               ...getReconciliationJSON(order),
+              ...customizeJSON,
             }))
-          : [
-              {
-                ...getOrderJSON(order, orderData),
-                ...getUserJSON(order, orderData),
-                ...getReconciliationJSON(order),
-              },
-            ];
-      });
+          );
+        } else {
+          printArray.push([
+            {
+              ...getOrderJSON(order, orderData),
+              ...getUserJSON(order, orderData),
+              ...getReconciliationJSON(order),
+              ...customizeJSON,
+            },
+          ]);
+        }
+      }
 
-      const worksheet = XLSX.utils.json_to_sheet(printArray);
+      const printArrayFlat = printArray.flat();
+      const worksheet = XLSX.utils.json_to_sheet(printArrayFlat);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, '訂單列表');
 
@@ -338,21 +377,25 @@ export class OrderExcel {
 
     // 透過 API, 取得訂單資料
     async function fetchOrders(limit: number) {
-      dialog.dataLoading({ visible: true });
+      dialog.dataLoading({ visible: true, text: '匯出資料中，請稍後...' });
       try {
         const response = await ApiShop.getOrder({
           ...apiJSON,
           page: 0,
           limit: limit,
         });
-        dialog.dataLoading({ visible: false });
 
         if (response?.response?.total > 0) {
-          exportOrdersToExcel(response.response.data);
+          const orders = response.response.data;
+          await exportOrdersToExcel(orders).then(() => {
+            dialog.dataLoading({ visible: false });
+          });
         } else {
+          dialog.dataLoading({ visible: false });
           dialog.errorMessage({ text: '匯出檔案發生錯誤' });
         }
       } catch (error) {
+        console.error(error);
         dialog.dataLoading({ visible: false });
         dialog.errorMessage({ text: '無法取得訂單資料' });
       }
@@ -364,6 +407,53 @@ export class OrderExcel {
       callback: bool => bool && fetchOrders(limit),
     });
   }
+
+  // 取得客製化資訊
+  static getCustomizeMap = async (order?: any) => {
+    const [cashflowConfigObj, shipmentConfigObj, registerConfig, memberConfig] = await OrderExcel.customizePromise();
+
+    const customizeMap = new Map();
+
+    const getUserValue = (key: string) => {
+      try {
+        return order.user_data.userData[key];
+      } catch (error) {
+        return '-';
+      }
+    };
+
+    const getCashflowValue = (key: string) => {
+      try {
+        return order.orderData.user_info.custom_form_payment[key];
+      } catch (error) {
+        return '-';
+      }
+    };
+
+    const getShipmentValue = (key: string) => {
+      try {
+        return order.orderData.user_info.custom_form_delivery[key];
+      } catch (error) {
+        return '-';
+      }
+    };
+
+    [...(registerConfig || []), ...(memberConfig || [])].map(item => {
+      customizeMap.set(`會員自訂值 - ${item.title}`, order ? getUserValue(item.key) : '');
+    });
+
+    const cashflowConfig = order ? cashflowConfigObj[order.payment_method] : Object.values(cashflowConfigObj).flat();
+    (cashflowConfig || []).map((item: any) => {
+      customizeMap.set(`金流自訂值 - ${item.title}`, order ? getCashflowValue(item.key) : '');
+    });
+
+    const shipmentConfig = order ? shipmentConfigObj[order.shipment_method] : Object.values(shipmentConfigObj).flat();
+    (shipmentConfig || []).map((item: any) => {
+      customizeMap.set(`物流自訂值 - ${item.title}`, order ? getShipmentValue(item.key) : '');
+    });
+
+    return customizeMap;
+  };
 
   // 匯出檔案彈出視窗
   static exportDialog(gvc: GVC, apiJSON: any, dataArray: any[]) {
@@ -391,28 +481,38 @@ export class OrderExcel {
       title: '匯出' + pageType,
       width: 700,
       innerHTML: gvc2 => {
-        return html`<div class="d-flex flex-column align-items-start gap-2">
-          <div class="tx_700 mb-2">匯出範圍</div>
-          ${BgWidget.multiCheckboxContainer(
-            gvc2,
-            [
-              { key: 'all', name: `全部${pageType}` },
-              { key: 'search', name: '目前搜尋與篩選的結果' },
-              { key: 'checked', name: `勾選的 ${dataArray.length} 個訂單` },
-            ],
-            [vm.select],
-            (res: any) => {
-              vm.select = res[0];
-            },
-            { single: true }
-          )}
-          <div class="tx_700 mb-2">
-            匯出欄位 ${BgWidget.grayNote('＊若勾選商品系列的欄位，將會以訂單商品作為資料列匯出 Excel', 'margin: 4px;')}
-          </div>
-          ${this.optionsView(gvc2, cols => {
-            vm.column = cols;
-          })}
-        </div>`;
+        const id = gvc2.glitter.getUUID();
+
+        return gvc2.bindView({
+          bind: id,
+          view: async () => {
+            const view = await this.optionsView(gvc2, cols => {
+              vm.column = cols;
+            });
+
+            return html`<div class="d-flex flex-column align-items-start gap-2">
+              <div class="tx_700 mb-2">匯出範圍</div>
+              ${BgWidget.multiCheckboxContainer(
+                gvc2,
+                [
+                  { key: 'all', name: `全部${pageType}` },
+                  { key: 'search', name: '目前搜尋與篩選的結果' },
+                  { key: 'checked', name: `勾選的 ${dataArray.length} 個訂單` },
+                ],
+                [vm.select],
+                (res: any) => {
+                  vm.select = res[0];
+                },
+                { single: true }
+              )}
+              <div class="tx_700 mb-2">
+                匯出欄位
+                ${BgWidget.grayNote('＊若勾選商品系列的欄位，將會以訂單商品作為資料列匯出 Excel', 'margin: 4px;')}
+              </div>
+              ${view}
+            </div>`;
+          },
+        });
       },
       footer_html: gvc2 => {
         return [
@@ -583,6 +683,7 @@ export class OrderExcel {
       dialog.dataLoading({ visible: false });
       dialog.errorMessage({ text: text });
     }
+
     if (target.files?.length) {
       try {
         dialog.dataLoading({ visible: true, text: '上傳檔案中' });
@@ -865,5 +966,48 @@ export class OrderExcel {
         },
       });
     }, vm.id);
+  }
+
+  static async customizePromise() {
+    const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
+
+    const dataArray = await Promise.all([
+      // 自訂金流
+      await saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitter_finance').then((data: any) => {
+        const cashflowObject: any = {};
+
+        data.response.result[0].value.payment_info_custom.map((item: any) => {
+          ApiUser.getPublicConfig(`form_finance_${item.id}`, 'manager').then(r => {
+            cashflowObject[item.id] = r.response.value.list;
+          });
+        });
+
+        return cashflowObject;
+      }),
+      // 自訂物流
+      await saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting').then((data: any) => {
+        const shipmentObject: any = {};
+
+        data.response.result[0].value.custom_delivery.map((item: any) => {
+          ApiUser.getPublicConfig(`form_delivery_${item.id}`, 'manager').then(r => {
+            if (r.response.value.list.length > 0) {
+              shipmentObject[item.id] = r.response.value.list;
+            }
+          });
+        });
+
+        return shipmentObject;
+      }),
+      // 註冊資料
+      await ApiUser.getPublicConfig('custom_form_register', 'manager').then(r => {
+        return Array.isArray(r.response.value.list) ? r.response.value.list : [];
+      }),
+      // 會員資料
+      await ApiUser.getPublicConfig('customer_form_user_setting', 'manager').then(r => {
+        return Array.isArray(r.response.value.list) ? r.response.value.list : [];
+      }),
+    ]);
+
+    return dataArray;
   }
 }
