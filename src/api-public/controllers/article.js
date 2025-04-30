@@ -28,7 +28,7 @@ router.get('/', async (req, resp) => {
             ||
              (UPPER(JSON_EXTRACT(page_config, '$.meta_article.title')) LIKE UPPER('%${req.query.search}%'))`);
         }
-        const data = (await new ut_database_js_1.UtDatabase(process.env.GLITTER_DB, `page_config`).querySql(query, req.query));
+        const data = await new ut_database_js_1.UtDatabase(process.env.GLITTER_DB, `page_config`).querySql(query, req.query);
         data.data.map((dd) => {
             const content = dd.content;
             if (content.language_data && content.language_data[req.headers['language']]) {
@@ -89,21 +89,23 @@ router.get('/manager', async (req, resp) => {
             data.data = [data.data];
         }
         data.data.map((dd) => {
-            dd.content.collection = dd.content.collection || [];
-            dd.content.collection = collection_title_map.filter((d1) => {
-                return dd.content.collection.find((d2) => {
-                    return d2 === d1.link;
+            if (dd === null || dd === void 0 ? void 0 : dd.content) {
+                dd.content.collection = dd.content.collection || [];
+                dd.content.collection = collection_title_map.filter((d1) => {
+                    return dd.content.collection.find((d2) => {
+                        return d2 === d1.link;
+                    });
                 });
-            });
-            const content = dd.content;
-            if (content.language_data && content.language_data[req.headers['language']]) {
-                const lang_ = content.language_data[req.headers['language']];
-                content.name = lang_.name || content.name;
-                content.seo = lang_.seo || content.seo;
-                content.text = lang_.text || content.text;
-                content.config = lang_.config || content.config;
-                content.description = lang_.description || content.description;
-                content.title = lang_.title || content.title;
+                const content = dd.content;
+                if (content.language_data && content.language_data[req.headers['language']]) {
+                    const lang_ = content.language_data[req.headers['language']];
+                    content.name = lang_.name || content.name;
+                    content.seo = lang_.seo || content.seo;
+                    content.text = lang_.text || content.text;
+                    content.config = lang_.config || content.config;
+                    content.description = lang_.description || content.description;
+                    content.title = lang_.title || content.title;
+                }
             }
         });
         return response_js_1.default.succ(resp, data);

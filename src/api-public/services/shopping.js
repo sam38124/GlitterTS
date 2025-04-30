@@ -3647,7 +3647,10 @@ class Shopping {
                         product.content.designated_logistics.group = product.content.designated_logistics.group.filter((item) => {
                             return item !== group_key;
                         });
-                        console.log(product.id);
+                        if (product.content.designated_logistics.group.length === 0) {
+                            delete product.content.designated_logistics.group;
+                            product.content.designated_logistics.type = 'all';
+                        }
                         await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?`, [
                             {
                                 content: JSON.stringify(product.content),
@@ -3657,11 +3660,11 @@ class Shopping {
                     }));
                 }, 200);
             }
-            return '';
+            return true;
         }
         catch (e) {
             console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'removeLogisticGroup Error:' + e, null);
         }
     }
     async updateCollectionFromUpdateProduct(collection) {
