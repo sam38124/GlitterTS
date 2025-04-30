@@ -1138,24 +1138,8 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                 window.parent.glitter.share.switch_to_web_builder(`${domainPrefix}/${vm.data.content.tag}`);
             }
             if (origin !== JSON.stringify(vm.data)) {
-                const dialog = new ShareDialog(gvc.glitter);
-                dialog.checkYesOrNot({
-                    text: '偵測到內容變更，是否保留更改?',
-                    callback: response => {
-                        if (response) {
-                            saveData(gvc, cf, vm, cVm, false).then(res => {
-                                if (res) {
-                                    next();
-                                }
-                                else {
-                                    gvc.notifyDataChange(id);
-                                }
-                            });
-                        }
-                        else {
-                            next();
-                        }
-                    },
+                saveData(gvc, cf, vm, cVm, false).then(res => {
+                    res ? next() : gvc.notifyDataChange(id);
                 });
             }
             else {
@@ -1543,7 +1527,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                       <div class="form-check-label c_updown_label">
                                                         <div class="tx_normal">產品列表</div>
                                                       </div>
-                                                      ${BgWidget.grayButton('搜尋商品', gvc.event(() => {
+                                                      ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                                     BgProduct.productsDialog({
                                                                                         default: d1.value,
                                                                                         gvc: gvc,
@@ -1626,7 +1610,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                   <div class="form-check-label c_updown_label">
                                                     <div class="tx_normal">產品列表</div>
                                                   </div>
-                                                  ${BgWidget.grayButton('搜尋商品', gvc.event(() => {
+                                                  ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                                 BgProduct.productsDialog({
                                                                                     gvc: gvc,
                                                                                     default: vm.data.content.relative_data.map((dd) => {

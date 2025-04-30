@@ -1273,26 +1273,34 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
       }
 
       if (origin !== JSON.stringify(vm.data)) {
-        const dialog = new ShareDialog(gvc.glitter);
-        dialog.checkYesOrNot({
-          text: '偵測到內容變更，是否保留更改?',
-          callback: response => {
-            if (response) {
-              saveData(gvc, cf, vm, cVm, false).then(res => {
-                if (res) {
-                  next();
-                } else {
-                  gvc.notifyDataChange(id);
-                }
-              });
-            } else {
-              next();
-            }
-          },
+        saveData(gvc, cf, vm, cVm, false).then(res => {
+          res ? next() : gvc.notifyDataChange(id);
         });
       } else {
         next();
       }
+
+      // if (origin !== JSON.stringify(vm.data)) {
+      //   const dialog = new ShareDialog(gvc.glitter);
+      //   dialog.checkYesOrNot({
+      //     text: '偵測到內容變更，是否保留更改?',
+      //     callback: response => {
+      //       if (response) {
+      //         saveData(gvc, cf, vm, cVm, false).then(res => {
+      //           if (res) {
+      //             next();
+      //           } else {
+      //             gvc.notifyDataChange(id);
+      //           }
+      //         });
+      //       } else {
+      //         next();
+      //       }
+      //     },
+      //   });
+      // } else {
+      //   next();
+      // }
     }
 
     return {
@@ -1711,7 +1719,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                         <div class="tx_normal">產品列表</div>
                                                       </div>
                                                       ${BgWidget.grayButton(
-                                                        '搜尋商品',
+                                                        '選擇商品',
                                                         gvc.event(() => {
                                                           BgProduct.productsDialog({
                                                             default: d1.value,
@@ -1803,7 +1811,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                     <div class="tx_normal">產品列表</div>
                                                   </div>
                                                   ${BgWidget.grayButton(
-                                                    '搜尋商品',
+                                                    '選擇商品',
                                                     gvc.event(() => {
                                                       BgProduct.productsDialog({
                                                         gvc: gvc,
