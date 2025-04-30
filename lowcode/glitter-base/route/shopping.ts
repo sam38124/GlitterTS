@@ -1536,6 +1536,18 @@ export class ApiShop {
       data: JSON.stringify(passData),
     });
   }
+
+  static deleteProductLogistic(json: { group: string }) {
+    return BaseApi.create({
+      url: getBaseUrl() + `/api-public/v1/ec/product/logistic/${json.group}`,
+      type: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'g-app': encodeURIComponent(getConfig().config.appName),
+        Authorization: getConfig().config.token,
+      },
+    });
+  }
 }
 
 function getConfig() {

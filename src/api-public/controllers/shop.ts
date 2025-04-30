@@ -1226,6 +1226,20 @@ router.put('/product/variants', async (req: express.Request, resp: express.Respo
     return response.fail(resp, err);
   }
 });
+router.delete('/product/logistic/:group', async (req: express.Request, resp: express.Response) => {
+  try {
+    if (!(await UtPermission.isManager(req))) {
+      return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+    } else {
+      return response.succ(resp, {
+        result: true,
+        data: await new Shopping(req.get('g-app') as string, req.body.token).removeLogisticGroup(req.params.group),
+      });
+    }
+  } catch (err) {
+    return response.fail(resp, err);
+  }
+});
 
 // 產品評論
 router.get('/product/comment', async (req: express.Request, resp: express.Response) => {

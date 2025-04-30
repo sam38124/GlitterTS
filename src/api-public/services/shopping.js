@@ -3634,6 +3634,36 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
         }
     }
+    async removeLogisticGroup(group_key) {
+        try {
+            const getProducts = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_manager_post 
+         WHERE JSON_CONTAINS(JSON_EXTRACT(content, '$.designated_logistics.group'), JSON_QUOTE(?))`, [group_key]);
+            const chunk = 10;
+            const chunkLength = Math.ceil(getProducts.length / chunk);
+            for (let i = 0; i < chunkLength; i++) {
+                const promisesArray = getProducts.slice(i * chunk, (i + 1) * chunk);
+                setTimeout(async () => {
+                    await Promise.all(promisesArray.map(async (product) => {
+                        product.content.designated_logistics.group = product.content.designated_logistics.group.filter((item) => {
+                            return item !== group_key;
+                        });
+                        console.log(product.id);
+                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?`, [
+                            {
+                                content: JSON.stringify(product.content),
+                            },
+                            product.id,
+                        ]);
+                    }));
+                }, 200);
+            }
+            return '';
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
+        }
+    }
     async updateCollectionFromUpdateProduct(collection) {
         var _a;
         collection = Array.from(new Set(collection.map(dd => {

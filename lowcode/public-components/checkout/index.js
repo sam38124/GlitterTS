@@ -385,6 +385,7 @@ export class CheckoutIndex {
                     <div>${Language.text('discount_coupon')}</div>
                     <div>- ${Currency.convertCurrencyText(vm.cartData.discount)}</div>
                   </div>
+                  <!-- 可使用的優惠券 -->
                   <div class="${gClass(['price-row', 'text-2'])}">
                     <div>${Language.text('promo_code')}</div>
                     <div
@@ -1146,7 +1147,7 @@ export class CheckoutIndex {
                                               </div>
                                             `;
                                                 })
-                                                    .join(`<div class="border-bottom w-100"></div>`);
+                                                    .join(html `<div class="border-bottom w-100"></div>`);
                                             }
                                             catch (e) {
                                                 console.error(`error 1 =>`, e);

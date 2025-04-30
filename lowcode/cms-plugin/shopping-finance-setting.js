@@ -7,20 +7,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from '../backend-manager/bg-widget.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
-import { ApiPageConfig } from '../api/pageConfig.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
 import { CheckInput } from '../modules/checkInput.js';
-import { LanguageBackend } from './language-backend.js';
 import { Tool } from '../modules/tool.js';
-import { ProductAi } from './ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
+import { LanguageBackend } from './language-backend.js';
+import { ProductAi } from './ai-generator/product-ai.js';
+import { ApiPageConfig } from '../api/pageConfig.js';
 import { Language } from '../glitter-base/global/language.js';
-import { ShoppingShipmentSetting } from './shopping-shipment-setting.js';
-import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { ApiUser } from '../glitter-base/route/user.js';
+import { ApiShop } from '../glitter-base/route/shopping.js';
 import { PaymentConfig } from '../glitter-base/global/payment-config.js';
+import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
+import { ShoppingShipmentSetting } from './shopping-shipment-setting.js';
 const html = String.raw;
 export class ShoppingFinanceSetting {
     static main(gvc) {
@@ -2597,6 +2598,11 @@ export class ShoppingFinanceSetting {
                                 });
                             }, 100);
                         }
+                        function deleteProductLogisticGroup(group, callback) {
+                            if (group) {
+                                ApiShop.deleteProductLogistic({ group }).then(() => callback());
+                            }
+                        }
                         function editGroupDialog(item) {
                             const cloneData = structuredClone(item);
                             const postData = item
@@ -2675,7 +2681,7 @@ export class ShoppingFinanceSetting {
                                                     callback: bool => {
                                                         if (bool) {
                                                             dvm.dataList = dvm.dataList.filter(data => data.key !== (item === null || item === void 0 ? void 0 : item.key));
-                                                            updateGroup(fGVC);
+                                                            deleteProductLogisticGroup(item === null || item === void 0 ? void 0 : item.key, () => updateGroup(fGVC));
                                                         }
                                                     },
                                                 });

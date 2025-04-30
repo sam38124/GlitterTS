@@ -1043,6 +1043,22 @@ router.put('/product/variants', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.delete('/product/logistic/:group', async (req, resp) => {
+    try {
+        if (!(await ut_permission_1.UtPermission.isManager(req))) {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+        else {
+            return response_1.default.succ(resp, {
+                result: true,
+                data: await new shopping_1.Shopping(req.get('g-app'), req.body.token).removeLogisticGroup(req.params.group),
+            });
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/product/comment', async (req, resp) => {
     try {
         const id = Math.max(0, parseInt(`${req.query.id}`, 10) || 0);

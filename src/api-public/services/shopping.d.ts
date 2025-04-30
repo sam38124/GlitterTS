@@ -522,6 +522,7 @@ export declare class Shopping {
     sortCollection(data: Collection[]): Promise<boolean>;
     checkVariantDataType(variants: any[]): void;
     postProduct(content: any): Promise<any>;
+    removeLogisticGroup(group_key: string): Promise<string>;
     updateCollectionFromUpdateProduct(collection: string[]): Promise<void>;
     postMulProduct(content: any): Promise<any>;
     promisesProducts(productArray: any, insertIDStart: any): Promise<void>;

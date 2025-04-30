@@ -4922,6 +4922,53 @@ export class Shopping {
     }
   }
 
+  async removeLogisticGroup(group_key: string) {
+    try {
+      const getProducts = await db.query(
+        `SELECT * FROM \`${this.app}\`.t_manager_post 
+         WHERE JSON_CONTAINS(JSON_EXTRACT(content, '$.designated_logistics.group'), JSON_QUOTE(?))`,
+        [group_key]
+      );
+
+      const chunk = 10;
+      const chunkLength = Math.ceil(getProducts.length / chunk);
+
+      for (let i = 0; i < chunkLength; i++) {
+        const promisesArray = getProducts.slice(i * chunk, (i + 1) * chunk);
+
+        setTimeout(async () => {
+          await Promise.all(
+            promisesArray.map(async (product: any) => {
+              product.content.designated_logistics.group = product.content.designated_logistics.group.filter(
+                (item: string) => {
+                  return item !== group_key;
+                }
+              );
+
+              if (product.content.designated_logistics.group.length === 0) {
+                delete product.content.designated_logistics.group;
+                product.content.designated_logistics.type = 'all';
+              }
+
+              // 更新商品
+              await db.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?`, [
+                {
+                  content: JSON.stringify(product.content),
+                },
+                product.id,
+              ]);
+            })
+          );
+        }, 200);
+      }
+
+      return true;
+    } catch (e) {
+      console.error(e);
+      throw exception.BadRequestError('BAD_REQUEST', 'removeLogisticGroup Error:' + e, null);
+    }
+  }
+
   async updateCollectionFromUpdateProduct(collection: string[]) {
     collection = Array.from(
       new Set(
