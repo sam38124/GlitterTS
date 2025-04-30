@@ -168,7 +168,7 @@ export class OrderExcel {
     // 取得琣送與付款方式設定檔
     const [shipment_methods, payment_methods] = await Promise.all([
       ShipmentConfig.shipmentMethod({
-        type:'all'
+        type: 'all',
       }),
       PaymentConfig.getSupportPayment(true),
     ]);
@@ -429,13 +429,12 @@ export class OrderExcel {
                 return;
               }
 
-
               const dataMap: Record<Range, any> = {
                 search: apiJSON,
                 checked: {
                   ...apiJSON,
                   id_list: dataArray.map(data => data.id).join(','),
-                  searchType:'id'
+                  searchType: 'id',
                 },
                 all: {
                   is_reconciliation: apiJSON.is_reconciliation,

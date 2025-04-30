@@ -93,7 +93,7 @@ export class OrderExcel {
             const XLSX = yield Excel.loadXLSX(gvc);
             const [shipment_methods, payment_methods] = yield Promise.all([
                 ShipmentConfig.shipmentMethod({
-                    type: 'all'
+                    type: 'all',
                 }),
                 PaymentConfig.getSupportPayment(true),
             ]);
