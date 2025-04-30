@@ -297,12 +297,17 @@ export class ShoppingProductSetting {
                                                                                         }
                                                                                     });
                                                                                     if (countStock == 0) {
-                                                                                        return html ` 無追蹤庫存 `;
+                                                                                        return '無追蹤庫存';
                                                                                     }
-                                                                                    return html `${countStock}個子類
-                                                ${sum > 1
-                                                                                        ? `有${sum}件庫存`
-                                                                                        : html ` <span style="color:#8E0E2B">有${sum} 件庫存</span>`}`;
+                                                                                    const countStockText = countStock > 1 ? `${countStock} 個子類` : '';
+                                                                                    const stockText = html ` <span
+                                                  style="${sum > 1
+                                                                                        ? 'color: #393939'
+                                                                                        : 'color: #8E0E2B; font-weight: 500;'}"
+                                                >
+                                                  庫存 ${sum.toLocaleString()} 件</span
+                                                >`;
+                                                                                    return `${countStockText}${stockText}`;
                                                                                 })(),
                                                                             },
                                                                             {
