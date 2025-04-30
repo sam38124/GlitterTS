@@ -471,6 +471,7 @@ class Language {
             { key: 'order_status', tw: '訂單狀態', cn: '订单状态', en: 'OrderEvent Status' },
             { key: 'no_number_order', tw: '無編號訂單', cn: '无编号订单', en: 'No Number OrderEvent' },
             { key: 'unpaid', tw: '尚未付款', cn: '尚未付款', en: 'Unpaid' },
+            { key: 'payment_method', tw: '付款方式', cn: '付款方式', en: 'Payment Method' },
             { key: 'shipping', tw: '配送中', cn: '配送中', en: 'Shipping' },
             { key: 'delivered', tw: '已送達', cn: '已送达', en: 'Delivered' },
             { key: 'preparing', tw: '準備中', cn: '准备中', en: 'Preparing' },

@@ -61,8 +61,9 @@ const checkout_js_1 = require("./checkout.js");
 const product_initial_js_1 = require("./product-initial.js");
 const ut_timer_js_1 = require("../utils/ut-timer.js");
 const auto_fcm_js_1 = require("../../public-config-initial/auto-fcm.js");
-const handlePaymentTransaction_js_1 = __importDefault(require("./model/handlePaymentTransaction.js"));
 const Language_js_1 = require("../../Language.js");
+const payment_strategy_factory_js_1 = require("./factories/payment-strategy-factory.js");
+const payment_service_1 = require("./payment-service");
 class OrderDetail {
     constructor(subtotal, shipment) {
         this.discount = 0;
@@ -2404,7 +2405,7 @@ class Shopping {
         }
     }
     async repayOrder(orderID, return_url) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
         const app = this.app;
         async function getOrder(orderID) {
             try {
@@ -2447,21 +2448,17 @@ class Shopping {
                     return [];
                 }
             })();
-            let kd = (_a = keyData[orderData.customer_info.payment_select]) !== null && _a !== void 0 ? _a : {
-                ReturnURL: '',
-                NotifyURL: '',
-            };
-            const newOrderID = Date.now();
+            const newOrderID = 'repay' + Date.now();
             const carData = {
                 orderID: `${newOrderID}`,
-                discount: (_b = orderData.discount) !== null && _b !== void 0 ? _b : 0,
+                discount: (_a = orderData.discount) !== null && _a !== void 0 ? _a : 0,
                 customer_info: orderData.customer_info || {},
-                lineItems: (_c = orderData.lineItems) !== null && _c !== void 0 ? _c : [],
-                total: (_d = orderData.total) !== null && _d !== void 0 ? _d : 0,
-                email: (_g = (_e = sqlData.email) !== null && _e !== void 0 ? _e : (_f = orderData.user_info) === null || _f === void 0 ? void 0 : _f.email) !== null && _g !== void 0 ? _g : '',
+                lineItems: (_b = orderData.lineItems) !== null && _b !== void 0 ? _b : [],
+                total: (_c = orderData.total) !== null && _c !== void 0 ? _c : 0,
+                email: (_f = (_d = sqlData.email) !== null && _d !== void 0 ? _d : (_e = orderData.user_info) === null || _e === void 0 ? void 0 : _e.email) !== null && _f !== void 0 ? _f : '',
                 user_info: orderData.user_info,
-                shipment_fee: (_h = orderData.shipment_fee) !== null && _h !== void 0 ? _h : 0,
-                rebate: (_j = orderData.rebate) !== null && _j !== void 0 ? _j : 0,
+                shipment_fee: (_g = orderData.shipment_fee) !== null && _g !== void 0 ? _g : 0,
+                rebate: (_h = orderData.rebate) !== null && _h !== void 0 ? _h : 0,
                 goodsWeight: 0,
                 use_rebate: orderData.use_rebate || 0,
                 shipment_support: shipment_setting.support,
@@ -2471,7 +2468,7 @@ class Shopping {
                         name: dd.title,
                         value: dd.value,
                     })),
-                    ...((_k = shipment_setting.custom_delivery) !== null && _k !== void 0 ? _k : []).map((dd) => ({
+                    ...((_j = shipment_setting.custom_delivery) !== null && _j !== void 0 ? _j : []).map((dd) => ({
                         form: dd.form,
                         name: dd.name,
                         value: dd.id,
@@ -2479,8 +2476,8 @@ class Shopping {
                     })),
                 ].filter(option => shipment_setting.support.includes(option.value)),
                 use_wallet: 0,
-                method: (_l = sqlData.user_info) === null || _l === void 0 ? void 0 : _l.method,
-                user_email: (_p = (_m = sqlData.email) !== null && _m !== void 0 ? _m : (_o = orderData.user_info) === null || _o === void 0 ? void 0 : _o.email) !== null && _p !== void 0 ? _p : '',
+                method: (_k = sqlData.user_info) === null || _k === void 0 ? void 0 : _k.method,
+                user_email: (_o = (_l = sqlData.email) !== null && _l !== void 0 ? _l : (_m = orderData.user_info) === null || _m === void 0 ? void 0 : _m.email) !== null && _o !== void 0 ? _o : '',
                 useRebateInfo: sqlData.useRebateInfo,
                 custom_form_format: sqlData.custom_form_format,
                 custom_form_data: sqlData.custom_form_data,
@@ -2496,13 +2493,19 @@ class Shopping {
                 fbp: sqlData.fbp,
                 editRecord: [],
             };
-            await order_event_js_1.OrderEvent.insertOrder({
-                cartData: orderData,
-                status: 0,
-                app: this.app,
-            });
-            const result = await new handlePaymentTransaction_js_1.default(this.app, orderData.customer_info.payment_select).processPayment(carData, return_url);
-            return result;
+            await redis_js_1.default.setValue(newOrderID, `${orderData.orderID}`);
+            const strategyFactory = new payment_strategy_factory_js_1.PaymentStrategyFactory(keyData);
+            const allPaymentStrategies = strategyFactory.createStrategyRegistry();
+            const appName = this.app;
+            const paymentService = new payment_service_1.PaymentService(allPaymentStrategies, appName, carData.customer_info.payment_select);
+            try {
+                const paymentResult = await paymentService.processPayment(carData, return_url, carData.customer_info.payment_select);
+                console.log("Controller 收到 Payment Result:", paymentResult);
+                return paymentResult;
+            }
+            catch (error) {
+                console.error("Controller 捕獲到錯誤:", error);
+            }
         }
     }
     async getReturnOrder(query) {

@@ -686,86 +686,31 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
 
 // 重導向
 async function redirect_link(req: express.Request, resp: express.Response) {
-  try {
-    //預防沒有APPName
+  /**
+   * 替換或設定 URL 中的指定查詢參數的值，用於repay時的訂單編號切換。
+   * @param originalUrl - 原始的 URL 字串。
+   * @param paramName - 要替換或設定的參數名稱 (例如 'cart_token')。
+   * @param newValue - 要設定的新值。
+   * @returns 修改後的 URL 字串，如果原始 URL 無效則回傳 null。
+   */
+  function setQueryParameter(originalUrl: string, paramName: string, newValue: string) {
+    try {
+      const url = new URL(originalUrl);
 
-    req.query.appName = req.query.appName || (req.get('g-app') as string) || (req.query['g-app'] as string);
-    let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
+      url.searchParams.set(paramName, newValue);
 
-    if (req.query.LinePay && req.query.LinePay === 'true') {
-      const check_id = await redis.getValue(`linepay` + req.query.orderID);
+      return url; // 或者使用 url.href
 
-      const order_data = (
-        await db.query(
-          `SELECT *
-           FROM \`${req.query.appName}\`.t_checkout
-           WHERE cart_token = ?
-          `,
-          [req.query.orderID]
-        )
-      )[0];
-      console.log(`order_data===>`, order_data);
-      const keyData = (
-        await Private_config.getConfig({
-          appName: req.query.appName as string,
-          key: 'glitter_finance',
-        })
-      )[0].value.line_pay;
-      const linePay = new LinePay(req.query.appName as string, keyData);
-
-      console.log(`check_id===>${req.query.orderID}===>${req.query.transactionId}`);
-      console.log(`req.query=>`, req.query);
-      const data: any = (
-        await linePay.confirmAndCaptureOrder(req.query.transactionId as string, order_data['orderData'].total)
-      ).data;
-      console.log(`line-response==>`, data);
-      //判斷付款成功且Receipt單據ID為相同的orderID
-      if (data.returnCode == '0000' && data.info.orderId === req.query.orderID) {
-        await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+    } catch (error) {
+      if (error instanceof TypeError) {
+        console.error(`提供的字串不是有效的 URL: "${originalUrl}"`, error);
+      } else {
+        console.error("處理 URL 時發生預期外的錯誤:", error);
       }
+      return null;
     }
-    if (req.query.payment && req.query.payment == 'true') {
-      const check_id = await redis.getValue(`paypal` + req.query.orderID);
-      const keyData = (
-        await Private_config.getConfig({
-          appName: req.query.appName as string,
-          key: 'glitter_finance',
-        })
-      )[0].value.paypal;
-      const paypal = new PayPal(req.query.appName as string, keyData);
-      const data = await paypal.confirmAndCaptureOrder(check_id as string);
-      if (data.status === 'COMPLETED') {
-        await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
-      }
-    }
-    if (req.query.paynow && req.query.paynow === 'true') {
-      // const check_id = '1234555'
-      const keyData = (
-        await Private_config.getConfig({
-          appName: req.query.appName as string,
-          key: 'glitter_finance',
-        })
-      )[0].value.paynow;
-      const check_id = await redis.getValue(`paynow` + req.query.orderID);
-      const payNow = new PayNow(req.query.appName as string, keyData);
-      const data: any = await payNow.confirmAndCaptureOrder(check_id as string);
-      if (data.type == 'success' && data.result.status === 'success') {
-        await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
-      }
-    }
-    //pp_1bed7f12879241198832063d5e091976
-    if (req.query.jkopay && req.query.jkopay === 'true') {
-      // let kd = {
-      //   ReturnURL: '',
-      //   NotifyURL: '',
-      // };
-      //
-      // const jko = new JKO(req.query.appName as string, kd);
-      // const data: any = jko.confirmAndCaptureOrder(req.query.orderID as string);
-      // if (data.tranactions[0].status == 'success') {
-      //   await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
-      // }
-    }
+  }
+  function returnResult(return_url:URL){
     const html = String.raw;
     return resp.send(
       html`<!DOCTYPE html>
@@ -792,6 +737,127 @@ async function redirect_link(req: express.Request, resp: express.Response) {
           </body>
         </html> `
     );
+  }
+
+  try {
+    const order_id = req.query?.orderID??"";
+
+    req.query.appName = req.query.appName || (req.get('g-app') as string) || (req.query['g-app'] as string);
+    let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
+
+    const old_order_id = await redis.getValue(order_id as string);
+    const idToQuery: string = old_order_id ? (old_order_id as string) : ((order_id as string) ?? '');
+    if (req.query.LinePay && req.query.LinePay === 'true') {
+      let order_data: any = {};
+
+      try {
+        const queryResult = await db.query(
+          `SELECT *
+           FROM \`${req.query.appName}\`.t_checkout
+           WHERE cart_token = ?`,
+          [idToQuery]
+        );
+        order_data = queryResult?.[0] ?? undefined;
+
+        if (!order_data) {
+          console.log(`找不到 cart_token 為 ${idToQuery} 的訂單資料。`);
+        }
+      } catch (dbError) {
+        console.error(`查詢 cart_token ${idToQuery} 時發生資料庫錯誤:`, dbError);
+        order_data = undefined; // 確保出錯時 order_data 也有定義 (為 undefined)
+        // 根據您的錯誤處理策略，可能需要向上拋出錯誤、回傳錯誤訊息等
+        // throw dbError; // 如果需要將錯誤傳遞出去
+      }
+      if (order_data) {
+        const keyData = (
+          await Private_config.getConfig({
+            appName: req.query.appName as string,
+            key: 'glitter_finance',
+          })
+        )[0].value.line_pay;
+        const linePay = new LinePay(req.query.appName as string, keyData);
+
+        console.log(`check_id===>${req.query.orderID}===>${req.query.transactionId}`);
+        console.log(`req.query=>`, req.query);
+        const data: any = (
+          await linePay.confirmAndCaptureOrder(req.query.transactionId as string, order_data['orderData'].total)
+        ).data;
+        console.log(`line-response==>`, data);
+        //判斷付款成功且Receipt單據ID為相同的orderID
+        if (data.returnCode == '0000' && data.info.orderId === order_id) {
+          await new Shopping(req.query.appName as string).releaseCheckout(1, idToQuery as string);
+          console.log("return_url.href -- " , return_url.href);
+        }
+      }
+
+    }
+    if (req.query.payment && req.query.payment == 'true') {
+      const check_id = await redis.getValue(`paypal` + order_id);
+      const keyData = (
+        await Private_config.getConfig({
+          appName: req.query.appName as string,
+          key: 'glitter_finance',
+        })
+      )[0].value.paypal;
+      const paypal = new PayPal(req.query.appName as string, keyData);
+      const data = await paypal.confirmAndCaptureOrder(check_id as string);
+      if (data.status === 'COMPLETED') {
+        await new Shopping(req.query.appName as string).releaseCheckout(1, order_id as string);
+      }
+    }
+    if (req.query.paynow && req.query.paynow === 'true') {
+      // const check_id = '1234555'
+      const keyData = (
+        await Private_config.getConfig({
+          appName: req.query.appName as string,
+          key: 'glitter_finance',
+        })
+      )[0].value.paynow;
+      const check_id = await redis.getValue(`paynow` + order_id);
+      const payNow = new PayNow(req.query.appName as string, keyData);
+      const data: any = await payNow.confirmAndCaptureOrder(check_id as string);
+      if (data.type == 'success' && data.result.status === 'success') {
+        await new Shopping(req.query.appName as string).releaseCheckout(1, idToQuery as string);
+      }
+    }
+    //pp_1bed7f12879241198832063d5e091976
+    if (req.query.jkopay && req.query.jkopay === 'true') {
+      // let kd = {
+      //   ReturnURL: '',
+      //   NotifyURL: '',
+      // };
+      //
+      // const jko = new JKO(req.query.appName as string, kd);
+      // const data: any = jko.confirmAndCaptureOrder(req.query.orderID as string);
+      // if (data.tranactions[0].status == 'success') {
+      //   await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+      // }
+    }
+
+    const updatedUrl = setQueryParameter(return_url.toString(), 'cart_token', idToQuery);
+    if (updatedUrl){
+      return_url = updatedUrl;
+    }else {
+      console.error("無法更新 return_url，因為 setQueryParameter 回傳了 null。");
+    }
+    return returnResult(return_url)
+  } catch (err) {
+    console.error(err);
+    return response.fail(resp, err);
+  }
+}
+
+// 重導向
+async function repay_redirect_link(req: express.Request, resp: express.Response) {
+  try {
+    //預防沒有APPName
+    //如果是repay的話 這邊要替換訂單編號
+    const order_id = req.query.orderID;
+    try {
+      return await redirect_link(req, resp);
+    } catch (e) {
+      console.warn(`repay redirect link error: ${e}`);
+    }
   } catch (err) {
     console.error(err);
     return response.fail(resp, err);
@@ -800,6 +866,9 @@ async function redirect_link(req: express.Request, resp: express.Response) {
 
 router.get('/redirect', redirect_link);
 router.post('/redirect', redirect_link);
+
+router.get('/repay_redirect', repay_redirect_link);
+router.post('/repay_redirect', repay_redirect_link);
 
 // 執行訂單結帳與付款事項
 const storage = multer.memoryStorage();
@@ -835,7 +904,9 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
       const payNow = new PayNow(req.query.appName as string, keyData);
       const data: any = await payNow.confirmAndCaptureOrder(check_id as string);
       if (data.type == 'success' && data.result.status === 'success') {
-        await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+        const old_order_id = await redis.getValue(req.query.orderID as string);
+        const idToQuery: string = old_order_id ? (old_order_id as string) :req.query.orderID as string;
+        await new Shopping(req.query.appName as string).releaseCheckout(1, idToQuery as string);
       }
     }
 
@@ -882,13 +953,15 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
         console.log(`decodeData==>`, decodeData);
       }
       // 執行付款完成之訂單事件
+      const old_order_id = await redis.getValue(decodeData['Result']['MerchantOrderNo'] as string);
+      const idToQuery: string = old_order_id ? (old_order_id as string) :decodeData['Result']['MerchantOrderNo'];
+
       if (decodeData['Status'] === 'SUCCESS') {
-        await new Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
+        await new Shopping(appName).releaseCheckout(1, idToQuery);
       } else {
-        await new Shopping(appName).releaseCheckout(-1, decodeData['Result']['MerchantOrderNo']);
+        await new Shopping(appName).releaseCheckout(-1, idToQuery);
       }
     }
-
     return response.succ(resp, {});
   } catch (err) {
     console.log(`notify-error`, req.body);

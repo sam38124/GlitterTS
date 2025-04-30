@@ -204,8 +204,8 @@ export declare class PayNow {
     constructor(appName: string, keyData: any);
     executePaymentIntent(transactionId: string, secret: string, paymentNo: string): Promise<any>;
     bindKey(): Promise<{
-        public_key: string;
         private_key: string;
+        public_key: string;
     }>;
     confirmAndCaptureOrder(transactionId?: string): Promise<any>;
     createOrder(orderData: {
@@ -224,6 +224,7 @@ export declare class PayNow {
         user_email: string;
         method: string;
     }): Promise<{
+        returnUrl: string | undefined;
         data: any;
         publicKey: string;
         BETA: string;

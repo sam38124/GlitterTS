@@ -36,6 +36,9 @@ import { UtTimer } from '../utils/ut-timer.js';
 import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
 import PaymentTransaction from './model/handlePaymentTransaction.js';
 import { Language, LanguageLocation } from '../../Language.js';
+import { PaymentStrategyFactory } from './factories/payment-strategy-factory.js';
+import { IPaymentStrategy } from './interface/payment-strategy-interface';
+import { PaymentService } from './payment-service';
 
 type BindItem = {
   id: string;
@@ -184,6 +187,15 @@ interface orderVoucherData {
   rebate_total: number;
   target: string;
   targetList: string[];
+}
+
+interface KeyData {
+  HASH_IV: string;
+  HASH_KEY: string;
+  ActionURL: string;
+  NotifyURL: string;
+  ReturnURL: string;
+  MERCHANT_ID: string;
 }
 
 class OrderDetail {
@@ -3168,6 +3180,7 @@ export class Shopping {
 
       // Genetate notify redirect id
       const id = 'redirect_' + Tool.randomString(6);
+      //前端希望跳轉的頁面
       const redirect_url = new URL(data.return_url);
       redirect_url.searchParams.set('cart_token', carData.orderID);
       await redis.setValue(id, redirect_url.href);
@@ -3450,13 +3463,8 @@ export class Shopping {
         }
       })();
 
-      let kd = keyData[orderData.customer_info.payment_select] ?? {
-        ReturnURL: '',
-        NotifyURL: '',
-      };
       //現在是new一個新的版本
-      //todo 新增一個fake單號 直接做付款的動作 同時做訂單上的更新把這個付款單號記錄下來
-      const newOrderID = Date.now();
+      const newOrderID = 'repay'+Date.now();
       const carData: Cart = {
         orderID: `${newOrderID}`,
         discount: orderData.discount ?? 0,
@@ -3503,17 +3511,33 @@ export class Shopping {
         fbp: sqlData.fbp as string,
         editRecord: [],
       };
-      await OrderEvent.insertOrder({
-        cartData: orderData,
-        status: 0,
-        app: this.app,
-      });
-      const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select).processPayment(
-        carData,
-        return_url
-      );
+      // 紀錄新舊訂單
+      await redis.setValue(newOrderID , `${orderData.orderID}`)
+      //把我的所有付款方式初始化好
+      const strategyFactory = new PaymentStrategyFactory(keyData);
 
-      return result;
+      const allPaymentStrategies: Map<string, IPaymentStrategy> = strategyFactory.createStrategyRegistry();
+      const appName = this.app;
+      const paymentService = new PaymentService(allPaymentStrategies, appName , carData.customer_info.payment_select);
+
+      try {
+        const paymentResult = await paymentService.processPayment(carData, return_url , carData.customer_info.payment_select!);
+        console.log("Controller 收到 Payment Result:", paymentResult);
+        return paymentResult;
+
+      } catch(error) {
+        console.error("Controller 捕獲到錯誤:", error);
+        // 回應錯誤給前端
+      }
+
+
+
+      // const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select as string).processPayment(
+      //   carData,
+      //   return_url
+      // );
+
+      // return result;
     }
 
     // return result
@@ -7214,3 +7238,4 @@ export class Shopping {
     }
   }
 }
+

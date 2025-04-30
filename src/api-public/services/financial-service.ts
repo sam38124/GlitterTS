@@ -4,13 +4,9 @@ import moment from 'moment-timezone';
 import axios, { AxiosRequestConfig } from 'axios';
 import redis from '../../modules/redis';
 import process from 'process';
-import CryptoJS from 'crypto-js';
-import { createCipheriv, randomBytes, createHash } from 'crypto';
-import Tool from './ezpay/tool.js';
-import tool from '../../modules/tool.js';
 import { OrderEvent } from './order-event.js';
 import { Private_config } from '../../services/private_config.js';
-import exception from '../../modules/exception.js';
+import console from 'node:console';
 
 interface KeyData {
   MERCHANT_ID: string;
@@ -22,6 +18,7 @@ interface KeyData {
   TYPE: 'newWebPay' | 'ecPay' | 'PayPal' | 'LinePay';
   CreditCheckCode?: string;
 }
+
 
 const html = String.raw;
 
@@ -118,7 +115,6 @@ export default class FinancialService {
 // 藍新金流
 export class EzPay {
   keyData: KeyData;
-
   appName: string;
 
   constructor(appName: string, keyData: KeyData) {
@@ -169,6 +165,11 @@ export class EzPay {
     user_email: string;
     method?: string;
   }) {
+    await OrderEvent.insertOrder({
+      cartData: orderData,
+      status: 0,
+      app: this.appName,
+    });
     // 1. 建立請求的參數
     const params = {
       MerchantID: this.keyData.MERCHANT_ID,
@@ -217,26 +218,18 @@ export class EzPay {
         }
       });
     }
-    await OrderEvent.insertOrder({
-      cartData: orderData,
-      status: 0,
-      app: this.appName,
-    });
-
     // 2. 產生 Query String
     const qs = FinancialService.JsonToQueryString(params);
     // 3. 開始加密
     // { method: 'aes-256-cbc', inputEndcoding: 'utf-8', outputEndcoding: 'hex' };
     // createCipheriv 方法中，key 要滿 32 字元、iv 要滿 16 字元，請之後測試多注意這點
     const tradeInfo = FinancialService.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
-
     // 4. 產生檢查碼
     const tradeSha = crypto
       .createHash('sha256')
       .update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`)
       .digest('hex')
       .toUpperCase();
-
     // 5. 回傳物件
     return html` <form name="Newebpay" action="${this.keyData.ActionURL}" method="POST" class="payment">
       <input type="hidden" name="MerchantID" value="${this.keyData.MERCHANT_ID}" />
@@ -387,6 +380,12 @@ export class EcPay {
     method: string;
     CheckMacValue?: string;
   }) {
+    await OrderEvent.insertOrder({
+      cartData: orderData,
+      status: 0,
+      app: this.appName,
+    });
+
     const params = {
       MerchantTradeNo: orderData.orderID,
       MerchantTradeDate: moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
@@ -446,11 +445,7 @@ export class EcPay {
 
     const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
     orderData.CheckMacValue = chkSum;
-    await OrderEvent.insertOrder({
-      cartData: orderData,
-      status: 0,
-      app: this.appName,
-    });
+
     console.log(`params-is=>`, params);
 
     // 5. 回傳物件
@@ -737,8 +732,8 @@ export class PayPal {
   ) {
     this.keyData = keyData;
     this.appName = appName;
-    this.PAYPAL_CLIENT_ID = keyData.PAYPAL_CLIENT_ID; // 替換為您的 Client ID
-    this.PAYPAL_SECRET = keyData.PAYPAL_SECRET; // 替換為您的 Secret Key
+    this.PAYPAL_CLIENT_ID = keyData.BETA == 'true' ?"ATz7uJryxmGA2SmR5PxQ_IFXFYKeWd_R1SIzsr_bDrJQMYgRR5z_TXEnjcBh2P4DQDDYnLdHu0aNfugX":keyData.PAYPAL_CLIENT_ID; // 替換為您的 Client ID
+    this.PAYPAL_SECRET = keyData.BETA == 'true' ?"ENb25ujfYB0GBzv6GvzDW2a7gx-KgsVZwxOBqF0WSH3Zr7SU1BBdI8KQ_XRpcgcjj8VWTOWwo83NxK5d":keyData.PAYPAL_SECRET; // 替換為您的 Secret Key
     this.PAYPAL_BASE_URL = keyData.BETA == 'true' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com'; // 沙箱環境
     // const PAYPAL_BASE_URL = "https://api-m.paypal.com"; // 正式環境
   }
@@ -761,7 +756,8 @@ export class PayPal {
           grant_type: 'client_credentials',
         }).toString(),
       };
-
+      console.log("this.PAYPAL_CLIENT_ID -- " , this.PAYPAL_CLIENT_ID);
+      console.log("this.PAYPAL_SECRET -- " , this.PAYPAL_SECRET);
       const response = await axios.request(config);
       return response.data.access_token;
     } catch (error: any) {
@@ -772,6 +768,7 @@ export class PayPal {
 
   async checkout(orderData: any) {
     const accessToken = await this.getAccessToken();
+
     const order = await this.createOrderPage(accessToken, orderData);
     return {
       orderId: order.id,
@@ -977,7 +974,6 @@ export class LinePay {
     const url = `${this.LinePay_BASE_URL}/v3${uri}`;
     const head = [this.LinePay_SECRET, `/v3${uri}`, JSON.stringify(body), nonce].join('');
     const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
-
     const config: AxiosRequestConfig = {
       method: 'POST',
       url: url,
@@ -989,14 +985,9 @@ export class LinePay {
       },
       data: body,
     };
-    console.log(`line-conform->
-        URL:${url}
-        X-LINE-ChannelId:${this.LinePay_CLIENT_ID}
-        LinePay_SECRET:${this.LinePay_SECRET}
-        `);
+
     try {
-      const response = await axios.request(config);
-      return response;
+      return await axios.request(config);
     } catch (error: any) {
       console.error('Error linePay:', error.response?.data.data || error.message);
       throw error;
@@ -1112,11 +1103,10 @@ export class LinePay {
       await redis.setValue('linepay' + orderData.orderID, response.data.info.transactionId);
       if (response.data.returnCode === '0000') {
         return response.data;
-      }else {
-        console.log(" Line Pay Error: ", response.data.returnCode, response.data.returnMessage);
+      } else {
+        console.log(' Line Pay Error: ', response.data.returnCode, response.data.returnMessage);
         return response.data;
       }
-
     } catch (error: any) {
       console.error('Error linePay:', error.response?.data || error.message);
       throw error;
@@ -1187,6 +1177,9 @@ export class PayNow {
 
   //取得並綁定商戶金鑰匙
   async bindKey() {
+    if (this.keyData.BETA == 'true') {
+      return { private_key: 'bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv', public_key: 'sm22610RIIwOTz4STCFf0dF22G067lnd' }
+    }
     const keyData = (
       await Private_config.getConfig({
         appName: this.appName,
@@ -1282,8 +1275,10 @@ export class PayNow {
       expireDays: 3,
     });
     console.log(`webhook=>`, this.keyData.NotifyURL + `&orderID=${orderData.orderID}`);
-    const url = `${this.BASE_URL}/api/v1/payment-intents`
-    const key_ = (this.keyData.BETA)?{private_key:"bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv",public_key:"sm22610RIIwOTz4STCFf0dF22G067lnd"}:await this.bindKey();
+
+    const url = `${this.BASE_URL}/api/v1/payment-intents`;
+    const key_ = await this.bindKey();
+
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
@@ -1294,6 +1289,7 @@ export class PayNow {
       },
       data: data,
     };
+
     try {
       const response = await axios.request(config);
       (orderData as any).paynow_id = response.data.result.id;
@@ -1304,6 +1300,7 @@ export class PayNow {
       });
       await redis.setValue('paynow' + orderData.orderID, response.data.result.id);
       return {
+        returnUrl:this.keyData.ReturnURL,
         data: response.data,
         publicKey: key_.public_key,
         BETA: this.keyData.BETA,
@@ -1380,11 +1377,11 @@ export class JKO {
       currency: 'TWD',
       total_price: orderData.total,
       final_price: orderData.total,
-      platform_order_id:orderData.orderID,
+      platform_order_id: orderData.orderID,
       store_id: this.keyData.STORE_ID,
       result_url: this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
-      result_display_url:this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
-      unredeem:0
+      result_display_url: this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
+      unredeem: 0,
     };
     //平台 API KEY
     const apiKey: string = process.env.jko_api_key || '';
@@ -1415,7 +1412,6 @@ export class JKO {
         app: this.appName,
       });
       return response.data;
-
     } catch (error: any) {
       console.error('Error jkoPay:', error.response?.data || error.message);
       throw error;

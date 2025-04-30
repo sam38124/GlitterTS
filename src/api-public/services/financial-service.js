@@ -12,6 +12,7 @@ const redis_1 = __importDefault(require("../../modules/redis"));
 const process_1 = __importDefault(require("process"));
 const order_event_js_1 = require("./order-event.js");
 const private_config_js_1 = require("../../services/private_config.js");
+const node_console_1 = __importDefault(require("node:console"));
 const html = String.raw;
 class FinancialService {
     constructor(appName, keyData) {
@@ -76,6 +77,11 @@ class EzPay {
         return EzPay.aesDecrypt(data, this.keyData.HASH_KEY, this.keyData.HASH_IV);
     }
     async createOrderPage(orderData) {
+        await order_event_js_1.OrderEvent.insertOrder({
+            cartData: orderData,
+            status: 0,
+            app: this.appName,
+        });
         const params = {
             MerchantID: this.keyData.MERCHANT_ID,
             RespondType: 'JSON',
@@ -124,11 +130,6 @@ class EzPay {
                 }
             });
         }
-        await order_event_js_1.OrderEvent.insertOrder({
-            cartData: orderData,
-            status: 0,
-            app: this.appName,
-        });
         const qs = FinancialService.JsonToQueryString(params);
         const tradeInfo = FinancialService.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         const tradeSha = crypto_1.default
@@ -200,7 +201,7 @@ EzPay.aesDecrypt = (data, key, iv, input = 'hex', output = 'utf-8', method = 'ae
         decrypted += decipher.final(output);
     }
     catch (e) {
-        e instanceof Error && console.error(e.message);
+        e instanceof Error && node_console_1.default.error(e.message);
     }
     return decrypted;
 };
@@ -241,6 +242,11 @@ class EcPay {
         return sha256Hash.toUpperCase();
     }
     async createOrderPage(orderData) {
+        await order_event_js_1.OrderEvent.insertOrder({
+            cartData: orderData,
+            status: 0,
+            app: this.appName,
+        });
         const params = {
             MerchantTradeNo: orderData.orderID,
             MerchantTradeDate: (0, moment_timezone_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
@@ -298,12 +304,7 @@ class EcPay {
         };
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         orderData.CheckMacValue = chkSum;
-        await order_event_js_1.OrderEvent.insertOrder({
-            cartData: orderData,
-            status: 0,
-            app: this.appName,
-        });
-        console.log(`params-is=>`, params);
+        node_console_1.default.log(`params-is=>`, params);
         return html `
       <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
         <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}" />
@@ -352,7 +353,7 @@ class EcPay {
                 resolve(response.data.RtnValue);
             })
                 .catch((error) => {
-                console.log(error);
+                node_console_1.default.log(error);
                 resolve({});
             });
         });
@@ -394,7 +395,7 @@ class EcPay {
                 resolve(paramsObject);
             })
                 .catch((error) => {
-                console.log(error);
+                node_console_1.default.log(error);
                 resolve({
                     TradeStatus: '10200095',
                 });
@@ -432,7 +433,7 @@ class EcPay {
                 resolve(paramsObject);
             })
                 .catch((error) => {
-                console.log(error);
+                node_console_1.default.log(error);
                 resolve({
                     RtnCode: `-1`,
                 });
@@ -525,8 +526,8 @@ class PayPal {
     constructor(appName, keyData) {
         this.keyData = keyData;
         this.appName = appName;
-        this.PAYPAL_CLIENT_ID = keyData.PAYPAL_CLIENT_ID;
-        this.PAYPAL_SECRET = keyData.PAYPAL_SECRET;
+        this.PAYPAL_CLIENT_ID = keyData.BETA == 'true' ? "ATz7uJryxmGA2SmR5PxQ_IFXFYKeWd_R1SIzsr_bDrJQMYgRR5z_TXEnjcBh2P4DQDDYnLdHu0aNfugX" : keyData.PAYPAL_CLIENT_ID;
+        this.PAYPAL_SECRET = keyData.BETA == 'true' ? "ENb25ujfYB0GBzv6GvzDW2a7gx-KgsVZwxOBqF0WSH3Zr7SU1BBdI8KQ_XRpcgcjj8VWTOWwo83NxK5d" : keyData.PAYPAL_SECRET;
         this.PAYPAL_BASE_URL = keyData.BETA == 'true' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
     }
     async getAccessToken() {
@@ -547,11 +548,13 @@ class PayPal {
                     grant_type: 'client_credentials',
                 }).toString(),
             };
+            node_console_1.default.log("this.PAYPAL_CLIENT_ID -- ", this.PAYPAL_CLIENT_ID);
+            node_console_1.default.log("this.PAYPAL_SECRET -- ", this.PAYPAL_SECRET);
             const response = await axios_1.default.request(config);
             return response.data.access_token;
         }
         catch (error) {
-            console.error('Error fetching access token:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            node_console_1.default.error('Error fetching access token:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
             throw new Error('Failed to retrieve PayPal access token.');
         }
     }
@@ -627,7 +630,7 @@ class PayPal {
             return response.data;
         }
         catch (error) {
-            console.error('Error creating order:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            node_console_1.default.error('Error creating order:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
             throw new Error('Failed to create PayPal order.');
         }
     }
@@ -658,7 +661,7 @@ class PayPal {
             }
         }
         catch (error) {
-            console.error('Error fetching order details:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            node_console_1.default.error('Error fetching order details:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
             throw error;
         }
     }
@@ -683,7 +686,7 @@ class PayPal {
             return response.data;
         }
         catch (error) {
-            console.error('Error capturing payment:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            node_console_1.default.error('Error capturing payment:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
             throw error;
         }
     }
@@ -692,11 +695,11 @@ class PayPal {
             const accessToken = await this.getAccessToken();
             const order = await this.getOrderDetails(orderId, accessToken);
             const captureResult = await this.capturePayment(order.id, accessToken);
-            console.log('Payment process completed successfully.');
+            node_console_1.default.log('Payment process completed successfully.');
             return captureResult;
         }
         catch (error) {
-            console.error('Error during order confirmation or payment capture:', error.message);
+            node_console_1.default.error('Error during order confirmation or payment capture:', error.message);
             throw error;
         }
     }
@@ -732,17 +735,11 @@ class LinePay {
             },
             data: body,
         };
-        console.log(`line-conform->
-        URL:${url}
-        X-LINE-ChannelId:${this.LinePay_CLIENT_ID}
-        LinePay_SECRET:${this.LinePay_SECRET}
-        `);
         try {
-            const response = await axios_1.default.request(config);
-            return response;
+            return await axios_1.default.request(config);
         }
         catch (error) {
-            console.error('Error linePay:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
+            node_console_1.default.error('Error linePay:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
             throw error;
         }
     }
@@ -826,18 +823,18 @@ class LinePay {
                 status: 0,
                 app: this.appName,
             });
-            console.log(`response.data===>`, response.data);
+            node_console_1.default.log(`response.data===>`, response.data);
             await redis_1.default.setValue('linepay' + orderData.orderID, response.data.info.transactionId);
             if (response.data.returnCode === '0000') {
                 return response.data;
             }
             else {
-                console.log(" Line Pay Error: ", response.data.returnCode, response.data.returnMessage);
+                node_console_1.default.log(' Line Pay Error: ', response.data.returnCode, response.data.returnMessage);
                 return response.data;
             }
         }
         catch (error) {
-            console.error('Error linePay:', ((_b = error.response) === null || _b === void 0 ? void 0 : _b.data) || error.message);
+            node_console_1.default.error('Error linePay:', ((_b = error.response) === null || _b === void 0 ? void 0 : _b.data) || error.message);
             throw error;
         }
     }
@@ -887,12 +884,15 @@ class PayNow {
             return response.data;
         }
         catch (error) {
-            console.error('Error paynow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
+            node_console_1.default.error('Error paynow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
             throw error;
         }
     }
     async bindKey() {
         var _a;
+        if (this.keyData.BETA == 'true') {
+            return { private_key: 'bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv', public_key: 'sm22610RIIwOTz4STCFf0dF22G067lnd' };
+        }
         const keyData = (await private_config_js_1.Private_config.getConfig({
             appName: this.appName,
             key: 'glitter_finance',
@@ -951,7 +951,7 @@ class PayNow {
             return response.data;
         }
         catch (error) {
-            console.error('Error paynow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
+            node_console_1.default.error('Error paynow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
             throw error;
         }
     }
@@ -966,9 +966,9 @@ class PayNow {
             allowedPaymentMethods: ['CreditCard'],
             expireDays: 3,
         });
-        console.log(`webhook=>`, this.keyData.NotifyURL + `&orderID=${orderData.orderID}`);
+        node_console_1.default.log(`webhook=>`, this.keyData.NotifyURL + `&orderID=${orderData.orderID}`);
         const url = `${this.BASE_URL}/api/v1/payment-intents`;
-        const key_ = (this.keyData.BETA) ? { private_key: "bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv", public_key: "sm22610RIIwOTz4STCFf0dF22G067lnd" } : await this.bindKey();
+        const key_ = await this.bindKey();
         const config = {
             method: 'post',
             maxBodyLength: Infinity,
@@ -989,13 +989,14 @@ class PayNow {
             });
             await redis_1.default.setValue('paynow' + orderData.orderID, response.data.result.id);
             return {
+                returnUrl: this.keyData.ReturnURL,
                 data: response.data,
                 publicKey: key_.public_key,
                 BETA: this.keyData.BETA,
             };
         }
         catch (error) {
-            console.error('Error payNow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            node_console_1.default.error('Error payNow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
             throw error;
         }
     }
@@ -1026,7 +1027,7 @@ class JKO {
             return response.data.result_object;
         }
         catch (error) {
-            console.error('Error paynow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
+            node_console_1.default.error('Error paynow:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
             throw error;
         }
     }
@@ -1040,7 +1041,7 @@ class JKO {
             store_id: this.keyData.STORE_ID,
             result_url: this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
             result_display_url: this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
-            unredeem: 0
+            unredeem: 0,
         };
         const apiKey = process_1.default.env.jko_api_key || '';
         const secretKey = process_1.default.env.jko_api_secret || '';
@@ -1067,7 +1068,7 @@ class JKO {
             return response.data;
         }
         catch (error) {
-            console.error('Error jkoPay:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            node_console_1.default.error('Error jkoPay:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
             throw error;
         }
     }
@@ -1078,20 +1079,20 @@ class JKO {
         });
         const apiKey = '689c57cd9d5b5ec80f5d5451d18fe24cfe855d21b25c7ff30bcd07829a902f7a';
         const secretKey = '8ec78345a13e3d376452d9c89c66b543ef1516c0ef1a05f0adf654c37ac8edac';
-        console.log('payload -- ', payload);
+        node_console_1.default.log('payload -- ', payload);
         const digest = crypto_1.default.createHmac('sha256', secretKey).update(payload, 'utf8').digest('hex');
         const headers = {
             'api-key': apiKey,
             digest: digest,
             'Content-Type': 'application/json',
         };
-        console.log('API Key:', apiKey);
-        console.log('Digest:', digest);
-        console.log('Headers:', headers);
+        node_console_1.default.log('API Key:', apiKey);
+        node_console_1.default.log('Digest:', digest);
+        node_console_1.default.log('Headers:', headers);
     }
     generateDigest(data, apiSecret) {
-        console.log('data --', data);
-        console.log('apiSecret -- ', apiSecret);
+        node_console_1.default.log('data --', data);
+        node_console_1.default.log('apiSecret -- ', apiSecret);
         const hmac = crypto_1.default.createHmac('sha256', apiSecret);
         hmac.update(data);
         return hmac.digest('hex');

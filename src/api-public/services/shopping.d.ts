@@ -443,7 +443,7 @@ export declare class Shopping {
         fbp?: string;
         temp_cart_id?: string;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' | 'split', replace_order_id?: string): Promise<any>;
-    repayOrder(orderID: string, return_url: string): Promise<any>;
+    repayOrder(orderID: string, return_url: string): Promise<import("./interface/payment-strategy-interface").PaymentResult | undefined>;
     getReturnOrder(query: {
         page: number;
         limit: number;

@@ -129,6 +129,8 @@ export class Language {
             { key: 'ecPay', tw: '綠界金流', cn: '绿界金流', en: `EcPay` },
             { key: 'paypal', tw: 'Paypal', cn: 'Paypal', en: `Paypal` },
             { key: 'line_pay', tw: 'Line Pay', cn: 'Line Pay', en: `Line Pay` },
+            { key: 'jkopay', tw: '街口支付', cn: '街口支付', en: `JKOPAY` },
+            { key: 'paynow', tw: 'PayNow 立吉富', cn: 'PayNow 立吉富', en: `PayNow` },
             { key: 'atm', tw: 'ATM 轉帳', cn: 'ATM 转帐', en: `ATM Transfer` },
             { key: 'line', tw: 'Line 轉帳', cn: 'Line 转帐', en: `Line Bank` },
             { key: 'cash_on_delivery', tw: '貨到付款', cn: '货到付款', en: `Cash on delivery` },

@@ -16,6 +16,7 @@ import { FormWidget } from '../../official_view_component/official/form.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
+import { Animation } from '../../glitterBundle/module/Animation.js';
 const html = String.raw;
 const css = String.raw;
 export class UMOrder {
@@ -201,20 +202,33 @@ export class UMOrder {
     `);
     }
     static executePayment(gvc, payment_method, res) {
+        var _a, _b, _c, _d;
+        const dialog = new ShareDialog(gvc.glitter);
+        function showPayError() {
+            dialog.infoMessage({
+                text: '系統處理您的付款時遇到一些問題，導致交易未能完成。請聯繫我們的客服團隊以取得進一步的協助',
+            });
+        }
+        if (res.result == false) {
+            showPayError();
+            return;
+        }
         switch (payment_method) {
             case 'line_pay':
                 if (gvc.glitter.share.is_application) {
                     gvc.glitter.runJsInterFace('intent_url', {
-                        url: res.response.info.paymentUrl.app,
+                        url: res.response.responseData.info.paymentUrl.app,
                     }, () => { });
                 }
                 else {
-                    console.log("test -");
-                    location.href = res.response.info.paymentUrl.web;
+                    location.href = res.response.responseData.info.paymentUrl.web;
                 }
                 break;
             case 'paypal': {
-                location.href = res.response.approveLink;
+                if (res.response.approveLink) {
+                    location.href = res.response.approveLink;
+                }
+                showPayError();
                 break;
             }
             case 'jkopay': {
@@ -226,6 +240,111 @@ export class UMOrder {
                 else {
                     location.href = res.response.result_object.payment_url;
                 }
+                break;
+            }
+            case 'paynow': {
+                if (!((_d = (_c = (_b = (_a = res.response) === null || _a === void 0 ? void 0 : _a.responseData) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.result) === null || _d === void 0 ? void 0 : _d.secret)) {
+                    return 'paynow API失敗';
+                }
+                gvc.glitter.innerDialog((gvc) => {
+                    document.body.style.setProperty('overflow-y', 'hidden', 'important');
+                    gvc.addStyle(css `
+              .button-bgr {
+                width: 100%;
+                border: 0;
+                border-radius: 0.375rem;
+                height: 40px;
+                background: #393939;
+                padding: 0 24px;
+                margin: 18px 0;
+              }
+              .button-text {
+                  color: #fff;
+                  font-size: 16px;
+              }
+            `);
+                    return gvc.bindView({
+                        bind: `paynow`,
+                        view: () => {
+                            return html ` <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                  ${document.body.clientWidth < 800
+                                ? `
+                    <div class="bg-white position-relative vw-100" style="height: ${window.innerHeight}px;overflow-y: auto;
+                    padding-top:${50 + gvc.glitter.share.top_inset}px;
+                    ">
+                    `
+                                : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
+                  <div
+                    style="position: absolute; right: 15px;top:${15 + gvc.glitter.share.top_inset}px;z-index:1;"
+                    onclick="${gvc.event(() => {
+                                gvc.closeDialog();
+                            })}"
+                  >
+                    <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"></i>
+                  </div>
+                  <div id="paynow-container" class="" style="">
+                    <div style="width:200px;height:200px;">loading...</div>
+                  </div>
+                  <div class="px-3 px-sm-0 w-100">
+                    <button
+                      class="button-bgr"
+                      id="checkoutButton"
+                      onclick="${gvc.event(() => {
+                                const PayNow = window.PayNow;
+                                const dialog = new ShareDialog(gvc.glitter);
+                                dialog.dataLoading({ visible: true });
+                                PayNow.checkout().then((response) => {
+                                    dialog.dataLoading({ visible: false });
+                                    if (response.error) {
+                                        dialog.errorMessage({
+                                            text: response.error.message,
+                                        });
+                                    }
+                                });
+                            })}"
+                    >
+                      <span class="button-text">確認結帳</span>
+                    </button>
+                  </div>
+                </div>`;
+                        },
+                        divCreate: {
+                            class: ` h-100 d-flex align-items-center justify-content-center`,
+                            style: `max-width:100vw;${document.body.clientWidth < 800 ? 'width:100%;' : 'width:400px;'};`,
+                        },
+                        onCreate: () => {
+                            var _a, _b;
+                            const publicKey = (_a = res.response) === null || _a === void 0 ? void 0 : _a.responseData.publicKey;
+                            const secret = (_b = res.response) === null || _b === void 0 ? void 0 : _b.responseData.data.result.secret;
+                            const env = res.response.responseData.BETA == 'true' ? 'sandbox' : 'production';
+                            const PayNow = window.PayNow;
+                            PayNow.createPayment({
+                                publicKey: publicKey,
+                                secret: secret,
+                                env: env,
+                            });
+                            PayNow.mount('#paynow-container', {
+                                locale: 'zh_tw',
+                                appearance: {
+                                    variables: {
+                                        fontFamily: 'monospace',
+                                        colorPrimary: '#0078ab',
+                                        colorDefault: '#0a0a0a',
+                                        colorBorder: '#cccccc',
+                                        colorPlaceholder: '#eeeeee',
+                                        borderRadius: '.3rem',
+                                        colorDanger: '#ff3d3d',
+                                    },
+                                },
+                            });
+                        },
+                    });
+                }, `paynow`, {
+                    animation: document.body.clientWidth > 800 ? Animation.fade : Animation.popup,
+                    dismiss: () => {
+                        document.body.style.setProperty('overflow-y', 'auto');
+                    },
+                });
                 break;
             }
             default: {
@@ -244,25 +363,9 @@ export class UMOrder {
         return new Promise(() => {
             ApiShop.repay(id, url.href).then(res => {
                 dialog.dataLoading({ visible: false });
+                orderData.payment_method;
                 this.executePayment(gvc, orderData.payment_method, res);
                 dialog.dataLoading({ visible: false });
-                switch (orderData.payment_method) {
-                    case 'line_pay':
-                        if (gvc.glitter.share.is_application) {
-                            gvc.glitter.runJsInterFace('intent_url', {
-                                url: res.response.info.paymentUrl.app,
-                            }, () => { });
-                        }
-                        else {
-                            location.href = res.response.info.paymentUrl.web;
-                        }
-                        break;
-                    default: {
-                        const id = gvc.glitter.getUUID();
-                        $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
-                        document.querySelector(`#${id} #submit`).click();
-                    }
-                }
                 return;
             });
         });
@@ -287,6 +390,11 @@ export class UMOrder {
     }
     static main(gvc, widget, subData) {
         this.addStyle(gvc);
+        gvc.addMtScript([
+            {
+                src: `https://js.paynow.com.tw/sdk/v2/index.js`,
+            },
+        ], () => { }, () => { });
         UmClass.addStyle(gvc);
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(gvc.glitter);
@@ -792,24 +900,32 @@ export class UMOrder {
                                 })(),
                             },
                             {
+                                title: Language.text('payment_method'),
+                                value: Language.text(orderData.customer_info.payment_select),
+                            },
+                            {
                                 title: Language.text('payment_status'),
                                 value: (() => {
-                                    var _a, _b;
+                                    var _a, _b, _c, _d;
                                     if (orderData.customer_info.payment_select === 'cash_on_delivery') {
                                         return Language.text('cash_on_delivery');
                                     }
+                                    const repayBtn = () => {
+                                        return html ` <span class="payment-actions ">
+                              <button
+                                class="customer-btn-text ms-3"
+                                id="repay-button"
+                                onclick="${gvc.event(() => {
+                                            UMOrder.repay(gvc, vm.data).then(r => { });
+                                        })}"
+                              >
+                                重新付款
+                              </button>
+                            </span>`;
+                                    };
                                     switch (vm.data.status) {
                                         case 0:
                                             if (repayArray.includes((_b = (_a = vm.data) === null || _a === void 0 ? void 0 : _a.payment_method) !== null && _b !== void 0 ? _b : '')) {
-                                                const repayBtn = () => {
-                                                    return html ` 
-                                  <span class="payment-actions d-none">
-                                    <button class="customer-btn-text ms-3" id="repay-button" onclick="${gvc.event(() => {
-                                                        UMOrder.repay(gvc, vm.data).then(r => {
-                                                        });
-                                                    })}">重新付款</button>
-                                  </span>`;
-                                                };
                                                 return Language.text('awaiting_verification') + repayBtn();
                                             }
                                             return orderData.proof_purchase
@@ -818,6 +934,9 @@ export class UMOrder {
                                         case 1:
                                             return Language.text('paid');
                                         case -1:
+                                            if (repayArray.includes((_d = (_c = vm.data) === null || _c === void 0 ? void 0 : _c.payment_method) !== null && _d !== void 0 ? _d : '')) {
+                                                return Language.text('payment_failed') + repayBtn();
+                                            }
                                             return Language.text('payment_failed');
                                         case -2:
                                             return Language.text('refunded');

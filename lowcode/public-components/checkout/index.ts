@@ -3235,6 +3235,12 @@ export class CheckoutIndex {
                                                     give_away: apiCart.cart.give_away,
                                                   }).then(res => {
                                                     dialog.dataLoading({ visible: false });
+                                                    if (!res.result){
+                                                      dialog.infoMessage({
+                                                        text: '系統處理您的付款時遇到一些問題，導致交易未能完成。請聯繫我們的客服團隊以取得進一步的協助'
+                                                      })
+                                                      return 
+                                                    }
                                                     if (vm.cartData.customer_info.payment_select == 'paynow') {
                                                       if (!res.response?.data?.result?.secret) {
                                                         return 'paynow API失敗';
@@ -3263,6 +3269,7 @@ export class CheckoutIndex {
                                                                   style="position: absolute; right: 15px;top:${15 +
                                                                   glitter.share.top_inset}px;z-index:1;"
                                                                   onclick="${gvc.event(() => {
+                                                                    location.href = res.response.returnUrl;
                                                                     gvc.closeDialog();
                                                                   })}"
                                                                 >

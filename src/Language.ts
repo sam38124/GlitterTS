@@ -16,6 +16,8 @@ export class Language {
       { key: 'ecPay', tw: '綠界金流', cn: '绿界金流', en: `EcPay` },
       { key: 'paypal', tw: 'Paypal', cn: 'Paypal', en: `Paypal` },
       { key: 'line_pay', tw: 'Line Pay', cn: 'Line Pay', en: `Line Pay` },
+
+
       { key: 'atm', tw: 'ATM 轉帳', cn: 'ATM 转帐', en: `ATM Transfer` },
       { key: 'line', tw: 'Line 轉帳', cn: 'Line 转帐', en: `Line Bank` },
       { key: 'cash_on_delivery', tw: '貨到付款', cn: '货到付款', en: `Cash on delivery` },
@@ -473,6 +475,7 @@ export class Language {
       { key: 'order_status', tw: '訂單狀態', cn: '订单状态', en: 'OrderEvent Status' },
       { key: 'no_number_order', tw: '無編號訂單', cn: '无编号订单', en: 'No Number OrderEvent' },
       { key: 'unpaid', tw: '尚未付款', cn: '尚未付款', en: 'Unpaid' },
+      { key: 'payment_method', tw: '付款方式', cn: '付款方式', en: 'Payment Method' },
       { key: 'shipping', tw: '配送中', cn: '配送中', en: 'Shipping' },
       { key: 'delivered', tw: '已送達', cn: '已送达', en: 'Delivered' },
       { key: 'preparing', tw: '準備中', cn: '准备中', en: 'Preparing' },

@@ -551,6 +551,11 @@ export class ShoppingFinanceSetting {
                                                         gvc.closeDialog();
                                                     })),
                                                     BgWidget.save(gvc.event(() => {
+                                                        if (payData.key == "ecPay" && key_d.ActionURL == "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5") {
+                                                            key_d.MERCHANT_ID = "3002607";
+                                                            key_d.HASH_KEY = "pwFHCqoQZGmho4w6";
+                                                            key_d.HASH_IV = "EkRm7iFT261dpevs";
+                                                        }
                                                         keyData[payData.key] = key_d;
                                                         saveData();
                                                         gvc.closeDialog();
