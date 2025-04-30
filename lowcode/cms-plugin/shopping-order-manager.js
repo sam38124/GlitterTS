@@ -1538,51 +1538,55 @@ export class ShoppingOrderManager {
                                                     return {
                                                         bind: gvc.glitter.getUUID(),
                                                         view: () => __awaiter(this, void 0, void 0, function* () {
-                                                            let viewModel = [
+                                                            const needAddress = [
+                                                                'normal',
+                                                                'black_cat',
+                                                                'black_cat_freezing',
+                                                                'black_cat_ice',
+                                                                'global_express',
+                                                            ].includes(orderData.orderData.user_info.shipment);
+                                                            const viewModel = [
                                                                 ['姓名', 'name'],
                                                                 ['電話', 'phone'],
                                                                 ['信箱', 'email'],
                                                                 ['縣市', 'city'],
                                                                 ['鄉鎮', 'area'],
                                                                 ['地址', 'address'],
-                                                            ];
+                                                            ].filter(item => {
+                                                                return needAddress || !['city', 'area', 'address'].includes(item[1]);
+                                                            });
                                                             const receipt = (yield ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager')).response.value;
                                                             receipt.list.map((d1) => {
                                                                 if (!viewModel.find(dd => dd[1] === d1.key)) {
                                                                     viewModel.push([d1.title, d1.key]);
                                                                 }
                                                             });
-                                                            if (vm.mode == 'read') {
-                                                                return viewModel
-                                                                    .map(item => {
-                                                                    return html ` <div>
-                                          ${item[0]} : ${orderData.orderData.user_info[item[1]] || '未填寫'}
-                                        </div>
-                                        ${BgWidget.mbContainer(4)}`;
-                                                                })
-                                                                    .join('');
-                                                            }
-                                                            else {
-                                                                return viewModel
-                                                                    .map(item => {
-                                                                    return html `
-                                        <div class="d-flex flex-column w-100" style="gap:8px;">
-                                          <div style="${item[0] == '姓名' ? '' : 'margin-top:12px;'}">${item[0]}</div>
-                                          <input
-                                            style="display: flex;padding: 9px 18px;align-items: flex-start;gap: 10px;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
-                                            value="${orderData.orderData.user_info[item[1]]}"
-                                            onchange="${gvc.event(e => {
+                                                            return viewModel
+                                                                .map(item => {
+                                                                return vm.mode == 'read'
+                                                                    ? html ` <div>
+                                            ${item[0]} : ${orderData.orderData.user_info[item[1]] || '未填寫'}
+                                          </div>
+                                          ${BgWidget.mbContainer(4)}`
+                                                                    : html `
+                                          <div class="d-flex flex-column w-100" style="gap: 8px;">
+                                            <div style="${item[0] == '姓名' ? '' : 'margin-top: 12px;'}">
+                                              ${item[0]}
+                                            </div>
+                                            <input
+                                              style="display: flex;padding: 9px 18px;align-items: flex-start;gap: 10px;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
+                                              value="${orderData.orderData.user_info[item[1]]}"
+                                              onchange="${gvc.event(e => {
                                                                         orderData.orderData.user_info[item[1]] = e.value;
                                                                     })}"
-                                          />
-                                        </div>
-                                      `;
-                                                                })
-                                                                    .join('');
-                                                            }
+                                            />
+                                          </div>
+                                        `;
+                                                            })
+                                                                .join('');
                                                         }),
                                                         divCreate: {
-                                                            class: `tx_normal`,
+                                                            class: 'tx_normal',
                                                         },
                                                     };
                                                 })}

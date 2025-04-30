@@ -1736,14 +1736,24 @@ export class ShoppingOrderManager {
                             return {
                               bind: gvc.glitter.getUUID(),
                               view: async () => {
-                                let viewModel = [
+                                const needAddress = [
+                                  'normal',
+                                  'black_cat',
+                                  'black_cat_freezing',
+                                  'black_cat_ice',
+                                  'global_express',
+                                ].includes(orderData.orderData.user_info.shipment);
+
+                                const viewModel = [
                                   ['姓名', 'name'],
                                   ['電話', 'phone'],
                                   ['信箱', 'email'],
                                   ['縣市', 'city'],
                                   ['鄉鎮', 'area'],
                                   ['地址', 'address'],
-                                ];
+                                ].filter(item => {
+                                  return needAddress || !['city', 'area', 'address'].includes(item[1]);
+                                });
 
                                 const receipt = (
                                   await ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager')
@@ -1755,36 +1765,32 @@ export class ShoppingOrderManager {
                                   }
                                 });
 
-                                if (vm.mode == 'read') {
-                                  return viewModel
-                                    .map(item => {
-                                      return html` <div>
-                                          ${item[0]} : ${(orderData.orderData.user_info as any)[item[1]] || '未填寫'}
-                                        </div>
-                                        ${BgWidget.mbContainer(4)}`;
-                                    })
-                                    .join('');
-                                } else {
-                                  return viewModel
-                                    .map(item => {
-                                      return html`
-                                        <div class="d-flex flex-column w-100" style="gap:8px;">
-                                          <div style="${item[0] == '姓名' ? '' : 'margin-top:12px;'}">${item[0]}</div>
-                                          <input
-                                            style="display: flex;padding: 9px 18px;align-items: flex-start;gap: 10px;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
-                                            value="${(orderData.orderData.user_info as any)[item[1]]}"
-                                            onchange="${gvc.event(e => {
-                                              (orderData.orderData.user_info as any)[item[1]] = e.value;
-                                            })}"
-                                          />
-                                        </div>
-                                      `;
-                                    })
-                                    .join('');
-                                }
+                                return viewModel
+                                  .map(item => {
+                                    return vm.mode == 'read'
+                                      ? html` <div>
+                                            ${item[0]} : ${(orderData.orderData.user_info as any)[item[1]] || '未填寫'}
+                                          </div>
+                                          ${BgWidget.mbContainer(4)}`
+                                      : html`
+                                          <div class="d-flex flex-column w-100" style="gap: 8px;">
+                                            <div style="${item[0] == '姓名' ? '' : 'margin-top: 12px;'}">
+                                              ${item[0]}
+                                            </div>
+                                            <input
+                                              style="display: flex;padding: 9px 18px;align-items: flex-start;gap: 10px;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
+                                              value="${(orderData.orderData.user_info as any)[item[1]]}"
+                                              onchange="${gvc.event(e => {
+                                                (orderData.orderData.user_info as any)[item[1]] = e.value;
+                                              })}"
+                                            />
+                                          </div>
+                                        `;
+                                  })
+                                  .join('');
                               },
                               divCreate: {
-                                class: `tx_normal`,
+                                class: 'tx_normal',
                               },
                             };
                           })}
