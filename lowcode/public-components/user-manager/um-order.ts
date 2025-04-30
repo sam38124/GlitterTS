@@ -439,8 +439,8 @@ export class UMOrder {
       }
     `);
   }
-  static executePayment(gvc:GVC,payment_method:string , res: any) {
-    switch (payment_method){
+  static executePayment(gvc: GVC, payment_method: string, res: any) {
+    switch (payment_method) {
       case 'line_pay':
         if (gvc.glitter.share.is_application) {
           gvc.glitter.runJsInterFace(
@@ -451,15 +451,15 @@ export class UMOrder {
             () => {}
           );
         } else {
-          console.log("test -");
+          console.log('test -');
           location.href = res.response.info.paymentUrl.web;
         }
-        break
-      case 'paypal':{
+        break;
+      case 'paypal': {
         location.href = res.response.approveLink;
         break;
       }
-      case 'jkopay':{
+      case 'jkopay': {
         if (gvc.glitter.share.is_application) {
           gvc.glitter.runJsInterFace(
             'intent_url',
@@ -471,9 +471,9 @@ export class UMOrder {
         } else {
           location.href = res.response.result_object.payment_url;
         }
-        break
+        break;
       }
-      default :{
+      default: {
         const id = gvc.glitter.getUUID();
         $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
         (document.querySelector(`#${id} #submit`) as any).click();
@@ -488,10 +488,8 @@ export class UMOrder {
     const url = new URL(redirect as any, location.href);
     return new Promise(() => {
       ApiShop.repay(id, url.href).then(res => {
-
         dialog.dataLoading({ visible: false });
-        this.executePayment(gvc , orderData.payment_method , res);
-
+        this.executePayment(gvc, orderData.payment_method, res);
 
         dialog.dataLoading({ visible: false });
         switch (orderData.payment_method) {
@@ -1202,7 +1200,7 @@ export class UMOrder {
                             };
                           }),
                           content_type: 'product',
-                          eventID:orderData.orderID
+                          eventID: orderData.orderID,
                         });
                         Ad.gtagEvent('purchase', {
                           transaction_id: vm.data.cart_token,
@@ -1308,13 +1306,16 @@ export class UMOrder {
                             case 0:
                               if (repayArray.includes(vm.data?.payment_method ?? '')) {
                                 const repayBtn = () => {
-                                  return html` 
-                                  <span class="payment-actions d-none">
-                                    <button class="customer-btn-text ms-3" id="repay-button" onclick="${gvc.event(()=>{
-                                      UMOrder.repay(gvc, vm.data).then(r => {
-                                       
-                                      });
-                                    })}">重新付款</button>
+                                  return html` <span class="payment-actions d-none">
+                                    <button
+                                      class="customer-btn-text ms-3"
+                                      id="repay-button"
+                                      onclick="${gvc.event(() => {
+                                        UMOrder.repay(gvc, vm.data).then(r => {});
+                                      })}"
+                                    >
+                                      重新付款
+                                    </button>
                                   </span>`;
                                 };
                                 return Language.text('awaiting_verification') + repayBtn();
@@ -1486,10 +1487,8 @@ export class UMOrder {
                           (orderData.user_info as any).area,
                           orderData.user_info.address,
                         ]
-                          .filter(dd => {
-                            return dd;
-                          })
-                          .join(','),
+                          .filter(Boolean)
+                          .join(''),
                       });
                     }
                     arr.push({

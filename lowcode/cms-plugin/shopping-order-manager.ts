@@ -1740,19 +1740,21 @@ export class ShoppingOrderManager {
                                   ['姓名', 'name'],
                                   ['電話', 'phone'],
                                   ['信箱', 'email'],
+                                  ['縣市', 'city'],
+                                  ['鄉鎮', 'area'],
+                                  ['地址', 'address'],
                                 ];
+
                                 const receipt = (
                                   await ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager')
                                 ).response.value;
+
                                 receipt.list.map((d1: any) => {
-                                  if (
-                                    !viewModel.find(dd => {
-                                      return dd[1] === d1.key;
-                                    })
-                                  ) {
+                                  if (!viewModel.find(dd => dd[1] === d1.key)) {
                                     viewModel.push([d1.title, d1.key]);
                                   }
                                 });
+
                                 if (vm.mode == 'read') {
                                   return viewModel
                                     .map(item => {
@@ -3032,9 +3034,7 @@ export class ShoppingOrderManager {
                                                         orderData.orderData.user_info.area,
                                                         orderData.orderData.user_info.address,
                                                       ]
-                                                        .filter(dd => {
-                                                          return dd;
-                                                        })
+                                                        .filter(Boolean)
                                                         .join('')}
                                                     </div>`
                                                 );

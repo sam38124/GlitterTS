@@ -2,12 +2,12 @@
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-const ut_database_js_1 = require("../utils/ut-database.js");
 const response_js_1 = __importDefault(require("../../modules/response.js"));
 const express_1 = __importDefault(require("express"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
-const ut_permission_js_1 = require("../utils/ut-permission.js");
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
+const ut_database_js_1 = require("../utils/ut-database.js");
+const ut_permission_js_1 = require("../utils/ut-permission.js");
 const article_js_1 = require("../services/article.js");
 const user_js_1 = require("../services/user.js");
 const router = express_1.default.Router();
@@ -17,16 +17,19 @@ router.get('/', async (req, resp) => {
         req.query.tag && query.push(`tag = ${database_js_1.default.escape(req.query.tag)}`);
         req.query.label && query.push(`(JSON_EXTRACT(page_config, '$.meta_article.tag') LIKE '%${req.query.label}%')`);
         if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
-            query.push(`(JSON_EXTRACT(page_config, '$.hideIndex') IS NULL
-   OR JSON_EXTRACT(page_config, '$.hideIndex') != 'true')`);
+            query.push(`
+        (JSON_EXTRACT(page_config, '$.hideIndex') IS NULL
+        OR JSON_EXTRACT(page_config, '$.hideIndex') != 'true')
+      `);
         }
         if (req.query.search) {
             query.push(`tag like '%${req.query.search}%'`);
         }
         if (req.query.search) {
-            query.push(`(tag like '%${req.query.search}%') 
-            ||
-             (UPPER(JSON_EXTRACT(page_config, '$.meta_article.title')) LIKE UPPER('%${req.query.search}%'))`);
+            query.push(`
+        (tag like '%${req.query.search}%') || 
+        (UPPER(JSON_EXTRACT(page_config, '$.meta_article.title')) LIKE UPPER('%${req.query.search}%'))
+      `);
         }
         const data = await new ut_database_js_1.UtDatabase(process.env.GLITTER_DB, `page_config`).querySql(query, req.query);
         data.data.map((dd) => {
@@ -143,10 +146,10 @@ router.put('/manager', async (req, resp) => {
 router.delete('/', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            await database_js_1.default.query(`delete
-                 FROM \`${process.env.GLITTER_DB}\`.page_config
-                 where id in (?)
-                   and userID = ?`, [req.body.id.split(','), req.body.token.userID]);
+            await database_js_1.default.query(`
+          delete FROM \`${process.env.GLITTER_DB}\`.page_config 
+          where id in (?) and userID = ?
+        `, [req.body.id.split(','), req.body.token.userID]);
             return response_js_1.default.succ(resp, { result: true });
         }
         else {
@@ -160,9 +163,8 @@ router.delete('/', async (req, resp) => {
 router.delete('/manager', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            await database_js_1.default.query(`delete
-                 FROM \`${req.get('g-app')}\`.t_manager_post
-                 where id in (?)`, [req.body.id.split(',')]);
+            await database_js_1.default.query(`delete FROM \`${req.get('g-app')}\`.t_manager_post where id in (?)
+        `, [req.body.id.split(',')]);
             return response_js_1.default.succ(resp, { result: true });
         }
         else {
