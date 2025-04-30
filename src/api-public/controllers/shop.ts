@@ -18,6 +18,7 @@ import { Pos } from '../services/pos.js';
 
 import { ShopnexLineMessage } from '../services/model/shopnex-line-message';
 import { CaughtError } from '../../modules/caught-error.js';
+import { CheckoutEvent } from '../services/checkout-event.js';
 
 const router: express.Router = express.Router();
 export = router;
@@ -137,7 +138,7 @@ router.delete('/rebate', async (req: express.Request, resp: express.Response) =>
 // 結帳付款
 router.post('/checkout', async (req: express.Request, resp: express.Response) => {
   try {
-    const result = await new Shopping(req.get('g-app') as string, req.body.token).toCheckout({
+    const result = await new CheckoutEvent(req.get('g-app') as string, req.body.token).toCheckout({
       line_items: req.body.line_items as any,
       email: (req.body.token && req.body.token.account) || req.body.email,
       return_url: req.body.return_url,
@@ -215,7 +216,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
   try {
     return response.succ(
       resp,
-      await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
+      await new CheckoutEvent(req.get('g-app') as string, req.body.token).toCheckout(
         {
           line_items: req.body.line_items as any,
           email:
@@ -250,7 +251,7 @@ router.post('/manager/checkout', async (req: express.Request, resp: express.Resp
     if (await UtPermission.isManager(req)) {
       return response.succ(
         resp,
-        await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
+        await new CheckoutEvent(req.get('g-app') as string, req.body.token).toCheckout(
           {
             line_items: req.body.line_items as any,
             email: req.body.customer_info.email,
@@ -279,7 +280,7 @@ router.post('/manager/checkout/preview', async (req: express.Request, resp: expr
     if (await UtPermission.isManager(req)) {
       return response.succ(
         resp,
-        await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
+        await new CheckoutEvent(req.get('g-app') as string, req.body.token).toCheckout(
           {
             line_items: req.body.line_items as any,
             email: (req.body.token && req.body.token.account) || req.body.email,
@@ -599,7 +600,13 @@ router.post('/splitOrder', async (req: express.Request, resp: express.Response) 
 // 優惠券
 router.get('/voucher', async (req: express.Request, resp: express.Response) => {
   try {
-    let query = [`(content->>'$.type'='voucher')`];
+    const isManager = await UtPermission.isManager(req);
+
+    let query = [`(content->>'$.type' = 'voucher')`];
+
+    if (!isManager) {
+      query.push(`(content->>'$.status' = 1)`);
+    }
 
     if (req.query.search) {
       query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
@@ -625,8 +632,6 @@ router.get('/voucher', async (req: express.Request, resp: express.Response) => {
         return new Date(start_ISO_Date).getTime() < now && (!end_ISO_Date || new Date(end_ISO_Date).getTime() > now);
       });
     }
-
-    const isManager = await UtPermission.isManager(req);
 
     // 後台列表直接回傳
     if (isManager && !req.query.user_email) {
@@ -1294,6 +1299,20 @@ router.put('/product/variants', async (req: express.Request, resp: express.Respo
     return response.fail(resp, err);
   }
 });
+router.delete('/product/logistic/:group', async (req: express.Request, resp: express.Response) => {
+  try {
+    if (!(await UtPermission.isManager(req))) {
+      return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+    } else {
+      return response.succ(resp, {
+        result: true,
+        data: await new Shopping(req.get('g-app') as string, req.body.token).removeLogisticGroup(req.params.group),
+      });
+    }
+  } catch (err) {
+    return response.fail(resp, err);
+  }
+});
 
 // 產品評論
 router.get('/product/comment', async (req: express.Request, resp: express.Response) => {
@@ -1362,7 +1381,7 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
   async function checkoutPos() {
     return response.succ(
       resp,
-      await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
+      await new CheckoutEvent(req.get('g-app') as string, req.body.token).toCheckout(
         {
           order_id: req.body.orderID,
           line_items: req.body.lineItems as any,

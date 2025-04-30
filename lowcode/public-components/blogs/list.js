@@ -336,29 +336,21 @@ BlogList.pageSplitV2 = (gvc, countPage, nowPage, callback) => {
                   </div>
                 </li>
                 ${glitter.print(() => {
-                    if (nowPage - 2 > 0) {
-                        return generator(nowPage - 2) + generator(nowPage - 1);
+                    let result = '';
+                    for (let i = Math.max(1, nowPage - 4); i < nowPage; i++) {
+                        result += generator(i);
                     }
-                    else if (nowPage - 1 > 0) {
-                        return generator(nowPage - 1);
-                    }
-                    else {
-                        return ``;
-                    }
+                    return result;
                 })}
                 <li class="page-item active mx-0" style="border-radius: 100%">
                   <div class="page-link-v2 page-link-active">${nowPage}</div>
                 </li>
                 ${glitter.print(() => {
-                    if (nowPage + 2 <= countPage) {
-                        return generator(nowPage + 1) + generator(nowPage + 2);
+                    let result = '';
+                    for (let i = nowPage + 1; i <= Math.min(nowPage + 4, countPage); i++) {
+                        result += generator(i);
                     }
-                    else if (nowPage + 1 <= countPage) {
-                        return generator(nowPage + 1);
-                    }
-                    else {
-                        return ``;
-                    }
+                    return result;
                 })}
                 <li class="page-item ms-0">
                   <div

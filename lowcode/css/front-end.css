@@ -1,34 +1,33 @@
 .fr-fil {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
 }
 
 .price_text {
-    color: #FF5353FF;
+  color: #ff5353ff;
 }
 
 .pd_detail_content iframe {
-    max-width: 100%;
+  max-width: 100%;
 }
 
 .pd_detail_content img {
-    max-width: 100%;
+  max-width: 100%;
 }
 
 .insignia {
-    border-radius: 0.5rem;
-    padding: 6px 8px;
-    font-size: 0.875rem;
-    display: inline-block;
-    font-weight: 500;
-    line-height: 1.5;
-    text-align: center;
-    white-space: normal;
-    vertical-align: baseline;
+  border-radius: 0.5rem;
+  padding: 6px 8px;
+  font-size: 0.875rem;
+  display: inline-block;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  white-space: normal;
+  vertical-align: baseline;
 }
 
 .insignia-gray {
-    background: #dddddd;
-    color: #393939;
+  background: #dddddd;
+  color: #393939;
 }
-

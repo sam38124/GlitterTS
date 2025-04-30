@@ -232,6 +232,18 @@ export class AppRelease {
                                 postMD.name = text;
                               },
                             }),
+                            BgWidget.editeInput({
+                              gvc: gvc,
+                              title: html` <div class="d-flex flex-column" style="gap:3px;">
+                                  App 專案包名 ${BgWidget.grayNote('為空則預設為網域路徑')}
+                                </div>`,
+                              default: postMD.ios_app_bundle_id || '',
+                              placeHolder: `${(window.parent as any).glitter.share.editorViewModel.domain}`,
+                              callback: text => {
+                                postMD.ios_app_bundle_id = text;
+                                gvc.notifyDataChange(id);
+                              },
+                            }),
                             html` <div class="w-100">
                               <div class="d-flex flex-column mb-2" style="gap:3px;">
                                 APP Logo ${BgWidget.grayNote('圖片上傳尺寸為1024 * 1024')}
@@ -421,18 +433,6 @@ export class AppRelease {
                           bind: id,
                           view: () => {
                             return [
-                              BgWidget.editeInput({
-                                gvc: gvc,
-                                title: html` <div class="d-flex flex-column" style="gap:3px;">
-                                  App 專案包名 ${BgWidget.grayNote('為空則預設為網域路徑')}
-                                </div>`,
-                                default: postMD.ios_app_bundle_id || '',
-                                placeHolder: `${(window.parent as any).glitter.share.editorViewModel.domain}`,
-                                callback: text => {
-                                  postMD.ios_app_bundle_id = text;
-                                  gvc.notifyDataChange(id);
-                                },
-                              }),
                               `<div
                                                         onclick="${gvc.event(() => {
                                                           const dialog = new ShareDialog(gvc.glitter);
@@ -459,6 +459,62 @@ export class AppRelease {
                                                           placeHolder: '',
                                                           callback: text => {},
                                                         })}
+                                                    </div>`,
+                            ].join(`<div class="my-3"></div>`);
+                          },
+                          divCreate: {
+                            class: ``,
+                          },
+                        };
+                      }),
+                      html` <div class="mt-3 w-100 d-flex align-items-center justify-content-end">
+                        ${BgWidget.save(
+                          gvc.event(() => {
+                            save(false, postMD, result => {});
+                          }),
+                          '儲存'
+                        )}
+                      </div>`,
+                    ].join(``);
+                  })(),
+                },
+                {
+                  title: 'Android應用設定',
+                  editor: (() => {
+                    let postMD = postMDRefer;
+                    const id = gvc.glitter.getUUID();
+                    return [
+                      gvc.bindView(() => {
+                        return {
+                          bind: id,
+                          view: () => {
+                            return [
+                              `<div
+                                                        onclick="${gvc.event(() => {
+                                const dialog = new ShareDialog(gvc.glitter);
+                                navigator.clipboard.writeText(
+                                  postMD.ios_app_bundle_id ||
+                                  (window.parent as any).glitter.share.editorViewModel
+                                    .domain
+                                );
+                                dialog.successMessage({ text: '已複製至剪貼簿' });
+                              })}"
+                                                    >
+                                                        ${BgWidget.editeInput({
+                                readonly: true,
+                                gvc: gvc,
+                                title: html` <div class="d-flex flex-column" style="gap:5px;">
+                                                            LINE登入
+                                                            ${BgWidget.grayNote(
+                                  '點擊複製專案ID至LINE開發者後台的『 Android Package Names 』欄位'
+                                )}
+                                                          </div>`,
+                                default:
+                                  postMD.ios_app_bundle_id ||
+                                  (window.parent as any).glitter.share.editorViewModel.domain,
+                                placeHolder: '',
+                                callback: text => {},
+                              })}
                                                     </div>`,
                             ].join(`<div class="my-3"></div>`);
                           },
@@ -620,6 +676,7 @@ export class AppRelease {
               html` <div class="update-bar-container">
                 ${BgWidget.grayButton(
                   '下載IOS專案原始檔案',
+                  
                   gvc.event(() => {
                     const dialog = new ShareDialog(gvc.glitter);
                     if (postMDRefer.status === 'no') {
@@ -636,7 +693,10 @@ export class AppRelease {
                       });
                     }
                     // save(true, postMDRefer, () => {});
-                  })
+                  }),
+                  {
+                    class:'d-none'
+                  }
                 )}
                 ${BgWidget.save(
                   gvc.event(() => {

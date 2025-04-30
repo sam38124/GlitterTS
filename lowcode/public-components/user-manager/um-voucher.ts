@@ -338,6 +338,7 @@ export class UMVoucher {
     const productForList = [
       { title: Language.text('all_products'), value: 'all' },
       { title: Language.text('product_categories'), value: 'collection' },
+      { title: Language.text('products'), value: 'manager_tag' }, // 管理員標籤的篩選於前台顯示「特定商品」
       { title: Language.text('products'), value: 'product' },
     ];
 

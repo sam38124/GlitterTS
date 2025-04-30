@@ -49,97 +49,97 @@ export class UMLogin {
                     }
                     if (vm.viewType === 'send_forget_pwd_email') {
                         return html `<section class="${gClass('container')}">
-                        <div class="${gClass('box')}">
-                            <div class="${gClass('login-title')}">${Language.text('forgot_password')}</div>
-                            <div class="w-100 d-flex flex-column gap-3">
-                                <div>
-                                    <label class="${gClass('label')}">${Language.text('email')}</label>
-                                    <input class="bgw-input" type="text" id="vm-email" placeholder="${Language.text('email_placeholder')}" />
-                                </div>
-                                <div
-                                    class="${gClass('button')} my-2"
-                                    onclick="${gvc.event(() => {
+              <div class="${gClass('box')}">
+                <div class="${gClass('login-title')}">${Language.text('forgot_password')}</div>
+                <div class="w-100 d-flex flex-column gap-3">
+                  <div>
+                    <label class="${gClass('label')}">${Language.text('email')}</label>
+                    <input class="bgw-input" type="text" id="vm-email" placeholder="${Language.text('email_placeholder')}" />
+                  </div>
+                  <div
+                    class="${gClass('button')} my-2"
+                    onclick="${gvc.event(() => {
                             this.sendResetEmail(widget, vm);
                         })}"
-                                >
-                                    <span class="${gClass('button-text')}">${Language.text('get_verification_code')}</span>
-                                </div>
-                            </div>
-                            ${this.backToLogin(gvc, vm)}
-                        </div>
-                    </section>`;
+                  >
+                    <span class="${gClass('button-text')}">${Language.text('get_verification_code')}</span>
+                  </div>
+                </div>
+                ${this.backToLogin(gvc, vm)}
+              </div>
+            </section>`;
                     }
                     if (vm.viewType === 'validation_code') {
                         return html `<section class="${gClass('container')}">
-                        <div class="${gClass('box')}">
-                            <div class="${gClass('login-title')}">${Language.text('enter_verification_code')}</div>
-                            <div class="w-100 d-flex flex-column gap-3">
-                                <div>
-                                    <label class="${gClass('label')}">${Language.text('verification_code')}</label>
-                                    <input class="bgw-input" type="text" id="vm-code" placeholder="${Language.text('please_enter_verification_code')}" />
-                                </div>
-                                ${this.sendCodeAgain(gvc, vm.prefix, () => {
+              <div class="${gClass('box')}">
+                <div class="${gClass('login-title')}">${Language.text('enter_verification_code')}</div>
+                <div class="w-100 d-flex flex-column gap-3">
+                  <div>
+                    <label class="${gClass('label')}">${Language.text('verification_code')}</label>
+                    <input class="bgw-input" type="text" id="vm-code" placeholder="${Language.text('please_enter_verification_code')}" />
+                  </div>
+                  ${this.sendCodeAgain(gvc, vm.prefix, () => {
                             this.sendResetEmail(widget, vm);
                         })}
-                                <div
-                                    class="${gClass('button')} my-2"
-                                    onclick="${gvc.event(() => {
+                  <div
+                    class="${gClass('button')} my-2"
+                    onclick="${gvc.event(() => {
                             this.verifySubmitCode(widget, vm);
                         })}"
-                                >
-                                    <span class="${gClass('button-text')}">${Language.text('submit')}</span>
-                                </div>
-                            </div>
-                            ${this.backToLogin(gvc, vm)}
-                        </div>
-                    </section>`;
+                  >
+                    <span class="${gClass('button-text')}">${Language.text('submit')}</span>
+                  </div>
+                </div>
+                ${this.backToLogin(gvc, vm)}
+              </div>
+            </section>`;
                     }
                     if (vm.viewType === 'reset_password') {
                         return html `<section class="${gClass('container')}">
-                        <div class="${gClass('box')}">
-                            <div class="${gClass('login-title')}">${Language.text('reset_password')}</div>
-                            <div class="w-100 d-flex flex-column gap-3">
-                                <div>
-                                    <label class="${gClass('label')}">${Language.text('new_password')}</label>
-                                    <input class="bgw-input" type="password" id="vm-new-password" placeholder="${Language.text('new_password_placeholder')}" />
-                                </div>
-                                <div>
-                                    <label class="${gClass('label')}">${Language.text('confirm_password')}</label>
-                                    <input class="bgw-input" type="password" id="vm-confirm-password" placeholder="${Language.text('please_enter_password_again')}" />
-                                </div>
-                                <div
-                                    class="${gClass('button')} my-2"
-                                    onclick="${gvc.event(() => {
+              <div class="${gClass('box')}">
+                <div class="${gClass('login-title')}">${Language.text('reset_password')}</div>
+                <div class="w-100 d-flex flex-column gap-3">
+                  <div>
+                    <label class="${gClass('label')}">${Language.text('new_password')}</label>
+                    <input class="bgw-input" type="password" id="vm-new-password" placeholder="${Language.text('new_password_placeholder')}" />
+                  </div>
+                  <div>
+                    <label class="${gClass('label')}">${Language.text('confirm_password')}</label>
+                    <input class="bgw-input" type="password" id="vm-confirm-password" placeholder="${Language.text('please_enter_password_again')}" />
+                  </div>
+                  <div
+                    class="${gClass('button')} my-2"
+                    onclick="${gvc.event(() => {
                             this.resetNewPassword(widget, vm);
                         })}"
-                                >
-                                    <span class="${gClass('button-text')}">${Language.text('submit')}</span>
-                                </div>
-                            </div>
-                            ${this.backToLogin(gvc, vm)}
-                        </div>
-                    </section>`;
+                  >
+                    <span class="${gClass('button-text')}">${Language.text('submit')}</span>
+                  </div>
+                </div>
+                ${this.backToLogin(gvc, vm)}
+              </div>
+            </section>`;
                     }
                     if (vm.viewType === 'register') {
                         return html `<section class="${gClass('container')}">
-                        <div class="${gClass('box')}">
-                            <div class="${gClass('login-title')}">${Language.text('member_register')}</div>
-                            <div class="w-100 d-flex flex-column gap-3">
-                                ${vm.registerConfig
+              <div class="${gClass('box')}">
+                <div class="${gClass('login-title')}">${Language.text('member_register')}</div>
+                <div class="w-100 d-flex flex-column gap-3">
+                  ${vm.registerConfig
                             .map((item) => {
                             if (item.hidden)
                                 return '';
                             const title = ['name', 'email', 'phone', 'birth'].includes(item.key) ? Language.text(`form_${item.key}`) : item.title;
                             const placeholder = Language.text(`please_enter_${item.key}`) || item.form_config.place_holder || '';
                             const cell = html `<div class="position-relative">
-                                            <label class="${gClass('label')}">${title}</label>
-                                            <input
-                                                class="bgw-input"
-                                                type="${item.form_config.type}"
-                                                id="reg-${item.key}"
-                                               ${(item.form_config.type === 'date') ? `` : ` placeholder="${placeholder}"
+                        <label class="${gClass('label')}">${title}</label>
+                        <input
+                          class="bgw-input"
+                          type="${item.form_config.type}"
+                          id="reg-${item.key}"
+                          ${(item.form_config.type === 'date') ? `` : ` placeholder="${placeholder}"
                                                 data-placeholder="${placeholder}"`}
-                                                onchange="${gvc.event((e) => {
+                          onchange="${gvc.event((e) => {
                                 if (CheckInput.isEmpty(e.value)) {
                                     e.style.color = 'rgba(0,0,0,0)';
                                     e.dataset.placeholder = placeholder;
@@ -149,117 +149,117 @@ export class UMLogin {
                                     e.dataset.placeholder = '';
                                 }
                             })}"
-                                            />
-                                        </div>`;
+                        />
+                      </div>`;
                             if (item.key === 'email' && vm.loginConfig.email_verify) {
                                 return html `${cell}
-                                                <div>
-                                                    <label class="${gClass('label')}">${Language.text('email_verification_code')}</label>
-                                                    <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="${Language.text('please_enter_verification_code')}" />
-                                                </div>
-                                                ${this.sendCodeAgain(gvc, vm.prefix, () => {
+                        <div>
+                          <label class="${gClass('label')}">${Language.text('email_verification_code')}</label>
+                          <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="${Language.text('please_enter_verification_code')}" />
+                        </div>
+                        ${this.sendCodeAgain(gvc, vm.prefix, () => {
                                     this.sendVerifyEmailCode(widget, `reg-${item.key}`);
                                 })}`;
                             }
                             if (item.key === 'phone' && vm.loginConfig.phone_verify) {
                                 return html `${cell}
-                                                <div>
-                                                    <label class="${gClass('label')}">${Language.text('sms_verification_code')}</label>
-                                                    <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="${Language.text('please_enter_verification_code')}" />
-                                                </div>
-                                                ${this.sendCodeAgain(gvc, vm.prefix, () => {
+                        <div>
+                          <label class="${gClass('label')}">${Language.text('sms_verification_code')}</label>
+                          <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="${Language.text('please_enter_verification_code')}" />
+                        </div>
+                        ${this.sendCodeAgain(gvc, vm.prefix, () => {
                                     this.sendVerifyPhoneCode(widget, `reg-${item.key}`);
                                 })}`;
                             }
                             return cell;
                         })
                             .join('')}
-                                <div>
-                                    <label class="${gClass('label')}">${Language.text('password')}</label>
-                                    <input class="bgw-input" type="password" id="vm-password" placeholder="${Language.text('please_enter_password')}" />
-                                </div>
-                                <div>
-                                    <label class="${gClass('label')}">${Language.text('confirm_password')}</label>
-                                    <input class="bgw-input" type="password" id="vm-confirm-password" placeholder="${Language.text('please_enter_password_again')}" />
-                                </div>
-                                <div
-                                    class="${gClass('button')} my-2"
-                                    onclick="${gvc.event(() => {
+                  <div>
+                    <label class="${gClass('label')}">${Language.text('password')}</label>
+                    <input class="bgw-input" type="password" id="vm-password" placeholder="${Language.text('please_enter_password')}" />
+                  </div>
+                  <div>
+                    <label class="${gClass('label')}">${Language.text('confirm_password')}</label>
+                    <input class="bgw-input" type="password" id="vm-confirm-password" placeholder="${Language.text('please_enter_password_again')}" />
+                  </div>
+                  <div
+                    class="${gClass('button')} my-2"
+                    onclick="${gvc.event(() => {
                             this.registerByNormal(gvc, widget, vm);
                         })}"
-                                >
-                                    <span class="${gClass('button-text')}">${Language.text('register')}</span>
-                                </div>
-                                ${this.authThirdPartyHTML(gvc, widget, vm)}
-                                <div class="d-flex flex-column gap-2 text-center mt-1">
-                                    <div class="${gClass('font-16')}">
-                                        ${Language.text('member_exists_prompt')}<span
-                                            class="${gClass('blue-note')}"
-                                            onclick="${gvc.event(() => {
+                  >
+                    <span class="${gClass('button-text')}">${Language.text('register')}</span>
+                  </div>
+                  ${this.authThirdPartyHTML(gvc, widget, vm)}
+                  <div class="d-flex flex-column gap-2 text-center mt-1">
+                    <div class="${gClass('font-16')}">
+                      ${Language.text('member_exists_prompt')}<span
+                      class="${gClass('blue-note')}"
+                      onclick="${gvc.event(() => {
                             this.viewCallback(vm, '');
                         })}"
-                                            >${Language.text('login')}</span
-                                        >
-                                    </div>
-                                    <div class="${gClass('font-14')}">
-                                        ${Language.text('registration_terms_agreement')}<a class="${gClass('blue-note')}" href="/privacy">${Language.text('terms_of_service')}</a>${Language.text('and')}<a class="${gClass('blue-note')}" href="/term">${Language.text('privacy_policy')}</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>`;
+                    >${Language.text('login')}</span
+                    >
+                    </div>
+                    <div class="${gClass('font-14')}">
+                      ${Language.text('registration_terms_agreement')}<a class="${gClass('blue-note')}" href="/privacy">${Language.text('terms_of_service')}</a>${Language.text('and')}<a class="${gClass('blue-note')}" href="/term">${Language.text('privacy_policy')}</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>`;
                     }
                     return html `<section class="${gClass('container')}">
-                    <div class="${gClass('box')}">
-                        <div class="${gClass('login-title')}">${Language.text('member_login')}</div>
-                        <div class="w-100 d-flex flex-column gap-3">
-                            <div>
-                                <label class="${gClass('label')}">${Language.text('email_phone')}</label>
-                                <input class="bgw-input" type="text" id="vm-account" placeholder="${Language.text('email_phone_placeholder')}" />
-                            </div>
-                            <div>
-                                <label class="${gClass('label')}">${Language.text('password')}</label>
-                                <input class="bgw-input" type="password" id="vm-password" placeholder="${Language.text('please_enter_password')}" />
-                            </div>
-                            <div class="text-end">
+            <div class="${gClass('box')}">
+              <div class="${gClass('login-title')}">${Language.text('member_login')}</div>
+              <div class="w-100 d-flex flex-column gap-3">
+                <div>
+                  <label class="${gClass('label')}">${Language.text('email_phone')}</label>
+                  <input class="bgw-input" type="text" id="vm-account" placeholder="${Language.text('email_phone_placeholder')}" />
+                </div>
+                <div>
+                  <label class="${gClass('label')}">${Language.text('password')}</label>
+                  <input class="bgw-input" type="password" id="vm-password" placeholder="${Language.text('please_enter_password')}" />
+                </div>
+                <div class="text-end">
                                 <span
-                                    class="${gClass('blue-note')}"
-                                    onclick="${gvc.event(() => {
+                                  class="${gClass('blue-note')}"
+                                  onclick="${gvc.event(() => {
                         vm.viewType = 'send_forget_pwd_email';
                     })}"
-                                    >${Language.text('forgot_password')}</span
+                                >${Language.text('forgot_password')}</span
                                 >
-                            </div>
-                            <div
-                                class="${gClass('button')} my-2"
-                                onclick="${gvc.event(() => {
+                </div>
+                <div
+                  class="${gClass('button')} my-2"
+                  onclick="${gvc.event(() => {
                         this.loginByNormal(gvc, widget);
                     })}"
-                            >
-                                <span class="${gClass('button-text')}">${Language.text('login')}</span>
-                            </div>
-                            ${this.authThirdPartyHTML(gvc, widget, vm)}
-                            <div class="d-flex flex-column gap-2 text-center mt-1">
-                                <div class="${gClass('font-16')}">
-                                    ${Language.text('member_not_exists_prompt')}<span
-                                        class="${gClass('blue-note')}"
-                                        onclick="${gvc.event(() => {
+                >
+                  <span class="${gClass('button-text')}">${Language.text('login')}</span>
+                </div>
+                ${this.authThirdPartyHTML(gvc, widget, vm)}
+                <div class="d-flex flex-column gap-2 text-center mt-1">
+                  <div class="${gClass('font-16')}">
+                    ${Language.text('member_not_exists_prompt')}<span
+                    class="${gClass('blue-note')}"
+                    onclick="${gvc.event(() => {
                         this.viewCallback(vm, 'register');
                     })}"
-                                        >${Language.text('register')}</span
-                                    >
-                                </div>
-                                <div class="${gClass('font-14')}">
-                                    ${Language.text('login_terms_agreement')}<a class="${gClass('blue-note')}" href="/privacy">${Language.text('terms_of_service')}</a>${Language.text('and')}<a
-                                        class="${gClass('blue-note')}"
-                                        href="/term"
-                                        >${Language.text('privacy_policy')}</a
-                                    >
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>`;
+                  >${Language.text('register')}</span
+                  >
+                  </div>
+                  <div class="${gClass('font-14')}">
+                    ${Language.text('login_terms_agreement')}<a class="${gClass('blue-note')}" href="/privacy">${Language.text('terms_of_service')}</a>${Language.text('and')}<a
+                    class="${gClass('blue-note')}"
+                    href="/term"
+                  >${Language.text('privacy_policy')}</a
+                  >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>`;
                 }
                 catch (e) {
                     console.log(`error==>`, e);
@@ -305,97 +305,97 @@ export class UMLogin {
     static addStyle(gvc, prefix) {
         const isPhone = document.body.clientWidth < 768;
         gvc.addStyle(css `
-            .${prefix}-container {
-                box-sizing: border-box;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding-top: ${isPhone ? 0 : '100px'};
-                padding-bottom: ${isPhone ? '0px' : '230px'};
-                overflow: hidden;
-            }
-            .${prefix}-box {
-                border-radius: ${isPhone ? '0px' : '30px'};
-                background: #fff;
-                ${isPhone ? '' : 'box-shadow: 5px 5px 20px 0px rgba(0, 0, 0, 0.15)'};
-                display: flex;
-                width: 576px;
-                padding: ${isPhone ? '56px 16px' : '56px'};
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                gap: 32px;
-                overflow: hidden;
-            }
-            .${prefix}-login-title {
-                color: #393939;
-                text-align: center;
-                font-size: 32px;
-                font-style: normal;
-                font-weight: 700;
-                line-height: 140%;
-                margin-bottom: 24px;
-            }
-            .${prefix}-label {
-                color: #393939;
-                font-size: 16px;
-                font-weight: 500;
-                margin-bottom: 6px;
-            }
-            .${prefix}-button {
-                border-radius: 10px;
-                background: #393939;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                cursor: pointer;
-                padding: 14px 0;
-                cursor: pointer;
-                height: 48px;
-            }
-            .${prefix}-button:hover {
-                background: #656565;
-            }
-            .${prefix}-button-text {
-                color: #fff;
-                text-align: center;
-                font-size: 16px;
-                font-weight: 700;
-                letter-spacing: 0.64px;
-            }
-            .${prefix}-auth-thrid-button {
-                border-radius: 5px;
-                background: #f1f1f1;
-                height: 50px;
-                flex: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-            }
-            .${prefix}-auth-thrid-button:hover {
-                background: #dbdbdb;
-            }
-            .${prefix}-blue-note {
-                color: #4d86db;
-                cursor: pointer;
-                margin: 0 4px;
-            }
-            .${prefix}-blue-note:hover {
-                color: #4d86db !important;
-            }
-            .${prefix}-gray-hr {
-                flex: 1 1 auto !important;
-                height: 1px;
-                background-color: #ddd;
-            }
-            .${prefix}-font-16 {
-                font-size: 16px;
-            }
-            .${prefix}-font-14 {
-                font-size: 14px;
-            }
-        `);
+        .${prefix}-container {
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: ${isPhone ? 0 : '100px'};
+            padding-bottom: ${isPhone ? '0px' : '230px'};
+            overflow: hidden;
+        }
+        .${prefix}-box {
+            border-radius: ${isPhone ? '0px' : '30px'};
+            background: #fff;
+            ${isPhone ? '' : 'box-shadow: 5px 5px 20px 0px rgba(0, 0, 0, 0.15)'};
+            display: flex;
+            width: 576px;
+            padding: ${isPhone ? '56px 16px' : '56px'};
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            overflow: hidden;
+        }
+        .${prefix}-login-title {
+            color: #393939;
+            text-align: center;
+            font-size: 32px;
+            font-style: normal;
+            font-weight: 700;
+            line-height: 140%;
+            margin-bottom: 24px;
+        }
+        .${prefix}-label {
+            color: #393939;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        .${prefix}-button {
+            border-radius: 10px;
+            background: #393939;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            padding: 14px 0;
+            cursor: pointer;
+            height: 48px;
+        }
+        .${prefix}-button:hover {
+            background: #656565;
+        }
+        .${prefix}-button-text {
+            color: #fff;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.64px;
+        }
+        .${prefix}-auth-thrid-button {
+            border-radius: 5px;
+            background: #f1f1f1;
+            height: 50px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .${prefix}-auth-thrid-button:hover {
+            background: #dbdbdb;
+        }
+        .${prefix}-blue-note {
+            color: #4d86db;
+            cursor: pointer;
+            margin: 0 4px;
+        }
+        .${prefix}-blue-note:hover {
+            color: #4d86db !important;
+        }
+        .${prefix}-gray-hr {
+            flex: 1 1 auto !important;
+            height: 1px;
+            background-color: #ddd;
+        }
+        .${prefix}-font-16 {
+            font-size: 16px;
+        }
+        .${prefix}-font-14 {
+            font-size: 14px;
+        }
+    `);
     }
     static successCallback(gvc, widget, response, text) {
         var _a;
@@ -421,7 +421,12 @@ export class UMLogin {
                         gvc.glitter.href = red;
                     }
                     else {
-                        gvc.glitter.href = '/account_userinfo';
+                        if (window.appName === 'proshake_v2') {
+                            gvc.glitter.href = '/user_info';
+                        }
+                        else {
+                            gvc.glitter.href = '/account_userinfo';
+                        }
                     }
                 }
             });
@@ -430,12 +435,12 @@ export class UMLogin {
     static authThirdPartyHTML(gvc, widget, vm) {
         const loginEvents = this.getAuthLoginEvents(gvc, widget);
         return html `<div class="w-100 d-flex align-items-center gap-2" style="color:#8D8D8D;">
-                <div class="${vm.prefix}-gray-hr"></div>
-                ${Language.text('or')}
-                <div class="${vm.prefix}-gray-hr"></div>
-            </div>
-            <div class="d-flex w-100 align-items-center justify-content-center gap-2">
-                ${[
+      <div class="${vm.prefix}-gray-hr"></div>
+      ${Language.text('or')}
+      <div class="${vm.prefix}-gray-hr"></div>
+    </div>
+    <div class="d-flex w-100 align-items-center justify-content-center gap-2">
+      ${[
             {
                 type: 'google',
                 icon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Google__G__logo.svg.webp',
@@ -457,22 +462,25 @@ export class UMLogin {
             if (!vm.loginConfig[item.type]) {
                 return '';
             }
+            if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Android && item.type === 'apple') {
+                return ``;
+            }
             const event = loginEvents.find((data) => data.key === item.type);
             if (!event) {
                 return '';
             }
             event.created();
             return html `<div
-                            class="${vm.prefix}-auth-thrid-button"
-                            onclick="${gvc.event(() => {
+            class="${vm.prefix}-auth-thrid-button"
+            onclick="${gvc.event(() => {
                 event.call();
             })}"
-                        >
-                            <img style="width: 28px" src="${item.icon}" />
-                        </div>`;
+          >
+            <img style="width: 28px" src="${item.icon}" />
+          </div>`;
         })
             .join('')}
-            </div>`;
+    </div>`;
     }
     static checkValue(name) {
         const e = document.getElementById(name);
@@ -486,15 +494,15 @@ export class UMLogin {
     }
     static backToLogin(gvc, vm) {
         return html `<section
-            class="m-auto d-flex align-items-center justify-content-center my-2"
-            style="cursor: pointer;"
-            onclick="${gvc.event(() => {
+      class="m-auto d-flex align-items-center justify-content-center my-2"
+      style="cursor: pointer;"
+      onclick="${gvc.event(() => {
             this.viewCallback(vm, 'login');
         })}"
-        >
-            <img class="me-2" src="https://ui.homee.ai/htmlExtension/shopify/order/img/back.svg" />
-            <span class="go-back-text">${Language.text('back_to_login_page')}</span>
-        </section>`;
+    >
+      <img class="me-2" src="https://ui.homee.ai/htmlExtension/shopify/order/img/back.svg" />
+      <span class="go-back-text">${Language.text('back_to_login_page')}</span>
+    </section>`;
     }
     static sendCodeAgain(gvc, prefix, event) {
         const glitter = gvc.glitter;
@@ -504,18 +512,18 @@ export class UMLogin {
             bind: id,
             view: () => {
                 return html `<span
-                    class="${prefix}-blue-note"
-                    onclick="${gvc.event(() => {
+          class="${prefix}-blue-note"
+          onclick="${gvc.event(() => {
                     if (n == 0) {
                         event();
-                        n = 10;
+                        n = 30;
                         setTimeout(() => {
                             gvc.notifyDataChange(id);
                         }, 100);
                     }
                 })}"
-                    >${n > 0 ? Language.text('resend_code_timer').replace('xxx', n) : Language.text('get_verification_code')}</span
-                >`;
+        >${n > 0 ? Language.text('resend_code_timer').replace('xxx', n) : Language.text('get_verification_code')}</span
+        >`;
             },
             divCreate: {
                 class: 'text-end',
@@ -542,7 +550,7 @@ export class UMLogin {
                             login_type: 'line',
                             line_token: gvc.glitter.getUrlParameter('code'),
                             redirect: (() => {
-                                if (glitter.deviceType === glitter.deviceTypeEnum.Ios) {
+                                if (glitter.deviceType !== glitter.deviceTypeEnum.Web) {
                                     return 'app';
                                 }
                                 else {
@@ -576,7 +584,7 @@ export class UMLogin {
                     }
                 },
                 call: () => {
-                    if (glitter.deviceType === glitter.deviceTypeEnum.Ios) {
+                    if (glitter.deviceType !== glitter.deviceTypeEnum.Web) {
                         gvc.glitter.runJsInterFace('line_login', {
                             id: widget.share.line.id,
                         }, (response) => {
@@ -602,8 +610,8 @@ export class UMLogin {
                             login_type: 'google',
                             google_token: gvc.glitter.getUrlParameter('code'),
                             redirect: (() => {
-                                if (glitter.deviceType === glitter.deviceTypeEnum.Ios) {
-                                    return 'app';
+                                if (glitter.deviceType !== glitter.deviceTypeEnum.Web) {
+                                    return (glitter.deviceType === glitter.deviceTypeEnum.Android) ? 'android' : 'app';
                                 }
                                 else {
                                     const googleRedirect = localStorage.getItem('google_redirect');
@@ -629,11 +637,11 @@ export class UMLogin {
                     const redirect_url = location.origin + location.pathname;
                     localStorage.setItem('google_login', 'true');
                     localStorage.setItem('google_redirect', redirect_url);
-                    if (glitter.deviceType === glitter.deviceTypeEnum.Ios) {
+                    if (glitter.deviceType !== glitter.deviceTypeEnum.Web) {
                         ApiUser.getPublicConfig('login_google_setting', 'manager').then((dd) => {
                             widget.share.google = dd.response.value || {};
                             gvc.glitter.runJsInterFace('google_login', {
-                                app_id: widget.share.google.app_id,
+                                app_id: (glitter.deviceType === glitter.deviceTypeEnum.Android) ? widget.share.google.android_app_id : widget.share.google.app_id,
                             }, (response) => {
                                 if (response.result) {
                                     gvc.glitter.setUrlParameter('state', 'google_login');
@@ -682,7 +690,7 @@ export class UMLogin {
                 call: () => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         console.log('call fb', widget.share.fb);
-                        if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
+                        if (glitter.deviceType !== glitter.deviceTypeEnum.Web) {
                             gvc.glitter.runJsInterFace('facebook_login', {
                                 app_id: widget.share.fb.id,
                                 secret: widget.share.fb.secret
@@ -916,21 +924,28 @@ export class UMLogin {
         });
     }
     static sendVerifyPhoneCode(widget, id) {
-        const phone = this.checkValue(id);
-        if (!phone) {
-            widget.event('error', { title: Language.text('enter_phone_number') });
-            return;
-        }
-        if (!CheckInput.isTaiwanPhone(phone)) {
-            widget.event('error', { title: Language.text('enter_valid_phone_number') });
-            return;
-        }
-        ApiUser.phoneVerify(phone).then((r) => {
-            if (r.result && r.response.result) {
-                widget.event('success', { title: Language.text('verification_code_sent') });
+        return __awaiter(this, void 0, void 0, function* () {
+            const phone = UMLogin.checkValue(id);
+            if (!phone) {
+                widget.event('error', { title: Language.text('enter_phone_number') });
+                return;
+            }
+            if (!CheckInput.isTaiwanPhone(phone)) {
+                widget.event('error', { title: Language.text('enter_valid_phone_number') });
+                return;
+            }
+            if ((yield ApiUser.getPhoneCount(phone)).response.result) {
+                widget.event('error', { title: Language.text('phone_number_already_exists') });
             }
             else {
-                widget.event('error', { title: Language.text('system_error') });
+                ApiUser.phoneVerify(phone).then((r) => {
+                    if (r.result && r.response.result) {
+                        widget.event('success', { title: Language.text('verification_code_sent') });
+                    }
+                    else {
+                        widget.event('error', { title: Language.text('system_error') });
+                    }
+                });
             }
         });
     }

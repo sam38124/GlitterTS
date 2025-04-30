@@ -62,6 +62,7 @@ export interface OrderData {
     CVSTelephone: string;
     MerchantTradeNo: string;
     CVSAddress: string;
+    shipment_number?: string;
     note?: string;
     code_note?: string;
   };

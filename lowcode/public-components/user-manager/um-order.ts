@@ -465,15 +465,14 @@ export class UMOrder {
             () => {}
           );
         } else {
-          location.href = res.response.responseData.info.paymentUrl.web;
+          location.href = res.response.info.paymentUrl.web;
         }
         break;
       case 'paypal': {
         if (res.response.approveLink) {
           location.href = res.response.approveLink;
         }
-        showPayError();
-        break;
+        showPayError();break;
       }
       case 'jkopay': {
         if (gvc.glitter.share.is_application) {
@@ -621,7 +620,6 @@ export class UMOrder {
         this.executePayment(gvc, orderData.payment_method, res);
 
         dialog.dataLoading({ visible: false });
-
         return;
       });
     });
@@ -1318,6 +1316,7 @@ export class UMOrder {
                             };
                           }),
                           content_type: 'product',
+                          eventID: orderData.orderID,
                         });
                         Ad.gtagEvent('purchase', {
                           transaction_id: vm.data.cart_token,
@@ -1439,6 +1438,19 @@ export class UMOrder {
                           switch (vm.data.status) {
                             case 0:
                               if (repayArray.includes(vm.data?.payment_method ?? '')) {
+                                const repayBtn = () => {
+                                  return html` <span class="payment-actions d-none">
+                                    <button
+                                      class="customer-btn-text ms-3"
+                                      id="repay-button"
+                                      onclick="${gvc.event(() => {
+                                    UMOrder.repay(gvc, vm.data).then(r => {});
+                                  })}"
+                                    >
+                                      重新付款
+                                    </button>
+                                  </span>`;
+                                };
                                 return Language.text('awaiting_verification') + repayBtn();
                               }
                               return orderData.proof_purchase
@@ -1611,10 +1623,8 @@ export class UMOrder {
                           (orderData.user_info as any).area,
                           orderData.user_info.address,
                         ]
-                          .filter(dd => {
-                            return dd;
-                          })
-                          .join(','),
+                          .filter(Boolean)
+                          .join(''),
                       });
                     }
                     arr.push({

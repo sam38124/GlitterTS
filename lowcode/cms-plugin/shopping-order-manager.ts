@@ -381,28 +381,54 @@ export class ShoppingOrderManager {
 
               ApiShop.getOrder(vm.apiJSON).then(async data => {
                 async function getDatalist() {
-                  const payment_support = await PaymentConfig.getSupportPayment();
+                  const [payment_support, watchUserList] = await Promise.all([
+                    PaymentConfig.getSupportPayment(),
+                    ApiUser.getUserListOrders({
+                      page: 0,
+                      limit: 99999,
+                      filter_type: 'watch',
+                    }),
+                  ]).then(dataArray => {
+                    return [dataArray[0], dataArray[1].response.data];
+                  });
+
+                  const watchUsers = [
+                    ...new Set(
+                      watchUserList
+                        .map((item: any) => {
+                          return [item.account, item.email, item.phone];
+                        })
+                        .flat()
+                    ),
+                  ];
+
+                  function cartTokenComponent(cart_token: any, source_badge: string, is_watch_user: boolean) {
+                    return html`<div style="min-width:200px;">
+                      <div style="position: relative; height: 40px;">
+                        <div
+                          style="position: absolute; bottom: 9px; height: 9px; width: 127px; ${is_watch_user
+                            ? 'background-color: #ffe9b2'
+                            : ''}"
+                        ></div>
+                        <span style="position: absolute; bottom: 0;">${cart_token}${source_badge}</span>
+                      </div>
+                    </div>`;
+                  }
+
                   return data.response.data.map((dd: any) => {
+                    const vt = OrderSetting.getAllStatusBadge(dd);
                     dd.orderData.total = dd.orderData.total || 0;
                     dd.orderData.customer_info = dd.orderData.customer_info ?? {};
+
+                    const isWatchUser = watchUsers.includes(dd.orderData.email);
+                    const tooltipText = isWatchUser ? '此份訂單的顧客為觀察名單' : '';
+
                     if (query.isShipment) {
                       return [
                         {
                           key: '訂單編號',
-                          value: html` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
-                            ${dd.cart_token}${(() => {
-                              switch (dd.order_source) {
-                                case 'manual':
-                                  return BgWidget.primaryInsignia('手動', { type: 'border' });
-                                case 'combine':
-                                  return BgWidget.warningInsignia('合併', { type: 'border' });
-                                case 'POS':
-                                  return BgWidget.primaryInsignia('POS', { type: 'border' });
-                                default:
-                                  return '';
-                              }
-                            })()}
-                          </div>`,
+                          value: cartTokenComponent(dd.cart_token, vt.sourceBadge(), isWatchUser),
+                          tooltip: tooltipText,
                         },
                         {
                           key: '出貨日期',
@@ -412,30 +438,11 @@ export class ShoppingOrderManager {
                         },
                         {
                           key: '訂購人',
-                          value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
+                          value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名',
                         },
                         {
                           key: '出貨狀態',
-                          value: (() => {
-                            switch (dd.orderData.progress ?? 'wait') {
-                              case 'pre_order':
-                                return BgWidget.notifyInsignia('待預購');
-                              case 'wait':
-                                if (dd.orderData.user_info.shipment_number) {
-                                  return BgWidget.secondaryInsignia('備貨中');
-                                } else {
-                                  return BgWidget.notifyInsignia('未出貨');
-                                }
-                              case 'shipping':
-                                return BgWidget.warningInsignia('已出貨');
-                              case 'finish':
-                                return BgWidget.infoInsignia('已取貨');
-                              case 'arrived':
-                                return BgWidget.warningInsignia('已送達');
-                              case 'returns':
-                                return BgWidget.dangerInsignia('已退貨');
-                            }
-                          })(),
+                          value: vt.outShipBadge(),
                         },
                         {
                           key: '出貨單號碼',
@@ -449,25 +456,8 @@ export class ShoppingOrderManager {
                       return [
                         {
                           key: '訂單編號',
-                          value: html` <div class="d-flex align-items-center gap-2" style="min-width: 200px;">
-                            ${dd.cart_token}${(() => {
-                              switch (dd.orderData.orderSource) {
-                                case 'manual':
-                                  return BgWidget.primaryInsignia('手動', { type: 'border' });
-                                case 'combine':
-                                  return BgWidget.warningInsignia('合併', { type: 'border' });
-                                case 'POS':
-                                  if (vm.filter_type === 'pos') {
-                                    return '';
-                                  }
-                                  return BgWidget.primaryInsignia('POS', { type: 'border' });
-                                case 'split':
-                                  return BgWidget.warningInsignia('拆分', { type: 'border' });
-                                default:
-                                  return '';
-                              }
-                            })()}
-                          </div>`,
+                          value: cartTokenComponent(dd.cart_token, vt.sourceBadge(), isWatchUser),
+                          tooltip: tooltipText,
                         },
                         {
                           key: '訂單日期',
@@ -477,7 +467,7 @@ export class ShoppingOrderManager {
                         },
                         {
                           key: '訂購人',
-                          value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
+                          value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名',
                         },
                         {
                           key: '訂單金額',
@@ -485,62 +475,15 @@ export class ShoppingOrderManager {
                         },
                         {
                           key: '付款狀態',
-                          value: (() => {
-                            switch (dd.status) {
-                              case 0:
-                                if (dd.orderData.proof_purchase) {
-                                  return BgWidget.warningInsignia('待核款');
-                                }
-                                if (dd.orderData.customer_info.payment_select == 'cash_on_delivery') {
-                                  return BgWidget.warningInsignia('貨到付款');
-                                }
-                                return BgWidget.notifyInsignia('未付款');
-                              case 3:
-                                return BgWidget.warningInsignia('部分付款');
-                              case 1:
-                                return BgWidget.infoInsignia('已付款');
-                              case -1:
-                                return BgWidget.notifyInsignia('付款失敗');
-                              case -2:
-                                return BgWidget.notifyInsignia('已退款');
-                            }
-                          })(),
+                          value: vt.paymentBadge(),
                         },
                         {
                           key: '出貨狀態',
-                          value: (() => {
-                            switch (dd.orderData.progress ?? 'wait') {
-                              case 'pre_order':
-                                return BgWidget.notifyInsignia('待預購');
-                              case 'wait':
-                                if (dd.orderData.user_info.shipment_number) {
-                                  return BgWidget.secondaryInsignia('備貨中');
-                                } else {
-                                  return BgWidget.notifyInsignia('未出貨');
-                                }
-                              case 'shipping':
-                                return BgWidget.warningInsignia('已出貨');
-                              case 'finish':
-                                return BgWidget.infoInsignia('已取貨');
-                              case 'arrived':
-                                return BgWidget.warningInsignia('已送達');
-                              case 'returns':
-                                return BgWidget.dangerInsignia('已退貨');
-                            }
-                          })(),
+                          value: vt.outShipBadge(),
                         },
                         {
                           key: '訂單狀態',
-                          value: (() => {
-                            switch (dd.orderData.orderStatus ?? '0') {
-                              case '-1':
-                                return BgWidget.notifyInsignia('已取消');
-                              case '0':
-                                return BgWidget.warningInsignia('處理中');
-                              case '1':
-                                return BgWidget.infoInsignia('已完成');
-                            }
-                          })(),
+                          value: vt.orderStatusBadge(),
                         },
                         {
                           key: '運送方式',
@@ -579,7 +522,7 @@ export class ShoppingOrderManager {
                           return vm.headerConfig.includes(item.key);
                         })
                         .map((dd: any) => {
-                          dd.value = html` <div style="line-height:40px;">${dd.value}</div>`;
+                          dd.value = html`<div style="line-height: 40px;">${dd.value}</div>`;
                           return dd;
                         });
                     }
@@ -1223,7 +1166,6 @@ export class ShoppingOrderManager {
             splitOrder: () => {
               return html` <div
                 class="funInsignia"
-                style=""
                 onclick="${gvc.event(() => {
                   if (orderData.orderData.orderSource == 'split') {
                     return;
@@ -1238,10 +1180,14 @@ export class ShoppingOrderManager {
         };
 
         function getBadgeList() {
-          const vt = OrderSetting.getAllStatusBadge(orderData as any);
-          return html` <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          const vt = OrderSetting.getAllStatusBadge(orderData as any, 'sm');
+          return html` <div class="d-flex justify-content-end align-items-center gap-3">
             ${vt.archivedBadge()}
-            ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}${OrderInfo.reconciliationStatus(orderData)}
+            ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}${OrderInfo.reconciliationStatus(
+              orderData,
+              false,
+              'sm'
+            )}
           </div>`;
         }
 
@@ -1794,19 +1740,21 @@ export class ShoppingOrderManager {
                                   ['姓名', 'name'],
                                   ['電話', 'phone'],
                                   ['信箱', 'email'],
+                                  ['縣市', 'city'],
+                                  ['鄉鎮', 'area'],
+                                  ['地址', 'address'],
                                 ];
+
                                 const receipt = (
                                   await ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager')
                                 ).response.value;
+
                                 receipt.list.map((d1: any) => {
-                                  if (
-                                    !viewModel.find(dd => {
-                                      return dd[1] === d1.key;
-                                    })
-                                  ) {
+                                  if (!viewModel.find(dd => dd[1] === d1.key)) {
                                     viewModel.push([d1.title, d1.key]);
                                   }
                                 });
+
                                 if (vm.mode == 'read') {
                                   return viewModel
                                     .map(item => {
@@ -2000,14 +1948,21 @@ export class ShoppingOrderManager {
                       <div class="align-items-center" style="gap:10px;color: #393939;font-size: 24px;font-weight: 700;">
                         #${is_shipment ? orderData.orderData.user_info.shipment_number : orderData.cart_token}
                       </div>
-
-                      ${BgWidget.grayNote(`訂單成立時間 : ${Tool.formatDateTime(orderData.created_time)}`)}
+                      <div class="d-flex align-items-center gap-2">
+                        ${BgWidget.grayNote(`訂單成立時間 : ${Tool.formatDateTime(orderData.created_time)}`)}
+                        ${document.body.clientWidth > 768 ? getBadgeList() : ''}
+                      </div>
                     </div>
                     <div class="flex-fill"></div>
-                    ${document.body.clientWidth > 768 ? getBadgeList() : ''}
+                    <div
+                      class="${orderData.orderData.orderSource === 'split' ? 'd-none' : 'd-flex'} justify-content-end"
+                    >
+                      ${funBTN().splitOrder()}
+                    </div>
                   </div>
-                  ${document.body.clientWidth > 768 ? '' : html` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
-                  <div class="d-flex justify-content-end">${funBTN().splitOrder()}</div>
+                  ${document.body.clientWidth > 768
+                    ? BgWidget.mbContainer(18)
+                    : html` <div class="mt-1 mb-3 mx-1">${getBadgeList()}</div>`}
                   ${BgWidget.container1x2(
                     {
                       html: [
@@ -2196,12 +2151,14 @@ export class ShoppingOrderManager {
                                   return [];
                                 }
                               })(),
-                              ...orderData.orderData.voucherList.map((dd: any) => {
-                                const descHTML = html` <div
-                                  style="color: #8D8D8D; font-size: 14px; white-space: nowrap; text-overflow: ellipsis;"
-                                >
-                                  ${dd.title}
-                                </div>`;
+                              ...(orderData.orderData.voucherList || []).map((dd: any) => {
+                                const descHTML = dd.title
+                                  ? html` <div
+                                      style="color: #8D8D8D; font-size: 14px; white-space: nowrap; text-overflow: ellipsis;"
+                                    >
+                                      ${dd.title}
+                                    </div>`
+                                  : '';
                                 const rebackMaps: Record<
                                   string,
                                   {
@@ -2229,6 +2186,10 @@ export class ShoppingOrderManager {
                                     title: dd.id == 0 ? '手動調整' : '折扣',
                                     description: descHTML,
                                     total: (() => {
+                                      if (orderData.orderData.orderSource === 'split') {
+                                        return `- $${orderData.orderData.discount.toLocaleString()}`;
+                                      }
+
                                       const status = dd.discount_total > 0;
                                       const isMinus = status ? '-' : '';
                                       const isNegative = status ? 1 : -1;
@@ -2908,7 +2869,7 @@ export class ShoppingOrderManager {
                                   html` <div class="d-flex flex-column" style="gap:8px;">
                                     <div
                                       class="d-flex align-items-center"
-                                      style="font-weight: 700; gap:8px;cursor:pointer;"
+                                      style="gap: 8px; cursor: pointer;"
                                       onclick="${gvc.event(() => {
                                         if (userData.userID) {
                                           child_vm.userID = userData.userID;
@@ -2916,30 +2877,43 @@ export class ShoppingOrderManager {
                                         }
                                       })}"
                                     >
-                                      ${(() => {
-                                        const name = userData?.userData?.name;
-                                        if (name) {
-                                          return html`<span style="color: #4D86DB;">${name}</span>`;
-                                        }
-                                        return html`<span style="color: #393939;">訪客</span>`;
-                                      })()}
-                                      ${(() => {
-                                        if (userDataLoading) {
-                                          return BgWidget.secondaryInsignia('讀取中');
-                                        }
-                                        if (userData.member == undefined) {
-                                          return BgWidget.secondaryInsignia('訪客');
-                                        }
-                                        if (userData?.member.length > 0) {
-                                          for (let i = 0; i < userData.member.length; i++) {
-                                            if (userData.member[i].trigger) {
-                                              return BgWidget.primaryInsignia(userData.member[i].tag_name);
+                                      ${[
+                                        (() => {
+                                          const name = userData?.userData?.name;
+                                          if (name) {
+                                            return html`<span style="font-weight: 500; color: #4D86DB;">${name}</span>`;
+                                          }
+                                          return html`<span style="font-weight: normal; color: #393939;">訪客</span>`;
+                                        })(),
+                                        (() => {
+                                          if (userData.status === 0) {
+                                            return '';
+                                          }
+                                          if (userDataLoading) {
+                                            return BgWidget.grayInsignia('讀取中');
+                                          }
+                                          if (userData.member === undefined) {
+                                            return BgWidget.grayInsignia('訪客');
+                                          }
+                                          if (userData?.member.length > 0) {
+                                            for (let i = 0; i < userData.member.length; i++) {
+                                              if (userData.member[i].trigger) {
+                                                return BgWidget.darkInsignia(userData.member[i].tag_name);
+                                              }
                                             }
                                           }
-                                          return BgWidget.primaryInsignia('一般會員');
-                                        }
-                                        return BgWidget.secondaryInsignia('訪客');
-                                      })()}
+                                          return BgWidget.darkInsignia('一般會員');
+                                        })(),
+                                        (() => {
+                                          if (userData.status === 0) {
+                                            return BgWidget.dangerInsignia('黑名單');
+                                          }
+                                          if (userData.status === 2) {
+                                            return BgWidget.watchingInsignia('觀察名單');
+                                          }
+                                          return '';
+                                        })(),
+                                      ].join('')}
                                     </div>
                                     <div style="color: #393939;font-weight: 400;">
                                       ${userData?.userData?.phone ??
@@ -3060,9 +3034,7 @@ export class ShoppingOrderManager {
                                                         orderData.orderData.user_info.area,
                                                         orderData.orderData.user_info.address,
                                                       ]
-                                                        .filter(dd => {
-                                                          return dd;
-                                                        })
+                                                        .filter(Boolean)
                                                         .join('')}
                                                     </div>`
                                                 );
@@ -4000,13 +3972,46 @@ export class ShoppingOrderManager {
         ${gvc.bindView({
           bind: 'addProduct',
           view: () => {
-            return html`
-              <div
-                class="w-100 d-flex justify-content-center align-items-center"
-                style="color: #36B;"
-                onclick="${gvc.event(() => {
+            return BgWidget.plusButton({
+              title: '新增一個商品',
+              event: gvc.event(() => {
+                BgWidget.dialog({
+                  gvc,
+                  title: '選擇商品種類',
+                  innerHTML: gvc => {
+                    const buttonHTML = [
+                      { title: '一般商品', value: 'product' },
+                      { title: '加購品', value: 'addProduct' },
+                      { title: '贈品', value: 'giveaway' },
+                      { title: '隱形商品', value: 'hidden' },
+                    ]
+                      .map(item => {
+                        return html`<div class="col-6 p-2">
+                          ${BgWidget.customButton({
+                            button: {
+                              color: 'snow',
+                              size: 'md',
+                              class: 'w-100',
+                              style: 'min-height: 60px;',
+                            },
+                            text: {
+                              name: item.title,
+                            },
+                            event: gvc.event(() => {
+                              gvc.closeDialog();
+                              productDialog(item.value);
+                            }),
+                          })}
+                        </div>`;
+                      })
+                      .join('');
+                    return html`<div class="row px-1">${buttonHTML}</div>`;
+                  },
+                });
+
+                function productDialog(type: string) {
                   let confirm = true;
-                  (window.parent as any).glitter.innerDialog(
+                  return (window.parent as any).glitter.innerDialog(
                     (gvc: GVC) => {
                       newOrder.query = '';
                       newOrder.search = '';
@@ -4056,7 +4061,6 @@ export class ShoppingOrderManager {
                                       value="${newOrder.query ?? ''}"
                                     />
                                   </div>
-
                                   ${BgWidget.updownFilter({
                                     gvc,
                                     callback: (value: any) => {
@@ -4082,6 +4086,8 @@ export class ShoppingOrderManager {
                                           search: newOrder.query,
                                           orderBy: newOrder.orderString,
                                           status: 'inRange',
+                                          filter_visible: `${type !== 'hidden'}`,
+                                          productType: type === 'hidden' ? 'product' : type,
                                         }).then(data => {
                                           searchLoading = true;
                                           newOrder.productArray = data.response.data;
@@ -4226,6 +4232,9 @@ export class ShoppingOrderManager {
                                     newOrder.productTemp = [];
                                     newOrder.productArray.map((product: any) => {
                                       if (product.select) {
+                                        if (type === 'giveaway') {
+                                          product.content.variants.forEach((item: any) => (item.sale_price = 0));
+                                        }
                                         newOrder.productTemp.push(product);
                                       }
                                     });
@@ -4267,37 +4276,12 @@ export class ShoppingOrderManager {
                       },
                     }
                   );
-                })}"
-              >
-                新增一個商品
-                <svg
-                  style="margin-left: 5px;"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                >
-                  <path
-                    d="M1.5 7.23926H12.5"
-                    stroke="#3366BB"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M6.76172 1.5L6.76172 12.5"
-                    stroke="#3366BB"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </div>
-            `;
+                }
+              }),
+            });
           },
           divCreate: {
-            style: `width: 100%;display: flex;align-items: center;margin:24px 0;cursor: pointer;`,
+            style: 'width: 100%; display: flex; align-items: center; margin: 24px 0;',
           },
         })}
         ${BgWidget.horizontalLine()} ${showOrderDetail()}

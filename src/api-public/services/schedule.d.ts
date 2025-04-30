@@ -10,6 +10,8 @@ export declare class Schedule {
     birthRebate(sec: number): Promise<void>;
     birthBlessMail(sec: number): Promise<void>;
     resetVoucherHistory(sec: number): Promise<void>;
+    autoTriggerInvoice(sec: number): Promise<void>;
+    autoSendFCM(sec: number): Promise<void>;
     autoSendMail(sec: number): Promise<void>;
     autoSendLine(sec: number): Promise<void>;
     initialSampleApp(sec: number): Promise<void>;

@@ -39,8 +39,12 @@ exports.config = {
     PARAMS_NEED_ENCRYPT_IN_LOG: ['pwd', 'email'],
     PWD_SALT_ROUND: 5,
     LOG_PATH: path_1.default.resolve('../../log'),
-    DB_CONN_LIMIT: 0,
-    DB_QUEUE_LIMIT: 0,
+    get DB_CONN_LIMIT() {
+        return parseInt(process_1.default.env.DB_CONN_LIMIT, 10);
+    },
+    get DB_QUEUE_LIMIT() {
+        return parseInt(process_1.default.env.DB_QUEUE_LIMIT, 10);
+    },
     DB_SHOW_INFO: false,
     get SNSAccount() {
         return process_1.default.env.SNSAccount;

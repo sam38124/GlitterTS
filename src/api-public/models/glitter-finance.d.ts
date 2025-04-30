@@ -1,4 +1,4 @@
-export declare const onlinePayArray: ({
+export declare function onlinePayArray(): ({
     key: string;
     name: string;
     type?: undefined;

@@ -539,8 +539,10 @@ export class BgBlog {
                 limit: 1,
                 id: window.parent.glitter.getUrlParameter('page-id'),
             }).then((data) => __awaiter(this, void 0, void 0, function* () {
-                vm.data = data.response.data[0];
-                vm.type = 'replace';
+                if (data.result) {
+                    vm.data = data.response.data[0];
+                    vm.type = 'replace';
+                }
             }));
         }
         return gvc.bindView(() => {
@@ -550,7 +552,8 @@ export class BgBlog {
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     if (window.parent.glitter.getUrlParameter('page-id') && vm.type !== 'replace') {
-                        return '';
+                        window.parent.glitter.setUrlParameter('page-id', '');
+                        gvc.notifyDataChange(id);
                     }
                     const pageTabMap = {
                         hidden: '隱形賣場',
@@ -681,15 +684,13 @@ export class BgBlog {
                             },
                         }));
                     }
-                    else {
-                        return editor({
-                            gvc: gvc,
-                            vm: vm,
-                            is_page: is_page,
-                            widget: widget,
-                            page_tab: page_tab,
-                        });
-                    }
+                    return editor({
+                        gvc: gvc,
+                        vm: vm,
+                        is_page: is_page,
+                        widget: widget,
+                        page_tab: page_tab,
+                    });
                 },
             };
         });
@@ -1137,24 +1138,8 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                 window.parent.glitter.share.switch_to_web_builder(`${domainPrefix}/${vm.data.content.tag}`);
             }
             if (origin !== JSON.stringify(vm.data)) {
-                const dialog = new ShareDialog(gvc.glitter);
-                dialog.checkYesOrNot({
-                    text: '偵測到內容變更，是否保留更改?',
-                    callback: response => {
-                        if (response) {
-                            saveData(gvc, cf, vm, cVm, false).then(res => {
-                                if (res) {
-                                    next();
-                                }
-                                else {
-                                    gvc.notifyDataChange(id);
-                                }
-                            });
-                        }
-                        else {
-                            next();
-                        }
-                    },
+                saveData(gvc, cf, vm, cVm, false).then(res => {
+                    res ? next() : gvc.notifyDataChange(id);
                 });
             }
             else {
@@ -1216,6 +1201,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                 }))}
             </div>
           </div>
+          ${BgWidget.mbContainer(18)}
           ${BgWidget.container1x2({
                     html: [
                         gvc.bindView(() => {
@@ -1462,7 +1448,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                 </div>`;
                                                                             }
                                                                             catch (e) {
-                                                                                console.log(`error=>`, e);
+                                                                                console.error(`error=>`, e);
                                                                                 return '';
                                                                             }
                                                                         },
@@ -1541,7 +1527,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                       <div class="form-check-label c_updown_label">
                                                         <div class="tx_normal">產品列表</div>
                                                       </div>
-                                                      ${BgWidget.grayButton('搜尋商品', gvc.event(() => {
+                                                      ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                                     BgProduct.productsDialog({
                                                                                         default: d1.value,
                                                                                         gvc: gvc,
@@ -1624,13 +1610,14 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                   <div class="form-check-label c_updown_label">
                                                     <div class="tx_normal">產品列表</div>
                                                   </div>
-                                                  ${BgWidget.grayButton('搜尋商品', gvc.event(() => {
+                                                  ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                                 BgProduct.productsDialog({
                                                                                     gvc: gvc,
                                                                                     default: vm.data.content.relative_data.map((dd) => {
                                                                                         return `${dd.product_id}-${dd.variant.spec.join('-')}`;
                                                                                     }),
                                                                                     with_variants: true,
+                                                                                    filter_visible: page_tab === 'hidden' ? 'false' : 'true',
                                                                                     callback: (value) => __awaiter(this, void 0, void 0, function* () {
                                                                                         var _a;
                                                                                         vm.data.content.relative_data =
@@ -1737,8 +1724,8 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                             return '';
                                         }
                                         catch (e) {
-                                            console.log(e);
-                                            return `${e}`;
+                                            console.error(e);
+                                            return '';
                                         }
                                     },
                                 };
@@ -1749,7 +1736,6 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                 }, {
                     html: BgWidget.summaryCard(gvc.bindView(() => {
                         var _a;
-                        console.log(`vm.data.content.template=>`, vm.data.content.template);
                         const id = gvc.glitter.getUUID();
                         vm.data.status = (_a = vm.data.status) !== null && _a !== void 0 ? _a : '1';
                         return {
@@ -2055,7 +2041,6 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                 })()
                                 : `blogs`}/${vm.data.content.tag}?preview=true&appName=${window.parent.appName}`;
                         })();
-                        console.log(`vm.data.content=>`, vm.data.content);
                         localStorage.setItem('preview_data', JSON.stringify(vm.data.content));
                         window.parent.glitter.openNewTab(href);
                     }

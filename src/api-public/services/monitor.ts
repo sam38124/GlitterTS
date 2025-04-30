@@ -28,7 +28,7 @@ export class Monitor{
                     base_url:req.baseUrl,
                     req_type:obj.req_type
                 }
-            ])
+            ]);
         }catch (e) {
 
         }

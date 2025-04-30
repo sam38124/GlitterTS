@@ -9,9 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { BgProduct } from '../backend-manager/bg-product.js';
-import { ApiPageConfig } from '../api/pageConfig.js';
 import { ApiUser } from '../glitter-base/route/user.js';
-import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { QuestionInfo } from './module/question-info.js';
 import { Tool } from '../modules/tool.js';
 const html = String.raw;
@@ -753,7 +751,7 @@ export class ShoppingSettingAdvance {
                                 var _a;
                                 let loading = true;
                                 let dataList = [];
-                                postMD.designated_logistics = (_a = postMD.designated_logistics) !== null && _a !== void 0 ? _a : { type: 'all', list: [] };
+                                postMD.designated_logistics = (_a = postMD.designated_logistics) !== null && _a !== void 0 ? _a : { group: '' };
                                 return {
                                     bind: 'designatedLogistics',
                                     view: () => {
@@ -785,79 +783,30 @@ export class ShoppingSettingAdvance {
                                                                 key: 'designated',
                                                                 value: '指定物流',
                                                             },
-                                                        ],
+                                                        ].filter(item => {
+                                                            return !(item.key === 'designated' && dataList.length === 0);
+                                                        }),
                                                         style: 'width: 100%;',
                                                     })}
                                       <div>
                                         ${(() => {
                                                         switch (postMD.designated_logistics.type) {
                                                             case 'designated':
-                                                                return (() => {
-                                                                    const designatedVM = {
-                                                                        id: gvc.glitter.getUUID(),
-                                                                        loading: true,
-                                                                        dataList: [],
-                                                                    };
-                                                                    return gvc.bindView({
-                                                                        bind: designatedVM.id,
-                                                                        view: () => {
-                                                                            var _a;
-                                                                            if (designatedVM.loading) {
-                                                                                return BgWidget.spinner({ text: { visible: false } });
-                                                                            }
-                                                                            else {
-                                                                                return BgWidget.selectDropList({
-                                                                                    gvc: gvc,
-                                                                                    callback: (value) => {
-                                                                                        postMD.designated_logistics.list = value;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    },
-                                                                                    default: (_a = postMD.designated_logistics.list) !== null && _a !== void 0 ? _a : [],
-                                                                                    options: designatedVM.dataList,
-                                                                                    style: 'width: 100%;',
-                                                                                });
-                                                                            }
-                                                                        },
-                                                                        divCreate: {
-                                                                            style: 'width: 100%;',
-                                                                        },
-                                                                        onCreate: () => {
-                                                                            if (designatedVM.loading) {
-                                                                                ApiPageConfig.getPrivateConfig(window.parent.appName, 'logistics_setting')
-                                                                                    .then((dd) => {
-                                                                                    var _a;
-                                                                                    if (!dd.result || !dd.response.result[0]) {
-                                                                                        throw new Error('Failed to fetch logistics setting or empty result.');
-                                                                                    }
-                                                                                    const shipment_setting = dd.response.result[0].value;
-                                                                                    const combinedList = [
-                                                                                        ...ShipmentConfig.list.map(dd => ({
-                                                                                            name: dd.title,
-                                                                                            value: dd.value,
-                                                                                        })),
-                                                                                        ...((_a = shipment_setting.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => ({
-                                                                                            form: dd.form,
-                                                                                            name: dd.name,
-                                                                                            value: dd.id,
-                                                                                        })),
-                                                                                    ];
-                                                                                    const supportedList = combinedList.filter(d1 => shipment_setting.support.some((d2) => d2 === d1.value));
-                                                                                    designatedVM.dataList = supportedList.map(item => ({
-                                                                                        key: item.value,
-                                                                                        value: item.name,
-                                                                                    }));
-                                                                                    designatedVM.loading = false;
-                                                                                    gvc.notifyDataChange(designatedVM.id);
-                                                                                })
-                                                                                    .catch(error => {
-                                                                                    console.error('Error fetching logistics setting:', error);
-                                                                                    designatedVM.loading = false;
-                                                                                    gvc.notifyDataChange(designatedVM.id);
-                                                                                });
-                                                                            }
-                                                                        },
-                                                                    });
-                                                                })();
+                                                                return BgWidget.selectDropList({
+                                                                    gvc: gvc,
+                                                                    callback: (value) => {
+                                                                        postMD.designated_logistics.group = value;
+                                                                        gvc.notifyDataChange(id);
+                                                                    },
+                                                                    default: postMD.designated_logistics.group || [],
+                                                                    options: dataList.map((data) => {
+                                                                        return {
+                                                                            key: data.key,
+                                                                            value: data.name,
+                                                                        };
+                                                                    }),
+                                                                    style: 'width: 100%;',
+                                                                });
                                                             default:
                                                                 return '';
                                                         }
@@ -871,10 +820,10 @@ export class ShoppingSettingAdvance {
                                     },
                                     onCreate: () => {
                                         if (loading) {
-                                            ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then(res => {
+                                            ApiUser.getPublicConfig('logistics_group', 'manager').then(r => {
                                                 dataList = (() => {
                                                     try {
-                                                        return res.response.result[0].value;
+                                                        return r.response.value;
                                                     }
                                                     catch (error) {
                                                         return dataList;
@@ -990,34 +939,9 @@ export class ShoppingSettingAdvance {
                                                 postMD.email_notice = content;
                                             },
                                             title: '內容編輯',
-                                            quick_insert: (() => {
-                                                return [
-                                                    {
-                                                        title: '商家名稱',
-                                                        value: '@{{app_name}}',
-                                                    },
-                                                    {
-                                                        title: '會員姓名',
-                                                        value: '@{{user_name}}',
-                                                    },
-                                                    {
-                                                        title: '姓名',
-                                                        value: '@{{姓名}}',
-                                                    },
-                                                    {
-                                                        title: '電話',
-                                                        value: '@{{電話}}',
-                                                    },
-                                                    {
-                                                        title: '地址',
-                                                        value: '@{{地址}}',
-                                                    },
-                                                    {
-                                                        title: '信箱',
-                                                        value: '@{{信箱}}',
-                                                    },
-                                                ];
-                                            })(),
+                                            quick_insert: BgWidget.richTextQuickList.filter(item => {
+                                                return !['訂單號碼', '訂單金額'].includes(item.title);
+                                            }),
                                         })}
                         `;
                                     }

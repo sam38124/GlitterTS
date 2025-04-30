@@ -34,7 +34,7 @@ export class CmsRouter{
                            case 'ig_live':
                            case 'line_plus':
                                resolve(`<div class="d-flex w-100 align-items-center justify-content-center">
-<div class="insignia insignia-warning">功能優化中，預計於4月15號重新開放!</div>
+<div class="insignia insignia-warning">功能優化中，預計於4月30號重新開放!</div>
 </div>`)
                                break
                            // case 'fb_live':
@@ -67,9 +67,20 @@ export class CmsRouter{
                                    resolve(cl.main(gvc))
                                })
                                break
+                           case 'pos_setting':
+                               gvc.glitter.getModule(new URL('./cms-plugin/pos-config-setting.js', gvc.glitter.root_path).href, (cl) => {
+                                   resolve(cl.main(gvc))
+                               })
+                               break
                            case 'auto_fcm_push':
                                gvc.glitter.getModule(new URL('./cms-plugin/auto-fcm-push.js', gvc.glitter.root_path).href, (cl) => {
                                    resolve(cl.main(gvc))
+                               })
+                               break
+                           case 'auto_fcm_history':
+                               // resolve('12345')
+                               gvc.glitter.getModule(new URL('./cms-plugin/auto-fcm-history.js', gvc.glitter.root_path).href, (cl) => {
+                                   resolve(cl.emailHistory(gvc))
                                })
                                break
                            case 'auto_fcm_advertise':

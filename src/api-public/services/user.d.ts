@@ -18,9 +18,10 @@ interface UserQuery {
     member_levels?: string;
     groupType?: string;
     groupTag?: string;
-    filter_type?: string;
+    filter_type?: 'block' | 'normal' | 'watch' | 'excel';
     tags?: string;
     all_result?: boolean;
+    only_id: string;
 }
 interface GroupUserItem {
     userID: number;
@@ -50,10 +51,20 @@ type MemberLevel = {
     };
     create_date: string;
 };
+interface StoreDataMode {
+    payload: string[];
+    progress: string[];
+    orderStatus: string[];
+}
 export declare class User {
     app: string;
     token?: IToken;
     constructor(app: string, token?: IToken);
+    static typeMap: {
+        block: number;
+        normal: number;
+        watch: number;
+    };
     static generateUserID(): string;
     findAuthUser(email?: string): Promise<any>;
     emailVerify(account: string): Promise<{
@@ -205,6 +216,7 @@ export declare class User {
         key: string;
         user_id: string;
     }): Promise<any>;
+    static configData: any;
     getConfigV2(config: {
         key: string;
         user_id: string;
@@ -224,5 +236,10 @@ export declare class User {
     forgetPassword(email: string): Promise<void>;
     static ipInfo(ip: string): Promise<any>;
     getCheckoutCountingModeSQL(table?: string): Promise<string>;
+    getInvoiceCountingModeSQL(table?: string): Promise<{
+        invoice_mode: any;
+        sql_string: string;
+    }>;
+    getOrderModeQuery(storeData: StoreDataMode, table?: string): Promise<string[]>;
 }
 export {};

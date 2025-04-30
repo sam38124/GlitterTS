@@ -29,7 +29,7 @@ export class EditorElem {
                 obj.callback(e.value);
               })}"
             />
-            <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+            <div style="width: 1px;height: 25px;background-color: white;"></div>
             <i
               class="fa-regular fa-eye text-black ms-2"
               style="cursor: pointer;"
@@ -205,18 +205,14 @@ export class EditorElem {
 
   public static flexMediaManager(obj: { gvc: GVC; data: string[] }) {
     obj.gvc.addStyle(`
-            .p-hover-image:hover {
-                opacity: 1 !important; /* 在父元素悬停时，底层元素可见 */
-            }
-        `);
+      .p-hover-image:hover {
+        opacity: 1 !important; /* 在父元素悬停时，底层元素可见 */
+      }
+    `);
     const data = obj.data;
     return obj.gvc.bindView(() => {
       obj.gvc.addMtScript(
-        [
-          {
-            src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
-          },
-        ],
+        [{ src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js` }],
         () => {},
         () => {}
       );
@@ -233,7 +229,7 @@ export class EditorElem {
             </div>`;
           }
           return html`
-            <div class="" style="gap:10px; ">
+            <div style="gap:10px; ">
               <ul id="${bid}" class="d-flex " style="gap:10px;overflow-x: auto;">
                 ${data
                   .map((dd, index) => {
@@ -315,10 +311,10 @@ export class EditorElem {
   public static flexMediaManagerV2(obj: { gvc: GVC; data: string[] }) {
     const data = obj.data;
     obj.gvc.addStyle(`
-            .p-hover-image:hover {
-                opacity: 1 !important;
-            }
-        `);
+      .p-hover-image:hover {
+        opacity: 1 !important;
+      }
+    `);
     return obj.gvc.bindView(() => {
       obj.gvc.addMtScript(
         [
@@ -415,7 +411,7 @@ export class EditorElem {
                           );
                         })}"
                       >
-                        <span class="tx_700" style="">ALT</span>
+                        <span class="tx_700">ALT</span>
                       </button>
                       <i
                         class="fa-regular fa-eye"
@@ -471,11 +467,11 @@ export class EditorElem {
             if ((window as any).Sortable) {
               try {
                 obj.gvc.addStyle(`
-                                    ul {
-                                        list-style: none;
-                                        padding: 0;
-                                    }
-                                `);
+                  ul {
+                    list-style: none;
+                    padding: 0;
+                  }
+                `);
 
                 function swapArr(arr: any, index1: number, index2: number) {
                   const data = arr[index1];
@@ -578,9 +574,11 @@ export class EditorElem {
                 type: 'getData',
                 value: obj.dontRefactor
                   ? obj.initial
-                  : `style {
-    ${addNewlineAfterSemicolon(obj.initial)}
-}`,
+                  : `
+                      style {
+                        ${addNewlineAfterSemicolon(obj.initial)}
+                      }
+                    `,
                 language: 'css',
                 refactor: !obj.dontRefactor,
               },
@@ -751,20 +749,6 @@ export class EditorElem {
     });
   }
 
-  public static pageEditor(cf: { page: string; width: number; height: number; par: { key: string; value: string }[] }) {
-    const href = new URL(location.href);
-    href.searchParams.set('page', cf.page);
-    href.searchParams.set('type', 'editor');
-    href.searchParams.set('editorPosition', '0');
-    href.searchParams.set('blogEditor', 'true');
-    cf.par.map(dd => {
-      href.searchParams.set(dd.key, dd.value);
-    });
-    return html`
-            <iframe class="rounded-3"
-                    ${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
-  }
-
   public static iframeComponent(cf: {
     page: string;
     width: number;
@@ -778,9 +762,7 @@ export class EditorElem {
     cf.par.map(dd => {
       href.searchParams.set(dd.key, dd.value);
     });
-    return html`
-            <iframe class="rounded-3"
-                    ${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
+    return html` <iframe class="rounded-3" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
   }
 
   public static codeEditor(obj: {
@@ -807,9 +789,8 @@ export class EditorElem {
             childWindow.postMessage(
               {
                 type: 'getData',
-                value: `${obj.structStart ? obj.structStart : `(()=>{`}
-${obj.initial ?? ''}
-${obj.structEnd ? obj.structEnd : '})()'}`,
+                value: `${obj.structStart ? obj.structStart : `(()=>{`} ${obj.initial ?? ''}
+                ${obj.structEnd ? obj.structEnd : '})()'}`,
                 language: 'javascript',
                 refactor: true,
                 structStart: obj.structStart,
@@ -916,7 +897,10 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
               ></iframe>
             `;
           },
-          divCreate: { class: `w-100 `, style: `height:${height}px;` },
+          divCreate: {
+            class: `w-100`,
+            style: `height: ${height}px;`,
+          },
           onDestroy: () => {
             gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd: any) => {
               return dd.id === frameID;
@@ -1058,35 +1042,35 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
       ]);
 
       gvc.addStyle(`
-                #${richID} li {
-                    list-style: revert;
+        #${richID} li {
+          list-style: revert;
+        }
+        #${richID} iframe.fr-draggable {
+          height: 600px;
+        }
+        #insertImage-1 {
+          display: none !important;
+        }
+        #insertImage-2 {
+          display: none !important;
+        }
+        .fr-sticky-dummy {
+          display: none !important;
+        }
+        ${
+          obj.hiddenBorder
+            ? css`
+                .fr-box {
+                  border: none !important;
                 }
-                #${richID} iframe.fr-draggable{
-                    height: 600px;
-                }
-                #insertImage-1 {
-                    display: none !important;
-                }
-                #insertImage-2 {
-                    display: none !important;
-                }
-                .fr-sticky-dummy {
-                    display: none !important;
-                }
-                ${
-                  obj.hiddenBorder
-                    ? css`
-                        .fr-box {
-                          border: none !important;
-                        }
 
-                        .fr-box > div {
-                          border: none !important;
-                        }
-                      `
-                    : ''
+                .fr-box > div {
+                  border: none !important;
                 }
-            `);
+              `
+            : ''
+        }
+      `);
 
       function generateFontSizeArray() {
         let fontSizes = [];
@@ -1143,19 +1127,24 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
               async (BgWidget: any) => {
                 resolve(html`
                   ${obj.quick_insert && obj.quick_insert.length
-                    ? `
-                         <div class="d-flex align-items-center border-bottom w-100 p-3 flex-wrap" style="gap:8px;">
-                            快速插入
-                            ${obj.quick_insert
-                              .map(dd => {
-                                return `<div onclick="${gvc.event(() => {
+                    ? html`
+                        <div class="d-flex align-items-center w-100 p-2 flex-wrap" style="gap:8px;">
+                          快速插入
+                          ${obj.quick_insert
+                            .map(dd => {
+                              return html`<div
+                                style="cursor: pointer;"
+                                onclick="${gvc.event(() => {
                                   editor.selection.restore();
                                   editor.html.insert(dd.value);
-                                })}">${BgWidget.normalInsignia(dd.title)}</div>`;
-                              })
-                              .join('')}
+                                })}"
+                              >
+                                ${BgWidget.normalInsignia(dd.title)}
+                              </div>`;
+                            })
+                            .join('')}
                         </div>
-                        `
+                      `
                     : ``}
                   <div
                     class="w-100 bg-white d-flex align-items-center justify-content-center flex-column "
@@ -1219,10 +1208,10 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     showOnMobile: true,
                     refreshAfterCallback: true,
                     callback: function () {
-                      console.log(this.html.get());
+                      console.info(this.html.get());
                     },
                     refresh: function () {
-                      console.log(this.selection.element());
+                      console.info(this.selection.element());
                     },
                   });
 
@@ -1320,27 +1309,25 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                         }, 200);
                       },
                       // 'keydown': function () {
-                      //     console.log('光標位置可能改變 (按下鍵):', editor.selection.get());
+                      //     console.info('光標位置可能改變 (按下鍵):', editor.selection.get());
                       //     editor.selection.save()
                       //     dataChange()
                       // },
-                      // // 在鬆開按鍵時觸發
                       // 'keyup': function () {
-                      //     console.log('光標位置改變 (鬆開鍵):', editor.selection.get());
+                      //     console.info('光標位置改變 (鬆開鍵):', editor.selection.get());
                       //     editor.selection.save()
                       //     dataChange()
                       // },
                       // 'mouseup': function () {
-                      //     console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
+                      //     console.info('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
                       //     editor.selection.save()
                       // },
                       mouseup: function () {
-                        console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
+                        console.info('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
                         editor.selection.save();
                       },
-                      // // 當編輯器獲得焦點時觸發
                       // 'focus': function () {
-                      //     console.log('光標位置改變 (焦點獲得):', editor.selection.get());
+                      //     console.info('光標位置改變 (焦點獲得):', editor.selection.get());
                       // }
                     },
                     key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
@@ -1607,73 +1594,72 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
     const glitter = (window as any).glitter;
     const $ = glitter.$;
 
-    return `${EditorElem.h3(obj.title)}
-${obj.gvc.bindView(() => {
-  const id = glitter.getUUID();
-  return {
-    bind: id,
-    view: () => {
-      return html`<input
-          class="flex-fill form-control "
-          placeholder="請輸入檔案連結"
-          value="${obj.def ?? ''}"
-          onchange="${obj.gvc.event((e: any) => {
-            obj.callback(e.value);
-          })}"
-          ${obj.readonly ? `readonly` : ``}
-        />
-        <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
-        ${!obj.readonly
-          ? html`<i
-              class="fa-regular fa-upload  ms-2 fs-5"
-              style="cursor: pointer;color:black;"
-              onclick="${obj.gvc.event(() => {
-                glitter.ut.chooseMediaCallback({
-                  single: true,
-                  accept: '*',
-                  callback(data: any) {
-                    const saasConfig: {
-                      config: any;
-                      api: any;
-                    } = (window as any).saasConfig;
-                    const dialog = new ShareDialog(obj.gvc.glitter);
-                    dialog.dataLoading({ visible: true });
-                    const file = data[0].file;
-                    saasConfig.api.uploadFile(file.name).then((data: any) => {
-                      dialog.dataLoading({ visible: false });
-                      const data1 = data.response;
-                      dialog.dataLoading({ visible: true });
-                      BaseApi.create({
-                        url: data1.url,
-                        type: 'put',
-                        data: file,
-                        headers: {
-                          'Content-Type': data1.type,
-                        },
-                      }).then(res => {
-                        if (res.result) {
-                          dialog.dataLoading({ visible: false });
-                          obj.def = data1.fullUrl;
-                          obj.callback(data1.fullUrl);
-                          obj.gvc.notifyDataChange(id);
-                        } else {
-                          dialog.dataLoading({ visible: false });
-                          dialog.errorMessage({ text: '上傳失敗' });
-                        }
-                      });
-                    });
-                  },
-                });
+    return html`${EditorElem.h3(obj.title)}
+    ${obj.gvc.bindView(() => {
+      const id = glitter.getUUID();
+      return {
+        bind: id,
+        view: () => {
+          return html`<input
+              class="flex-fill form-control "
+              placeholder="請輸入檔案連結"
+              value="${obj.def ?? ''}"
+              onchange="${obj.gvc.event((e: any) => {
+                obj.callback(e.value);
               })}"
-            ></i>`
-          : ``} `;
-    },
-    divCreate: {
-      class: `d-flex align-items-center mb-2`,
-    },
-  };
-})}
-          `;
+              ${obj.readonly ? `readonly` : ``}
+            />
+            <div style="width: 1px;height: 25px;background-color: white;"></div>
+            ${!obj.readonly
+              ? html`<i
+                  class="fa-regular fa-upload  ms-2 fs-5"
+                  style="cursor: pointer;color:black;"
+                  onclick="${obj.gvc.event(() => {
+                    glitter.ut.chooseMediaCallback({
+                      single: true,
+                      accept: '*',
+                      callback(data: any) {
+                        const saasConfig: {
+                          config: any;
+                          api: any;
+                        } = (window as any).saasConfig;
+                        const dialog = new ShareDialog(obj.gvc.glitter);
+                        dialog.dataLoading({ visible: true });
+                        const file = data[0].file;
+                        saasConfig.api.uploadFile(file.name).then((data: any) => {
+                          dialog.dataLoading({ visible: false });
+                          const data1 = data.response;
+                          dialog.dataLoading({ visible: true });
+                          BaseApi.create({
+                            url: data1.url,
+                            type: 'put',
+                            data: file,
+                            headers: {
+                              'Content-Type': data1.type,
+                            },
+                          }).then(res => {
+                            if (res.result) {
+                              dialog.dataLoading({ visible: false });
+                              obj.def = data1.fullUrl;
+                              obj.callback(data1.fullUrl);
+                              obj.gvc.notifyDataChange(id);
+                            } else {
+                              dialog.dataLoading({ visible: false });
+                              dialog.errorMessage({ text: '上傳失敗' });
+                            }
+                          });
+                        });
+                      },
+                    });
+                  })}"
+                ></i>`
+              : ``} `;
+        },
+        divCreate: {
+          class: `d-flex align-items-center mb-2`,
+        },
+      };
+    })} `;
   }
 
   public static uploadFileFunction(obj: {
@@ -1736,7 +1722,7 @@ ${obj.gvc.bindView(() => {
             obj.callback(e.value);
           })}"
         />
-        <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+        <div style="width: 1px;height: 25px;background-color: white;"></div>
         <i
           class="fa-regular fa-upload text-white ms-2"
           style="cursor: pointer;"
@@ -1806,7 +1792,7 @@ ${obj.gvc.bindView(() => {
             obj.callback(e.value);
           })}"
         />
-        <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+        <div style="width: 1px;height: 25px;background-color: white;"></div>
         <i
           class="fa-regular fa-upload text-white ms-2"
           style="cursor: pointer;"
@@ -2053,11 +2039,11 @@ ${obj.gvc.bindView(() => {
                 divCreate: {
                   class: `dropdown-menu`,
                   style: `
-                                        transform: translateY(40px);
-                                        max-height: 200px;
-                                        overflow-y: scroll;
-                                        position: fixed;
-                                    `,
+                    transform: translateY(40px);
+                    max-height: 200px;
+                    overflow-y: scroll;
+                    position: fixed;
+                  `,
                 },
               };
             })}
@@ -2105,7 +2091,7 @@ ${obj.gvc.bindView(() => {
               return {
                 bind: id2,
                 view: () => {
-                  return html` <div class="" style="position: absolute;transform: translateY(-50%);top:50%;left:20px;">
+                  return html` <div style="position: absolute;transform: translateY(-50%);top:50%;left:20px;">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <g clip-path="url(#clip0_12704_238948)">
                           <path
@@ -2221,7 +2207,7 @@ ${obj.gvc.bindView(() => {
               return {
                 bind: id2,
                 view: () => {
-                  return html` <div class="" style="position: absolute;transform: translateY(-50%);top:50%;left:20px;">
+                  return html` <div style="position: absolute;transform: translateY(-50%);top:50%;left:20px;">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <g clip-path="url(#clip0_12704_238948)">
                           <path
@@ -2472,25 +2458,28 @@ ${obj.gvc.bindView(() => {
       return {
         bind: id,
         view: () => {
-          return `
-   ${EditorElem.colorBtn({
-     gvc: obj.gvc,
-     def: obj.def,
-     callback: value => {
-       obj.callback(value);
-       obj.gvc.notifyDataChange(id);
-     },
-   })}
-
-            <input class="flex-fill ms-2" value="${obj.def}" placeholder="" style="border:none;width:100px;" onclick="${obj.gvc.event(
-              (e, event) => {
+          return html` ${EditorElem.colorBtn({
+              gvc: obj.gvc,
+              def: obj.def,
+              callback: value => {
+                obj.callback(value);
+                obj.gvc.notifyDataChange(id);
+              },
+            })}
+            <input
+              class="flex-fill ms-2"
+              value="${obj.def}"
+              placeholder=""
+              style="border:none;width:100px;"
+              onclick="${obj.gvc.event((e, event) => {
                 (document.querySelector(`[gvc-id='${obj.gvc.id(id)}'] .pcr-button`) as any).click();
-              }
-            )}" onchange="${obj.gvc.event((e, event) => {
-              obj.callback(e.value);
-              obj.gvc.notifyDataChange(id);
-              (document.querySelector('.pcr-app.visible') as any).classList.remove('visible');
-            })}">`;
+              })}"
+              onchange="${obj.gvc.event((e, event) => {
+                obj.callback(e.value);
+                obj.gvc.notifyDataChange(id);
+                (document.querySelector('.pcr-app.visible') as any).classList.remove('visible');
+              })}"
+            />`;
         },
         divCreate: {
           class: `mt-2 d-flex align-items-center`,
@@ -2502,8 +2491,7 @@ ${obj.gvc.bindView(() => {
 
   public static colorBtn(obj: { gvc: GVC; def: string; style?: string; callback: (text: string) => void }) {
     const gvc = obj.gvc;
-    const css = String.raw;
-    gvc.addStyle(css`
+    gvc.addStyle(`
       .pcr-button {
         width: 18px !important;
         height: 18px !important;
@@ -2887,7 +2875,6 @@ ${obj.gvc.bindView(() => {
                   class="editor_item d-flex px-2 my-0 hi me-n1  ${dd.toggle || childSelect || obj.isOptionSelected(dd)
                     ? `active`
                     : ``}"
-                  style=""
                   onclick="${gvc.event(() => {
                     if (dd.type === 'container') {
                       dd.toggle = !dd.toggle;
@@ -2949,11 +2936,11 @@ ${obj.gvc.bindView(() => {
             if ((window as any).Sortable) {
               try {
                 gvc.addStyle(`
-                                    ul {
-                                        list-style: none;
-                                        padding: 0;
-                                    }
-                                `);
+                  ul {
+                    list-style: none;
+                    padding: 0;
+                  }
+                `);
 
                 function swapArr(arr: any, index1: number, index2: number) {
                   const data = arr[index1];
@@ -3034,17 +3021,16 @@ ${obj.gvc.bindView(() => {
           );
           if (obj.hoverGray) {
             gvc.addStyle(`
-                          
-                            #${parId} .li_item:hover{
-                                background-color: #F7F7F7;
-                            }
-                            #${parId} .li_item:hover .option{
-                                background-color:#DDD;
-                            }
-                            #${parId} .li_item:hover .pen{
-                                display:block;
-                            }
-                        `);
+              #${parId} .li_item:hover {
+                background-color: #f7f7f7;
+              }
+              #${parId} .li_item:hover .option {
+                background-color: #ddd;
+              }
+              #${parId} .li_item:hover .pen {
+                display: block;
+              }
+            `);
           }
           return {
             bind: parId,
@@ -3270,11 +3256,11 @@ ${obj.gvc.bindView(() => {
                   if ((window as any).Sortable) {
                     try {
                       obj.gvc.addStyle(`
-                                                ul {
-                                                    list-style: none;
-                                                    padding: 0;
-                                                }
-                                            `);
+                        ul {
+                          list-style: none;
+                          padding: 0;
+                        }
+                      `);
 
                       function swapArr(arr: any, index1: number, index2: number) {
                         const data = arr[index1];
@@ -3452,16 +3438,16 @@ ${obj.gvc.bindView(() => {
           );
           if (obj.hoverGray) {
             gvc.addStyle(`
-                            #${parId}:hover{
-                                background-color: #F7F7F7;
-                            }
-                            #${parId} :hover .option{
-                                background-color:#DDD;
-                            }
-                            #${parId} :hover .pen{
-                                display:block;
-                            }
-                        `);
+              #${parId}:hover {
+                background-color: #f7f7f7;
+              }
+              #${parId} :hover .option {
+                background-color: #ddd;
+              }
+              #${parId} :hover .pen {
+                display: block;
+              }
+            `);
           }
           return {
             bind: parId,
@@ -3686,11 +3672,11 @@ ${obj.gvc.bindView(() => {
                   if ((window as any).Sortable) {
                     try {
                       obj.gvc.addStyle(`
-                                                ul {
-                                                    list-style: none;
-                                                    padding: 0;
-                                                }
-                                            `);
+                        ul {
+                          list-style: none;
+                          padding: 0;
+                        }
+                      `);
 
                       function swapArr(arr: any, index1: number, index2: number) {
                         const data = arr[index1];
@@ -3886,7 +3872,6 @@ ${obj.gvc.bindView(() => {
           </div>
         </div>
         <div
-          class=""
           style="max-height:calc(100vh - 150px);overflow-y:auto;width: ${width ||
           gvc.glitter.ut.frSize(
             {

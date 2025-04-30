@@ -154,7 +154,10 @@ init(import.meta.url, (gvc, glitter, gBundle: Bundle) => {
               content: gBundle.obj?.text ?? '系統提示',
               confirm: {
                 title: Language.text('okay'),
-                event: () => gvc.closeDialog(),
+                event: () => {
+                  gBundle.obj?.callback?.(true);
+                  gvc.closeDialog()
+                }
               },
               width: 420,
             });

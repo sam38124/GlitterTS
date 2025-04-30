@@ -900,6 +900,7 @@ export class BgLine {
             ApiUser.getUserList({
               page: 0,
               limit: 99999,
+              only_id:true
             }).then(dd => {
               dd.response.data.map((user: any) => {
                 if (user.userData.lineID) {
@@ -1268,9 +1269,10 @@ export class BgLine {
                                   text: '取得所有會員資料中...',
                                 });
                                 new Promise(resolve => {
-                                  ApiUser.getUserListOrders({
+                                  ApiUser.getUserList({
                                     page: 0,
                                     limit: 99999,
+                                    only_id:true
                                   }).then(dd => {
                                     if (dd.response.data) {
                                       const ids: number[] = [];
@@ -1334,11 +1336,10 @@ export class BgLine {
                                       default: getDefault([]),
                                       api: (data: { query: string; orderString: string }) => {
                                         return new Promise(resolve => {
-                                          ApiUser.getUserListOrders({
+                                          ApiUser.getUserList({
                                             page: 0,
                                             limit: 99999,
-                                            search: data.query,
-                                            orderString: data.orderString,
+                                            search: data.query,  only_id:true,
                                           }).then(dd => {
                                             if (dd.response.data) {
                                               vm.dataList = dd.response.data

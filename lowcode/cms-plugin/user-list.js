@@ -34,6 +34,7 @@ export class UserList {
         const vm = {
             id: glitter.getUUID(),
             loading: true,
+            tabLoading: true,
             type: 'list',
             data: {},
             dataList: undefined,
@@ -41,7 +42,7 @@ export class UserList {
             queryType: '',
             orderString: '',
             filter: {},
-            filter_type: `normal`,
+            filter_type: 'normal',
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
             barId: glitter.getUUID(),
@@ -131,14 +132,7 @@ export class UserList {
                     },
                     {
                         key: '用戶狀態',
-                        value: (() => {
-                            if (dd.status === 1) {
-                                return html `<div class="badge bg-info fs-7" style="max-height:34px;">啟用中</div>`;
-                            }
-                            else {
-                                return html `<div class="badge bg-danger fs-7" style="max-height:34px;">已停用</div>`;
-                            }
-                        })(),
+                        value: (UserList.statusBadge[dd.status] || UserList.statusBadge['1'])(),
                     },
                 ].filter(item => {
                     if (!vm.headerConfig.includes(item.key)) {
@@ -239,6 +233,10 @@ export class UserList {
                                 key: 'normal',
                             },
                             {
+                                title: '觀察名單',
+                                key: 'watch',
+                            },
+                            {
                                 title: '黑名單',
                                 key: 'block',
                             },
@@ -253,12 +251,27 @@ export class UserList {
                                 key: 'normal',
                             },
                             {
+                                title: '觀察名單',
+                                key: 'watch',
+                            },
+                            {
                                 title: '黑名單',
                                 key: 'block',
                             },
                         ], gvc, vm.filter_type, text => {
-                        vm.filter_type = text;
-                        gvc.notifyDataChange(vm.id);
+                        if (vm.tabLoading) {
+                            BgWidget.jumpAlert({
+                                gvc,
+                                text: '系統繁忙中，請稍後重試',
+                                justify: 'top',
+                                align: 'center',
+                                width: 240,
+                            });
+                        }
+                        else {
+                            vm.filter_type = text;
+                            gvc.notifyDataChange(vm.id);
+                        }
                     })}
             ${BgWidget.container((() => {
                         if (vm.filter_type === 'notRegistered') {
@@ -343,6 +356,7 @@ export class UserList {
                                             gvc: gvc,
                                             getData: vd => {
                                                 vmi = vd;
+                                                vm.tabLoading = true;
                                                 UserList.vm.page = vmi.page;
                                                 const limit = 20;
                                                 vm.apiJSON = {
@@ -373,6 +387,7 @@ export class UserList {
                                                         gvc.notifyDataChange(vm.id);
                                                     }
                                                     vmi.loading = false;
+                                                    vm.tabLoading = false;
                                                     vmi.callback();
                                                 });
                                             },
@@ -458,9 +473,11 @@ export class UserList {
     }
     static posSelect(gvc, obj) {
         const glitter = gvc.glitter;
+        const dialog = new ShareDialog(glitter);
         const vm = {
             id: glitter.getUUID(),
             loading: true,
+            tabLoading: true,
             type: 'list',
             data: {},
             dataList: undefined,
@@ -468,7 +485,7 @@ export class UserList {
             queryType: '',
             orderString: '',
             filter: {},
-            filter_type: `normal`,
+            filter_type: 'normal',
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
             barId: glitter.getUUID(),
@@ -511,14 +528,7 @@ export class UserList {
                     },
                     {
                         key: '用戶狀態',
-                        value: (() => {
-                            if (dd.status === 1) {
-                                return html `<div class="badge bg-info fs-7" style="max-height:34px;">啟用中</div>`;
-                            }
-                            else {
-                                return html `<div class="badge bg-danger fs-7" style="max-height:34px;">已停用</div>`;
-                            }
-                        })(),
+                        value: (UserList.statusBadge[dd.status] || UserList.statusBadge['1'])(),
                     },
                 ];
             });
@@ -602,7 +612,6 @@ export class UserList {
                                         {
                                             name: '批量移除',
                                             event: checkedData => {
-                                                const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.checkYesOrNot({
                                                     text: '是否確認刪除所選項目？',
                                                     callback: response => {
@@ -747,6 +756,7 @@ export class UserList {
             type: 'list',
             plan: GlobalUser.getPlan().id,
         };
+        const dialog = new ShareDialog(gvc.glitter);
         function regetData() {
             ApiUser.getPublicUserData(cf.userID).then(dd => {
                 vm.data = dd.response;
@@ -862,7 +872,6 @@ export class UserList {
                             function getButtonList() {
                                 return html `<div class="ms-auto d-flex" style="gap: 14px;">
                   ${BgWidget.grayButton('刪除顧客', gvc.event(() => {
-                                    const dialog = new ShareDialog(gvc.glitter);
                                     dialog.warningMessage({
                                         text: '您即將刪除此顧客的所有資料，此操作無法復原。確定要刪除嗎？',
                                         callback: response => {
@@ -877,29 +886,77 @@ export class UserList {
                                         },
                                     });
                                 }))}
-                  ${BgWidget.grayButton(vm.data.status ? '加入黑名單' : '解除黑名單', gvc.event(() => {
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    dialog.warningMessage({
-                                        text: vm.data.status
-                                            ? '加入黑名單之後，此顧客將無法再進行登入、購買及使用其他功能。<br/>確定要加入黑名單嗎？'
-                                            : '解除黑名單後，此顧客將恢復正常權限。<br/>確定要解除黑名單嗎？',
-                                        callback: response => {
-                                            if (response) {
-                                                dialog.dataLoading({ text: '更新中', visible: true });
-                                                vm.data.userData.type = vm.data.status ? 'block' : 'normal';
-                                                ApiUser.updateUserDataManager(vm.data, vm.data.userID).then(response => {
-                                                    dialog.dataLoading({ text: '', visible: false });
-                                                    if (response.result) {
-                                                        regetData();
-                                                        dialog.successMessage({ text: '更新成功' });
-                                                        vm.loading = true;
-                                                        gvc.notifyDataChange(vm.id);
-                                                    }
-                                                    else {
-                                                        dialog.errorMessage({ text: '更新異常' });
-                                                    }
+                  ${BgWidget.grayButton('調整顧客狀態', gvc.event(() => {
+                                    BgWidget.dialog({
+                                        gvc,
+                                        title: '調整顧客狀態',
+                                        innerHTML: gvc => {
+                                            return html `
+                            <div>
+                              <div class="tx_700 mb-2">將此顧客狀態修改成：</div>
+                              <div class="d-flex gap-2 ${document.body.clientWidth > 768 ? '' : 'flex-column'}">
+                                ${[
+                                                { title: '一般會員', value: 'normal' },
+                                                { title: '觀察名單', value: 'watch' },
+                                                { title: '黑名單', value: 'block' },
+                                            ]
+                                                .filter(item => {
+                                                return [
+                                                    vm.data.status === 0 && item.value === 'block',
+                                                    vm.data.status === 1 && item.value === 'normal',
+                                                    vm.data.status === 2 && item.value === 'watch',
+                                                ].every(bool => !bool);
+                                            })
+                                                .map(item => {
+                                                return BgWidget.customButton({
+                                                    button: {
+                                                        color: 'snow',
+                                                        size: 'md',
+                                                        class: 'w-100',
+                                                        style: 'min-height: 60px;',
+                                                    },
+                                                    text: {
+                                                        name: item.title,
+                                                    },
+                                                    event: gvc.event(() => {
+                                                        try {
+                                                            gvc.closeDialog();
+                                                            function call() {
+                                                                dialog.dataLoading({ text: '更新中', visible: true });
+                                                                vm.data.userData.type = item.value;
+                                                                ApiUser.updateUserDataManager(vm.data, vm.data.userID).then(response => {
+                                                                    dialog.dataLoading({ text: '', visible: false });
+                                                                    if (response.result) {
+                                                                        regetData();
+                                                                        dialog.successMessage({ text: '更新成功' });
+                                                                        vm.loading = true;
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                    }
+                                                                    else {
+                                                                        dialog.errorMessage({ text: '更新異常' });
+                                                                    }
+                                                                });
+                                                            }
+                                                            if (item.value === 'block') {
+                                                                dialog.warningMessage({
+                                                                    text: '加入黑名單之後，<br/>此顧客將無法再進行登入、購買及使用其他功能。<br/>確定要加入黑名單嗎？',
+                                                                    callback: response => response && call(),
+                                                                });
+                                                            }
+                                                            else {
+                                                                call();
+                                                            }
+                                                        }
+                                                        catch (error) {
+                                                            console.error(error);
+                                                        }
+                                                    }),
                                                 });
-                                            }
+                                            })
+                                                .join('')}
+                              </div>
+                            </div>
+                          `;
                                         },
                                     });
                                 }))}
@@ -967,7 +1024,7 @@ export class UserList {
                                                         ${BgWidget.editeInput({
                                                                                         gvc,
                                                                                         title: '',
-                                                                                        default: referObj[item.key] || '',
+                                                                                        default: `${referObj[item.key] || ''}`,
                                                                                         placeHolder: `請輸入${item.title}`,
                                                                                         callback: text => {
                                                                                             referObj[item.key] = text;
@@ -1174,9 +1231,7 @@ export class UserList {
                                             return [
                                                 [
                                                     html `<div class="tx_700">會員等級</div>`,
-                                                    html `<div class="badge bg-dark fs-7" style="max-height: 34px;">
-                                  ${vm.data.member_level.tag_name}
-                                </div>`,
+                                                    BgWidget.secondaryInsignia(vm.data.member_level.tag_name),
                                                 ].join(BgWidget.mbContainer(12)),
                                                 [
                                                     html `
@@ -1377,19 +1432,17 @@ export class UserList {
                                                                         ? html `<div
                                                       style="font-size: 32px; font-weight: 400; color: #393939;"
                                                     >
-                                                      ${formatNum(totalPrice)}
+                                                      $${formatNum(totalPrice)}
                                                     </div>`
                                                                         : '尚無消費紀錄'),
-                                                                    renderInfoBlock('累計消費次數', `<div
-                                                                  style="font-size: 32px; font-weight: 400; color: #393939;"
-                                                                >
-                                                                 ${formatNum(totalOrders)}次
-                                                                </div>`),
+                                                                    renderInfoBlock('累計消費次數', html `<div style="font-size: 32px; font-weight: 400; color: #393939;">
+                                                  ${formatNum(totalOrders)}次
+                                                </div>`),
                                                                     renderInfoBlock('最後消費金額', firstData
                                                                         ? html `<div
                                                       style="font-size: 32px; font-weight: 400; color: #393939;"
                                                     >
-                                                      ${formatNum(firstData.orderData.total)}
+                                                      $${formatNum(firstData.orderData.total)}
                                                     </div>`
                                                                         : '尚無消費紀錄'),
                                                                     renderInfoBlock('最後購買日期', firstData ? formatDate(firstData.created_time) : '尚無消費紀錄'),
@@ -1494,7 +1547,6 @@ export class UserList {
                                                                 gvc: gvc,
                                                                 saveButton: {
                                                                     event: obj => {
-                                                                        const dialog = new ShareDialog(gvc.glitter);
                                                                         dialog.dataLoading({
                                                                             text: '發送中...',
                                                                             visible: true,
@@ -1594,83 +1646,87 @@ export class UserList {
                                                     return {
                                                         bind: id,
                                                         view: () => {
-                                                            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                                                                 yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitterUserForm');
-                                                                let h = html `
-                                        ${vm.plan > 1
-                                                                    ? html `<div class="gray-bottom-line-18">
+                                                                const textList = [
+                                                                    html `<div class="gray-bottom-line-18">
+                                          <div class="tx_700">會員狀態</div>
+                                          <div style="margin-top: 12px">${UserList.statusBadge[vm.data.status]()}</div>
+                                        </div>`,
+                                                                    vm.plan > 1
+                                                                        ? html `<div class="gray-bottom-line-18">
                                               <div class="tx_700">會員等級</div>
                                               <div style="margin-top: 12px">
-                                                <div class="badge bg-dark fs-7" style="max-height: 34px;">
-                                                  ${vm.data.member_level.tag_name}
-                                                </div>
+                                                ${BgWidget.secondaryInsignia(vm.data.member_level.tag_name)}
                                               </div>
                                             </div>`
-                                                                    : ''}
-                                        <div class="gray-bottom-line-18">
+                                                                        : '',
+                                                                    html `<div class="gray-bottom-line-18">
                                           <div class="tx_700">會員標籤</div>
                                           <div
                                             style="display: flex; gap: 12px; margin-top: 12px; flex-direction: row; flex-wrap: wrap;"
                                           >
                                             ${Array.isArray(vm.data.userData.tags) && vm.data.userData.tags.length > 0
-                                                                    ? vm.data.userData.tags
-                                                                        .map((item) => BgWidget.secondaryInsignia(item))
-                                                                        .join('')
-                                                                    : '無標籤'}
+                                                                        ? vm.data.userData.tags
+                                                                            .map((item) => BgWidget.secondaryInsignia(item))
+                                                                            .join('')
+                                                                        : '無標籤'}
                                           </div>
-                                        </div>
-                                        ${vm.plan > 0
-                                                                    ? html ` <div class="">
+                                        </div>`,
+                                                                    vm.plan > 0
+                                                                        ? html ` <div class="">
                                               <div class="tx_700 mb-3">社群綁定</div>
                                               ${[
-                                                                        {
-                                                                            type: 'fb',
-                                                                            src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722847285395-img_facebook.svg',
-                                                                            value: vm.data.userData['fb-id'],
-                                                                        },
-                                                                        {
-                                                                            type: 'line',
-                                                                            src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/LINE_Brand_icon.png',
-                                                                            value: vm.data.userData.lineID,
-                                                                        },
-                                                                        {
-                                                                            type: 'google',
-                                                                            src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Google__G__logo.svg.webp',
-                                                                            value: vm.data.userData['google-id'],
-                                                                        },
-                                                                        {
-                                                                            type: 'apple',
-                                                                            src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/14776639.png',
-                                                                            value: vm.data.userData['apple-id'],
-                                                                        },
-                                                                    ]
-                                                                        .map(dd => {
-                                                                        return html `<div class="d-flex align-items-center" style="gap:5px;">
+                                                                            {
+                                                                                type: 'fb',
+                                                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722847285395-img_facebook.svg',
+                                                                                value: vm.data.userData['fb-id'],
+                                                                            },
+                                                                            {
+                                                                                type: 'line',
+                                                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/LINE_Brand_icon.png',
+                                                                                value: vm.data.userData.lineID,
+                                                                            },
+                                                                            {
+                                                                                type: 'google',
+                                                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Google__G__logo.svg.webp',
+                                                                                value: vm.data.userData['google-id'],
+                                                                            },
+                                                                            {
+                                                                                type: 'apple',
+                                                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/14776639.png',
+                                                                                value: vm.data.userData['apple-id'],
+                                                                            },
+                                                                        ]
+                                                                            .map(dd => {
+                                                                            return html `<div class="d-flex align-items-center" style="gap:5px;">
                                                     <img
                                                       src="${dd.src}"
                                                       style="width:25px;height: 25px;background: whitesmoke;"
                                                       class="rounded-circle"
                                                     />
                                                     ${dd.value
-                                                                            ? html `<div
+                                                                                ? html `<div
                                                           class="fw-500 "
                                                           style="font-size: 14px; font-weight: 400; color: #006621;word-break: break-all;"
                                                         >
                                                           已綁定: ${dd.value}
                                                         </div>`
-                                                                            : html `<div
+                                                                                : html `<div
                                                           class="fw-500"
                                                           style="font-size: 14px; font-weight: 400; color: #393939;"
                                                         >
                                                           未綁定
                                                         </div>`}
                                                   </div>`;
-                                                                    })
-                                                                        .join(`<div class="my-3"></div>`)}
+                                                                        })
+                                                                            .join(`<div class="my-3"></div>`)}
                                             </div>`
-                                                                    : ''}
-                                      `;
-                                                                resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
+                                                                        : '',
+                                                                ];
+                                                                resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">
+                                          ${textList.filter(Boolean).join('')}
+                                        </div>`);
                                                             }));
                                                         },
                                                     };
@@ -1696,7 +1752,6 @@ export class UserList {
                                             UserModule.setUserTags(gvc, vm.data.userData.tags);
                                         }
                                     });
-                                    const dialog = new ShareDialog(gvc.glitter);
                                     dialog.dataLoading({ text: '更新中', visible: true });
                                     ApiUser.updateUserDataManager(vm.data, vm.data.userID).then(response => {
                                         dialog.dataLoading({ text: '', visible: false });
@@ -1721,6 +1776,7 @@ export class UserList {
     }
     static createUser(gvc, vm) {
         const viewID = gvc.glitter.getUUID();
+        const dialog = new ShareDialog(gvc.glitter);
         const saasConfig = window.parent.saasConfig;
         let userData = vm.initial_data || {
             name: '',
@@ -1841,7 +1897,6 @@ export class UserList {
                         vm.type = 'list';
                     }))}
                   ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
-                        const dialog = new ShareDialog(gvc.glitter);
                         if (CheckInput.isEmpty(userData.name)) {
                             dialog.infoMessage({ text: '請輸入顧客姓名' });
                             return;
@@ -1906,6 +1961,7 @@ export class UserList {
             checkedData: [],
         };
         let vmi = undefined;
+        const dialog = new ShareDialog(gvc.glitter);
         function getDatalist() {
             return vm.dataList.map((dd) => {
                 return [
@@ -1923,14 +1979,7 @@ export class UserList {
                     },
                     {
                         key: '用戶狀態',
-                        value: (() => {
-                            if (dd.status === 1) {
-                                return html ` <div class="badge bg-info fs-7" style="max-height:34px;">啟用中</div>`;
-                            }
-                            else {
-                                return html ` <div class="badge bg-danger fs-7" style="max-height:34px;">已停用</div>`;
-                            }
-                        })(),
+                        value: (UserList.statusBadge[dd.status] || UserList.statusBadge['1'])(),
                     },
                 ];
             });
@@ -1998,7 +2047,6 @@ export class UserList {
                                     {
                                         name: '批量移除',
                                         event: checkedData => {
-                                            const dialog = new ShareDialog(gvc.glitter);
                                             dialog.checkYesOrNot({
                                                 text: '是否確認刪除所選項目？',
                                                 callback: response => {
@@ -2050,5 +2098,10 @@ export class UserList {
 }
 UserList.vm = {
     page: 1,
+};
+UserList.statusBadge = {
+    0: () => BgWidget.dangerInsignia('已停用'),
+    1: () => BgWidget.infoInsignia('啟用中'),
+    2: () => BgWidget.warningInsignia('觀察中'),
 };
 window.glitter.setModule(import.meta.url, UserList);

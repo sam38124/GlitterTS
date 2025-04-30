@@ -3056,7 +3056,7 @@ export class ShoppingSettingBasic {
                             value="${language_data.seo.domain || ''}"
                             onchange="${gvc.event(e => {
                               let text = e.value;
-                              language_data.seo.domain = text;
+                              language_data.seo.domain = text.replace(/%/g, '');
                               gvc.notifyDataChange('seo');
                             })}"
                           />

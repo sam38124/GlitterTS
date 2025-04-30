@@ -277,6 +277,7 @@ export class UMVoucher {
         const productForList = [
             { title: Language.text('all_products'), value: 'all' },
             { title: Language.text('product_categories'), value: 'collection' },
+            { title: Language.text('products'), value: 'manager_tag' },
             { title: Language.text('products'), value: 'product' },
         ];
         const translations = {

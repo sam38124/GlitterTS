@@ -271,6 +271,7 @@ export class Language {
       { key: 'send_to_user_email', tw: '傳送至用戶信箱', cn: '传送至用户邮箱', en: 'Send to user email' },
       { key: 'mobile_barcode_device', tw: '手機條碼載具', cn: '手机条码载具', en: 'Mobile barcode device' },
       { key: 'add_to_cart', tw: '加入購物車', cn: '加入购物车', en: 'Add to Cart' },
+      { key: 'preorder_item', tw: '預購商品', cn: '预购商品', en: 'Preorder Item' },
       { key: 'confirm_select', tw: '確認選擇', cn: '确认选择', en: 'Confirm selection' },
       { key: 'add_to_cart_success', tw: '加入成功', cn: '加入成功', en: 'Added successfully' },
       {
@@ -447,7 +448,7 @@ export class Language {
       { key: 'search', tw: '搜尋', cn: '搜索', en: 'Search' },
       { key: 'all_products', tw: '所有商品', cn: '所有商品', en: 'All Products' },
       { key: 'product_categories', tw: '商品分類', cn: '商品分类', en: 'Product Categories' },
-      { key: 'products', tw: '單一商品', cn: '单一商品', en: 'Products' },
+      { key: 'products', tw: '特定商品', cn: '特定商品', en: 'Products' },
       { key: 'filter', tw: '篩選', cn: '筛选', en: 'Filter' },
       { key: 'sort_by_date', tw: '依照系統預設', cn: '依照系統預設', en: 'Sort by Default' },
       { key: 'sort_by_price_asc', tw: '價格由低至高', cn: '价格由低到高', en: 'Price Low to High' },

@@ -1,0 +1,520 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="www.smilebio.io"
+4    android:versionCode="4"
+5    android:versionName="2.4" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="28"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+11-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:5:5-79
+11-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:5:22-76
+12    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+12-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:6:5-81
+12-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:6:22-78
+13
+14    <uses-feature android:name="android.hardware.location.network" />
+14-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:7:5-70
+14-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:7:19-67
+15
+16    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+16-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:8:5-77
+16-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:8:22-74
+17    <uses-permission android:name="android.permission.INTERNET" />
+17-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:25:5-67
+17-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:25:22-64
+18    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+18-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:26:5-79
+18-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:26:22-76
+19
+20    <queries>
+20-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:9:5-19:15
+21        <package android:name="jp.naver.line.android" />
+21-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:10:9-57
+21-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:10:18-54
+22
+23        <intent>
+23-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:12:9-18:18
+24            <action android:name="android.intent.action.VIEW" />
+24-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:25:17-69
+24-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:25:25-66
+25
+26            <category android:name="android.intent.category.BROWSABLE" />
+26-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:27:17-78
+26-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:27:27-75
+27
+28            <data android:scheme="https" />
+28-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:30:17-58
+28-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:30:23-55
+29        </intent>
+30    </queries>
+31
+32    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- Required by older versions of Google Play services to create IID tokens -->
+32-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:27:5-68
+32-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:27:22-65
+33    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+33-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:29:5-82
+33-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:29:22-79
+34    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+34-->[com.google.android.recaptcha:recaptcha:18.4.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/3ff09d69f7d44a98edee5e9730e2e39f/transformed/jetified-recaptcha-18.4.0/AndroidManifest.xml:9:5-98
+34-->[com.google.android.recaptcha:recaptcha:18.4.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/3ff09d69f7d44a98edee5e9730e2e39f/transformed/jetified-recaptcha-18.4.0/AndroidManifest.xml:9:22-95
+35    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+35-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:11:5-80
+35-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:11:22-77
+36    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+36-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:12:5-81
+36-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:12:22-78
+37    <uses-permission android:name="android.permission.BLUETOOTH" />
+37-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:14:5-68
+37-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:14:22-65
+38    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+38-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:15:5-74
+38-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:15:22-71
+39    <uses-permission android:name="android.permission.CAMERA" />
+39-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:16:5-65
+39-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:16:22-62
+40
+41    <uses-feature android:name="android.hardware.camera.autofocus" />
+41-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:18:5-70
+41-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:18:19-67
+42    <uses-feature android:name="android.hardware.camera" />
+42-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:19:5-60
+42-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:19:19-57
+43
+44    <uses-permission android:name="android.permission.BLUETOOTH" />
+44-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:14:5-68
+44-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:14:22-65
+45    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+45-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:15:5-74
+45-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:15:22-71
+46    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> <!-- File Permission -->
+46-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:23:5-77
+46-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:23:22-74
+47    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+47-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:11:5-80
+47-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:11:22-77
+48
+49    <permission
+49-->[androidx.core:core:1.10.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/b68b4eeb4bfb562996268372fec1a567/transformed/core-1.10.0/AndroidManifest.xml:22:5-24:47
+50        android:name="www.smilebio.io.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+50-->[androidx.core:core:1.10.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/b68b4eeb4bfb562996268372fec1a567/transformed/core-1.10.0/AndroidManifest.xml:23:9-81
+51        android:protectionLevel="signature" />
+51-->[androidx.core:core:1.10.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/b68b4eeb4bfb562996268372fec1a567/transformed/core-1.10.0/AndroidManifest.xml:24:9-44
+52
+53    <uses-permission android:name="www.smilebio.io.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+53-->[androidx.core:core:1.10.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/b68b4eeb4bfb562996268372fec1a567/transformed/core-1.10.0/AndroidManifest.xml:26:5-97
+53-->[androidx.core:core:1.10.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/b68b4eeb4bfb562996268372fec1a567/transformed/core-1.10.0/AndroidManifest.xml:26:22-94
+54
+55    <application
+55-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:9:5-43:19
+56        android:name="www.smilebio.io.MyAPP"
+56-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:10:13-34
+57        android:allowBackup="true"
+57-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:11:13-39
+58        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+58-->[androidx.core:core:1.10.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/b68b4eeb4bfb562996268372fec1a567/transformed/core-1.10.0/AndroidManifest.xml:28:18-86
+59        android:debuggable="true"
+60        android:extractNativeLibs="false"
+61        android:icon="@mipmap/ic_launcher"
+61-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:13:13-47
+62        android:label="@string/app_name"
+62-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:12:13-45
+63        android:largeHeap="true"
+63-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:16:13-37
+64        android:networkSecurityConfig="@xml/network_security_config"
+64-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:17:13-73
+65        android:roundIcon="@mipmap/ic_launcher_round"
+65-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:14:13-58
+66        android:supportsRtl="true"
+66-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:15:13-39
+67        android:testOnly="true"
+68        android:theme="@style/Theme.Kenda" >
+68-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:18:13-47
+69        <activity
+69-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:19:9-33:20
+70            android:name="com.jianzhi.glitter.GlitterActivity"
+70-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:20:17-67
+71            android:exported="true"
+71-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:21:17-40
+72            android:screenOrientation="portrait"
+72-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:22:17-53
+73            android:theme="@style/SwipTheme__" >
+73-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:33:13-47
+74            <intent-filter>
+74-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:23:13-31:29
+75                <action android:name="android.intent.action.MAIN" />
+75-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:24:17-68
+75-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:24:25-66
+76                <action android:name="android.intent.action.VIEW" />
+76-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:25:17-69
+76-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:25:25-66
+77
+78                <category android:name="android.intent.category.DEFAULT" />
+78-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:26:17-76
+78-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:26:27-73
+79                <category android:name="android.intent.category.BROWSABLE" />
+79-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:27:17-78
+79-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:27:27-75
+80                <category android:name="android.intent.category.LAUNCHER" />
+80-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:28:17-76
+80-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:28:27-74
+81                <!-- 自定義 scheme，如 myapp://open -->
+82                <data android:scheme="www.smilebio.io" />
+82-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:30:17-58
+82-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:30:23-55
+83            </intent-filter>
+84        </activity>
+85
+86        <service
+86-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:34:9-40:19
+87            android:name="www.smilebio.io.service.MyFirebaseMessagingService"
+87-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:35:17-67
+88            android:exported="true" >
+88-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:36:17-40
+89            <intent-filter>
+89-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:37:13-39:29
+90                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+90-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:38:17-77
+90-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:38:25-75
+91            </intent-filter>
+92        </service>
+93
+94        <activity
+94-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:29:9-46:20
+95            android:name="com.google.firebase.auth.internal.GenericIdpActivity"
+95-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:30:13-80
+96            android:excludeFromRecents="true"
+96-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:31:13-46
+97            android:exported="true"
+97-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:32:13-36
+98            android:launchMode="singleTask"
+98-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:33:13-44
+99            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+99-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:34:13-72
+100            <intent-filter>
+100-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:35:13-45:29
+101                <action android:name="android.intent.action.VIEW" />
+101-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:25:17-69
+101-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:25:25-66
+102
+103                <category android:name="android.intent.category.DEFAULT" />
+103-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:26:17-76
+103-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:26:27-73
+104                <category android:name="android.intent.category.BROWSABLE" />
+104-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:27:17-78
+104-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:27:27-75
+105
+106                <data
+106-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:30:17-58
+107                    android:host="firebase.auth"
+108                    android:path="/"
+109                    android:scheme="genericidp" />
+109-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:30:23-55
+110            </intent-filter>
+111        </activity>
+112        <activity
+112-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:47:9-64:20
+113            android:name="com.google.firebase.auth.internal.RecaptchaActivity"
+113-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:48:13-79
+114            android:excludeFromRecents="true"
+114-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:49:13-46
+115            android:exported="true"
+115-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:50:13-36
+116            android:launchMode="singleTask"
+116-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:51:13-44
+117            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+117-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:52:13-72
+118            <intent-filter>
+118-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:53:13-63:29
+119                <action android:name="android.intent.action.VIEW" />
+119-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:25:17-69
+119-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:25:25-66
+120
+121                <category android:name="android.intent.category.DEFAULT" />
+121-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:26:17-76
+121-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:26:27-73
+122                <category android:name="android.intent.category.BROWSABLE" />
+122-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:27:17-78
+122-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:27:27-75
+123
+124                <data
+124-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:30:17-58
+125                    android:host="firebase.auth"
+126                    android:path="/"
+127                    android:scheme="recaptcha" />
+127-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:30:23-55
+128            </intent-filter>
+129        </activity>
+130
+131        <service
+131-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:66:9-72:19
+132            android:name="com.google.firebase.components.ComponentDiscoveryService"
+132-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:67:13-84
+133            android:directBootAware="true"
+133-->[com.google.firebase:firebase-common:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/57348263557dc417418fbf6b9f09d192/transformed/jetified-firebase-common-20.4.2/AndroidManifest.xml:32:13-43
+134            android:exported="false" >
+134-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:68:13-37
+135            <meta-data
+135-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:69:13-71:85
+136                android:name="com.google.firebase.components:com.google.firebase.auth.FirebaseAuthRegistrar"
+136-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:70:17-109
+137                android:value="com.google.firebase.components.ComponentRegistrar" />
+137-->[com.google.firebase:firebase-auth:22.3.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/e31da100652ec209e5f1ef22249214a6/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:71:17-82
+138            <meta-data
+138-->[com.google.firebase:firebase-common-ktx:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/5a60c1b448bb655572b32a4404c8a1c9/transformed/jetified-firebase-common-ktx-20.4.2/AndroidManifest.xml:12:13-14:85
+139                android:name="com.google.firebase.components:com.google.firebase.ktx.FirebaseCommonLegacyRegistrar"
+139-->[com.google.firebase:firebase-common-ktx:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/5a60c1b448bb655572b32a4404c8a1c9/transformed/jetified-firebase-common-ktx-20.4.2/AndroidManifest.xml:13:17-116
+140                android:value="com.google.firebase.components.ComponentRegistrar" />
+140-->[com.google.firebase:firebase-common-ktx:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/5a60c1b448bb655572b32a4404c8a1c9/transformed/jetified-firebase-common-ktx-20.4.2/AndroidManifest.xml:14:17-82
+141            <meta-data
+141-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:56:13-58:85
+142                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingRegistrar"
+142-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:57:17-119
+143                android:value="com.google.firebase.components.ComponentRegistrar" />
+143-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:58:17-82
+144            <meta-data
+144-->[com.google.firebase:firebase-datatransport:18.1.5] /Users/jianzhi.wang/.gradle/caches/transforms-4/cde810743bec595a3dd2d9ffff9d495f/transformed/jetified-firebase-datatransport-18.1.5/AndroidManifest.xml:28:13-30:85
+145                android:name="com.google.firebase.components:com.google.firebase.datatransport.TransportRegistrar"
+145-->[com.google.firebase:firebase-datatransport:18.1.5] /Users/jianzhi.wang/.gradle/caches/transforms-4/cde810743bec595a3dd2d9ffff9d495f/transformed/jetified-firebase-datatransport-18.1.5/AndroidManifest.xml:29:17-115
+146                android:value="com.google.firebase.components.ComponentRegistrar" />
+146-->[com.google.firebase:firebase-datatransport:18.1.5] /Users/jianzhi.wang/.gradle/caches/transforms-4/cde810743bec595a3dd2d9ffff9d495f/transformed/jetified-firebase-datatransport-18.1.5/AndroidManifest.xml:30:17-82
+147            <meta-data
+147-->[com.google.firebase:firebase-installations:17.0.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/0e4676d1e5d67e221da5dc92c898eab7/transformed/jetified-firebase-installations-17.0.1/AndroidManifest.xml:18:13-20:85
+148                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsRegistrar"
+148-->[com.google.firebase:firebase-installations:17.0.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/0e4676d1e5d67e221da5dc92c898eab7/transformed/jetified-firebase-installations-17.0.1/AndroidManifest.xml:19:17-127
+149                android:value="com.google.firebase.components.ComponentRegistrar" />
+149-->[com.google.firebase:firebase-installations:17.0.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/0e4676d1e5d67e221da5dc92c898eab7/transformed/jetified-firebase-installations-17.0.1/AndroidManifest.xml:20:17-82
+150            <meta-data
+150-->[com.google.firebase:firebase-common:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/57348263557dc417418fbf6b9f09d192/transformed/jetified-firebase-common-20.4.2/AndroidManifest.xml:35:13-37:85
+151                android:name="com.google.firebase.components:com.google.firebase.FirebaseCommonKtxRegistrar"
+151-->[com.google.firebase:firebase-common:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/57348263557dc417418fbf6b9f09d192/transformed/jetified-firebase-common-20.4.2/AndroidManifest.xml:36:17-109
+152                android:value="com.google.firebase.components.ComponentRegistrar" />
+152-->[com.google.firebase:firebase-common:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/57348263557dc417418fbf6b9f09d192/transformed/jetified-firebase-common-20.4.2/AndroidManifest.xml:37:17-82
+153        </service>
+154
+155        <activity
+155-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:22:9-24:59
+156            android:name="com.linecorp.linesdk.openchat.ui.CreateOpenChatActivity"
+156-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:23:13-83
+157            android:theme="@style/AppTheme.NoActionBar" />
+157-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:24:13-56
+158        <!--
+159         "launchMode" of this activity must not be singleInstance and singleTask because, this is
+160         launched with using startActivityForResult().
+161         This activity must be stacked on same Activity Stack of the caller.
+162        -->
+163        <activity
+163-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:30:9-35:69
+164            android:name="com.linecorp.linesdk.auth.internal.LineAuthenticationActivity"
+164-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:31:13-89
+165            android:configChanges="orientation|screenSize|keyboardHidden"
+165-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:32:13-74
+166            android:exported="false"
+166-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:33:13-37
+167            android:launchMode="singleTop"
+167-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:34:13-43
+168            android:theme="@style/LineSdk_AuthenticationActivity" />
+168-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:35:13-66
+169        <activity
+169-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:36:9-48:20
+170            android:name="com.linecorp.linesdk.auth.internal.LineAuthenticationCallbackActivity"
+170-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:37:13-97
+171            android:configChanges="orientation|screenSize|keyboardHidden"
+171-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:38:13-74
+172            android:exported="true" >
+172-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:39:13-36
+173            <intent-filter>
+173-->[com.linecorp.linesdk:linesdk:5.11.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/94f67a36fceab8fdbf954482d654d7e1/transformed/jetified-linesdk-5.11.0/AndroidManifest.xml:40:13-47:29
+174                <action android:name="android.intent.action.VIEW" />
+174-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:25:17-69
+174-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:25:25-66
+175
+176                <category android:name="android.intent.category.DEFAULT" />
+176-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:26:17-76
+176-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:26:27-73
+177                <category android:name="android.intent.category.BROWSABLE" />
+177-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:27:17-78
+177-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:27:27-75
+178
+179                <data android:scheme="lineauth" />
+179-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:30:17-58
+179-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:30:23-55
+180            </intent-filter>
+181        </activity>
+182
+183        <receiver
+183-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:32:9-39:20
+184            android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver"
+184-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:33:13-78
+185            android:exported="true"
+185-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:34:13-36
+186            android:permission="com.google.android.c2dm.permission.SEND" >
+186-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:35:13-73
+187            <intent-filter>
+187-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:36:13-38:29
+188                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+188-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:37:17-81
+188-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:37:25-78
+189            </intent-filter>
+190        </receiver>
+191        <!--
+192             FirebaseMessagingService performs security checks at runtime,
+193             but set to not exported to explicitly avoid allowing another app to call it.
+194        -->
+195        <service
+195-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:45:9-52:19
+196            android:name="com.google.firebase.messaging.FirebaseMessagingService"
+196-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:46:13-82
+197            android:directBootAware="true"
+197-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:47:13-43
+198            android:exported="false" >
+198-->[com.google.firebase:firebase-messaging:23.0.7] /Users/jianzhi.wang/.gradle/caches/transforms-4/670bd0764045d9b4acb17cc99fbc8ae9/transformed/jetified-firebase-messaging-23.0.7/AndroidManifest.xml:48:13-37
+199            <intent-filter android:priority="-500" >
+199-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:37:13-39:29
+200                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+200-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:38:17-77
+200-->/Users/jianzhi.wang/Downloads/1745390273443/app/src/main/AndroidManifest.xml:38:25-75
+201            </intent-filter>
+202        </service>
+203
+204        <provider
+204-->[com.google.firebase:firebase-common:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/57348263557dc417418fbf6b9f09d192/transformed/jetified-firebase-common-20.4.2/AndroidManifest.xml:23:9-28:39
+205            android:name="com.google.firebase.provider.FirebaseInitProvider"
+205-->[com.google.firebase:firebase-common:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/57348263557dc417418fbf6b9f09d192/transformed/jetified-firebase-common-20.4.2/AndroidManifest.xml:24:13-77
+206            android:authorities="www.smilebio.io.firebaseinitprovider"
+206-->[com.google.firebase:firebase-common:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/57348263557dc417418fbf6b9f09d192/transformed/jetified-firebase-common-20.4.2/AndroidManifest.xml:25:13-72
+207            android:directBootAware="true"
+207-->[com.google.firebase:firebase-common:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/57348263557dc417418fbf6b9f09d192/transformed/jetified-firebase-common-20.4.2/AndroidManifest.xml:26:13-43
+208            android:exported="false"
+208-->[com.google.firebase:firebase-common:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/57348263557dc417418fbf6b9f09d192/transformed/jetified-firebase-common-20.4.2/AndroidManifest.xml:27:13-37
+209            android:initOrder="100" />
+209-->[com.google.firebase:firebase-common:20.4.2] /Users/jianzhi.wang/.gradle/caches/transforms-4/57348263557dc417418fbf6b9f09d192/transformed/jetified-firebase-common-20.4.2/AndroidManifest.xml:28:13-36
+210
+211        <activity android:name="com.jianzhi.glitter.WebViewAct" />
+211-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:30:9-67
+211-->[com.github.sam38124:Glitter_Android:2.7.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/15ba25e2092d83723aaa6f1b98799007/transformed/jetified-Glitter_Android-2.7.8/AndroidManifest.xml:30:19-64
+212        <activity
+212-->[com.google.android.gms:play-services-auth:21.3.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/54178fda76f41365183eec58e8b662f8/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:23:9-27:75
+213            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+213-->[com.google.android.gms:play-services-auth:21.3.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/54178fda76f41365183eec58e8b662f8/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:24:13-93
+214            android:excludeFromRecents="true"
+214-->[com.google.android.gms:play-services-auth:21.3.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/54178fda76f41365183eec58e8b662f8/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:25:13-46
+215            android:exported="false"
+215-->[com.google.android.gms:play-services-auth:21.3.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/54178fda76f41365183eec58e8b662f8/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:26:13-37
+216            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+216-->[com.google.android.gms:play-services-auth:21.3.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/54178fda76f41365183eec58e8b662f8/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:27:13-72
+217        <!--
+218            Service handling Google Sign-In user revocation. For apps that do not integrate with
+219            Google Sign-In, this service will never be started.
+220        -->
+221        <service
+221-->[com.google.android.gms:play-services-auth:21.3.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/54178fda76f41365183eec58e8b662f8/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:33:9-37:51
+222            android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
+222-->[com.google.android.gms:play-services-auth:21.3.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/54178fda76f41365183eec58e8b662f8/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:34:13-89
+223            android:exported="true"
+223-->[com.google.android.gms:play-services-auth:21.3.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/54178fda76f41365183eec58e8b662f8/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:35:13-36
+224            android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION"
+224-->[com.google.android.gms:play-services-auth:21.3.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/54178fda76f41365183eec58e8b662f8/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:36:13-107
+225            android:visibleToInstantApps="true" />
+225-->[com.google.android.gms:play-services-auth:21.3.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/54178fda76f41365183eec58e8b662f8/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:37:13-48
+226
+227        <activity
+227-->[com.google.android.gms:play-services-base:18.5.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/05b88293ceae5c80306dd342285562e7/transformed/jetified-play-services-base-18.5.0/AndroidManifest.xml:5:9-173
+228            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+228-->[com.google.android.gms:play-services-base:18.5.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/05b88293ceae5c80306dd342285562e7/transformed/jetified-play-services-base-18.5.0/AndroidManifest.xml:5:19-85
+229            android:exported="false"
+229-->[com.google.android.gms:play-services-base:18.5.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/05b88293ceae5c80306dd342285562e7/transformed/jetified-play-services-base-18.5.0/AndroidManifest.xml:5:146-170
+230            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+230-->[com.google.android.gms:play-services-base:18.5.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/05b88293ceae5c80306dd342285562e7/transformed/jetified-play-services-base-18.5.0/AndroidManifest.xml:5:86-145
+231
+232        <meta-data
+232-->[com.google.android.gms:play-services-basement:18.4.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/d67a13d7ae7394d822e4dec5c83ede50/transformed/jetified-play-services-basement-18.4.0/AndroidManifest.xml:6:9-122
+233            android:name="com.google.android.gms.version"
+233-->[com.google.android.gms:play-services-basement:18.4.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/d67a13d7ae7394d822e4dec5c83ede50/transformed/jetified-play-services-basement-18.4.0/AndroidManifest.xml:6:20-65
+234            android:value="@integer/google_play_services_version" />
+234-->[com.google.android.gms:play-services-basement:18.4.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/d67a13d7ae7394d822e4dec5c83ede50/transformed/jetified-play-services-basement-18.4.0/AndroidManifest.xml:6:66-119
+235        <!--
+236        Service for holding metadata. Cannot be instantiated.
+237        Metadata will be merged from other manifests.
+238        -->
+239        <service
+239-->[androidx.camera:camera-core:1.3.0-alpha06] /Users/jianzhi.wang/.gradle/caches/transforms-4/115cf793153e7a13b36bb02a5fa66879/transformed/jetified-camera-core-1.3.0-alpha06/AndroidManifest.xml:29:9-33:78
+240            android:name="androidx.camera.core.impl.MetadataHolderService"
+240-->[androidx.camera:camera-core:1.3.0-alpha06] /Users/jianzhi.wang/.gradle/caches/transforms-4/115cf793153e7a13b36bb02a5fa66879/transformed/jetified-camera-core-1.3.0-alpha06/AndroidManifest.xml:30:13-75
+241            android:enabled="false"
+241-->[androidx.camera:camera-core:1.3.0-alpha06] /Users/jianzhi.wang/.gradle/caches/transforms-4/115cf793153e7a13b36bb02a5fa66879/transformed/jetified-camera-core-1.3.0-alpha06/AndroidManifest.xml:31:13-36
+242            android:exported="false" >
+242-->[androidx.camera:camera-core:1.3.0-alpha06] /Users/jianzhi.wang/.gradle/caches/transforms-4/115cf793153e7a13b36bb02a5fa66879/transformed/jetified-camera-core-1.3.0-alpha06/AndroidManifest.xml:32:13-37
+243            <meta-data
+243-->[androidx.camera:camera-camera2:1.3.0-alpha06] /Users/jianzhi.wang/.gradle/caches/transforms-4/4eb28e9a69b8b84fccd8ac4e899e2b21/transformed/jetified-camera-camera2-1.3.0-alpha06/AndroidManifest.xml:30:13-32:89
+244                android:name="androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER"
+244-->[androidx.camera:camera-camera2:1.3.0-alpha06] /Users/jianzhi.wang/.gradle/caches/transforms-4/4eb28e9a69b8b84fccd8ac4e899e2b21/transformed/jetified-camera-camera2-1.3.0-alpha06/AndroidManifest.xml:31:17-103
+245                android:value="androidx.camera.camera2.Camera2Config$DefaultProvider" />
+245-->[androidx.camera:camera-camera2:1.3.0-alpha06] /Users/jianzhi.wang/.gradle/caches/transforms-4/4eb28e9a69b8b84fccd8ac4e899e2b21/transformed/jetified-camera-camera2-1.3.0-alpha06/AndroidManifest.xml:32:17-86
+246        </service>
+247
+248        <provider
+248-->[androidx.emoji2:emoji2:1.2.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/a48a014679eeaaeba1ea397c91a771b1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
+249            android:name="androidx.startup.InitializationProvider"
+249-->[androidx.emoji2:emoji2:1.2.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/a48a014679eeaaeba1ea397c91a771b1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:25:13-67
+250            android:authorities="www.smilebio.io.androidx-startup"
+250-->[androidx.emoji2:emoji2:1.2.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/a48a014679eeaaeba1ea397c91a771b1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:26:13-68
+251            android:exported="false" >
+251-->[androidx.emoji2:emoji2:1.2.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/a48a014679eeaaeba1ea397c91a771b1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:27:13-37
+252            <meta-data
+252-->[androidx.emoji2:emoji2:1.2.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/a48a014679eeaaeba1ea397c91a771b1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
+253                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+253-->[androidx.emoji2:emoji2:1.2.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/a48a014679eeaaeba1ea397c91a771b1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:30:17-75
+254                android:value="androidx.startup" />
+254-->[androidx.emoji2:emoji2:1.2.0] /Users/jianzhi.wang/.gradle/caches/transforms-4/a48a014679eeaaeba1ea397c91a771b1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:31:17-49
+255            <meta-data
+255-->[androidx.lifecycle:lifecycle-process:2.4.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/3c2c21a45845365b86ed70c313a4f389/transformed/jetified-lifecycle-process-2.4.1/AndroidManifest.xml:31:13-33:52
+256                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+256-->[androidx.lifecycle:lifecycle-process:2.4.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/3c2c21a45845365b86ed70c313a4f389/transformed/jetified-lifecycle-process-2.4.1/AndroidManifest.xml:32:17-78
+257                android:value="androidx.startup" />
+257-->[androidx.lifecycle:lifecycle-process:2.4.1] /Users/jianzhi.wang/.gradle/caches/transforms-4/3c2c21a45845365b86ed70c313a4f389/transformed/jetified-lifecycle-process-2.4.1/AndroidManifest.xml:33:17-49
+258        </provider>
+259
+260        <service
+260-->[com.google.android.datatransport:transport-backend-cct:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/05be0c06bb72ab3c172a7efbef36e22c/transformed/jetified-transport-backend-cct-3.1.6/AndroidManifest.xml:29:9-35:19
+261            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+261-->[com.google.android.datatransport:transport-backend-cct:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/05be0c06bb72ab3c172a7efbef36e22c/transformed/jetified-transport-backend-cct-3.1.6/AndroidManifest.xml:30:13-103
+262            android:exported="false" >
+262-->[com.google.android.datatransport:transport-backend-cct:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/05be0c06bb72ab3c172a7efbef36e22c/transformed/jetified-transport-backend-cct-3.1.6/AndroidManifest.xml:31:13-37
+263            <meta-data
+263-->[com.google.android.datatransport:transport-backend-cct:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/05be0c06bb72ab3c172a7efbef36e22c/transformed/jetified-transport-backend-cct-3.1.6/AndroidManifest.xml:32:13-34:39
+264                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+264-->[com.google.android.datatransport:transport-backend-cct:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/05be0c06bb72ab3c172a7efbef36e22c/transformed/jetified-transport-backend-cct-3.1.6/AndroidManifest.xml:33:17-94
+265                android:value="cct" />
+265-->[com.google.android.datatransport:transport-backend-cct:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/05be0c06bb72ab3c172a7efbef36e22c/transformed/jetified-transport-backend-cct-3.1.6/AndroidManifest.xml:34:17-36
+266        </service>
+267        <service
+267-->[com.google.android.datatransport:transport-runtime:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/44ba0a4290e94a930beb64bee30ed160/transformed/jetified-transport-runtime-3.1.6/AndroidManifest.xml:26:9-30:19
+268            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+268-->[com.google.android.datatransport:transport-runtime:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/44ba0a4290e94a930beb64bee30ed160/transformed/jetified-transport-runtime-3.1.6/AndroidManifest.xml:27:13-117
+269            android:exported="false"
+269-->[com.google.android.datatransport:transport-runtime:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/44ba0a4290e94a930beb64bee30ed160/transformed/jetified-transport-runtime-3.1.6/AndroidManifest.xml:28:13-37
+270            android:permission="android.permission.BIND_JOB_SERVICE" >
+270-->[com.google.android.datatransport:transport-runtime:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/44ba0a4290e94a930beb64bee30ed160/transformed/jetified-transport-runtime-3.1.6/AndroidManifest.xml:29:13-69
+271        </service>
+272
+273        <receiver
+273-->[com.google.android.datatransport:transport-runtime:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/44ba0a4290e94a930beb64bee30ed160/transformed/jetified-transport-runtime-3.1.6/AndroidManifest.xml:32:9-34:40
+274            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+274-->[com.google.android.datatransport:transport-runtime:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/44ba0a4290e94a930beb64bee30ed160/transformed/jetified-transport-runtime-3.1.6/AndroidManifest.xml:33:13-132
+275            android:exported="false" />
+275-->[com.google.android.datatransport:transport-runtime:3.1.6] /Users/jianzhi.wang/.gradle/caches/transforms-4/44ba0a4290e94a930beb64bee30ed160/transformed/jetified-transport-runtime-3.1.6/AndroidManifest.xml:34:13-37
+276
+277        <provider
+277-->[com.squareup.picasso:picasso:2.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/de80536697df7783bb69e0c7706fadf3/transformed/jetified-picasso-2.8/AndroidManifest.xml:8:9-11:40
+278            android:name="com.squareup.picasso.PicassoProvider"
+278-->[com.squareup.picasso:picasso:2.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/de80536697df7783bb69e0c7706fadf3/transformed/jetified-picasso-2.8/AndroidManifest.xml:9:13-64
+279            android:authorities="www.smilebio.io.com.squareup.picasso"
+279-->[com.squareup.picasso:picasso:2.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/de80536697df7783bb69e0c7706fadf3/transformed/jetified-picasso-2.8/AndroidManifest.xml:10:13-72
+280            android:exported="false" />
+280-->[com.squareup.picasso:picasso:2.8] /Users/jianzhi.wang/.gradle/caches/transforms-4/de80536697df7783bb69e0c7706fadf3/transformed/jetified-picasso-2.8/AndroidManifest.xml:11:13-37
+281    </application>
+282
+283</manifest>

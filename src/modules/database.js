@@ -8,10 +8,13 @@ const promise_1 = __importDefault(require("mysql2/promise"));
 const config_1 = __importDefault(require("../config"));
 const logger_1 = __importDefault(require("./logger"));
 const exception_1 = __importDefault(require("./exception"));
+const process_1 = __importDefault(require("process"));
 const TAG = '[Database]';
 let pool;
 const createPool = async () => {
     const logger = new logger_1.default();
+    console.log(`config.DB_CONN_LIMIT=>`, config_1.default.DB_CONN_LIMIT);
+    console.log(`config.DB_QUEUE_LIMIT=>`, config_1.default.DB_QUEUE_LIMIT);
     pool = promise_1.default.createPool({
         connectionLimit: config_1.default.DB_CONN_LIMIT,
         queueLimit: config_1.default.DB_QUEUE_LIMIT,
@@ -19,9 +22,7 @@ const createPool = async () => {
         port: config_1.default.DB_PORT,
         user: config_1.default.DB_USER,
         password: config_1.default.DB_PWD,
-        supportBigNumbers: true,
-        enableKeepAlive: true,
-        keepAliveInitialDelay: 10000,
+        supportBigNumbers: true
     });
     try {
         return pool;
@@ -59,14 +60,15 @@ const execute = async (sql, params) => {
         throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to exect statement because params=null');
     }
     try {
-        const connection = await pool.getConnection();
         const [results] = await pool.execute(sql, params);
-        connection.release();
         return results;
     }
     catch (err) {
         logger.error(TAG, 'Failed to exect statement ' + sql + ' because ' + err);
-        throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to execute statement.');
+        if (`${err}`.includes('Too many connections')) {
+            process_1.default.exit(1);
+        }
+        throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to exect statement ' + sql + ' because ' + err);
     }
 };
 const limit = (map) => {
@@ -77,15 +79,15 @@ const query = async (sql, params) => {
     const logger = new logger_1.default();
     const TAG = '[Database][Query]';
     try {
-        const connection = await pool.getConnection();
-        await pool.query(`SET time_zone = '+00:00';`, []);
         const [results] = await pool.query(sql, params);
-        connection.release();
         return results;
     }
     catch (err) {
         logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
-        throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to execute statement.');
+        if (`${err}`.includes('Too many connections')) {
+            process_1.default.exit(1);
+        }
+        throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to query statement ' + sql + ' because ' + err);
     }
 };
 const queryLambada = async (cf, fun) => {

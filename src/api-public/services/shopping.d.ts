@@ -1,6 +1,7 @@
 import { IToken } from '../models/Auth.js';
 import { DeliveryData } from './delivery.js';
 import { LanguageLocation } from '../../Language.js';
+import { CartItem } from './checkout-event.js';
 type BindItem = {
     id: string;
     spec: string[];
@@ -21,6 +22,7 @@ type InvoiceData = {
     itemList: any;
     invoiceDate: string;
 };
+type VoucherForType = 'all' | 'collection' | 'product' | 'manager_tag';
 export interface VoucherData {
     id: number;
     title: string;
@@ -30,7 +32,7 @@ export interface VoucherData {
     add_on_products?: string[] | ProductItem[];
     trigger: 'auto' | 'code' | 'distribution';
     value: string;
-    for: 'collection' | 'product' | 'all';
+    for: VoucherForType;
     rule: 'min_price' | 'min_count';
     productOffStart: 'price_asc' | 'price_desc' | 'price_all';
     conditionType: 'order' | 'item';
@@ -95,7 +97,7 @@ interface orderVoucherData {
     method: 'percent' | 'fixed';
     trigger: 'auto' | 'code';
     value: string;
-    for: 'collection' | 'product';
+    for: VoucherForType;
     rule: 'min_price' | 'min_count';
     forKey: string[];
     ruleValue: number;
@@ -174,39 +176,6 @@ type Collection = {
         'zh-TW': seo;
     };
     hidden?: boolean;
-};
-type CartItem = {
-    id: string;
-    spec: string[];
-    count: number;
-    sale_price: number;
-    is_gift?: boolean;
-    collection: string[];
-    title: string;
-    preview_image: string;
-    shipment_obj: {
-        type: string;
-        value: number;
-    };
-    discount_price?: number;
-    weight: number;
-    rebate: number;
-    designated_logistics: {
-        type: 'all' | 'designated';
-        list: string[];
-    };
-    deduction_log?: {
-        [p: string]: number;
-    };
-    min_qty?: number;
-    max_qty?: number;
-    buy_history_count?: number;
-    sku: string;
-    stock: number;
-    show_understocking: 'true' | 'false';
-    is_add_on_items: CartItem | boolean;
-    pre_order: boolean;
-    is_hidden: boolean;
 };
 export type Cart = {
     archived?: string;
@@ -405,45 +374,7 @@ export declare class Shopping {
         value: string;
     }[], value: number | string): number;
     getShipmentFee(user_info: any, lineItems: CartItem[], shipment: any): number;
-    toCheckout(data: {
-        line_items: CartItem[];
-        customer_info?: any;
-        email?: string;
-        return_url: string;
-        order_id?: string;
-        user_info: any;
-        code?: string;
-        use_rebate?: number;
-        use_wallet?: number;
-        checkOutType?: 'manual' | 'auto' | 'POS' | 'group_buy';
-        pos_store?: string;
-        voucher?: any;
-        discount?: number;
-        total?: number;
-        pay_status?: number;
-        custom_form_format?: any;
-        custom_form_data?: any;
-        custom_receipt_form?: any;
-        distribution_code?: string;
-        code_array: string[];
-        give_away?: {
-            id: number;
-            spec: string[];
-            count: number;
-            voucher_id: string;
-        }[];
-        language?: LanguageLocation;
-        pos_info?: any;
-        invoice_select?: string;
-        pre_order?: boolean;
-        voucherList?: any;
-        isExhibition?: boolean;
-        client_ip_address?: string;
-        fbc?: string;
-        fbp?: string;
-        temp_cart_id?: string;
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' | 'split', replace_order_id?: string): Promise<any>;
-    repayOrder(orderID: string, return_url: string): Promise<import("./interface/payment-strategy-interface").PaymentResult | undefined>;
+    repayOrder(orderID: string, return_url: string): Promise<import("./interface/payment-strategy-interface.js").PaymentResult | undefined>;
     getReturnOrder(query: {
         page: number;
         limit: number;
@@ -591,6 +522,7 @@ export declare class Shopping {
     sortCollection(data: Collection[]): Promise<boolean>;
     checkVariantDataType(variants: any[]): void;
     postProduct(content: any): Promise<any>;
+    removeLogisticGroup(group_key: string): Promise<boolean>;
     updateCollectionFromUpdateProduct(collection: string[]): Promise<void>;
     postMulProduct(content: any): Promise<any>;
     promisesProducts(productArray: any, insertIDStart: any): Promise<void>;
@@ -674,7 +606,7 @@ export declare class Shopping {
         orderID: any;
         orderData: any;
     }): Promise<{
-        result: string | boolean | undefined;
+        result: {};
     }>;
     batchPostCustomerInvoice(dataArray: InvoiceData[]): Promise<any>;
     voidInvoice(obj: {

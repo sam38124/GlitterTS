@@ -20,10 +20,116 @@ interface ViewModel {
   filter_type: 'normal' | 'block' | 'void';
 }
 
+interface ReturnOrderData {
+  id: number;
+  order_id: string;
+  return_order_id: string;
+  status: number;
+  email: string;
+  orderData: {
+    rebateChange: any;
+    return_inf: string | any;
+    refundTime?: string;
+    bank_info?: any;
+    customer_info: any;
+    editRecord: any;
+    method: string;
+    orderStatus: string;
+    use_wallet: number;
+    email: string;
+    return_discount: number;
+    return_rebate: number;
+    total: number;
+    discount: number;
+    expectDate: string;
+    shipment_fee: number;
+    use_rebate: number;
+    lineItems: {
+      id: number;
+      spec: string[];
+      count: string;
+      sale_price: number;
+      return_count: number;
+      return_reason: string;
+    }[];
+    user_info: {
+      name: string;
+      email: string;
+      phone: string;
+      address: string;
+      shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C';
+      CVSStoreName: string;
+      CVSStoreID: string;
+      CVSTelephone: string;
+      MerchantTradeNo: string;
+      CVSAddress: string;
+      note?: string;
+      code_note?: string;
+    };
+    custom_form_format?: any;
+    custom_form_data?: any;
+    proof_purchase: any;
+    progress: string;
+    returnProgress: string;
+    order_note: string;
+    return_order_remark: string;
+    voucherList: [
+      {
+        title: string;
+        method: 'percent' | 'fixed';
+        trigger: 'auto' | 'code';
+        value: string;
+        for: 'collection' | 'product';
+        rule: 'min_price' | 'min_count';
+        forKey: string[];
+        ruleValue: number;
+        startDate: string;
+        startTime: string;
+        endDate?: string;
+        endTime?: string;
+        status: 0 | 1 | -1;
+        type: 'voucher';
+        code?: string;
+        overlay: boolean;
+        bind?: {
+          id: string;
+          spec: string[];
+          count: number;
+          sale_price: number;
+          collection: string[];
+          discount_price: number;
+        }[];
+        start_ISO_Date: string;
+        end_ISO_Date: string;
+      },
+    ];
+  };
+  created_time: string;
+}
+
 const html = String.raw;
 
 export class ShoppingReturnOrderManager {
-  public static main(gvc: GVC) {
+  static getShipmentBadge(data: string, size: 'sm' | 'md' = 'md') {
+    const shipmentMap: any = {
+      '0': () => BgWidget.warningInsignia('退貨中', { size }),
+      '1': () => BgWidget.secondaryInsignia('處理中', { size }),
+      '-1': () => BgWidget.successInsignia('已退貨', { size }),
+    };
+
+    return (shipmentMap[data] ?? shipmentMap['1'])();
+  }
+
+  static getPaymentBadge(data: string, size: 'sm' | 'md' = 'md') {
+    const paymentMap: any = {
+      '0': () => BgWidget.warningInsignia('退款中', { size }),
+      '1': () => BgWidget.successInsignia('已退款', { size }),
+    };
+
+    return (paymentMap[data] ?? paymentMap['0'])();
+  }
+
+  static main(gvc: GVC) {
     const glitter = gvc.glitter;
     const dialog = new ShareDialog(gvc.glitter);
 
@@ -43,11 +149,6 @@ export class ShoppingReturnOrderManager {
     const ListComp = new BgListComponent(gvc, vm, FilterOptions.returnOrderFilterFrame);
 
     vm.filter = ListComp.getFilterObject();
-    gvc.addMtScript(
-      [{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }],
-      () => {},
-      () => {}
-    );
 
     return gvc.bindView(() => {
       return {
@@ -66,22 +167,7 @@ export class ShoppingReturnOrderManager {
                   })
                 )}
               </div>
-              <div class="title-container">
-                ${BgWidget.tab(
-                  [
-                    {
-                      title: '一般列表',
-                      key: 'normal',
-                    },
-                  ],
-                  gvc,
-                  vm.filter_type,
-                  text => {
-                    vm.filter_type = text as any;
-                    gvc.notifyDataChange(vm.id);
-                  }
-                )}
-              </div>
+              <div class="mb-3"></div>
               ${BgWidget.mainCard(
                 [
                   html`<div>
@@ -96,12 +182,12 @@ export class ShoppingReturnOrderManager {
                         options: FilterOptions.returnOrderSelect,
                       })}
                       ${BgWidget.searchFilter(
-                        gvc.event((e, event) => {
+                        gvc.event(e => {
                           vm.query = `${e.value}`.trim();
                           gvc.notifyDataChange(vm.id);
                         }),
                         vm.query || '',
-                        '搜尋所有訂單 按下Enter後執行'
+                        '搜尋訂單'
                       )}
                       ${BgWidget.funnelFilter({
                         gvc,
@@ -133,7 +219,7 @@ export class ShoppingReturnOrderManager {
                         archived: vm.filter_type === 'normal' ? `false` : `true`,
                       }).then(data => {
                         function getDatalist() {
-                          return data.response.data.map((dd: any) => {
+                          return (data.response.data || []).map((dd: any) => {
                             return [
                               {
                                 key: '退貨單編號',
@@ -149,59 +235,18 @@ export class ShoppingReturnOrderManager {
                               },
                               {
                                 key: '申請人',
-                                value: dd.orderData.user_info ? dd.orderData.user_info.name : `匿名`,
+                                value: dd.orderData.user_info ? dd.orderData.user_info.name : '匿名',
                               },
                               {
                                 key: '退貨狀態',
-                                value: (() => {
-                                  switch (dd.orderData.returnProgress ?? '1') {
-                                    case '0':
-                                      return html`<div
-                                        class="badge"
-                                        style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;"
-                                      >
-                                        退貨中
-                                      </div>`;
-                                    case '-1':
-                                      return html`<div
-                                        class="badge"
-                                        style="font-size: 14px;border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;color:#393939;"
-                                      >
-                                        已退貨
-                                      </div>`;
-                                    default:
-                                      return html`<div
-                                        class="badge"
-                                        style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;"
-                                      >
-                                        處理中
-                                      </div>`;
-                                  }
-                                })(),
+                                value: ShoppingReturnOrderManager.getShipmentBadge(`${dd.orderData.returnProgress}`),
                               },
                               {
                                 key: '退款狀態',
-                                value: (() => {
-                                  switch (dd.status ?? 0) {
-                                    case 1:
-                                      return html`<div
-                                        class="badge "
-                                        style="font-size: 14px;color:#393939;border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;"
-                                      >
-                                        已退款
-                                      </div>`;
-                                    default:
-                                      return html`<div
-                                        class="badge"
-                                        style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;"
-                                      >
-                                        退款中
-                                      </div>`;
-                                  }
-                                })(),
+                                value: ShoppingReturnOrderManager.getPaymentBadge(`${dd.status}`),
                               },
                             ].map((dd: any) => {
-                              dd.value = html`<div style="line-height:40px;">${dd.value}</div>`;
+                              dd.value = html`<div style="line-height: 40px;">${dd.value}</div>`;
                               return dd;
                             });
                           });
@@ -215,43 +260,43 @@ export class ShoppingReturnOrderManager {
                         vmi.callback();
                       });
                     },
-                    rowClick: (data, index) => {
+                    rowClick: (_, index) => {
                       vm.data = vm.dataList[index];
                       vm.type = 'replace';
                     },
                     filter: [
-                      {
-                        name: vm.filter_type === 'normal' ? `批量封存` : `解除封存`,
-                        option: true,
-                        event: () => {
-                          const action_text = vm.filter_type === 'normal' ? `封存` : `解除封存`;
-                          dialog.checkYesOrNot({
-                            text: `是否確認${action_text}所選項目?`,
-                            callback: async response => {
-                              if (response) {
-                                dialog.dataLoading({ visible: true });
-                                const check = vm.dataList.filter((dd: any) => {
-                                  return dd.checked;
-                                });
-                                for (const b of check) {
-                                  b.orderData.archived = vm.filter_type === 'normal' ? `true` : `false`;
-                                  await ApiShop.putReturnOrder({
-                                    id: `${b.id}`,
-                                    data: b,
-                                  });
-                                }
-                                setTimeout(() => {
-                                  dialog.dataLoading({ visible: false });
-                                  gvc.notifyDataChange(vm.id);
-                                }, 100);
-                              }
-                            },
-                          });
-                        },
-                      },
+                      // {
+                      //   name: vm.filter_type === 'normal' ? `批量封存` : `解除封存`,
+                      //   option: true,
+                      //   event: () => {
+                      //     const action_text = vm.filter_type === 'normal' ? `封存` : `解除封存`;
+                      //     dialog.checkYesOrNot({
+                      //       text: `是否確認${action_text}所選項目?`,
+                      //       callback: async response => {
+                      //         if (response) {
+                      //           dialog.dataLoading({ visible: true });
+                      //           const check = vm.dataList.filter((dd: any) => {
+                      //             return dd.checked;
+                      //           });
+                      //           for (const b of check) {
+                      //             b.orderData.archived = vm.filter_type === 'normal' ? `true` : `false`;
+                      //             await ApiShop.putReturnOrder({
+                      //               id: `${b.id}`,
+                      //               data: b,
+                      //             });
+                      //           }
+                      //           setTimeout(() => {
+                      //             dialog.dataLoading({ visible: false });
+                      //             gvc.notifyDataChange(vm.id);
+                      //           }, 100);
+                      //         }
+                      //       },
+                      //     });
+                      //   },
+                      // },
                       {
                         name: vm.filter_type === 'void' ? `批量作廢` : `解除作廢`,
-                        option: true,
+                        // option: true,
                         event: () => {
                           dialog.checkYesOrNot({
                             text: `是否確認${vm.filter_type === 'void' ? `解除作廢` : `作廢`}所選項目?`,
@@ -286,129 +331,29 @@ export class ShoppingReturnOrderManager {
             return this.replaceOrder(gvc, vm);
           } else if (vm.type == 'addSearch') {
             return this.searchOrder(gvc, vm);
-          } else {
-            return '';
           }
+          return '';
         },
       };
     });
   }
 
-  public static replaceOrder(gvc: GVC, vm: any) {
+  static replaceOrder(gvc: GVC, vm: any) {
     const glitter = gvc.glitter;
-    const orderData: {
-      id: number;
-      order_id: string;
-      return_order_id: string;
-      status: number;
-      email: string;
-      orderData: {
-        rebateChange: any;
-        return_inf: string | any;
-        refundTime?: string;
-        bank_info?: any;
-        customer_info: any;
-        editRecord: any;
-        method: string;
-        orderStatus: string;
-        use_wallet: number;
-        email: string;
-        return_discount: number;
-        return_rebate: number;
-        total: number;
-        discount: number;
-        expectDate: string;
-        shipment_fee: number;
-        use_rebate: number;
-        lineItems: {
-          id: number;
-          spec: string[];
-          count: string;
-          sale_price: number;
-          return_count: number;
-          return_reason: string;
-        }[];
-        user_info: {
-          name: string;
-          email: string;
-          phone: string;
-          address: string;
-          shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C';
-          CVSStoreName: string;
-          CVSStoreID: string;
-          CVSTelephone: string;
-          MerchantTradeNo: string;
-          CVSAddress: string;
-          note?: string;
-          code_note?: string;
-        };
-        custom_form_format?: any;
-        custom_form_data?: any;
-        proof_purchase: any;
-        progress: string;
-        returnProgress: string;
-        order_note: string;
-        return_order_remark: string;
-        voucherList: [
-          {
-            title: string;
-            method: 'percent' | 'fixed';
-            trigger: 'auto' | 'code';
-            value: string;
-            for: 'collection' | 'product';
-            rule: 'min_price' | 'min_count';
-            forKey: string[];
-            ruleValue: number;
-            startDate: string;
-            startTime: string;
-            endDate?: string;
-            endTime?: string;
-            status: 0 | 1 | -1;
-            type: 'voucher';
-            code?: string;
-            overlay: boolean;
-            bind?: {
-              id: string;
-              spec: string[];
-              count: number;
-              sale_price: number;
-              collection: string[];
-              discount_price: number;
-            }[];
-            start_ISO_Date: string;
-            end_ISO_Date: string;
-          },
-        ];
-      };
-      created_time: string;
-    } = vm.data;
-    let userData: any = {};
+    const dialog = new ShareDialog(glitter);
+    const orderData: ReturnOrderData = vm.data;
     const mainViewID = gvc.glitter.getUUID();
-    gvc.addStyle(`
-            .bg-warning {
-                background: #ffef9d !important;
-                color: black !important;
-            }
-        `);
-    let userDataLoading = true;
-    const dialog = new ShareDialog(gvc.glitter);
 
-    function drawBadge(color: string, text: string) {
-      switch (color) {
-        case 'green':
-          return `<div class="badge  fs-6" style="background:#D8ECDA;color: #393939;max-height:34px;border-radius: 7px;">${text}</div>`;
-        case 'red':
-          return `<div class="badge fs-6" style="border-radius: 7px;background: #FFD5D0;color: #393939;max-height:34px;">${text}</div>`;
-        case 'yellow':
-          return `<div class="badge fs-6" style="max-height:34px;border-radius: 7px;color: #393939;background: #FFE9B2;">${text}</div>`;
-        default:
-          return `<div class="badge fs-6" style="max-height:34px;border-radius: 7px;color: #393939;background: ${color};">${text}</div>`;
+    gvc.addStyle(`
+      .bg-warning {
+        background: #ffef9d !important;
+        color: black !important;
       }
-    }
+    `);
 
     function drawInputRow(text: string, value: any, readonly: boolean, style?: string): string {
       return html`
-        <div class=" d-flex flex-column" style="gap:8px;flex:1;${style ? style : ''}">
+        <div class="d-flex flex-column" style="gap:8px;flex:1;${style ? style : ''}">
           <div style="font-size: 16px;font-weight: 400;">${text}</div>
           ${(() => {
             if (readonly) {
@@ -437,30 +382,10 @@ export class ShoppingReturnOrderManager {
       `;
     }
 
-    const vt = {
-      paymentBadge: () => {
-        if (orderData.status === 0) {
-          return drawBadge('red', '尚未退款');
-        } else if (orderData.status === 1) {
-          return drawBadge('green', '已退款');
-        }
-      },
-      outShipBadge: () => {
-        switch (orderData.orderData.returnProgress ?? '1') {
-          case '1':
-            return drawBadge('#FFD5D0', '申請中');
-          case '0':
-            return drawBadge('#FFD5D0', '退貨中');
-          case '-1':
-            return drawBadge('#D8ECDA', '已退貨');
-        }
-      },
-    };
     ApiUser.getUsersDataWithEmail(orderData.email).then(res => {
-      userData = res.response;
-      userDataLoading = false;
       gvc.notifyDataChange(mainViewID);
     });
+
     const child_vm: {
       type: 'order' | 'user';
       userID: string;
@@ -511,10 +436,11 @@ export class ShoppingReturnOrderManager {
                           style="color: #8D8D8D;font-size: 16px;font-weight: 400;gap:10px;"
                         >
                           訂單成立時間 :
-                          ${glitter.ut.dateFormat(
-                            new Date(orderData.created_time),
-                            'yyyy-MM-dd hh:mm'
-                          )}${vt.paymentBadge()}${vt.outShipBadge()}
+                          ${[
+                            glitter.ut.dateFormat(new Date(orderData.created_time), 'yyyy-MM-dd hh:mm'),
+                            this.getPaymentBadge(`${orderData.status}`, 'sm'),
+                            this.getShipmentBadge(`${orderData.orderData.returnProgress}`, 'sm'),
+                          ].join('')}
                         </div>
                       </div>
                     </div>`
@@ -543,7 +469,7 @@ export class ShoppingReturnOrderManager {
                     儲存並更改
                   </button>
                 </div>
-                <div class="d-flex flex-column" style="gap:20px;">
+                <div class="d-flex flex-column mt-3" style="gap:20px;">
                   ${BgWidget.mainCard(html`
                     <div class="d-flex flex-column" style="gap:18px;">
                       <div class="d-flex flex-column" style="gap: 12px;">
@@ -567,7 +493,7 @@ export class ShoppingReturnOrderManager {
                               return html`
                                 <option
                                   value="${data[1]}"
-                                  ${orderData.orderData.returnProgress == data[1] ? `selected` : ``}
+                                  ${orderData.orderData.returnProgress == data[1] ? `selected` : ''}
                                 >
                                   ${data[0]}
                                 </option>
@@ -587,23 +513,20 @@ export class ShoppingReturnOrderManager {
                       style="width:100%;display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;color:#393939;font-size: 16px;font-weight: 400;"
                     >
                       <div style="font-weight: 700;">收件人資訊</div>
-                      ${(() => {
-                        // viewModel.searchData.orderData.customer_info
-                        return [
-                          ['姓名', 'name'],
-                          ['電話', 'phone'],
-                          ['電子信箱', 'email'],
-                        ]
-                          .map(data => {
-                            return drawInputRow(
-                              data[0],
-                              (orderData.orderData.user_info as any)[data[1]],
-                              false,
-                              'width:100%;'
-                            );
-                          })
-                          .join('');
-                      })()}
+                      ${[
+                        ['姓名', 'name'],
+                        ['電話', 'phone'],
+                        ['電子信箱', 'email'],
+                      ]
+                        .map(data => {
+                          return drawInputRow(
+                            data[0],
+                            (orderData.orderData.user_info as any)[data[1]],
+                            false,
+                            'width:100%;'
+                          );
+                        })
+                        .join('')}
                     </div>
                   `)}
                   ${BgWidget.mainCard(html`
@@ -622,132 +545,114 @@ export class ShoppingReturnOrderManager {
                         <div style="width:50px;text-align: right;">小計</div>
                       </div>
                     </div>
+                    ${orderData.orderData.lineItems
+                      .map((data: any, index: number) => {
+                        return gvc.bindView({
+                          bind: `lineItem${index}`,
+                          view: () => {
+                            gvc.addStyle(`
+                              input[type='number']::-webkit-outer-spin-button,
+                              input[type='number']::-webkit-inner-spin-button {
+                                -webkit-appearance: none;
+                                margin: 0;
+                              }
 
-                    ${(() => {
-                      return orderData.orderData.lineItems
-                        .map((data: any, index: number) => {
-                          return gvc.bindView({
-                            bind: `lineItem${index}`,
-                            view: () => {
-                              gvc.addStyle(`
-                                                        input[type=number]::-webkit-outer-spin-button,
-                                                        input[type=number]::-webkit-inner-spin-button {
-                                                            -webkit-appearance: none;
-                                                            margin: 0;
-                                                        }
-                                                        
-                                                        /* Firefox */
-                                                        input[type=number] {
-                                                            -moz-appearance: textfield;
-                                                        }
-                                                    `);
-                              return html` <div style="flex:1 0 0;display: flex;align-items: center;gap: 12px;">
-                                  <img style="width: 54px;height: 54px;" src="${data.preview_image}" />
-                                  <div class="d-flex justify-content-center flex-column" style="gap: 4px;">
-                                    <div style="color:#393939;font-weight: 400;">${data.title}</div>
-                                    <div class="d-flex " style="gap:4px;">
-                                      ${(() => {
-                                        function isBlankString(input: any): boolean {
-                                          if (
-                                            input === null ||
-                                            input === undefined ||
-                                            input === '' ||
-                                            input.length == 0
-                                          ) {
-                                            return true;
-                                          }
-                                          //檢查空白跟tab
-                                          return /^\s*$/.test(input);
-                                        }
-
-                                        if (data.spec.length == 0 || isBlankString(data.spec[0])) {
-                                          return html`
-                                            <div
-                                              style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;"
-                                            >
-                                              單一規格
-                                            </div>
-                                          `;
-                                        }
-                                        return data.spec
-                                          .map((spec: string) => {
-                                            data.return_count = data.return_count ?? data.count;
-                                            return html` <div
-                                              style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;"
-                                            >
-                                              ${spec}
-                                            </div>`;
-                                          })
-                                          .join();
-                                      })()}
-                                    </div>
-                                    <div style="color: #8D8D8D;font-size: 14px;font-weight: 400;">
-                                      存貨單位 (SKU): ${data.sku ?? ''}
-                                    </div>
+                              /* Firefox */
+                              input[type='number'] {
+                                -moz-appearance: textfield;
+                              }
+                            `);
+                            return html` <div style="flex:1 0 0;display: flex;align-items: center;gap: 12px;">
+                                <img style="width: 54px;height: 54px;" src="${data.preview_image}" />
+                                <div class="d-flex justify-content-center flex-column" style="gap: 4px;">
+                                  <div style="color:#393939;font-weight: 400;">${data.title}</div>
+                                  <div class="d-flex" style="gap:4px;">
+                                    ${(() => {
+                                      if (data.spec.length == 0 || isBlankString(data.spec[0])) {
+                                        return html`
+                                          <div
+                                            style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;"
+                                          >
+                                            單一規格
+                                          </div>
+                                        `;
+                                      }
+                                      return data.spec
+                                        .map((spec: string) => {
+                                          data.return_count = data.return_count ?? data.count;
+                                          return html` <div
+                                            style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;"
+                                          >
+                                            ${spec}
+                                          </div>`;
+                                        })
+                                        .join();
+                                    })()}
+                                  </div>
+                                  <div style="color: #8D8D8D;font-size: 14px;font-weight: 400;">
+                                    存貨單位 (SKU): ${data.sku ?? ''}
                                   </div>
                                 </div>
-                                <div
-                                  style="width:13%;margin-right: 20px;"
-                                  class="d-flex align-items-center justify-content-center"
-                                >
-                                  ${(() => {
-                                    let options: {
-                                      value: string;
-                                      text: string;
-                                    }[] = [
-                                      {
-                                        value: 'not_as_described',
-                                        text: '商品不符合',
-                                      },
-                                      {
-                                        value: 'damaged_in_shipping',
-                                        text: '運送中毀損',
-                                      },
-                                      {
-                                        value: 'not_as_described',
-                                        text: '商品有瑕疵',
-                                      },
-                                      {
-                                        value: 'not_as_described',
-                                        text: '訂單有誤',
-                                      },
-                                    ];
+                              </div>
+                              <div
+                                style="width:13%;margin-right: 20px;"
+                                class="d-flex align-items-center justify-content-center"
+                              >
+                                ${(() => {
+                                  let options: {
+                                    value: string;
+                                    text: string;
+                                  }[] = [
+                                    {
+                                      value: 'not_as_described',
+                                      text: '商品不符合',
+                                    },
+                                    {
+                                      value: 'damaged_in_shipping',
+                                      text: '運送中毀損',
+                                    },
+                                    {
+                                      value: 'not_as_described',
+                                      text: '商品有瑕疵',
+                                    },
+                                    {
+                                      value: 'not_as_described',
+                                      text: '訂單有誤',
+                                    },
+                                  ];
 
-                                    return html`
-                                      <div style="font-size: 16px;font-weight: 400;">
-                                        ${options.filter(data2 => data2.value == data.return_reason)[0].text}
-                                      </div>
-                                    `;
-                                  })()}
-                                </div>
-                                <div style="width:5%;">${data.sale_price}</div>
-                                <div style="width:10%;" class="d-flex align-items-center justify-content-center">
-                                  <div style="font-size: 16px;font-weight: 400;">${data.return_count}</div>
-                                </div>
-                                <div style="width:10%;" class="d-flex align-items-center justify-content-center">
-                                  <input
-                                    type="number"
-                                    style="text-align: center;width:94px;border-radius: 10px;border: 1px solid #DDD;display: flex;padding: 9px 18px;"
-                                    value="${data.return_stock ?? 0}"
-                                    max="${data.return_count}"
-                                    min="0"
-                                    onchange="${gvc.event(e => {
-                                      data.return_stock = e.value;
-                                      gvc.notifyDataChange(`lineItem${index}`);
-                                    })}"
-                                  />
-                                </div>
-                                <div style="width:50px;text-align: right;">
-                                  ${data.return_count * data.sale_price}
-                                </div>`;
-                            },
-                            divCreate: {
-                              style: `display: flex;padding: 0px 4px 12px 0px;align-items: center;gap: 18px;background: #FFF;width: 100%;padding-right:12px;`,
-                            },
-                          });
-                        })
-                        .join('');
-                    })()}
+                                  return html`
+                                    <div style="font-size: 16px;font-weight: 400;">
+                                      ${options.filter(data2 => data2.value == data.return_reason)[0].text}
+                                    </div>
+                                  `;
+                                })()}
+                              </div>
+                              <div style="width:5%;">${data.sale_price}</div>
+                              <div style="width:10%;" class="d-flex align-items-center justify-content-center">
+                                <div style="font-size: 16px;font-weight: 400;">${data.return_count}</div>
+                              </div>
+                              <div style="width:10%;" class="d-flex align-items-center justify-content-center">
+                                <input
+                                  type="number"
+                                  style="text-align: center;width:94px;border-radius: 10px;border: 1px solid #DDD;display: flex;padding: 9px 18px;"
+                                  value="${data.return_stock ?? 0}"
+                                  max="${data.return_count}"
+                                  min="0"
+                                  onchange="${gvc.event(e => {
+                                    data.return_stock = e.value;
+                                    gvc.notifyDataChange(`lineItem${index}`);
+                                  })}"
+                                />
+                              </div>
+                              <div style="width:50px;text-align: right;">${data.return_count * data.sale_price}</div>`;
+                          },
+                          divCreate: {
+                            style: `display: flex;padding: 0px 4px 12px 0px;align-items: center;gap: 18px;background: #FFF;width: 100%;padding-right:12px;`,
+                          },
+                        });
+                      })
+                      .join('')}
                     <div style="width: 100%;height: 1px;background-color: #DDD;margin-bottom:18px;"></div>
                     ${gvc.bindView({
                       bind: `checkout`,
@@ -791,7 +696,7 @@ export class ShoppingReturnOrderManager {
                                 <div>商品名稱</div>
                                 <div class="ms-auto d-flex">
                                   <div class="d-flex align-items-center justify-content-center" style="width: 60px;">
-                                    運費
+                                    ${type}
                                   </div>
                                 </div>
                               </div>
@@ -810,22 +715,9 @@ export class ShoppingReturnOrderManager {
                                               >
                                                 ${data.title}
                                               </div>
-                                              <div class="d-flex " style="gap:4px;">
+                                              <div class="d-flex" style="gap:4px;">
                                                 ${(() => {
                                                   data.return_count = data.return_count ?? data.count;
-
-                                                  function isBlankString(input: any): boolean {
-                                                    if (
-                                                      input === null ||
-                                                      input === undefined ||
-                                                      input === '' ||
-                                                      input.length == 0
-                                                    ) {
-                                                      return true;
-                                                    }
-                                                    //檢查空白跟tab
-                                                    return /^\s*$/.test(input);
-                                                  }
 
                                                   if (data.spec.length == 0 || isBlankString(data.spec[0])) {
                                                     return html`
@@ -863,7 +755,7 @@ export class ShoppingReturnOrderManager {
                                               class="d-flex align-items-center justify-content-center"
                                               style="width: 60px;"
                                             >
-                                              ${data[dict[type]]}
+                                              ${data[dict[type]] || 0}
                                             </div>
                                           </div>
                                         </div>
@@ -882,9 +774,6 @@ export class ShoppingReturnOrderManager {
                         orderData.orderData.return_rebate = orderData.orderData.return_rebate ?? '0';
                         orderData.orderData.return_discount = orderData.orderData.return_discount ?? '0';
 
-                        let returnTotal = (((subTotal + orderData.orderData.return_rebate) as number) +
-                          orderData.orderData.return_discount) as number;
-
                         return html`
                           ${(() => {
                             return [
@@ -896,7 +785,9 @@ export class ShoppingReturnOrderManager {
                                 return html`
                                   <div class="d-flex" style="gap: 24px;">
                                     <div style="font-size: 16px;font-weight: 400;">${data[0]}</div>
-                                    <div style="width:158px;text-align: right;">${data[1]}</div>
+                                    <div style="width:158px;text-align: right;">
+                                      $ ${Number(data[1]).toLocaleString()}
+                                    </div>
                                   </div>
                                 `;
                               })
@@ -921,7 +812,7 @@ export class ShoppingReturnOrderManager {
                                       <div style="text-align: right;">${item[0]}</div>
                                     </div>
 
-                                    <div class="d-flex " style="width: 112px;height: 100%">
+                                    <div class="d-flex" style="width: 112px;height: 100%">
                                       <div
                                         style="text-align: right;width: 112px;color: #4D86DB;text-decoration-line: underline;cursor: pointer"
                                         onclick="${gvc.event(() => {
@@ -938,7 +829,9 @@ export class ShoppingReturnOrderManager {
                           })()}
                           <div class="d-flex" style="gap: 24px;color:#393939;font-size: 16px;font-weight: 700;">
                             <div>退款總金額</div>
-                            <div style="width:158px;text-align: right;">${orderData.orderData.return_inf.subTotal}</div>
+                            <div style="width:158px;text-align: right;">
+                              $ ${Number(orderData.orderData.return_inf.subTotal).toLocaleString()}
+                            </div>
                           </div>
                         `;
                       },
@@ -948,20 +841,19 @@ export class ShoppingReturnOrderManager {
                     })}
                   `)}
                   ${BgWidget.mainCard(html`
-                                                    <div class="d-flex flex-column"
-                                                         style="color: #393939;font-size: 16px;font-weight: 400;gap: 8px;">
-                                                        <div style="font-weight: 700;">退貨備註</div>
-                                                        <textarea
-                                                                style="height: 102px;border-radius: 10px;border: 1px solid #DDD;padding: 15px;"
-                                                            ">${orderData.orderData?.return_order_remark ?? ''}</textarea>
-                                                    </div>
-                                                `)} ${BgWidget.mainCard(html`
+                    <div class="d-flex flex-column" style="color: #393939;font-size: 16px;font-weight: 400;gap: 8px;">
+                      <div style="font-weight: 700;">退貨備註</div>
+                      <textarea style="height: 102px;border-radius: 10px;border: 1px solid #DDD;padding: 15px;">
+${orderData.orderData?.return_order_remark ?? ''}</textarea
+                      >
+                    </div>
+                  `)}
+                  ${BgWidget.mainCard(html`
                     <div
                       style="width:100%;display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;color:#393939;font-size: 16px;font-weight: 400;"
                     >
                       <div style="font-weight: 700;">訂購人資訊</div>
                       ${(() => {
-                        // viewModel.searchData.orderData.customer_info
                         return [
                           ['姓名', 'name'],
                           ['電話', 'phone'],
@@ -1063,20 +955,19 @@ export class ShoppingReturnOrderManager {
                         },
                         divCreate: {
                           class: `d-flex flex-column`,
-                          style: `color: #393939;font-size: 16px;font-weight: 700;gap: 18px;margin-bottom:18px;`,
+                          style: `color: #393939;font-size: 16px;font-weight: 700;gap: 12px; `,
                         },
                       })}
-
-                      <div style="margin-top: 12px;">退款銀行帳號</div>
+                      <div class="tx_700">退款銀行帳號</div>
                       ${gvc.bindView({
                         bind: 'return_Info',
                         view: () => {
                           let dateArray: string[][] = [
-                            ['銀行代碼:', 'bankCode'],
-                            ['銀行名稱:', 'bankName'],
-                            ['銀行分行:', 'bankBranch'],
-                            ['銀行戶名:', 'bankAccountName'],
-                            ['銀行帳號:', 'bankAccountNumber'],
+                            ['銀行代碼', 'bankCode'],
+                            ['銀行名稱', 'bankName'],
+                            ['銀行分行', 'bankBranch'],
+                            ['銀行戶名', 'bankAccountName'],
+                            ['銀行帳號', 'bankAccountNumber'],
                           ];
 
                           orderData.orderData.bank_info = orderData.orderData.bank_info ?? {
@@ -1093,7 +984,6 @@ export class ShoppingReturnOrderManager {
                                 <div class="d-flex flex-column" style="gap:8px;width: calc(50% - 10px);">
                                   <div style="text-align: left;">${data[0]}</div>
                                   <input
-                                    class=" "
                                     value="${orderData.orderData.bank_info[data[1]]}"
                                     style="display: flex;height: 44px;padding: 11px 12px;align-items: center;gap: 21px;border-radius: 10px;border: 1px solid #DDD;"
                                     placeholder=""
@@ -1155,14 +1045,14 @@ export class ShoppingReturnOrderManager {
           `);
         } catch (e) {
           console.error(e);
-          return ``;
+          return '';
         }
       },
-      divCreate: {},
     });
   }
 
-  public static searchOrder(gvc: GVC, vm: any) {
+  static searchOrder(gvc: GVC, vm: any) {
+    const dialog = new ShareDialog(gvc.glitter);
     let viewModel: any = {
       searchOrder: '',
       searchData: '',
@@ -1170,11 +1060,8 @@ export class ShoppingReturnOrderManager {
     };
     let checkList: any[] = [];
     let rebate = 0;
-    let rebateOverflow = false;
-    let rebateLoading = false;
     let detailShow = false;
     let detail2Show = false;
-    const dialog = new ShareDialog(gvc.glitter);
 
     return BgWidget.container(html`
       <div class="title-container">
@@ -1188,7 +1075,7 @@ export class ShoppingReturnOrderManager {
       <div style="margin-top: 24px;"></div>
       ${BgWidget.mainCard(html`
         <div
-          style="display: flex;padding: 20px;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
+          style="display: flex;padding: 4px;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
         >
           <div style="font-size: 16px;font-weight: 700;">訂單編號*</div>
           <input
@@ -1199,9 +1086,9 @@ export class ShoppingReturnOrderManager {
               viewModel.searchOrder = e.value;
             })}"
           />
-          <div
-            style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;background: #EAEAEA;font-weight: 700;cursor: pointer;"
-            onclick="${gvc.event(() => {
+          ${BgWidget.grayButton(
+            '查詢訂單',
+            gvc.event(() => {
               if (viewModel.searchOrder == '') {
                 return;
               }
@@ -1210,25 +1097,21 @@ export class ShoppingReturnOrderManager {
                 limit: 100,
                 search: viewModel.searchOrder,
                 searchType: 'cart_token',
-                archived: `false`,
+                archived: 'false',
                 returnSearch: 'true',
-              }).then((response: any) => {
-                if (response.response.length == 0) {
+              }).then(r => {
+                if (!r.result) {
                   viewModel.errorReport = '查無此訂單';
-                }
-                if (response.response.orderData.lineItems.length > 0) {
-                  viewModel.searchData = response.response;
+                } else if (r.response.orderData.lineItems.length > 0) {
+                  viewModel.searchData = r.response;
                 } else {
                   viewModel.errorReport = '此訂單已無商品可退貨';
                 }
 
                 gvc.notifyDataChange(['notFind', 'orderDetail']);
               });
-            })}"
-          >
-            查詢訂單
-          </div>
-
+            })
+          )}
           ${gvc.bindView({
             bind: 'notFind',
             view: () => {
@@ -1241,7 +1124,7 @@ export class ShoppingReturnOrderManager {
                   </div>
                 `;
               }
-              return ``;
+              return '';
             },
             divCreate: { style: `width:100%` },
           })}
@@ -1255,11 +1138,12 @@ export class ShoppingReturnOrderManager {
             let orderData = viewModel.searchData.orderData;
             let lineItems = orderData.lineItems;
             let origShipment = orderData.shipment_fee;
+
             ApiUser.getUserRebate({ email: orderData.customer_info.email }).then(r => {
               rebate = r.response.data.point;
-              rebateLoading = true;
               gvc.notifyDataChange(['inputRebate', 'inputReturn']);
             });
+
             return html`
               <div style="display: flex;flex-direction: column;gap: 24px">
                 ${BgWidget.mainCard(html`
@@ -1361,22 +1245,9 @@ export class ShoppingReturnOrderManager {
                                 <img style="width: 54px;height: 54px;" src="${data.preview_image}" />
                                 <div class="d-flex justify-content-center flex-column" style="gap: 4px;">
                                   <div style="color:#393939;font-weight: 400;">${data.title}</div>
-                                  <div class="d-flex " style="gap:4px;">
+                                  <div class="d-flex" style="gap:4px;">
                                     ${(() => {
                                       data.return_count = data.return_count ?? data.count;
-
-                                      function isBlankString(input: any): boolean {
-                                        if (
-                                          input === null ||
-                                          input === undefined ||
-                                          input === '' ||
-                                          input.length == 0
-                                        ) {
-                                          return true;
-                                        }
-                                        //檢查空白跟tab
-                                        return /^\s*$/.test(input);
-                                      }
 
                                       if (data.spec.length == 0 || isBlankString(data.spec[0])) {
                                         return html`
@@ -1410,7 +1281,7 @@ export class ShoppingReturnOrderManager {
                                 <select
                                   class="form-select"
                                   style="width:80%;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                  ${data.select ? `` : `disabled`}
+                                  ${data.select ? '' : `disabled`}
                                   onchange="${gvc.event(e => {
                                     data.return_reason = e.value;
                                     gvc.notifyDataChange([`lineItem${index}`, 'checkout']);
@@ -1455,12 +1326,12 @@ export class ShoppingReturnOrderManager {
                                 <input
                                   type="number"
                                   style="text-align: center;width:94px;border-radius: 10px;border: 1px solid #DDD;display: flex;padding: 9px 18px;${data.select
-                                    ? ``
+                                    ? ''
                                     : `text-decoration-line: strikethrough;`}"
                                   value="${data.return_count ?? data.count}"
                                   min="0"
                                   max="${data.count}"
-                                  ${data.select ? `` : `disabled`}
+                                  ${data.select ? '' : `disabled`}
                                   onchange="${gvc.event(e => {
                                     e.value = e.value > data.count ? data.count : e.value;
                                     e.value = e.value < 0 ? 0 : e.value;
@@ -1473,12 +1344,12 @@ export class ShoppingReturnOrderManager {
                                 <input
                                   type="number"
                                   style="text-align: center;width:94px;border-radius: 10px;border: 1px solid #DDD;display: flex;padding: 9px 18px;${data.select
-                                    ? ``
+                                    ? ''
                                     : `text-decoration-line: strikethrough;`}"
                                   value="${data.return_stock ?? 0}"
                                   max=${data.return_count}
                                   min="0"
-                                  ${data.select ? `` : `disabled`}
+                                  ${data.select ? '' : `disabled`}
                                   onchange="${gvc.event(e => {
                                     e.value = e.value > data.return_count ? e.value : data.return_count;
                                     e.value = e.value < 0 ? 0 : e.value;
@@ -1581,22 +1452,9 @@ export class ShoppingReturnOrderManager {
                                             >
                                               ${data.title}
                                             </div>
-                                            <div class="d-flex " style="gap:4px;">
+                                            <div class="d-flex" style="gap:4px;">
                                               ${(() => {
                                                 data.return_count = data.return_count ?? data.count;
-
-                                                function isBlankString(input: any): boolean {
-                                                  if (
-                                                    input === null ||
-                                                    input === undefined ||
-                                                    input === '' ||
-                                                    input.length == 0
-                                                  ) {
-                                                    return true;
-                                                  }
-                                                  //檢查空白跟tab
-                                                  return /^\s*$/.test(input);
-                                                }
 
                                                 if (data.spec.length == 0 || isBlankString(data.spec[0])) {
                                                   return html`
@@ -1658,7 +1516,9 @@ export class ShoppingReturnOrderManager {
                               return html`
                                 <div class="d-flex" style="gap: 24px;">
                                   <div style="font-size: 16px;font-weight: 400;">${data[0]}</div>
-                                  <div style="width:158px;text-align: right;">${data[1]}</div>
+                                  <div style="width:158px;text-align: right;">
+                                    $ ${Number(data[1]).toLocaleString()}
+                                  </div>
                                 </div>
                               `;
                             })
@@ -1683,7 +1543,7 @@ export class ShoppingReturnOrderManager {
                                     <div style="text-align: right;">${item[0]}</div>
                                   </div>
 
-                                  <div class="d-flex " style="width: 112px;height: 100%">
+                                  <div class="d-flex" style="width: 112px;height: 100%">
                                     <div
                                       style="text-align: right;width: 112px;color: #4D86DB;text-decoration-line: underline;cursor: pointer"
                                       onclick="${gvc.event(() => {
@@ -1700,7 +1560,9 @@ export class ShoppingReturnOrderManager {
                         })()}
                         <div class="d-flex" style="gap: 24px;color:#393939;font-size: 16px;font-weight: 700;">
                           <div>退款總金額</div>
-                          <div style="width:158px;text-align: right;">${orderData.return_inf.subTotal}</div>
+                          <div style="width:158px;text-align: right;">
+                            $ ${Number(orderData.return_inf.subTotal).toLocaleString()}
+                          </div>
                         </div>
                       `;
                     },
@@ -1746,7 +1608,6 @@ export class ShoppingReturnOrderManager {
                         orderData.rebateChange = rebateDiff;
                         if (rebate + rebateDiff < 0) {
                           orderData.rebateChange = -rebate;
-                          rebateOverflow = true;
                         }
                         return html`
                           <div style="font-weight: 700;margin-bottom: 12px;">持有購物金</div>
@@ -1767,7 +1628,7 @@ export class ShoppingReturnOrderManager {
                             bind: 'rebateHint',
                             view: () => {
                               if (rebate + rebateDiff >= 0) {
-                                return ``;
+                                return '';
                               }
 
                               return html` <div class="d-flex align-items-center" style="margin-top: 8px;">
@@ -1798,7 +1659,7 @@ export class ShoppingReturnOrderManager {
                                     bind: 'rebateHintDetail',
                                     view: () => {
                                       if (!detailShow) {
-                                        return ``;
+                                        return '';
                                       }
                                       return html`
                                         <div
@@ -1835,14 +1696,13 @@ export class ShoppingReturnOrderManager {
                                         color: #fff;
                                         font-size: 16px;
                                         font-weight: 400;
-                                        ${!detailShow ? `display:none;` : ``}
+                                        ${!detailShow ? `display:none;` : ''}
                                       `,
                                     },
                                   })}
                                 </div>
                               </div>`;
                             },
-                            divCreate: {},
                           })}
                         `;
                       },
@@ -1993,12 +1853,19 @@ ${orderData?.return_order_remark ?? ''}</textarea
               </div>
             `;
           }
-          return ``;
+          return '';
         },
-        divCreate: {},
       })}
     `);
   }
+}
+
+// 檢查空白跟tab
+function isBlankString(input: any): boolean {
+  if (input === null || input === undefined || input === '' || input.length == 0) {
+    return true;
+  }
+  return /^\s*$/.test(input);
 }
 
 (window as any).glitter.setModule(import.meta.url, ShoppingReturnOrderManager);

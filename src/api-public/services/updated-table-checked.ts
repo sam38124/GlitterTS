@@ -1,10 +1,11 @@
 import db from '../../modules/database';
 import { CheckoutService } from './checkout.js';
+import { MigratePublicUserConfig } from './migrate-event/public-user-config';
 import { UserUpdate } from './user-update.js';
 
 export class UpdatedTableChecked {
   public static async startCheck(app_name: string) {
-    //員工上下班打卡1.1版本，新增門市欄位
+    // 員工上下班打卡1.1版本，新增門市欄位
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_check_in_pos',
@@ -16,7 +17,7 @@ export class UpdatedTableChecked {
         ADD INDEX \`index5\` (\`store\` ASC) VISIBLE;
       `,
     });
-    //購物車''->1.1版本，先更新資料表欄位
+    // 購物車''->1.1版本，先更新資料表欄位
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_checkout',
@@ -38,7 +39,7 @@ export class UpdatedTableChecked {
         'ADD INDEX `index10` (`progress` ASC) VISIBLE;\n' +
         ';\n',
     });
-    //購物車1.3->1.4版本，新增ShipmentNumber欄位，加快索引查詢速度。
+    // 購物車1.3->1.4版本，新增ShipmentNumber欄位，加快索引查詢速度。
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_checkout',
@@ -50,7 +51,7 @@ export class UpdatedTableChecked {
         ADD INDEX \`index11\` (\`shipment_number\` ASC) VISIBLE;
       `,
     });
-    //LINE資料表更新
+    // LINE資料表更新
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_live_purchase_interactions',
@@ -61,7 +62,7 @@ export class UpdatedTableChecked {
         CHANGE COLUMN \`stream_name\` \`name\` VARCHAR (200) NOT NULL;
       `,
     });
-    //LINE資料表更新
+    // LINE資料表更新
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_live_purchase_interactions',
@@ -72,7 +73,7 @@ export class UpdatedTableChecked {
         CHANGE COLUMN \`stream_name\` \`name\` VARCHAR (200) NOT NULL;
       `,
     });
-    //LINE資料表更新
+    // LINE資料表更新
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_live_purchase_interactions',
@@ -84,7 +85,7 @@ export class UpdatedTableChecked {
         DROP INDEX \`index3\`;
       `,
     });
-    //購物車1.5->1.6版本，新增沖賬紀錄
+    // 購物車1.5->1.6版本，新增沖賬紀錄
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_checkout',
@@ -101,7 +102,7 @@ export class UpdatedTableChecked {
         ADD INDEX \`index14\` (\`offset_reason\` ASC) VISIBLE;
       `,
     });
-    //購物車1.6->1.7版本，新增沖賬時間
+    // 購物車1.6->1.7版本，新增沖賬時間
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_checkout',
@@ -113,7 +114,7 @@ export class UpdatedTableChecked {
         ADD INDEX \`index15\` (\`reconciliation_date\` ASC) VISIBLE;
       `,
     });
-    //會員表新增會員等級欄位
+    // 會員表新增會員等級欄位
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_user',
@@ -125,7 +126,7 @@ export class UpdatedTableChecked {
         ADD INDEX \`index7\` (\`member_level\` ASC) VISIBLE;
       `,
     });
-    //會員表插入member_level資料
+    // 會員表插入member_level資料
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_user',
@@ -140,7 +141,7 @@ export class UpdatedTableChecked {
         });
       },
     });
-    //會員表插入member_level資料
+    // 會員表插入member_level資料
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_user',
@@ -151,7 +152,7 @@ export class UpdatedTableChecked {
         CHANGE COLUMN \`member_level\` \`member_level\` VARCHAR (45) NULL DEFAULT NULL;
       `,
     });
-    //購物車1.7->1.8版本，新增訂單類型，
+    // 購物車1.7->1.8版本，新增訂單類型，
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_checkout',
@@ -179,7 +180,7 @@ export class UpdatedTableChecked {
         ADD INDEX \`index24\` (\`shipment_address\` ASC) VISIBLE;
       `,
     });
-    //重新migrate過訂單
+    // 重新migrate過訂單
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_checkout',
@@ -198,7 +199,7 @@ export class UpdatedTableChecked {
         });
       },
     });
-    //t_products_sold_history 1.0->1.1 版本，將count轉換成float
+    // t_products_sold_history 1.0->1.1 版本，將count轉換成float
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_products_sold_history',
@@ -209,34 +210,48 @@ export class UpdatedTableChecked {
         CHANGE COLUMN \`count\` \`count\` FLOAT NOT NULL;
       `,
     });
-
-    //會員表插入信箱和電話
+    // 會員表插入信箱和電話
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_user',
       last_version: ['V1.2'],
       new_version: 'V1.3',
-      event: `ALTER TABLE \`${app_name}\`.\`t_user\`
-      ADD COLUMN \`email\` VARCHAR(50) NULL AFTER \`member_level\`,
-      ADD COLUMN \`phone\` VARCHAR(50) NULL AFTER \`email\`,
-      ADD INDEX \`index8\` (\`email\` ASC) VISIBLE,
-      ADD INDEX \`index9\` (\`phone\` ASC) VISIBLE;
-      ;`,
+      event: `
+        ALTER TABLE \`${app_name}\`.\`t_user\`
+        ADD COLUMN \`email\` VARCHAR(50) NULL AFTER \`member_level\`,
+        ADD COLUMN \`phone\` VARCHAR(50) NULL AFTER \`email\`,
+        ADD INDEX \`index8\` (\`email\` ASC) VISIBLE,
+        ADD INDEX \`index9\` (\`phone\` ASC) VISIBLE;
+      `,
     });
-
-    //會員表插入信箱和電話
+    // 會員表插入信箱和電話
     await UpdatedTableChecked.update({
       app_name: app_name,
       table_name: 't_user',
-      last_version: ['V1.3'],
-      new_version: 'V1.4',
-      event:`UPDATE \`${app_name}\`.t_user
-    SET
-    phone = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.phone')),
-      email = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email'))  where id>0`,
+      last_version: ['V1.3', 'V1.4'],
+      new_version: 'V1.5',
+      event: `
+        UPDATE \`${app_name}\`.t_user
+        SET
+          phone = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.phone')),
+          email = JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) WHERE id > 0
+      `,
     });
-
-
+    // t_user_public_config 更新「物流群組」功能
+    await UpdatedTableChecked.update({
+      app_name: 't_1725992531001',
+      table_name: 't_user_public_config',
+      last_version: ['V1.0', ''],
+      new_version: 'V1.1',
+      beta: true,
+      event: () => {
+        return new Promise(async resolve => {
+          const migrateClass = new MigratePublicUserConfig('t_1725992531001');
+          await migrateClass.setLogisticsGroup();
+          resolve(true);
+        });
+      },
+    });
   }
 
   public static async update(obj: {
@@ -244,12 +259,15 @@ export class UpdatedTableChecked {
     table_name: string;
     last_version: string[];
     new_version: string;
+    beta?: boolean;
     event: string | (() => Promise<any>);
   }) {
     const data_ = await db.query(
-      `SELECT TABLE_NAME, TABLE_COMMENT
-       FROM information_schema.tables
-       WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?;`,
+      `
+        SELECT TABLE_NAME, TABLE_COMMENT
+        FROM information_schema.tables
+        WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?;
+      `,
       [obj.app_name, obj.table_name]
     );
     //判斷是需要更新的版本
@@ -260,8 +278,10 @@ export class UpdatedTableChecked {
       } else {
         while (!(await obj.event())) {}
       }
-      await db.query(`ALTER TABLE \`${obj.app_name}\`.\`${obj.table_name}\` COMMENT = '${obj.new_version}';`, []);
-      console.log(`資料庫更新結束: ${obj.app_name}-${obj.last_version}-to-${obj.new_version}`);
+      if (!obj.beta) {
+        await db.query(`ALTER TABLE \`${obj.app_name}\`.\`${obj.table_name}\` COMMENT = '${obj.new_version}';`, []);
+        console.log(`資料庫更新結束: ${obj.app_name}-${obj.last_version}-to-${obj.new_version}`);
+      }
     }
   }
 }

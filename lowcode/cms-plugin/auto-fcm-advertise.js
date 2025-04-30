@@ -31,13 +31,14 @@ export class AutoFcmAdvertise {
             dataList: [],
         };
         const postData = {
-            type: 'notify-sns-config',
+            type: 'notify-fcm-config',
             tag: '',
             tagList: [],
             userList: [],
             boolean: 'or',
             name: '',
             title: '',
+            link: '',
             content: '',
             sendTime: { date: startDate, time: startTime },
             sendGroup: [],
@@ -168,6 +169,7 @@ export class AutoFcmAdvertise {
                         ApiUser.getUserList({
                             page: 0,
                             limit: 99999,
+                            only_id: true,
                         }).then(dd => {
                             dd.response.data.map((user) => {
                                 postData.userList.push({
@@ -418,17 +420,17 @@ export class AutoFcmAdvertise {
             return {
                 bind: vm.containerId,
                 view: () => {
-                    return [
+                    return ([
                         BgWidget.mainCard([
                             html ` <div class="tx_700">選擇收件對象</div>`,
                             html ` <div class="tx_normal fw-normal mt-3">根據</div>`,
                             html ` <div
-                      style="display: flex; ${document.body.clientWidth > 768
+                        style="display: flex; ${document.body.clientWidth > 768
                                 ? 'gap: 18px;'
                                 : 'flex-direction: column;'}"
-                    >
-                      <div style="width: ${document.body.clientWidth > 768 ? '400px' : '100%'};">
-                        ${BgWidget.select({
+                      >
+                        <div style="width: ${document.body.clientWidth > 768 ? '400px' : '100%'};">
+                          ${BgWidget.select({
                                 gvc: gvc,
                                 default: postData.tag,
                                 callback: key => {
@@ -439,9 +441,9 @@ export class AutoFcmAdvertise {
                                 options: FilterOptions.emailOptions,
                                 style: 'margin: 8px 0;',
                             })}
-                      </div>
-                      <div style="width: 100%; display: flex; align-items: center;">
-                        ${gvc.bindView({
+                        </div>
+                        <div style="width: 100%; display: flex; align-items: center;">
+                          ${gvc.bindView({
                                 bind: vm.id,
                                 view: () => {
                                     const getDefault = (def) => {
@@ -464,9 +466,10 @@ export class AutoFcmAdvertise {
                                         case 'all':
                                             dialog.dataLoading({ visible: true, text: '取得所有會員資料中...' });
                                             new Promise(resolve => {
-                                                ApiUser.getUserListOrders({
+                                                ApiUser.getUserList({
                                                     page: 0,
                                                     limit: 99999,
+                                                    only_id: true,
                                                 }).then(dd => {
                                                     if (dd.response.data) {
                                                         const ids = [];
@@ -514,11 +517,11 @@ export class AutoFcmAdvertise {
                                                     default: getDefault([]),
                                                     api: (data) => {
                                                         return new Promise(resolve => {
-                                                            ApiUser.getUserListOrders({
+                                                            ApiUser.getUserList({
                                                                 page: 0,
                                                                 limit: 99999,
+                                                                only_id: true,
                                                                 search: data.query,
-                                                                orderString: data.orderString,
                                                             }).then(dd => {
                                                                 if (dd.response.data) {
                                                                     vm.dataList = dd.response.data
@@ -584,8 +587,8 @@ export class AutoFcmAdvertise {
                                     }
                                 },
                             })}
-                      </div>
-                    </div>`,
+                        </div>
+                      </div>`,
                             gvc.bindView({
                                 bind: vm.tagsId,
                                 view: () => getTagsHTML(),
@@ -618,6 +621,15 @@ export class AutoFcmAdvertise {
                                             },
                                             global_language: true,
                                         }),
+                                        BgWidget.linkList({
+                                            gvc: gvc,
+                                            title: '跳轉頁面',
+                                            default: postData.link || '',
+                                            placeHolder: '為空則為首頁',
+                                            callback: text => {
+                                                postData.link = text;
+                                            },
+                                        }),
                                     ].join('');
                                 },
                                 divCreate: {
@@ -626,7 +638,7 @@ export class AutoFcmAdvertise {
                             }),
                         ].join('')),
                         BgWidget.mainCard(html ` <div class="tx_700 mb-3">發送時間</div>
-                    ${EditorElem.radio({
+                      ${EditorElem.radio({
                             gvc: gvc,
                             title: '',
                             def: postData.sendTime === undefined ? 'now' : 'set',
@@ -639,10 +651,10 @@ export class AutoFcmAdvertise {
                                     title: '排定發送時間',
                                     value: 'set',
                                     innerHtml: html ` <div
-                            class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
-                            style="gap: 12px"
-                          >
-                            ${EditorElem.editeInput({
+                              class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+                              style="gap: 12px"
+                            >
+                              ${EditorElem.editeInput({
                                         gvc: gvc,
                                         title: '',
                                         type: 'date',
@@ -657,7 +669,7 @@ export class AutoFcmAdvertise {
                                             };
                                         },
                                     })}
-                            ${EditorElem.editeInput({
+                              ${EditorElem.editeInput({
                                         gvc: gvc,
                                         title: '',
                                         type: 'time',
@@ -672,7 +684,7 @@ export class AutoFcmAdvertise {
                                             };
                                         },
                                     })}
-                          </div>`,
+                            </div>`,
                                 },
                             ],
                             callback: text => {
@@ -684,12 +696,11 @@ export class AutoFcmAdvertise {
                                 }
                             },
                         })}`),
-                    ].join(BgWidget.mbContainer(16));
+                    ].join(BgWidget.mbContainer(16)) + BgWidget.mbContainer(240));
                 },
-                divCreate: {},
             };
         }))}
-      ${BgWidget.mbContainer(240)}
+      ${BgWidget.mbContainer(480)}
       <div class="update-bar-container">
         ${BgWidget.save(gvc.event(() => {
             function isLater(dateTimeObj) {

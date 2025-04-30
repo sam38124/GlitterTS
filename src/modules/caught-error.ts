@@ -6,18 +6,21 @@ export class CaughtError {
     // 捕捉未處理例外
     process.on('uncaughtException', async err => {
       //非本地開發再插入錯誤
-      if (process.env.is_local !== 'true') {
+      if(process.env.is_local !== 'true'){
         console.error('Uncaught Exception:', err);
-        console.error('uncaughtException', err.message, err.stack);
-        await db.query(
-          `insert into \`${process.env.GLITTER_DB}\`.error_log (message, stack)
+        //如果連線太多，重啟應用
+        if(err.message.includes('Too many connections')){
+          process.exit(1); // 終止應用程式
+        }else{
+          await db.query(
+            `insert into \`${process.env.GLITTER_DB}\`.error_log (message, stack)
                         values (?, ?)`,
-          [err.message, err.stack]
-        );
-        process.exit(1); // 終止應用程式
+            [err.message, err.stack]
+          );
+          process.exit(1); // 終止應用程式
+        }
       }else{
         console.error('Uncaught Exception:', err);
-        console.error('uncaughtException', err.message, err.stack);
         process.exit(1); // 終止應用程式
       }
     });

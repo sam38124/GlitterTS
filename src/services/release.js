@@ -11,16 +11,17 @@ const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const config_js_1 = __importDefault(require("../config.js"));
 const exception_js_1 = __importDefault(require("../modules/exception.js"));
 const firebase_js_1 = require("../modules/firebase.js");
-const android_project_js_1 = require("./android-project.js");
+const sharp_1 = __importDefault(require("sharp"));
+const axios_1 = __importDefault(require("axios"));
 class Release {
     static async android(cf) {
         try {
+            console.log(`cf=>`, cf);
             await firebase_js_1.Firebase.appRegister({
                 appName: cf.appDomain,
                 appID: cf.bundleID,
                 type: 'android',
             });
-            fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, './app/src/main/java/com/ncdesign/kenda/MyAPP.kt'), android_project_js_1.AndroidProject.appKt(cf.domain_url));
             fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, './app/google-services.json'), (await firebase_js_1.Firebase.getConfig({
                 appID: cf.bundleID,
                 type: 'android',
@@ -28,18 +29,91 @@ class Release {
             })));
             await this.resetProjectRouter({
                 project_router: cf.project_router,
-                targetString: 'com.ncdesign.kenda',
+                targetString: 'www.smilebio.io',
                 replacementString: cf.bundleID,
             });
-            fs_1.default.renameSync(path_1.default.resolve(cf.project_router, './app/src/main/java/com/ncdesign/kenda'), path_1.default.resolve(cf.project_router, 'temp_file'));
+            function replaceInFile(filePath, targetString, replacementString) {
+                return new Promise((resolve, reject) => {
+                    fs_1.default.readFile(filePath, 'utf8', (err, data) => {
+                        if (err) {
+                            console.error(`Error reading file ${filePath}:`, err);
+                            return;
+                        }
+                        if (data.includes(targetString)) {
+                            const result = data.replace(new RegExp(targetString, 'g'), replacementString);
+                            fs_1.default.writeFile(filePath, result, 'utf8', err => {
+                                if (err) {
+                                    console.error(`Error writing file ${filePath}:`, err);
+                                }
+                                else {
+                                    console.log(`Replaced in file: ${filePath}`);
+                                }
+                                setTimeout(() => { resolve(true); }, 100);
+                            });
+                        }
+                    });
+                });
+            }
+            await replaceInFile(path_1.default.resolve(cf.project_router, './app/src/main/java/www/smilebio/io/MyAPP.kt'), 'https://www.smilebio.com', `https://${cf.domain_url}`);
+            await replaceInFile(path_1.default.resolve(cf.project_router, './app/src/main/java/www/smilebio/io/MyAPP.kt'), 'www.smilebio.io', cf.bundleID);
+            await this.resetProjectRouter({
+                project_router: cf.project_router,
+                targetString: `<string name="app_name">Kenda</string>`,
+                replacementString: `<string name="app_name">${cf.config.name}</string>`,
+            });
+            fs_1.default.renameSync(path_1.default.resolve(cf.project_router, './app/src/main/java/www/smilebio/io'), path_1.default.resolve(cf.project_router, 'temp_file'));
             Release.deleteFolder(path_1.default.resolve(cf.project_router, './app/src/main/java/com'));
             fs_1.default.mkdirSync(path_1.default.resolve(cf.project_router, `./app/src/main/java/${cf.bundleID.split('.').join('/')}`), {
                 recursive: true,
             });
             fs_1.default.renameSync(path_1.default.resolve(cf.project_router, 'temp_file'), path_1.default.resolve(cf.project_router, `./app/src/main/java/${cf.bundleID.split('.').join('/')}`));
+            await this.downloadImage(cf.config.logo, path_1.default.resolve(cf.project_router, `./app/src/main/res/autogen.png`));
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await Release.generateAndroidIcon(path_1.default.resolve(cf.project_router, `./app/src/main/res/autogen.png`), path_1.default.resolve(cf.project_router, `./app/src/main/res`));
         }
         catch (e) {
             console.log(e);
+        }
+    }
+    static async downloadImage(url, outputPath) {
+        try {
+            const response = await (0, axios_1.default)({
+                url,
+                method: 'GET',
+                responseType: 'stream',
+            });
+            const writer = fs_1.default.createWriteStream(outputPath);
+            response.data.pipe(writer);
+            writer.on('finish', () => console.log('Image downloaded successfully:', outputPath));
+            writer.on('error', err => {
+                console.error('Error writing the image to disk:', err);
+            });
+        }
+        catch (error) {
+            console.error(`Error while downloading image:${error}`);
+        }
+    }
+    static async generateAndroidIcon(sourceIcon, outputDir) {
+        try {
+            const baseSize = 48;
+            const densities = {
+                mdpi: 1,
+                hdpi: 1.5,
+                xhdpi: 2,
+                xxhdpi: 3,
+                xxxhdpi: 4,
+            };
+            for (const [density, scale] of Object.entries(densities)) {
+                const size = Math.round(baseSize * scale);
+                const folderPath = path_1.default.join(outputDir, `mipmap-${density}`);
+                const outputPath = path_1.default.join(folderPath, 'ic_launcher_png.png');
+                await (0, sharp_1.default)(sourceIcon).resize(size, size).toFile(outputPath);
+                console.log(`✅ Created: ${outputPath}`);
+            }
+            console.log('🎉 所有 mipmap 圖示已建立完畢。');
+        }
+        catch (err) {
+            console.error('❌ 發生錯誤:', err);
         }
     }
     static async resetProjectRouter(cf) {

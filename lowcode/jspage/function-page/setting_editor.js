@@ -1510,6 +1510,23 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
+            page: 'auto_fcm_history',
+            group: '品牌APP',
+            title: 'APP推播紀錄',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
+            moduleName: '訂閱裝置管理',
+        },
+        {
+            icon: '',
+            page: 'pos_setting',
+            group: 'POS實體門市',
+            title: 'POS設定',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/cash-register-regular (1).svg',
+        },
+        {
+            icon: '',
             page: 'shop_list',
             group: 'POS實體門市',
             title: '門市設定',

@@ -21,6 +21,9 @@ export class SaasViewModel {
                 view: () => {
                     return new Promise(async (resolve) => {
                         const userData = (await ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).response;
+                        if(!userData.phone){
+                            SaasViewModel.accountSetting(gvc);
+                        }
                         resolve(html`
                             <div
                                     class="btn btn-outline-secondary dropdown-toggle border-0 px-2 position-relative"

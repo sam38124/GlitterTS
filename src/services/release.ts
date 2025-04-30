@@ -30,13 +30,7 @@ export interface AppReleaseConfig {
   google_play_promote: string;
 }
 
-
-
 export class Release {
-
-
-
-
   public static async android(cf: {
     appName: string;
     bundleID: string;
@@ -44,17 +38,17 @@ export class Release {
     project_router: string;
     glitter_domain: string;
     domain_url: string;
+    config: AppReleaseConfig;
   }) {
     try {
+      console.log(`cf=>`, cf);
+
       await Firebase.appRegister({
         appName: cf.appDomain,
         appID: cf.bundleID,
         type: 'android',
       });
-      fs.writeFileSync(
-        path.resolve(cf.project_router, './app/src/main/java/com/ncdesign/kenda/MyAPP.kt'),
-        AndroidProject.appKt(cf.domain_url)
-      );
+
       fs.writeFileSync(
         path.resolve(cf.project_router, './app/google-services.json'),
         (await Firebase.getConfig({
@@ -65,11 +59,44 @@ export class Release {
       );
       await this.resetProjectRouter({
         project_router: cf.project_router,
-        targetString: 'com.ncdesign.kenda',
+        targetString: 'www.smilebio.io',
         replacementString: cf.bundleID,
       });
+
+      function replaceInFile(filePath: string, targetString: string, replacementString: string) {
+        return new Promise((resolve, reject) => {
+          fs.readFile(filePath, 'utf8', (err, data) => {
+            if (err) {
+              console.error(`Error reading file ${filePath}:`, err);
+              return;
+            }
+            if (data.includes(targetString)) {
+              const result = data.replace(new RegExp(targetString, 'g'), replacementString);
+              fs.writeFile(filePath, result, 'utf8', err => {
+                if (err) {
+                  console.error(`Error writing file ${filePath}:`, err);
+                } else {
+                  console.log(`Replaced in file: ${filePath}`);
+                }
+                setTimeout(() => {resolve(true);},100)
+              });
+            }
+          });
+        });
+      }
+      //更換網址
+      await replaceInFile(path.resolve(cf.project_router, './app/src/main/java/www/smilebio/io/MyAPP.kt'),'https://www.smilebio.com',`https://${cf.domain_url}`)
+      //更換包名
+      await replaceInFile(path.resolve(cf.project_router, './app/src/main/java/www/smilebio/io/MyAPP.kt'),'www.smilebio.io',cf.bundleID)
+      //更換APP名
+      await this.resetProjectRouter({
+        project_router: cf.project_router,
+        targetString: `<string name="app_name">Kenda</string>`,
+        replacementString: `<string name="app_name">${cf.config.name}</string>`,
+      });
+
       fs.renameSync(
-        path.resolve(cf.project_router, './app/src/main/java/com/ncdesign/kenda'),
+        path.resolve(cf.project_router, './app/src/main/java/www/smilebio/io'),
         path.resolve(cf.project_router, 'temp_file')
       );
       Release.deleteFolder(path.resolve(cf.project_router, './app/src/main/java/com'));
@@ -80,8 +107,66 @@ export class Release {
         path.resolve(cf.project_router, 'temp_file'),
         path.resolve(cf.project_router, `./app/src/main/java/${cf.bundleID.split('.').join('/')}`)
       );
+      //下載IOS APP LOGO
+      await this.downloadImage(cf.config.logo, path.resolve(cf.project_router, `./app/src/main/res/autogen.png`));
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      //產生Android APP ICON
+      await Release.generateAndroidIcon(
+        path.resolve(cf.project_router, `./app/src/main/res/autogen.png`),
+        path.resolve(cf.project_router, `./app/src/main/res`)
+      );
     } catch (e) {
       console.log(e);
+    }
+  }
+
+  public static async downloadImage(url: string, outputPath: string) {
+    try {
+      const response = await axios({
+        url, // 圖片的 URL
+        method: 'GET',
+        responseType: 'stream', // 請求以流的方式返回數據
+      });
+
+      // 將圖片存儲到本地檔案
+      const writer = fs.createWriteStream(outputPath);
+      response.data.pipe(writer);
+
+      writer.on('finish', () => console.log('Image downloaded successfully:', outputPath));
+      writer.on('error', err => {
+        console.error('Error writing the image to disk:', err);
+      });
+    } catch (error: any) {
+      console.error(`Error while downloading image:${error}`);
+    }
+  }
+
+  public static async generateAndroidIcon(sourceIcon: string, outputDir: string) {
+    try {
+      // 原始圖示的 base 尺寸（以 mdpi 為基準）
+      const baseSize = 48;
+      // Android 各密度對應比例（相對於 mdpi）
+      const densities = {
+        mdpi: 1,
+        hdpi: 1.5,
+        xhdpi: 2,
+        xxhdpi: 3,
+        xxxhdpi: 4,
+      };
+      // 建立每個 mipmap 資料夾並輸出對應尺寸的圖示
+      for (const [density, scale] of Object.entries(densities)) {
+        const size = Math.round(baseSize * scale);
+        const folderPath = path.join(outputDir, `mipmap-${density}`);
+        const outputPath = path.join(folderPath, 'ic_launcher_png.png');
+
+        await sharp(sourceIcon).resize(size, size).toFile(outputPath);
+
+        console.log(`✅ Created: ${outputPath}`);
+      }
+
+      console.log('🎉 所有 mipmap 圖示已建立完畢。');
+    } catch (err) {
+      console.error('❌ 發生錯誤:', err);
     }
   }
 

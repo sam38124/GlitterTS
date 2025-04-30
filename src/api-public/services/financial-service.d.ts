@@ -43,6 +43,8 @@ export default class FinancialService {
         table: string;
         title: string;
         ratio: number;
+        notify_url: string;
+        return_url: string;
     }): Promise<string>;
 }
 export declare class EzPay {
@@ -110,6 +112,8 @@ export declare class EcPay {
         CheckMacValue?: string;
         table: string;
         title: string;
+        notify_url: string;
+        return_url: string;
         ratio: number;
     }): Promise<string>;
 }
@@ -187,6 +191,7 @@ export declare class LinePay {
         user_email: string;
         method: string;
         discount?: any;
+        use_rebate?: number;
     }): Promise<any>;
 }
 export declare class PayNow {

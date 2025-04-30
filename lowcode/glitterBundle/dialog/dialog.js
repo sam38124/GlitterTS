@@ -122,7 +122,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             content: (_h = (_g = gBundle.obj) === null || _g === void 0 ? void 0 : _g.text) !== null && _h !== void 0 ? _h : '系統提示',
                             confirm: {
                                 title: Language.text('okay'),
-                                event: () => gvc.closeDialog(),
+                                event: () => {
+                                    var _a, _b;
+                                    (_b = (_a = gBundle.obj) === null || _a === void 0 ? void 0 : _a.callback) === null || _b === void 0 ? void 0 : _b.call(_a, true);
+                                    gvc.closeDialog();
+                                }
                             },
                             width: 420,
                         });

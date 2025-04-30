@@ -274,13 +274,7 @@ function chunkArray(array, groupSize) {
 }
 async function compare_sql_table(scheme, table, sql) {
     try {
-        const tempKey = 'tempcompare' + table;
-        const trans = await database_1.default.Transaction.build();
-        await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
-        await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
-        await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
-        await trans.commit();
-        await trans.release();
+        await database_1.default.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
         return true;
     }
     catch (e) {

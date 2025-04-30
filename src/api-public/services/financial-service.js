@@ -448,7 +448,7 @@ class EcPay {
             TotalAmount: orderData.total,
             TradeDesc: '商品資訊',
             ItemName: orderData.title,
-            ReturnURL: this.keyData.NotifyURL,
+            ReturnURL: orderData.notify_url,
             ChoosePayment: orderData.method && orderData.method !== 'ALL'
                 ? (() => {
                     const find = [
@@ -490,7 +490,7 @@ class EcPay {
             DeviceSource: '',
             EncryptType: '1',
             PaymentType: 'aio',
-            OrderResultURL: this.keyData.ReturnURL,
+            OrderResultURL: orderData.return_url,
         };
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         orderData.CheckMacValue = chkSum;
@@ -760,7 +760,7 @@ class LinePay {
                         .map(data => {
                         return data.count * data.sale_price;
                     })
-                        .reduce((a, b) => a + b, 0) - orderData.discount,
+                        .reduce((a, b) => a + b, 0) - (orderData.discount + parseInt(`${orderData.use_rebate || 0}`, 10)),
                     products: orderData.lineItems
                         .map(data => {
                         return {
@@ -777,7 +777,7 @@ class LinePay {
                             name: '折扣',
                             imageUrl: '',
                             quantity: 1,
-                            price: orderData.discount * -1,
+                            price: (orderData.discount + parseInt(`${orderData.use_rebate || 0}`, 10)) * -1,
                         },
                     ]),
                 },

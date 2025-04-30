@@ -5,16 +5,11 @@ export class ProductService {
         const gvc = obj.gvc;
         const dialog = new ShareDialog(gvc.glitter);
         function checkEmpty() {
-            const variantsCheckList = ['sale_price'];
             if (postMD.product_category !== 'kitchen') {
-                for (const checkItem of variantsCheckList) {
-                    if (postMD['variants'][0][checkItem] == undefined ||
-                        postMD['variants'][0][checkItem] == 0) {
-                        dialog.infoMessage({
-                            text: '售價未填',
-                        });
-                        return false;
-                    }
+                const salePrice = postMD['variants'][0]['sale_price'];
+                if (salePrice === '' || salePrice === undefined || salePrice === null) {
+                    dialog.infoMessage({ text: '尚未填寫售價' });
+                    return false;
                 }
             }
             for (const index in postMD['variants']) {

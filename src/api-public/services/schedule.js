@@ -19,6 +19,8 @@ const line_message_1 = require("./line-message");
 const public_table_check_js_1 = require("./public-table-check.js");
 const app_js_1 = require("../../services/app.js");
 const user_update_js_1 = require("./user-update.js");
+const firebase_js_1 = require("../../modules/firebase.js");
+const invoice_js_1 = require("./invoice.js");
 class Schedule {
     async perload(app) {
         const brand_type = await app_js_1.App.checkBrandAndMemberType(app);
@@ -69,12 +71,12 @@ class Schedule {
                     if ((config === null || config === void 0 ? void 0 : config.auto_cancel_order_timer) && config.auto_cancel_order_timer > 0) {
                         const orders = await database_1.default.query(`SELECT * FROM \`${app}\`.t_checkout
                                 WHERE 
-                                    status = 0 
+                                    status = 0
+                                  AND order_status='0'
+                                  AND progress='wait'
+                                  AND payment_method != 'cash_on_delivery'
                                     AND created_time < NOW() - INTERVAL ${config.auto_cancel_order_timer} HOUR
                                     AND (orderData->>'$.proof_purchase' IS NULL)
-                                    AND order_status='0'
-                                    AND progress='wait'
-                                    AND payment_method != 'cash_on_delivery'
                                 ORDER BY id DESC;`, []);
                         await Promise.all(orders.map(async (order) => {
                             order.orderData.orderStatus = '-1';
@@ -254,6 +256,56 @@ class Schedule {
         setTimeout(() => this.resetVoucherHistory(sec), sec * 1000);
         console.log(`resetVoucherHistory-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
     }
+    async autoTriggerInvoice(sec) {
+        let clock = new Date();
+        console.log(`autoTriggerInvoice`);
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    const orders = await database_1.default.query(`SELECT * FROM \`${app}\`.t_triggers
+                   WHERE 
+                      tag = 'triggerInvoice' AND 
+                      status = 0 AND
+                      DATE_FORMAT(trigger_time, '%Y-%m-%d %H') = DATE_FORMAT(NOW(), '%Y-%m-%d %H');`, []);
+                    for (const order of orders) {
+                        if (order.content.cart_token) {
+                            new invoice_js_1.Invoice(app).postCheckoutInvoice(order.content.cart_token, false);
+                        }
+                    }
+                }
+            }
+            catch (e) {
+                console.error('BAD_REQUEST', 'autoTriggerInvoice Error: ' + e, null);
+            }
+        }
+        setTimeout(() => this.autoTriggerInvoice(sec), sec * 1000);
+        console.log(`autoTriggerInvoice-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
+    }
+    async autoSendFCM(sec) {
+        let clock = new Date();
+        console.log(`autoSendLine`);
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    const emails = await database_1.default.query(`SELECT * FROM \`${app}\`.t_triggers
+                     WHERE 
+                        tag = 'sendFCM' AND 
+                        status = 0 AND
+                        DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
+                    for (const email of emails) {
+                        if (email.status === 0) {
+                            new firebase_js_1.Firebase(app).chunkSendFcm(email.content, email.id);
+                        }
+                    }
+                }
+            }
+            catch (e) {
+                console.error('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
+            }
+        }
+        setTimeout(() => this.autoSendMail(sec), sec * 1000);
+        console.log(`autoSendMail-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
+    }
     async autoSendMail(sec) {
         let clock = new Date();
         console.log(`autoSendLine`);
@@ -349,9 +401,11 @@ class Schedule {
             { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
+            { second: 30, status: true, func: 'autoSendFCM', desc: '自動排程寄送FCM' },
             { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
             { second: 3600 * 24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
             { second: 30, status: true, func: 'autoCancelOrder', desc: '自動取消未付款未出貨訂單' },
+            { second: 30, status: true, func: 'autoTriggerInvoice', desc: '自動開立發票' },
         ];
         try {
             scheduleList.forEach(schedule => {

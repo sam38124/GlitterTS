@@ -10,9 +10,12 @@ export class Ad {
 
   static fbqEvent(name: string, obj: any) {
     const fbq = (window as any).fbq;
+    obj.eventID = obj.eventID || (window as any).glitter.getUUID();
     if (fbq) {
-      fbq('track', name, obj);
+      fbq('track', name, JSON.parse(JSON.stringify(obj)));
     }
+    obj.event_id = obj.eventID;
+    delete obj.eventID;
     ApiTrack.track({
       event_name: name,
       custom_data: obj,

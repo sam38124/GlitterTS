@@ -21,7 +21,6 @@ import { saasConfig } from '../../config.js';
 import { SMS } from './sms.js';
 import { LineMessage } from './line-message';
 import { EcInvoice } from './EcInvoice';
-import { onlinePayArray } from '../models/glitter-finance.js';
 import { App } from '../../services/app.js';
 import { Stock } from './stock';
 import { OrderEvent } from './order-event.js';
@@ -37,8 +36,10 @@ import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
 import PaymentTransaction from './model/handlePaymentTransaction.js';
 import { Language, LanguageLocation } from '../../Language.js';
 import { PaymentStrategyFactory } from './factories/payment-strategy-factory.js';
-import { IPaymentStrategy } from './interface/payment-strategy-interface';
-import { PaymentService } from './payment-service';
+import { IPaymentStrategy } from './interface/payment-strategy-interface.js';
+import { PaymentService } from './payment-service.js';
+import { CartItem, CheckoutEvent } from './checkout-event.js';
+import { onlinePayArray } from '../models/glitter-finance';
 
 type BindItem = {
   id: string;
@@ -62,6 +63,8 @@ type InvoiceData = {
   invoiceDate: string;
 };
 
+type VoucherForType = 'all' | 'collection' | 'product' | 'manager_tag';
+
 export interface VoucherData {
   id: number;
   title: string;
@@ -71,7 +74,7 @@ export interface VoucherData {
   add_on_products?: string[] | ProductItem[];
   trigger: 'auto' | 'code' | 'distribution';
   value: string;
-  for: 'collection' | 'product' | 'all';
+  for: VoucherForType;
   rule: 'min_price' | 'min_count';
   productOffStart: 'price_asc' | 'price_desc' | 'price_all';
   conditionType: 'order' | 'item';
@@ -161,7 +164,7 @@ interface orderVoucherData {
   method: 'percent' | 'fixed';
   trigger: 'auto' | 'code';
   value: string;
-  for: 'collection' | 'product';
+  for: VoucherForType;
   rule: 'min_price' | 'min_count';
   forKey: string[];
   ruleValue: number;
@@ -321,37 +324,6 @@ type Collection = {
   hidden?: boolean;
 };
 
-type CartItem = {
-  id: string;
-  spec: string[];
-  count: number;
-  sale_price: number;
-  is_gift?: boolean;
-  collection: string[];
-  title: string;
-  preview_image: string;
-  shipment_obj: { type: string; value: number };
-  discount_price?: number;
-  weight: number;
-  rebate: number;
-  designated_logistics: {
-    type: 'all' | 'designated';
-    list: string[];
-  };
-  deduction_log?: {
-    [p: string]: number;
-  };
-  min_qty?: number;
-  max_qty?: number;
-  buy_history_count?: number;
-  sku: string;
-  stock: number;
-  show_understocking: 'true' | 'false';
-  is_add_on_items: CartItem | boolean;
-  pre_order: boolean;
-  is_hidden: boolean;
-};
-
 type MultiSaleType = 'store' | 'level' | 'tags';
 
 export type Cart = {
@@ -465,12 +437,18 @@ export class Shopping {
       const exh_config = await userClass.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
       const userID = query.setUserID ?? (this.token ? `${this.token.userID}` : '');
       const querySql = [`(content->>'$.type'='product')`];
-      const idStr = query.id_list ? query.id_list.split(',').filter(Boolean).join(',') : '';
+      const idStr = query.id_list
+        ? query.id_list
+            .split(',')
+            .filter(Boolean)
+            .map(id => db.escape(id))
+            .join(',')
+        : '';
       query.language = query.language ?? store_info.language_setting.def;
       query.show_hidden = query.show_hidden ?? 'true';
 
       // 初始化商品與管理員標籤 Config
-      await Promise.all([this.initProductCustomizeTagConifg(), this.initProductGeneralTagConifg()]);
+      // await Promise.all([this.initProductCustomizeTagConifg(), this.initProductGeneralTagConifg()]);
 
       const orderMapping: Record<string, string> = {
         title: `ORDER BY JSON_EXTRACT(content, '$.title')`,
@@ -1243,25 +1221,22 @@ export class Shopping {
   async initProductCustomizeTagConifg() {
     try {
       const managerTags = await new User(this.app).getConfigV2({ key: 'product_manager_tags', user_id: 'manager' });
-
       if (managerTags && Array.isArray(managerTags.list)) {
         return managerTags;
       }
-
       const getData = await db.query(
         `
-          SELECT 
-            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
-          FROM \`${this.app}\`.t_manager_post
-          WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
+            SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
+            FROM \`${this.app}\`.t_manager_post
+            WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
         `,
         []
       );
+
       const unique_tags_string = getData[0]?.unique_tags ?? '';
       const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
       const unique_tags_flot = Array.isArray(unique_tags_array) ? unique_tags_array.flat() : [];
       const data = { list: [...new Set(unique_tags_flot)] };
-
       await new User(this.app).setConfig({
         key: 'product_manager_tags',
         user_id: 'manager',
@@ -1270,7 +1245,7 @@ export class Shopping {
 
       return data;
     } catch (error) {
-      throw exception.BadRequestError('BAD_REQUEST', 'Set product customize tag conifg Error:' + e, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'Set product customize tag conifg Error:' + error, null);
     }
   }
 
@@ -1295,13 +1270,11 @@ export class Shopping {
       if (generalTags && Array.isArray(generalTags.list)) {
         return generalTags;
       }
-
       const getData = await db.query(
         `
-          SELECT 
-            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_tag.language')) SEPARATOR ',') AS unique_tags
-          FROM \`${this.app}\`.t_manager_post
-          WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
+            SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_tag.language')) SEPARATOR ',') AS unique_tags
+            FROM \`${this.app}\`.t_manager_post
+            WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
         `,
         []
       );
@@ -1329,7 +1302,7 @@ export class Shopping {
 
       return data;
     } catch (error) {
-      throw exception.BadRequestError('BAD_REQUEST', 'Set product general tag conifg Error:' + e, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'Set product general tag conifg Error:' + error, null);
     }
   }
 
@@ -1365,10 +1338,9 @@ export class Shopping {
 
       const getData = await db.query(
         `
-          SELECT 
-            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) SEPARATOR ',') AS unique_tags
-          FROM \`${this.app}\`.t_checkout
-          WHERE JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) IS NOT NULL
+            SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) SEPARATOR ',') AS unique_tags
+            FROM \`${this.app}\`.t_checkout
+            WHERE JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) IS NOT NULL
         `,
         []
       );
@@ -1415,16 +1387,17 @@ export class Shopping {
     ).data
       .map((dd: { content: VoucherData }) => dd.content)
       .filter((voucher: VoucherData) => {
+        const status = voucher.status;
         const startDate = new Date(voucher.start_ISO_Date).getTime();
         const endDate = voucher.end_ISO_Date ? new Date(voucher.end_ISO_Date).getTime() : Infinity;
-        return startDate < now && now < endDate;
+        return status && startDate < now && now < endDate;
       });
 
     // 處理需 async and await 的驗證
     const validVouchers = await Promise.all(
       allVoucher.map(async (voucher: VoucherData) => {
         const isLimited = await this.checkVoucherLimited(userID, voucher.id);
-        return isLimited && voucher.status === 1 ? voucher : null;
+        return isLimited ? voucher : null;
       })
     );
 
@@ -1474,11 +1447,20 @@ export class Shopping {
         return [];
       }
     })();
+    const product_customize_tag = (() => {
+      try {
+        return json.product.content.product_customize_tag || [];
+      } catch (error) {
+        return [];
+      }
+    })();
     const userData = json.userData;
     const recommendData = json.recommendData;
 
     function checkValidProduct(caseName: string, caseList: any[]): boolean {
       switch (caseName) {
+        case 'manager_tag':
+          return caseList.some(d1 => product_customize_tag.includes(d1));
         case 'collection':
           return caseList.some(d1 => collection.includes(d1));
         case 'product':
@@ -1974,1397 +1956,6 @@ export class Shopping {
     );
   }
 
-  async toCheckout(
-    data: {
-      line_items: CartItem[];
-      customer_info?: any; //顧客資訊 訂單人
-      email?: string;
-      return_url: string;
-      order_id?: string;
-      user_info: any; //取貨人資訊
-      code?: string;
-      use_rebate?: number;
-      use_wallet?: number;
-      checkOutType?: 'manual' | 'auto' | 'POS' | 'group_buy';
-      pos_store?: string;
-      voucher?: any; //自定義的voucher
-      discount?: number; //自定義金額
-      total?: number; //自定義總額
-      pay_status?: number; //自定義訂單狀態
-      custom_form_format?: any; //自定義表單格式
-      custom_form_data?: any; //自定義表單資料
-      custom_receipt_form?: any; //自定義配送表單格式
-      distribution_code?: string; //分銷連結代碼
-      code_array: string[]; // 優惠券代碼列表
-      give_away?: {
-        id: number;
-        spec: string[];
-        count: number;
-        voucher_id: string;
-      }[];
-      language?: LanguageLocation;
-      pos_info?: any; //POS結帳資訊;
-      invoice_select?: string;
-      pre_order?: boolean;
-      voucherList?: any;
-      isExhibition?: boolean;
-      client_ip_address?: string;
-      fbc?: string;
-      fbp?: string;
-      temp_cart_id?: string;
-    },
-    type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' | 'split' = 'add',
-    replace_order_id?: string
-  ) {
-    try {
-      const utTimer = new UtTimer('TO-CHECKOUT');
-      const checkPoint = utTimer.checkPoint;
-
-      const userClass = new User(this.app);
-      const rebateClass = new Rebate(this.app);
-      const checkoutPayment = data.user_info?.payment;
-      let scheduledData: any; // 不立刻查詢，只做占位宣告
-
-      // 確認預設值
-      data.line_items = (data.line_items || (data as any).lineItems) ?? [];
-      data.isExhibition = data.checkOutType === 'POS' && (data.pos_store?.includes('exhibition_') ?? false);
-
-      // 判斷是重新付款則取代
-      if (replace_order_id) {
-        const orderData = (
-          await db.query(
-            `SELECT *
-             FROM \`${this.app}\`.t_checkout
-             WHERE cart_token = ?
-               AND status = 0;
-            `,
-            [replace_order_id]
-          )
-        )[0];
-
-        if (!orderData) {
-          throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
-        }
-
-        // 刪除指定的訂單記錄
-        await db.query(
-          `DELETE
-           FROM \`${this.app}\`.t_checkout
-           WHERE cart_token = ?
-             AND status = 0;
-          `,
-          [replace_order_id]
-        );
-
-        // 提取 orderData 中的相關資訊
-        const { lineItems, user_info, code, customer_info, use_rebate } = orderData.orderData;
-
-        data.line_items = lineItems;
-        data.email = orderData.email;
-        data.user_info = user_info;
-        data.code = code;
-        data.customer_info = customer_info;
-        data.use_rebate = use_rebate;
-      }
-
-      // 判斷是 POS 重新支付<例如:預購單>，則把原先商品庫存加回去
-      if (data.order_id && type === 'POS') {
-        const order = (
-          await db.query(
-            `SELECT *
-             FROM \`${this.app}\`.t_checkout
-             WHERE cart_token = ?
-            `,
-            [data.order_id]
-          )
-        )[0];
-        if (order) {
-          for (const b of order.orderData.lineItems) {
-            const pdDqlData = (
-              await this.getProduct({
-                page: 0,
-                limit: 50,
-                id: b.id,
-                status: 'inRange',
-                channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-                whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
-              })
-            ).data;
-
-            const pd = pdDqlData.content;
-            const variant = pd.variants.find((dd: any) => dd.spec.join('-') === b.spec.join('-'));
-
-            // 更新庫存
-            await updateStock(variant, b.deduction_log);
-
-            // 更新變體資訊
-            await this.updateVariantsWithSpec(variant, b.id, b.spec);
-
-            // 更新資料庫中的商品內容
-            await db.query(
-              `UPDATE \`${this.app}\`.t_manager_post
-               SET content = ?
-               WHERE id = ?
-              `,
-              [JSON.stringify(pd), pdDqlData.id]
-            );
-          }
-        }
-      }
-
-      // 更新庫存的輔助函數
-      async function updateStock(variant: any, deductionLog: any) {
-        Object.keys(deductionLog).forEach(key => {
-          try {
-            variant.stockList[key].count += deductionLog[key];
-          } catch (e) {
-            console.error(`Error updating stock for variant ${variant.id}:`, e);
-          }
-        });
-      }
-
-      // 判斷是checkOutType 是POS則清空token，因為結帳對象不是結帳人
-      if (data.checkOutType === 'POS') {
-        this.token = undefined;
-      }
-
-      // 驗證使用者身份的輔助函數
-      const hasAuthentication = (data: any): boolean => {
-        return (
-          (this.token && this.token.userID) ||
-          data.email ||
-          (data.user_info && data.user_info.email) ||
-          (data.user_info && data.user_info.phone)
-        );
-      };
-
-      // 電話信箱擇一
-      if (type !== 'preview' && !hasAuthentication(data)) {
-        throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: No email and phone', null);
-      }
-
-      const checkOutType = data.checkOutType ?? 'manual';
-      const getUserDataAsync = async (
-        type: string,
-        token: IToken | undefined,
-        data: {
-          email?: string;
-          user_info: { email: string; phone: string };
-        }
-      ) => {
-        // 檢查預覽模式下的條件
-        if (
-          type === 'preview' &&
-          !(token?.userID || (data.user_info && data.user_info.email) || (data.user_info && data.user_info.phone))
-        ) {
-          return {};
-        }
-
-        // 根據 token 獲取用戶數據
-        if (token?.userID && type !== 'POS' && checkOutType !== 'POS') {
-          return await userClass.getUserData(`${token.userID}`, 'userID');
-        }
-
-        // 否則根據 email 或電話獲取數據
-        return (
-          (data.user_info.email && (await userClass.getUserData(data.user_info.email, 'email_or_phone'))) ||
-          (data.user_info.phone && (await userClass.getUserData(data.user_info.phone, 'email_or_phone'))) ||
-          {}
-        );
-      };
-
-      checkPoint('check user auth');
-
-      // 取得顧客資料
-      const userData = await getUserDataAsync(type, this.token, data);
-
-      // 取得使用者 Email 或電話
-      data.email = userData?.userData?.email || userData?.userData?.phone || '';
-
-      // 如果 email 無效，嘗試從 user_info 取得
-      if (!data.email || data.email === 'no-email') {
-        data.email =
-          data.user_info?.email && data.user_info.email !== 'no-email'
-            ? data.user_info.email
-            : data.user_info?.phone || '';
-      }
-
-      // 若 email 仍無效，且非預覽模式，設置預設值
-      if (!data.email && type !== 'preview') {
-        data.email = 'no-email';
-      }
-
-      // 判斷購物金是否可用
-      const appStatus = await rebateClass.mainStatus();
-      if (appStatus && userData && data.use_rebate && data.use_rebate > 0) {
-        const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
-        const sum = userRebate ? userRebate.point : 0;
-        if (sum < data.use_rebate) {
-          data.use_rebate = 0;
-        }
-      } else {
-        data.use_rebate = 0;
-      }
-
-      checkPoint('check rebate');
-
-      // 運費設定
-      const shipment: ShipmentConfig = await this.getShipmentRefer(data.user_info);
-
-      // 物流設定
-      const shipment_setting: any = await (async () => {
-        try {
-          const config = await Private_config.getConfig({
-            appName: this.app,
-            key: 'logistics_setting',
-          });
-
-          // 如果 config 為空，則返回預設值
-          if (!config) {
-            return {
-              support: [],
-              shipmentSupport: [],
-            };
-          }
-
-          // 返回第一個元素的 value 屬性
-          return config[0].value;
-        } catch (e) {
-          // 發生錯誤時返回空陣列
-          return [];
-        }
-      })();
-
-      checkPoint('set shipment');
-
-      // 確保自訂配送表單的配置
-      shipment_setting.custom_delivery = shipment_setting.custom_delivery
-        ? await Promise.all(
-            shipment_setting.custom_delivery.map(async (form: any) => {
-              const config = await new User(this.app).getConfigV2({
-                user_id: 'manager',
-                key: `form_delivery_${form.id}`,
-              });
-
-              form.form = config.list || [];
-              return form;
-            })
-          ).then(dataArray => dataArray)
-        : [];
-
-      // 確保 support 是一個陣列
-      shipment_setting.support = shipment_setting.support ?? [];
-
-      // 獲取語言資料中的信息
-      const languageInfo = shipment_setting.language_data?.[data.language as any]?.info;
-      shipment_setting.info = languageInfo ?? shipment_setting.info;
-
-      // 購物車資料
-      const carData: Cart = {
-        customer_info: data.customer_info || {},
-        lineItems: [],
-        total: 0,
-        email: data.email ?? data.user_info?.email ?? '',
-        user_info: data.user_info,
-        shipment_fee: 0,
-        rebate: 0,
-        goodsWeight: 0,
-        use_rebate: data.use_rebate || 0,
-        orderID: data.order_id || `${Date.now()}`,
-        shipment_support: shipment_setting.support as any,
-        shipment_info: shipment_setting.info as any,
-        shipment_selector: [
-          // 標準物流
-          ...Shipment_support_config.list.map(dd => ({
-            name: dd.title,
-            value: dd.value,
-          })),
-          // 自定義物流
-          ...(shipment_setting.custom_delivery ?? []).map((dd: any) => ({
-            form: dd.form,
-            name: dd.name,
-            value: dd.id,
-            system_form: dd.system_form,
-          })),
-        ].filter(option => shipment_setting.support.includes(option.value)),
-        use_wallet: 0,
-        method: data.user_info?.method,
-        user_email: userData?.account ?? data.email ?? data.user_info?.email ?? '',
-        useRebateInfo: { point: 0 },
-        custom_form_format: data.custom_form_format,
-        custom_form_data: data.custom_form_data,
-        custom_receipt_form: data.custom_receipt_form,
-        orderSource: checkOutType === 'POS' ? 'POS' : '',
-        code_array: data.code_array,
-        give_away: data.give_away as any,
-        user_rebate_sum: 0,
-        language: data.language,
-        pos_info: data.pos_info,
-        client_ip_address: data.client_ip_address as string,
-        fbc: data.fbc as string,
-        fbp: data.fbp as string,
-        editRecord: [],
-      };
-
-      if (!data.user_info?.name && userData && userData.userData) {
-        const { name, phone } = userData.userData;
-        carData.user_info = {
-          ...carData.user_info,
-          name,
-          phone,
-        };
-      }
-
-      const add_on_items: any[] = [];
-      const gift_product: any[] = [];
-      const saveStockArray: (() => Promise<boolean>)[] = [];
-
-      // 取得 Variant 物件
-      function getVariant(prod: any, item: any): any {
-        if (prod.product_category === 'kitchen') {
-          let price = 0;
-          let show_understocking = false;
-          let stock = Infinity;
-          if (prod.specs.length) {
-            price = item.spec.reduce((total: number, spec: any, index: number) => {
-              const dpe = prod.specs[index].option.find((dd: any) => dd.title === spec);
-
-              if (dpe) {
-                const currentStock = Number(dpe.stock) || Infinity;
-                stock = Math.min(stock, currentStock);
-                if (dpe.stock !== undefined) {
-                  show_understocking = true;
-                }
-                return total + (Number(dpe.price) || 0);
-              }
-              return total;
-            }, 0);
-          } else {
-            price = Number(prod.price) || 0;
-            show_understocking = Boolean(prod.stock ?? '');
-            stock = Number(prod.stock) || 0;
-          }
-
-          if (stock === Infinity) {
-            show_understocking = false;
-          }
-          return {
-            sku: '',
-            spec: [],
-            type: 'variants',
-            stock,
-            v_width: 0,
-            product_id: prod.id,
-            sale_price: price,
-            origin_price: 0,
-            compare_price: 0,
-            preview_image: prod.preview_image && prod.preview_image[0],
-            shipment_type: 'none',
-            show_understocking: String(show_understocking), // 保持原本的 string 格式
-          };
-        } else {
-          return prod.variants.find((dd: any) => dd.spec.join('-') === item.spec.join('-'));
-        }
-      }
-
-      data.line_items = await Promise.all(
-        data.line_items.map(async item => {
-          const getProductData = (
-            await this.getProduct({
-              page: 0,
-              limit: 1,
-              id: `${item.id}`,
-              status: 'inRange',
-              channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-              whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
-              setUserID: `${userData?.userID || ''}`,
-            })
-          ).data;
-
-          // 搜尋此商品資料並存在
-          if (getProductData) {
-            const content = getProductData.content;
-            const variant = getVariant(content, item);
-            const count = Number(item.count);
-            if (
-              (Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
-              !isNaN(count) &&
-              count > 0
-            ) {
-              const isPOS = checkOutType === 'POS';
-              const isUnderstockingVisible = variant.show_understocking !== 'false';
-              const isManualType = type === 'manual' || type === 'manual-preview';
-
-              if (isPOS && isUnderstockingVisible && !data.isExhibition) {
-                variant.stock = variant.stockList?.[data.pos_store!]?.count || 0;
-              }
-
-              if (variant.stock < item.count && isUnderstockingVisible && !isManualType) {
-                if (isPOS) {
-                  item.pre_order = true;
-                } else {
-                  item.count = variant.stock;
-                }
-              }
-
-              if (variant && item.count > 0) {
-                Object.assign(item, {
-                  specs: content.specs,
-                  language_data: content.language_data,
-                  product_category: content.product_category,
-                  preview_image: variant.preview_image || content.preview_image[0],
-                  title: content.title,
-                  sale_price: variant.sale_price,
-                  origin_price: variant.origin_price,
-                  collection: content.collection,
-                  sku: variant.sku,
-                  stock: variant.stock,
-                  show_understocking: variant.show_understocking,
-                  stockList: variant.stockList,
-                  weight: parseInt(variant.weight || '0', 10),
-                  designated_logistics: content.designated_logistics ?? { type: 'all', list: [] },
-                });
-
-                const shipmentValue = (() => {
-                  if (!variant.shipment_type || variant.shipment_type === 'none') return 0;
-                  if (variant.shipment_type === 'weight') {
-                    return item.count * variant.weight;
-                  }
-                  if (variant.shipment_type === 'volume') {
-                    return item.count * variant.v_length * variant.v_width * variant.v_height;
-                  }
-                  return 0;
-                })();
-
-                item.shipment_obj = {
-                  type: variant.shipment_type,
-                  value: shipmentValue,
-                };
-
-                variant.shipment_weight = parseInt(variant.shipment_weight || '0', 10);
-                carData.lineItems.push(item as any);
-
-                // Update total price if not manual or giveaway
-                // 要將sale_price修改成scheduled裡的price
-                if (checkOutType == 'group_buy') {
-                  if (!scheduledData) {
-                    // 如果之前沒查詢過，才執行查詢 不這樣寫的話 -> 再按自動縮排時會自己打開
-                    const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
-                    const scheduledDataQuery = `
-                        SELECT *
-                        FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
-                    `;
-                    scheduledData = (await db.query(scheduledDataQuery, []))[0];
-                    if (scheduledData) {
-                      const { content } = scheduledData;
-                      const productData = content.item_list.find((pb: any) => pb.id === item.id);
-
-                      if (productData) {
-                        const variantData = productData.content.variants.find(
-                          (dd: any) => dd.spec.join('-') === item.spec.join('-')
-                        );
-
-                        if (variantData) {
-                          item.sale_price = variantData.live_model.live_price;
-                          carData.total += item.sale_price * item.count;
-                        }
-                      }
-                    }
-                  }
-                } else if (type !== 'manual') {
-                  if (content.productType.giveaway) {
-                    variant.sale_price = 0;
-                  } else {
-                    carData.total += variant.sale_price * item.count;
-                  }
-                }
-              }
-
-              if (!['preview', 'manual', 'manual-preview'].includes(type) && variant.show_understocking !== 'false') {
-                const remainingStock = Math.max(variant.stock - item.count, 0);
-                variant.stock = remainingStock;
-
-                if (type === 'POS') {
-                  if (data.isExhibition) {
-                    if (data.pos_store) {
-                      await this.updateExhibitionActiveStock(data.pos_store, variant.variant_id, item.count);
-                    }
-                  } else {
-                    variant.deduction_log = { [data.pos_store!!]: item.count };
-                    variant.stockList[data.pos_store!!].count -= item.count;
-                    item.deduction_log = variant.deduction_log;
-                  }
-                } else {
-                  // 判斷是否應使用項目上已存在的、非空的扣除日誌
-                  const useExistingLog =
-                    type === 'split' && // 訂單來源需為 "split"
-                    item.deduction_log && // 項目上必須存在 deduction_log
-                    Object.keys(item.deduction_log).length > 0; // 且該 log 不是空物件
-
-                  if (!useExistingLog) {
-                    // 較常走到這邊 設定為主邏輯 需要分配庫存並獲取新的 log
-                    const stockAllocator = new Stock(this.app, this.token); // 實例化 Stock 操作物件
-                    const allocationResult = stockAllocator.allocateStock(variant.stockList, item.count); // 執行分配
-
-                    // 將分配結果的 log 同時賦值給 variant 和 item
-                    variant.deduction_log = allocationResult.deductionLog;
-                    item.deduction_log = allocationResult.deductionLog; // 更新 item 的 log
-                  } else {
-                    // 否則，直接使用項目上的 log
-                    variant.deduction_log = item.deduction_log;
-                  }
-                }
-
-                saveStockArray.push(
-                  () =>
-                    new Promise<boolean>(async (resolve, reject) => {
-                      try {
-                        if (data.checkOutType == 'group_buy') {
-                          if (!scheduledData) {
-                            // 如果之前沒查詢過，才執行查詢 ，不這樣寫的話 -> 再按自動縮排時會自己打開
-                            const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
-                            const scheduledDataQuery = `
-                                SELECT *
-                                FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
-                            `;
-                            scheduledData = (await db.query(scheduledDataQuery, []))[0];
-                          }
-                          //這是結帳時 要以團購或是直播價來計算
-                          if (scheduledData) {
-                            const { content } = scheduledData;
-                            const productData = content.item_list.find((pb: any) => pb.id === item.id);
-
-                            if (productData) {
-                              const variantData = productData.content.variants.find(
-                                (dd: any) => dd.spec.join('-') === item.spec.join('-')
-                              );
-
-                              if (variantData) {
-                                const stockService = new Stock(this.app, this.token);
-                                const { stockList, deductionLog } = stockService.allocateStock(
-                                  variantData.stockList,
-                                  item.count
-                                );
-
-                                variantData.stockList = stockList;
-                                item.deduction_log = deductionLog;
-                                carData.scheduled_id = scheduledData.id;
-
-                                // Update variants for scheduled data
-                                await this.updateVariantsForScheduled(content, scheduledData.id);
-                              }
-                            }
-                          }
-                        } else {
-                          if (content.shopee_id) {
-                            await new Shopee(this.app, this.token).asyncStockToShopee({
-                              product: getProductData,
-                              callback: () => {},
-                            });
-                          }
-                          if (content.product_category === 'kitchen' && variant.spec?.length) {
-                            // 餐廳類別的庫存處理方式
-                            variant.spec.forEach((d1: any, index: number) => {
-                              const option = content.specs[index].option.find((d2: any) => d2.title === d1);
-                              if (option?.stock !== undefined) {
-                                option.stock = parseInt(option.stock, 10) - item.count;
-                              }
-                            });
-                            // 取得 store_config 並記錄扣庫存紀錄
-                            const store_config = await userClass.getConfigV2({
-                              key: 'store_manager',
-                              user_id: 'manager',
-                            });
-                            item.deduction_log = { [store_config.list[0].id]: item.count };
-                          } else {
-                            await this.updateVariantsWithSpec(variant, item.id, item.spec);
-                          }
-
-                          // 更新資料庫
-                          await db.query(
-                            `UPDATE \`${this.app}\`.\`t_manager_post\`
-                             SET ?
-                             WHERE id = ${getProductData.id}`,
-                            [{ content: JSON.stringify(content) }]
-                          );
-                        }
-                        // 如果有 shopee_id，則同步庫存至蝦皮（Todo: 需要新增是否同步的選項）
-
-                        resolve(true);
-                      } catch (error) {
-                        reject(error);
-                      }
-                    })
-                );
-              }
-            }
-
-            Object.assign(item, {
-              is_add_on_items: content.productType.addProduct && !content.productType.product,
-              is_hidden: content.visible === 'false',
-              is_gift: content.productType.giveaway,
-              sale_price: content.productType.giveaway ? 0 : item.sale_price,
-              min_qty: content.min_qty ?? item.min_qty,
-              max_qty: content.max_qty ?? item.max_qty,
-            });
-
-            // 推入對應的陣列
-            item.is_add_on_items && add_on_items.push(item);
-            item.is_gift && gift_product.push(item);
-          }
-
-          return item;
-        })
-      ).then(dataArray => dataArray);
-
-      checkPoint('get product info');
-
-      // 建立 Map 並檢查是否有 max_qty 限制的產品
-      const maxProductMap = new Map();
-      let hasMaxProduct = false;
-
-      for (const product of data.line_items) {
-        if (product.max_qty && product.max_qty > 0) {
-          maxProductMap.set(product.id, true);
-          hasMaxProduct = true;
-        }
-      }
-
-      if (hasMaxProduct && data.email !== 'no-email') {
-        // 查詢歷史訂單 SQL
-        const cartTokenSQL = `
-            SELECT cart_token
-            FROM \`${this.app}\`.t_checkout
-            WHERE email IN (${[-99, userData?.userData?.email, userData?.userData?.phone]
-              .filter(Boolean)
-              .map(item => db.escape(item))
-              .join(',')})
-              AND order_status <> '-1'
-        `;
-
-        // 查詢商品購買紀錄
-        const soldHistory = await db.query(
-          `
-              SELECT *
-              FROM \`${this.app}\`.t_products_sold_history
-              WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
-                AND order_id IN (${cartTokenSQL})
-          `,
-          []
-        );
-
-        // 使用 Map 計算歷史購買數量
-        const purchaseHistory = new Map();
-        for (const history of soldHistory) {
-          const pid = Number(history.product_id);
-          purchaseHistory.set(pid, (purchaseHistory.get(pid) ?? 0) + history.count);
-        }
-
-        // 更新當前訂單項目的歷史購買數量
-        for (const item of data.line_items) {
-          if (maxProductMap.has(item.id)) {
-            item.buy_history_count = purchaseHistory.get(item.id) || 0;
-          }
-        }
-      }
-
-      checkPoint('set max product');
-
-      carData.shipment_fee = this.getShipmentFee(data.user_info, carData.lineItems, shipment);
-      carData.total += carData.shipment_fee;
-      const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
-      carData.useRebateInfo = f_rebate;
-      carData.use_rebate = f_rebate.point;
-      carData.total -= carData.use_rebate;
-      carData.code = data.code;
-      carData.voucherList = [];
-      checkPoint('set carData');
-
-      if (userData && userData.account) {
-        const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
-        carData.user_rebate_sum = userRebate?.point || 0;
-      }
-
-      // 判斷是否有分銷連結
-      if (data.distribution_code) {
-        const linkList = await new Recommend(this.app, this.token).getLinkList({
-          page: 0,
-          limit: 99999,
-          code: data.distribution_code,
-          status: true,
-          no_detail: true,
-        });
-        if (linkList.data.length > 0) {
-          const content = linkList.data[0].content;
-          if (this.checkDuring(content)) {
-            carData.distribution_info = content;
-          }
-        }
-      }
-      checkPoint('distribution code');
-
-      // 自動新增訂單的優惠卷設定
-      if (type !== 'manual' && type !== 'manual-preview' && type !== 'split') {
-        // 過濾加購品與贈品
-        carData.lineItems = carData.lineItems.filter(dd => {
-          return !add_on_items.includes(dd) && !gift_product.includes(dd);
-        });
-
-        // 濾出可用的加購商品，避免折扣被double所以要stringify
-        const c_carData = await this.checkVoucher(structuredClone(carData));
-
-        add_on_items.forEach(dd => {
-          try {
-            const isAddOnItem = c_carData.voucherList?.some(voucher => {
-              return (
-                voucher.reBackType === 'add_on_items' &&
-                (voucher.add_on_products as string[]).find(d2 => {
-                  return `${dd.id}` === `${d2}`;
-                })
-              );
-            });
-
-            // 如果是加購品，則將其加入購物車
-            if (isAddOnItem) {
-              carData.lineItems.push(dd);
-            }
-          } catch (e) {
-            console.error('Error processing add-on items:', e);
-          }
-        });
-
-        // 再次更新優惠內容
-        await this.checkVoucher(carData);
-        checkPoint('check voucher');
-
-        // 過濾可選贈品
-        let can_add_gift: any[] = [];
-
-        // 收集可添加的贈品
-        carData.voucherList
-          ?.filter(dd => dd.reBackType === 'giveaway')
-          .forEach(dd => can_add_gift.push(dd.add_on_products));
-
-        // 處理每個贈品
-        gift_product.forEach(dd => {
-          const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
-          if (dd.count <= max_count) {
-            for (let a = 0; a < dd.count; a++) {
-              can_add_gift = can_add_gift.filter(d1 => !d1.includes(dd.id)); // 移除已添加的贈品
-            }
-            carData.lineItems.push(dd);
-          }
-        });
-
-        for (const giveawayData of carData.voucherList!!.filter(dd => dd.reBackType === 'giveaway')) {
-          if (!giveawayData.add_on_products?.length) continue;
-
-          const productPromises = giveawayData.add_on_products.map(async id => {
-            const getGiveawayData = (
-              await this.getProduct({
-                page: 0,
-                limit: 1,
-                id: `${id}`,
-                status: 'inRange',
-                channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-                whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
-              })
-            ).data.content;
-
-            getGiveawayData.voucher_id = giveawayData.id;
-            return getGiveawayData;
-          });
-
-          // 等待所有 add_on_products 產品資料同時獲取
-          giveawayData.add_on_products = await Promise.all(productPromises);
-        }
-      }
-
-      // 付款資訊設定
-      const configData = await Private_config.getConfig({
-        appName: this.app,
-        key: 'glitter_finance',
-      });
-      const keyData: any = configData[0]?.value;
-      if (keyData) {
-        (carData as any).payment_info_custom = keyData.payment_info_custom;
-      }
-
-      await new Promise<void>(resolve => {
-        let n = 0;
-        (carData as any).payment_customer_form = (carData as any).payment_customer_form ?? [];
-        keyData.payment_info_custom.map((item: any, index: number) => {
-          userClass
-            .getConfigV2({
-              user_id: 'manager',
-              key: `form_finance_${item.id}`,
-            })
-            .then(data => {
-              (carData as any).payment_customer_form[index] = {
-                id: item.id,
-                list: data.list,
-              };
-              n++;
-              if (keyData.payment_info_custom.length === n) {
-                resolve();
-              }
-            });
-        });
-        if (n === 0) {
-          resolve();
-        }
-      });
-      checkPoint('set payment');
-
-      // 線下付款
-      (keyData as any).cash_on_delivery = (keyData as any).cash_on_delivery ?? { shipmentSupport: [] };
-      (carData as any).payment_info_line_pay = keyData.payment_info_line_pay;
-      (carData as any).payment_info_atm = keyData.payment_info_atm;
-      const defaultPayArray = onlinePayArray.map(item => item.key);
-      (keyData as any).cash_on_delivery.shipmentSupport = (keyData as any).cash_on_delivery.shipmentSupport ?? [];
-
-      // 透過特定金流，取得指定物流
-      carData.shipment_support = checkoutPayment
-        ? ((() => {
-            if (checkoutPayment === 'cash_on_delivery') {
-              return (keyData as any).cash_on_delivery;
-            } else if (defaultPayArray.includes(checkoutPayment)) {
-              return keyData[checkoutPayment];
-            } else if (checkoutPayment === 'atm') {
-              return keyData.payment_info_atm;
-            } else if (checkoutPayment === 'line') {
-              return keyData.payment_info_line_pay;
-            } else {
-              // 自訂線下付款
-              const customPay = keyData.payment_info_custom.find((c: { id: string }) => c.id === checkoutPayment);
-              return customPay ?? {};
-            }
-          })().shipmentSupport ?? [])
-        : [];
-
-      // 防止帶入購物金時，總計小於0
-      let subtotal = 0;
-      carData.lineItems.map(item => {
-        if (item.is_gift) {
-          item.sale_price = 0;
-        }
-        if (!item.is_gift) {
-          subtotal += item.count * (item.sale_price - (item.discount_price ?? 0));
-        }
-      });
-
-      if (carData.total < 0 || carData.use_rebate > subtotal) {
-        carData.use_rebate = 0;
-        carData.total = subtotal + carData.shipment_fee;
-      }
-
-      // 商品材積重量與物流使用限制
-      carData.lineItems.map(item => {
-        carData.goodsWeight += item.weight * item.count;
-      });
-
-      const excludedValuesByTotal = new Set(['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C']);
-      const excludedValuesByWeight = new Set(['normal', 'black_cat']);
-
-      const isExcludedByTotal = (dd: any) => {
-        return carData.total > 20000 && excludedValuesByTotal.has(dd.value);
-      };
-      const isExcludedByWeight = (dd: any) => {
-        return carData.goodsWeight > 20 && excludedValuesByWeight.has(dd.value);
-      };
-      const isIncludedInDesignatedLogistics = (dd: any) => {
-        return carData.lineItems.every(item => {
-          return (
-            item.designated_logistics === undefined ||
-            item.designated_logistics.type === 'all' ||
-            item.designated_logistics.list.includes(dd.value)
-          );
-        });
-      };
-
-      carData.shipment_selector = carData.shipment_selector
-        .filter((dd: any) => {
-          return isIncludedInDesignatedLogistics(dd);
-        })
-        .map(dd => {
-          dd.isExcludedByTotal = isExcludedByTotal(dd);
-          dd.isExcludedByWeight = isExcludedByWeight(dd);
-          return dd;
-        });
-
-      carData.code_array = (carData.code_array || []).filter(code => {
-        return (carData.voucherList || []).find(dd => dd.code === code);
-      });
-
-      // 驗證消費金額能否使用此金物流
-      function getCartFormulaPass(keyData: {
-        cartSetting?: {
-          minimumTotal: number;
-          maximumTotal: number;
-          orderFormula?: string[];
-        };
-      }) {
-        const data = keyData.cartSetting;
-        if (!data || data.orderFormula === undefined) return true;
-
-        const formulaSet = new Set(data.orderFormula);
-        const total =
-          carData.total -
-          (formulaSet.has('shipment_fee') ? 0 : carData.shipment_fee) +
-          (formulaSet.has('discount') || !carData.discount ? 0 : carData.discount) +
-          (formulaSet.has('use_rebate') ? 0 : carData.use_rebate);
-
-        return (!data.minimumTotal || total >= data.minimumTotal) && (!data.maximumTotal || total <= data.maximumTotal);
-      }
-
-      // 線上金流是否可使用判斷，填入付款資訊與方式
-      (carData as any).payment_setting = onlinePayArray.filter((dd: any) => {
-        const k = (keyData as any)[dd.key];
-        if (!k || !k.toggle || !getCartFormulaPass(k)) return false;
-
-        dd.custome_name = k.custome_name;
-
-        if (carData.orderSource === 'POS') {
-          if (dd.key === 'ut_credit_card') {
-            dd.pwd = k['pwd'];
-          }
-          return dd.type === 'pos';
-        }
-        return dd.type !== 'pos';
-      });
-
-      // 線下金流是否可使用判斷
-      (carData as any).off_line_support = keyData.off_line_support ?? {};
-
-      Object.entries((carData as any).off_line_support).map(([key, value]) => {
-        if (!value) return;
-
-        if (key === 'cash_on_delivery') {
-          (carData as any).off_line_support[key] = getCartFormulaPass(keyData[key]);
-        } else if (key === 'atm') {
-          (carData as any).off_line_support[key] = getCartFormulaPass(keyData.payment_info_atm);
-        } else if (key === 'line') {
-          (carData as any).off_line_support[key] = getCartFormulaPass(keyData.payment_info_line_pay);
-        } else {
-          // 自訂線下付款
-          const customPay = keyData.payment_info_custom.find((c: { id: string }) => c.id === key);
-          (carData as any).off_line_support[key] = getCartFormulaPass(customPay ?? {});
-        }
-      });
-
-      // 物流是否可使用判斷
-      if (Array.isArray(carData.shipment_support)) {
-        await Promise.all(
-          carData.shipment_support.map(async sup => {
-            return await userClass
-              .getConfigV2({ key: 'shipment_config_' + sup, user_id: 'manager' })
-              .then(r => {
-                return getCartFormulaPass(r);
-              })
-              .catch(() => {
-                return true;
-              });
-          })
-        ).then(dataArray => {
-          carData.shipment_support = carData.shipment_support?.filter((_, index) => dataArray[index]);
-        });
-      }
-
-      // ================================ Preview UP ================================
-      checkPoint('return preview');
-
-      if (type === 'preview' || type === 'manual-preview') return { data: carData };
-      // ================================ Add DOWN ================================
-
-      // 購物金與錢包金額移除
-      if (userData && userData.userID) {
-        await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
-          order_id: carData.orderID,
-        });
-
-        if (carData.voucherList && (carData as any).voucherList.length > 0) {
-          for (const voucher of (carData as any).voucherList) {
-            await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
-          }
-        }
-        // 判斷錢包是否有餘額
-        const sum =
-          (
-            await db.query(
-              `SELECT sum(money)
-               FROM \`${this.app}\`.t_wallet
-               WHERE status in (1, 2)
-                 and userID = ?`,
-              [userData.userID]
-            )
-          )[0]['sum(money)'] || 0;
-        carData.use_wallet = sum < carData.total ? sum : carData.total;
-      }
-      checkPoint('check user rebate');
-
-      // 手動結帳地方判定
-      if (type === 'manual' || type === 'split') {
-        carData.orderSource = type;
-        const voucherTitle = type === 'split' ? '拆分訂單調整折扣' : data.voucher.title;
-        const voucherValue = type === 'split' ? data.discount : data.voucher.value;
-        const voucherTotal = type === 'split' ? data.discount : data.voucher.discount_total;
-        let tempVoucher: VoucherData = {
-          discount_total: voucherTotal,
-          end_ISO_Date: '',
-          for: 'all',
-          forKey: [],
-          method: data.voucher.method,
-          overlay: false,
-          rebate_total: data.voucher.rebate_total,
-          reBackType: data.voucher.reBackType,
-          rule: 'min_price',
-          ruleValue: 0,
-          startDate: '',
-          startTime: '',
-          start_ISO_Date: '',
-          status: 1,
-          target: '',
-          targetList: [],
-          title: voucherTitle,
-          trigger: 'auto',
-          type: 'voucher',
-          value: voucherValue,
-          id: data.voucher.id,
-          bind: [],
-          bind_subtotal: 0,
-          times: 1,
-          counting: 'single',
-          conditionType: 'item',
-          includeDiscount: 'before',
-          device: ['normal'],
-          productOffStart: 'price_all',
-        };
-        carData.discount = data.discount;
-        carData.voucherList = [tempVoucher];
-        carData.customer_info = data.customer_info;
-        carData.total = data.total ?? 0;
-        carData.rebate = tempVoucher.rebate_total;
-
-        if (tempVoucher.reBackType == 'shipment_free' || type == 'split') {
-          carData.shipment_fee = 0;
-        }
-        if (type == 'split') {
-          carData.editRecord.push({
-            time: new Date().toISOString(),
-            record: `拆分訂單建立來自\\n {{order=${carData.orderID.slice(0, -1)}}}`,
-          });
-        }
-
-        if (tempVoucher.reBackType == 'rebate') {
-          let customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
-          if (!customerData) {
-            await userClass.createUser(
-              data.email!,
-              Tool.randomString(8),
-              {
-                email: data.email,
-                name: data.customer_info.name,
-                phone: data.customer_info.phone,
-              },
-              {},
-              true
-            );
-            customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
-          }
-        }
-        // 手動訂單新增
-        await OrderEvent.insertOrder({
-          cartData: carData,
-          status: data.pay_status as any,
-          app: this.app,
-        });
-        //庫存整理
-        await Promise.all(
-          saveStockArray.map(dd => {
-            return dd();
-          })
-        );
-
-        new ManagerNotify(this.app).checkout({ orderData: carData, status: 0 });
-        const emailList = new Set([carData.customer_info, carData.user_info].map(dd => dd && dd.email));
-        for (const email of emailList) {
-          if (email) {
-            await AutoFcm.orderChangeInfo({
-              app: this.app,
-              tag: 'order-create',
-              order_id: carData.orderID,
-              phone_email: email,
-            });
-            AutoSendEmail.customerOrder(
-              this.app,
-              'auto-email-order-create',
-              carData.orderID,
-              email,
-              carData.language!!
-            );
-          }
-        }
-
-        checkPoint('manual order done');
-        return {
-          data: carData,
-        };
-      } else if (type === 'POS') {
-        carData.orderSource = 'POS';
-
-        if (checkOutType === 'POS' && Array.isArray(data.voucherList)) {
-          const manualVoucher = data.voucherList.find((item: any) => item.id === 0);
-          if (manualVoucher) {
-            manualVoucher.discount = manualVoucher.discount_total ?? 0;
-            carData.total -= manualVoucher.discount;
-            carData.discount += manualVoucher.discount;
-            carData.voucherList.push(manualVoucher);
-          }
-        }
-
-        const trans = await db.Transaction.build();
-        if (data.pre_order) {
-          (carData as any).progress = 'pre_order';
-          (carData as any).orderStatus = '0';
-          const payTotal = data.pos_info.payment
-            .map((dd: any) => dd.total)
-            .reduce((acc: any, val: any) => acc + val, 0);
-          if (carData.total <= payTotal) {
-            data.pay_status = 1;
-          } else {
-            data.pay_status = 3;
-          }
-        } else if (carData.user_info.shipment === 'now') {
-          (carData as any).orderStatus = '1';
-          (carData as any).progress = 'finish';
-        }
-        await OrderEvent.insertOrder({
-          cartData: carData,
-          status: data.pay_status as any,
-          app: this.app,
-        });
-        if (data.invoice_select !== 'nouse') {
-          (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(
-            carData,
-            carData.user_info.send_type !== 'carrier'
-          );
-        }
-        await trans.commit();
-        await trans.release();
-        await Promise.all(saveStockArray.map(dd => dd()));
-        await this.releaseCheckout((data.pay_status as any) ?? 0, carData.orderID);
-        checkPoint('release pos checkout');
-        for (const email of new Set(
-          [carData.customer_info, carData.user_info].map(dd => {
-            return dd && dd.email;
-          })
-        )) {
-          if (email) {
-            await AutoFcm.orderChangeInfo({
-              app: this.app,
-              tag: 'order-create',
-              order_id: carData.orderID,
-              phone_email: email,
-            });
-            AutoSendEmail.customerOrder(
-              this.app,
-              'auto-email-order-create',
-              carData.orderID,
-              email,
-              carData.language!!
-            );
-          }
-        }
-        return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
-      }
-
-      // Genetate notify redirect id
-      const id = 'redirect_' + Tool.randomString(6);
-      //前端希望跳轉的頁面
-      const redirect_url = new URL(data.return_url);
-      redirect_url.searchParams.set('cart_token', carData.orderID);
-      await redis.setValue(id, redirect_url.href);
-
-      // 當不需付款時直接寫入，並開發票
-      if (carData.use_wallet === carData.total) {
-        await db.query(
-          `INSERT INTO \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
-           values (?, ?, ?, ?, ?);`,
-          [
-            carData.orderID,
-            userData.userID,
-            carData.use_wallet * -1,
-            1,
-            JSON.stringify({
-              note: '使用錢包購物',
-              orderData: carData,
-            }),
-          ]
-        );
-
-        carData.method = 'off_line';
-        await OrderEvent.insertOrder({
-          cartData: carData,
-          status: 1,
-          app: this.app,
-        });
-        if (carData.use_wallet > 0) {
-          new Invoice(this.app).postCheckoutInvoice(carData.orderID, false);
-        }
-        await Promise.all(saveStockArray.map(dd => dd()));
-        checkPoint('insert order & create invoice');
-
-        return {
-          is_free: true,
-          return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-        };
-      } else {
-        const keyData = (
-          await Private_config.getConfig({
-            appName: this.app,
-            key: 'glitter_finance',
-          })
-        )[0].value;
-        let kd = keyData[carData.customer_info.payment_select] ?? {
-          ReturnURL: '',
-          NotifyURL: '',
-        };
-        // 金流處理
-        //insert order
-        //savestock
-        switch (carData.customer_info.payment_select) {
-          case 'ecPay':
-          case 'newWebPay':
-            const subMitData = await new FinancialService(this.app, {
-              HASH_IV: kd.HASH_IV,
-              HASH_KEY: kd.HASH_KEY,
-              ActionURL: kd.ActionURL,
-              NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`,
-              ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-              MERCHANT_ID: kd.MERCHANT_ID,
-              TYPE: carData.customer_info.payment_select,
-            }).createOrderPage(carData);
-            await Promise.all(
-              saveStockArray.map(dd => {
-                return dd();
-              })
-            );
-            checkPoint('select newWebPay');
-
-            return {
-              form: subMitData,
-            };
-          case 'paypal':
-            kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
-            kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
-            await Promise.all(
-              saveStockArray.map(dd => {
-                return dd();
-              })
-            );
-            checkPoint('select paypal');
-            return await new PayPal(this.app, kd).checkout(carData);
-          case 'line_pay':
-            kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
-            kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
-            await Promise.all(
-              saveStockArray.map(dd => {
-                return dd();
-              })
-            );
-            checkPoint('select linepay');
-
-            return await new LinePay(this.app, kd).createOrder(carData);
-          case 'paynow': {
-            kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
-            kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true&type=${carData.customer_info.payment_select}`;
-            await Promise.all(
-              saveStockArray.map(dd => {
-                return dd();
-              })
-            );
-            checkPoint('select paynow');
-            return await new PayNow(this.app, kd).createOrder(carData);
-          }
-          case 'jkopay': {
-            kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&return=${id}`;
-            kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=jkopay&return=${id}`;
-            checkPoint('select jkopay');
-            return await new JKO(this.app, kd).createOrder(carData);
-          }
-          default:
-            carData.method = 'off_line';
-            await OrderEvent.insertOrder({
-              cartData: carData,
-              status: 0,
-              app: this.app,
-            });
-            await Promise.all(
-              saveStockArray.map(dd => {
-                return dd();
-              })
-            );
-            // 訂單成立信件通知
-            new ManagerNotify(this.app).checkout({
-              orderData: carData,
-              status: 0,
-            });
-            for (const phone of new Set(
-              [carData.customer_info, carData.user_info].map(dd => {
-                return dd && dd.phone;
-              })
-            )) {
-              let sns = new SMS(this.app);
-              await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
-              console.info('訂單簡訊寄送成功');
-            }
-
-            if (carData.customer_info.lineID) {
-              let line = new LineMessage(this.app);
-              await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
-              console.info('訂單line訊息寄送成功');
-            }
-            // if (carData.customer_info.fb_id) {
-            //     let fb = new FbMessage(this.app)
-            //     await fb.sendCustomerFB('auto-fb-order-create', carData.orderID, carData.customer_info.fb_id);
-            //     console.info('訂單FB訊息寄送成功');
-            // }
-            for (const email of new Set(
-              [carData.customer_info, carData.user_info].map(dd => {
-                return dd && dd.email;
-              })
-            )) {
-              if (email) {
-                await AutoFcm.orderChangeInfo({
-                  app: this.app,
-                  tag: 'order-create',
-                  order_id: carData.orderID,
-                  phone_email: email,
-                });
-                AutoSendEmail.customerOrder(
-                  this.app,
-                  'auto-email-order-create',
-                  carData.orderID,
-                  email,
-                  carData.language!!
-                );
-              }
-            }
-
-            await this.releaseVoucherHistory(carData.orderID, 1);
-            checkPoint('default release checkout');
-            return {
-              off_line: true,
-              return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-            };
-        }
-      }
-    } catch (e) {
-      console.error(e);
-      throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Func Error:' + e, null);
-    }
-  }
-
   async repayOrder(orderID: string, return_url: string) {
     const app = this.app;
 
@@ -3372,9 +1963,9 @@ export class Shopping {
       try {
         const result = await db.query(
           `
-            SELECT *
-            FROM \`${app}\`.t_checkout
-            WHERE cart_token = ?`,
+              SELECT *
+              FROM \`${app}\`.t_checkout
+              WHERE cart_token = ?`,
           [orderID]
         );
         return result[0];
@@ -3607,12 +2198,6 @@ export class Shopping {
             break;
         }
       }
-      //退貨單封存相關
-      if (query.archived === 'true') {
-        querySql.push(`(archived="${query.archived}")`);
-      } else if (query.archived === 'false') {
-        querySql.push(`((archived IS NULL) or (archived!='true'))`);
-      }
       //退貨貨款狀態
       query.status && querySql.push(`status IN (${query.status})`);
       query.email && querySql.push(`email=${db.escape(query.email)}`);
@@ -3832,10 +2417,10 @@ export class Shopping {
 
   async splitOrder(obj: { orderData: Cart; splitOrderArray: OrderDetail[] }) {
     try {
+      const checkoutEvent = new CheckoutEvent(this.app, this.token);
       async function processCheckoutsStaggered(
         splitOrderArray: any[],
-        orderData: any,
-        context: any
+        orderData: any
       ): Promise<boolean | { result: string; reason: any }> {
         const promises = splitOrderArray.map((order, index) => {
           // 為每個操作返回一個新的 Promise
@@ -3859,7 +2444,7 @@ export class Shopping {
               };
 
               // 假設 context.toCheckout 本身返回一個 Promise
-              context
+              checkoutEvent
                 .toCheckout(payload, 'split')
                 .then(() => {
                   resolve(); // 當 toCheckout 成功時，resolve 外層的 Promise
@@ -3882,6 +2467,7 @@ export class Shopping {
           };
         }
       }
+
       const currentTime = new Date().toISOString();
 
       //給定訂單編號 產生 編號A 編號B... 依此類推
@@ -3897,6 +2483,7 @@ export class Shopping {
 
         return orderIdArray;
       }
+
       //整理原本訂單的總價 優惠卷的資訊 方便原本的訂單更新
       function refreshOrder(orderData: Cart, splitOrderArray: OrderDetail[]) {
         const { newTotal, newDiscount } = splitOrderArray.reduce(
@@ -3924,7 +2511,7 @@ export class Shopping {
         cart_token: orderData.orderID,
         orderData,
       });
-      return await processCheckoutsStaggered(splitOrderArray, orderData, this);
+      return await processCheckoutsStaggered(splitOrderArray, orderData);
     } catch (e) {
       throw exception.BadRequestError('BAD_REQUEST', 'splitOrder Error:' + e, null);
     }
@@ -4017,13 +2604,15 @@ export class Shopping {
 
     // 篩選符合商品判斷方法
     function switchValidProduct(
-      caseName: 'collection' | 'product' | 'all',
+      caseName: VoucherForType,
       caseList: string[],
       caseOffStart: 'price_desc' | 'price_asc' | 'price_all'
     ): any {
       const filterItems = cart.lineItems
         .filter(item => {
           switch (caseName) {
+            case 'manager_tag':
+              return item.product_customize_tag.some(col => caseList.includes(col));
             case 'collection':
               return item.collection.some(col => caseList.includes(col));
             case 'product':
@@ -4523,15 +3112,35 @@ export class Shopping {
       // 若符合有效訂單設定，則發放類型為購物金的優惠券
       const orderCountingSQL = await new User(this.app).getCheckoutCountingModeSQL();
       const orderCount = await db.query(
-        `SELECT *
-         FROM \`${this.app}\`.t_checkout
-         WHERE id = ?
-           AND ${orderCountingSQL};
+        `SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${orderCountingSQL};
         `,
         [origin.id]
       );
       if (orderCount[0]) {
         await this.shareVoucherRebate(orderCount[0]);
+      }
+
+      // 若符合有效訂單設定，則發放類型為購物金的優惠券
+      const invoiceCountingConfig = await new User(this.app).getInvoiceCountingModeSQL();
+      const invoiceCount = await db.query(
+        `SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${invoiceCountingConfig.sql_string};
+        `,
+        [origin.id]
+      );
+      if (invoiceCount[0]) {
+        const cart_token = invoiceCount[0].cart_token;
+
+        const json = {
+          tag: 'triggerInvoice',
+          content: JSON.stringify({ cart_token }),
+          trigger_time: Tool.getCurrentDateTime({
+            inputDate: new Date().toISOString(),
+            addSeconds: invoiceCountingConfig.invoice_mode.afterDays * 86400,
+          }),
+          status: 0,
+        };
+
+        await db.query(`INSERT INTO \`${this.app}\`.t_triggers SET ?;`, [json]);
       }
 
       return {
@@ -5247,7 +3856,8 @@ export class Shopping {
         if (query.id) {
           const data = (
             await db.query(
-              `SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+              `SELECT *
+               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
               `,
               []
             )
@@ -5259,14 +3869,21 @@ export class Shopping {
           });
         } else {
           const data = await db.query(
-            `SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+            `SELECT *
+             FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
             `,
             []
           );
           timer.checkPoint('get response_data (not query.id)');
           resolve({
             data: data,
-            total: (await db.query(`SELECT count(1) FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+            total: (
+              await db.query(
+                `SELECT count(1)
+                                    FROM (${sql}) as subqyery`,
+                []
+              )
+            )[0]['count(1)'],
           });
         }
       });
@@ -5287,9 +3904,11 @@ export class Shopping {
                 order.orderData.cash_flow = await new EcPay(this.app).checkPaymentStatus(order.cart_token);
               }
               if (order.orderData.customer_info.payment_select === 'paynow') {
-                order.orderData.cash_flow = (
-                  await new PayNow(this.app, keyData['paynow']).confirmAndCaptureOrder(order.orderData.paynow_id)
-                ).result;
+                try {
+                  order.orderData.cash_flow = (
+                    await new PayNow(this.app, keyData['paynow']).confirmAndCaptureOrder(order.orderData.paynow_id)
+                  ).result;
+                } catch (e) {}
               }
               if (order.orderData.user_info.shipment_refer === 'paynow') {
                 const pay_now = new PayNowLogistics(this.app);
@@ -5494,7 +4113,6 @@ export class Shopping {
         } catch (e) {
           console.error(e);
         }
-        new Invoice(this.app).postCheckoutInvoice(order_id, false);
       }
     } catch (error) {
       throw exception.BadRequestError('BAD_REQUEST', 'Release Checkout Error:' + e, null);
@@ -5713,25 +4331,26 @@ export class Shopping {
         } else if (Object.keys(variant.stockList).length === 0) {
           variant.stockList[storeConfig.list[0].id] = { count: variant.stock };
         }
-
-        const insertData = await db.query(
-          `INSERT INTO \`${this.app}\`.t_variants SET ? 
-          `,
-          [
-            {
-              content: JSON.stringify(variant),
-              product_id: content.id,
-            },
-          ]
-        );
-
+        const insertObj: any = {
+          content: JSON.stringify(variant),
+          product_id: content.id,
+        };
         const originalVariant = originVariants.find(
           (item: any) => JSON.parse(item.spec).join(',') === variant.spec.join(',')
         );
 
+        //如果有找到原先的variant不要替換掉ID
         if (originalVariant) {
-          sourceMap[originalVariant.id] = insertData.insertId;
+          insertObj.id = originalVariant.id;
+          sourceMap[originalVariant.id] = originalVariant.id;
         }
+
+        const insertData = await db.query(
+          `replace INTO \`${this.app}\`.t_variants
+           SET ?
+          `,
+          [insertObj]
+        );
 
         return insertData;
       });
@@ -6327,6 +4946,53 @@ export class Shopping {
     }
   }
 
+  async removeLogisticGroup(group_key: string) {
+    try {
+      const getProducts = await db.query(
+        `SELECT * FROM \`${this.app}\`.t_manager_post 
+         WHERE JSON_CONTAINS(JSON_EXTRACT(content, '$.designated_logistics.group'), JSON_QUOTE(?))`,
+        [group_key]
+      );
+
+      const chunk = 10;
+      const chunkLength = Math.ceil(getProducts.length / chunk);
+
+      for (let i = 0; i < chunkLength; i++) {
+        const promisesArray = getProducts.slice(i * chunk, (i + 1) * chunk);
+
+        setTimeout(async () => {
+          await Promise.all(
+            promisesArray.map(async (product: any) => {
+              product.content.designated_logistics.group = product.content.designated_logistics.group.filter(
+                (item: string) => {
+                  return item !== group_key;
+                }
+              );
+
+              if (product.content.designated_logistics.group.length === 0) {
+                delete product.content.designated_logistics.group;
+                product.content.designated_logistics.type = 'all';
+              }
+
+              // 更新商品
+              await db.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?`, [
+                {
+                  content: JSON.stringify(product.content),
+                },
+                product.id,
+              ]);
+            })
+          );
+        }, 200);
+      }
+
+      return true;
+    } catch (e) {
+      console.error(e);
+      throw exception.BadRequestError('BAD_REQUEST', 'removeLogisticGroup Error:' + e, null);
+    }
+  }
+
   async updateCollectionFromUpdateProduct(collection: string[]) {
     collection = Array.from(
       new Set(
@@ -6483,7 +5149,8 @@ export class Shopping {
 
       if (productArray.length) {
         const data = await db.query(
-          `REPLACE INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
+          `REPLACE
+          INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
           `,
           [
             productArray.map((product: any) => {
@@ -6535,9 +5202,9 @@ export class Shopping {
         for (const b of language) {
           const find_conflict = await db.query(
             `SELECT count(1)
-           FROM \`${this.app}\`.t_manager_post
-           WHERE content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
-             AND id != ${content.id}`,
+             FROM \`${this.app}\`.t_manager_post
+             WHERE content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
+               AND id != ${content.id}`,
             []
           );
           if (find_conflict[0]['count(1)'] > 0) {
@@ -6560,7 +5227,9 @@ export class Shopping {
 
       // 更新商品
       await db.query(
-        `UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
+        `UPDATE \`${this.app}\`.\`t_manager_post\`
+         SET ?
+         WHERE id = ?
         `,
         [
           {
@@ -6882,7 +5551,7 @@ export class Shopping {
         if (query.id_list?.includes('-')) {
           data.data = data.data.filter((dd: any) => {
             return query.id_list?.split(',').find(d1 => {
-              return d1 === [dd.product_id, ...dd.variant_content.spec].join('-');
+              return d1 === `${dd.product_id}-${dd.variant_content.spec.join('-')}`;
             });
           });
         }
@@ -6986,8 +5655,8 @@ export class Shopping {
         let variants = (
           await db.query(
             `SELECT *
-           FROM \`${this.app}\`.t_variants
-           WHERE product_id = ?`,
+             FROM \`${this.app}\`.t_variants
+             WHERE product_id = ?`,
             [data.product_id]
           )
         ).map((dd: any) => {

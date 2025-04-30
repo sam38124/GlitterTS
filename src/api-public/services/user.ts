@@ -54,9 +54,10 @@ interface UserQuery {
   member_levels?: string;
   groupType?: string;
   groupTag?: string;
-  filter_type?: string;
+  filter_type?: 'block' | 'normal' | 'watch' | 'excel';
   tags?: string;
   all_result?: boolean;
+  only_id: string;
 }
 
 interface GroupUserItem {
@@ -104,16 +105,28 @@ type MemberConfig = {
   };
 };
 
+interface StoreDataMode {
+  payload: string[];
+  progress: string[];
+  orderStatus: string[];
+}
+
 export class User {
-  public app: string;
-  public token?: IToken;
+  app: string;
+  token?: IToken;
 
   constructor(app: string, token?: IToken) {
     this.app = app;
     this.token = token;
   }
 
-  public static generateUserID() {
+  static typeMap = {
+    block: 0,
+    normal: 1,
+    watch: 2,
+  };
+
+  static generateUserID() {
     let userID = '';
     const characters = '0123456789';
     const charactersLength = characters.length;
@@ -124,7 +137,7 @@ export class User {
     return userID;
   }
 
-  public async findAuthUser(email?: string) {
+  async findAuthUser(email?: string) {
     try {
       //SAAS 平台才需要檢查是否有邀請
       if (['shopnex'].includes(this.app)) {
@@ -146,7 +159,7 @@ export class User {
     }
   }
 
-  public async emailVerify(account: string) {
+  async emailVerify(account: string) {
     const time: any = await redis.getValue(`verify-${account}-last-time`);
     //超過30秒可在次發送
     if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
@@ -166,7 +179,7 @@ export class User {
     }
   }
 
-  public async phoneVerify(account: string) {
+  async phoneVerify(account: string) {
     const time: any = await redis.getValue(`verify-phone-${account}-last-time`);
     let last_count: any = parseInt(`${(await redis.getValue(`verify-phone-${account}-last-count`)) || '0'}`, 10);
     last_count++;
@@ -195,7 +208,7 @@ export class User {
     }
   }
 
-  public async createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean) {
+  async createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean) {
     try {
       const login_config = await this.getConfigV2({
         key: 'login_config',
@@ -302,7 +315,7 @@ export class User {
   }
 
   // 用戶初次建立的initial函式
-  public async createUserHook(userID: string) {
+  async createUserHook(userID: string) {
     // 發送歡迎信件
     const usData: any = await this.getUserData(userID, 'userID');
     usData.userData.repeatPwd = undefined;
@@ -339,7 +352,7 @@ export class User {
     await UserUpdate.update(this.app, userID);
   }
 
-  public async updateAccount(account: string, userID: string): Promise<any> {
+  async updateAccount(account: string, userID: string): Promise<any> {
     try {
       const configAd = await App.getAdConfig(this.app, 'glitter_loginConfig');
       switch (configAd.verify) {
@@ -366,14 +379,14 @@ export class User {
     }
   }
 
-  public async login(account: string, pwd: string) {
+  async login(account: string, pwd: string) {
     try {
       const data: any = (
         (await db.execute(
           `select *
            from \`${this.app}\`.t_user
            where (userData ->>'$.email' = ? or phone=? or account=?)
-             and status = 1`,
+             and status <> 0`,
           [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]
         )) as any
       )[0];
@@ -396,7 +409,7 @@ export class User {
     }
   }
 
-  public async loginWithFb(token: string) {
+  async loginWithFb(token: string) {
     let config = {
       method: 'get',
       maxBodyLength: Infinity,
@@ -449,7 +462,7 @@ export class User {
         `select *
          from \`${this.app}\`.t_user
          where userData ->>'$.email' = ?
-           and status = 1`,
+           and status <> 0`,
         [fbResponse.email]
       )) as any
     )[0];
@@ -471,7 +484,7 @@ export class User {
     return usData;
   }
 
-  public async loginWithLine(code: string, redirect: string) {
+  async loginWithLine(code: string, redirect: string) {
     try {
       const lineData = await this.getConfigV2({
         key: 'login_line_setting',
@@ -500,10 +513,10 @@ export class User {
                 redirect_uri: redirect,
               }),
             })
-            .then(response => {
+            .then((response: any) => {
               resolve(response.data);
             })
-            .catch(error => {
+            .catch((error: any) => {
               console.error(error);
               resolve(false);
             });
@@ -599,7 +612,7 @@ export class User {
     }
   }
 
-  public async loginWithGoogle(code: string, redirect: string) {
+  async loginWithGoogle(code: string, redirect: string) {
     try {
       const config = await this.getConfigV2({
         key: 'login_google_setting',
@@ -615,6 +628,14 @@ export class User {
               await client.verifyIdToken({
                 idToken: code,
                 audience: config.app_id, // 這裡是你的應用的 client_id
+              })
+            );
+          } else if (redirect === 'android') {
+            const client = new OAuth2Client(config.android_app_id);
+            resolve(
+              await client.verifyIdToken({
+                idToken: code,
+                audience: config.android_app_id, // 這裡是你的應用的 client_id
               })
             );
           } else {
@@ -671,7 +692,7 @@ export class User {
           `select *
            from \`${this.app}\`.t_user
            where userData ->>'$.email' = ?
-             and status = 1`,
+             and status <> 0`,
           [payload?.email]
         )) as any
       )[0];
@@ -697,7 +718,7 @@ export class User {
   }
 
   //POS切換
-  public async loginWithPin(user_id: string, pin: string) {
+  async loginWithPin(user_id: string, pin: string) {
     try {
       if (await UtPermission.isManagerTokenCheck(this.app, `${this.token!!.userID}`)) {
         const per_c = new SharePermission(this.app, this.token!!);
@@ -733,7 +754,7 @@ export class User {
     }
   }
 
-  public async loginWithApple(token: string) {
+  async loginWithApple(token: string) {
     try {
       const config = await this.getConfigV2({
         key: 'login_apple_setting',
@@ -809,7 +830,7 @@ export class User {
           `select *
            from \`${this.app}\`.t_user
            where userData ->>'$.email' = ?
-             and status = 1`,
+             and status <> 0`,
           [decoded.payload.email]
         )) as any
       )[0];
@@ -834,7 +855,7 @@ export class User {
     }
   }
 
-  public async getUserData(query: string, type: 'userID' | 'account' | 'email_or_phone' = 'userID') {
+  async getUserData(query: string, type: 'userID' | 'account' | 'email_or_phone' = 'userID') {
     try {
       const sql = `select *
                    from \`${this.app}\`.t_user
@@ -885,7 +906,7 @@ export class User {
     }
   }
 
-  public async checkMember(
+  async checkMember(
     userData: any,
     trigger: boolean
   ): Promise<
@@ -1154,7 +1175,7 @@ export class User {
     }
   }
 
-  public find30DayPeriodWith3000Spent(
+  find30DayPeriodWith3000Spent(
     transactions: {
       total_amount: number;
       date: string;
@@ -1252,19 +1273,14 @@ export class User {
     return orderByMap[orderBy] || 'u.id DESC';
   }
 
-  public async getUserList(query: UserQuery) {
+  async getUserList(query: UserQuery) {
     try {
       const checkPoint = new UtTimer('GET-USER-LIST').checkPoint;
 
-      // if (this.app === 't_1725992531001') {
-      //   await new InitialFakeData('t_1725992531001').run();
-      //   checkPoint('Run InitialFakeData');
-      // }
-
+      // return
       const orderCountingSQL = await this.getCheckoutCountingModeSQL();
       const querySql: string[] = ['1=1'];
       const noRegisterUsers: any[] = [];
-
       query.page = query.page ?? 0;
       query.limit = query.limit ?? 50;
 
@@ -1523,7 +1539,11 @@ export class User {
       }
 
       if (query.filter_type !== 'excel') {
-        querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
+        if (query.filter_type) {
+          querySql.push(`status = ${User.typeMap[query.filter_type]}`);
+        } else {
+          querySql.push(`status <> ${User.typeMap.block}`);
+        }
       }
 
       const countSQL = await this.getUserAndOrderSQL({
@@ -1558,10 +1578,14 @@ export class User {
         if (param) {
           const dataArray = [];
 
-          for (let i = 0; i < getUsers.length; i += processChunk) {
-            const data = await processUserData(getUsers.slice(i, i + processChunk));
-            dataArray.push(data);
-            checkPoint(`processUserData ${i}`);
+          if (query.only_id !== 'true') {
+            for (let i = 0; i < getUsers.length; i += processChunk) {
+              const data = await processUserData(getUsers.slice(i, i + processChunk));
+              dataArray.push(data);
+              checkPoint(`processUserData ${i}`);
+            }
+          } else {
+            return getUsers;
           }
 
           return dataArray.flat();
@@ -1592,10 +1616,10 @@ export class User {
           user.latest_order_date = (
             await db.query(
               `select created_time
-                                                    from \`${this.app}\`.t_checkout
-                                                    where email in ('${email}', '${phone}')
-                                                      and ${orderCountingSQL}
-                                                    order by created_time desc limit 0,1`,
+               from \`${this.app}\`.t_checkout
+               where email in ('${email}', '${phone}')
+                 and ${orderCountingSQL}
+               order by created_time desc limit 0,1`,
               []
             )
           )[0];
@@ -1603,10 +1627,10 @@ export class User {
           user.latest_order_total = (
             await db.query(
               `select total
-                                                     from \`${this.app}\`.t_checkout
-                                                     where email in ('${email}', '${phone}')
-                                                       and ${orderCountingSQL}
-                                                     order by created_time desc limit 0,1`,
+               from \`${this.app}\`.t_checkout
+               where email in ('${email}', '${phone}')
+                 and ${orderCountingSQL}
+               order by created_time desc limit 0,1`,
               []
             )
           )[0];
@@ -1614,9 +1638,9 @@ export class User {
           user.checkout_total = (
             await db.query(
               `select sum(total)
-                                                 from \`${this.app}\`.t_checkout
-                                                 where email in ('${email}', '${phone}')
-                                                   and ${orderCountingSQL} `,
+               from \`${this.app}\`.t_checkout
+               where email in ('${email}', '${phone}')
+                 and ${orderCountingSQL} `,
               []
             )
           )[0];
@@ -1624,9 +1648,9 @@ export class User {
           user.checkout_count = (
             await db.query(
               `select count(1)
-                                                 from \`${this.app}\`.t_checkout
-                                                 where email in ('${email}', '${phone}')
-                                                   and ${orderCountingSQL} `,
+               from \`${this.app}\`.t_checkout
+               where email in ('${email}', '${phone}')
+                 and ${orderCountingSQL} `,
               []
             )
           )[0];
@@ -1662,7 +1686,6 @@ export class User {
       checkPoint('return data');
 
       const total = (await db.query(countSQL, []))[0]['count(1)'];
-      console.log(`user total: ${total}`);
 
       return {
         // 指定頁數和符合篩選條件的會員資料
@@ -1681,7 +1704,7 @@ export class User {
     }
   }
 
-  public async getUserGroups(
+  async getUserGroups(
     type?: string[],
     tag?: string,
     hide_level?: boolean
@@ -1734,7 +1757,7 @@ export class User {
         const usuallyBuyingStandard = 9.99;
         const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
         const neverBuyingData = await db.query(
-          `SELECT userID,  email
+          `SELECT userID, email
            FROM \`${this.app}\`.t_user
            WHERE userID not in (${buyingList
              .map(item => item.userID)
@@ -1769,7 +1792,11 @@ export class User {
           });
         }
 
-        const users = await db.query(`SELECT userID FROM \`${this.app}\`.t_user;`, []);
+        const users = await db.query(
+          `SELECT userID
+           FROM \`${this.app}\`.t_user;`,
+          []
+        );
 
         const levelItems = await this.getUserLevel(
           users.map((item: { userID: number }) => {
@@ -1806,7 +1833,7 @@ export class User {
     }
   }
 
-  public normalMember = {
+  normalMember = {
     id: '',
     duration: { type: 'noLimit', value: 0 },
     tag_name: '一般會員',
@@ -1815,7 +1842,7 @@ export class User {
     create_date: '2024-01-01T00:00:00.000Z',
   };
 
-  public async getLevelConfig() {
+  async getLevelConfig() {
     const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
     const levelList = levelData.levels || [];
 
@@ -1976,7 +2003,7 @@ export class User {
     };
   }
 
-  public async getUserLevel(
+  async getUserLevel(
     data: {
       userId?: string;
       email?: string;
@@ -2031,7 +2058,7 @@ export class User {
     return dataList;
   }
 
-  public async subscribe(email: string, tag: string) {
+  async subscribe(email: string, tag: string) {
     try {
       await db.queryLambada(
         {
@@ -2050,7 +2077,7 @@ export class User {
     }
   }
 
-  public async registerFcm(userID: string, deviceToken: string) {
+  async registerFcm(userID: string, deviceToken: string) {
     try {
       await db.queryLambada(
         {
@@ -2069,7 +2096,7 @@ export class User {
     }
   }
 
-  public async deleteSubscribe(email: string) {
+  async deleteSubscribe(email: string) {
     try {
       await db.query(
         `delete
@@ -2085,7 +2112,7 @@ export class User {
     }
   }
 
-  public async getSubScribe(query: any) {
+  async getSubScribe(query: any) {
     try {
       const querySql: any = [];
       query.page = query.page ?? 0;
@@ -2139,7 +2166,7 @@ export class User {
     }
   }
 
-  public async getFCM(query: any) {
+  async getFCM(query: any) {
     try {
       query.page = query.page ?? 0;
       query.limit = query.limit ?? 50;
@@ -2168,7 +2195,7 @@ export class User {
     }
   }
 
-  public async deleteUser(query: { id?: string; email?: string }) {
+  async deleteUser(query: { id?: string; email?: string }) {
     try {
       //確保單一進來的元素不會被解析成字串
       if (query.id) {
@@ -2194,10 +2221,12 @@ export class User {
     }
   }
 
-  public async updateUserData(userID: string, par: any, manager: boolean = false) {
+  async updateUserData(userID: string, par: any, manager: boolean = false) {
     const getUser = await db.query(
-      `SELECT * FROM \`${this.app}\`.t_user WHERE userID = ${db.escape(userID)}
-        `,
+      `SELECT *
+       FROM \`${this.app}\`.t_user
+       WHERE userID = ${db.escape(userID)}
+      `,
       []
     );
     const userData = getUser[0] ?? {};
@@ -2221,7 +2250,9 @@ export class User {
         if (userDataVerify === par.userData.verify_code) {
           const pwd = await tool.hashPwd(par.userData.pwd);
           await db.query(
-            `UPDATE \`${this.app}\`.t_user SET pwd = ? WHERE userID = ${db.escape(userID)}
+            `UPDATE \`${this.app}\`.t_user
+             SET pwd = ?
+             WHERE userID = ${db.escape(userID)}
             `,
             [pwd]
           );
@@ -2238,7 +2269,7 @@ export class User {
           await db.query(
             `SELECT count(1)
              FROM \`${this.app}\`.t_user
-             WHERE (userData->>'$.email' = ${db.escape(par.userData.email)})
+             WHERE (userData ->>'$.email' = ${db.escape(par.userData.email)})
                AND (userID != ${db.escape(userID)})`,
             []
           )
@@ -2268,7 +2299,7 @@ export class User {
           await db.query(
             `SELECT count(1)
              FROM \`${this.app}\`.t_user
-             WHERE (userData->>'$.phone' = ${db.escape(par.userData.phone)})
+             WHERE (userData ->>'$.phone' = ${db.escape(par.userData.phone)})
                AND (userID != ${db.escape(userID)}) `,
             []
           )
@@ -2292,12 +2323,14 @@ export class User {
         }
       }
 
-      const blockCheck = par.userData.type == 'block';
-      par.status = blockCheck ? 0 : 1;
+      par.status = User.typeMap[par.userData.type as 'block' | 'normal' | 'watch'] ?? User.typeMap.normal;
 
       if (par.userData.phone) {
         await db.query(
-          `UPDATE \`${this.app}\`.t_checkout SET email = ? WHERE id > 0 AND email = ?
+          `UPDATE \`${this.app}\`.t_checkout
+           SET email = ?
+           WHERE id > 0
+             AND email = ?
           `,
           [par.userData.phone, `${userData.userData.phone}`]
         );
@@ -2306,7 +2339,10 @@ export class User {
 
       if (par.userData.email) {
         await db.query(
-          `UPDATE \`${this.app}\`.t_checkout SET email = ? WHERE id > 0 AND email = ?
+          `UPDATE \`${this.app}\`.t_checkout
+           SET email = ?
+           WHERE id > 0
+             AND email = ?
           `,
           [par.userData.email, `${userData.userData.email}`]
         );
@@ -2332,7 +2368,10 @@ export class User {
       }
 
       const data = await db.query(
-        `UPDATE \`${this.app}\`.t_user SET ? WHERE 1 = 1 AND userID = ?
+        `UPDATE \`${this.app}\`.t_user
+         SET ?
+         WHERE 1 = 1
+           AND userID = ?
         `,
         [par, userID]
       );
@@ -2347,9 +2386,11 @@ export class User {
     }
   }
 
-  public async batchGetUser(userId: string[]) {
+  async batchGetUser(userId: string[]) {
     try {
-      const sql = `SELECT * FROM \`${this.app}\`.t_user WHERE userID = ?`;
+      const sql = `SELECT *
+                   FROM \`${this.app}\`.t_user
+                   WHERE userID = ?`;
       const dataArray: any = [];
 
       const stack: Stack = {
@@ -2385,7 +2426,7 @@ export class User {
     }
   }
 
-  public async batchUpdateUserData(trackName: string, users: { id: string; data: any }[]) {
+  async batchUpdateUserData(trackName: string, users: { id: string; data: any }[]) {
     try {
       const stack: Stack = {
         appName: this.app as string,
@@ -2421,7 +2462,7 @@ export class User {
     }
   }
 
-  public async batchAddtag(userId: string[], tags: string[]) {
+  async batchAddtag(userId: string[], tags: string[]) {
     try {
       const users = await this.batchGetUser(userId);
 
@@ -2440,7 +2481,7 @@ export class User {
     }
   }
 
-  public async batchRemovetag(userId: string[], tags: string[]) {
+  async batchRemovetag(userId: string[], tags: string[]) {
     try {
       const users = await this.batchGetUser(userId);
       const postMap: Map<string, boolean> = new Map(tags.map(tag => [tag, true]));
@@ -2460,7 +2501,7 @@ export class User {
     }
   }
 
-  public async batchManualLevel(userId: string[], level: string[]) {
+  async batchManualLevel(userId: string[], level: string[]) {
     try {
       const users = await this.batchGetUser(userId);
 
@@ -2480,7 +2521,7 @@ export class User {
     }
   }
 
-  public async clearUselessData(userData: any, manager: boolean) {
+  async clearUselessData(userData: any, manager: boolean) {
     let config = await App.getAdConfig(this.app, 'glitterUserForm');
     let register_form =
       (
@@ -2513,7 +2554,7 @@ export class User {
     });
   }
 
-  public async checkUpdate(cf: { updateUserData: any; manager: boolean; userID: string }) {
+  async checkUpdate(cf: { updateUserData: any; manager: boolean; userID: string }) {
     let originUserData = (
       await db.query(
         `select userData
@@ -2539,9 +2580,9 @@ export class User {
     return originUserData;
   }
 
-  public async resetPwd(user_id_and_account: string, newPwd: string) {
+  async resetPwd(user_id_and_account: string, newPwd: string) {
     try {
-      const result = (await db.query(
+      await db.query(
         `update \`${this.app}\`.t_user
          SET ?
          WHERE 1 = 1
@@ -2552,23 +2593,23 @@ export class User {
           },
           user_id_and_account,
         ]
-      )) as any;
+      );
       return {
         result: true,
       };
     } catch (e) {
-      throw exception.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'resetPwd Error:' + e, null);
     }
   }
 
-  public async resetPwdNeedCheck(userID: string, pwd: string, newPwd: string) {
+  async resetPwdNeedCheck(userID: string, pwd: string, newPwd: string) {
     try {
       const data: any = (
         (await db.execute(
           `select *
            from \`${this.app}\`.t_user
            where userID = ?
-             and status = 1`,
+             and status <> 0`,
           [userID]
         )) as any
       )[0];
@@ -2596,7 +2637,7 @@ export class User {
     }
   }
 
-  public async updateAccountBack(token: string) {
+  async updateAccountBack(token: string) {
     try {
       const sql = `select userData
                    from \`${this.app}\`.t_user
@@ -2613,7 +2654,7 @@ export class User {
     }
   }
 
-  public async verifyPASS(token: string) {
+  async verifyPASS(token: string) {
     try {
       const par = {
         status: 1,
@@ -2630,7 +2671,7 @@ export class User {
     }
   }
 
-  public async checkUserExists(account: string) {
+  async checkUserExists(account: string) {
     try {
       return (
         (
@@ -2648,7 +2689,7 @@ export class User {
     }
   }
 
-  public async checkMailAndPhoneExists(
+  async checkMailAndPhoneExists(
     email?: string,
     phone?: string
   ): Promise<{
@@ -2696,7 +2737,7 @@ export class User {
     }
   }
 
-  public async checkUserIdExists(id: number) {
+  async checkUserIdExists(id: number) {
     try {
       const count = (
         await db.query(
@@ -2712,7 +2753,7 @@ export class User {
     }
   }
 
-  public async setConfig(config: { key: string; value: any; user_id?: string }) {
+  async setConfig(config: { key: string; value: any; user_id?: string }) {
     try {
       if (typeof config.value !== 'string') {
         config.value = JSON.stringify(config.value);
@@ -2754,13 +2795,14 @@ export class User {
           find_app_301.router = JSON.parse(config.value).list;
         }
       }
+      User.configData[this.app + config.key + (config.user_id ?? this.token!.userID)] = JSON.parse(config.value);
     } catch (e) {
       console.error(e);
       throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
     }
   }
 
-  public async getConfig(config: { key: string; user_id: string }) {
+  async getConfig(config: { key: string; user_id: string }) {
     try {
       return await db.execute(
         `select *
@@ -2776,8 +2818,37 @@ export class User {
     }
   }
 
-  public async getConfigV2(config: { key: string; user_id: string }): Promise<any> {
+  //CONFIG 的暫存避免頻繁撈取SQL資料
+  static configData: any = {};
+
+  async getConfigV2(config: { key: string; user_id: string }): Promise<any> {
+    const app = this.app;
     try {
+      function checkConfigCache() {
+        if (
+          !config.key.split(',').find(dd => {
+            return !User.configData[app + dd + config.user_id];
+          })
+        ) {
+          if (config.key.includes(',')) {
+            return config.key.split(',').map(dd => {
+              return {
+                key: dd,
+                value: User.configData[app + dd + config.user_id],
+              };
+            });
+          } else {
+            return User.configData[app + config.key + config.user_id];
+          }
+        }
+      }
+
+      //當有暫存時
+      if (checkConfigCache()) {
+        // console.log(`[${this.app}] config cache hit`);
+        return JSON.parse(JSON.stringify(checkConfigCache()));
+      }
+
       const that = this;
 
       const getData = await db.execute(
@@ -2847,22 +2918,27 @@ export class User {
       }
 
       if (config.key.includes(',')) {
-        return Promise.all(
-          config.key.split(',').map(async dd => ({
-            key: dd,
-            value: await loop(getData.find((d1: any) => d1.key === dd)),
-          }))
-        );
+        (
+          await Promise.all(
+            config.key.split(',').map(async dd => ({
+              key: dd,
+              value: await loop(getData.find((d1: any) => d1.key === dd)),
+            }))
+          )
+        ).map(dd => {
+          User.configData[app + dd.key + config.user_id] = dd.value;
+        });
       } else {
-        return loop(getData[0]);
+        User.configData[app + config.key + config.user_id] = await loop(getData[0]);
       }
+      return JSON.parse(JSON.stringify(checkConfigCache()));
     } catch (e) {
       console.error(e);
       throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
     }
   }
 
-  public async checkLeakData(key: string, value: any) {
+  async checkLeakData(key: string, value: any) {
     switch (key) {
       case 'store-information': {
         value.language_setting ??= { def: 'zh-TW', support: ['zh-TW'] };
@@ -2872,10 +2948,18 @@ export class User {
           value.chat_toggle = config.toggle;
         }
 
+        value.pos_support_finction = value.pos_support_finction ?? [];
         value.checkout_mode ??= {
           payload: ['1', '3', '0'],
           progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
           orderStatus: ['1', '0'],
+        };
+
+        value.invoice_mode ??= {
+          payload: ['1', '3', '0'],
+          progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
+          orderStatus: ['1', '0'],
+          afterDays: 0,
         };
         break;
       }
@@ -2913,7 +2997,7 @@ export class User {
     return value;
   }
 
-  public async checkEmailExists(email: string) {
+  async checkEmailExists(email: string) {
     try {
       const count = (
         await db.query(
@@ -2929,7 +3013,7 @@ export class User {
     }
   }
 
-  public async checkPhoneExists(phone: string) {
+  async checkPhoneExists(phone: string) {
     try {
       const count = (
         await db.query(
@@ -2945,7 +3029,7 @@ export class User {
     }
   }
 
-  public async getUnreadCount() {
+  async getUnreadCount() {
     try {
       const last_read_time = await db.query(
         `SELECT value
@@ -2972,7 +3056,7 @@ export class User {
     }
   }
 
-  public async checkAdminPermission() {
+  async checkAdminPermission() {
     try {
       const result = await db.query(
         `select count(1)
@@ -2994,7 +3078,7 @@ export class User {
     } catch (e) {}
   }
 
-  public async getNotice(cf: { query: any }) {
+  async getNotice(cf: { query: any }) {
     try {
       const query = [`user_id=${this.token?.userID}`];
       let last_time_read = 0;
@@ -3030,7 +3114,7 @@ export class User {
     }
   }
 
-  public async forgetPassword(email: string) {
+  async forgetPassword(email: string) {
     const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-forget', 'zh-TW');
     const code = Tool.randomNumber(6);
     await redis.setValue(`forget-${email}`, code);
@@ -3038,7 +3122,7 @@ export class User {
     sendmail(`${data.name} <${process.env.smtp}>`, email, data.title, data.content.replace('@{{code}}', code));
   }
 
-  public static async ipInfo(ip: string) {
+  static async ipInfo(ip: string) {
     try {
       let config = {
         method: 'get',
@@ -3072,9 +3156,43 @@ export class User {
     }
   }
 
-  public async getCheckoutCountingModeSQL(table?: string) {
-    const asTable = table ? `${table}.` : '';
+  async getCheckoutCountingModeSQL(table?: string) {
     const storeInfo = await this.getConfigV2({ key: 'store-information', user_id: 'manager' });
+    const sqlQuery = await this.getOrderModeQuery(storeInfo.checkout_mode, table);
+
+    if (sqlQuery.length === 0) {
+      return '1 = 0'; // 無需累計的判斷式
+    }
+
+    return sqlQuery.join(' AND ');
+  }
+
+  async getInvoiceCountingModeSQL(table?: string): Promise<{
+    invoice_mode: any;
+    sql_string: string;
+  }> {
+    const storeInfo = await this.getConfigV2({ key: 'store-information', user_id: 'manager' });
+    const sqlQuery = await this.getOrderModeQuery(storeInfo.invoice_mode, table);
+
+    if (sqlQuery.length === 0) {
+      return {
+        invoice_mode: storeInfo.invoice_mode,
+        sql_string: '1 = 0', // 無需累計的判斷式
+      };
+    }
+
+    return {
+      invoice_mode: storeInfo.invoice_mode,
+      sql_string: sqlQuery.join(' AND '),
+    };
+  }
+
+  async getOrderModeQuery(storeData: StoreDataMode, table?: string): Promise<string[]> {
+    const asTable = table ? `${table}.` : '';
+
+    if (storeData.progress.includes('in_stock') && !storeData.progress.includes('wait')) {
+      storeData.progress.push('wait');
+    }
 
     const sqlQuery: string[] = [];
     const sqlObject: Record<string, { key: string; options: Set<string>; addNull: Set<string> }> = {
@@ -3095,7 +3213,7 @@ export class User {
       },
     };
 
-    Object.entries(storeInfo.checkout_mode).forEach(([key, mode]: [string, unknown]) => {
+    Object.entries(storeData).forEach(([key, mode]) => {
       const obj = sqlObject[key];
       if (!Array.isArray(mode) || mode.length === 0 || !obj) return;
 
@@ -3116,10 +3234,6 @@ export class User {
       }
     });
 
-    if (sqlQuery.length === 0) {
-      return '1 = 0'; // 無需累計的判斷式
-    }
-
-    return sqlQuery.join(' AND ');
+    return sqlQuery;
   }
 }

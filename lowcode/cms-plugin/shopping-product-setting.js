@@ -223,9 +223,9 @@ export class ShoppingProductSetting {
                                                                     return undefined;
                                                                 })(),
                                                                 filter_visible: `${type !== 'hidden'}`,
+                                                                productType: type === 'hidden' ? 'product' : type,
                                                                 collection: vm.filter.collection,
                                                                 accurate_search_collection: true,
-                                                                productType: type === 'hidden' ? 'product' : type,
                                                                 general_tag: (() => {
                                                                     if (vm.filter.general_tag && vm.filter.general_tag.length > 0) {
                                                                         return vm.filter.general_tag.join(',');
@@ -253,7 +253,7 @@ export class ShoppingProductSetting {
                                                                                     width: 40,
                                                                                     class: 'rounded border me-2',
                                                                                 })}
-                                                <div class="d-flex flex-column" style="">
+                                                <div class="d-flex flex-column">
                                                   ${dd.content.shopee_id
                                                                                     ? html `<div style="margin-bottom: -10px;">
                                                         <div
@@ -297,12 +297,17 @@ export class ShoppingProductSetting {
                                                                                         }
                                                                                     });
                                                                                     if (countStock == 0) {
-                                                                                        return html ` 無追蹤庫存 `;
+                                                                                        return '無追蹤庫存';
                                                                                     }
-                                                                                    return html `${countStock}個子類
-                                                ${sum > 1
-                                                                                        ? `有${sum}件庫存`
-                                                                                        : html ` <span style="color:#8E0E2B">有${sum} 件庫存</span>`}`;
+                                                                                    const countStockText = countStock > 1 ? `${countStock} 個子類` : '';
+                                                                                    const stockText = html ` <span
+                                                  style="${sum > 1
+                                                                                        ? 'color: #393939'
+                                                                                        : 'color: #8E0E2B; font-weight: 500;'}"
+                                                >
+                                                  庫存 ${sum.toLocaleString()} 件</span
+                                                >`;
+                                                                                    return `${countStockText}${stockText}`;
                                                                                 })(),
                                                                             },
                                                                             {
@@ -1280,7 +1285,7 @@ export class ShoppingProductSetting {
                         const categoryTitle = categoryTitleMap[postMD.product_category] || '商品';
                         return [
                             BgWidget.container(html `
-              <div class="title-container flex-column flex-sm-row" style="">
+              <div class="title-container flex-column flex-sm-row">
                 <div class="d-flex align-items-center w-100">
                   ${BgWidget.goBack(obj.gvc.event(() => {
                                 if (window.parent.glitter.share.checkData &&
@@ -1340,6 +1345,14 @@ export class ShoppingProductSetting {
                                                     if (data.result && data.response.data && data.response.data.content) {
                                                         const copy = data.response.data.content;
                                                         postMD = Object.assign(Object.assign({}, postMD), copy);
+                                                        postMD.variants.forEach(variant => {
+                                                            variant.stock = 0;
+                                                            for (const key in stockList) {
+                                                                if (stockList.hasOwnProperty(key)) {
+                                                                    stockList[key].count = 0;
+                                                                }
+                                                            }
+                                                        });
                                                         if (!copy.language_data) {
                                                             const language_data = postMD.language_data['zh-TW'];
                                                             language_data.title = copy.title;

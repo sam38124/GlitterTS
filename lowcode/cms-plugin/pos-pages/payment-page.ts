@@ -175,7 +175,7 @@ export class PaymentPage {
             gvc.glitter.share.rebateConfig.title = rebateTitle;
             const hasWeighing = orderDetail.lineItems.find((item: any) => item.product_category === 'weighing');
             resolve(
-              html`<div
+              html` <div
                   class="left-panel"
                   style="${document.body.offsetWidth < 800
                     ? `width:calc(100%);padding: 20px 18px;height:auto;background:#FFF;`
@@ -212,9 +212,7 @@ export class PaymentPage {
                                     >
                                       <div style="height: 20px;"></div>
                                       <div
-                                        style="width: 70px;height: 70px;
-                                                                                min-width: 70px;min-height: 70px;
-                                                                                border-radius: 5px;background: 50%/cover url('${data.preview_image ||
+                                        style="width: 70px;height: 70px; min-width: 70px;min-height: 70px; border-radius: 5px;background: 50%/cover url('${data.preview_image ||
                                         'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}')"
                                       ></div>
                                       <div
@@ -243,19 +241,13 @@ export class PaymentPage {
                                           if (!data.pre_order) {
                                             return ``;
                                           } else {
-                                            return `<div>${BgWidget.dangerInsignia('需預購')}</div>`;
+                                            return html`<div>${BgWidget.dangerInsignia('需預購')}</div>`;
                                           }
                                         })()}
                                         ${data.title}
                                       </div>
                                       <span
-                                        style="color: #949494;
-                                                                                font-size: 16px;
-                                                                                font-style: normal;
-                                                                                font-weight: 500;
-                                                                                line-height: normal;
-                                                                                letter-spacing: 0.64px;
-                                                                                text-transform: uppercase;"
+                                        style="color: #949494; font-size: 16px; font-style: normal; font-weight: 500; line-height: normal; letter-spacing: 0.64px; text-transform: uppercase;"
                                       >
                                         ${(() => {
                                           return data.spec.length > 0
@@ -269,7 +261,7 @@ export class PaymentPage {
                                       </span>
 
                                       ${document.body.clientWidth < 800
-                                        ? html`<div
+                                        ? html` <div
                                             style="color: #393939; font-size: 16px; font-style: normal; font-weight: 400; line-height: normal; letter-spacing: 0.64px; text-transform: uppercase;"
                                           >
                                             NT.${parseInt(data.sale_price as any, 10).toLocaleString()}
@@ -322,7 +314,7 @@ export class PaymentPage {
                       bind: vm.id,
                       view: () => {
                         const view = [
-                          html`<div class="w-100 d-flex flex-fill">
+                          html` <div class="w-100 d-flex flex-fill">
                             <div
                               class="w-100 d-flex align-items-center justify-content-center"
                               style="cursor:pointer;flex:1; height: 65px; ${vm.type === 'old'
@@ -514,13 +506,13 @@ export class PaymentPage {
                                           bind: vm.id,
                                           view: () => {
                                             if (vm.loading) {
-                                              return html`<div
+                                              return html` <div
                                                 class="w-100 d-flex align-items-center justify-content-center"
                                               >
                                                 <div class="spinner-border"></div>
                                               </div>`;
                                             } else {
-                                              return html`<div
+                                              return html` <div
                                                   style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 6px; display: inline-flex"
                                                 >
                                                   <div
@@ -742,6 +734,7 @@ export class PaymentPage {
                                     );
 
                                     let need_check: any = {};
+
                                     function loopForm(data: any, refer_obj: any) {
                                       let h = '';
                                       data.map((item: any) => {
@@ -807,7 +800,7 @@ export class PaymentPage {
 
                                     resolve(
                                       form_array_view.join(`<div class="my-4 border"></div>`) +
-                                        html`<div class="d-flex align-content-end justify-content-end pt-3">
+                                        html` <div class="d-flex align-content-end justify-content-end pt-3">
                                           ${BgWidget.save(
                                             gvc.event(async () => {
                                               const dialog = new ShareDialog(gvc.glitter);
@@ -938,7 +931,8 @@ export class PaymentPage {
                     if (
                       ['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].includes(obj.ogOrderData.user_info.shipment)
                     ) {
-                      return html`<div
+                      return html`
+                        <div
                           class="mb-2"
                           style="margin-top: 14px;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;"
                         >
@@ -961,7 +955,8 @@ export class PaymentPage {
                           })}"
                         >
                           ${decodeURI(gvc.glitter.getUrlParameter('CVSStoreName') || '') || '請選擇到店門市'}
-                        </div> `;
+                        </div>
+                      `;
                     } else if (obj.ogOrderData.user_info.shipment === 'normal') {
                       return `<input class="form-control mt-2" value="${obj.ogOrderData.user_info.address ?? ''}" onchange="${gvc.event(
                         (e, event) => {
@@ -1005,7 +1000,7 @@ export class PaymentPage {
                             },
                           ]
                             .map(dd => {
-                              return html`<div class="mb-2 col-${dd.col} ps-0" style="">
+                              return html` <div class="mb-2 col-${dd.col} ps-0" style="">
                                 <div>
                                   <div
                                     class="fw-normal mb-2 fs-6"
@@ -1060,7 +1055,7 @@ export class PaymentPage {
                           return [
                             {
                               title: `${gvc.glitter.share.rebateConfig.title}折抵`,
-                              value: html`<div class="d-flex align-items-center" style="gap:5px;">
+                              value: html` <div class="d-flex align-items-center" style="gap:5px;">
                                 ${`-${Number(orderDetail.use_rebate).toLocaleString()}`}
                                 <i
                                   class="fa-solid fa-xmark fs-5"
@@ -1081,7 +1076,7 @@ export class PaymentPage {
                         return (orderDetail as any).voucherList.map((dd: any, index: number) => {
                           return {
                             hint: dd.title,
-                            value: html`<div class="d-flex align-items-center" style="gap:5px;">
+                            value: html` <div class="d-flex align-items-center" style="gap:5px;">
                               ${dd.reBackType === 'rebate'
                                 ? `+${dd.discount_total.toLocaleString()} ${gvc.glitter.share.rebateConfig.title}`
                                 : (() => {
@@ -1315,7 +1310,7 @@ export class PaymentPage {
                                   })
                                   .join('');
                               } else {
-                                return html`<div class="w-100 d-flex flex-column">
+                                return html` <div class="w-100 d-flex flex-column">
                                   <div class="d-flex align-items-center justify-content-center w-100 " style="">
                                     <div class="d-flex" style="flex:68;">${PosWidget.fontLight('付款方式')}</div>
                                     <div class="d-flex" style="flex:94;">${PosWidget.fontLight('付款金額')}</div>
@@ -1434,7 +1429,7 @@ export class PaymentPage {
                               style: `display: flex;justify-content: space-between;margin-top: 24px;gap:15px;`,
                             },
                           })}`,
-                          html`<div style="height:24px;"></div>`,
+                          html` <div style="height:24px;"></div>`,
                           PosWidget.buttonSnow(
                             `新增付款方式`,
                             gvc.event(() => {
@@ -2050,6 +2045,7 @@ export class PaymentPage {
         } else {
           PaymentPage.clearHistory();
           const glitter = gvc.glitter;
+          console.log(`res.response.order-data==>`, res.response.data);
           const invoice = res.response.data.invoice;
           if (
             res.response.data.invoice &&
@@ -2058,6 +2054,7 @@ export class PaymentPage {
             c_vm.invoice_select !== 'nouse'
           ) {
             POSSetting.config.pickup_number++;
+
             function print(type: 'save' | 'client') {
               if (type === 'client') {
                 if (PayConfig.deviceType === 'pos') {
@@ -2072,7 +2069,40 @@ export class PaymentPage {
                 }
               }
             }
+
             print('client');
+          } else if (
+            PayConfig.pos_config.pos_support_finction.includes('print_order_receipt') ||
+            PayConfig.pos_config.pos_support_finction.includes('print_order_detail')
+          ) {
+
+            if (PayConfig.deviceType === 'pos') {
+              //客戶聯
+              await IminModule.printTransactionDetails(res.response.data.orderID,invoice,glitter.share.staff_title);
+              //如果需要收執聯的話
+              if(
+                PayConfig.pos_config.pos_support_finction.includes('print_order_receipt') &&
+                PayConfig.pos_config.pos_support_finction.includes('print_order_detail')
+              ){
+                await new Promise(resolve => {
+                  const dialog=new ShareDialog(glitter)
+                  dialog.infoMessage({
+                    text:'請撕取客戶聯，在列印留存聯',
+                    callback:()=>{
+                      resolve(true)
+                    }
+                  })
+                })
+                await IminModule.printTransactionDetails(res.response.data.orderID,invoice,glitter.share.staff_title);
+              }
+            } else {
+              ConnectionMode.sendCommand({
+                cmd: 'printTransactionDetails',
+                invoice: invoice,
+                orderID: res.response.data.orderID,
+                staff_title: glitter.share.staff_title,
+              });
+            }
           }
           dialog.dataLoading({ visible: false });
           orderDetail.lineItems = [];
@@ -2145,7 +2175,8 @@ export class PaymentPage {
         .map((dd: any) => {
           return dd.total;
         })
-        .reduce((accumulator: number, currentValue: number) => accumulator + currentValue, 0) < orderDetail.total
+        .reduce((accumulator: number, currentValue: number) => accumulator + currentValue, 0) < orderDetail.total ||
+      !PayConfig.pos_config.pos_support_finction.includes('print_invoice')
     ) {
       c_vm.invoice_select = 'nouse';
       next();
@@ -2221,7 +2252,7 @@ export class PaymentPage {
                 </div>
                 ${(() => {
                   if (c_vm.invoice_select === 'carry') {
-                    return html`<div
+                    return html` <div
                       class="d-flex w-100 align-items-center mt-3"
                       style="border:1px solid grey;height: 50px;"
                     >
@@ -2249,7 +2280,7 @@ export class PaymentPage {
                       </div>
                     </div>`;
                   } else if (c_vm.invoice_select === 'company') {
-                    return html`<div
+                    return html` <div
                       class="d-flex w-100 align-items-center mt-3"
                       style="border:1px solid grey;height: 50px;"
                     >

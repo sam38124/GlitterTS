@@ -617,8 +617,10 @@ export class BgBlog {
         limit: 1,
         id: (window.parent as any).glitter.getUrlParameter('page-id'),
       }).then(async data => {
-        vm.data = data.response.data[0];
-        vm.type = 'replace';
+        if (data.result) {
+          vm.data = data.response.data[0];
+          vm.type = 'replace';
+        }
       });
     }
 
@@ -629,7 +631,8 @@ export class BgBlog {
         dataList: [{ obj: vm, key: 'type' }],
         view: () => {
           if ((window.parent as any).glitter.getUrlParameter('page-id') && vm.type !== 'replace') {
-            return '';
+            (window.parent as any).glitter.setUrlParameter('page-id', '');
+            gvc.notifyDataChange(id);
           }
 
           const pageTabMap = {
@@ -775,15 +778,15 @@ export class BgBlog {
                 },
               })
             );
-          } else {
-            return editor({
-              gvc: gvc,
-              vm: vm,
-              is_page: is_page,
-              widget: widget,
-              page_tab: page_tab,
-            });
           }
+
+          return editor({
+            gvc: gvc,
+            vm: vm,
+            is_page: is_page,
+            widget: widget,
+            page_tab: page_tab,
+          });
         },
       };
     });
@@ -1270,26 +1273,34 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
       }
 
       if (origin !== JSON.stringify(vm.data)) {
-        const dialog = new ShareDialog(gvc.glitter);
-        dialog.checkYesOrNot({
-          text: '偵測到內容變更，是否保留更改?',
-          callback: response => {
-            if (response) {
-              saveData(gvc, cf, vm, cVm, false).then(res => {
-                if (res) {
-                  next();
-                } else {
-                  gvc.notifyDataChange(id);
-                }
-              });
-            } else {
-              next();
-            }
-          },
+        saveData(gvc, cf, vm, cVm, false).then(res => {
+          res ? next() : gvc.notifyDataChange(id);
         });
       } else {
         next();
       }
+
+      // if (origin !== JSON.stringify(vm.data)) {
+      //   const dialog = new ShareDialog(gvc.glitter);
+      //   dialog.checkYesOrNot({
+      //     text: '偵測到內容變更，是否保留更改?',
+      //     callback: response => {
+      //       if (response) {
+      //         saveData(gvc, cf, vm, cVm, false).then(res => {
+      //           if (res) {
+      //             next();
+      //           } else {
+      //             gvc.notifyDataChange(id);
+      //           }
+      //         });
+      //       } else {
+      //         next();
+      //       }
+      //     },
+      //   });
+      // } else {
+      //   next();
+      // }
     }
 
     return {
@@ -1357,6 +1368,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
               )}
             </div>
           </div>
+          ${BgWidget.mbContainer(18)}
           ${BgWidget.container1x2(
             {
               html: [
@@ -1625,7 +1637,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                   })()}
                                                 </div>`;
                                               } catch (e) {
-                                                console.log(`error=>`, e);
+                                                console.error(`error=>`, e);
                                                 return '';
                                               }
                                             },
@@ -1707,7 +1719,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                         <div class="tx_normal">產品列表</div>
                                                       </div>
                                                       ${BgWidget.grayButton(
-                                                        '搜尋商品',
+                                                        '選擇商品',
                                                         gvc.event(() => {
                                                           BgProduct.productsDialog({
                                                             default: d1.value,
@@ -1799,7 +1811,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                     <div class="tx_normal">產品列表</div>
                                                   </div>
                                                   ${BgWidget.grayButton(
-                                                    '搜尋商品',
+                                                    '選擇商品',
                                                     gvc.event(() => {
                                                       BgProduct.productsDialog({
                                                         gvc: gvc,
@@ -1807,6 +1819,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                           return `${dd.product_id}-${dd.variant.spec.join('-')}`;
                                                         }),
                                                         with_variants: true,
+                                                        filter_visible: page_tab === 'hidden' ? 'false' : 'true',
                                                         callback: async value => {
                                                           vm.data.content.relative_data =
                                                             vm.data.content.relative_data ?? [];
@@ -1927,8 +1940,8 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                           }
                           return '';
                         } catch (e) {
-                          console.log(e);
-                          return `${e}`;
+                          console.error(e);
+                          return '';
                         }
                       },
                     };
@@ -1940,7 +1953,6 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
             {
               html: BgWidget.summaryCard(
                 gvc.bindView(() => {
-                  console.log(`vm.data.content.template=>`, vm.data.content.template);
                   const id = gvc.glitter.getUUID();
                   vm.data.status = vm.data.status ?? '1';
                   return {
@@ -2266,7 +2278,6 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                         : `blogs`
                     }/${vm.data.content.tag}?preview=true&appName=${(window.parent as any).appName}`;
                   })();
-                  console.log(`vm.data.content=>`, vm.data.content);
                   localStorage.setItem('preview_data', JSON.stringify(vm.data.content));
                   (window.parent as any).glitter.openNewTab(href);
                 }

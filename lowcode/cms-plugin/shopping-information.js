@@ -13,7 +13,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { Currency } from '../glitter-base/global/currency.js';
 import { LanguageBackend } from './language-backend.js';
 import { GlobalUser } from '../glitter-base/global/global-user.js';
-import { FilterOptions } from './filter-options.js';
+import { InformationModule } from './information/information-module.js';
 const html = String.raw;
 export class ShoppingInformation {
     static main(gvc) {
@@ -134,6 +134,7 @@ export class ShoppingInformation {
                         gvc.notifyDataChange(vm.id);
                     });
                 }
+                const infoModule = new InformationModule(gvc, vm, ShoppingInformation);
                 function createSection(title, description) {
                     return html `
             <div style="color: #393939; font-size: 16px;">${title}</div>
@@ -167,176 +168,6 @@ export class ShoppingInformation {
                     })}
             </div>`);
                 }
-                function createPickUpModeDialog(title, description) {
-                    return createRow(title, description, BgWidget.customButton({
-                        button: { color: 'snow', size: 'md' },
-                        text: { name: '編輯' },
-                        event: gvc.event(() => {
-                            BgWidget.settingDialog({
-                                gvc,
-                                title,
-                                width: 600,
-                                innerHTML: gvc => {
-                                    return `<div class="d-flex flex-column" style="gap:5px;">${[
-                                        html ` <div class="d-flex align-items-center" style="gap:10px;">
-                        <div style="color: #393939; font-size: 16px;">啟用功能</div>
-                        <div class="cursor_pointer form-check form-switch m-0 p-0" style="min-width: 50px;">
-                          <input
-                            class="form-check-input m-0"
-                            type="checkbox"
-                            onchange="${gvc.event(() => {
-                                            vm.data.pickup_mode = !vm.data.pickup_mode;
-                                            gvc.recreateView();
-                                        })}"
-                            ${vm.data.pickup_mode ? `checked` : ''}
-                          />
-                        </div>
-                        ${vm.data.pickup_mode ? `<div class="fw-bold fs-6 d-flex align-items-center">當前號碼 : ${vm.data.pickup_now || vm.data.pickup_start || 0}
-<div class="mx-2"></div>
-${BgWidget.customButton({
-                                            button: {
-                                                color: 'snow',
-                                                size: 'sm',
-                                            },
-                                            text: {
-                                                name: '重置號碼'
-                                            },
-                                            event: gvc.event(() => {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.checkYesOrNot({
-                                                    text: '是否確認重置號碼?',
-                                                    callback: (response) => {
-                                                        if (response) {
-                                                            vm.data.pickup_now = vm.data.pickup_start || '0';
-                                                            gvc.recreateView();
-                                                        }
-                                                    }
-                                                });
-                                            })
-                                        })}
-</div>` : ``}
-                      </div>`,
-                                        ...(() => {
-                                            if (vm.data.pickup_mode) {
-                                                return [
-                                                    BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '初始號碼',
-                                                        default: vm.data.pickup_start || '0',
-                                                        callback: text => {
-                                                            vm.data.pickup_start = text;
-                                                        },
-                                                        placeHolder: '請輸入初始號碼',
-                                                        type: 'number',
-                                                    }),
-                                                    BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: html `<div class="d-flex flex-column">
-                                ${['結束號碼', BgWidget.grayNote('輸入零則無上限')].join('')}
-                              </div>`,
-                                                        default: vm.data.pickup_end || '0',
-                                                        callback: text => {
-                                                            vm.data.pickup_end = text;
-                                                        },
-                                                        placeHolder: '請輸入結束號碼',
-                                                        type: 'number',
-                                                    }),
-                                                ];
-                                            }
-                                            else {
-                                                return [];
-                                            }
-                                        })(),
-                                    ].join(BgWidget.horizontalLine())}</div>`;
-                                },
-                                footer_html: gvc => {
-                                    return [
-                                        BgWidget.cancel(gvc.event(() => {
-                                            gvc.closeDialog();
-                                        })),
-                                        BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
-                                            dialog.dataLoading({ visible: true });
-                                            yield vm.save_info();
-                                            yield Promise.all(ShoppingInformation.saveArray.map(dd => dd()));
-                                            ShoppingInformation.saveArray = [];
-                                            dialog.dataLoading({ visible: false });
-                                            dialog.successMessage({ text: '儲存成功' });
-                                            gvc.closeDialog();
-                                        }))),
-                                    ].join('');
-                                },
-                            });
-                        }),
-                    }));
-                }
-                function createCheckoutModeDialog(title, description) {
-                    return createRow(title, description, BgWidget.customButton({
-                        button: { color: 'snow', size: 'md' },
-                        text: { name: '編輯' },
-                        event: gvc.event(() => {
-                            const originData = structuredClone(vm.data);
-                            BgWidget.settingDialog({
-                                gvc,
-                                title,
-                                width: 600,
-                                innerHTML: gvc => {
-                                    const modes = vm.data.checkout_mode;
-                                    const arr = [
-                                        {
-                                            key: 'orderStatus',
-                                            name: '訂單狀態',
-                                            data: FilterOptions.orderStatusOptions,
-                                        },
-                                        {
-                                            key: 'payload',
-                                            name: '付款狀態',
-                                            data: FilterOptions.payloadStatusOptions,
-                                        },
-                                        {
-                                            key: 'progress',
-                                            name: '出貨狀況',
-                                            data: FilterOptions.progressOptions,
-                                        },
-                                    ];
-                                    return html `${BgWidget.grayNote('提示：勾選項目後，該項目將會作為訂單累積與分析數據的篩選條件')}
-                      <div class="d-flex flex-column gap-1">
-                        ${arr
-                                        .map(obj => {
-                                        return BgWidget.inlineCheckBox({
-                                            gvc,
-                                            title: obj.name,
-                                            def: modes[obj.key],
-                                            array: obj.data.map(item => ({ title: item.name, value: item.key })),
-                                            callback: (array) => {
-                                                modes[obj.key] = array;
-                                            },
-                                            type: 'multiple',
-                                        });
-                                    })
-                                        .join(BgWidget.mbContainer(12))}
-                      </div>`;
-                                },
-                                footer_html: gvc => {
-                                    return [
-                                        BgWidget.cancel(gvc.event(() => {
-                                            vm.data = originData;
-                                            gvc.closeDialog();
-                                        })),
-                                        BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
-                                            dialog.dataLoading({ visible: true });
-                                            yield vm.save_info();
-                                            yield Promise.all(ShoppingInformation.saveArray.map(dd => dd()));
-                                            ShoppingInformation.saveArray = [];
-                                            dialog.dataLoading({ visible: false });
-                                            dialog.successMessage({ text: '儲存成功' });
-                                            gvc.closeDialog();
-                                        }))),
-                                    ].join('');
-                                },
-                            });
-                        }),
-                    }));
-                }
                 function createRow(title, description, elem) {
                     return html `
             ${BgWidget.horizontalLine({ margin: 0.5 })}
@@ -345,6 +176,27 @@ ${BgWidget.customButton({
               ${elem}
             </div>
           `;
+                }
+                function createPickUpModeDialog(title, description) {
+                    return createRow(title, description, BgWidget.customButton({
+                        button: { color: 'snow', size: 'md' },
+                        text: { name: '編輯' },
+                        event: infoModule.pickUpMode(title),
+                    }));
+                }
+                function createCheckoutModeDialog(title, description) {
+                    return createRow(title, description, BgWidget.customButton({
+                        button: { color: 'snow', size: 'md' },
+                        text: { name: '編輯' },
+                        event: infoModule.checkoutMode(title),
+                    }));
+                }
+                function createInvoiceModeDialog(title, description) {
+                    return createRow(title, description, BgWidget.customButton({
+                        button: { color: 'snow', size: 'md' },
+                        text: { name: '編輯' },
+                        event: infoModule.invoiceMode(title),
+                    }));
                 }
                 const typeMap = {
                     basic: () => {
@@ -662,10 +514,12 @@ ${BgWidget.customButton({
                 ${createToggle('啟用顧客評論功能', '顧客可以對您的商品進行評論', 'customer_comment')}
                 ${createToggle('啟用 Cookie 聲明', '如需使用廣告追蹤行為，必須啟用 Cookie 聲明，才可發送廣告', 'cookie_check')}
                 ${createToggle('顯示商品剩餘庫存', '啟用此功能，顧客會在商品頁面看到此商品剩餘的庫存數', 'stock_view')}
+                ${createToggle('線上商店開放預購商品', '啟用此功能，顧客可以在線上商店的商品無庫存時，進行預購', 'pre_order_status')}
                 ${createToggle('商品卡片顯示區間價格', '啟用後，若商品有多個規格、不同價位，前台商品卡片將會使用價格區間來顯示，關閉則顯示該商品規格中最低價者', 'interval_price_card')}
                 ${createToggle('單獨顯示商品特價', '啟用此功能，會將含有特價的商品價格或區間，單獨使用紅字顯示，關閉則採用刪改線的方式呈現特價', 'independent_special_price')}
                 ${createPickUpModeDialog('取貨號碼', '針對特店取貨功能，開啟取貨號碼功能消費者需告知商家取貨號碼並前往特店取貨')}
                 ${createCheckoutModeDialog('訂單結算模式', '設定訂單結算模式，可調整顧客累積消費金額、會員等級、數據分析的統計機制')}
+                ${createInvoiceModeDialog('發票開立時機', '設定發票開立的時機，可在商家想要的時間點，開立並發送訂單發票')}
               </div>
             `);
                     },

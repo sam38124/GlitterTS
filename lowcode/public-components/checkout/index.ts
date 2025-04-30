@@ -20,6 +20,8 @@ import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { Animation } from '../../glitterBundle/module/Animation.js';
 import { ApiLiveInteraction } from '../../glitter-base/route/live-purchase-interactions.js';
 import { ApplicationConfig } from '../../application-config.js';
+import { CartModule, CartLogiGroup, CartDataList } from '../modules/cart-module.js';
+import { ProductModule } from '../modules/product-module.js';
 
 const html = String.raw;
 
@@ -33,10 +35,9 @@ interface Voucher extends OriginVoucher {
 
 export class CheckoutIndex {
   static main(gvc: GVC, widget: any, subData: any) {
-
     const glitter = gvc.glitter;
     if (glitter.share.is_application && glitter.getUrlParameter('page') !== 'checkout') {
-      return ``;
+      return '';
     }
     let onlineData: any = {};
 
@@ -58,13 +59,15 @@ export class CheckoutIndex {
     const loadings = {
       page: true,
     };
-    const vm: any = {
+    const vm = {
       cartData: {} as any,
-      rebateConfig: {
-        title: '購物金',
-      } as any,
+      cartDataList: [] as CartDataList[],
+      logisticsGroup: [] as CartLogiGroup[],
+      rebateConfig: { title: '購物金' } as any,
+      quantity: '',
+      hasFullLengthCart: false,
     };
-    const classPrefix = 'wnqij1';
+    const classPrefix = 'cart-prefix';
     PdClass.addSpecStyle(gvc);
 
     function spinner(obj?: {
@@ -107,7 +110,7 @@ export class CheckoutIndex {
           role="status"
         ></div>
         <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}" style="font-size: ${textAttr.fontSize}px;"
-          >${textAttr.value}</span
+        >${textAttr.value}</span
         >
       </div>`;
     }
@@ -137,301 +140,15 @@ export class CheckoutIndex {
       </div>`;
     }
 
-    function addStyle() {
-      gvc.addStyle(`
-        .${classPrefix}-container {
-          max-width: 1200px !important;
-          margin: 2.5rem auto !important;
-        }
-
-        .${classPrefix}-null-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          height: 100vh !important;
-        }
-
-        .${classPrefix}-header {
-          color: #393939;
-          font-size: 24px;
-          font-weight: 700;
-          letter-spacing: 12px;
-          text-align: center;
-          margin-bottom: 24px;
-        }
-
-        .${classPrefix}-banner-bgr {
-          padding: 1rem;
-          border-radius: 10px;
-          background: #f6f6f6;
-        }
-
-        .${classPrefix}-banner-text {
-          color: #393939;
-          font-size: 18px;
-          font-weight: 700;
-          letter-spacing: 2px;
-        }
-
-        .${classPrefix}-text-1 {
-          color: #393939;
-          font-size: 20px;
-        }
-
-        .${classPrefix}-text-2 {
-          color: #393939;
-          font-size: 16px;
-        }
-
-        .${classPrefix}-text-3 {
-          color: #393939;
-          font-size: 14px;
-        }
-
-        .${classPrefix}-label {
-          color: #393939;
-          font-size: 16px;
-          margin-bottom: 8px;
-        }
-
-        .${classPrefix}-bold {
-          font-weight: 700;
-        }
-
-        .${classPrefix}-button-bgr {
-          width: 100%;
-          border: 0;
-          border-radius: 0.375rem;
-          height: 40px;
-          background: #393939;
-          padding: 0 24px;
-          margin: 18px 0;
-        }
-
-        .${classPrefix}-button-bgr-disable {
-          width: 100%;
-          border: 0;
-          border-radius: 0.375rem;
-          height: 40px;
-          background: #dddddd;
-          padding: 0 24px;
-          margin: 18px 0;
-          cursor: not-allowed !important;
-        }
-
-        .${classPrefix}-button-text {
-          color: #fff;
-          font-size: 16px;
-        }
-
-        .${classPrefix}-input {
-          width: 100%;
-          border-radius: 10px;
-          border: 1px solid #ddd;
-          height: 40px;
-          padding: 0px 18px;
-        }
-
-        .${classPrefix}-select {
-          display: flex;
-          padding: 7px 30px 7px 18px;
-          max-height: 40px;
-          align-items: center;
-          gap: 6px;
-          border-radius: 10px;
-          border: 1px solid #ddd;
-          background: transparent
-            url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png') no-repeat;
-          background-position-x: calc(100% - 12px);
-          background-position-y: 16px;
-          appearance: none;
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          color: #393939;
-          background-color: white;
-        }
-
-        .${classPrefix}-select:focus {
-          outline: 0;
-        }
-
-        .${classPrefix}-group-input {
-          border: none;
-          background: none;
-          text-align: start;
-          color: #393939;
-          font-size: 16px;
-          font-weight: 400;
-          word-wrap: break-word;
-          padding-left: 12px;
-        }
-
-        .${classPrefix}-first-td {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 30%;
-        }
-
-        .${classPrefix}-group-input:focus {
-          outline: 0;
-        }
-
-        .${classPrefix}-group-button {
-          padding: 9px 18px;
-          background: #393939;
-          align-items: center;
-          gap: 5px;
-          display: flex;
-          font-size: 16px;
-          justify-content: center;
-          cursor: pointer;
-        }
-
-        .${classPrefix}-td {
-          display: flex;
-          align-items: center;
-          justify-content: start;
-          width: 15%;
-        }
-
-        .${classPrefix}-first-td {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 40%;
-        }
-
-        .${classPrefix}-price-container {
-          display: flex;
-          flex-direction: column;
-          width: 400px;
-          align-items: center;
-          padding: 0;
-          gap: 12px;
-          margin: 24px 0;
-        }
-
-        .${classPrefix}-price-row {
-          display: flex;
-          width: 100%;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .${classPrefix}-origin-price {
-          text-align: end;
-          font-weight: 400;
-          word-wrap: break-word;
-          text-decoration: line-through;
-          color: #636363;
-          font-style: italic;
-          margin-top: auto;
-        }
-
-        .${classPrefix}-add-item-badge {
-          height: 22px;
-          padding-left: 6px;
-          padding-right: 6px;
-          padding-top: 4px;
-          padding-bottom: 4px;
-          background: #ffe9b2;
-          border-radius: 7px;
-          justify-content: center;
-          align-items: center;
-          gap: 10px;
-          display: inline-flex;
-        }
-
-        .${classPrefix}-add-item-text {
-          color: #393939;
-          font-size: 14px;
-          font-weight: 400;
-          word-wrap: break-word;
-        }
-
-        .${classPrefix}-shipping-hint {
-          white-space: normal;
-          word-break: break-all;
-          color: #8d8d8d;
-          font-size: 14px;
-          font-weight: 400;
-          margin: 4px 0;
-        }
-
-        .${classPrefix}-price-text {
-          color: #ff5353ff;
-        }
-
-        .img-106px {
-          width: 106px;
-          min-width: 106px;
-          height: 106px;
-          border-radius: 3px;
-          background-position: center;
-          background-size: cover;
-          background-repeat: no-repeat;
-        }
-
-        .banner-font-15 {
-          font-size: 15px;
-          font-style: normal;
-          font-weight: 400;
-          white-space: nowrap;
-          overflow: hidden;
-          max-width: 130px;
-          text-overflow: ellipsis;
-        }
-
-        .ntd-font-14 {
-          font-size: 14px;
-          font-style: normal;
-          font-weight: 700;
-          line-height: 140%;
-        }
-      `);
-      gvc.addStyle(`
-        @media (max-width: 768px) {
-          .${classPrefix}-container {
-            max-width: 100% !important;
-            margin: 2.5rem auto !important;
-          }
-
-          .${classPrefix}-td {
-            display: flex;
-            align-items: center;
-            justify-content: start;
-            width: 100%;
-          }
-
-          .${classPrefix}-66text {
-            color: #666666;
-          }
-
-          .${classPrefix}-price-container {
-            display: flex;
-            flex-direction: column;
-            width: 100% !important;
-            align-items: center;
-            padding: 0;
-            gap: 12px;
-            margin: 24px 0;
-          }
-        }
-      `);
-    }
-
     function refreshCartData() {
       const dialog = new ShareDialog(gvc.glitter);
       dialog.dataLoading({ visible: true });
       const beta = false;
 
       if (!beta) {
-        new Promise(async (resolve, reject) => {
-          new Promise((resolve, reject) => {
-            setTimeout(() => {
-              resolve(apiCart.cart);
-            });
+        new Promise(async resolve => {
+          new Promise(resolve => {
+            setTimeout(() => resolve(apiCart.cart), 50);
           }).then(async (res: any) => {
             const cartData: {
               line_items: {
@@ -456,6 +173,51 @@ export class CheckoutIndex {
                 shipment: localStorage.getItem('shipment-select') as string,
               },
             };
+
+            const cartObject = await CartModule.getLineItemAndShipmentCart();
+
+            vm.cartDataList = cartObject.dataList;
+            vm.logisticsGroup = cartObject.logisticsGroup;
+            vm.hasFullLengthCart = cartObject.hasFullLengthCart;
+
+            if (!localStorage.getItem('logistics-group')) {
+              localStorage.setItem(
+                'logistics-group',
+                (() => {
+                  try {
+                    return vm.cartDataList[0].group[0];
+                  } catch (error) {
+                    return '';
+                  }
+                })()
+              );
+            }
+
+            function resetShipmentSelected() {
+              const findGroup = vm.logisticsGroup.find(item => item.key === localStorage.getItem('logistics-group'));
+              if (findGroup) {
+                const list = findGroup.list;
+                const def = localStorage.getItem('shipment-select');
+                if (!def || !list.includes(def)) {
+                  localStorage.setItem('shipment-select', list[0]);
+                }
+              }
+            }
+
+            const defaultShipmentCart = vm.cartDataList.find(data => {
+              const findGroup = vm.logisticsGroup.find(item => item.key === localStorage.getItem('logistics-group'));
+              return findGroup?.list.includes(data.logistic);
+            });
+
+            if (defaultShipmentCart) {
+              res.line_items = defaultShipmentCart.cart;
+              resetShipmentSelected();
+            } else if (vm.cartDataList[0]) {
+              res.line_items = vm.cartDataList[0].cart;
+            } else {
+              res.line_items = [];
+            }
+
             if (res.line_items) {
               res.user_info = {
                 payment: localStorage.getItem('checkout-payment'),
@@ -684,6 +446,7 @@ export class CheckoutIndex {
                     <div>${Language.text('discount_coupon')}</div>
                     <div>- ${Currency.convertCurrencyText(vm.cartData.discount)}</div>
                   </div>
+                  <!-- 可使用的優惠券 -->
                   <div class="${gClass(['price-row', 'text-2'])}">
                     <div>${Language.text('promo_code')}</div>
                     <div
@@ -739,28 +502,28 @@ export class CheckoutIndex {
                                             })(),
                                             item.usePass
                                               ? html` <button
-                                                  class="${gClass('button-bgr')} my-2"
-                                                  style="max-width: 150px;"
-                                                  onclick="${gvc.event(() => {
-                                                    apiCart.setCart(cartItem => {
-                                                      cartItem.code = item.code;
-                                                      refreshCartData();
-                                                      gvc.closeDialog();
-                                                    });
-                                                  })}"
-                                                >
+                                                class="${gClass('button-bgr')} my-2"
+                                                style="max-width: 150px;"
+                                                onclick="${gvc.event(() => {
+                                                  apiCart.setCart(cartItem => {
+                                                    cartItem.code = item.code;
+                                                    refreshCartData();
+                                                    gvc.closeDialog();
+                                                  });
+                                                })}"
+                                              >
                                                   <span class="${gClass('button-text')}"
-                                                    >${Language.text('select_to_use')}</span
+                                                  >${Language.text('select_to_use')}</span
                                                   >
-                                                </button>`
+                                              </button>`
                                               : html` <button
-                                                  class="${gClass('button-bgr-disable')} my-2"
-                                                  style="max-width: 150px; cursor: not-allowed"
-                                                >
+                                                class="${gClass('button-bgr-disable')} my-2"
+                                                style="max-width: 150px; cursor: not-allowed"
+                                              >
                                                   <span class="${gClass('button-text')}"
-                                                    >${Language.text('not_meet_usage_criteria')}</span
+                                                  >${Language.text('not_meet_usage_criteria')}</span
                                                   >
-                                                </button>`,
+                                              </button>`,
                                           ];
                                         }
 
@@ -799,7 +562,7 @@ export class CheckoutIndex {
                                             <div>
                                               <div class="d-flex align-items-center mb-2">
                                                 <label class="${gClass('label')} mb-0 me-2" style="min-width: 80px;"
-                                                  >${Language.text('enter_code')}</label
+                                                >${Language.text('enter_code')}</label
                                                 >
                                                 <input
                                                   class="${gClass('input')}"
@@ -856,7 +619,7 @@ export class CheckoutIndex {
                                                 })}"
                                               >
                                                 <span class="${gClass('button-text')}"
-                                                  >${Language.text('confirm')}</span
+                                                >${Language.text('confirm')}</span
                                                 >
                                               </button>
                                             </div>
@@ -882,10 +645,9 @@ export class CheckoutIndex {
                                         </div>`;
                                       }
                                     } catch (e) {
-                                      return ``;
+                                      return '';
                                     }
                                   },
-                                  divCreate: {},
                                   onCreate: () => {
                                     if (loading) {
                                       function isNowBetweenDates(startIso: string, endIso: string): boolean {
@@ -893,12 +655,10 @@ export class CheckoutIndex {
                                         const startDate = new Date(startIso);
                                         const endDate = new Date(endIso);
 
-                                        // 確保 `startIso` 和 `endIso` 是有效的日期
                                         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
                                           return true;
                                         }
 
-                                        // 判斷現在時間是否在範圍內
                                         return now >= startDate && now <= endDate;
                                       }
 
@@ -987,106 +747,64 @@ export class CheckoutIndex {
                     >
                       ${vm.cartData.code
                         ? html`${vm.cartData.code}<i
-                              class="fa-solid fa-xmark-large ms-2"
-                              style="cursor: pointer;"
-                              onclick="${gvc.event((e, event) => {
-                                event.stopPropagation();
-                                apiCart.setCart(cartItem => {
-                                  cartItem.code = '';
-                                  refreshCartData();
-                                });
-                              })}"
-                            ></i>`
+                          class="fa-solid fa-xmark-large ms-2"
+                          style="cursor: pointer;"
+                          onclick="${gvc.event((e, event) => {
+                            event.stopPropagation();
+                            apiCart.setCart(cartItem => {
+                              cartItem.code = '';
+                              refreshCartData();
+                            });
+                          })}"
+                        ></i>`
                         : Language.text('add')}
                     </div>
                   </div>
                   ${(() => {
                     if (!GlobalUser.token || !vm.cartData.useRebateInfo.status) {
-                      return ``;
+                      return '';
                     } else {
                       return html` ${(() => {
-                          let tempRebate: number = 0;
-                          const dialog = new ShareDialog(gvc.glitter);
-                          return html` <div class="${gClass(['price-row', 'text-2'])}">
-                              <div>${vm.rebateConfig.title}${Language.text('discount')}</div>
-                              <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
-                            </div>
-                            <div class="${gClass(['price-row', 'text-2'])}">
-                              <div>${vm.rebateConfig.title}${Language.text('reback_text')}</div>
-                              <div>+ ${vm.cartData.rebate.toLocaleString()}</div>
-                            </div>
-
-                            <div class="${gClass(['price-row', 'text-2'])}">
-                              <div
-                                style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
-                                  .body.clientWidth > 768
-                                  ? 'gap: 18px;'
-                                  : 'gap: 0px;'}"
-                                class="w-100"
-                              >
-                                <input
-                                  class="flex-fill ${gClass('group-input')}"
-                                  placeholder="${Language.text('please_enter')}${vm.rebateConfig.title}"
-                                  style="${document.body.clientWidth < 800
-                                    ? `width:calc(100% - 150px) !important;`
-                                    : ``}"
-                                  value="${vm.cartData.use_rebate || ''}"
-                                  onchange="${gvc.event((e, event) => {
-                                    if (CheckInput.isNumberString(e.value)) {
-                                      tempRebate = parseInt(e.value, 10);
-                                    } else {
-                                      dialog.errorMessage({ text: Language.text('enter_value') });
-                                      gvc.notifyDataChange(ids.page);
-                                    }
-                                  })}"
-                                />
-                                <div class="${gClass('group-button')}">
-                                  <div
-                                    class="${gClass('button-text')}"
-                                    onclick="${gvc.event(async () => {
-                                      const sum: number = await new Promise((resolve, reject) => {
-                                        ApiShop.getRebate({}).then(async res => {
-                                          if (res.result && res.response.sum) {
-                                            resolve(res.response.sum);
-                                          } else {
-                                            resolve(0);
-                                          }
-                                        });
-                                      });
-                                      const limit =
-                                        vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
-                                      if (sum === 0) {
-                                        dialog.errorMessage({
-                                          text: `您的 ${vm.rebateConfig.title} 為 0 點，無法折抵`,
-                                        });
-                                        return;
-                                      }
-                                      if (tempRebate > Math.min(sum, limit)) {
-                                        dialog.errorMessage({
-                                          text: `${Language.text('please_enter')} 0 到 ${Math.min(sum, limit)} 的數值`,
-                                        });
-                                        return;
-                                      }
-
-                                      apiCart.setCart(cartItem => {
-                                        cartItem.use_rebate = tempRebate;
-                                        refreshCartData();
-                                      });
-                                    })}"
-                                  >
-                                    ${Language.text('apply')}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>`;
-                        })()}
+                        let tempRebate: number = 0;
+                        const dialog = new ShareDialog(gvc.glitter);
+                        return html` <div class="${gClass(['price-row', 'text-2'])}">
+                          <div>${vm.rebateConfig.title}${Language.text('discount')}</div>
+                          <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
+                        </div>
                         <div class="${gClass(['price-row', 'text-2'])}">
-                          ${(() => {
-                            return gvc.bindView(() => {
-                              return {
-                                bind: gvc.glitter.getUUID(),
-                                view: async () => {
-                                  const sum = await new Promise((resolve, reject) => {
+                          <div>${vm.rebateConfig.title}${Language.text('reback_text')}</div>
+                          <div>+ ${vm.cartData.rebate.toLocaleString()}</div>
+                        </div>
+
+                        <div class="${gClass(['price-row', 'text-2'])}">
+                          <div
+                            style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                              .body.clientWidth > 768
+                              ? 'gap: 18px;'
+                              : 'gap: 0px;'}"
+                            class="w-100"
+                          >
+                            <input
+                              class="flex-fill ${gClass('group-input')}"
+                              placeholder="${Language.text('please_enter')}${vm.rebateConfig.title}"
+                              style="${document.body.clientWidth < 800
+                                ? `width:calc(100% - 150px) !important;`
+                                : ''}"
+                              value="${vm.cartData.use_rebate || ''}"
+                              onchange="${gvc.event((e, event) => {
+                                if (CheckInput.isNumberString(e.value)) {
+                                  tempRebate = parseInt(e.value, 10);
+                                } else {
+                                  dialog.errorMessage({ text: Language.text('enter_value') });
+                                  gvc.notifyDataChange(ids.page);
+                                }
+                              })}"
+                            />
+                            <div class="${gClass('group-button')}">
+                              <div
+                                class="${gClass('button-text')}"
+                                onclick="${gvc.event(async () => {
+                                  const sum: number = await new Promise((resolve, reject) => {
                                     ApiShop.getRebate({}).then(async res => {
                                       if (res.result && res.response.sum) {
                                         resolve(res.response.sum);
@@ -1095,34 +813,80 @@ export class CheckoutIndex {
                                       }
                                     });
                                   });
-                                  if (!vm.cartData.useRebateInfo) {
-                                    return '';
+                                  const limit =
+                                    vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
+                                  if (sum === 0) {
+                                    dialog.errorMessage({
+                                      text: `您的 ${vm.rebateConfig.title} 為 0 點，無法折抵`,
+                                    });
+                                    return;
+                                  }
+                                  if (tempRebate > Math.min(sum, limit)) {
+                                    dialog.errorMessage({
+                                      text: `${Language.text('please_enter')} 0 到 ${Math.min(sum, limit)} 的數值`,
+                                    });
+                                    return;
                                   }
 
-                                  const info = vm.cartData.useRebateInfo;
-                                  if (info.condition) {
-                                    return html`${Language.text('distance_from_target_amount')}$
-                                    ${info.condition.toLocaleString()} ${Language.text('can_use_now')}
-                                    ${vm.rebateConfig.title} ${Language.text('discount')}`;
-                                  }
-                                  if (info.limit) {
-                                    return html`${Language.text('remaining_balance')} ${sum || 0}
-                                      ${Language.text('point')} ${vm.rebateConfig.title} <br />${Language.text(
-                                        'max_discount_order'
-                                      )}
-                                      ${info.limit.toLocaleString()} ${Language.text('point')} ${vm.rebateConfig.title}`;
-                                  } else {
-                                    return `${Language.text('remaining_balance')} ${sum || 0} ${Language.text('point')} ${
-                                      vm.rebateConfig.title
-                                    }`;
-                                  }
-                                },
-                              };
-                            });
-                          })()}
+                                  apiCart.setCart(cartItem => {
+                                    cartItem.use_rebate = tempRebate;
+                                    refreshCartData();
+                                  });
+                                })}"
+                              >
+                                ${Language.text('apply')}
+                              </div>
+                            </div>
+                          </div>
                         </div>`;
+                      })()}
+                      <div class="${gClass(['price-row', 'text-2'])}">
+                        ${(() => {
+                          return gvc.bindView(() => {
+                            return {
+                              bind: gvc.glitter.getUUID(),
+                              view: async () => {
+                                const sum = await new Promise((resolve, reject) => {
+                                  ApiShop.getRebate({}).then(async res => {
+                                    if (res.result && res.response.sum) {
+                                      resolve(res.response.sum);
+                                    } else {
+                                      resolve(0);
+                                    }
+                                  });
+                                });
+                                if (!vm.cartData.useRebateInfo) {
+                                  return '';
+                                }
+
+                                const info = vm.cartData.useRebateInfo;
+                                if (info.condition) {
+                                  return html`${Language.text('distance_from_target_amount')}$
+                                  ${info.condition.toLocaleString()} ${Language.text('can_use_now')}
+                                  ${vm.rebateConfig.title} ${Language.text('discount')}`;
+                                }
+                                if (info.limit) {
+                                  return html`${Language.text('remaining_balance')} ${sum || 0}
+                                  ${Language.text('point')} ${vm.rebateConfig.title} <br />${Language.text(
+                                    'max_discount_order'
+                                  )}
+                                  ${info.limit.toLocaleString()} ${Language.text('point')} ${vm.rebateConfig.title}`;
+                                } else {
+                                  return `${Language.text('remaining_balance')} ${sum || 0} ${Language.text('point')} ${
+                                    vm.rebateConfig.title
+                                  }`;
+                                }
+                              },
+                            };
+                          });
+                        })()}
+                      </div>`;
                     }
                   })()}
+                  <div class="${gClass(['price-row', 'text-2', 'bold'])}">
+                    <div>${Language.text('total_amount')}</div>
+                    <div class="${gClass('total_amount')}">${Currency.convertCurrencyText(vm.cartData.total)}</div>
+                  </div>
                 </div>`;
                 if (!widget.share.receipt_form) {
                   const res = await ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager');
@@ -1143,7 +907,7 @@ export class CheckoutIndex {
                   });
                 }
                 this.initial(vm.cartData);
-                addStyle();
+                CartModule.addStyle(gvc, classPrefix);
                 if (vm.cartData.lineItems.length === 0) {
                   return html`
                     <div class="container ${gClass(['container', 'null-container'])}">
@@ -1171,15 +935,15 @@ export class CheckoutIndex {
                           if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
                             padding = 0;
                           }
+
                           const shipmentSupportSet = new Set(vm.cartData.shipment_support);
 
                           const shipmentList = this.getShipmentMethod(vm.cartData).filter((dd: { value: string }) =>
                             shipmentSupportSet.has(dd.value)
                           );
-                          console.log(`cartData.shipment_selector=>`, vm.cartData.shipment_selector);
-                          console.log(`shipmentSupportSet=>`, shipmentSupportSet);
-                          console.log(`shipmentList==>`, shipmentList);
+
                           const localShip = shipmentSupportSet.has(localStorage.getItem('shipment-select'));
+
                           if (shipmentList.length === 0) {
                             vm.cartData.user_info.shipment = 'none';
                             localStorage.setItem('shipment-select', 'none');
@@ -1210,21 +974,53 @@ export class CheckoutIndex {
                                   class="${gClass('banner-text')} fs-4 mb-3 pt-3 ${gvc.glitter.getUrlParameter(
                                     'page'
                                   ) === 'checkout'
-                                    ? ``
+                                    ? ''
                                     : `d-none`}"
                                 >
                                   ${Language.text(
                                     ApiCart.checkoutCart === ApiCart.buyItNow ? 'buy_it_now' : 'your_shopping_cart'
                                   )}
                                 </div>
-                                <div style="" class="rounded-3 bg-white w-100 ">
+
+                                ${(() => {
+                                  const cartGroupSet = new Set(vm.cartDataList.map(cart => cart.group).flat());
+
+                                  const filterLogiGroup = vm.logisticsGroup.filter(item => {
+                                    return cartGroupSet.has(item.key);
+                                  });
+
+                                  if (filterLogiGroup.length < 2 || vm.hasFullLengthCart) {
+                                    return '';
+                                  }
+
+                                  return html`<div
+                                    class="rounded-3 bg-white w-100 ps-4"
+                                    style="height: 68px; overflow: auto hidden;"
+                                  >
+                                    ${ProductModule.tab(
+                                    filterLogiGroup.map(item => {
+                                      return {
+                                        title: item.name,
+                                        key: item.key,
+                                      };
+                                    }),
+                                    gvc,
+                                    localStorage.getItem('logistics-group') ?? filterLogiGroup[0].key,
+                                    text => {
+                                      localStorage.setItem('logistics-group', text);
+                                      refreshCartData();
+                                    },
+                                    'justify-content: flex-start;'
+                                  )}
+                                  </div>`;
+                                })()}
+                                <div class="rounded-3 bg-white w-100 mt-3">
                                   ${gvc.bindView({
                                     bind: glitter.getUUID(),
                                     view: () => {
                                       try {
                                         return vm.cartData.lineItems
                                           .map((item: any, index: number) => {
-                                            // min_qty
                                             function getBadgeClass() {
                                               if (item.is_add_on_items) {
                                                 return addItemBadge();
@@ -1233,7 +1029,7 @@ export class CheckoutIndex {
                                               } else if (item.is_hidden) {
                                                 return hiddenBadge();
                                               } else {
-                                                return ``;
+                                                return '';
                                               }
                                             }
 
@@ -1255,7 +1051,7 @@ export class CheckoutIndex {
                                                   }
                                                 });
                                               } else {
-                                                return ``;
+                                                return '';
                                               }
                                             })();
 
@@ -1278,8 +1074,8 @@ export class CheckoutIndex {
                                                     <span
                                                       class="fw-bold pe-4"
                                                       style="gap:5px;font-size:${document.body.clientWidth > 800
-                                                        ? `16`
-                                                        : `14`}px;max-width:calc(100% - 10px); display: -webkit-box; -webkit-line-clamp: 2;  -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; "
+                                              ? `16`
+                                              : `14`}px;max-width:calc(100% - 10px); display: -webkit-box; -webkit-line-clamp: 2;  -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; "
                                                       >${title}</span
                                                     >
                                                     <div class="${gClass(['66text'])} fs-sm">
@@ -1289,24 +1085,24 @@ export class CheckoutIndex {
                                                     <div class="d-flex flex-column align-items-start " style="gap:2px;">
                                                       <div class="fw-bold fs-6 ${gClass('price-text')}">
                                                         ${(() => {
-                                                          if (item.is_gift) {
-                                                            return Currency.convertCurrencyText(0);
-                                                          }
-                                                          return Currency.convertCurrencyText(
-                                                            parseFloat(item.sale_price)
-                                                          );
-                                                        })()}
+                                              if (item.is_gift) {
+                                                return Currency.convertCurrencyText(0);
+                                              }
+                                              return Currency.convertCurrencyText(
+                                                parseFloat(item.sale_price)
+                                              );
+                                            })()}
                                                       </div>
                                                       ${(() => {
-                                                        if (item.is_gift || item.sale_price >= item.origin_price) {
-                                                          return '';
-                                                        }
-                                                        return html` <div
+                                              if (item.is_gift || item.sale_price >= item.origin_price) {
+                                                return '';
+                                              }
+                                              return html` <div
                                                           style="text-decoration: line-through; font-size: 12px;"
                                                         >
                                                           ${Currency.convertCurrencyText(parseFloat(item.origin_price))}
                                                         </div>`;
-                                                      })()}
+                                            })()}
                                                     </div>
                                                     <div class="w-100 d-flex">
                                                       <div class="flex-fill"></div>
@@ -1316,23 +1112,23 @@ export class CheckoutIndex {
                                                       >
                                                         <div
                                                           class="${item.is_gift
-                                                            ? `d-none`
-                                                            : `d-flex`} align-items-center justify-content-center"
+                                              ? `d-none`
+                                              : `d-flex`} align-items-center justify-content-center"
                                                           style="width:38px;height: 38px;cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                            apiCart.setCart(cartItem => {
-                                                              const find = cartItem.line_items.find(dd => {
-                                                                return (
-                                                                  dd.id === item.id &&
-                                                                  item.spec.join('') === dd.spec.join('')
-                                                                );
-                                                              })!;
-                                                              if (find.count - 1 > 0) {
-                                                                find.count = find.count - 1;
-                                                                refreshCartData();
-                                                              }
-                                                            });
-                                                          })}"
+                                              apiCart.setCart(cartItem => {
+                                                const find = cartItem.line_items.find(dd => {
+                                                  return (
+                                                    dd.id === item.id &&
+                                                    item.spec.join('') === dd.spec.join('')
+                                                  );
+                                                })!;
+                                                if (find.count - 1 > 0) {
+                                                  find.count = find.count - 1;
+                                                  refreshCartData();
+                                                }
+                                              });
+                                            })}"
                                                         >
                                                           <i class="fa-solid fa-minus" style="color:black;"></i>
                                                         </div>
@@ -1341,69 +1137,69 @@ export class CheckoutIndex {
                                                           style="
                                                             
                                                             ${item.is_gift
-                                                            ? `border:none;`
-                                                            : `border-top:none;border-bottom: none;`}
+                                              ? `border:none;`
+                                              : `border-top:none;border-bottom: none;`}
                                                             border-radius: 0px; color: #575757; width: 50px;height:38px;background-image:none;${parseInt(
-                                                            vm.quantity,
-                                                            10
-                                                          ) < 10
-                                                            ? `text-indent: 43%;`
-                                                            : `text-indent: 40%;`}"
+                                              vm.quantity,
+                                              10
+                                            ) < 10
+                                              ? `text-indent: 43%;`
+                                              : `text-indent: 40%;`}"
                                                           onchange="${gvc.event(e => {
-                                                            apiCart.setCart(cartItem => {
-                                                              cartItem.line_items.find(dd => {
-                                                                return (
-                                                                  dd.id === item.id &&
-                                                                  item.spec.join('') === dd.spec.join('')
-                                                                );
-                                                              })!.count = parseInt(e.value, 10);
-                                                              refreshCartData();
-                                                            });
-                                                          })}"
-                                                          ${item.is_gift ? `disabled` : ``}
+                                              apiCart.setCart(cartItem => {
+                                                cartItem.line_items.find(dd => {
+                                                  return (
+                                                    dd.id === item.id &&
+                                                    item.spec.join('') === dd.spec.join('')
+                                                  );
+                                                })!.count = parseInt(e.value, 10);
+                                                refreshCartData();
+                                              });
+                                            })}"
+                                                          ${item.is_gift ? `disabled` : ''}
                                                         >
                                                           ${[
-                                                            ...new Array(
-                                                              (() => {
-                                                                if (item.show_understocking === 'false') {
-                                                                  return 50;
-                                                                }
-                                                                return item.stock < 50 ? item.stock : 50;
-                                                              })()
-                                                            ),
-                                                          ]
-                                                            .map((_, index) => {
-                                                              return html` <option
+                                              ...new Array(
+                                                (() => {
+                                                  if (item.show_understocking === 'false') {
+                                                    return 50;
+                                                  }
+                                                  return item.stock < 50 ? item.stock : 50;
+                                                })()
+                                              ),
+                                            ]
+                                              .map((_, index) => {
+                                                return html` <option
                                                                 value="${index + 1}"
-                                                                ${index + 1 === item.count ? `selected` : ``}
+                                                                ${index + 1 === item.count ? `selected` : ''}
                                                               >
                                                                 ${index + 1}
                                                               </option>`;
-                                                            })
-                                                            .join('')}
+                                              })
+                                              .join('')}
                                                         </select>
                                                         <div
                                                           class=" align-items-center justify-content-center ${item.is_gift
-                                                            ? `d-none`
-                                                            : `d-flex`}"
+                                              ? `d-none`
+                                              : `d-flex`}"
                                                           style="width:38px;height: 38px;cursor: pointer;"
                                                           onclick="${gvc.event(() => {
-                                                            apiCart.setCart(cartItem => {
-                                                              const find = cartItem.line_items.find(dd => {
-                                                                return (
-                                                                  dd.id === item.id &&
-                                                                  item.spec.join('') === dd.spec.join('')
-                                                                );
-                                                              })!;
-                                                              if (
-                                                                item.show_understocking === 'false' ||
-                                                                find.count + 1 < item.stock
-                                                              ) {
-                                                                find.count = find.count + 1;
-                                                                refreshCartData();
-                                                              }
-                                                            });
-                                                          })}"
+                                              apiCart.setCart(cartItem => {
+                                                const find = cartItem.line_items.find(dd => {
+                                                  return (
+                                                    dd.id === item.id &&
+                                                    item.spec.join('') === dd.spec.join('')
+                                                  );
+                                                })!;
+                                                if (
+                                                  item.show_understocking === 'false' ||
+                                                  find.count + 1 < item.stock
+                                                ) {
+                                                  find.count = find.count + 1;
+                                                  refreshCartData();
+                                                }
+                                              });
+                                            })}"
                                                         >
                                                           <i class="fa-solid fa-plus" style="color:black;"></i>
                                                         </div>
@@ -1417,70 +1213,79 @@ export class CheckoutIndex {
                                                         class="fa-solid fa-xmark-large"
                                                         style="cursor: pointer;color:gray;"
                                                         onclick="${gvc.event(() => {
-                                                          apiCart.setCart(cartItem => {
-                                                            cartItem.line_items = cartItem.line_items.filter(dd => {
-                                                              return !(
-                                                                dd.id === item.id &&
-                                                                item.spec.join('') === dd.spec.join('')
-                                                              );
-                                                            });
-                                                            refreshCartData();
-                                                          });
-                                                        })}"
+                                              apiCart.setCart(cartItem => {
+                                                cartItem.line_items = cartItem.line_items.filter(dd => {
+                                                  return !(
+                                                    dd.id === item.id &&
+                                                    item.spec.join('') === dd.spec.join('')
+                                                  );
+                                                });
+                                                refreshCartData();
+                                              });
+                                            })}"
                                                       ></i>
                                                     </div>
                                                   </div>
                                                 </div>
                                                 <div>
                                                   ${vm.cartData.voucherList
-                                                    .filter((dd: any) => {
-                                                      return (
-                                                        dd.bind.find((d2: any) => {
-                                                          return d2.id === item.id;
-                                                        }) &&
-                                                        dd.reBackType !== 'giveaway' &&
-                                                        dd.reBackType !== 'add_on_items'
-                                                      );
-                                                    })
-                                                    .map((dd: any) => {
-                                                      return `<div class=" w-100 " style="${document.body.clientWidth < 800 ? `font-size:12px;` : `font-size:14px;`}"><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
-                                                    })
-                                                    .join('<div class="my-1"></div>')}
+                                              .filter((dd: any) => {
+                                                return (
+                                                  dd.bind.find((d2: any) => {
+                                                    return d2.id === item.id;
+                                                  }) &&
+                                                  dd.reBackType !== 'giveaway' &&
+                                                  dd.reBackType !== 'add_on_items'
+                                                );
+                                              })
+                                              .map((dd: any) => {
+                                                return html`<div
+                                                        class="w-100"
+                                                        style="${document.body.clientWidth < 800
+                                                  ? `font-size:12px;`
+                                                  : `font-size:14px;`}"
+                                                      >
+                                                        <i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}
+                                                      </div>`;
+                                              })
+                                              .join('<div class="my-1"></div>')}
                                                   ${(() => {
-                                                    let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
-                                                    let count = 0;
-                                                    for (const b of vm.cartData.lineItems) {
-                                                      if (b.id === item.id) {
-                                                        count += b.count;
-                                                      }
-                                                    }
-                                                    if (count < min) {
-                                                      return `<div class="text-danger">${Language.text('min_p_count').replace('_c_', min)}</div>`;
-                                                    } else {
-                                                      return ``;
-                                                    }
-                                                  })()}
+                                              let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                              let count = 0;
+                                              for (const b of vm.cartData.lineItems) {
+                                                if (b.id === item.id) {
+                                                  count += b.count;
+                                                }
+                                              }
+                                              if (count < min) {
+                                                return `<div class="text-danger">${Language.text('min_p_count').replace('_c_', min)}</div>`;
+                                              } else {
+                                                return '';
+                                              }
+                                            })()}
                                                   ${(() => {
-                                                    let max_qty =
-                                                      (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
-                                                    let count = 0;
-                                                    for (const b of vm.cartData.lineItems) {
-                                                      if (b.id === item.id) {
-                                                        count += b.count;
-                                                      }
-                                                    }
+                                              let max_qty =
+                                                (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
+                                              let count = 0;
+                                              for (const b of vm.cartData.lineItems) {
+                                                if (b.id === item.id) {
+                                                  count += b.count;
+                                                }
+                                              }
 
-                                                    if (count > max_qty) {
-                                                      return `<div class="text-danger">${Language.text('max_p_count').replace('_c_', max_qty)}</div>`;
-                                                    } else {
-                                                      return ``;
-                                                    }
-                                                  })()}
+                                              if (count > max_qty) {
+                                                return html`<div class="text-danger">
+                                                        ${Language.text('max_p_count').replace('_c_', max_qty)}
+                                                      </div>`;
+                                              } else {
+                                                return '';
+                                              }
+                                            })()}
                                                 </div>
                                               </div>
                                             `;
                                           })
-                                          .join(`<div class="border-bottom w-100"></div>`);
+                                          .join(html`<div class="border-bottom w-100"></div>`);
                                       } catch (e) {
                                         console.error(`error 1 =>`, e);
                                         return '';
@@ -1488,207 +1293,6 @@ export class CheckoutIndex {
                                     },
                                   })}
                                 </div>
-                                <!--加購品-->
-                                ${(() => {
-                                  let add_on: any[] = [];
-                                  vm.cartData.voucherList.filter((dd: any) => {
-                                    if (dd.reBackType === 'add_on_items') {
-                                      add_on = add_on.concat(dd.add_on_products);
-                                    }
-                                  });
-                                  if (add_on.length) {
-                                    return gvc.bindView(() => {
-                                      const id = gvc.glitter.getUUID();
-                                      return {
-                                        bind: id,
-                                        view: async () => {
-                                          const add_products = await ApiShop.getProduct({
-                                            page: 0,
-                                            limit: 100,
-                                            productType: 'addProduct',
-                                            id_list: add_on.join(','),
-                                          });
-                                          if (!add_products.response.data.length) {
-                                            return ``;
-                                          }
-                                          return html`
-                                            <div class="rounded-3 mt-3 p-3 bg-white">
-                                              <span class="${gClass('banner-text')}"
-                                                >${Language.text('additional_purchase_items')}</span
-                                              >
-                                              <div
-                                                class="d-flex align-items-center w-100"
-                                                style="overflow-x:auto;gap:10px;"
-                                              >
-                                                ${add_products.response.data
-                                                  .map((dd: any) => {
-                                                    return html` <div
-                                                      class="d-flex py-3 align-items-center"
-                                                      style="gap:10px;"
-                                                    >
-                                                      <div
-                                                        class="img-fluid img-106px"
-                                                        style="background-image: url('${dd.content.preview_image[0]}');"
-                                                      ></div>
-                                                      <div class="d-flex flex-column" style="gap:5px;">
-                                                        <div class="${gClass('banner-text')} banner-font-15">
-                                                          ${dd.content.title}
-                                                        </div>
-                                                        <div class="ntd-font-14">
-                                                          ${Currency.convertCurrencyText(dd.content.min_price)}
-                                                        </div>
-                                                        <button
-                                                          class="${gClass('button-bgr')} mb-0 mt-2"
-                                                          onclick="${gvc.event(() => {
-                                                            const titleFontColor =
-                                                              glitter.share.globalValue['theme_color.0.title'] ??
-                                                              '#333333';
-                                                            gvc.glitter.innerDialog(
-                                                              (gvc: GVC) => {
-                                                                return html` <div
-                                                                  class=" bg-white shadow  ${document.body.clientWidth >
-                                                                  768
-                                                                    ? `rounded-3`
-                                                                    : ` position-absolute bottom-0`}"
-                                                                  style=" ${document.body.clientWidth > 768
-                                                                    ? `min-width: 400px; width: 1000px;max-height:calc(100% - 150px);overflow-y: auto;`
-                                                                    : 'width:calc(100vw);height:100%;'}"
-                                                                >
-                                                                  <div
-                                                                    class="bg-white shadow  ${document.body
-                                                                      .clientWidth > 768
-                                                                      ? `rounded-3`
-                                                                      : `h-100`}"
-                                                                    style="width: 100%;  position: relative;${document
-                                                                      .body.clientWidth > 768
-                                                                      ? ``
-                                                                      : `overflow-y: auto;`}"
-                                                                  >
-                                                                    <div
-                                                                      class="w-100 d-flex align-items-center p-3 border-bottom"
-                                                                      style="position: sticky; top: 0; background: #fff;z-index:12;"
-                                                                    >
-                                                                      <div
-                                                                        class="fw-bold fs-5"
-                                                                        style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;"
-                                                                      >
-                                                                        ${dd.content.title}
-                                                                      </div>
-                                                                      <div class="flex-fill"></div>
-                                                                      <i
-                                                                        class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                                                        style="cursor: pointer"
-                                                                        onclick="${gvc.event(() => {
-                                                                          gvc.closeDialog();
-                                                                        })}"
-                                                                      ></i>
-                                                                    </div>
-                                                                    <div
-                                                                      class="c_dialog_main"
-                                                                      style="gap: 24px;  max-height: calc(100% - 100px); ${document
-                                                                        .body.clientWidth < 800
-                                                                        ? `padding: 12px 20px;`
-                                                                        : `padding: 30px;`}"
-                                                                    >
-                                                                      ${PdClass.selectSpec({
-                                                                        gvc,
-                                                                        titleFontColor:
-                                                                          glitter.share.globalValue[
-                                                                            'theme_color.0.title'
-                                                                          ] ?? '#333333',
-                                                                        prod: dd.content,
-                                                                        vm: {
-                                                                          specs: dd.content.specs.map(
-                                                                            (spec: {
-                                                                              option: {
-                                                                                title: string;
-                                                                              }[];
-                                                                            }) => {
-                                                                              return spec.option[0].title;
-                                                                            }
-                                                                          ),
-                                                                          quantity: '1',
-                                                                          wishStatus: (
-                                                                            glitter.share.wishList ?? []
-                                                                          ).some((item: { id: number }) => {
-                                                                            return item.id === dd.id;
-                                                                          }),
-                                                                        },
-                                                                        preview: true,
-                                                                        with_qty: false,
-                                                                        is_gift: true,
-                                                                        callback: () => {
-                                                                          gvc.closeDialog();
-                                                                          console.log(`vm.cartData=>`, vm.cartData);
-                                                                          let find = vm.cartData.lineItems.find(
-                                                                            (d1: any) => {
-                                                                              return dd.add_on_products.find(
-                                                                                (d2: any) => {
-                                                                                  return d2.id === d1.id;
-                                                                                }
-                                                                              );
-                                                                            }
-                                                                          );
-                                                                          console.log(`find=>`, find);
-                                                                          if (find) {
-                                                                            apiCart.setCart(cartItem => {
-                                                                              cartItem.line_items.map(dd => {
-                                                                                if (dd.id === find.id) {
-                                                                                  dd.count--;
-                                                                                }
-                                                                              });
-                                                                              cartItem.line_items =
-                                                                                cartItem.line_items.filter(dd => {
-                                                                                  return dd.count > 0;
-                                                                                });
-                                                                              refreshCartData();
-                                                                              gvc.closeDialog();
-                                                                            });
-                                                                          } else {
-                                                                            refreshCartData();
-                                                                            gvc.closeDialog();
-                                                                          }
-                                                                        },
-                                                                      })}
-                                                                      <div
-                                                                        class="d-sm-none"
-                                                                        style="height:100px;"
-                                                                      ></div>
-                                                                    </div>
-                                                                  </div>
-                                                                </div>`;
-                                                              },
-                                                              Tool.randomString(7),
-                                                              {
-                                                                animation:
-                                                                  document.body.clientWidth < 768
-                                                                    ? Animation.popup
-                                                                    : Animation.fade,
-                                                              }
-                                                            );
-                                                          })}"
-                                                        >
-                                                          <span class="${gClass('button-text')}"
-                                                            >${Language.text('add_to_cart')}</span
-                                                          >
-                                                        </button>
-                                                      </div>
-                                                    </div>`;
-                                                  })
-                                                  .join('')}
-                                              </div>
-                                            </div>
-                                          `;
-                                        },
-                                        divCreate: {
-                                          class: `w-100`,
-                                        },
-                                      };
-                                    });
-                                  } else {
-                                    return '';
-                                  }
-                                })()}
                                 <!--贈品-->
                                 ${(() => {
                                   let already_add: any[] = vm.cartData.lineItems.filter((dd: any) => {
@@ -1711,6 +1315,7 @@ export class CheckoutIndex {
                                         <span class="${gClass('banner-text')}">${dd.title}</span>
                                         <div class="d-flex align-items-center w-100" style="overflow-x:auto;gap:10px;">
                                           ${dd.add_on_products
+                                            .filter(Boolean)
                                             .map((pd: any) => {
                                               try {
                                                 return html` <div
@@ -1721,20 +1326,27 @@ export class CheckoutIndex {
                                                     class="img-fluid img-106px"
                                                     style="background-image: url('${pd.preview_image[0]}');"
                                                   ></div>
-                                                  <div class="d-flex flex-column" style="gap:5px;">
+                                                  <div class="d-flex flex-column" style="width: 130px;">
                                                     <div class="${gClass('banner-text')} banner-font-15">
                                                       ${pd.title}
                                                     </div>
-                                                    <div class="text-decoration-line-through text-danger ntd-font-14">
-                                                      ${Currency.convertCurrencyText(pd.min_price)}
+                                                    <div class="text-danger ntd-font-14">
+                                                      ${Currency.convertCurrencyText(0)}
+                                                    </div>
+                                                    <div
+                                                      style="text-decoration: line-through; font-size: 12px; height: 20px;"
+                                                    >
+                                                      ${pd.min_price > 0
+                                                        ? Currency.convertCurrencyText(pd.min_price)
+                                                        : ''}
                                                     </div>
                                                     <button
                                                       class="${gClass('button-bgr')} mb-0 mt-2"
                                                       style="${isSelected
                                                         ? isSelected.id === pd.id
                                                           ? `background: gray !important;`
-                                                          : ``
-                                                        : ``}"
+                                                          : ''
+                                                        : ''}"
                                                       onclick="${gvc.event(() => {
                                                         if (isSelected && isSelected.id === pd.id) {
                                                           return;
@@ -1758,7 +1370,7 @@ export class CheckoutIndex {
                                                                   : `h-100`}"
                                                                 style="width: 100%;  position: relative;${document.body
                                                                   .clientWidth > 768
-                                                                  ? ``
+                                                                  ? ''
                                                                   : `overflow-y: auto;`}"
                                                               >
                                                                 <div
@@ -1792,7 +1404,7 @@ export class CheckoutIndex {
                                                                     titleFontColor:
                                                                       glitter.share.globalValue[
                                                                         'theme_color.0.title'
-                                                                      ] ?? '#333333',
+                                                                        ] ?? '#333333',
                                                                     prod: pd,
                                                                     vm: {
                                                                       specs: pd.specs.map(
@@ -1815,7 +1427,6 @@ export class CheckoutIndex {
                                                                     with_qty: false,
                                                                     is_gift: true,
                                                                     callback: () => {
-                                                                      console.log(`vm.cartData=>`, vm.cartData);
                                                                       let find = vm.cartData.lineItems.find(
                                                                         (d1: any) => {
                                                                           return dd.add_on_products.find((d2: any) => {
@@ -1823,7 +1434,6 @@ export class CheckoutIndex {
                                                                           });
                                                                         }
                                                                       );
-                                                                      console.log(`find=>`, find);
                                                                       if (find) {
                                                                         apiCart.setCart(cartItem => {
                                                                           cartItem.line_items.map(dd => {
@@ -1860,11 +1470,11 @@ export class CheckoutIndex {
                                                       })}"
                                                     >
                                                       <span class="${gClass('button-text')}"
-                                                        >${isSelected
-                                                          ? isSelected.id === pd.id
-                                                            ? Language.text('selected')
-                                                            : Language.text('change_gift')
-                                                          : Language.text('select_gift')}</span
+                                                      >${isSelected
+                                                        ? isSelected.id === pd.id
+                                                          ? Language.text('selected')
+                                                          : Language.text('change_gift')
+                                                        : Language.text('select_gift')}</span
                                                       >
                                                     </button>
                                                   </div>
@@ -1879,6 +1489,205 @@ export class CheckoutIndex {
                                     })
                                     .join('');
                                   return giftHtml && `<div class="rounded-3 bg-white p-3 mt-3">${giftHtml}</div>`;
+                                })()}
+                                <!--加購品-->
+                                ${(() => {
+                                  let add_on: any[] = [];
+                                  vm.cartData.voucherList.filter((dd: any) => {
+                                    if (dd.reBackType === 'add_on_items') {
+                                      add_on = add_on.concat(dd.add_on_products);
+                                    }
+                                  });
+                                  if (add_on.length) {
+                                    return gvc.bindView(() => {
+                                      const id = gvc.glitter.getUUID();
+                                      return {
+                                        bind: id,
+                                        view: async () => {
+                                          const add_products = await ApiShop.getProduct({
+                                            page: 0,
+                                            limit: 100,
+                                            productType: 'addProduct',
+                                            id_list: add_on.join(','),
+                                          });
+                                          if (!add_products.response.data.length) {
+                                            return '';
+                                          }
+                                          return html`
+                                            <div class="rounded-3 mt-3 p-3 bg-white">
+                                              <span class="${gClass('banner-text')}"
+                                                >${Language.text('additional_purchase_items')}</span
+                                              >
+                                              <div
+                                                class="d-flex align-items-center w-100"
+                                                style="overflow-x:auto;gap:10px;"
+                                              >
+                                                ${add_products.response.data
+                                            .map((dd: any) => {
+                                              return html` <div
+                                                      class="d-flex py-3 align-items-center"
+                                                      style="gap:10px;"
+                                                    >
+                                                      <div
+                                                        class="img-fluid img-106px"
+                                                        style="background-image: url('${dd.content.preview_image[0]}');"
+                                                      ></div>
+                                                      <div class="d-flex flex-column" style="gap:5px;">
+                                                        <div class="${gClass('banner-text')} banner-font-15">
+                                                          ${dd.content.title}
+                                                        </div>
+                                                        <div class="ntd-font-14">
+                                                          ${Currency.convertCurrencyText(dd.content.min_price)}
+                                                        </div>
+                                                        <button
+                                                          class="${gClass('button-bgr')} mb-0 mt-2"
+                                                          onclick="${gvc.event(() => {
+                                                const titleFontColor =
+                                                  glitter.share.globalValue['theme_color.0.title'] ??
+                                                  '#333333';
+                                                gvc.glitter.innerDialog(
+                                                  (gvc: GVC) => {
+                                                    return html` <div
+                                                                  class=" bg-white shadow  ${document.body.clientWidth >
+                                                    768
+                                                      ? `rounded-3`
+                                                      : ` position-absolute bottom-0`}"
+                                                                  style=" ${document.body.clientWidth > 768
+                                                      ? `min-width: 400px; width: 1000px;max-height:calc(100% - 150px);overflow-y: auto;`
+                                                      : 'width:calc(100vw);height:100%;'}"
+                                                                >
+                                                                  <div
+                                                                    class="bg-white shadow  ${document.body
+                                                      .clientWidth > 768
+                                                      ? `rounded-3`
+                                                      : `h-100`}"
+                                                                    style="width: 100%;  position: relative;${document
+                                                      .body.clientWidth > 768
+                                                      ? ''
+                                                      : `overflow-y: auto;`}"
+                                                                  >
+                                                                    <div
+                                                                      class="w-100 d-flex align-items-center p-3 border-bottom"
+                                                                      style="position: sticky; top: 0; background: #fff;z-index:12;"
+                                                                    >
+                                                                      <div
+                                                                        class="fw-bold fs-5"
+                                                                        style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;"
+                                                                      >
+                                                                        ${dd.content.title}
+                                                                      </div>
+                                                                      <div class="flex-fill"></div>
+                                                                      <i
+                                                                        class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                                                        style="cursor: pointer"
+                                                                        onclick="${gvc.event(() => {
+                                                      gvc.closeDialog();
+                                                    })}"
+                                                                      ></i>
+                                                                    </div>
+                                                                    <div
+                                                                      class="c_dialog_main"
+                                                                      style="gap: 24px;  max-height: calc(100% - 100px); ${document
+                                                      .body.clientWidth < 800
+                                                      ? `padding: 12px 20px;`
+                                                      : `padding: 30px;`}"
+                                                                    >
+                                                                      ${PdClass.selectSpec({
+                                                      gvc,
+                                                      titleFontColor:
+                                                        glitter.share.globalValue[
+                                                          'theme_color.0.title'
+                                                          ] ?? '#333333',
+                                                      prod: dd.content,
+                                                      vm: {
+                                                        specs: dd.content.specs.map(
+                                                          (spec: {
+                                                            option: {
+                                                              title: string;
+                                                            }[];
+                                                          }) => {
+                                                            return spec.option[0].title;
+                                                          }
+                                                        ),
+                                                        quantity: '1',
+                                                        wishStatus: (
+                                                          glitter.share.wishList ?? []
+                                                        ).some((item: { id: number }) => {
+                                                          return item.id === dd.id;
+                                                        }),
+                                                      },
+                                                      preview: true,
+                                                      with_qty: false,
+                                                      is_gift: true,
+                                                      callback: () => {
+                                                        gvc.closeDialog();
+                                                        let find = vm.cartData.lineItems.find(
+                                                          (d1: any) => {
+                                                            return dd.add_on_products.find(
+                                                              (d2: any) => {
+                                                                return d2.id === d1.id;
+                                                              }
+                                                            );
+                                                          }
+                                                        );
+                                                        if (find) {
+                                                          apiCart.setCart(cartItem => {
+                                                            cartItem.line_items.map(dd => {
+                                                              if (dd.id === find.id) {
+                                                                dd.count--;
+                                                              }
+                                                            });
+                                                            cartItem.line_items =
+                                                              cartItem.line_items.filter(dd => {
+                                                                return dd.count > 0;
+                                                              });
+                                                            refreshCartData();
+                                                            gvc.closeDialog();
+                                                          });
+                                                        } else {
+                                                          refreshCartData();
+                                                          gvc.closeDialog();
+                                                        }
+                                                      },
+                                                    })}
+                                                                      <div
+                                                                        class="d-sm-none"
+                                                                        style="height:100px;"
+                                                                      ></div>
+                                                                    </div>
+                                                                  </div>
+                                                                </div>`;
+                                                  },
+                                                  Tool.randomString(7),
+                                                  {
+                                                    animation:
+                                                      document.body.clientWidth < 768
+                                                        ? Animation.popup
+                                                        : Animation.fade,
+                                                  }
+                                                );
+                                              })}"
+                                                        >
+                                                          <span class="${gClass('button-text')}"
+                                                            >${Language.text('add_to_cart')}</span
+                                                          >
+                                                        </button>
+                                                      </div>
+                                                    </div>`;
+                                            })
+                                            .join('')}
+                                              </div>
+                                            </div>
+                                          `;
+                                        },
+                                        divCreate: {
+                                          class: `w-100`,
+                                        },
+                                      };
+                                    });
+                                  } else {
+                                    return '';
+                                  }
                                 })()}
                                 <!--配送資訊-->
                                 <div class="rounded-3 bg-white w-100 p-1 mt-3">
@@ -1908,7 +1717,7 @@ export class CheckoutIndex {
                                                     value="${dd.value}"
                                                     ${localStorage.getItem('checkout-payment') === dd.value
                                                       ? `selected`
-                                                      : ``}
+                                                      : ''}
                                                   >
                                                     ${Language.getLanguageCustomText(dd.name) ||
                                                     Language.text(dd.value)}
@@ -1947,18 +1756,18 @@ export class CheckoutIndex {
                                               >
                                                 ${shipmentList.length > 0
                                                   ? shipmentList
-                                                      .map((dd: { name: string; value: string }) => {
-                                                        return html` <option
-                                                          value="${dd.value}"
-                                                          ${vm.cartData.user_info.shipment === dd.value
-                                                            ? `selected`
-                                                            : ``}
-                                                        >
-                                                          ${Language.text(`ship_${dd.value}`) ||
-                                                          Language.getLanguageCustomText(dd.name)}
-                                                        </option>`;
-                                                      })
-                                                      .join('')
+                                                    .map((dd: { name: string; value: string }) => {
+                                                      return html` <option
+                                                        value="${dd.value}"
+                                                        ${vm.cartData.user_info.shipment === dd.value
+                                                          ? `selected`
+                                                          : ''}
+                                                      >
+                                                        ${Language.text(`ship_${dd.value}`) ||
+                                                        Language.getLanguageCustomText(dd.name)}
+                                                      </option>`;
+                                                    })
+                                                    .join('')
                                                   : html` <option selected>(${Language.text('disable_ship')})</option>`}
                                               </select>
                                             </div>`;
@@ -1978,11 +1787,11 @@ export class CheckoutIndex {
                                               ).response.value;
                                               if (log_config.content) {
                                                 return html` <label class="${gClass('label')}"
-                                                    >${Language.text('shipping_instructions')}</label
-                                                  >
-                                                  <div class="border rounded-3 p-2">${log_config.content}</div>`;
+                                                >${Language.text('shipping_instructions')}</label
+                                                >
+                                                <div class="border rounded-3 p-2">${log_config.content}</div>`;
                                               }
-                                              return ``;
+                                              return '';
                                             },
                                           };
                                         })}
@@ -1998,16 +1807,13 @@ export class CheckoutIndex {
                                         if (ship_method && ship_method.system_form) {
                                           return (ship_method.system_form ?? []).includes('tw-address-selector');
                                         }
-                                        // ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
-                                        //   vm.cartData.user_info.shipment
-                                        // )
                                         return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
                                           vm.cartData.user_info.shipment
                                         );
                                       })()
                                         ? gvc.bindView(() => {
-                                            const id = gvc.glitter.getUUID();
-                                            gvc.addStyle(`
+                                          const id = gvc.glitter.getUUID();
+                                          gvc.addStyle(`
                                               .city-selector select {
                                                 -webkit-appearance: none;
                                                 -moz-appearance: none;
@@ -2020,161 +1826,157 @@ export class CheckoutIndex {
                                                 flex: 1;
                                               }
                                             `);
-                                            let select_id = '';
-                                            return {
-                                              bind: id,
-                                              view: () => {
-                                                select_id = gvc.glitter.getUUID();
-                                                return html`<label
-                                                    class="${gClass('label')} w-100 d-flex align-items-center"
-                                                    >${Language.text('shipping_address')}
-                                                    <div class="flex-fill"></div>
-                                                    <div
-                                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
-                                                      style="cursor: pointer; color: #3366bb;"
-                                                      onclick="${gvc.event(() => {
-                                                        ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
-                                                          vm.cartData.user_info.address =
-                                                            res.response.userData.consignee_address;
-                                                          this.storeLocalData(vm.cartData);
-                                                          gvc.notifyDataChange(id);
-                                                        });
-                                                      })}"
-                                                    >
-                                                      ${Language.text('quick_input')}
-                                                    </div>
-                                                  </label>
-                                                  <div class="row">
-                                                    <div class="col-12 mb-3">
-                                                      <div
-                                                        role="tw-city-selector"
-                                                        id="select_id_${id}"
-                                                        class="w-100 city-selector d-flex d_${select_id}"
-                                                        style="gap:15px;"
-                                                      ></div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                      <input
-                                                        class="${gClass('input')}"
-                                                        type="address"
-                                                        placeholder="${Language.text('please_enter_street_location')}"
-                                                        value="${vm.cartData.user_info.address || ''}"
-                                                        onchange="${gvc.event(e => {
-                                                          vm.cartData.user_info.address = e.value;
-                                                          this.storeLocalData(vm.cartData);
-                                                        })}"
-                                                      />
-                                                    </div>
-                                                  </div> `;
-                                              },
-                                              divCreate: {
-                                                class: `col-12  mb-2`,
-                                              },
-                                              onCreate: () => {
-                                                gvc.glitter.addMtScript(
-                                                  [
-                                                    {
-                                                      src: 'https://cdn.jsdelivr.net/npm/tw-city-selector@2.1.1/dist/tw-city-selector.min.js',
-                                                    },
-                                                  ],
-                                                  () => {
-                                                    //@ts-ignore
-                                                    const tw_selector = new TwCitySelector({
-                                                      el: `.d_${select_id}`,
+                                          let select_id = '';
+                                          return {
+                                            bind: id,
+                                            view: () => {
+                                              select_id = gvc.glitter.getUUID();
+                                              return html`<label
+                                                class="${gClass('label')} w-100 d-flex align-items-center"
+                                              >${Language.text('shipping_address')}
+                                                <div class="flex-fill"></div>
+                                                <div
+                                                  class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ''}"
+                                                  style="cursor: pointer; color: #3366bb;"
+                                                  onclick="${gvc.event(() => {
+                                                    ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
+                                                      vm.cartData.user_info.address =
+                                                        res.response.userData.consignee_address;
+                                                      this.storeLocalData(vm.cartData);
+                                                      gvc.notifyDataChange(id);
                                                     });
-                                                    const interVal = setInterval(() => {
-                                                      if (document.querySelector(`#select_id_${id} .county`) as any) {
-                                                        clearInterval(interVal);
-                                                        (
-                                                          document.querySelector(`#select_id_${id} .county`) as any
-                                                        ).addEventListener('change', (event: any) => {
-                                                          // 獲取當前選中的值
-                                                          const selectedValue = event.target.value;
-                                                          // 在控制台輸出當前選中的值
-                                                          console.log(`選中的值是: ${selectedValue}`);
-                                                          // 根據選中的值執行其他操作
-                                                          vm.cartData.user_info.city = selectedValue;
-                                                          vm.cartData.user_info.area = undefined;
-                                                          this.storeLocalData(vm.cartData);
-                                                        });
-                                                        (
-                                                          document.querySelector(`#select_id_${id} .district`) as any
-                                                        ).addEventListener('change', (event: any) => {
-                                                          // 獲取當前選中的值
-                                                          const selectedValue = event.target.value;
-
-                                                          // 在控制台輸出當前選中的值
-                                                          console.log(`選中的值是: ${selectedValue}`);
-
-                                                          // 根據選中的值執行其他操作
-                                                          vm.cartData.user_info.area = selectedValue;
-                                                          this.storeLocalData(vm.cartData);
-                                                        });
-
-                                                        if (vm.cartData.user_info.city && vm.cartData.user_info.area) {
-                                                          tw_selector.setValue(
-                                                            vm.cartData.user_info.city,
-                                                            vm.cartData.user_info.area
-                                                          );
-                                                        } else if (vm.cartData.user_info.city) {
-                                                          tw_selector.setValue(vm.cartData.user_info.city);
-                                                        }
-                                                      }
-                                                      glitter.share.tw_selector = tw_selector;
-                                                    }, 100);
+                                                  })}"
+                                                >
+                                                  ${Language.text('quick_input')}
+                                                </div>
+                                              </label>
+                                              <div class="row">
+                                                <div class="col-12 mb-3">
+                                                  <div
+                                                    role="tw-city-selector"
+                                                    id="select_id_${id}"
+                                                    class="w-100 city-selector d-flex d_${select_id}"
+                                                    style="gap:15px;"
+                                                  ></div>
+                                                </div>
+                                                <div class="col-12">
+                                                  <input
+                                                    class="${gClass('input')}"
+                                                    type="address"
+                                                    placeholder="${Language.text('please_enter_street_location')}"
+                                                    value="${vm.cartData.user_info.address || ''}"
+                                                    onchange="${gvc.event(e => {
+                                                      vm.cartData.user_info.address = e.value;
+                                                      this.storeLocalData(vm.cartData);
+                                                    })}"
+                                                  />
+                                                </div>
+                                              </div> `;
+                                            },
+                                            divCreate: {
+                                              class: `col-12  mb-2`,
+                                            },
+                                            onCreate: () => {
+                                              gvc.glitter.addMtScript(
+                                                [
+                                                  {
+                                                    src: 'https://cdn.jsdelivr.net/npm/tw-city-selector@2.1.1/dist/tw-city-selector.min.js',
                                                   },
-                                                  () => {}
-                                                );
-                                              },
-                                            };
-                                          })
-                                        : ``}
+                                                ],
+                                                () => {
+                                                  //@ts-ignore
+                                                  const tw_selector = new TwCitySelector({
+                                                    el: `.d_${select_id}`,
+                                                  });
+                                                  const interVal = setInterval(() => {
+                                                    if (document.querySelector(`#select_id_${id} .county`) as any) {
+                                                      clearInterval(interVal);
+                                                      (
+                                                        document.querySelector(`#select_id_${id} .county`) as any
+                                                      ).addEventListener('change', (event: any) => {
+                                                        // 獲取當前選中的值
+                                                        const selectedValue = event.target.value;
+
+                                                        // 根據選中的值執行其他操作
+                                                        vm.cartData.user_info.city = selectedValue;
+                                                        vm.cartData.user_info.area = undefined;
+                                                        this.storeLocalData(vm.cartData);
+                                                      });
+                                                      (
+                                                        document.querySelector(`#select_id_${id} .district`) as any
+                                                      ).addEventListener('change', (event: any) => {
+                                                        // 獲取當前選中的值
+                                                        const selectedValue = event.target.value;
+
+                                                        // 根據選中的值執行其他操作
+                                                        vm.cartData.user_info.area = selectedValue;
+                                                        this.storeLocalData(vm.cartData);
+                                                      });
+
+                                                      if (vm.cartData.user_info.city && vm.cartData.user_info.area) {
+                                                        tw_selector.setValue(
+                                                          vm.cartData.user_info.city,
+                                                          vm.cartData.user_info.area
+                                                        );
+                                                      } else if (vm.cartData.user_info.city) {
+                                                        tw_selector.setValue(vm.cartData.user_info.city);
+                                                      }
+                                                    }
+                                                    glitter.share.tw_selector = tw_selector;
+                                                  }, 100);
+                                                },
+                                                () => {}
+                                              );
+                                            },
+                                          };
+                                        })
+                                        : ''}
                                       <!-- 選取超商 -->
                                       ${ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment)
                                         ? html` <div class="col-12">
-                                            <button
-                                              class="${gClass('button-bgr')}"
-                                              onclick="${gvc.event(() => {
-                                                ApiDelivery.storeMaps({
-                                                  returnURL: (()=>{
-                                                    if(ApplicationConfig.device_type==='ios'){
-                                                      const url=new URL(location.href);
-                                                      url.searchParams.set("select_map_finish","true");
-                                                      return url.href;
-                                                    }else{
-                                                      return location.href;
-                                                    }
-                                                  })(),
-                                                  logistics: vm.cartData.user_info.shipment,
-                                                }).then(async res => {
+                                          <button
+                                            class="${gClass('button-bgr')}"
+                                            onclick="${gvc.event(() => {
+                                              ApiDelivery.storeMaps({
+                                                returnURL: (() => {
                                                   if (ApplicationConfig.device_type === 'ios') {
-                                                    glitter.runJsInterFace(
-                                                      'post_form',
-                                                      {
-                                                        form: res.response.form,
-                                                      },
-                                                      () => {}
-                                                    );
+                                                    const url = new URL(location.href);
+                                                    url.searchParams.set('select_map_finish', 'true');
+                                                    return url.href;
                                                   } else {
-                                                    const form_id = gvc.glitter.getUUID();
-                                                    $('body').append(`<div id="${form_id}">${res.response.form}</div>`);
-                                                    (document.querySelector(`#${form_id} #submit`) as any).click();
+                                                    return location.href;
                                                   }
-                                                });
-                                              })}"
-                                            >
+                                                })(),
+                                                logistics: vm.cartData.user_info.shipment,
+                                              }).then(async res => {
+                                                if (ApplicationConfig.device_type === 'ios') {
+                                                  glitter.runJsInterFace(
+                                                    'post_form',
+                                                    {
+                                                      form: res.response.form,
+                                                    },
+                                                    () => {}
+                                                  );
+                                                } else {
+                                                  const form_id = gvc.glitter.getUUID();
+                                                  $('body').append(`<div id="${form_id}">${res.response.form}</div>`);
+                                                  (document.querySelector(`#${form_id} #submit`) as any).click();
+                                                }
+                                              });
+                                            })}"
+                                          >
                                               <span class="${gClass('button-text')}"
-                                                >${(() => {
-                                                  let cvs = glitter.getUrlParameter('CVSStoreName') || '';
-                                                  if (decodeURIComponent(cvs)) {
-                                                    return `${decodeURIComponent(cvs)} 『 ${Language.text('click_to_reselct_store')} 』`;
-                                                  } else {
-                                                    return Language.text('select_pickup_store');
-                                                  }
-                                                })()}</span
+                                              >${(() => {
+                                                let cvs = glitter.getUrlParameter('CVSStoreName') || '';
+                                                if (decodeURIComponent(cvs)) {
+                                                  return `${decodeURIComponent(cvs)} 『 ${Language.text('click_to_reselct_store')} 』`;
+                                                } else {
+                                                  return Language.text('select_pickup_store');
+                                                }
+                                              })()}</span
                                               >
-                                            </button>
-                                          </div>`
+                                          </button>
+                                        </div>`
                                         : ''}
                                       ${(() => {
                                         if (vm.cartData.user_info.shipment === 'none') {
@@ -2186,138 +1988,134 @@ export class CheckoutIndex {
                                         if (ship_method && ship_method.system_form) {
                                           return (ship_method.system_form ?? []).includes('global-address-selector');
                                         }
-                                        // ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice'].includes(
-                                        //   vm.cartData.user_info.shipment
-                                        // )
                                         return ['global_express'].includes(vm.cartData.user_info.shipment);
                                       })()
                                         ? [
-                                            html`<label class="${gClass('label')}">${Language.text('country')}</label>
-                                              ${gvc.bindView(() => {
-                                                const id = gvc.glitter.getUUID();
-                                                return {
-                                                  bind: id,
-                                                  view: async () => {
-                                                    let country_select: any = [];
-                                                    const support_country = (
-                                                      await ApiUser.getPublicConfig('global_express_country', 'manager')
-                                                    ).response.value.country;
-                                                    await new Promise((resolve, reject) => {
-                                                      glitter.getModule(
-                                                        (() => {
-                                                          switch (Language.getLanguage()) {
-                                                            case 'en-US':
-                                                              return `${gvc.glitter.root_path}/modules/country-language/country-en.js`;
-                                                            case 'zh-CN':
-                                                              return `${gvc.glitter.root_path}/modules/country-language/country-zh.js`;
-                                                            default:
-                                                              return `${gvc.glitter.root_path}/modules/country-language/country-tw.js`;
-                                                          }
-                                                        })(),
-                                                        response => {
-                                                          country_select = response.filter((dd: any) => {
-                                                            return support_country.includes(dd.countryCode);
-                                                          });
-                                                          resolve(true);
-                                                        }
+                                          html`<label class="${gClass('label')}">${Language.text('country')}</label>
+                                          ${gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return {
+                                              bind: id,
+                                              view: async () => {
+                                                let country_select: any = [];
+                                                const support_country = (
+                                                  await ApiUser.getPublicConfig('global_express_country', 'manager')
+                                                ).response.value.country;
+                                                await new Promise((resolve, reject) => {
+                                                  glitter.getModule(
+                                                    (() => {
+                                                      switch (Language.getLanguage()) {
+                                                        case 'en-US':
+                                                          return `${gvc.glitter.root_path}/modules/country-language/country-en.js`;
+                                                        case 'zh-CN':
+                                                          return `${gvc.glitter.root_path}/modules/country-language/country-zh.js`;
+                                                        default:
+                                                          return `${gvc.glitter.root_path}/modules/country-language/country-tw.js`;
+                                                      }
+                                                    })(),
+                                                    response => {
+                                                      country_select = response.filter((dd: any) => {
+                                                        return support_country.includes(dd.countryCode);
+                                                      });
+                                                      resolve(true);
+                                                    }
+                                                  );
+                                                });
+                                                return html`<select
+                                                  class="w-100 ${gClass('select')}"
+                                                  onchange="${gvc.event((e, event) => {
+                                                    vm.cartData.user_info.country = e.value;
+                                                    this.storeLocalData(vm.cartData);
+                                                    refreshCartData();
+                                                  })}"
+                                                >
+                                                  ${(() => {
+                                                    let map = country_select.map(
+                                                      (dd: { countryCode: string; countryName: string }) => {
+                                                        return html`
+                                                          <option
+                                                            value="${dd.countryCode}"
+                                                            ${vm.cartData.user_info.country === dd.countryCode
+                                                              ? `selected`
+                                                              : ''}
+                                                          >
+                                                            ${dd.countryName}
+                                                          </option>
+                                                        `;
+                                                      }
+                                                    );
+                                                    if (
+                                                      !country_select.find((dd: any) => {
+                                                        return dd.countryCode === vm.cartData.user_info.country;
+                                                      })
+                                                    ) {
+                                                      delete vm.cartData.user_info.country;
+                                                      map.push(
+                                                        html` <option class="d-none" selected>
+                                                          ${Language.text('select_country')}
+                                                        </option>`
                                                       );
-                                                    });
-                                                    return html`<select
-                                                      class="w-100 ${gClass('select')}"
-                                                      onchange="${gvc.event((e, event) => {
-                                                        vm.cartData.user_info.country = e.value;
-                                                        this.storeLocalData(vm.cartData);
-                                                        refreshCartData();
-                                                      })}"
-                                                    >
-                                                      ${(() => {
-                                                        let map = country_select.map(
-                                                          (dd: { countryCode: string; countryName: string }) => {
-                                                            return html`
-                                                              <option
-                                                                value="${dd.countryCode}"
-                                                                ${vm.cartData.user_info.country === dd.countryCode
-                                                                  ? `selected`
-                                                                  : ``}
-                                                              >
-                                                                ${dd.countryName}
-                                                              </option>
-                                                            `;
-                                                          }
-                                                        );
-                                                        if (
-                                                          !country_select.find((dd: any) => {
-                                                            return dd.countryCode === vm.cartData.user_info.country;
-                                                          })
-                                                        ) {
-                                                          delete vm.cartData.user_info.country;
-                                                          map.push(
-                                                            html` <option class="d-none" selected>
-                                                              ${Language.text('select_country')}
-                                                            </option>`
-                                                          );
-                                                        }
-                                                        return map.join('');
-                                                      })()}
-                                                    </select>`;
-                                                  },
-                                                  divCreate: {},
-                                                };
-                                              })}`,
-                                            html` <label class="${gClass('label')}"
-                                                >${Language.text('shipping_address')}</label
-                                              >
-                                              <input
-                                                class="${gClass('input')}"
-                                                type="address"
-                                                placeholder="${Language.text('please_enter_delivery_address')}"
-                                                value="${vm.cartData.user_info.address || ''}"
-                                                onchange="${gvc.event(e => {
-                                                  vm.cartData.user_info.address = e.value;
-                                                  this.storeLocalData(vm.cartData);
-                                                })}"
-                                              />`,
-                                            html` <label class="${gClass('label')}">${Language.text('city')}</label>
-                                              <input
-                                                class="${gClass('input')}"
-                                                type="city"
-                                                placeholder="${Language.text('city')}"
-                                                value="${vm.cartData.user_info.city || ''}"
-                                                onchange="${gvc.event(e => {
-                                                  vm.cartData.user_info.city = e.value;
-                                                  this.storeLocalData(vm.cartData);
-                                                })}"
-                                              />`,
-                                            html` <label class="${gClass('label')}">${Language.text('state')}</label>
-                                              <input
-                                                class="${gClass('input')}"
-                                                class="${gClass('input')}"
-                                                type="state"
-                                                placeholder="${Language.text('state')}"
-                                                value="${vm.cartData.user_info.state || ''}"
-                                                onchange="${gvc.event(e => {
-                                                  vm.cartData.user_info.state = e.value;
-                                                  this.storeLocalData(vm.cartData);
-                                                })}"
-                                              />`,
-                                            html` <label class="${gClass('label')}"
-                                                >${Language.text('postal_code')}</label
-                                              >
-                                              <input
-                                                class="${gClass('input')}"
-                                                type=""
-                                                placeholder="${Language.text('postal_code')}"
-                                                value="${vm.cartData.user_info.postal_code || ''}"
-                                                onchange="${gvc.event(e => {
-                                                  vm.cartData.user_info.postal_code = e.value;
-                                                  this.storeLocalData(vm.cartData);
-                                                })}"
-                                              />`,
-                                          ]
-                                            .map(dd => {
-                                              return html` <div class="col-12 col-md-6 mb-2">${dd}</div>`;
-                                            })
-                                            .join('')
+                                                    }
+                                                    return map.join('');
+                                                  })()}
+                                                </select>`;
+                                              },
+                                            };
+                                          })}`,
+                                          html` <label class="${gClass('label')}"
+                                          >${Language.text('shipping_address')}</label
+                                          >
+                                          <input
+                                            class="${gClass('input')}"
+                                            type="address"
+                                            placeholder="${Language.text('please_enter_delivery_address')}"
+                                            value="${vm.cartData.user_info.address || ''}"
+                                            onchange="${gvc.event(e => {
+                                              vm.cartData.user_info.address = e.value;
+                                              this.storeLocalData(vm.cartData);
+                                            })}"
+                                          />`,
+                                          html` <label class="${gClass('label')}">${Language.text('city')}</label>
+                                          <input
+                                            class="${gClass('input')}"
+                                            type="city"
+                                            placeholder="${Language.text('city')}"
+                                            value="${vm.cartData.user_info.city || ''}"
+                                            onchange="${gvc.event(e => {
+                                              vm.cartData.user_info.city = e.value;
+                                              this.storeLocalData(vm.cartData);
+                                            })}"
+                                          />`,
+                                          html` <label class="${gClass('label')}">${Language.text('state')}</label>
+                                          <input
+                                            class="${gClass('input')}"
+                                            class="${gClass('input')}"
+                                            type="state"
+                                            placeholder="${Language.text('state')}"
+                                            value="${vm.cartData.user_info.state || ''}"
+                                            onchange="${gvc.event(e => {
+                                              vm.cartData.user_info.state = e.value;
+                                              this.storeLocalData(vm.cartData);
+                                            })}"
+                                          />`,
+                                          html` <label class="${gClass('label')}"
+                                          >${Language.text('postal_code')}</label
+                                          >
+                                          <input
+                                            class="${gClass('input')}"
+                                            type=""
+                                            placeholder="${Language.text('postal_code')}"
+                                            value="${vm.cartData.user_info.postal_code || ''}"
+                                            onchange="${gvc.event(e => {
+                                              vm.cartData.user_info.postal_code = e.value;
+                                              this.storeLocalData(vm.cartData);
+                                            })}"
+                                          />`,
+                                        ]
+                                          .map(dd => {
+                                            return html` <div class="col-12 col-md-6 mb-2">${dd}</div>`;
+                                          })
+                                          .join('')
                                         : ''}
                                       ${(() => {
                                         try {
@@ -2346,7 +2144,7 @@ export class CheckoutIndex {
                                           ].join('');
                                         } catch (e) {
                                           console.error(`error 3 =>`, e);
-                                          return ``;
+                                          return '';
                                         }
                                       })()}
                                     </div>
@@ -2358,11 +2156,10 @@ export class CheckoutIndex {
                                     ${Language.text('customer_info')}
                                     <div class="flex-fill"></div>
                                     <div
-                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
+                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ''}"
                                       style="cursor: pointer; color: #3366bb;"
                                       onclick="${gvc.event(() => {
                                         ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
-                                          console.log(`res.response.userData=>`, res.response.userData);
                                           ['name', 'phone', 'email'].map(dd => {
                                             vm.cartData.customer_info[dd] =
                                               res.response.userData[dd] || vm.cartData.customer_info[dd];
@@ -2509,11 +2306,10 @@ export class CheckoutIndex {
                                     ${Language.text('recipient_info')}
                                     <div class="flex-fill"></div>
                                     <div
-                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
+                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ''}"
                                       style="cursor: pointer; color: #3366bb;"
                                       onclick="${gvc.event(() => {
                                         ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
-                                          console.log(`res.response.userData=>`, res.response.userData);
                                           ['name', 'phone', 'email'].map(dd => {
                                             vm.cartData.user_info[dd] =
                                               res.response.userData[dd] || vm.cartData.user_info[dd];
@@ -2565,7 +2361,6 @@ export class CheckoutIndex {
                                       loading: true,
                                       list: [],
                                     };
-                                    //nouse
                                     let method = widget.share.invoice_method || '';
                                     if (widget.share.invoice_method) {
                                       vm_info.loading = false;
@@ -2584,7 +2379,7 @@ export class CheckoutIndex {
                                       view: async () => {
                                         try {
                                           if (vm_info.loading) {
-                                            return ``;
+                                            return '';
                                           }
                                           const receipt_form = JSON.parse(
                                             JSON.stringify(widget.share.receipt_form)
@@ -2612,293 +2407,293 @@ export class CheckoutIndex {
                                             ...(method === 'nouse'
                                               ? []
                                               : [
-                                                  {
-                                                    col: '6',
-                                                    key: 'invoice_type',
-                                                    page: 'form-select',
-                                                    type: 'form_plugin_v2',
-                                                    group: '',
-                                                    title: Language.text('invoice_recipient'),
-                                                    col_sm: '12',
-                                                    appName: 'cms_system',
-                                                    require: 'true',
-                                                    readonly: 'write',
-                                                    formFormat: '{}',
-                                                    moduleName: '下拉選單',
-                                                    style_data: {
-                                                      input: {
-                                                        list: [],
-                                                        class: '',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
-                                                      label: {
-                                                        list: [],
-                                                        class: 'form-label fs-base ',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
-                                                      container: {
-                                                        list: [],
-                                                        class: '',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
+                                                {
+                                                  col: '6',
+                                                  key: 'invoice_type',
+                                                  page: 'form-select',
+                                                  type: 'form_plugin_v2',
+                                                  group: '',
+                                                  title: Language.text('invoice_recipient'),
+                                                  col_sm: '12',
+                                                  appName: 'cms_system',
+                                                  require: 'true',
+                                                  readonly: 'write',
+                                                  formFormat: '{}',
+                                                  moduleName: '下拉選單',
+                                                  style_data: {
+                                                    input: {
+                                                      list: [],
+                                                      class: '',
+                                                      style: '',
+                                                      version: 'v2',
                                                     },
-                                                    form_config: {
-                                                      type: 'name',
-                                                      title: '',
-                                                      option: [
-                                                        {
-                                                          name: Language.text('personal'),
-                                                          index: 0,
-                                                          value: 'me',
-                                                        },
-                                                        {
-                                                          name: Language.text('company'),
-                                                          index: 1,
-                                                          value: 'company',
-                                                        },
-                                                        {
-                                                          name: Language.text('donate_invoice'),
-                                                          index: 2,
-                                                          value: 'donate',
-                                                        },
-                                                      ],
-                                                      input_style: { list: [], version: 'v2' },
-                                                      title_style: { list: [], version: 'v2' },
-                                                      place_holder: '',
+                                                    label: {
+                                                      list: [],
+                                                      class: 'form-label fs-base ',
+                                                      style: '',
+                                                      version: 'v2',
                                                     },
-                                                    hidden_code: "return (form_data['invoice_method']==='nouse')",
+                                                    container: {
+                                                      list: [],
+                                                      class: '',
+                                                      style: '',
+                                                      version: 'v2',
+                                                    },
                                                   },
-                                                  {
-                                                    col: '6',
-                                                    key: 'send_type',
-                                                    page: 'form-select',
-                                                    type: 'form_plugin_v2',
-                                                    group: '',
-                                                    title: Language.text('invoice_method'),
-                                                    col_sm: '12',
-                                                    appName: 'cms_system',
-                                                    require: 'true',
-                                                    readonly: 'write',
-                                                    formFormat: '{}',
-                                                    moduleName: '下拉選單',
-                                                    style_data: {
-                                                      input: {
-                                                        list: [],
-                                                        class: '',
-                                                        style: '',
-                                                        version: 'v2',
+                                                  form_config: {
+                                                    type: 'name',
+                                                    title: '',
+                                                    option: [
+                                                      {
+                                                        name: Language.text('personal'),
+                                                        index: 0,
+                                                        value: 'me',
                                                       },
-                                                      label: {
-                                                        list: [],
-                                                        class: 'form-label fs-base ',
-                                                        style: '',
-                                                        version: 'v2',
+                                                      {
+                                                        name: Language.text('company'),
+                                                        index: 1,
+                                                        value: 'company',
                                                       },
-                                                      container: {
-                                                        list: [],
-                                                        class: '',
-                                                        style: '',
-                                                        version: 'v2',
+                                                      {
+                                                        name: Language.text('donate_invoice'),
+                                                        index: 2,
+                                                        value: 'donate',
                                                       },
-                                                    },
-                                                    form_config: {
-                                                      type: 'name',
-                                                      title: '',
-                                                      option: [
-                                                        {
-                                                          name: Language.text('send_to_user_email'),
-                                                          index: 0,
-                                                          value: 'email',
-                                                        },
-                                                        {
-                                                          name: Language.text('mobile_barcode_device'),
-                                                          index: 1,
-                                                          value: 'carrier',
-                                                        },
-                                                      ],
-                                                      input_style: { list: [], version: 'v2' },
-                                                      title_style: { list: [], version: 'v2' },
-                                                      place_holder: '',
-                                                    },
-                                                    hidden_code:
-                                                      "    if(form_data['invoice_type']!=='me' || (form_data['invoice_method']==='nouse') || (form_data['invoice_method']==='off_line')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                    ],
+                                                    input_style: { list: [], version: 'v2' },
+                                                    title_style: { list: [], version: 'v2' },
+                                                    place_holder: '',
                                                   },
-                                                  {
-                                                    key: 'carrier_num',
-                                                    page: 'input',
-                                                    type: 'form_plugin_v2',
-                                                    group: '',
-                                                    title: Language.text('carrier_number'),
-                                                    appName: 'cms_system',
-                                                    require: 'false',
-                                                    readonly: 'write',
-                                                    formFormat: '{}',
-                                                    moduleName: '輸入框',
-                                                    col: '3',
-                                                    col_sm: '12',
-                                                    style_data: {
-                                                      input: {
-                                                        list: [],
-                                                        class: '',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
-                                                      label: {
-                                                        list: [],
-                                                        class: 'form-label fs-base ',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
-                                                      container: {
-                                                        list: [],
-                                                        class: '',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
+                                                  hidden_code: "return (form_data['invoice_method']==='nouse')",
+                                                },
+                                                {
+                                                  col: '6',
+                                                  key: 'send_type',
+                                                  page: 'form-select',
+                                                  type: 'form_plugin_v2',
+                                                  group: '',
+                                                  title: Language.text('invoice_method'),
+                                                  col_sm: '12',
+                                                  appName: 'cms_system',
+                                                  require: 'true',
+                                                  readonly: 'write',
+                                                  formFormat: '{}',
+                                                  moduleName: '下拉選單',
+                                                  style_data: {
+                                                    input: {
+                                                      list: [],
+                                                      class: '',
+                                                      style: '',
+                                                      version: 'v2',
                                                     },
-                                                    form_config: {
-                                                      type: 'name',
-                                                      title: '',
-                                                      input_style: { list: [], version: 'v2' },
-                                                      title_style: { list: [], version: 'v2' },
-                                                      place_holder: Language.text('please_enter_carrier_number'),
+                                                    label: {
+                                                      list: [],
+                                                      class: 'form-label fs-base ',
+                                                      style: '',
+                                                      version: 'v2',
                                                     },
-                                                    hidden_code:
-                                                      "    \n    if(form_data['invoice_type']!=='me' || form_data['send_type']!=='carrier'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                    container: {
+                                                      list: [],
+                                                      class: '',
+                                                      style: '',
+                                                      version: 'v2',
+                                                    },
                                                   },
-                                                  {
-                                                    key: 'company',
-                                                    page: 'input',
-                                                    type: 'form_plugin_v2',
-                                                    group: '',
-                                                    title: Language.text('company_name'),
-                                                    appName: 'cms_system',
-                                                    require: 'false',
-                                                    readonly: 'write',
-                                                    formFormat: '{}',
-                                                    moduleName: '輸入框',
-                                                    col: '3',
-                                                    col_sm: '12',
-                                                    style_data: {
-                                                      input: {
-                                                        list: [],
-                                                        class: '',
-                                                        style: '',
-                                                        version: 'v2',
+                                                  form_config: {
+                                                    type: 'name',
+                                                    title: '',
+                                                    option: [
+                                                      {
+                                                        name: Language.text('send_to_user_email'),
+                                                        index: 0,
+                                                        value: 'email',
                                                       },
-                                                      label: {
-                                                        list: [],
-                                                        class: 'form-label fs-base ',
-                                                        style: '',
-                                                        version: 'v2',
+                                                      {
+                                                        name: Language.text('mobile_barcode_device'),
+                                                        index: 1,
+                                                        value: 'carrier',
                                                       },
-                                                      container: {
-                                                        list: [],
-                                                        class: '',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
-                                                    },
-                                                    form_config: {
-                                                      type: 'name',
-                                                      title: '',
-                                                      input_style: { list: [], version: 'v2' },
-                                                      title_style: { list: [], version: 'v2' },
-                                                      place_holder: Language.text('please_enter_company_name'),
-                                                    },
-                                                    hidden_code:
-                                                      "    if(form_data['invoice_type']!=='company' || (form_data['invoice_method']==='nouse')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                    ],
+                                                    input_style: { list: [], version: 'v2' },
+                                                    title_style: { list: [], version: 'v2' },
+                                                    place_holder: '',
                                                   },
-                                                  {
-                                                    key: 'gui_number',
-                                                    page: 'input',
-                                                    type: 'form_plugin_v2',
-                                                    group: '',
-                                                    title: Language.text('company_tax_id'),
-                                                    col: '3',
-                                                    col_sm: '12',
-                                                    appName: 'cms_system',
-                                                    require: 'false',
-                                                    readonly: 'write',
-                                                    formFormat: '{}',
-                                                    moduleName: '輸入框',
-                                                    style_data: {
-                                                      input: {
-                                                        list: [],
-                                                        class: '',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
-                                                      label: {
-                                                        list: [],
-                                                        class: 'form-label fs-base ',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
-                                                      container: {
-                                                        list: [],
-                                                        class: '',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
+                                                  hidden_code:
+                                                    "    if(form_data['invoice_type']!=='me' || (form_data['invoice_method']==='nouse') || (form_data['invoice_method']==='off_line')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                },
+                                                {
+                                                  key: 'carrier_num',
+                                                  page: 'input',
+                                                  type: 'form_plugin_v2',
+                                                  group: '',
+                                                  title: Language.text('carrier_number'),
+                                                  appName: 'cms_system',
+                                                  require: 'false',
+                                                  readonly: 'write',
+                                                  formFormat: '{}',
+                                                  moduleName: '輸入框',
+                                                  col: '3',
+                                                  col_sm: '12',
+                                                  style_data: {
+                                                    input: {
+                                                      list: [],
+                                                      class: '',
+                                                      style: '',
+                                                      version: 'v2',
                                                     },
-                                                    form_config: {
-                                                      type: 'name',
-                                                      title: '',
-                                                      input_style: { list: [], version: 'v2' },
-                                                      title_style: { list: [], version: 'v2' },
-                                                      place_holder: Language.text('please_enter_company_tax_id'),
+                                                    label: {
+                                                      list: [],
+                                                      class: 'form-label fs-base ',
+                                                      style: '',
+                                                      version: 'v2',
                                                     },
-                                                    hidden_code:
-                                                      "    if(form_data['invoice_type']!=='company'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                    container: {
+                                                      list: [],
+                                                      class: '',
+                                                      style: '',
+                                                      version: 'v2',
+                                                    },
                                                   },
-                                                  {
-                                                    col: '6',
-                                                    key: 'love_code',
-                                                    page: 'input',
-                                                    type: 'form_plugin_v2',
-                                                    group: '',
-                                                    title: Language.text('donation_code'),
-                                                    col_sm: '12',
-                                                    appName: 'cms_system',
-                                                    require: 'false',
-                                                    readonly: 'write',
-                                                    formFormat: '{}',
-                                                    moduleName: '輸入框',
-                                                    style_data: {
-                                                      input: {
-                                                        list: [],
-                                                        class: '',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
-                                                      label: {
-                                                        list: [],
-                                                        class: 'form-label fs-base ',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
-                                                      container: {
-                                                        list: [],
-                                                        class: '',
-                                                        style: '',
-                                                        version: 'v2',
-                                                      },
-                                                    },
-                                                    form_config: {
-                                                      type: 'name',
-                                                      title: '',
-                                                      input_style: { list: [], version: 'v2' },
-                                                      title_style: { list: [], version: 'v2' },
-                                                      place_holder: Language.text('please_enter_donation_code'),
-                                                    },
-                                                    hidden_code:
-                                                      "    if(form_data['invoice_type']!=='donate' || (form_data['invoice_method']==='nouse')){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                  form_config: {
+                                                    type: 'name',
+                                                    title: '',
+                                                    input_style: { list: [], version: 'v2' },
+                                                    title_style: { list: [], version: 'v2' },
+                                                    place_holder: Language.text('please_enter_carrier_number'),
                                                   },
-                                                ]),
+                                                  hidden_code:
+                                                    "    \n    if(form_data['invoice_type']!=='me' || form_data['send_type']!=='carrier'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                },
+                                                {
+                                                  key: 'company',
+                                                  page: 'input',
+                                                  type: 'form_plugin_v2',
+                                                  group: '',
+                                                  title: Language.text('company_name'),
+                                                  appName: 'cms_system',
+                                                  require: 'false',
+                                                  readonly: 'write',
+                                                  formFormat: '{}',
+                                                  moduleName: '輸入框',
+                                                  col: '3',
+                                                  col_sm: '12',
+                                                  style_data: {
+                                                    input: {
+                                                      list: [],
+                                                      class: '',
+                                                      style: '',
+                                                      version: 'v2',
+                                                    },
+                                                    label: {
+                                                      list: [],
+                                                      class: 'form-label fs-base ',
+                                                      style: '',
+                                                      version: 'v2',
+                                                    },
+                                                    container: {
+                                                      list: [],
+                                                      class: '',
+                                                      style: '',
+                                                      version: 'v2',
+                                                    },
+                                                  },
+                                                  form_config: {
+                                                    type: 'name',
+                                                    title: '',
+                                                    input_style: { list: [], version: 'v2' },
+                                                    title_style: { list: [], version: 'v2' },
+                                                    place_holder: Language.text('please_enter_company_name'),
+                                                  },
+                                                  hidden_code:
+                                                    "    if(form_data['invoice_type']!=='company' || (form_data['invoice_method']==='nouse')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                },
+                                                {
+                                                  key: 'gui_number',
+                                                  page: 'input',
+                                                  type: 'form_plugin_v2',
+                                                  group: '',
+                                                  title: Language.text('company_tax_id'),
+                                                  col: '3',
+                                                  col_sm: '12',
+                                                  appName: 'cms_system',
+                                                  require: 'false',
+                                                  readonly: 'write',
+                                                  formFormat: '{}',
+                                                  moduleName: '輸入框',
+                                                  style_data: {
+                                                    input: {
+                                                      list: [],
+                                                      class: '',
+                                                      style: '',
+                                                      version: 'v2',
+                                                    },
+                                                    label: {
+                                                      list: [],
+                                                      class: 'form-label fs-base ',
+                                                      style: '',
+                                                      version: 'v2',
+                                                    },
+                                                    container: {
+                                                      list: [],
+                                                      class: '',
+                                                      style: '',
+                                                      version: 'v2',
+                                                    },
+                                                  },
+                                                  form_config: {
+                                                    type: 'name',
+                                                    title: '',
+                                                    input_style: { list: [], version: 'v2' },
+                                                    title_style: { list: [], version: 'v2' },
+                                                    place_holder: Language.text('please_enter_company_tax_id'),
+                                                  },
+                                                  hidden_code:
+                                                    "    if(form_data['invoice_type']!=='company'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                },
+                                                {
+                                                  col: '6',
+                                                  key: 'love_code',
+                                                  page: 'input',
+                                                  type: 'form_plugin_v2',
+                                                  group: '',
+                                                  title: Language.text('donation_code'),
+                                                  col_sm: '12',
+                                                  appName: 'cms_system',
+                                                  require: 'false',
+                                                  readonly: 'write',
+                                                  formFormat: '{}',
+                                                  moduleName: '輸入框',
+                                                  style_data: {
+                                                    input: {
+                                                      list: [],
+                                                      class: '',
+                                                      style: '',
+                                                      version: 'v2',
+                                                    },
+                                                    label: {
+                                                      list: [],
+                                                      class: 'form-label fs-base ',
+                                                      style: '',
+                                                      version: 'v2',
+                                                    },
+                                                    container: {
+                                                      list: [],
+                                                      class: '',
+                                                      style: '',
+                                                      version: 'v2',
+                                                    },
+                                                  },
+                                                  form_config: {
+                                                    type: 'name',
+                                                    title: '',
+                                                    input_style: { list: [], version: 'v2' },
+                                                    title_style: { list: [], version: 'v2' },
+                                                    place_holder: Language.text('please_enter_donation_code'),
+                                                  },
+                                                  hidden_code:
+                                                    "    if(form_data['invoice_type']!=='donate' || (form_data['invoice_method']==='nouse')){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                                },
+                                              ]),
                                             {
                                               col: '12',
                                               key: 'note',
@@ -3085,377 +2880,383 @@ export class CheckoutIndex {
                                               })
                                               .join('');
                                           } else {
-                                            return ` <div
-                                          class="d-flex align-items-center justify-content-end"
-                                          style="width:1180px;max-width: 100%;gap:24px;"
-                                        >
-                                          <div class="d-flex align-items-end fs-base" style="gap:5px;">
-                                            <span style="white-space:nowrap;" class="fw-bold fs-sm">
-                                              ${Language.text('total_amount')}</span
+                                            return html` <div
+                                              class="d-flex align-items-center justify-content-end"
+                                              style="width:1180px;max-width: 100%;gap:24px;"
                                             >
-                                            <div class="${gClass(['price-row', 'text-1', 'bold'])}">
-                                              <div class="fs-5 fw-bold ${gClass('price-text')}">
-                                                ${Currency.convertCurrencyText(vm.cartData.total)}
+                                              <div class="d-flex align-items-end fs-base" style="gap:5px;">
+                                                <span style="white-space:nowrap;" class="fw-bold fs-sm">
+                                                  ${Language.text('total_amount')}</span
+                                                >
+                                                <div class="${gClass(['price-row', 'text-1', 'bold'])}">
+                                                  <div class="fs-5 fw-bold ${gClass('price-text')}">
+                                                    ${Currency.convertCurrencyText(vm.cartData.total)}
+                                                  </div>
+                                                </div>
                                               </div>
-                                            </div>
-                                          </div>
-                                          <div class="flex-fill d-block d-sm-none"></div>
-                                          <div class="">
-                                            <button
-                                              class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
-                                              style="${
-                                                document.body.clientWidth < 800
-                                                  ? `min-width:100px;`
-                                                  : `min-width:380px;`
-                                              }"
-                                              onclick="${gvc.event(() => {
-                                                const that = this;
-                                                if (onlineData?.interaction?.status == 3) {
-                                                  const dialog = new ShareDialog(gvc.glitter);
-                                                  dialog.infoMessage({
-                                                    text: `很抱歉，團購的結帳時間已截止，無法再進行訂單結算。感謝您的支持，期待下次再為您服務！`,
-                                                  });
+                                              <div class="flex-fill d-block d-sm-none"></div>
+                                              <div>
+                                                <button
+                                                  class="${gClass(
+                                              verify.length > 0 ? 'button-bgr-disable' : 'button-bgr'
+                                            )}"
+                                                  style="${document.body.clientWidth < 800
+                                              ? `min-width:100px;`
+                                              : `min-width:380px;`}"
+                                                  onclick="${gvc.event(() => {
+                                              const that = this;
+                                              if (onlineData?.interaction?.status == 3) {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.infoMessage({
+                                                  text: `很抱歉，團購的結帳時間已截止，無法再進行訂單結算。感謝您的支持，期待下次再為您服務！`,
+                                                });
+                                                return;
+                                              }
+
+                                              if (
+                                                (window as any).login_config.login_in_to_order &&
+                                                !GlobalUser.token
+                                              ) {
+                                                GlobalUser.loginRedirect = location.href;
+                                                gvc.glitter.href = '/login';
+                                                return;
+                                              }
+
+                                              function next() {
+                                                if (vm.cartData.user_info_same) {
+                                                  vm.cartData.user_info.name = vm.cartData.customer_info.name;
+                                                  vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
+                                                  vm.cartData.user_info.email = vm.cartData.customer_info.email;
+                                                }
+                                                if (verify.length > 0) {
                                                   return;
                                                 }
 
-                                                if (
-                                                  (window as any).login_config.login_in_to_order &&
-                                                  !GlobalUser.token
-                                                ) {
-                                                  GlobalUser.loginRedirect = location.href;
-                                                  gvc.glitter.href = '/login';
-                                                  return;
+                                                if (shipmentList.length === 0) {
+                                                  vm.cartData.user_info.shipment = 'none';
                                                 }
 
-                                                function next() {
-                                                  if (vm.cartData.user_info_same) {
-                                                    vm.cartData.user_info.name = vm.cartData.customer_info.name;
-                                                    vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
-                                                    vm.cartData.user_info.email = vm.cartData.customer_info.email;
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                if (!that.checkFormData(gvc, vm.cartData, widget)) {
+                                                  return;
+                                                }
+                                                for (const item of vm.cartData.lineItems) {
+                                                  const title =
+                                                    (item.language_data &&
+                                                      item.language_data[Language.getLanguage()].title) ||
+                                                    item.title;
+                                                  let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                                  let max_qty =
+                                                    (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
+                                                  let count = 0;
+                                                  for (const b of vm.cartData.lineItems) {
+                                                    if (b.id === item.id) {
+                                                      count += b.count;
+                                                    }
                                                   }
-                                                  if (verify.length > 0) {
+                                                  if (count < min) {
+                                                    dialog.errorMessage({
+                                                      text: Language.text('min_p_count_d')
+                                                        .replace('_c_', min)
+                                                        .replace('_p_', `『${title}』`),
+                                                    });
                                                     return;
                                                   }
-
-                                                  if (shipmentList.length === 0) {
-                                                    vm.cartData.user_info.shipment = 'none';
-                                                  }
-
-                                                  const dialog = new ShareDialog(gvc.glitter);
-                                                  if (!that.checkFormData(gvc, vm.cartData, widget)) {
+                                                  if (count > max_qty) {
+                                                    dialog.errorMessage({
+                                                      text: Language.text('max_p_count_d')
+                                                        .replace('_c_', max_qty)
+                                                        .replace('_p_', `『${title}』`),
+                                                    });
                                                     return;
                                                   }
-                                                  for (const item of vm.cartData.lineItems) {
-                                                    const title =
-                                                      (item.language_data &&
-                                                        item.language_data[Language.getLanguage()].title) ||
-                                                      item.title;
-                                                    let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
-                                                    let max_qty =
-                                                      (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
-                                                    let count = 0;
-                                                    for (const b of vm.cartData.lineItems) {
-                                                      if (b.id === item.id) {
-                                                        count += b.count;
-                                                      }
-                                                    }
-                                                    if (count < min) {
-                                                      dialog.errorMessage({
-                                                        text: Language.text('min_p_count_d')
-                                                          .replace('_c_', min)
-                                                          .replace('_p_', `『${title}』`),
-                                                      });
-                                                      return;
-                                                    }
-                                                    if (count > max_qty) {
-                                                      dialog.errorMessage({
-                                                        text: Language.text('max_p_count_d')
-                                                          .replace('_c_', max_qty)
-                                                          .replace('_p_', `『${title}』`),
-                                                      });
-                                                      return;
-                                                    }
-                                                    if (max_qty > 0 && count + item.buy_history_count > max_qty) {
-                                                      dialog.errorMessage({
-                                                        text: Language.text('trigger_maximum_item').replace(
-                                                          '_p_',
-                                                          `『${title}』`
-                                                        ),
-                                                      });
-                                                      return;
-                                                    }
+                                                  if (max_qty > 0 && count + item.buy_history_count > max_qty) {
+                                                    dialog.errorMessage({
+                                                      text: Language.text('trigger_maximum_item').replace(
+                                                        '_p_',
+                                                        `『${title}』`
+                                                      ),
+                                                    });
+                                                    return;
                                                   }
-                                                  [
-                                                    'MerchantTradeNo',
-                                                    'LogisticsSubType',
-                                                    'CVSStoreID',
-                                                    'CVSStoreName',
-                                                    'CVSTelephone',
-                                                    'CVSOutSide',
-                                                    'ExtraData',
-                                                    'CVSAddress',
-                                                  ].map(dd => {
-                                                    if (gvc.glitter.getUrlParameter(dd)) {
-                                                      vm.cartData.user_info[dd] = decodeURI(
-                                                        glitter.getUrlParameter(dd)
-                                                      );
+                                                }
+                                                [
+                                                  'MerchantTradeNo',
+                                                  'LogisticsSubType',
+                                                  'CVSStoreID',
+                                                  'CVSStoreName',
+                                                  'CVSTelephone',
+                                                  'CVSOutSide',
+                                                  'ExtraData',
+                                                  'CVSAddress',
+                                                ].map(dd => {
+                                                  if (gvc.glitter.getUrlParameter(dd)) {
+                                                    vm.cartData.user_info[dd] = decodeURI(
+                                                      glitter.getUrlParameter(dd)
+                                                    );
+                                                  }
+                                                });
+                                                dialog.dataLoading({ visible: true });
+                                                vm.cartData.user_info.note =
+                                                  (vm.cartData.user_info.note ?? '') + (check_out_sub.note ?? '');
+                                                ApiShop.toCheckout({
+                                                  line_items: vm.cartData.lineItems.map((dd: any) => {
+                                                    return {
+                                                      id: dd.id,
+                                                      spec: dd.spec,
+                                                      count: dd.count,
+                                                    };
+                                                  }),
+                                                  customer_info: vm.cartData.customer_info,
+                                                  return_url: (() => {
+                                                    const originalUrl =
+                                                      glitter.root_path + 'order_detail' + location.search;
+                                                    const urlObject = new URL(originalUrl);
+                                                    urlObject.searchParams.set('EndCheckout', '1');
+                                                    const newUrl = urlObject.toString();
+                                                    if (
+                                                      ApplicationConfig.device_type !== 'web' &&
+                                                      ['jkopay', 'line_pay'].includes(
+                                                        vm.cartData.customer_info.payment_select
+                                                      )
+                                                    ) {
+                                                      return `${ApplicationConfig.bundle_id}://?path=${encodeURIComponent(newUrl)}`;
+                                                    } else {
+                                                      return newUrl;
                                                     }
-                                                  });
-                                                  dialog.dataLoading({ visible: true });
-                                                  vm.cartData.user_info.note =
-                                                    (vm.cartData.user_info.note ?? '') + (check_out_sub.note ?? '');
-                                                  ApiShop.toCheckout({
-                                                    line_items: vm.cartData.lineItems.map((dd: any) => {
-                                                      return {
-                                                        id: dd.id,
-                                                        spec: dd.spec,
-                                                        count: dd.count,
-                                                      };
-                                                    }),
-                                                    customer_info: vm.cartData.customer_info,
-                                                    return_url: (() => {
-                                                      const originalUrl =
-                                                        glitter.root_path + 'order_detail' + location.search;
-                                                      const urlObject = new URL(originalUrl);
-                                                      urlObject.searchParams.set('EndCheckout', '1');
-                                                      const newUrl = urlObject.toString();
-                                                      if ((ApplicationConfig.device_type === 'ios') && ['jkopay','line_pay'].includes(vm.cartData.customer_info.payment_select)) {
-                                                        return `${ApplicationConfig.bundle_id}://?path=${encodeURIComponent(newUrl)}`;
-                                                      } else {
-                                                        return newUrl;
-                                                      }
-                                                    })(),
-                                                    user_info: vm.cartData.user_info,
-                                                    code: apiCart.cart.code,
-                                                    use_rebate: apiCart.cart.use_rebate,
-                                                    custom_form_format: vm.cartData.custom_form_format,
-                                                    custom_form_data: vm.cartData.custom_form_data,
-                                                    custom_receipt_form: vm.cartData.receipt_form,
-                                                    distribution_code: localStorage.getItem('distributionCode') ?? '',
-                                                    give_away: apiCart.cart.give_away,
-                                                  }).then(res => {
-                                                    dialog.dataLoading({ visible: false });
-                                                    if (!res.result){
-                                                      dialog.infoMessage({
-                                                        text: '系統處理您的付款時遇到一些問題，導致交易未能完成。請聯繫我們的客服團隊以取得進一步的協助'
-                                                      })
-                                                      return 
+                                                  })(),
+                                                  user_info: vm.cartData.user_info,
+                                                  code: apiCart.cart.code,
+                                                  use_rebate: apiCart.cart.use_rebate,
+                                                  custom_form_format: vm.cartData.custom_form_format,
+                                                  custom_form_data: vm.cartData.custom_form_data,
+                                                  custom_receipt_form: vm.cartData.receipt_form,
+                                                  distribution_code:
+                                                    localStorage.getItem('distributionCode') ?? '',
+                                                  give_away: apiCart.cart.give_away,
+                                                }).then(res => {
+                                                  dialog.dataLoading({ visible: false });
+                                                  if (!res.result){
+                                                    dialog.infoMessage({
+                                                      text: '系統處理您的付款時遇到一些問題，導致交易未能完成。請聯繫我們的客服團隊以取得進一步的協助'
+                                                    })
+                                                    return
+                                                  }
+                                                  if (vm.cartData.customer_info.payment_select == 'paynow') {
+                                                    if (!res.response?.data?.result?.secret) {
+                                                      return 'paynow API失敗';
                                                     }
-                                                    if (vm.cartData.customer_info.payment_select == 'paynow') {
-                                                      if (!res.response?.data?.result?.secret) {
-                                                        return 'paynow API失敗';
-                                                      }
-                                                      glitter.innerDialog(
-                                                        (gvc: GVC) => {
-                                                          document.body.style.setProperty(
-                                                            'overflow-y',
-                                                            'hidden',
-                                                            'important'
-                                                          );
-                                                          return gvc.bindView({
-                                                            bind: `paynow`,
-                                                            view: () => {
-                                                              return html` <div
-                                                                class="w-100 h-100 d-flex align-items-center justify-content-center"
-                                                              >
-                                                                ${document.body.clientWidth < 800
-                                                                  ? `
+                                                    glitter.innerDialog(
+                                                      (gvc: GVC) => {
+                                                        document.body.style.setProperty(
+                                                          'overflow-y',
+                                                          'hidden',
+                                                          'important'
+                                                        );
+                                                        return gvc.bindView({
+                                                          bind: `paynow`,
+                                                          view: () => {
+                                                            return html` <div
+                                                                    class="w-100 h-100 d-flex align-items-center justify-content-center"
+                                                                  >
+                                                                    ${document.body.clientWidth < 800
+                                                              ? `
                                                                             <div class="bg-white position-relative vw-100" style="height: ${window.innerHeight}px;overflow-y: auto;
                                                                             padding-top:${50 + glitter.share.top_inset}px;
                                                                             ">
                                                                             `
-                                                                  : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
-                                                                <div
-                                                                  style="position: absolute; right: 15px;top:${15 +
-                                                                  glitter.share.top_inset}px;z-index:1;"
-                                                                  onclick="${gvc.event(() => {
-                                                                    location.href = res.response.returnUrl;
-                                                                    gvc.closeDialog();
-                                                                  })}"
-                                                                >
-                                                                  <i
-                                                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
-                                                                  ></i>
-                                                                </div>
-                                                                <div id="paynow-container" class="" style="">
-                                                                  <div style="width:200px;height:200px;">
-                                                                    loading...
-                                                                  </div>
-                                                                </div>
-                                                                <div class="px-3 px-sm-0 w-100">
-                                                                  <button
-                                                                    class="${gClass(
-                                                                      verify.length > 0
-                                                                        ? 'button-bgr-disable'
-                                                                        : 'button-bgr'
-                                                                    )} "
-                                                                    id="checkoutButton"
-                                                                    onclick="${gvc.event(() => {
-                                                                      // const inputGroup = document.querySelector('#paynow-container');
-                                                                      // console.log("inputGroup -- " , inputGroup)
-                                                                      const PayNow = (window as any).PayNow;
-                                                                      const dialog = new ShareDialog(gvc.glitter);
-                                                                      dialog.dataLoading({ visible: true });
-                                                                      PayNow.checkout().then((response: any) => {
-                                                                        dialog.dataLoading({ visible: false });
-                                                                        if (response.error) {
-                                                                          dialog.errorMessage({
-                                                                            text: response.error.message,
-                                                                          });
-                                                                          // handle error
-                                                                        }
-                                                                        // handle success
-                                                                      });
-                                                                    })}"
-                                                                  >
-                                                                    <span class="${gClass('button-text')}"
-                                                                      >確認結帳</span
+                                                              : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
+                                                                    <div
+                                                                      style="position: absolute; right: 15px;top:${15 +
+                                                            glitter.share.top_inset}px;z-index:1;"
+                                                                      onclick="${gvc.event(() => {
+                                                                        location.href = res.response.returnUrl;
+                                                              gvc.closeDialog();
+                                                            })}"
                                                                     >
-                                                                  </button>
-                                                                </div>
-                                                              </div>`;
-                                                            },
-                                                            divCreate: {
-                                                              class: ` h-100 d-flex align-items-center justify-content-center`,
-                                                              style: `max-width:100vw;${document.body.clientWidth < 800 ? 'width:100%;' : 'width:400px;'};`,
-                                                            },
-                                                            onCreate: () => {
-                                                              const publicKey = res.response.publicKey;
-                                                              const secret = res.response.data.result.secret;
-                                                              const env =
-                                                                res.response.BETA == 'true' ? 'sandbox' : 'production';
-                                                              // res.response.result.secret
+                                                                      <i
+                                                                        class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                                                      ></i>
+                                                                    </div>
+                                                                    <div id="paynow-container">
+                                                                      <div style="width:200px;height:200px;">
+                                                                        loading...
+                                                                      </div>
+                                                                    </div>
+                                                                    <div class="px-3 px-sm-0 w-100">
+                                                                      <button
+                                                                        class="${gClass(
+                                                              verify.length > 0
+                                                                ? 'button-bgr-disable'
+                                                                : 'button-bgr'
+                                                            )} "
+                                                                        id="checkoutButton"
+                                                                        onclick="${gvc.event(() => {
                                                               const PayNow = (window as any).PayNow;
-                                                              PayNow.createPayment({
-                                                                publicKey: publicKey,
-                                                                secret: secret,
-                                                                env: env,
+                                                              const dialog = new ShareDialog(gvc.glitter);
+                                                              dialog.dataLoading({ visible: true });
+                                                              PayNow.checkout().then((response: any) => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                if (response.error) {
+                                                                  dialog.errorMessage({
+                                                                    text: response.error.message,
+                                                                  });
+                                                                }
                                                               });
-                                                              PayNow.mount('#paynow-container', {
-                                                                locale: 'zh_tw',
-                                                                appearance: {
-                                                                  variables: {
-                                                                    fontFamily: 'monospace',
-                                                                    colorPrimary: '#0078ab',
-                                                                    colorDefault: '#0a0a0a',
-                                                                    colorBorder: '#cccccc',
-                                                                    colorPlaceholder: '#eeeeee',
-                                                                    borderRadius: '.3rem',
-                                                                    colorDanger: '#ff3d3d',
-                                                                  },
-                                                                },
-                                                              });
-                                                            },
-                                                          });
-                                                        },
-                                                        `paynow`,
-                                                        {
-                                                          animation:
-                                                            document.body.clientWidth > 800
-                                                              ? Animation.fade
-                                                              : Animation.popup,
-                                                          dismiss: () => {
-                                                            document.body.style.setProperty('overflow-y', 'auto');
+                                                            })}"
+                                                                      >
+                                                                        <span class="${gClass('button-text')}"
+                                                                          >確認結帳</span
+                                                                        >
+                                                                      </button>
+                                                                    </div>
+                                                                  </div>`;
                                                           },
-                                                        }
-                                                      );
-                                                    }
-
-                                                    localStorage.setItem(
-                                                      'clear_cart_items',
-                                                      JSON.stringify(vm.cartData.lineItems.map((item: any) => item.id))
-                                                    );
-
-                                                    if (res.response.off_line || res.response.is_free) {
-                                                      location.href = res.response.return_url;
-                                                    } else {
-                                                      if (
-                                                        res.response.returnCode == '0000' &&
-                                                        vm.cartData.customer_info.payment_select == 'line_pay'
-                                                      ) {
-                                                        if (glitter.share.is_application) {
-                                                          gvc.glitter.runJsInterFace(
-                                                            'intent_url',
-                                                            {
-                                                              url: res.response.info.paymentUrl.app,
-                                                            },
-                                                            () => {}
-                                                          );
-                                                          // location.href = res.response.info.paymentUrl.app;
-                                                        } else {
-                                                          location.href = res.response.info.paymentUrl.web;
-                                                        }
-                                                        // todo 手機跳轉用這個
-                                                        //     location.href = res.response.form.info.paymentUrl.app;
-                                                      } else if (res.response.approveLink) {
-                                                        location.href = res.response.approveLink;
-                                                      } else if (vm.cartData.customer_info.payment_select == 'jkopay') {
-                                                        if (glitter.share.is_application) {
-                                                          gvc.glitter.runJsInterFace(
-                                                            'intent_url',
-                                                            {
-                                                              url: res.response.result_object.payment_url,
-                                                            },
-                                                            () => {}
-                                                          );
-                                                        } else {
-                                                          location.href = res.response.result_object.payment_url;
-                                                        }
-                                                      } else {
-                                                        const id = gvc.glitter.getUUID();
-                                                        $('body').append(
-                                                          html` <div id="${id}" style="display: none;">
-                                                            ${res.response.form}
-                                                          </div>`
-                                                        );
-                                                        (document.querySelector(`#${id} #submit`) as any).click();
+                                                          divCreate: {
+                                                            class: ` h-100 d-flex align-items-center justify-content-center`,
+                                                            style: `max-width:100vw;${document.body.clientWidth < 800 ? 'width:100%;' : 'width:400px;'};`,
+                                                          },
+                                                          onCreate: () => {
+                                                            const publicKey = res.response.publicKey;
+                                                            const secret = res.response.data.result.secret;
+                                                            const env =
+                                                              res.response.BETA == 'true'
+                                                                ? 'sandbox'
+                                                                : 'production';
+                                                            const PayNow = (window as any).PayNow;
+                                                            PayNow.createPayment({
+                                                              publicKey: publicKey,
+                                                              secret: secret,
+                                                              env: env,
+                                                            });
+                                                            PayNow.mount('#paynow-container', {
+                                                              locale: 'zh_tw',
+                                                              appearance: {
+                                                                variables: {
+                                                                  fontFamily: 'monospace',
+                                                                  colorPrimary: '#0078ab',
+                                                                  colorDefault: '#0a0a0a',
+                                                                  colorBorder: '#cccccc',
+                                                                  colorPlaceholder: '#eeeeee',
+                                                                  borderRadius: '.3rem',
+                                                                  colorDanger: '#ff3d3d',
+                                                                },
+                                                              },
+                                                            });
+                                                          },
+                                                        });
+                                                      },
+                                                      `paynow`,
+                                                      {
+                                                        animation:
+                                                          document.body.clientWidth > 800
+                                                            ? Animation.fade
+                                                            : Animation.popup,
+                                                        dismiss: () => {
+                                                          document.body.style.setProperty('overflow-y', 'auto');
+                                                        },
                                                       }
-                                                    }
-                                                  });
-                                                }
+                                                    );
+                                                  }
 
-                                                if (
-                                                  (window as any).login_config.login_in_to_order &&
-                                                  !GlobalUser.token
-                                                ) {
-                                                  GlobalUser.loginRedirect = location.href;
-                                                  gvc.glitter.href = '/login';
-                                                  return;
-                                                } else {
-                                                  ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
+                                                  localStorage.setItem(
+                                                    'clear_cart_items',
+                                                    JSON.stringify(
+                                                      vm.cartData.lineItems.map((item: any) => item.id)
+                                                    )
+                                                  );
+
+                                                  if (res.response.off_line || res.response.is_free) {
+                                                    location.href = res.response.return_url;
+                                                  } else {
                                                     if (
-                                                      res.response.userData &&
-                                                      !res.response.userData.phone &&
-                                                      (window as any).login_config.phone_verify &&
-                                                      glitter.getUrlParameter('page') !== 'account_edit'
+                                                      res.response.returnCode == '0000' &&
+                                                      vm.cartData.customer_info.payment_select == 'line_pay'
                                                     ) {
-                                                      const dialog = new ShareDialog(glitter);
-                                                      dialog.infoMessage({
-                                                        text: Language.text('phone_verify_check'),
-                                                      });
-                                                      glitter.href = '/account_edit';
+                                                      if (glitter.share.is_application) {
+                                                        gvc.glitter.runJsInterFace(
+                                                          'intent_url',
+                                                          {
+                                                            url: res.response.info.paymentUrl.app,
+                                                          },
+                                                          () => {}
+                                                        );
+                                                        // location.href = res.response.info.paymentUrl.app;
+                                                      } else {
+                                                        location.href = res.response.info.paymentUrl.web;
+                                                      }
+                                                      // todo 手機跳轉用這個
+                                                      // location.href = res.response.form.info.paymentUrl.app;
+                                                    } else if (res.response.approveLink) {
+                                                      location.href = res.response.approveLink;
+                                                    } else if (
+                                                      vm.cartData.customer_info.payment_select == 'jkopay'
+                                                    ) {
+                                                      if (glitter.share.is_application) {
+                                                        gvc.glitter.runJsInterFace(
+                                                          'intent_url',
+                                                          {
+                                                            url: res.response.result_object.payment_url,
+                                                          },
+                                                          () => {}
+                                                        );
+                                                      } else {
+                                                        location.href = res.response.result_object.payment_url;
+                                                      }
                                                     } else {
-                                                      next();
+                                                      const id = gvc.glitter.getUUID();
+                                                      $('body').append(
+                                                        html` <div id="${id}" style="display: none;">
+                                                                ${res.response.form}
+                                                              </div>`
+                                                      );
+                                                      (document.querySelector(`#${id} #submit`) as any).click();
                                                     }
-                                                  });
-                                                }
-                                              })}"
-                                            >
-                                              <span class="${gClass('button-text')} "
-                                                    style="${verify.length > 0 ? `font-size:13px;` : ``}"
+                                                  }
+                                                });
+                                              }
+
+                                              if (
+                                                (window as any).login_config.login_in_to_order &&
+                                                !GlobalUser.token
+                                              ) {
+                                                GlobalUser.loginRedirect = location.href;
+                                                gvc.glitter.href = '/login';
+                                                return;
+                                              } else {
+                                                ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
+                                                  if (
+                                                    res.response.userData &&
+                                                    !res.response.userData.phone &&
+                                                    (window as any).login_config.phone_verify &&
+                                                    glitter.getUrlParameter('page') !== 'account_edit'
+                                                  ) {
+                                                    const dialog = new ShareDialog(glitter);
+                                                    dialog.infoMessage({
+                                                      text: Language.text('phone_verify_check'),
+                                                    });
+                                                    glitter.href = '/account_edit';
+                                                  } else {
+                                                    next();
+                                                  }
+                                                });
+                                              }
+                                            })}"
                                                 >
-                                                ${
-                                                  verify.length > 0
-                                                    ? verify.join('<br/>')
-                                                    : (window as any).login_config.login_in_to_order &&
-                                                        !GlobalUser.token
-                                                      ? Language.text('login_in_to_checkout')
-                                                      : Language.text('next')
-                                                }
-                                                </span >
-                                            </button>
-                                          </div>
-                                        </div>`;
+                                                  <span
+                                                    class="${gClass('button-text')} "
+                                                    style="${verify.length > 0 ? `font-size:13px;` : ''}"
+                                                  >
+                                                    ${verify.length > 0
+                                              ? verify.join('<br/>')
+                                              : (window as any).login_config.login_in_to_order &&
+                                              !GlobalUser.token
+                                                ? Language.text('login_in_to_checkout')
+                                                : Language.text('next')}
+                                                  </span>
+                                                </button>
+                                              </div>
+                                            </div>`;
                                           }
                                         })()}
                                       </div>
@@ -3470,7 +3271,7 @@ export class CheckoutIndex {
                                   : `width:calc(100%);`}"
                               >
                                 <!--明細-->
-                                <div style="" class="rounded-3 bg-white w-100 p-3">${detail_info}</div>
+                                <div class="rounded-3 bg-white w-100 p-3">${detail_info}</div>
                                 <div class="d-sm-none" style="height:120px;"></div>
                               </div>
                             </div>
@@ -3528,12 +3329,10 @@ export class CheckoutIndex {
         })()
       ) +
       (gvc.glitter.getUrlParameter('page') === 'checkout'
-        ? `
-      <div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 vw-100 vh-100"></div>
-      `
-        : `
-      <div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 w-100"></div>
-      `)
+        ? html`
+            <div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 vw-100 vh-100"></div>
+          `
+        : html` <div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 w-100"></div> `)
     );
   }
 
@@ -3587,7 +3386,9 @@ export class CheckoutIndex {
         if (ship_method && ship_method.system_form) {
           return (ship_method.system_form ?? []).includes('tw-address-selector');
         }
-        return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice','global_express'].includes(subData['shipment']);
+        return ['normal', 'black_cat', 'black_cat_freezing', 'black_cat_ice', 'global_express'].includes(
+          subData['shipment']
+        );
       })()
     ) {
       if (!subData['address'] || subData['address'] === '') {
@@ -3600,12 +3401,12 @@ export class CheckoutIndex {
           text: `${Language.text('please_enter')}「${Language.text('city')}」`,
         });
         return false;
-      } else if ((!subData['area'] || subData['area'] === '') && (subData['shipment']!=='global_express')) {
+      } else if ((!subData['area'] || subData['area'] === '') && subData['shipment'] !== 'global_express') {
         dialog.errorMessage({
           text: `${Language.text('please_enter')}「${Language.text('area')}」`,
         });
         return false;
-      }else if ((!subData['state'] || subData['state'] === '') && (subData['shipment']==='global_express')) {
+      } else if ((!subData['state'] || subData['state'] === '') && subData['shipment'] === 'global_express') {
         dialog.errorMessage({
           text: `${Language.text('please_enter')}「${Language.text('state')}」`,
         });
@@ -3823,22 +3624,21 @@ export class CheckoutIndex {
     });
 
     cartData.off_line_support = cartData.off_line_support ?? {};
-    console.log(cartData.off_line_support);
     cartData.off_line_support.atm &&
-      array.push({
-        name: '銀行轉帳',
-        value: 'atm',
-      });
+    array.push({
+      name: '銀行轉帳',
+      value: 'atm',
+    });
     cartData.off_line_support.line &&
-      array.push({
-        name: 'Line轉帳',
-        value: 'line',
-      });
+    array.push({
+      name: 'Line轉帳',
+      value: 'line',
+    });
     cartData.off_line_support.cash_on_delivery &&
-      array.push({
-        name: '貨到付款',
-        value: 'cash_on_delivery',
-      });
+    array.push({
+      name: '貨到付款',
+      value: 'cash_on_delivery',
+    });
     if (cartData.payment_info_custom && cartData.payment_info_custom.length > 0) {
       cartData.payment_info_custom.map((item: any) => {
         if (cartData.off_line_support[item.id]) {
@@ -3850,7 +3650,7 @@ export class CheckoutIndex {
       });
     }
 
-    //當沒有找到付款方式實則重新inital
+    // 沒有找到付款方式，則重新 inital
     if (
       !array.find(dd => {
         return dd.value === localStorage.getItem('checkout-payment');

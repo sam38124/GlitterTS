@@ -27,7 +27,7 @@ export class ProductSelect {
                 page: 0,
                 limit: 50,
                 id: bundle.formData[bundle.key],
-            }).then((data) => {
+            }).then(data => {
                 if (data.result && data.response.result) {
                     vm.title = data.response.data.content.title;
                 }
@@ -50,19 +50,19 @@ export class ProductSelect {
                                     page: 0,
                                     limit: 50,
                                     search: '',
-                                }).then((data) => {
+                                }).then(data => {
                                     callback(data.response.data.map((dd) => {
                                         return dd.content.title;
                                     }));
                                 });
                             }, 100);
                         },
-                        callback: (text) => {
+                        callback: text => {
                             ApiShop.getProduct({
                                 page: 0,
                                 limit: 50,
                                 search: text,
-                            }).then((data) => {
+                            }).then(data => {
                                 bundle.formData['product_title'] = text;
                                 bundle.formData[bundle.key] = data.response.data.find((dd) => {
                                     return dd.content.title === text;
@@ -93,7 +93,8 @@ export class ProductSelect {
             containerId: Tool.randomString(6),
             loading: true,
         };
-        const is_page = window.parent.glitter.getUrlParameter('page').startsWith('shop') || window.parent.glitter.getUrlParameter('page').startsWith('hidden');
+        const is_page = window.parent.glitter.getUrlParameter('page').startsWith('shop') ||
+            window.parent.glitter.getUrlParameter('page').startsWith('hidden');
         if (is_page) {
             if (bundle.formData[bundle.key].select !== 'product') {
                 bundle.formData[bundle.key].select = 'product';
@@ -123,31 +124,36 @@ export class ProductSelect {
                                 return [];
                             }
                         }))();
-                        resolve(html `
-                            <div class="d-flex flex-column py-2 my-2 border-top" style="gap: 18px;">
-                                <div class="d-flex align-items-center gray-bottom-line-18 pb-2"
-                                     style="gap: 10px; justify-content: space-between;">
-                                    <div class="flex-fill ">
-                                        ${EditorElem.select({
+                        resolve(html ` <div class="d-flex flex-column py-2 my-2 border-top" style="gap: 18px;">
+                <div
+                  class="d-flex align-items-center gray-bottom-line-18 pb-2"
+                  style="gap: 10px; justify-content: space-between;"
+                >
+                  <div class="flex-fill ">
+                    ${EditorElem.select({
                             title: bundle.title,
                             gvc: gvc,
                             def: bundle.formData[bundle.key].select,
-                            array: (is_page) ? [{ value: 'product', title: '單一商品' }] : [
-                                { value: 'collection', title: '商品系列' },
-                                { value: 'product', title: '單一商品' },
-                                { value: 'all', title: '所有商品' },
-                            ],
-                            callback: (text) => {
+                            array: is_page
+                                ? [{ value: 'product', title: '特定商品' }]
+                                : [
+                                    { value: 'collection', title: '商品系列' },
+                                    { value: 'product', title: '特定商品' },
+                                    { value: 'all', title: '所有商品' },
+                                ],
+                            callback: text => {
                                 bundle.formData[bundle.key].select = text;
                                 bundle.formData[bundle.key].value = [];
                                 bundle.callback(bundle.formData[bundle.key].value);
                                 gvc.notifyDataChange(subVM.id);
                             },
                         })}
-                                    </div>
-                                    <div class="${bundle.formData[bundle.key].select === 'all' ? `d-none` : ``}"
-                                         style="margin-top: 30px;">
-                                        ${BgWidget.grayButton((() => {
+                  </div>
+                  <div
+                    class="${bundle.formData[bundle.key].select === 'all' ? `d-none` : ``}"
+                    style="margin-top: 30px;"
+                  >
+                    ${BgWidget.grayButton((() => {
                             switch (bundle.formData[bundle.key].select) {
                                 case 'product':
                                 case 'collection':
@@ -181,49 +187,52 @@ export class ProductSelect {
                                 });
                             }
                         }), { textStyle: 'font-weight: 400;' })}
-                                    </div>
-                                </div>
-                                <div class="d-flex flex-column gap-2" id="${subVM.containerId}">
-                                    ${gvc.map(subVM.dataList.map((opt, index) => {
+                  </div>
+                </div>
+                <div class="d-flex flex-column gap-2" id="${subVM.containerId}">
+                  ${gvc.map(subVM.dataList.map((opt, index) => {
                             switch (bundle.formData[bundle.key].select) {
                                 case 'collection':
-                                    return html `
-                                                            <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                <span class="tx_normal">${index + 1}. ${opt}</span>
-                                                            </div>`;
+                                    return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                            <span class="tx_normal">${index + 1}. ${opt}</span>
+                          </div>`;
                                 case 'product':
-                                    return html `
-                                                            <div class="d-flex align-items-center form-check-label c_updown_label px-1"
-                                                                 style="justify-content: space-between"
-                                                                 data-index="${opt.key}">
-                                                                <div class="d-flex align-items-center gap-3 cursor_move" style="max-width: calc(100% - 50px);">
-                                                                    <i class="fa-solid fa-grip-dots-vertical dragItem"></i>
-                                                                    ${BgWidget.validImageBox({
+                                    return html ` <div
+                            class="d-flex align-items-center form-check-label c_updown_label px-1"
+                            style="justify-content: space-between"
+                            data-index="${opt.key}"
+                          >
+                            <div
+                              class="d-flex align-items-center gap-3 cursor_move"
+                              style="max-width: calc(100% - 50px);"
+                            >
+                              <i class="fa-solid fa-grip-dots-vertical dragItem"></i>
+                              ${BgWidget.validImageBox({
                                         gvc,
                                         image: opt.image,
                                         width: 40,
                                     })}
-                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}"  style="white-space:normal;">
-                                                                        ${opt.value}
-                                                                    </div>
-                                                                </div>
-                                                                <i
-                                                                        class="fa-regular fa-trash cursor_pointer"
-                                                                        onclick="${gvc.event(() => {
+                              <div class="tx_normal ${opt.note ? 'mb-1' : ''}" style="white-space:normal;">
+                                ${opt.value}
+                              </div>
+                            </div>
+                            <i
+                              class="fa-regular fa-trash cursor_pointer"
+                              onclick="${gvc.event(() => {
                                         bundle.formData[bundle.key].value = bundle.formData[bundle.key].value.filter((id) => {
                                             return id !== opt.key;
                                         });
                                         bundle.callback(bundle.formData[bundle.key].value);
                                         gvc.notifyDataChange(subVM.id);
                                     })}"
-                                                                ></i>
-                                                            </div>`;
+                            ></i>
+                          </div>`;
                                 case 'all':
                                     return ``;
                             }
                         }))}
-                                </div>
-                            </div>`);
+                </div>
+              </div>`);
                     }));
                 },
                 onCreate: () => {
@@ -240,8 +249,7 @@ export class ProductSelect {
                                     gvc.notifyDataChange(subVM.id);
                                 }
                             }, 300);
-                        }, () => {
-                        });
+                        }, () => { });
                     }
                     else {
                         const el = document.querySelector(`#${subVM.containerId}`);
@@ -250,8 +258,8 @@ export class ProductSelect {
                             handle: '.dragItem',
                             onEnd: function () {
                                 const elements = el.querySelectorAll('[data-index]');
-                                const dataIndices = Array.from(elements).map((element) => element.getAttribute('data-index'));
-                                const value = dataIndices.map((index) => {
+                                const dataIndices = Array.from(elements).map(element => element.getAttribute('data-index'));
+                                const value = dataIndices.map(index => {
                                     if (index) {
                                         return parseInt(index, 10);
                                     }

@@ -33,72 +33,47 @@ export class PageSplit {
                         return html `
               <nav class="d-flex my-3 justify-content-center">
                 <ul class="pagination pagination-rounded mb-0">
-                  <div
-                    class="page-item d-flex align-items-center justify-content-center ${nowPage - 1 > 0
-                            ? ''
-                            : 'd-none'}"
-                    style="height: 36px;width: 36px;cursor: pointer;"
-                  >
-                    <a
+                  <li class="page-item me-0">
+                    <div
+                      class="page-link-v2 page-link-prev"
+                      aria-label="Previous"
+                      style="cursor:pointer"
                       onclick="${gvc.event(() => {
                             nowPage - 1 > 0 && callback(nowPage - 1);
                         })}"
                     >
-                      <span aria-hidden="true">&laquo;</span>
-                    </a>
-                  </div>
+                      <i class="fa-solid fa-angle-left angle-style"></i>
+                    </div>
+                  </li>
                   ${glitter.print(() => {
-                            if (nowPage - 2 > 0) {
-                                return generator(nowPage - 2) + generator(nowPage - 1);
+                            let result = '';
+                            for (let i = Math.max(1, nowPage - 4); i < nowPage; i++) {
+                                result += generator(i);
                             }
-                            else if (nowPage - 1 > 0) {
-                                return generator(nowPage - 1);
-                            }
-                            else {
-                                return '';
-                            }
+                            return result;
                         })}
-                  <div
-                    class="d-flex align-items-center justify-content-center fw-500"
-                    style="width: 36px; height: 36px; border-radius: 100%; cursor: pointer; ${(() => {
-                            if (glitter.share.globalValue['theme_color.0.solid-button-bg']) {
-                                return `
-                          background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
-                          color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
-                        `;
-                            }
-                            else {
-                                return '';
-                            }
-                        })()};"
-                  >
-                    ${nowPage}
-                  </div>
+                  <li class="page-item active mx-0" style="border-radius: 100%">
+                    <div class="page-link-v2 page-link-active">${nowPage}</div>
+                  </li>
                   ${glitter.print(() => {
-                            if (nowPage + 2 <= countPage) {
-                                return generator(nowPage + 1) + generator(nowPage + 2);
+                            let result = '';
+                            for (let i = nowPage + 1; i <= Math.min(nowPage + 4, countPage); i++) {
+                                result += generator(i);
                             }
-                            else if (nowPage + 1 <= countPage) {
-                                return generator(nowPage + 1);
-                            }
-                            else {
-                                return '';
-                            }
+                            return result;
                         })}
-                  <div
-                    class="page-item d-flex align-items-center justify-content-center ${nowPage + 1 <= countPage
-                            ? ''
-                            : 'd-none'}"
-                    style="height: 36px; width: 36px; cursor: pointer;"
-                  >
-                    <a
+                  <li class="page-item ms-0">
+                    <div
+                      class="page-link-v2 page-link-next"
+                      aria-label="Next"
+                      style="cursor:pointer"
                       onclick="${gvc.event(() => {
                             nowPage + 1 <= countPage && callback(nowPage + 1);
                         })}"
                     >
-                      <span aria-hidden="true">&raquo;</span>
-                    </a>
-                  </div>
+                      <i class="fa-solid fa-angle-right angle-style"></i>
+                    </div>
+                  </li>
                 </ul>
               </nav>
               ${glitter.print(() => {

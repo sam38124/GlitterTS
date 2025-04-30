@@ -9,6 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { PayConfig } from './pay-config.js';
 import { PaymentPage } from './payment-page.js';
+import { ApiShop } from '../../glitter-base/route/shopping.js';
+import { Glitter } from '../../glitterBundle/Glitter.js';
 export class IminModule {
     static init() {
         return new Promise((resolve, reject) => {
@@ -85,7 +87,7 @@ export class IminModule {
                 yield IminPrintInstance.setDoubleQRSize(4);
                 yield IminPrintInstance.setDoubleQR1MarginLeft(10);
                 yield IminPrintInstance.setDoubleQR2MarginLeft(520);
-                const ba = (new Blob([invoice.qrcode_0]).size - (new Blob([invoice.qrcode_1]).size)) * 1.1;
+                const ba = (new Blob([invoice.qrcode_0]).size - new Blob([invoice.qrcode_1]).size) * 1.1;
                 for (let a = 0; a <= ba; a++) {
                     invoice.qrcode_1 += '*';
                 }
@@ -174,16 +176,16 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                 });
             }
             function generateQRCode(text, size) {
-                return new Promise((resolve) => {
+                return new Promise(resolve => {
                     try {
                         const div = document.createElement('div');
                         var qrcode_R = new QRCode(div, {
                             text: text,
                             width: 50,
                             height: 50,
-                            colorDark: "#000000",
-                            colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.M
+                            colorDark: '#000000',
+                            colorLight: '#ffffff',
+                            correctLevel: QRCode.CorrectLevel.M,
                         });
                         setTimeout(() => {
                             resolve(div.querySelector('canvas').toDataURL('image/png'));
@@ -195,12 +197,13 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                     }
                 });
             }
-            mergeQRCodes([invoice.qrcode_0, invoice.qrcode_1]).then((res) => {
+            mergeQRCodes([invoice.qrcode_0, invoice.qrcode_1]).then(res => {
                 console.log(`two-qrcode=>`, res);
                 glitter.runJsInterFace('start-print', {
                     'command-list': [
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'bold',
                                 text: PayConfig.pos_config.shop_name,
                                 font_size: 50,
@@ -208,12 +211,14 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 20,
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: '電子發票證明聯',
                                 font_size: 40,
@@ -221,7 +226,8 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: invoice.date,
                                 font_size: 50,
@@ -229,7 +235,8 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: invoice.invoice_code,
                                 font_size: 50,
@@ -237,12 +244,14 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 10,
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: invoice.create_date,
                                 font_size: 24,
@@ -250,12 +259,14 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 5,
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: `${invoice.random_code}             ${invoice.total}`,
                                 font_size: 24,
@@ -263,12 +274,14 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 5,
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: `${invoice.sale_gui}        ${invoice.buy_gui}`,
                                 font_size: 24,
@@ -276,36 +289,42 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 15,
                             },
                         },
                         {
-                            key: 'barcode', data: {
+                            key: 'barcode',
+                            data: {
                                 text: invoice.bar_code,
                                 height: 50,
                                 width: 384,
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 15,
                             },
                         },
                         {
-                            key: 'print-bitmap', data: {
+                            key: 'print-bitmap',
+                            data: {
                                 base64: res,
                                 height: 150,
                                 width: 350,
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 100,
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: '交易明細',
                                 font_size: 40,
@@ -313,12 +332,14 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 5,
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: '時間:' + invoice.create_date,
                                 font_size: 24,
@@ -326,12 +347,14 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 5,
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: '營業人統編:' + invoice.sale_gui.replace('賣方 ', ''),
                                 font_size: 24,
@@ -339,12 +362,14 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 5,
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: '訂單編號:' + orderID,
                                 font_size: 24,
@@ -352,12 +377,14 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 5,
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: '發票號碼:' + invoice.invoice_code,
                                 font_size: 24,
@@ -365,12 +392,14 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 5,
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: '員工:' + staff_title,
                                 font_size: 24,
@@ -378,12 +407,14 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             },
                         },
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 20,
                             },
                         },
                         {
-                            key: 'print-text', data: {
+                            key: 'print-text',
+                            data: {
                                 style: 'normal',
                                 text: '品名      單價*數量      金額',
                                 font_size: 24,
@@ -395,7 +426,8 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             const pay_what = PaymentPage.stripHtmlTags(invoice.pay_detail);
                             for (let a = 0; a < pay_what.length; a++) {
                                 b.push({
-                                    key: 'print-text', data: {
+                                    key: 'print-text',
+                                    data: {
                                         style: 'normal',
                                         text: pay_what[a],
                                         font_size: 24,
@@ -406,7 +438,8 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             return b;
                         })(),
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 5,
                             },
                         },
@@ -415,7 +448,8 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             let tempDiv = document.createElement('div');
                             tempDiv.innerHTML = invoice.pay_detail_footer;
                             c.push({
-                                key: 'print-text', data: {
+                                key: 'print-text',
+                                data: {
                                     style: 'normal',
                                     text: tempDiv.querySelector('.invoice-detail-sum').children[0].textContent,
                                     font_size: 24,
@@ -423,12 +457,14 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                                 },
                             });
                             c.push({
-                                key: 'print-space', data: {
+                                key: 'print-space',
+                                data: {
                                     space: 5,
                                 },
                             });
                             c.push({
-                                key: 'print-text', data: {
+                                key: 'print-text',
+                                data: {
                                     style: 'normal',
                                     text: tempDiv.querySelector('.invoice-detail-sum').children[1].textContent,
                                     font_size: 24,
@@ -436,12 +472,14 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                                 },
                             });
                             c.push({
-                                key: 'print-space', data: {
+                                key: 'print-space',
+                                data: {
                                     space: 20,
                                 },
                             });
                             c.push({
-                                key: 'print-text', data: {
+                                key: 'print-text',
+                                data: {
                                     style: 'normal',
                                     text: tempDiv.querySelector('.invoice-detail-sum').children[2].textContent,
                                     font_size: 24,
@@ -451,13 +489,13 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                             return c;
                         })(),
                         {
-                            key: 'print-space', data: {
+                            key: 'print-space',
+                            data: {
                                 space: 150,
                             },
                         },
                     ],
-                }, () => {
-                }, {});
+                }, () => { }, {});
             });
         });
     }
@@ -467,20 +505,21 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
             glitter.runJsInterFace('start-print', {
                 'command-list': [
                     {
-                        key: 'barcode', data: {
+                        key: 'barcode',
+                        data: {
                             text: code,
                             height: 50,
                             width: 384,
                         },
                     },
                     {
-                        key: 'print-space', data: {
+                        key: 'print-space',
+                        data: {
                             space: 150,
                         },
                     },
                 ],
-            }, () => {
-            }, {});
+            }, () => { }, {});
         });
     }
     static printQrCodeSumi(code) {
@@ -492,16 +531,16 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                 glitter.root_path + 'jslib/qrcode-d.js',
             ], () => {
                 function generateQRCode(text, size) {
-                    return new Promise((resolve) => {
+                    return new Promise(resolve => {
                         try {
                             const div = document.createElement('div');
                             var qrcode_R = new QRCode(div, {
                                 text: text,
                                 width: 100,
                                 height: 100,
-                                colorDark: "#000000",
-                                colorLight: "#ffffff",
-                                correctLevel: QRCode.CorrectLevel.M
+                                colorDark: '#000000',
+                                colorLight: '#ffffff',
+                                correctLevel: QRCode.CorrectLevel.M,
                             });
                             setTimeout(() => {
                                 resolve(div.querySelector('canvas').toDataURL('image/png'));
@@ -518,23 +557,23 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                     glitter.runJsInterFace('start-print', {
                         'command-list': [
                             {
-                                key: 'print-bitmap', data: {
+                                key: 'print-bitmap',
+                                data: {
                                     base64: res.split('base64,')[1],
                                     height: 185,
                                     width: 185,
                                 },
                             },
                             {
-                                key: 'print-space', data: {
+                                key: 'print-space',
+                                data: {
                                     space: 150,
                                 },
                             },
                         ],
-                    }, () => {
-                    }, {});
+                    }, () => { }, {});
                 });
-            }, () => {
-            });
+            }, () => { });
         });
     }
     static printCode(code) {
@@ -555,6 +594,84 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
             }
             IminPrintInstance.printSingleBitmap(generateBarcodeBase64(code));
             yield IminPrintInstance.printAndFeedPaper(70);
+        });
+    }
+    static printTransactionDetails(orderID, invoice, staff_title) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield IminModule.init();
+            const IminPrintInstance = window.IminPrintInstance;
+            const od = (yield ApiShop.getOrder({
+                limit: 1,
+                page: 0,
+                data_from: 'user',
+                search: orderID,
+                searchType: 'cart_token',
+            })).response.data[0];
+            console.log(`order_data==>`, od);
+            if (window.parent.glitter.share.PayConfig.posType === 'SUNMI') {
+            }
+            else {
+                function nextLine24(align) {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        yield IminPrintInstance.printAndFeedPaper(5);
+                        yield IminPrintInstance.setAlignment(align);
+                        yield IminPrintInstance.setTextSize(24);
+                        yield IminPrintInstance.setTextStyle(0);
+                    });
+                }
+                yield IminPrintInstance.setAlignment(1);
+                yield IminPrintInstance.setTextSize(50);
+                yield IminPrintInstance.setTextStyle(1);
+                yield IminPrintInstance.printText(PayConfig.pos_config.shop_name);
+                yield IminPrintInstance.printAndFeedPaper(20);
+                yield IminPrintInstance.printAndFeedPaper(5);
+                yield IminPrintInstance.setAlignment(1);
+                yield IminPrintInstance.setTextSize(40);
+                yield IminPrintInstance.setTextStyle(0);
+                if (PayConfig.pos_config.pos_support_finction.includes("order_sort")) {
+                    yield IminPrintInstance.printText(`取餐號碼 : ${od.orderData.user_info.shipment_number}`);
+                }
+                else {
+                    yield IminPrintInstance.printText('交易明細');
+                }
+                yield IminPrintInstance.printAndFeedPaper(5);
+                yield nextLine24(0);
+                yield IminPrintInstance.printText('時間:' + Glitter.glitter.ut.dateFormat(new Date(od.created_time), 'yyyy-MM-dd hh:mm:ss'));
+                if (invoice) {
+                    yield nextLine24(0);
+                    yield IminPrintInstance.printText('營業人統編:' + invoice.sale_gui.replace('賣方 ', ''));
+                }
+                yield nextLine24(0);
+                yield IminPrintInstance.printText('訂單編號:' + orderID);
+                if (invoice) {
+                    yield nextLine24(0);
+                    yield IminPrintInstance.printText('發票號碼:' + invoice.invoice_code);
+                }
+                yield nextLine24(0);
+                yield IminPrintInstance.printText('員工:' + staff_title);
+                yield IminPrintInstance.printAndFeedPaper(30);
+                yield IminPrintInstance.printText('品名               單價*數量               金額 ');
+                for (const b of od.orderData.lineItems) {
+                    yield nextLine24(0);
+                    yield IminPrintInstance.printText(b.title);
+                    yield nextLine24(1);
+                    yield IminPrintInstance.printText(`${b.sale_price.toLocaleString()} * ${b.count}`);
+                    yield nextLine24(2);
+                    yield IminPrintInstance.printText(b.sale_price);
+                }
+                yield nextLine24(0);
+                yield IminPrintInstance.printText(`折扣 ${od.orderData.discount.toLocaleString()}`);
+                yield nextLine24(0);
+                yield IminPrintInstance.printText(`合計 ${od.orderData.lineItems.length} 項`);
+                yield nextLine24(0);
+                yield IminPrintInstance.printText(`總計 $${od.total.toLocaleString()}`);
+                yield nextLine24(0);
+                if (od.orderData.user_info.note) {
+                    yield IminPrintInstance.printText(`備註`);
+                    yield IminPrintInstance.printText(od.orderData.user_info.note);
+                }
+                yield IminPrintInstance.printAndFeedPaper(140);
+            }
         });
     }
 }

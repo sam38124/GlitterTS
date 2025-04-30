@@ -1,0 +1,50 @@
+[
+    {
+        "merged": "www.smilebio.io.app-merged_res-65:/mipmap-xxxhdpi_ic_launcher_png.png.flat",
+        "source": "www.smilebio.io.app-main-67:/mipmap-xxxhdpi/ic_launcher_png.png"
+    },
+    {
+        "merged": "www.smilebio.io.app-merged_res-65:/mipmap-mdpi_ic_launcher_png.png.flat",
+        "source": "www.smilebio.io.app-main-67:/mipmap-mdpi/ic_launcher_png.png"
+    },
+    {
+        "merged": "www.smilebio.io.app-merged_res-65:/mipmap-xhdpi_ic_launcher_png.png.flat",
+        "source": "www.smilebio.io.app-main-67:/mipmap-xhdpi/ic_launcher_png.png"
+    },
+    {
+        "merged": "www.smilebio.io.app-merged_res-65:/drawable_ic_launcher_background.xml.flat",
+        "source": "www.smilebio.io.app-main-67:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "www.smilebio.io.app-merged_res-65:/mipmap-hdpi_ic_launcher_png.png.flat",
+        "source": "www.smilebio.io.app-main-67:/mipmap-hdpi/ic_launcher_png.png"
+    },
+    {
+        "merged": "www.smilebio.io.app-merged_res-65:/layout_activity_re_intent.xml.flat",
+        "source": "www.smilebio.io.app-main-67:/layout/activity_re_intent.xml"
+    },
+    {
+        "merged": "www.smilebio.io.app-merged_res-65:/layout_qr_scanner.xml.flat",
+        "source": "www.smilebio.io.app-main-67:/layout/qr_scanner.xml"
+    },
+    {
+        "merged": "www.smilebio.io.app-merged_res-65:/mipmap-xxhdpi_ic_launcher_png.png.flat",
+        "source": "www.smilebio.io.app-main-67:/mipmap-xxhdpi/ic_launcher_png.png"
+    },
+    {
+        "merged": "www.smilebio.io.app-merged_res-65:/xml_s.xml.flat",
+        "source": "www.smilebio.io.app-main-67:/xml/s.xml"
+    },
+    {
+        "merged": "www.smilebio.io.app-merged_res-65:/xml_network_security_config.xml.flat",
+        "source": "www.smilebio.io.app-main-67:/xml/network_security_config.xml"
+    },
+    {
+        "merged": "www.smilebio.io.app-merged_res-65:/drawable-v24_ic_launcher_foreground.xml.flat",
+        "source": "www.smilebio.io.app-main-67:/drawable-v24/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "www.smilebio.io.app-merged_res-65:/layout_web_view.xml.flat",
+        "source": "www.smilebio.io.app-main-67:/layout/web_view.xml"
+    }
+]

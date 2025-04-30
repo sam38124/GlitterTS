@@ -219,6 +219,7 @@ class Template {
             'blogs',
             'blog_tag_setting',
             'blog_global_setting',
+            'pos_setting',
             'checkout',
             'fb_live',
             'ig_live',
@@ -229,6 +230,7 @@ class Template {
             'app-design',
             'auto_fcm_push',
             'auto_fcm_advertise',
+            'auto_fcm_history',
             'auto_fcm_template',
             'notify_message_list',
         ].includes(query_page)) {

@@ -118,6 +118,7 @@ export interface Product {
   legacy_by_with?: string[];
   designated_logistics: {
     type: 'all' | 'designated';
+    group: string[];
     list: string[];
   };
   about_vouchers: VoucherContent[];

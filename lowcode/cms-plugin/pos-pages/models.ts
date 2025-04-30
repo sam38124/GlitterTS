@@ -83,6 +83,8 @@ export class OrderDetail {
   public static singleInstance: OrderDetail = new OrderDetail(0, 0);
 }
 
+type VoucherForType = 'all' | 'collection' | 'product' | 'manager_tag';
+
 export interface VoucherData {
   id: number;
   title: string;
@@ -90,7 +92,7 @@ export interface VoucherData {
   reBackType: 'rebate' | 'discount' | 'shipment_free';
   trigger: 'auto' | 'code';
   value: number;
-  for: 'collection' | 'product' | 'all';
+  for: VoucherForType;
   rule: 'min_price' | 'min_count';
   forKey: string[];
   ruleValue: number;

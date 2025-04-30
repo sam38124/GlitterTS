@@ -1,7 +1,6 @@
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { ShoppingProductSetting } from './shopping-product-setting.js';
 import { LanguageData } from '../public-models/product.js';
-import { CheckInput } from '../modules/checkInput.js';
 
 export class ProductService {
   public static checkData(postMD: any, obj: any, vm: any, refresh: () => void) {
@@ -9,19 +8,11 @@ export class ProductService {
     const dialog = new ShareDialog(gvc.glitter);
 
     function checkEmpty() {
-      const variantsCheckList = ['sale_price'];
-
       if (postMD.product_category !== 'kitchen') {
-        for (const checkItem of variantsCheckList) {
-          if (
-            (postMD['variants'][0] as any)[checkItem] == undefined ||
-            (postMD['variants'][0] as any)[checkItem] == 0
-          ) {
-            dialog.infoMessage({
-              text: '售價未填',
-            });
-            return false;
-          }
+        const salePrice = (postMD['variants'][0] as any)['sale_price'];
+        if (salePrice === '' || salePrice === undefined || salePrice === null) {
+          dialog.infoMessage({ text: '尚未填寫售價' });
+          return false;
         }
       }
 

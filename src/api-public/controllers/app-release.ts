@@ -95,13 +95,20 @@ router.post('/release/android/download', async (req: express.Request, resp: expr
           [req.get('g-app')]
         )
       )[0]['domain'];
+      const config = (
+        await Private_config.getConfig({
+          appName: req.get('g-app') as string,
+          key: 'glitter_app_release',
+        })
+      )[0].value;
       await Release.android({
-        appName: req.body.app_name,
-        bundleID: req.body.bundle_id,
+        appName: config.name,
+        bundleID: config.ios_app_bundle_id || (domain),
         glitter_domain: config.domain as string,
         appDomain: req.get('g-app') as string,
         project_router: copyFile,
         domain_url: domain,
+        config:config
       });
       await Release.compressFiles(copyFile, `${copyFile}.zip`);
       const url = await Release.uploadFile(`${copyFile}.zip`, `${copyFile}.zip`);

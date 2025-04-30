@@ -27,13 +27,15 @@ import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { Animation } from '../../glitterBundle/module/Animation.js';
 import { ApiLiveInteraction } from '../../glitter-base/route/live-purchase-interactions.js';
 import { ApplicationConfig } from '../../application-config.js';
+import { CartModule } from '../modules/cart-module.js';
+import { ProductModule } from '../modules/product-module.js';
 const html = String.raw;
 export class CheckoutIndex {
     static main(gvc, widget, subData) {
         var _a;
         const glitter = gvc.glitter;
         if (glitter.share.is_application && glitter.getUrlParameter('page') !== 'checkout') {
-            return ``;
+            return '';
         }
         let onlineData = {};
         let apiCart = (() => {
@@ -56,11 +58,13 @@ export class CheckoutIndex {
         };
         const vm = {
             cartData: {},
-            rebateConfig: {
-                title: '購物金',
-            },
+            cartDataList: [],
+            logisticsGroup: [],
+            rebateConfig: { title: '購物金' },
+            quantity: '',
+            hasFullLengthCart: false,
         };
-        const classPrefix = 'wnqij1';
+        const classPrefix = 'cart-prefix';
         PdClass.addSpecStyle(gvc);
         function spinner(obj) {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
@@ -88,7 +92,7 @@ export class CheckoutIndex {
           role="status"
         ></div>
         <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}" style="font-size: ${textAttr.fontSize}px;"
-          >${textAttr.value}</span
+        >${textAttr.value}</span
         >
       </div>`;
         }
@@ -113,299 +117,14 @@ export class CheckoutIndex {
         <div class="${gClass('add-item-text')}">${Language.text('hidden_goods')}</div>
       </div>`;
         }
-        function addStyle() {
-            gvc.addStyle(`
-        .${classPrefix}-container {
-          max-width: 1200px !important;
-          margin: 2.5rem auto !important;
-        }
-
-        .${classPrefix}-null-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          height: 100vh !important;
-        }
-
-        .${classPrefix}-header {
-          color: #393939;
-          font-size: 24px;
-          font-weight: 700;
-          letter-spacing: 12px;
-          text-align: center;
-          margin-bottom: 24px;
-        }
-
-        .${classPrefix}-banner-bgr {
-          padding: 1rem;
-          border-radius: 10px;
-          background: #f6f6f6;
-        }
-
-        .${classPrefix}-banner-text {
-          color: #393939;
-          font-size: 18px;
-          font-weight: 700;
-          letter-spacing: 2px;
-        }
-
-        .${classPrefix}-text-1 {
-          color: #393939;
-          font-size: 20px;
-        }
-
-        .${classPrefix}-text-2 {
-          color: #393939;
-          font-size: 16px;
-        }
-
-        .${classPrefix}-text-3 {
-          color: #393939;
-          font-size: 14px;
-        }
-
-        .${classPrefix}-label {
-          color: #393939;
-          font-size: 16px;
-          margin-bottom: 8px;
-        }
-
-        .${classPrefix}-bold {
-          font-weight: 700;
-        }
-
-        .${classPrefix}-button-bgr {
-          width: 100%;
-          border: 0;
-          border-radius: 0.375rem;
-          height: 40px;
-          background: #393939;
-          padding: 0 24px;
-          margin: 18px 0;
-        }
-
-        .${classPrefix}-button-bgr-disable {
-          width: 100%;
-          border: 0;
-          border-radius: 0.375rem;
-          height: 40px;
-          background: #dddddd;
-          padding: 0 24px;
-          margin: 18px 0;
-          cursor: not-allowed !important;
-        }
-
-        .${classPrefix}-button-text {
-          color: #fff;
-          font-size: 16px;
-        }
-
-        .${classPrefix}-input {
-          width: 100%;
-          border-radius: 10px;
-          border: 1px solid #ddd;
-          height: 40px;
-          padding: 0px 18px;
-        }
-
-        .${classPrefix}-select {
-          display: flex;
-          padding: 7px 30px 7px 18px;
-          max-height: 40px;
-          align-items: center;
-          gap: 6px;
-          border-radius: 10px;
-          border: 1px solid #ddd;
-          background: transparent
-            url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png') no-repeat;
-          background-position-x: calc(100% - 12px);
-          background-position-y: 16px;
-          appearance: none;
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          color: #393939;
-          background-color: white;
-        }
-
-        .${classPrefix}-select:focus {
-          outline: 0;
-        }
-
-        .${classPrefix}-group-input {
-          border: none;
-          background: none;
-          text-align: start;
-          color: #393939;
-          font-size: 16px;
-          font-weight: 400;
-          word-wrap: break-word;
-          padding-left: 12px;
-        }
-
-        .${classPrefix}-first-td {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 30%;
-        }
-
-        .${classPrefix}-group-input:focus {
-          outline: 0;
-        }
-
-        .${classPrefix}-group-button {
-          padding: 9px 18px;
-          background: #393939;
-          align-items: center;
-          gap: 5px;
-          display: flex;
-          font-size: 16px;
-          justify-content: center;
-          cursor: pointer;
-        }
-
-        .${classPrefix}-td {
-          display: flex;
-          align-items: center;
-          justify-content: start;
-          width: 15%;
-        }
-
-        .${classPrefix}-first-td {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 40%;
-        }
-
-        .${classPrefix}-price-container {
-          display: flex;
-          flex-direction: column;
-          width: 400px;
-          align-items: center;
-          padding: 0;
-          gap: 12px;
-          margin: 24px 0;
-        }
-
-        .${classPrefix}-price-row {
-          display: flex;
-          width: 100%;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .${classPrefix}-origin-price {
-          text-align: end;
-          font-weight: 400;
-          word-wrap: break-word;
-          text-decoration: line-through;
-          color: #636363;
-          font-style: italic;
-          margin-top: auto;
-        }
-
-        .${classPrefix}-add-item-badge {
-          height: 22px;
-          padding-left: 6px;
-          padding-right: 6px;
-          padding-top: 4px;
-          padding-bottom: 4px;
-          background: #ffe9b2;
-          border-radius: 7px;
-          justify-content: center;
-          align-items: center;
-          gap: 10px;
-          display: inline-flex;
-        }
-
-        .${classPrefix}-add-item-text {
-          color: #393939;
-          font-size: 14px;
-          font-weight: 400;
-          word-wrap: break-word;
-        }
-
-        .${classPrefix}-shipping-hint {
-          white-space: normal;
-          word-break: break-all;
-          color: #8d8d8d;
-          font-size: 14px;
-          font-weight: 400;
-          margin: 4px 0;
-        }
-
-        .${classPrefix}-price-text {
-          color: #ff5353ff;
-        }
-
-        .img-106px {
-          width: 106px;
-          min-width: 106px;
-          height: 106px;
-          border-radius: 3px;
-          background-position: center;
-          background-size: cover;
-          background-repeat: no-repeat;
-        }
-
-        .banner-font-15 {
-          font-size: 15px;
-          font-style: normal;
-          font-weight: 400;
-          white-space: nowrap;
-          overflow: hidden;
-          max-width: 130px;
-          text-overflow: ellipsis;
-        }
-
-        .ntd-font-14 {
-          font-size: 14px;
-          font-style: normal;
-          font-weight: 700;
-          line-height: 140%;
-        }
-      `);
-            gvc.addStyle(`
-        @media (max-width: 768px) {
-          .${classPrefix}-container {
-            max-width: 100% !important;
-            margin: 2.5rem auto !important;
-          }
-
-          .${classPrefix}-td {
-            display: flex;
-            align-items: center;
-            justify-content: start;
-            width: 100%;
-          }
-
-          .${classPrefix}-66text {
-            color: #666666;
-          }
-
-          .${classPrefix}-price-container {
-            display: flex;
-            flex-direction: column;
-            width: 100% !important;
-            align-items: center;
-            padding: 0;
-            gap: 12px;
-            margin: 24px 0;
-          }
-        }
-      `);
-        }
         function refreshCartData() {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ visible: true });
             const beta = false;
             if (!beta) {
-                new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                    new Promise((resolve, reject) => {
-                        setTimeout(() => {
-                            resolve(apiCart.cart);
-                        });
+                new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                    new Promise(resolve => {
+                        setTimeout(() => resolve(apiCart.cart), 50);
                     }).then((res) => __awaiter(this, void 0, void 0, function* () {
                         var _a;
                         const cartData = {
@@ -415,6 +134,44 @@ export class CheckoutIndex {
                                 shipment: localStorage.getItem('shipment-select'),
                             },
                         };
+                        const cartObject = yield CartModule.getLineItemAndShipmentCart();
+                        vm.cartDataList = cartObject.dataList;
+                        vm.logisticsGroup = cartObject.logisticsGroup;
+                        vm.hasFullLengthCart = cartObject.hasFullLengthCart;
+                        if (!localStorage.getItem('logistics-group')) {
+                            localStorage.setItem('logistics-group', (() => {
+                                try {
+                                    return vm.cartDataList[0].group[0];
+                                }
+                                catch (error) {
+                                    return '';
+                                }
+                            })());
+                        }
+                        function resetShipmentSelected() {
+                            const findGroup = vm.logisticsGroup.find(item => item.key === localStorage.getItem('logistics-group'));
+                            if (findGroup) {
+                                const list = findGroup.list;
+                                const def = localStorage.getItem('shipment-select');
+                                if (!def || !list.includes(def)) {
+                                    localStorage.setItem('shipment-select', list[0]);
+                                }
+                            }
+                        }
+                        const defaultShipmentCart = vm.cartDataList.find(data => {
+                            const findGroup = vm.logisticsGroup.find(item => item.key === localStorage.getItem('logistics-group'));
+                            return findGroup === null || findGroup === void 0 ? void 0 : findGroup.list.includes(data.logistic);
+                        });
+                        if (defaultShipmentCart) {
+                            res.line_items = defaultShipmentCart.cart;
+                            resetShipmentSelected();
+                        }
+                        else if (vm.cartDataList[0]) {
+                            res.line_items = vm.cartDataList[0].cart;
+                        }
+                        else {
+                            res.line_items = [];
+                        }
                         if (res.line_items) {
                             res.user_info = {
                                 payment: localStorage.getItem('checkout-payment'),
@@ -628,6 +385,7 @@ export class CheckoutIndex {
                     <div>${Language.text('discount_coupon')}</div>
                     <div>- ${Currency.convertCurrencyText(vm.cartData.discount)}</div>
                   </div>
+                  <!-- 可使用的優惠券 -->
                   <div class="${gClass(['price-row', 'text-2'])}">
                     <div>${Language.text('promo_code')}</div>
                     <div
@@ -679,28 +437,28 @@ export class CheckoutIndex {
                                                                 })(),
                                                                 item.usePass
                                                                     ? html ` <button
-                                                  class="${gClass('button-bgr')} my-2"
-                                                  style="max-width: 150px;"
-                                                  onclick="${gvc.event(() => {
+                                                class="${gClass('button-bgr')} my-2"
+                                                style="max-width: 150px;"
+                                                onclick="${gvc.event(() => {
                                                                         apiCart.setCart(cartItem => {
                                                                             cartItem.code = item.code;
                                                                             refreshCartData();
                                                                             gvc.closeDialog();
                                                                         });
                                                                     })}"
-                                                >
+                                              >
                                                   <span class="${gClass('button-text')}"
-                                                    >${Language.text('select_to_use')}</span
+                                                  >${Language.text('select_to_use')}</span
                                                   >
-                                                </button>`
+                                              </button>`
                                                                     : html ` <button
-                                                  class="${gClass('button-bgr-disable')} my-2"
-                                                  style="max-width: 150px; cursor: not-allowed"
-                                                >
+                                                class="${gClass('button-bgr-disable')} my-2"
+                                                style="max-width: 150px; cursor: not-allowed"
+                                              >
                                                   <span class="${gClass('button-text')}"
-                                                    >${Language.text('not_meet_usage_criteria')}</span
+                                                  >${Language.text('not_meet_usage_criteria')}</span
                                                   >
-                                                </button>`,
+                                              </button>`,
                                                             ];
                                                         }
                                                         const dialog = new ShareDialog(gvc.glitter);
@@ -735,7 +493,7 @@ export class CheckoutIndex {
                                             <div>
                                               <div class="d-flex align-items-center mb-2">
                                                 <label class="${gClass('label')} mb-0 me-2" style="min-width: 80px;"
-                                                  >${Language.text('enter_code')}</label
+                                                >${Language.text('enter_code')}</label
                                                 >
                                                 <input
                                                   class="${gClass('input')}"
@@ -791,7 +549,7 @@ export class CheckoutIndex {
                                                         })}"
                                               >
                                                 <span class="${gClass('button-text')}"
-                                                  >${Language.text('confirm')}</span
+                                                >${Language.text('confirm')}</span
                                                 >
                                               </button>
                                             </div>
@@ -818,10 +576,9 @@ export class CheckoutIndex {
                                                     }
                                                 }
                                                 catch (e) {
-                                                    return ``;
+                                                    return '';
                                                 }
                                             },
-                                            divCreate: {},
                                             onCreate: () => {
                                                 if (loading) {
                                                     function isNowBetweenDates(startIso, endIso) {
@@ -895,52 +652,52 @@ export class CheckoutIndex {
                     >
                       ${vm.cartData.code
                             ? html `${vm.cartData.code}<i
-                              class="fa-solid fa-xmark-large ms-2"
-                              style="cursor: pointer;"
-                              onclick="${gvc.event((e, event) => {
+                          class="fa-solid fa-xmark-large ms-2"
+                          style="cursor: pointer;"
+                          onclick="${gvc.event((e, event) => {
                                 event.stopPropagation();
                                 apiCart.setCart(cartItem => {
                                     cartItem.code = '';
                                     refreshCartData();
                                 });
                             })}"
-                            ></i>`
+                        ></i>`
                             : Language.text('add')}
                     </div>
                   </div>
                   ${(() => {
                             if (!GlobalUser.token || !vm.cartData.useRebateInfo.status) {
-                                return ``;
+                                return '';
                             }
                             else {
                                 return html ` ${(() => {
                                     let tempRebate = 0;
                                     const dialog = new ShareDialog(gvc.glitter);
                                     return html ` <div class="${gClass(['price-row', 'text-2'])}">
-                              <div>${vm.rebateConfig.title}${Language.text('discount')}</div>
-                              <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
-                            </div>
-                            <div class="${gClass(['price-row', 'text-2'])}">
-                              <div>${vm.rebateConfig.title}${Language.text('reback_text')}</div>
-                              <div>+ ${vm.cartData.rebate.toLocaleString()}</div>
-                            </div>
+                          <div>${vm.rebateConfig.title}${Language.text('discount')}</div>
+                          <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
+                        </div>
+                        <div class="${gClass(['price-row', 'text-2'])}">
+                          <div>${vm.rebateConfig.title}${Language.text('reback_text')}</div>
+                          <div>+ ${vm.cartData.rebate.toLocaleString()}</div>
+                        </div>
 
-                            <div class="${gClass(['price-row', 'text-2'])}">
-                              <div
-                                style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                        <div class="${gClass(['price-row', 'text-2'])}">
+                          <div
+                            style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
                                         .body.clientWidth > 768
                                         ? 'gap: 18px;'
                                         : 'gap: 0px;'}"
-                                class="w-100"
-                              >
-                                <input
-                                  class="flex-fill ${gClass('group-input')}"
-                                  placeholder="${Language.text('please_enter')}${vm.rebateConfig.title}"
-                                  style="${document.body.clientWidth < 800
+                            class="w-100"
+                          >
+                            <input
+                              class="flex-fill ${gClass('group-input')}"
+                              placeholder="${Language.text('please_enter')}${vm.rebateConfig.title}"
+                              style="${document.body.clientWidth < 800
                                         ? `width:calc(100% - 150px) !important;`
-                                        : ``}"
-                                  value="${vm.cartData.use_rebate || ''}"
-                                  onchange="${gvc.event((e, event) => {
+                                        : ''}"
+                              value="${vm.cartData.use_rebate || ''}"
+                              onchange="${gvc.event((e, event) => {
                                         if (CheckInput.isNumberString(e.value)) {
                                             tempRebate = parseInt(e.value, 10);
                                         }
@@ -949,11 +706,11 @@ export class CheckoutIndex {
                                             gvc.notifyDataChange(ids.page);
                                         }
                                     })}"
-                                />
-                                <div class="${gClass('group-button')}">
-                                  <div
-                                    class="${gClass('button-text')}"
-                                    onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                            />
+                            <div class="${gClass('group-button')}">
+                              <div
+                                class="${gClass('button-text')}"
+                                onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                                         const sum = yield new Promise((resolve, reject) => {
                                             ApiShop.getRebate({}).then((res) => __awaiter(this, void 0, void 0, function* () {
                                                 if (res.result && res.response.sum) {
@@ -982,15 +739,15 @@ export class CheckoutIndex {
                                             refreshCartData();
                                         });
                                     }))}"
-                                  >
-                                    ${Language.text('apply')}
-                                  </div>
-                                </div>
+                              >
+                                ${Language.text('apply')}
                               </div>
-                            </div>`;
+                            </div>
+                          </div>
+                        </div>`;
                                 })()}
-                        <div class="${gClass(['price-row', 'text-2'])}">
-                          ${(() => {
+                      <div class="${gClass(['price-row', 'text-2'])}">
+                        ${(() => {
                                     return gvc.bindView(() => {
                                         return {
                                             bind: gvc.glitter.getUUID(),
@@ -1011,13 +768,13 @@ export class CheckoutIndex {
                                                 const info = vm.cartData.useRebateInfo;
                                                 if (info.condition) {
                                                     return html `${Language.text('distance_from_target_amount')}$
-                                    ${info.condition.toLocaleString()} ${Language.text('can_use_now')}
-                                    ${vm.rebateConfig.title} ${Language.text('discount')}`;
+                                  ${info.condition.toLocaleString()} ${Language.text('can_use_now')}
+                                  ${vm.rebateConfig.title} ${Language.text('discount')}`;
                                                 }
                                                 if (info.limit) {
                                                     return html `${Language.text('remaining_balance')} ${sum || 0}
-                                      ${Language.text('point')} ${vm.rebateConfig.title} <br />${Language.text('max_discount_order')}
-                                      ${info.limit.toLocaleString()} ${Language.text('point')} ${vm.rebateConfig.title}`;
+                                  ${Language.text('point')} ${vm.rebateConfig.title} <br />${Language.text('max_discount_order')}
+                                  ${info.limit.toLocaleString()} ${Language.text('point')} ${vm.rebateConfig.title}`;
                                                 }
                                                 else {
                                                     return `${Language.text('remaining_balance')} ${sum || 0} ${Language.text('point')} ${vm.rebateConfig.title}`;
@@ -1026,9 +783,13 @@ export class CheckoutIndex {
                                         };
                                     });
                                 })()}
-                        </div>`;
+                      </div>`;
                             }
                         })()}
+                  <div class="${gClass(['price-row', 'text-2', 'bold'])}">
+                    <div>${Language.text('total_amount')}</div>
+                    <div class="${gClass('total_amount')}">${Currency.convertCurrencyText(vm.cartData.total)}</div>
+                  </div>
                 </div>`;
                         if (!widget.share.receipt_form) {
                             const res = yield ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager');
@@ -1047,7 +808,7 @@ export class CheckoutIndex {
                             });
                         }
                         this.initial(vm.cartData);
-                        addStyle();
+                        CartModule.addStyle(gvc, classPrefix);
                         if (vm.cartData.lineItems.length === 0) {
                             return html `
                     <div class="container ${gClass(['container', 'null-container'])}">
@@ -1075,9 +836,6 @@ export class CheckoutIndex {
                                     }
                                     const shipmentSupportSet = new Set(vm.cartData.shipment_support);
                                     const shipmentList = this.getShipmentMethod(vm.cartData).filter((dd) => shipmentSupportSet.has(dd.value));
-                                    console.log(`cartData.shipment_selector=>`, vm.cartData.shipment_selector);
-                                    console.log(`shipmentSupportSet=>`, shipmentSupportSet);
-                                    console.log(`shipmentList==>`, shipmentList);
                                     const localShip = shipmentSupportSet.has(localStorage.getItem('shipment-select'));
                                     if (shipmentList.length === 0) {
                                         vm.cartData.user_info.shipment = 'none';
@@ -1108,12 +866,37 @@ export class CheckoutIndex {
                                 <div
                                   style="padding-top:20px;"
                                   class="${gClass('banner-text')} fs-4 mb-3 pt-3 ${gvc.glitter.getUrlParameter('page') === 'checkout'
-                                        ? ``
+                                        ? ''
                                         : `d-none`}"
                                 >
                                   ${Language.text(ApiCart.checkoutCart === ApiCart.buyItNow ? 'buy_it_now' : 'your_shopping_cart')}
                                 </div>
-                                <div style="" class="rounded-3 bg-white w-100 ">
+
+                                ${(() => {
+                                        var _a;
+                                        const cartGroupSet = new Set(vm.cartDataList.map(cart => cart.group).flat());
+                                        const filterLogiGroup = vm.logisticsGroup.filter(item => {
+                                            return cartGroupSet.has(item.key);
+                                        });
+                                        if (filterLogiGroup.length < 2 || vm.hasFullLengthCart) {
+                                            return '';
+                                        }
+                                        return html `<div
+                                    class="rounded-3 bg-white w-100 ps-4"
+                                    style="height: 68px; overflow: auto hidden;"
+                                  >
+                                    ${ProductModule.tab(filterLogiGroup.map(item => {
+                                            return {
+                                                title: item.name,
+                                                key: item.key,
+                                            };
+                                        }), gvc, (_a = localStorage.getItem('logistics-group')) !== null && _a !== void 0 ? _a : filterLogiGroup[0].key, text => {
+                                            localStorage.setItem('logistics-group', text);
+                                            refreshCartData();
+                                        }, 'justify-content: flex-start;')}
+                                  </div>`;
+                                    })()}
+                                <div class="rounded-3 bg-white w-100 mt-3">
                                   ${gvc.bindView({
                                         bind: glitter.getUUID(),
                                         view: () => {
@@ -1131,7 +914,7 @@ export class CheckoutIndex {
                                                             return hiddenBadge();
                                                         }
                                                         else {
-                                                            return ``;
+                                                            return '';
                                                         }
                                                     }
                                                     const title = (item.language_data &&
@@ -1151,7 +934,7 @@ export class CheckoutIndex {
                                                             });
                                                         }
                                                         else {
-                                                            return ``;
+                                                            return '';
                                                         }
                                                     })();
                                                     if (vm.cartData.lineItems.length === index + 1) {
@@ -1245,7 +1028,7 @@ export class CheckoutIndex {
                                                             refreshCartData();
                                                         });
                                                     })}"
-                                                          ${item.is_gift ? `disabled` : ``}
+                                                          ${item.is_gift ? `disabled` : ''}
                                                         >
                                                           ${[
                                                         ...new Array((() => {
@@ -1258,7 +1041,7 @@ export class CheckoutIndex {
                                                         .map((_, index) => {
                                                         return html ` <option
                                                                 value="${index + 1}"
-                                                                ${index + 1 === item.count ? `selected` : ``}
+                                                                ${index + 1 === item.count ? `selected` : ''}
                                                               >
                                                                 ${index + 1}
                                                               </option>`;
@@ -1318,7 +1101,14 @@ export class CheckoutIndex {
                                                             dd.reBackType !== 'add_on_items');
                                                     })
                                                         .map((dd) => {
-                                                        return `<div class=" w-100 " style="${document.body.clientWidth < 800 ? `font-size:12px;` : `font-size:14px;`}"><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
+                                                        return html `<div
+                                                        class="w-100"
+                                                        style="${document.body.clientWidth < 800
+                                                            ? `font-size:12px;`
+                                                            : `font-size:14px;`}"
+                                                      >
+                                                        <i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}
+                                                      </div>`;
                                                     })
                                                         .join('<div class="my-1"></div>')}
                                                   ${(() => {
@@ -1333,7 +1123,7 @@ export class CheckoutIndex {
                                                             return `<div class="text-danger">${Language.text('min_p_count').replace('_c_', min)}</div>`;
                                                         }
                                                         else {
-                                                            return ``;
+                                                            return '';
                                                         }
                                                     })()}
                                                   ${(() => {
@@ -1345,17 +1135,19 @@ export class CheckoutIndex {
                                                             }
                                                         }
                                                         if (count > max_qty) {
-                                                            return `<div class="text-danger">${Language.text('max_p_count').replace('_c_', max_qty)}</div>`;
+                                                            return html `<div class="text-danger">
+                                                        ${Language.text('max_p_count').replace('_c_', max_qty)}
+                                                      </div>`;
                                                         }
                                                         else {
-                                                            return ``;
+                                                            return '';
                                                         }
                                                     })()}
                                                 </div>
                                               </div>
                                             `;
                                                 })
-                                                    .join(`<div class="border-bottom w-100"></div>`);
+                                                    .join(html `<div class="border-bottom w-100"></div>`);
                                             }
                                             catch (e) {
                                                 console.error(`error 1 =>`, e);
@@ -1364,6 +1156,188 @@ export class CheckoutIndex {
                                         },
                                     })}
                                 </div>
+                                <!--贈品-->
+                                ${(() => {
+                                        let already_add = vm.cartData.lineItems.filter((dd) => {
+                                            return dd.is_gift;
+                                        });
+                                        const giftHtml = vm.cartData.voucherList
+                                            .filter((d1) => {
+                                            return d1.reBackType === 'giveaway';
+                                        })
+                                            .map((dd) => {
+                                            let isSelected = already_add.find(d2 => {
+                                                return dd.add_on_products.find((d1) => {
+                                                    return d1.id === d2.id;
+                                                });
+                                            });
+                                            already_add = already_add.filter(dd => {
+                                                return !dd === isSelected;
+                                            });
+                                            return html `
+                                        <span class="${gClass('banner-text')}">${dd.title}</span>
+                                        <div class="d-flex align-items-center w-100" style="overflow-x:auto;gap:10px;">
+                                          ${dd.add_on_products
+                                                .filter(Boolean)
+                                                .map((pd) => {
+                                                try {
+                                                    return html ` <div
+                                                  class="d-flex py-3 align-items-center"
+                                                  style="gap:10px;"
+                                                >
+                                                  <div
+                                                    class="img-fluid img-106px"
+                                                    style="background-image: url('${pd.preview_image[0]}');"
+                                                  ></div>
+                                                  <div class="d-flex flex-column" style="width: 130px;">
+                                                    <div class="${gClass('banner-text')} banner-font-15">
+                                                      ${pd.title}
+                                                    </div>
+                                                    <div class="text-danger ntd-font-14">
+                                                      ${Currency.convertCurrencyText(0)}
+                                                    </div>
+                                                    <div
+                                                      style="text-decoration: line-through; font-size: 12px; height: 20px;"
+                                                    >
+                                                      ${pd.min_price > 0
+                                                        ? Currency.convertCurrencyText(pd.min_price)
+                                                        : ''}
+                                                    </div>
+                                                    <button
+                                                      class="${gClass('button-bgr')} mb-0 mt-2"
+                                                      style="${isSelected
+                                                        ? isSelected.id === pd.id
+                                                            ? `background: gray !important;`
+                                                            : ''
+                                                        : ''}"
+                                                      onclick="${gvc.event(() => {
+                                                        var _a;
+                                                        if (isSelected && isSelected.id === pd.id) {
+                                                            return;
+                                                        }
+                                                        const titleFontColor = (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
+                                                        gvc.glitter.innerDialog((gvc) => {
+                                                            var _a, _b;
+                                                            return html ` <div
+                                                              class=" bg-white shadow  ${document.body.clientWidth > 768
+                                                                ? `rounded-3`
+                                                                : ` position-absolute bottom-0`}"
+                                                              style=" ${document.body.clientWidth > 768
+                                                                ? `min-width: 400px; width: 1000px;max-height:calc(100% - 150px);overflow-y: auto;`
+                                                                : 'width:calc(100vw);height:100%;'}"
+                                                            >
+                                                              <div
+                                                                class="bg-white shadow  ${document.body.clientWidth >
+                                                                768
+                                                                ? `rounded-3`
+                                                                : `h-100`}"
+                                                                style="width: 100%;  position: relative;${document.body
+                                                                .clientWidth > 768
+                                                                ? ''
+                                                                : `overflow-y: auto;`}"
+                                                              >
+                                                                <div
+                                                                  class="w-100 d-flex align-items-center p-3 border-bottom"
+                                                                  style="position: sticky; top: 0; background: #fff;z-index:12;"
+                                                                >
+                                                                  <div
+                                                                    class="fw-bold fs-5"
+                                                                    style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;"
+                                                                  >
+                                                                    ${pd.title}
+                                                                  </div>
+                                                                  <div class="flex-fill"></div>
+                                                                  <i
+                                                                    class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                                                    style="cursor: pointer"
+                                                                    onclick="${gvc.event(() => {
+                                                                gvc.closeDialog();
+                                                            })}"
+                                                                  ></i>
+                                                                </div>
+                                                                <div
+                                                                  class="c_dialog_main"
+                                                                  style="gap: 24px;  max-height: calc(100% - 100px); ${document
+                                                                .body.clientWidth < 800
+                                                                ? `padding: 12px 20px;`
+                                                                : `padding: 30px;`}"
+                                                                >
+                                                                  ${PdClass.selectSpec({
+                                                                gvc,
+                                                                titleFontColor: (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333',
+                                                                prod: pd,
+                                                                vm: {
+                                                                    specs: pd.specs.map((spec) => {
+                                                                        return spec.option[0].title;
+                                                                    }),
+                                                                    quantity: '1',
+                                                                    wishStatus: ((_b = glitter.share.wishList) !== null && _b !== void 0 ? _b : []).some((item) => {
+                                                                        return item.id === dd.id;
+                                                                    }),
+                                                                },
+                                                                preview: true,
+                                                                with_qty: false,
+                                                                is_gift: true,
+                                                                callback: () => {
+                                                                    let find = vm.cartData.lineItems.find((d1) => {
+                                                                        return dd.add_on_products.find((d2) => {
+                                                                            return d2.id === d1.id;
+                                                                        });
+                                                                    });
+                                                                    if (find) {
+                                                                        apiCart.setCart(cartItem => {
+                                                                            cartItem.line_items.map(dd => {
+                                                                                if (dd.id === find.id) {
+                                                                                    dd.count--;
+                                                                                }
+                                                                            });
+                                                                            cartItem.line_items =
+                                                                                cartItem.line_items.filter(dd => {
+                                                                                    return dd.count > 0;
+                                                                                });
+                                                                            refreshCartData();
+                                                                            gvc.closeDialog();
+                                                                        });
+                                                                    }
+                                                                    else {
+                                                                        refreshCartData();
+                                                                        gvc.closeDialog();
+                                                                    }
+                                                                },
+                                                            })}
+                                                                  <div class="d-sm-none" style="height:100px;"></div>
+                                                                </div>
+                                                              </div>
+                                                            </div>`;
+                                                        }, Tool.randomString(7), {
+                                                            animation: document.body.clientWidth < 768
+                                                                ? Animation.popup
+                                                                : Animation.fade,
+                                                        });
+                                                    })}"
+                                                    >
+                                                      <span class="${gClass('button-text')}"
+                                                      >${isSelected
+                                                        ? isSelected.id === pd.id
+                                                            ? Language.text('selected')
+                                                            : Language.text('change_gift')
+                                                        : Language.text('select_gift')}</span
+                                                      >
+                                                    </button>
+                                                  </div>
+                                                </div>`;
+                                                }
+                                                catch (e) {
+                                                    console.error(`error 2 =>`, e);
+                                                }
+                                            })
+                                                .join('')}
+                                        </div>
+                                      `;
+                                        })
+                                            .join('');
+                                        return giftHtml && `<div class="rounded-3 bg-white p-3 mt-3">${giftHtml}</div>`;
+                                    })()}
                                 <!--加購品-->
                                 ${(() => {
                                         let add_on = [];
@@ -1385,7 +1359,7 @@ export class CheckoutIndex {
                                                             id_list: add_on.join(','),
                                                         });
                                                         if (!add_products.response.data.length) {
-                                                            return ``;
+                                                            return '';
                                                         }
                                                         return html `
                                             <div class="rounded-3 mt-3 p-3 bg-white">
@@ -1436,7 +1410,7 @@ export class CheckoutIndex {
                                                                         : `h-100`}"
                                                                     style="width: 100%;  position: relative;${document
                                                                         .body.clientWidth > 768
-                                                                        ? ``
+                                                                        ? ''
                                                                         : `overflow-y: auto;`}"
                                                                   >
                                                                     <div
@@ -1483,13 +1457,11 @@ export class CheckoutIndex {
                                                                         is_gift: true,
                                                                         callback: () => {
                                                                             gvc.closeDialog();
-                                                                            console.log(`vm.cartData=>`, vm.cartData);
                                                                             let find = vm.cartData.lineItems.find((d1) => {
                                                                                 return dd.add_on_products.find((d2) => {
                                                                                     return d2.id === d1.id;
                                                                                 });
                                                                             });
-                                                                            console.log(`find=>`, find);
                                                                             if (find) {
                                                                                 apiCart.setCart(cartItem => {
                                                                                     cartItem.line_items.map(dd => {
@@ -1547,182 +1519,6 @@ export class CheckoutIndex {
                                             return '';
                                         }
                                     })()}
-                                <!--贈品-->
-                                ${(() => {
-                                        let already_add = vm.cartData.lineItems.filter((dd) => {
-                                            return dd.is_gift;
-                                        });
-                                        const giftHtml = vm.cartData.voucherList
-                                            .filter((d1) => {
-                                            return d1.reBackType === 'giveaway';
-                                        })
-                                            .map((dd) => {
-                                            let isSelected = already_add.find(d2 => {
-                                                return dd.add_on_products.find((d1) => {
-                                                    return d1.id === d2.id;
-                                                });
-                                            });
-                                            already_add = already_add.filter(dd => {
-                                                return !dd === isSelected;
-                                            });
-                                            return html `
-                                        <span class="${gClass('banner-text')}">${dd.title}</span>
-                                        <div class="d-flex align-items-center w-100" style="overflow-x:auto;gap:10px;">
-                                          ${dd.add_on_products
-                                                .map((pd) => {
-                                                try {
-                                                    return html ` <div
-                                                  class="d-flex py-3 align-items-center"
-                                                  style="gap:10px;"
-                                                >
-                                                  <div
-                                                    class="img-fluid img-106px"
-                                                    style="background-image: url('${pd.preview_image[0]}');"
-                                                  ></div>
-                                                  <div class="d-flex flex-column" style="gap:5px;">
-                                                    <div class="${gClass('banner-text')} banner-font-15">
-                                                      ${pd.title}
-                                                    </div>
-                                                    <div class="text-decoration-line-through text-danger ntd-font-14">
-                                                      ${Currency.convertCurrencyText(pd.min_price)}
-                                                    </div>
-                                                    <button
-                                                      class="${gClass('button-bgr')} mb-0 mt-2"
-                                                      style="${isSelected
-                                                        ? isSelected.id === pd.id
-                                                            ? `background: gray !important;`
-                                                            : ``
-                                                        : ``}"
-                                                      onclick="${gvc.event(() => {
-                                                        var _a;
-                                                        if (isSelected && isSelected.id === pd.id) {
-                                                            return;
-                                                        }
-                                                        const titleFontColor = (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
-                                                        gvc.glitter.innerDialog((gvc) => {
-                                                            var _a, _b;
-                                                            return html ` <div
-                                                              class=" bg-white shadow  ${document.body.clientWidth > 768
-                                                                ? `rounded-3`
-                                                                : ` position-absolute bottom-0`}"
-                                                              style=" ${document.body.clientWidth > 768
-                                                                ? `min-width: 400px; width: 1000px;max-height:calc(100% - 150px);overflow-y: auto;`
-                                                                : 'width:calc(100vw);height:100%;'}"
-                                                            >
-                                                              <div
-                                                                class="bg-white shadow  ${document.body.clientWidth >
-                                                                768
-                                                                ? `rounded-3`
-                                                                : `h-100`}"
-                                                                style="width: 100%;  position: relative;${document.body
-                                                                .clientWidth > 768
-                                                                ? ``
-                                                                : `overflow-y: auto;`}"
-                                                              >
-                                                                <div
-                                                                  class="w-100 d-flex align-items-center p-3 border-bottom"
-                                                                  style="position: sticky; top: 0; background: #fff;z-index:12;"
-                                                                >
-                                                                  <div
-                                                                    class="fw-bold fs-5"
-                                                                    style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;"
-                                                                  >
-                                                                    ${pd.title}
-                                                                  </div>
-                                                                  <div class="flex-fill"></div>
-                                                                  <i
-                                                                    class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                                                    style="cursor: pointer"
-                                                                    onclick="${gvc.event(() => {
-                                                                gvc.closeDialog();
-                                                            })}"
-                                                                  ></i>
-                                                                </div>
-                                                                <div
-                                                                  class="c_dialog_main"
-                                                                  style="gap: 24px;  max-height: calc(100% - 100px); ${document
-                                                                .body.clientWidth < 800
-                                                                ? `padding: 12px 20px;`
-                                                                : `padding: 30px;`}"
-                                                                >
-                                                                  ${PdClass.selectSpec({
-                                                                gvc,
-                                                                titleFontColor: (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333',
-                                                                prod: pd,
-                                                                vm: {
-                                                                    specs: pd.specs.map((spec) => {
-                                                                        return spec.option[0].title;
-                                                                    }),
-                                                                    quantity: '1',
-                                                                    wishStatus: ((_b = glitter.share.wishList) !== null && _b !== void 0 ? _b : []).some((item) => {
-                                                                        return item.id === dd.id;
-                                                                    }),
-                                                                },
-                                                                preview: true,
-                                                                with_qty: false,
-                                                                is_gift: true,
-                                                                callback: () => {
-                                                                    console.log(`vm.cartData=>`, vm.cartData);
-                                                                    let find = vm.cartData.lineItems.find((d1) => {
-                                                                        return dd.add_on_products.find((d2) => {
-                                                                            return d2.id === d1.id;
-                                                                        });
-                                                                    });
-                                                                    console.log(`find=>`, find);
-                                                                    if (find) {
-                                                                        apiCart.setCart(cartItem => {
-                                                                            cartItem.line_items.map(dd => {
-                                                                                if (dd.id === find.id) {
-                                                                                    dd.count--;
-                                                                                }
-                                                                            });
-                                                                            cartItem.line_items =
-                                                                                cartItem.line_items.filter(dd => {
-                                                                                    return dd.count > 0;
-                                                                                });
-                                                                            refreshCartData();
-                                                                            gvc.closeDialog();
-                                                                        });
-                                                                    }
-                                                                    else {
-                                                                        refreshCartData();
-                                                                        gvc.closeDialog();
-                                                                    }
-                                                                },
-                                                            })}
-                                                                  <div class="d-sm-none" style="height:100px;"></div>
-                                                                </div>
-                                                              </div>
-                                                            </div>`;
-                                                        }, Tool.randomString(7), {
-                                                            animation: document.body.clientWidth < 768
-                                                                ? Animation.popup
-                                                                : Animation.fade,
-                                                        });
-                                                    })}"
-                                                    >
-                                                      <span class="${gClass('button-text')}"
-                                                        >${isSelected
-                                                        ? isSelected.id === pd.id
-                                                            ? Language.text('selected')
-                                                            : Language.text('change_gift')
-                                                        : Language.text('select_gift')}</span
-                                                      >
-                                                    </button>
-                                                  </div>
-                                                </div>`;
-                                                }
-                                                catch (e) {
-                                                    console.error(`error 2 =>`, e);
-                                                }
-                                            })
-                                                .join('')}
-                                        </div>
-                                      `;
-                                        })
-                                            .join('');
-                                        return giftHtml && `<div class="rounded-3 bg-white p-3 mt-3">${giftHtml}</div>`;
-                                    })()}
                                 <!--配送資訊-->
                                 <div class="rounded-3 bg-white w-100 p-1 mt-3">
                                   ${html ` <section>
@@ -1751,7 +1547,7 @@ export class CheckoutIndex {
                                                     value="${dd.value}"
                                                     ${localStorage.getItem('checkout-payment') === dd.value
                                                 ? `selected`
-                                                : ``}
+                                                : ''}
                                                   >
                                                     ${Language.getLanguageCustomText(dd.name) ||
                                                 Language.text(dd.value)}
@@ -1792,14 +1588,14 @@ export class CheckoutIndex {
                                                 ? shipmentList
                                                     .map((dd) => {
                                                     return html ` <option
-                                                          value="${dd.value}"
-                                                          ${vm.cartData.user_info.shipment === dd.value
+                                                        value="${dd.value}"
+                                                        ${vm.cartData.user_info.shipment === dd.value
                                                         ? `selected`
-                                                        : ``}
-                                                        >
-                                                          ${Language.text(`ship_${dd.value}`) ||
+                                                        : ''}
+                                                      >
+                                                        ${Language.text(`ship_${dd.value}`) ||
                                                         Language.getLanguageCustomText(dd.name)}
-                                                        </option>`;
+                                                      </option>`;
                                                 })
                                                     .join('')
                                                 : html ` <option selected>(${Language.text('disable_ship')})</option>`}
@@ -1816,11 +1612,11 @@ export class CheckoutIndex {
                                                 const log_config = (yield ApiUser.getPublicConfig('shipment_config_' + vm.cartData.user_info.shipment, 'manager')).response.value;
                                                 if (log_config.content) {
                                                     return html ` <label class="${gClass('label')}"
-                                                    >${Language.text('shipping_instructions')}</label
-                                                  >
-                                                  <div class="border rounded-3 p-2">${log_config.content}</div>`;
+                                                >${Language.text('shipping_instructions')}</label
+                                                >
+                                                <div class="border rounded-3 p-2">${log_config.content}</div>`;
                                                 }
-                                                return ``;
+                                                return '';
                                             }),
                                         };
                                     })}
@@ -1860,13 +1656,13 @@ export class CheckoutIndex {
                                                 view: () => {
                                                     select_id = gvc.glitter.getUUID();
                                                     return html `<label
-                                                    class="${gClass('label')} w-100 d-flex align-items-center"
-                                                    >${Language.text('shipping_address')}
-                                                    <div class="flex-fill"></div>
-                                                    <div
-                                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
-                                                      style="cursor: pointer; color: #3366bb;"
-                                                      onclick="${gvc.event(() => {
+                                                class="${gClass('label')} w-100 d-flex align-items-center"
+                                              >${Language.text('shipping_address')}
+                                                <div class="flex-fill"></div>
+                                                <div
+                                                  class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ''}"
+                                                  style="cursor: pointer; color: #3366bb;"
+                                                  onclick="${gvc.event(() => {
                                                         ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
                                                             vm.cartData.user_info.address =
                                                                 res.response.userData.consignee_address;
@@ -1874,32 +1670,32 @@ export class CheckoutIndex {
                                                             gvc.notifyDataChange(id);
                                                         });
                                                     })}"
-                                                    >
-                                                      ${Language.text('quick_input')}
-                                                    </div>
-                                                  </label>
-                                                  <div class="row">
-                                                    <div class="col-12 mb-3">
-                                                      <div
-                                                        role="tw-city-selector"
-                                                        id="select_id_${id}"
-                                                        class="w-100 city-selector d-flex d_${select_id}"
-                                                        style="gap:15px;"
-                                                      ></div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                      <input
-                                                        class="${gClass('input')}"
-                                                        type="address"
-                                                        placeholder="${Language.text('please_enter_street_location')}"
-                                                        value="${vm.cartData.user_info.address || ''}"
-                                                        onchange="${gvc.event(e => {
+                                                >
+                                                  ${Language.text('quick_input')}
+                                                </div>
+                                              </label>
+                                              <div class="row">
+                                                <div class="col-12 mb-3">
+                                                  <div
+                                                    role="tw-city-selector"
+                                                    id="select_id_${id}"
+                                                    class="w-100 city-selector d-flex d_${select_id}"
+                                                    style="gap:15px;"
+                                                  ></div>
+                                                </div>
+                                                <div class="col-12">
+                                                  <input
+                                                    class="${gClass('input')}"
+                                                    type="address"
+                                                    placeholder="${Language.text('please_enter_street_location')}"
+                                                    value="${vm.cartData.user_info.address || ''}"
+                                                    onchange="${gvc.event(e => {
                                                         vm.cartData.user_info.address = e.value;
                                                         this.storeLocalData(vm.cartData);
                                                     })}"
-                                                      />
-                                                    </div>
-                                                  </div> `;
+                                                  />
+                                                </div>
+                                              </div> `;
                                                 },
                                                 divCreate: {
                                                     class: `col-12  mb-2`,
@@ -1918,14 +1714,12 @@ export class CheckoutIndex {
                                                                 clearInterval(interVal);
                                                                 document.querySelector(`#select_id_${id} .county`).addEventListener('change', (event) => {
                                                                     const selectedValue = event.target.value;
-                                                                    console.log(`選中的值是: ${selectedValue}`);
                                                                     vm.cartData.user_info.city = selectedValue;
                                                                     vm.cartData.user_info.area = undefined;
                                                                     this.storeLocalData(vm.cartData);
                                                                 });
                                                                 document.querySelector(`#select_id_${id} .district`).addEventListener('change', (event) => {
                                                                     const selectedValue = event.target.value;
-                                                                    console.log(`選中的值是: ${selectedValue}`);
                                                                     vm.cartData.user_info.area = selectedValue;
                                                                     this.storeLocalData(vm.cartData);
                                                                 });
@@ -1942,18 +1736,18 @@ export class CheckoutIndex {
                                                 },
                                             };
                                         })
-                                        : ``}
+                                        : ''}
                                       <!-- 選取超商 -->
                                       ${ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment)
                                         ? html ` <div class="col-12">
-                                            <button
-                                              class="${gClass('button-bgr')}"
-                                              onclick="${gvc.event(() => {
+                                          <button
+                                            class="${gClass('button-bgr')}"
+                                            onclick="${gvc.event(() => {
                                             ApiDelivery.storeMaps({
                                                 returnURL: (() => {
                                                     if (ApplicationConfig.device_type === 'ios') {
                                                         const url = new URL(location.href);
-                                                        url.searchParams.set("select_map_finish", "true");
+                                                        url.searchParams.set('select_map_finish', 'true');
                                                         return url.href;
                                                     }
                                                     else {
@@ -1974,9 +1768,9 @@ export class CheckoutIndex {
                                                 }
                                             }));
                                         })}"
-                                            >
+                                          >
                                               <span class="${gClass('button-text')}"
-                                                >${(() => {
+                                              >${(() => {
                                             let cvs = glitter.getUrlParameter('CVSStoreName') || '';
                                             if (decodeURIComponent(cvs)) {
                                                 return `${decodeURIComponent(cvs)} 『 ${Language.text('click_to_reselct_store')} 』`;
@@ -1986,8 +1780,8 @@ export class CheckoutIndex {
                                             }
                                         })()}</span
                                               >
-                                            </button>
-                                          </div>`
+                                          </button>
+                                        </div>`
                                         : ''}
                                       ${(() => {
                                         var _a;
@@ -2004,7 +1798,7 @@ export class CheckoutIndex {
                                     })()
                                         ? [
                                             html `<label class="${gClass('label')}">${Language.text('country')}</label>
-                                              ${gvc.bindView(() => {
+                                          ${gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
                                                     bind: id,
@@ -2029,90 +1823,89 @@ export class CheckoutIndex {
                                                             });
                                                         });
                                                         return html `<select
-                                                      class="w-100 ${gClass('select')}"
-                                                      onchange="${gvc.event((e, event) => {
+                                                  class="w-100 ${gClass('select')}"
+                                                  onchange="${gvc.event((e, event) => {
                                                             vm.cartData.user_info.country = e.value;
                                                             this.storeLocalData(vm.cartData);
                                                             refreshCartData();
                                                         })}"
-                                                    >
-                                                      ${(() => {
+                                                >
+                                                  ${(() => {
                                                             let map = country_select.map((dd) => {
                                                                 return html `
-                                                              <option
-                                                                value="${dd.countryCode}"
-                                                                ${vm.cartData.user_info.country === dd.countryCode
+                                                          <option
+                                                            value="${dd.countryCode}"
+                                                            ${vm.cartData.user_info.country === dd.countryCode
                                                                     ? `selected`
-                                                                    : ``}
-                                                              >
-                                                                ${dd.countryName}
-                                                              </option>
-                                                            `;
+                                                                    : ''}
+                                                          >
+                                                            ${dd.countryName}
+                                                          </option>
+                                                        `;
                                                             });
                                                             if (!country_select.find((dd) => {
                                                                 return dd.countryCode === vm.cartData.user_info.country;
                                                             })) {
                                                                 delete vm.cartData.user_info.country;
                                                                 map.push(html ` <option class="d-none" selected>
-                                                              ${Language.text('select_country')}
-                                                            </option>`);
+                                                          ${Language.text('select_country')}
+                                                        </option>`);
                                                             }
                                                             return map.join('');
                                                         })()}
-                                                    </select>`;
+                                                </select>`;
                                                     }),
-                                                    divCreate: {},
                                                 };
                                             })}`,
                                             html ` <label class="${gClass('label')}"
-                                                >${Language.text('shipping_address')}</label
-                                              >
-                                              <input
-                                                class="${gClass('input')}"
-                                                type="address"
-                                                placeholder="${Language.text('please_enter_delivery_address')}"
-                                                value="${vm.cartData.user_info.address || ''}"
-                                                onchange="${gvc.event(e => {
+                                          >${Language.text('shipping_address')}</label
+                                          >
+                                          <input
+                                            class="${gClass('input')}"
+                                            type="address"
+                                            placeholder="${Language.text('please_enter_delivery_address')}"
+                                            value="${vm.cartData.user_info.address || ''}"
+                                            onchange="${gvc.event(e => {
                                                 vm.cartData.user_info.address = e.value;
                                                 this.storeLocalData(vm.cartData);
                                             })}"
-                                              />`,
+                                          />`,
                                             html ` <label class="${gClass('label')}">${Language.text('city')}</label>
-                                              <input
-                                                class="${gClass('input')}"
-                                                type="city"
-                                                placeholder="${Language.text('city')}"
-                                                value="${vm.cartData.user_info.city || ''}"
-                                                onchange="${gvc.event(e => {
+                                          <input
+                                            class="${gClass('input')}"
+                                            type="city"
+                                            placeholder="${Language.text('city')}"
+                                            value="${vm.cartData.user_info.city || ''}"
+                                            onchange="${gvc.event(e => {
                                                 vm.cartData.user_info.city = e.value;
                                                 this.storeLocalData(vm.cartData);
                                             })}"
-                                              />`,
+                                          />`,
                                             html ` <label class="${gClass('label')}">${Language.text('state')}</label>
-                                              <input
-                                                class="${gClass('input')}"
-                                                class="${gClass('input')}"
-                                                type="state"
-                                                placeholder="${Language.text('state')}"
-                                                value="${vm.cartData.user_info.state || ''}"
-                                                onchange="${gvc.event(e => {
+                                          <input
+                                            class="${gClass('input')}"
+                                            class="${gClass('input')}"
+                                            type="state"
+                                            placeholder="${Language.text('state')}"
+                                            value="${vm.cartData.user_info.state || ''}"
+                                            onchange="${gvc.event(e => {
                                                 vm.cartData.user_info.state = e.value;
                                                 this.storeLocalData(vm.cartData);
                                             })}"
-                                              />`,
+                                          />`,
                                             html ` <label class="${gClass('label')}"
-                                                >${Language.text('postal_code')}</label
-                                              >
-                                              <input
-                                                class="${gClass('input')}"
-                                                type=""
-                                                placeholder="${Language.text('postal_code')}"
-                                                value="${vm.cartData.user_info.postal_code || ''}"
-                                                onchange="${gvc.event(e => {
+                                          >${Language.text('postal_code')}</label
+                                          >
+                                          <input
+                                            class="${gClass('input')}"
+                                            type=""
+                                            placeholder="${Language.text('postal_code')}"
+                                            value="${vm.cartData.user_info.postal_code || ''}"
+                                            onchange="${gvc.event(e => {
                                                 vm.cartData.user_info.postal_code = e.value;
                                                 this.storeLocalData(vm.cartData);
                                             })}"
-                                              />`,
+                                          />`,
                                         ]
                                             .map(dd => {
                                             return html ` <div class="col-12 col-md-6 mb-2">${dd}</div>`;
@@ -2147,7 +1940,7 @@ export class CheckoutIndex {
                                         }
                                         catch (e) {
                                             console.error(`error 3 =>`, e);
-                                            return ``;
+                                            return '';
                                         }
                                     })()}
                                     </div>
@@ -2159,11 +1952,10 @@ export class CheckoutIndex {
                                     ${Language.text('customer_info')}
                                     <div class="flex-fill"></div>
                                     <div
-                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
+                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ''}"
                                       style="cursor: pointer; color: #3366bb;"
                                       onclick="${gvc.event(() => {
                                         ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
-                                            console.log(`res.response.userData=>`, res.response.userData);
                                             ['name', 'phone', 'email'].map(dd => {
                                                 vm.cartData.customer_info[dd] =
                                                     res.response.userData[dd] || vm.cartData.customer_info[dd];
@@ -2302,11 +2094,10 @@ export class CheckoutIndex {
                                     ${Language.text('recipient_info')}
                                     <div class="flex-fill"></div>
                                     <div
-                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ``}"
+                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ''}"
                                       style="cursor: pointer; color: #3366bb;"
                                       onclick="${gvc.event(() => {
                                         ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
-                                            console.log(`res.response.userData=>`, res.response.userData);
                                             ['name', 'phone', 'email'].map(dd => {
                                                 vm.cartData.user_info[dd] =
                                                     res.response.userData[dd] || vm.cartData.user_info[dd];
@@ -2371,7 +2162,7 @@ export class CheckoutIndex {
                                             view: () => __awaiter(this, void 0, void 0, function* () {
                                                 try {
                                                     if (vm_info.loading) {
-                                                        return ``;
+                                                        return '';
                                                     }
                                                     const receipt_form = JSON.parse(JSON.stringify(widget.share.receipt_form)).map((dd) => {
                                                         switch (dd.key) {
@@ -2852,28 +2643,28 @@ export class CheckoutIndex {
                                                     .join('');
                                             }
                                             else {
-                                                return ` <div
-                                          class="d-flex align-items-center justify-content-end"
-                                          style="width:1180px;max-width: 100%;gap:24px;"
-                                        >
-                                          <div class="d-flex align-items-end fs-base" style="gap:5px;">
-                                            <span style="white-space:nowrap;" class="fw-bold fs-sm">
-                                              ${Language.text('total_amount')}</span
+                                                return html ` <div
+                                              class="d-flex align-items-center justify-content-end"
+                                              style="width:1180px;max-width: 100%;gap:24px;"
                                             >
-                                            <div class="${gClass(['price-row', 'text-1', 'bold'])}">
-                                              <div class="fs-5 fw-bold ${gClass('price-text')}">
-                                                ${Currency.convertCurrencyText(vm.cartData.total)}
+                                              <div class="d-flex align-items-end fs-base" style="gap:5px;">
+                                                <span style="white-space:nowrap;" class="fw-bold fs-sm">
+                                                  ${Language.text('total_amount')}</span
+                                                >
+                                                <div class="${gClass(['price-row', 'text-1', 'bold'])}">
+                                                  <div class="fs-5 fw-bold ${gClass('price-text')}">
+                                                    ${Currency.convertCurrencyText(vm.cartData.total)}
+                                                  </div>
+                                                </div>
                                               </div>
-                                            </div>
-                                          </div>
-                                          <div class="flex-fill d-block d-sm-none"></div>
-                                          <div class="">
-                                            <button
-                                              class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
-                                              style="${document.body.clientWidth < 800
+                                              <div class="flex-fill d-block d-sm-none"></div>
+                                              <div>
+                                                <button
+                                                  class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
+                                                  style="${document.body.clientWidth < 800
                                                     ? `min-width:100px;`
                                                     : `min-width:380px;`}"
-                                              onclick="${gvc.event(() => {
+                                                  onclick="${gvc.event(() => {
                                                     var _a;
                                                     const that = this;
                                                     if (((_a = onlineData === null || onlineData === void 0 ? void 0 : onlineData.interaction) === null || _a === void 0 ? void 0 : _a.status) == 3) {
@@ -2972,7 +2763,8 @@ export class CheckoutIndex {
                                                                 const urlObject = new URL(originalUrl);
                                                                 urlObject.searchParams.set('EndCheckout', '1');
                                                                 const newUrl = urlObject.toString();
-                                                                if ((ApplicationConfig.device_type === 'ios') && ['jkopay', 'line_pay'].includes(vm.cartData.customer_info.payment_select)) {
+                                                                if (ApplicationConfig.device_type !== 'web' &&
+                                                                    ['jkopay', 'line_pay'].includes(vm.cartData.customer_info.payment_select)) {
                                                                     return `${ApplicationConfig.bundle_id}://?path=${encodeURIComponent(newUrl)}`;
                                                                 }
                                                                 else {
@@ -3006,39 +2798,39 @@ export class CheckoutIndex {
                                                                         bind: `paynow`,
                                                                         view: () => {
                                                                             return html ` <div
-                                                                class="w-100 h-100 d-flex align-items-center justify-content-center"
-                                                              >
-                                                                ${document.body.clientWidth < 800
+                                                                    class="w-100 h-100 d-flex align-items-center justify-content-center"
+                                                                  >
+                                                                    ${document.body.clientWidth < 800
                                                                                 ? `
                                                                             <div class="bg-white position-relative vw-100" style="height: ${window.innerHeight}px;overflow-y: auto;
                                                                             padding-top:${50 + glitter.share.top_inset}px;
                                                                             ">
                                                                             `
                                                                                 : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
-                                                                <div
-                                                                  style="position: absolute; right: 15px;top:${15 +
+                                                                    <div
+                                                                      style="position: absolute; right: 15px;top:${15 +
                                                                                 glitter.share.top_inset}px;z-index:1;"
-                                                                  onclick="${gvc.event(() => {
+                                                                      onclick="${gvc.event(() => {
                                                                                 location.href = res.response.returnUrl;
                                                                                 gvc.closeDialog();
                                                                             })}"
-                                                                >
-                                                                  <i
-                                                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
-                                                                  ></i>
-                                                                </div>
-                                                                <div id="paynow-container" class="" style="">
-                                                                  <div style="width:200px;height:200px;">
-                                                                    loading...
-                                                                  </div>
-                                                                </div>
-                                                                <div class="px-3 px-sm-0 w-100">
-                                                                  <button
-                                                                    class="${gClass(verify.length > 0
+                                                                    >
+                                                                      <i
+                                                                        class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                                                      ></i>
+                                                                    </div>
+                                                                    <div id="paynow-container">
+                                                                      <div style="width:200px;height:200px;">
+                                                                        loading...
+                                                                      </div>
+                                                                    </div>
+                                                                    <div class="px-3 px-sm-0 w-100">
+                                                                      <button
+                                                                        class="${gClass(verify.length > 0
                                                                                 ? 'button-bgr-disable'
                                                                                 : 'button-bgr')} "
-                                                                    id="checkoutButton"
-                                                                    onclick="${gvc.event(() => {
+                                                                        id="checkoutButton"
+                                                                        onclick="${gvc.event(() => {
                                                                                 const PayNow = window.PayNow;
                                                                                 const dialog = new ShareDialog(gvc.glitter);
                                                                                 dialog.dataLoading({ visible: true });
@@ -3051,13 +2843,13 @@ export class CheckoutIndex {
                                                                                     }
                                                                                 });
                                                                             })}"
-                                                                  >
-                                                                    <span class="${gClass('button-text')}"
-                                                                      >確認結帳</span
-                                                                    >
-                                                                  </button>
-                                                                </div>
-                                                              </div>`;
+                                                                      >
+                                                                        <span class="${gClass('button-text')}"
+                                                                          >確認結帳</span
+                                                                        >
+                                                                      </button>
+                                                                    </div>
+                                                                  </div>`;
                                                                         },
                                                                         divCreate: {
                                                                             class: ` h-100 d-flex align-items-center justify-content-center`,
@@ -3066,7 +2858,9 @@ export class CheckoutIndex {
                                                                         onCreate: () => {
                                                                             const publicKey = res.response.publicKey;
                                                                             const secret = res.response.data.result.secret;
-                                                                            const env = res.response.BETA == 'true' ? 'sandbox' : 'production';
+                                                                            const env = res.response.BETA == 'true'
+                                                                                ? 'sandbox'
+                                                                                : 'production';
                                                                             const PayNow = window.PayNow;
                                                                             PayNow.createPayment({
                                                                                 publicKey: publicKey,
@@ -3130,8 +2924,8 @@ export class CheckoutIndex {
                                                                 else {
                                                                     const id = gvc.glitter.getUUID();
                                                                     $('body').append(html ` <div id="${id}" style="display: none;">
-                                                            ${res.response.form}
-                                                          </div>`);
+                                                                ${res.response.form}
+                                                              </div>`);
                                                                     document.querySelector(`#${id} #submit`).click();
                                                                 }
                                                             }
@@ -3161,20 +2955,21 @@ export class CheckoutIndex {
                                                         });
                                                     }
                                                 })}"
-                                            >
-                                              <span class="${gClass('button-text')} "
-                                                    style="${verify.length > 0 ? `font-size:13px;` : ``}"
                                                 >
-                                                ${verify.length > 0
+                                                  <span
+                                                    class="${gClass('button-text')} "
+                                                    style="${verify.length > 0 ? `font-size:13px;` : ''}"
+                                                  >
+                                                    ${verify.length > 0
                                                     ? verify.join('<br/>')
                                                     : window.login_config.login_in_to_order &&
                                                         !GlobalUser.token
                                                         ? Language.text('login_in_to_checkout')
                                                         : Language.text('next')}
-                                                </span >
-                                            </button>
-                                          </div>
-                                        </div>`;
+                                                  </span>
+                                                </button>
+                                              </div>
+                                            </div>`;
                                             }
                                         })()}
                                       </div>
@@ -3189,7 +2984,7 @@ export class CheckoutIndex {
                                         : `width:calc(100%);`}"
                               >
                                 <!--明細-->
-                                <div style="" class="rounded-3 bg-white w-100 p-3">${detail_info}</div>
+                                <div class="rounded-3 bg-white w-100 p-3">${detail_info}</div>
                                 <div class="d-sm-none" style="height:120px;"></div>
                               </div>
                             </div>
@@ -3245,12 +3040,10 @@ export class CheckoutIndex {
             };
         })()) +
             (gvc.glitter.getUrlParameter('page') === 'checkout'
-                ? `
-      <div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 vw-100 vh-100"></div>
-      `
-                : `
-      <div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 w-100"></div>
-      `));
+                ? html `
+            <div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 vw-100 vh-100"></div>
+          `
+                : html ` <div style="background:#f0f0f0;z-index:-1;" class="position-absolute start-0 top-0 w-100"></div> `));
     }
     static checkFormData(gvc, cartData, widget) {
         var _a;
@@ -3309,13 +3102,13 @@ export class CheckoutIndex {
                 });
                 return false;
             }
-            else if ((!subData['area'] || subData['area'] === '') && (subData['shipment'] !== 'global_express')) {
+            else if ((!subData['area'] || subData['area'] === '') && subData['shipment'] !== 'global_express') {
                 dialog.errorMessage({
                     text: `${Language.text('please_enter')}「${Language.text('area')}」`,
                 });
                 return false;
             }
-            else if ((!subData['state'] || subData['state'] === '') && (subData['shipment'] === 'global_express')) {
+            else if ((!subData['state'] || subData['state'] === '') && subData['shipment'] === 'global_express') {
                 dialog.errorMessage({
                     text: `${Language.text('please_enter')}「${Language.text('state')}」`,
                 });
@@ -3507,7 +3300,6 @@ export class CheckoutIndex {
             }
         });
         cartData.off_line_support = (_a = cartData.off_line_support) !== null && _a !== void 0 ? _a : {};
-        console.log(cartData.off_line_support);
         cartData.off_line_support.atm &&
             array.push({
                 name: '銀行轉帳',

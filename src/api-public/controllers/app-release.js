@@ -78,13 +78,18 @@ router.post('/release/android/download', async (req, resp) => {
             const domain = (await database_1.default.query(`select \`domain\`
            from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
            where appName = ?`, [req.get('g-app')]))[0]['domain'];
+            const config = (await private_config_js_1.Private_config.getConfig({
+                appName: req.get('g-app'),
+                key: 'glitter_app_release',
+            }))[0].value;
             await release_js_1.Release.android({
-                appName: req.body.app_name,
-                bundleID: req.body.bundle_id,
-                glitter_domain: config_1.config.domain,
+                appName: config.name,
+                bundleID: config.ios_app_bundle_id || (domain),
+                glitter_domain: config.domain,
                 appDomain: req.get('g-app'),
                 project_router: copyFile,
                 domain_url: domain,
+                config: config
             });
             await release_js_1.Release.compressFiles(copyFile, `${copyFile}.zip`);
             const url = await release_js_1.Release.uploadFile(`${copyFile}.zip`, `${copyFile}.zip`);

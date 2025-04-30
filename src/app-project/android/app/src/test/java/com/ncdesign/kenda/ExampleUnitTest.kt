@@ -1,4 +1,4 @@
-package com.ncdesign.kenda
+package www.smilebio.io
 
 import org.junit.Test
 

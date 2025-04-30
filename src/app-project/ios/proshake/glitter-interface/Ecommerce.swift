@@ -52,11 +52,13 @@ class Ecommerce{
             // 创建HTML文件并在浏览器中打开
             if let fileURL = createHTMLFile() {
                 request.glitterAct.openWeb(string: fileURL.absoluteString)
+                
             } else {
                 print("Failed to create HTML file.")
             }
             
         }))
+        
         GlitterActivity.sharedInterFace.append(JavaScriptInterFace(functionName: "check_out_finish", function: {
             request in
             request.glitterAct.dismiss(animated: true)
@@ -143,5 +145,59 @@ class Ecommerce{
                 }
             }
         }))
+        
+        
+        GlitterActivity.sharedInterFace.append(JavaScriptInterFace(functionName: "post_form", function: {
+            request in
+            checkOutInstance=request
+            let htmlContent = """
+            
+            <!DOCTYPE html>
+            <html lang="zh-TW">
+            <head>
+             <meta charset="UTF-8">
+                <title>My HTML Page</title>
+            </head>
+            <body>
+               <div id="ddd" style="display: none;">\(request.receiveValue["form"] as! String)</div>
+            <script>
+                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                    JSON.stringify({
+                                        functionName: 'is_application',
+                                        callBackId: 0,
+                                        data: {},
+                                    })
+                            );
+            document.querySelector(`#ddd #submit`).click();
+            </script>
+            </body>
+            </html>
+            """
+            // 函数：创建HTML文件
+            func createHTMLFile() -> URL? {
+                // 获取用户的文档目录
+                let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                // 创建文件路径
+                let fileURL = documentsDirectory.appendingPathComponent("checkout.html")
+                
+                do {
+                    // 将HTML内容写入磁盘
+                    try htmlContent.write(to: fileURL, atomically: true, encoding: .utf8)
+                    return fileURL
+                } catch {
+                    print("Error writing HTML to file: \(error)")
+                    return nil
+                }
+            }
+            // 创建HTML文件并在浏览器中打开
+            if let fileURL = createHTMLFile() {
+                request.glitterAct.openWeb(string: fileURL.absoluteString)
+            } else {
+                print("Failed to create HTML file.")
+            }
+            
+        }))
+
+        
     }
 }

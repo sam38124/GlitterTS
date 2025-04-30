@@ -201,7 +201,7 @@ export class BgListComponent {
               </div>
               <div
                 class="position-absolute bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top pe-4"
-                style="gap:10px;"
+                style="gap: 10px; background-color: #fff"
               >
                 ${BgWidget.cancel(
                   gvc.event(() => {
@@ -362,7 +362,7 @@ export class BgListComponent {
               </div>
               <div
                 class="position-absolute bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top pe-4"
-                style="gap:10px;"
+                style="gap: 10px; background-color: #fff"
               >
                 ${BgWidget.cancel(
                   gvc.event(() => {

@@ -274,7 +274,7 @@ export class Language {
       { key: 'search', tw: '搜尋', cn: '搜索', en: 'Search' },
       { key: 'all_products', tw: '所有商品', cn: '所有商品', en: 'All Products' },
       { key: 'product_categories', tw: '商品分類', cn: '商品分类', en: 'Product Categories' },
-      { key: 'products', tw: '單一商品', cn: '单一商品', en: 'Products' },
+      { key: 'products', tw: '特定商品', cn: '特定商品', en: 'Products' },
       { key: 'filter', tw: '篩選', cn: '筛选', en: 'Filter' },
       { key: 'sort_by_date', tw: '預設', cn: '預設', en: 'Sort by default' },
       { key: 'sort_by_price_asc', tw: '價格由低至高', cn: '价格由低到高', en: 'Price Low to High' },

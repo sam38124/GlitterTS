@@ -7,6 +7,7 @@
 
 import Foundation
 import Glitter_IOS
+import AppTrackingTransparency
 import SafariServices
 class BasicUtil{
     public static func createShareInterface(){
@@ -30,15 +31,55 @@ class BasicUtil{
                 request.glitterAct.dismiss(animated: true)
             })
         )
-        
+        //SetWebView JS
         GlitterActivity.sharedInterFace.append(
-            JavaScriptInterFace(functionName: "is_application", function: {
+            JavaScriptInterFace(functionName: "execute_main_js", function: {
                 request in
-                request.responseValue["is_application"]=true
+                ViewController.vc?.webView.webView?.evaluateJavaScript("""
+\(request.receiveValue["js"] as! String)
+""")
                 request.finish()
             })
         )
         
+        GlitterActivity.sharedInterFace.append(
+            JavaScriptInterFace(functionName: "is_application", function: {
+                request in
+                request.responseValue["is_application"]=true;
+                request.responseValue["redirect"]=ViewController.redirect
+                request.responseValue["device_type"]="ios"
+                request.responseValue["bundle_id"]=Bundle.main.bundleIdentifier;
+                request.glitterAct.webView!.customUserAgent=ViewController.agent;
+                ViewController.redirect="";
+                DispatchQueue.main.asyncAfter(deadline: .now()+1.0, execute: {
+                    requestTrackingAuthorization();
+                })
+               
+                request.finish();
+            })
+        )
+        
+    }
+}
+func requestTrackingAuthorization() {
+    if #available(iOS 14, *) {
+        ATTrackingManager.requestTrackingAuthorization { status in
+            switch status {
+            case .authorized:
+                print("✅ 使用者已允許追蹤")
+                if((ViewController.vc?.webView.webView) != nil && (!(ViewController.agent).contains("allow_track"))){
+                    ViewController.agent+=" allow_track"
+                    DispatchQueue.main.async {
+                        ViewController.vc!.webView.webView?.customUserAgent=ViewController.agent
+                        ViewController.vc!.webView.webView?.reload()
+                    }
+                }
+            case .denied, .restricted, .notDetermined:
+                print("🚫 使用者拒絕或尚未決定")
+            @unknown default:
+                break
+            }
+        }
     }
 }
 

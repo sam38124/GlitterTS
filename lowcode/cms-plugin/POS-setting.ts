@@ -20,6 +20,7 @@ import { PosSummary } from './pos-pages/pos-summary.js';
 import { ApiPos } from '../glitter-base/route/pos.js';
 import { PosWidget } from './pos-widget.js';
 import { SaasOffer } from '../saas-offer.js';
+import { Language } from '../glitter-base/global/language.js';
 
 const html = String.raw;
 
@@ -388,6 +389,7 @@ export class POSSetting {
     function changeSelectVariant(product: any) {
       let emptyArray: any[] = [];
       product.content.specs.forEach((spec: any) => {
+        console.log(spec.option);
         emptyArray.push(spec.option.find((opt: any) => opt.select == true).title);
       });
       return product.content.variants.find((variant: any) => arraysEqual(variant.spec, emptyArray));
@@ -436,39 +438,49 @@ export class POSSetting {
                           if (data.content.specs.length == 0) {
                             return '';
                           }
-                          return data.content.specs
-                            .map((spec: any) => {
-                              return html`
-                                <div style="font-size: 16px;font-style: normal;font-weight: 500;color: #8D8D8D;">
-                                  ${spec.title}
-                                </div>
-                                <select
-                                  class="w-100 form-select"
-                                  style="border-radius: 5px;border: 1px solid #DDD;padding: 10px 18px;font-size: 18px;"
-                                  onchange="${gvc.event(e => {
-                                    spec.option.forEach((option: any) => {
-                                      option.select = false;
-                                    });
-                                    spec.option[e.value].select = true;
-                                    selectVariant = changeSelectVariant(data);
-                                    obj.callback(selectVariant);
-                                    gvc.notifyDataChange('productDialog');
-                                  })}"
-                                >
-                                  ${spec.option
-                                    .map((option: any, index: number) => {
-                                      return html` <option
-                                        class="d-flex align-items-center justify-content-center"
-                                        value="${index}"
-                                        ${option.select ? 'selected' : ''}
-                                        style="border-radius: 5px;padding: 10px 18px;color: #393939;font-size: 18px;font-weight: 500;letter-spacing: 0.72px;"
+
+                          const productSpecs: {
+                            title: string;
+                            option: any;
+                            language_title?: {
+                              'en-US': string;
+                              'zh-CN': string;
+                              'zh-TW': string;
+                            };
+                          }[] = data.content.specs;
+
+                          return productSpecs
+                            .map((spec, index1) => {
+                              return html` <div>
+                                <h5 class="mb-2" style="color: #393939; font-size: 14px;">
+                                  ${(spec.language_title && (spec.language_title as any)[Language.getLanguage()]) ||
+                                  spec.title}
+                                </h5>
+                                <div class="d-flex gap-2 flex-wrap">
+                                  ${gvc.map(
+                                    spec.option.map((opt: any, optIndex: number) => {
+                                      return html` <div
+                                        class="spec-option ${spec.option[optIndex].select ? 'selected-option' : ''}"
+                                        onclick="${gvc.event(() => {
+                                          spec.option.forEach((option: any) => {
+                                            option.select = false;
+                                          });
+                                          spec.option[optIndex].select = true;
+                                          selectVariant = changeSelectVariant(data);
+                                          obj.callback(selectVariant);
+                                          gvc.notifyDataChange('productDialog');
+                                        })}"
                                       >
-                                        ${option.title}
-                                      </option>`;
+                                        <span style="font-size: 15px; font-weight: 500; letter-spacing: 1.76px;"
+                                          >${(opt.language_title &&
+                                            (opt.language_title as any)[Language.getLanguage()]) ||
+                                          opt.title}</span
+                                        >
+                                      </div>`;
                                     })
-                                    .join('')}
-                                </select>
-                              `;
+                                  )}
+                                </div>
+                              </div>`;
                             })
                             .join('');
                         },
@@ -552,9 +564,9 @@ export class POSSetting {
                                       POSSetting.config.where_store.includes('exhibition_') &&
                                       selectVariant.exhibition_type
                                     ) {
-                                      return `庫存數量:${selectVariant.exhibition_active_stock}`;
+                                      return `庫存數量: ${selectVariant.exhibition_active_stock}`;
                                     }
-                                    return `庫存數量:${selectVariant.stock}`;
+                                    return `庫存數量: ${selectVariant.stock}`;
                                   })()}</span
                                 >
                               </div>
@@ -913,6 +925,30 @@ export class POSSetting {
         animation: slideOutFromLeft 0.3s ease-out forwards;
       }
 
+      .spec-option {
+        display: flex;
+        height: 38px;
+        padding-left: 10px;
+        padding-right: 10px;
+        justify-content: center;
+        align-items: center;
+        border-radius: 5px;
+        gap: 10px;
+        border: 1px solid #393939;
+        color: #393939;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      .spec-option.selected-option {
+        background: #393939;
+        color: #fff;
+      }
+
+      .spec-option:not(.selected-option):hover {
+        background: #8d8d8d;
+      }
+
       /* @keyframes 定義動畫 */
       @keyframes slideInFromLeft {
         0% {
@@ -937,6 +973,7 @@ export class POSSetting {
       PayConfig.pos_config = res.response.value;
       vm.loading = false;
       gvc.notifyDataChange(vm.id);
+      console.log(`PayConfig.pos_config=>`,PayConfig.pos_config)
     });
 
     if (vm.type === 'home') {

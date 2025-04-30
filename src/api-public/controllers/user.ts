@@ -14,6 +14,7 @@ const router: express.Router = express.Router();
 
 export = router;
 
+// user
 router.get('/', async (req: express.Request, resp: express.Response) => {
   try {
     const app = req.get('g-app') as string;
@@ -91,6 +92,31 @@ router.delete('/', async (req: express.Request, resp: express.Response) => {
   }
 });
 
+// user info
+router.get('/userdata', async (req: express.Request, resp: express.Response) => {
+  try {
+    const user = new User(req.get('g-app') as string);
+    return response.succ(resp, await user.getUserData(req.query.userID + ''));
+  } catch (err) {
+    return response.fail(resp, err);
+  }
+});
+router.get('/group', async (req: express.Request, resp: express.Response) => {
+  try {
+    const user = new User(req.get('g-app') as string);
+    const type = req.query.type ? `${req.query.type}`.split(',') : undefined;
+    const tag = req.query.tag ? `${req.query.tag}` : undefined;
+    if (await UtPermission.isManager(req)) {
+      return response.succ(resp, await user.getUserGroups(type, tag));
+    } else {
+      return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+    }
+  } catch (err) {
+    return response.fail(resp, err);
+  }
+});
+
+// level
 router.get('/level', async (req: express.Request, resp: express.Response) => {
   try {
     if (await UtPermission.isManager(req)) {
@@ -122,6 +148,21 @@ router.get('/level/config', async (req: express.Request, resp: express.Response)
     return response.fail(resp, err);
   }
 });
+router.post('/batch/manualLevel', async (req: express.Request, resp: express.Response) => {
+  try {
+    const app = req.get('g-app') as string;
+    const user = new User(app, req.body.token);
+    if (await UtPermission.isManager(req)) {
+      return response.succ(resp, await user.batchManualLevel(req.body.userId, req.body.level));
+    } else {
+      return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+    }
+  } catch (err) {
+    return response.fail(resp, err);
+  }
+});
+
+// code verify
 router.post('/email-verify', async (req: express.Request, resp: express.Response) => {
   try {
     const user = new User(req.get('g-app') as string);
@@ -140,6 +181,8 @@ router.post('/phone-verify', async (req: express.Request, resp: express.Response
     return response.fail(resp, err);
   }
 });
+
+// register & login
 router.post('/register', async (req: express.Request, resp: express.Response) => {
   try {
     const user = new User(req.get('g-app') as string);
@@ -227,7 +270,6 @@ router.post('/manager/register', async (req: express.Request, resp: express.Resp
     return response.fail(resp, err);
   }
 });
-
 router.post('/login', async (req: express.Request, resp: express.Response) => {
   try {
     const user = new User(req.get('g-app') as string, req.body.token);
@@ -249,6 +291,7 @@ router.post('/login', async (req: express.Request, resp: express.Response) => {
   }
 });
 
+// check user
 router.get('/checkMail', async (req: express.Request, resp: express.Response) => {
   try {
     let data = await db.query(
@@ -315,13 +358,21 @@ router.get('/check/phone/exists', async (req: express.Request, resp: express.Res
     return response.fail(resp, err);
   }
 });
+router.get('/check-admin-auth', async (req: express.Request, resp: express.Response) => {
+  try {
+    return response.succ(resp, await new User(req.get('g-app') as string, req.body.token || {}).checkAdminPermission());
+  } catch (err) {
+    return response.fail(resp, err);
+  }
+});
 
+// forget
 router.post('/forget', async (req: express.Request, resp: express.Response) => {
   try {
     const sql = `select *
                      from \`${req.get('g-app')}\`.t_user
                      where account = ${db.escape(req.body.email)}
-                       and status = 1`;
+                       and status <> 0`;
 
     const userData: any = (await db.execute(sql, [])) as any;
     if (userData.length > 0) {
@@ -355,6 +406,7 @@ router.post('/forget/check-code', async (req: express.Request, resp: express.Res
   }
 });
 
+// reset password
 router.put('/reset/pwd', async (req: express.Request, resp: express.Response) => {
   try {
     const forget_code = await redis.getValue(`forget-${req.body.email}`);
@@ -388,29 +440,7 @@ router.put('/resetPwdNeedCheck', async (req: express.Request, resp: express.Resp
   }
 });
 
-router.get('/userdata', async (req: express.Request, resp: express.Response) => {
-  try {
-    const user = new User(req.get('g-app') as string);
-    return response.succ(resp, await user.getUserData(req.query.userID + ''));
-  } catch (err) {
-    return response.fail(resp, err);
-  }
-});
-router.get('/group', async (req: express.Request, resp: express.Response) => {
-  try {
-    const user = new User(req.get('g-app') as string);
-    const type = req.query.type ? `${req.query.type}`.split(',') : undefined;
-    const tag = req.query.tag ? `${req.query.tag}` : undefined;
-    if (await UtPermission.isManager(req)) {
-      return response.succ(resp, await user.getUserGroups(type, tag));
-    } else {
-      return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
-    }
-  } catch (err) {
-    return response.fail(resp, err);
-  }
-});
-
+// subscribe
 router.get('/subscribe', async (req: express.Request, resp: express.Response) => {
   try {
     const user = new User(req.get('g-app') as string);
@@ -442,6 +472,7 @@ router.delete('/subscribe', async (req: express.Request, resp: express.Response)
   }
 });
 
+// fcm
 router.get('/fcm', async (req: express.Request, resp: express.Response) => {
   try {
     const user = new User(req.get('g-app') as string);
@@ -462,6 +493,7 @@ router.post('/fcm', async (req: express.Request, resp: express.Response) => {
   }
 });
 
+// public config
 router.get('/public/config', async (req: express.Request, resp: express.Response) => {
   try {
     const post = new User(req.get('g-app') as string, req.body.token);
@@ -510,6 +542,7 @@ router.put('/public/config', async (req: express.Request, resp: express.Response
   }
 });
 
+// notice
 router.get('/notice', async (req: express.Request, resp: express.Response) => {
   try {
     return response.succ(
@@ -522,14 +555,6 @@ router.get('/notice', async (req: express.Request, resp: express.Response) => {
     return response.fail(resp, err);
   }
 });
-
-router.get('/check-admin-auth', async (req: express.Request, resp: express.Response) => {
-  try {
-    return response.succ(resp, await new User(req.get('g-app') as string, req.body.token || {}).checkAdminPermission());
-  } catch (err) {
-    return response.fail(resp, err);
-  }
-});
 router.get('/notice/unread/count', async (req: express.Request, resp: express.Response) => {
   try {
     return response.succ(resp, await new User(req.get('g-app') as string, req.body.token).getUnreadCount());
@@ -538,6 +563,7 @@ router.get('/notice/unread/count', async (req: express.Request, resp: express.Re
   }
 });
 
+// permission
 router.get('/permission', async (req: express.Request, resp: express.Response) => {
   try {
     if (!(await UtPermission.isManager(req))) {
@@ -625,15 +651,7 @@ router.get('/permission/redirect', async (req: express.Request, resp: express.Re
   }
 });
 
-router.get('/ip/info', async (req: express.Request, resp: express.Response) => {
-  try {
-    const ip: any = req.query.ip || req.headers['x-real-ip'] || req.ip;
-    return resp.send(await User.ipInfo(ip));
-  } catch (err) {
-    return response.fail(resp, err);
-  }
-});
-
+// tag
 router.post('/batch/tag', async (req: express.Request, resp: express.Response) => {
   try {
     const app = req.get('g-app') as string;
@@ -647,7 +665,6 @@ router.post('/batch/tag', async (req: express.Request, resp: express.Response) =
     return response.fail(resp, err);
   }
 });
-
 router.delete('/batch/tag', async (req: express.Request, resp: express.Response) => {
   try {
     const app = req.get('g-app') as string;
@@ -662,15 +679,11 @@ router.delete('/batch/tag', async (req: express.Request, resp: express.Response)
   }
 });
 
-router.post('/batch/manualLevel', async (req: express.Request, resp: express.Response) => {
+// ip
+router.get('/ip/info', async (req: express.Request, resp: express.Response) => {
   try {
-    const app = req.get('g-app') as string;
-    const user = new User(app, req.body.token);
-    if (await UtPermission.isManager(req)) {
-      return response.succ(resp, await user.batchManualLevel(req.body.userId, req.body.level));
-    } else {
-      return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
-    }
+    const ip: any = req.query.ip || req.headers['x-real-ip'] || req.ip;
+    return resp.send(await User.ipInfo(ip));
   } catch (err) {
     return response.fail(resp, err);
   }

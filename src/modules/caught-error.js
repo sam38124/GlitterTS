@@ -11,14 +11,17 @@ class CaughtError {
         process_1.default.on('uncaughtException', async (err) => {
             if (process_1.default.env.is_local !== 'true') {
                 console.error('Uncaught Exception:', err);
-                console.error('uncaughtException', err.message, err.stack);
-                await database_1.default.query(`insert into \`${process_1.default.env.GLITTER_DB}\`.error_log (message, stack)
+                if (err.message.includes('Too many connections')) {
+                    process_1.default.exit(1);
+                }
+                else {
+                    await database_1.default.query(`insert into \`${process_1.default.env.GLITTER_DB}\`.error_log (message, stack)
                         values (?, ?)`, [err.message, err.stack]);
-                process_1.default.exit(1);
+                    process_1.default.exit(1);
+                }
             }
             else {
                 console.error('Uncaught Exception:', err);
-                console.error('uncaughtException', err.message, err.stack);
                 process_1.default.exit(1);
             }
         });

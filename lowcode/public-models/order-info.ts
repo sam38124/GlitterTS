@@ -1,24 +1,23 @@
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { GVC } from '../glitterBundle/GVController.js';
-import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 
 export class OrderInfo {
   // 對帳狀態
-  public static reconciliationStatus(dd: any, text_only: boolean = false) {
+  public static reconciliationStatus(dd: any, text_only: boolean = false, size: 'sm' | 'md' = 'md') {
     const received_c = (dd.total_received ?? 0) + dd.offset_amount;
     const res_ = (() => {
       if (dd.total_received === null) {
-        return BgWidget.warningInsignia('待入帳');
+        return BgWidget.warningInsignia('待入帳', { size });
       } else if (dd.total_received === dd.total) {
-        return BgWidget.successInsignia('已入帳');
+        return BgWidget.successInsignia('已入帳', { size });
       } else if (dd.total_received > dd.total && received_c === dd.total) {
-        return BgWidget.secondaryInsignia('已退款');
+        return BgWidget.secondaryInsignia('已退款', { size });
       } else if (dd.total_received < dd.total && received_c === dd.total) {
-        return BgWidget.primaryInsignia('已沖帳');
+        return BgWidget.primaryInsignia('已沖帳', { size });
       } else if (received_c < dd.total) {
-        return BgWidget.dangerInsignia('待沖帳');
+        return BgWidget.dangerInsignia('待沖帳', { size });
       } else if (received_c > dd.total) {
-        return BgWidget.dangerInsignia('待退款');
+        return BgWidget.dangerInsignia('待退款', { size });
       }
     })();
     if (text_only) {
@@ -72,7 +71,7 @@ export class OrderInfo {
   }
 
   // 付款方式
-  public static paymentSelector(gvc: GVC, order: any,payment_support?:any) {
+  public static paymentSelector(gvc: GVC, order: any, payment_support?: any) {
     const vm = {
       id: gvc.glitter.getUUID(),
       loading: true,
@@ -82,18 +81,20 @@ export class OrderInfo {
     return gvc.bindView({
       bind: vm.id,
       view: () => {
-        if (vm.loading) return '載入中';
+        if (vm.loading) {
+          return '載入中';
+        }
         const pay = vm.dataList.find((d: any) => d.key === order.orderData.customer_info.payment_select);
         return pay?.name || '線下付款';
       },
       divCreate: {
         style: 'width: 150px',
       },
-      onCreate: async () => {
+      onCreate: () => {
         if (vm.loading) {
           vm.dataList = payment_support;
           vm.loading = false;
-          gvc.notifyDataChange(vm.id);
+          setTimeout(() => gvc.notifyDataChange(vm.id), 100);
         }
       },
     });

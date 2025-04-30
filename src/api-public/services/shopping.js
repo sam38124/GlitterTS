@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -35,7 +12,7 @@ const axios_1 = __importDefault(require("axios"));
 const app_1 = __importDefault(require("../../app"));
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
-const financial_service_js_1 = __importStar(require("./financial-service.js"));
+const financial_service_js_1 = require("./financial-service.js");
 const private_config_js_1 = require("../../services/private_config.js");
 const user_js_1 = require("./user.js");
 const invoice_js_1 = require("./invoice.js");
@@ -43,14 +20,11 @@ const rebate_js_1 = require("./rebate.js");
 const custom_code_js_1 = require("../services/custom-code.js");
 const notify_js_1 = require("./notify.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
-const recommend_js_1 = require("./recommend.js");
 const config_js_1 = require("../../config.js");
 const sms_js_1 = require("./sms.js");
 const line_message_1 = require("./line-message");
 const EcInvoice_1 = require("./EcInvoice");
-const glitter_finance_js_1 = require("../models/glitter-finance.js");
 const app_js_1 = require("../../services/app.js");
-const stock_1 = require("./stock");
 const order_event_js_1 = require("./order-event.js");
 const seo_config_js_1 = require("../../seo-config.js");
 const ses_js_1 = require("../../services/ses.js");
@@ -63,7 +37,8 @@ const ut_timer_js_1 = require("../utils/ut-timer.js");
 const auto_fcm_js_1 = require("../../public-config-initial/auto-fcm.js");
 const Language_js_1 = require("../../Language.js");
 const payment_strategy_factory_js_1 = require("./factories/payment-strategy-factory.js");
-const payment_service_1 = require("./payment-service");
+const payment_service_js_1 = require("./payment-service.js");
+const checkout_event_js_1 = require("./checkout-event.js");
 class OrderDetail {
     constructor(subtotal, shipment) {
         this.discount = 0;
@@ -142,10 +117,15 @@ class Shopping {
             const exh_config = await userClass.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
             const userID = (_a = query.setUserID) !== null && _a !== void 0 ? _a : (this.token ? `${this.token.userID}` : '');
             const querySql = [`(content->>'$.type'='product')`];
-            const idStr = query.id_list ? query.id_list.split(',').filter(Boolean).join(',') : '';
+            const idStr = query.id_list
+                ? query.id_list
+                    .split(',')
+                    .filter(Boolean)
+                    .map(id => database_js_1.default.escape(id))
+                    .join(',')
+                : '';
             query.language = (_b = query.language) !== null && _b !== void 0 ? _b : store_info.language_setting.def;
             query.show_hidden = (_c = query.show_hidden) !== null && _c !== void 0 ? _c : 'true';
-            await Promise.all([this.initProductCustomizeTagConifg(), this.initProductGeneralTagConifg()]);
             const orderMapping = {
                 title: `ORDER BY JSON_EXTRACT(content, '$.title')`,
                 max_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED) DESC , id DESC`,
@@ -804,10 +784,9 @@ class Shopping {
                 return managerTags;
             }
             const getData = await database_js_1.default.query(`
-          SELECT 
-            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
-          FROM \`${this.app}\`.t_manager_post
-          WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
+            SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_customize_tag')) SEPARATOR ',') AS unique_tags
+            FROM \`${this.app}\`.t_manager_post
+            WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
         `, []);
             const unique_tags_string = (_b = (_a = getData[0]) === null || _a === void 0 ? void 0 : _a.unique_tags) !== null && _b !== void 0 ? _b : '';
             const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
@@ -821,7 +800,7 @@ class Shopping {
             return data;
         }
         catch (error) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Set product customize tag conifg Error:' + express_1.default, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Set product customize tag conifg Error:' + error, null);
         }
     }
     async setProductCustomizeTagConifg(add_tags) {
@@ -844,10 +823,9 @@ class Shopping {
                 return generalTags;
             }
             const getData = await database_js_1.default.query(`
-          SELECT 
-            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_tag.language')) SEPARATOR ',') AS unique_tags
-          FROM \`${this.app}\`.t_manager_post
-          WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
+            SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(content, '$.product_tag.language')) SEPARATOR ',') AS unique_tags
+            FROM \`${this.app}\`.t_manager_post
+            WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.type')) = 'product'
         `, []);
             const unique_tags_string = (_b = (_a = getData[0]) === null || _a === void 0 ? void 0 : _a.unique_tags) !== null && _b !== void 0 ? _b : '';
             const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
@@ -871,7 +849,7 @@ class Shopping {
             return data;
         }
         catch (error) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Set product general tag conifg Error:' + express_1.default, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Set product general tag conifg Error:' + error, null);
         }
     }
     async setProductGeneralTagConifg(add_tags) {
@@ -899,10 +877,9 @@ class Shopping {
                 return managerTags;
             }
             const getData = await database_js_1.default.query(`
-          SELECT 
-            GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) SEPARATOR ',') AS unique_tags
-          FROM \`${this.app}\`.t_checkout
-          WHERE JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) IS NOT NULL
+            SELECT GROUP_CONCAT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) SEPARATOR ',') AS unique_tags
+            FROM \`${this.app}\`.t_checkout
+            WHERE JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.tags')) IS NOT NULL
         `, []);
             const unique_tags_string = (_b = (_a = getData[0]) === null || _a === void 0 ? void 0 : _a.unique_tags) !== null && _b !== void 0 ? _b : '';
             const unique_tags_array = JSON.parse(`[${unique_tags_string}]`);
@@ -939,13 +916,14 @@ class Shopping {
         })).data
             .map((dd) => dd.content)
             .filter((voucher) => {
+            const status = voucher.status;
             const startDate = new Date(voucher.start_ISO_Date).getTime();
             const endDate = voucher.end_ISO_Date ? new Date(voucher.end_ISO_Date).getTime() : Infinity;
-            return startDate < now && now < endDate;
+            return status && startDate < now && now < endDate;
         });
         const validVouchers = await Promise.all(allVoucher.map(async (voucher) => {
             const isLimited = await this.checkVoucherLimited(userID, voucher.id);
-            return isLimited && voucher.status === 1 ? voucher : null;
+            return isLimited ? voucher : null;
         }));
         return validVouchers.filter(Boolean);
     }
@@ -980,10 +958,20 @@ class Shopping {
                 return [];
             }
         })();
+        const product_customize_tag = (() => {
+            try {
+                return json.product.content.product_customize_tag || [];
+            }
+            catch (error) {
+                return [];
+            }
+        })();
         const userData = json.userData;
         const recommendData = json.recommendData;
         function checkValidProduct(caseName, caseList) {
             switch (caseName) {
+                case 'manager_tag':
+                    return caseList.some(d1 => product_customize_tag.includes(d1));
                 case 'collection':
                     return caseList.some(d1 => collection.includes(d1));
                 case 'product':
@@ -1368,1051 +1356,15 @@ class Shopping {
         });
         return (this.calculateShipment(shipment.volume, total_volume) + this.calculateShipment(shipment.weight, total_weight));
     }
-    async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11;
-        try {
-            const utTimer = new ut_timer_js_1.UtTimer('TO-CHECKOUT');
-            const checkPoint = utTimer.checkPoint;
-            const userClass = new user_js_1.User(this.app);
-            const rebateClass = new rebate_js_1.Rebate(this.app);
-            const checkoutPayment = (_a = data.user_info) === null || _a === void 0 ? void 0 : _a.payment;
-            let scheduledData;
-            data.line_items = (_b = (data.line_items || data.lineItems)) !== null && _b !== void 0 ? _b : [];
-            data.isExhibition = data.checkOutType === 'POS' && ((_d = (_c = data.pos_store) === null || _c === void 0 ? void 0 : _c.includes('exhibition_')) !== null && _d !== void 0 ? _d : false);
-            if (replace_order_id) {
-                const orderData = (await database_js_1.default.query(`SELECT *
-             FROM \`${this.app}\`.t_checkout
-             WHERE cart_token = ?
-               AND status = 0;
-            `, [replace_order_id]))[0];
-                if (!orderData) {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
-                }
-                await database_js_1.default.query(`DELETE
-           FROM \`${this.app}\`.t_checkout
-           WHERE cart_token = ?
-             AND status = 0;
-          `, [replace_order_id]);
-                const { lineItems, user_info, code, customer_info, use_rebate } = orderData.orderData;
-                data.line_items = lineItems;
-                data.email = orderData.email;
-                data.user_info = user_info;
-                data.code = code;
-                data.customer_info = customer_info;
-                data.use_rebate = use_rebate;
-            }
-            if (data.order_id && type === 'POS') {
-                const order = (await database_js_1.default.query(`SELECT *
-             FROM \`${this.app}\`.t_checkout
-             WHERE cart_token = ?
-            `, [data.order_id]))[0];
-                if (order) {
-                    for (const b of order.orderData.lineItems) {
-                        const pdDqlData = (await this.getProduct({
-                            page: 0,
-                            limit: 50,
-                            id: b.id,
-                            status: 'inRange',
-                            channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-                            whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
-                        })).data;
-                        const pd = pdDqlData.content;
-                        const variant = pd.variants.find((dd) => dd.spec.join('-') === b.spec.join('-'));
-                        await updateStock(variant, b.deduction_log);
-                        await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                        await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post
-               SET content = ?
-               WHERE id = ?
-              `, [JSON.stringify(pd), pdDqlData.id]);
-                    }
-                }
-            }
-            async function updateStock(variant, deductionLog) {
-                Object.keys(deductionLog).forEach(key => {
-                    try {
-                        variant.stockList[key].count += deductionLog[key];
-                    }
-                    catch (e) {
-                        console.error(`Error updating stock for variant ${variant.id}:`, e);
-                    }
-                });
-            }
-            if (data.checkOutType === 'POS') {
-                this.token = undefined;
-            }
-            const hasAuthentication = (data) => {
-                return ((this.token && this.token.userID) ||
-                    data.email ||
-                    (data.user_info && data.user_info.email) ||
-                    (data.user_info && data.user_info.phone));
-            };
-            if (type !== 'preview' && !hasAuthentication(data)) {
-                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error: No email and phone', null);
-            }
-            const checkOutType = (_e = data.checkOutType) !== null && _e !== void 0 ? _e : 'manual';
-            const getUserDataAsync = async (type, token, data) => {
-                if (type === 'preview' &&
-                    !((token === null || token === void 0 ? void 0 : token.userID) || (data.user_info && data.user_info.email) || (data.user_info && data.user_info.phone))) {
-                    return {};
-                }
-                if ((token === null || token === void 0 ? void 0 : token.userID) && type !== 'POS' && checkOutType !== 'POS') {
-                    return await userClass.getUserData(`${token.userID}`, 'userID');
-                }
-                return ((data.user_info.email && (await userClass.getUserData(data.user_info.email, 'email_or_phone'))) ||
-                    (data.user_info.phone && (await userClass.getUserData(data.user_info.phone, 'email_or_phone'))) ||
-                    {});
-            };
-            checkPoint('check user auth');
-            const userData = await getUserDataAsync(type, this.token, data);
-            data.email = ((_f = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _f === void 0 ? void 0 : _f.email) || ((_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.phone) || '';
-            if (!data.email || data.email === 'no-email') {
-                data.email =
-                    ((_h = data.user_info) === null || _h === void 0 ? void 0 : _h.email) && data.user_info.email !== 'no-email'
-                        ? data.user_info.email
-                        : ((_j = data.user_info) === null || _j === void 0 ? void 0 : _j.phone) || '';
-            }
-            if (!data.email && type !== 'preview') {
-                data.email = 'no-email';
-            }
-            const appStatus = await rebateClass.mainStatus();
-            if (appStatus && userData && data.use_rebate && data.use_rebate > 0) {
-                const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
-                const sum = userRebate ? userRebate.point : 0;
-                if (sum < data.use_rebate) {
-                    data.use_rebate = 0;
-                }
-            }
-            else {
-                data.use_rebate = 0;
-            }
-            checkPoint('check rebate');
-            const shipment = await this.getShipmentRefer(data.user_info);
-            const shipment_setting = await (async () => {
-                try {
-                    const config = await private_config_js_1.Private_config.getConfig({
-                        appName: this.app,
-                        key: 'logistics_setting',
-                    });
-                    if (!config) {
-                        return {
-                            support: [],
-                            shipmentSupport: [],
-                        };
-                    }
-                    return config[0].value;
-                }
-                catch (e) {
-                    return [];
-                }
-            })();
-            checkPoint('set shipment');
-            shipment_setting.custom_delivery = shipment_setting.custom_delivery
-                ? await Promise.all(shipment_setting.custom_delivery.map(async (form) => {
-                    const config = await new user_js_1.User(this.app).getConfigV2({
-                        user_id: 'manager',
-                        key: `form_delivery_${form.id}`,
-                    });
-                    form.form = config.list || [];
-                    return form;
-                })).then(dataArray => dataArray)
-                : [];
-            shipment_setting.support = (_k = shipment_setting.support) !== null && _k !== void 0 ? _k : [];
-            const languageInfo = (_m = (_l = shipment_setting.language_data) === null || _l === void 0 ? void 0 : _l[data.language]) === null || _m === void 0 ? void 0 : _m.info;
-            shipment_setting.info = languageInfo !== null && languageInfo !== void 0 ? languageInfo : shipment_setting.info;
-            const carData = {
-                customer_info: data.customer_info || {},
-                lineItems: [],
-                total: 0,
-                email: (_q = (_o = data.email) !== null && _o !== void 0 ? _o : (_p = data.user_info) === null || _p === void 0 ? void 0 : _p.email) !== null && _q !== void 0 ? _q : '',
-                user_info: data.user_info,
-                shipment_fee: 0,
-                rebate: 0,
-                goodsWeight: 0,
-                use_rebate: data.use_rebate || 0,
-                orderID: data.order_id || `${Date.now()}`,
-                shipment_support: shipment_setting.support,
-                shipment_info: shipment_setting.info,
-                shipment_selector: [
-                    ...shipment_config_js_1.ShipmentConfig.list.map(dd => ({
-                        name: dd.title,
-                        value: dd.value,
-                    })),
-                    ...((_r = shipment_setting.custom_delivery) !== null && _r !== void 0 ? _r : []).map((dd) => ({
-                        form: dd.form,
-                        name: dd.name,
-                        value: dd.id,
-                        system_form: dd.system_form,
-                    })),
-                ].filter(option => shipment_setting.support.includes(option.value)),
-                use_wallet: 0,
-                method: (_s = data.user_info) === null || _s === void 0 ? void 0 : _s.method,
-                user_email: (_w = (_u = (_t = userData === null || userData === void 0 ? void 0 : userData.account) !== null && _t !== void 0 ? _t : data.email) !== null && _u !== void 0 ? _u : (_v = data.user_info) === null || _v === void 0 ? void 0 : _v.email) !== null && _w !== void 0 ? _w : '',
-                useRebateInfo: { point: 0 },
-                custom_form_format: data.custom_form_format,
-                custom_form_data: data.custom_form_data,
-                custom_receipt_form: data.custom_receipt_form,
-                orderSource: checkOutType === 'POS' ? 'POS' : '',
-                code_array: data.code_array,
-                give_away: data.give_away,
-                user_rebate_sum: 0,
-                language: data.language,
-                pos_info: data.pos_info,
-                client_ip_address: data.client_ip_address,
-                fbc: data.fbc,
-                fbp: data.fbp,
-                editRecord: [],
-            };
-            if (!((_x = data.user_info) === null || _x === void 0 ? void 0 : _x.name) && userData && userData.userData) {
-                const { name, phone } = userData.userData;
-                carData.user_info = Object.assign(Object.assign({}, carData.user_info), { name,
-                    phone });
-            }
-            const add_on_items = [];
-            const gift_product = [];
-            const saveStockArray = [];
-            function getVariant(prod, item) {
-                var _a;
-                if (prod.product_category === 'kitchen') {
-                    let price = 0;
-                    let show_understocking = false;
-                    let stock = Infinity;
-                    if (prod.specs.length) {
-                        price = item.spec.reduce((total, spec, index) => {
-                            const dpe = prod.specs[index].option.find((dd) => dd.title === spec);
-                            if (dpe) {
-                                const currentStock = Number(dpe.stock) || Infinity;
-                                stock = Math.min(stock, currentStock);
-                                if (dpe.stock !== undefined) {
-                                    show_understocking = true;
-                                }
-                                return total + (Number(dpe.price) || 0);
-                            }
-                            return total;
-                        }, 0);
-                    }
-                    else {
-                        price = Number(prod.price) || 0;
-                        show_understocking = Boolean((_a = prod.stock) !== null && _a !== void 0 ? _a : '');
-                        stock = Number(prod.stock) || 0;
-                    }
-                    if (stock === Infinity) {
-                        show_understocking = false;
-                    }
-                    return {
-                        sku: '',
-                        spec: [],
-                        type: 'variants',
-                        stock,
-                        v_width: 0,
-                        product_id: prod.id,
-                        sale_price: price,
-                        origin_price: 0,
-                        compare_price: 0,
-                        preview_image: prod.preview_image && prod.preview_image[0],
-                        shipment_type: 'none',
-                        show_understocking: String(show_understocking),
-                    };
-                }
-                else {
-                    return prod.variants.find((dd) => dd.spec.join('-') === item.spec.join('-'));
-                }
-            }
-            data.line_items = await Promise.all(data.line_items.map(async (item) => {
-                var _a, _b, _c, _d, _e;
-                const getProductData = (await this.getProduct({
-                    page: 0,
-                    limit: 1,
-                    id: `${item.id}`,
-                    status: 'inRange',
-                    channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-                    whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
-                    setUserID: `${(userData === null || userData === void 0 ? void 0 : userData.userID) || ''}`,
-                })).data;
-                if (getProductData) {
-                    const content = getProductData.content;
-                    const variant = getVariant(content, item);
-                    const count = Number(item.count);
-                    if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
-                        !isNaN(count) &&
-                        count > 0) {
-                        const isPOS = checkOutType === 'POS';
-                        const isUnderstockingVisible = variant.show_understocking !== 'false';
-                        const isManualType = type === 'manual' || type === 'manual-preview';
-                        if (isPOS && isUnderstockingVisible && !data.isExhibition) {
-                            variant.stock = ((_b = (_a = variant.stockList) === null || _a === void 0 ? void 0 : _a[data.pos_store]) === null || _b === void 0 ? void 0 : _b.count) || 0;
-                        }
-                        if (variant.stock < item.count && isUnderstockingVisible && !isManualType) {
-                            if (isPOS) {
-                                item.pre_order = true;
-                            }
-                            else {
-                                item.count = variant.stock;
-                            }
-                        }
-                        if (variant && item.count > 0) {
-                            Object.assign(item, {
-                                specs: content.specs,
-                                language_data: content.language_data,
-                                product_category: content.product_category,
-                                preview_image: variant.preview_image || content.preview_image[0],
-                                title: content.title,
-                                sale_price: variant.sale_price,
-                                origin_price: variant.origin_price,
-                                collection: content.collection,
-                                sku: variant.sku,
-                                stock: variant.stock,
-                                show_understocking: variant.show_understocking,
-                                stockList: variant.stockList,
-                                weight: parseInt(variant.weight || '0', 10),
-                                designated_logistics: (_c = content.designated_logistics) !== null && _c !== void 0 ? _c : { type: 'all', list: [] },
-                            });
-                            const shipmentValue = (() => {
-                                if (!variant.shipment_type || variant.shipment_type === 'none')
-                                    return 0;
-                                if (variant.shipment_type === 'weight') {
-                                    return item.count * variant.weight;
-                                }
-                                if (variant.shipment_type === 'volume') {
-                                    return item.count * variant.v_length * variant.v_width * variant.v_height;
-                                }
-                                return 0;
-                            })();
-                            item.shipment_obj = {
-                                type: variant.shipment_type,
-                                value: shipmentValue,
-                            };
-                            variant.shipment_weight = parseInt(variant.shipment_weight || '0', 10);
-                            carData.lineItems.push(item);
-                            if (checkOutType == 'group_buy') {
-                                if (!scheduledData) {
-                                    const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
-                                    const scheduledDataQuery = `
-                        SELECT *
-                        FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
-                    `;
-                                    scheduledData = (await database_js_1.default.query(scheduledDataQuery, []))[0];
-                                    if (scheduledData) {
-                                        const { content } = scheduledData;
-                                        const productData = content.item_list.find((pb) => pb.id === item.id);
-                                        if (productData) {
-                                            const variantData = productData.content.variants.find((dd) => dd.spec.join('-') === item.spec.join('-'));
-                                            if (variantData) {
-                                                item.sale_price = variantData.live_model.live_price;
-                                                carData.total += item.sale_price * item.count;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            else if (type !== 'manual') {
-                                if (content.productType.giveaway) {
-                                    variant.sale_price = 0;
-                                }
-                                else {
-                                    carData.total += variant.sale_price * item.count;
-                                }
-                            }
-                        }
-                        if (!['preview', 'manual', 'manual-preview'].includes(type) && variant.show_understocking !== 'false') {
-                            const remainingStock = Math.max(variant.stock - item.count, 0);
-                            variant.stock = remainingStock;
-                            if (type === 'POS') {
-                                if (data.isExhibition) {
-                                    if (data.pos_store) {
-                                        await this.updateExhibitionActiveStock(data.pos_store, variant.variant_id, item.count);
-                                    }
-                                }
-                                else {
-                                    variant.deduction_log = { [data.pos_store]: item.count };
-                                    variant.stockList[data.pos_store].count -= item.count;
-                                    item.deduction_log = variant.deduction_log;
-                                }
-                            }
-                            else {
-                                const useExistingLog = type === 'split' &&
-                                    item.deduction_log &&
-                                    Object.keys(item.deduction_log).length > 0;
-                                if (!useExistingLog) {
-                                    const stockAllocator = new stock_1.Stock(this.app, this.token);
-                                    const allocationResult = stockAllocator.allocateStock(variant.stockList, item.count);
-                                    variant.deduction_log = allocationResult.deductionLog;
-                                    item.deduction_log = allocationResult.deductionLog;
-                                }
-                                else {
-                                    variant.deduction_log = item.deduction_log;
-                                }
-                            }
-                            saveStockArray.push(() => new Promise(async (resolve, reject) => {
-                                var _a;
-                                try {
-                                    if (data.checkOutType == 'group_buy') {
-                                        if (!scheduledData) {
-                                            const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
-                                            const scheduledDataQuery = `
-                                SELECT *
-                                FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
-                            `;
-                                            scheduledData = (await database_js_1.default.query(scheduledDataQuery, []))[0];
-                                        }
-                                        if (scheduledData) {
-                                            const { content } = scheduledData;
-                                            const productData = content.item_list.find((pb) => pb.id === item.id);
-                                            if (productData) {
-                                                const variantData = productData.content.variants.find((dd) => dd.spec.join('-') === item.spec.join('-'));
-                                                if (variantData) {
-                                                    const stockService = new stock_1.Stock(this.app, this.token);
-                                                    const { stockList, deductionLog } = stockService.allocateStock(variantData.stockList, item.count);
-                                                    variantData.stockList = stockList;
-                                                    item.deduction_log = deductionLog;
-                                                    carData.scheduled_id = scheduledData.id;
-                                                    await this.updateVariantsForScheduled(content, scheduledData.id);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    else {
-                                        if (content.shopee_id) {
-                                            await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
-                                                product: getProductData,
-                                                callback: () => { },
-                                            });
-                                        }
-                                        if (content.product_category === 'kitchen' && ((_a = variant.spec) === null || _a === void 0 ? void 0 : _a.length)) {
-                                            variant.spec.forEach((d1, index) => {
-                                                const option = content.specs[index].option.find((d2) => d2.title === d1);
-                                                if ((option === null || option === void 0 ? void 0 : option.stock) !== undefined) {
-                                                    option.stock = parseInt(option.stock, 10) - item.count;
-                                                }
-                                            });
-                                            const store_config = await userClass.getConfigV2({
-                                                key: 'store_manager',
-                                                user_id: 'manager',
-                                            });
-                                            item.deduction_log = { [store_config.list[0].id]: item.count };
-                                        }
-                                        else {
-                                            await this.updateVariantsWithSpec(variant, item.id, item.spec);
-                                        }
-                                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
-                             SET ?
-                             WHERE id = ${getProductData.id}`, [{ content: JSON.stringify(content) }]);
-                                    }
-                                    resolve(true);
-                                }
-                                catch (error) {
-                                    reject(error);
-                                }
-                            }));
-                        }
-                    }
-                    Object.assign(item, {
-                        is_add_on_items: content.productType.addProduct && !content.productType.product,
-                        is_hidden: content.visible === 'false',
-                        is_gift: content.productType.giveaway,
-                        sale_price: content.productType.giveaway ? 0 : item.sale_price,
-                        min_qty: (_d = content.min_qty) !== null && _d !== void 0 ? _d : item.min_qty,
-                        max_qty: (_e = content.max_qty) !== null && _e !== void 0 ? _e : item.max_qty,
-                    });
-                    item.is_add_on_items && add_on_items.push(item);
-                    item.is_gift && gift_product.push(item);
-                }
-                return item;
-            })).then(dataArray => dataArray);
-            checkPoint('get product info');
-            const maxProductMap = new Map();
-            let hasMaxProduct = false;
-            for (const product of data.line_items) {
-                if (product.max_qty && product.max_qty > 0) {
-                    maxProductMap.set(product.id, true);
-                    hasMaxProduct = true;
-                }
-            }
-            if (hasMaxProduct && data.email !== 'no-email') {
-                const cartTokenSQL = `
-            SELECT cart_token
-            FROM \`${this.app}\`.t_checkout
-            WHERE email IN (${[-99, (_y = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _y === void 0 ? void 0 : _y.email, (_z = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _z === void 0 ? void 0 : _z.phone]
-                    .filter(Boolean)
-                    .map(item => database_js_1.default.escape(item))
-                    .join(',')})
-              AND order_status <> '-1'
-        `;
-                const soldHistory = await database_js_1.default.query(`
-              SELECT *
-              FROM \`${this.app}\`.t_products_sold_history
-              WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
-                AND order_id IN (${cartTokenSQL})
-          `, []);
-                const purchaseHistory = new Map();
-                for (const history of soldHistory) {
-                    const pid = Number(history.product_id);
-                    purchaseHistory.set(pid, ((_0 = purchaseHistory.get(pid)) !== null && _0 !== void 0 ? _0 : 0) + history.count);
-                }
-                for (const item of data.line_items) {
-                    if (maxProductMap.has(item.id)) {
-                        item.buy_history_count = purchaseHistory.get(item.id) || 0;
-                    }
-                }
-            }
-            checkPoint('set max product');
-            carData.shipment_fee = this.getShipmentFee(data.user_info, carData.lineItems, shipment);
-            carData.total += carData.shipment_fee;
-            const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
-            carData.useRebateInfo = f_rebate;
-            carData.use_rebate = f_rebate.point;
-            carData.total -= carData.use_rebate;
-            carData.code = data.code;
-            carData.voucherList = [];
-            checkPoint('set carData');
-            if (userData && userData.account) {
-                const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
-                carData.user_rebate_sum = (userRebate === null || userRebate === void 0 ? void 0 : userRebate.point) || 0;
-            }
-            if (data.distribution_code) {
-                const linkList = await new recommend_js_1.Recommend(this.app, this.token).getLinkList({
-                    page: 0,
-                    limit: 99999,
-                    code: data.distribution_code,
-                    status: true,
-                    no_detail: true,
-                });
-                if (linkList.data.length > 0) {
-                    const content = linkList.data[0].content;
-                    if (this.checkDuring(content)) {
-                        carData.distribution_info = content;
-                    }
-                }
-            }
-            checkPoint('distribution code');
-            if (type !== 'manual' && type !== 'manual-preview' && type !== 'split') {
-                carData.lineItems = carData.lineItems.filter(dd => {
-                    return !add_on_items.includes(dd) && !gift_product.includes(dd);
-                });
-                const c_carData = await this.checkVoucher(structuredClone(carData));
-                add_on_items.forEach(dd => {
-                    var _a;
-                    try {
-                        const isAddOnItem = (_a = c_carData.voucherList) === null || _a === void 0 ? void 0 : _a.some(voucher => {
-                            return (voucher.reBackType === 'add_on_items' &&
-                                voucher.add_on_products.find(d2 => {
-                                    return `${dd.id}` === `${d2}`;
-                                }));
-                        });
-                        if (isAddOnItem) {
-                            carData.lineItems.push(dd);
-                        }
-                    }
-                    catch (e) {
-                        console.error('Error processing add-on items:', e);
-                    }
-                });
-                await this.checkVoucher(carData);
-                checkPoint('check voucher');
-                let can_add_gift = [];
-                (_1 = carData.voucherList) === null || _1 === void 0 ? void 0 : _1.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
-                gift_product.forEach(dd => {
-                    const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
-                    if (dd.count <= max_count) {
-                        for (let a = 0; a < dd.count; a++) {
-                            can_add_gift = can_add_gift.filter(d1 => !d1.includes(dd.id));
-                        }
-                        carData.lineItems.push(dd);
-                    }
-                });
-                for (const giveawayData of carData.voucherList.filter(dd => dd.reBackType === 'giveaway')) {
-                    if (!((_2 = giveawayData.add_on_products) === null || _2 === void 0 ? void 0 : _2.length))
-                        continue;
-                    const productPromises = giveawayData.add_on_products.map(async (id) => {
-                        const getGiveawayData = (await this.getProduct({
-                            page: 0,
-                            limit: 1,
-                            id: `${id}`,
-                            status: 'inRange',
-                            channel: checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
-                            whereStore: checkOutType === 'POS' ? data.pos_store : undefined,
-                        })).data.content;
-                        getGiveawayData.voucher_id = giveawayData.id;
-                        return getGiveawayData;
-                    });
-                    giveawayData.add_on_products = await Promise.all(productPromises);
-                }
-            }
-            const configData = await private_config_js_1.Private_config.getConfig({
-                appName: this.app,
-                key: 'glitter_finance',
-            });
-            const keyData = (_3 = configData[0]) === null || _3 === void 0 ? void 0 : _3.value;
-            if (keyData) {
-                carData.payment_info_custom = keyData.payment_info_custom;
-            }
-            await new Promise(resolve => {
-                var _a;
-                let n = 0;
-                carData.payment_customer_form = (_a = carData.payment_customer_form) !== null && _a !== void 0 ? _a : [];
-                keyData.payment_info_custom.map((item, index) => {
-                    userClass
-                        .getConfigV2({
-                        user_id: 'manager',
-                        key: `form_finance_${item.id}`,
-                    })
-                        .then(data => {
-                        carData.payment_customer_form[index] = {
-                            id: item.id,
-                            list: data.list,
-                        };
-                        n++;
-                        if (keyData.payment_info_custom.length === n) {
-                            resolve();
-                        }
-                    });
-                });
-                if (n === 0) {
-                    resolve();
-                }
-            });
-            checkPoint('set payment');
-            keyData.cash_on_delivery = (_4 = keyData.cash_on_delivery) !== null && _4 !== void 0 ? _4 : { shipmentSupport: [] };
-            carData.payment_info_line_pay = keyData.payment_info_line_pay;
-            carData.payment_info_atm = keyData.payment_info_atm;
-            const defaultPayArray = glitter_finance_js_1.onlinePayArray.map(item => item.key);
-            keyData.cash_on_delivery.shipmentSupport = (_5 = keyData.cash_on_delivery.shipmentSupport) !== null && _5 !== void 0 ? _5 : [];
-            carData.shipment_support = checkoutPayment
-                ? ((_6 = (() => {
-                    if (checkoutPayment === 'cash_on_delivery') {
-                        return keyData.cash_on_delivery;
-                    }
-                    else if (defaultPayArray.includes(checkoutPayment)) {
-                        return keyData[checkoutPayment];
-                    }
-                    else if (checkoutPayment === 'atm') {
-                        return keyData.payment_info_atm;
-                    }
-                    else if (checkoutPayment === 'line') {
-                        return keyData.payment_info_line_pay;
-                    }
-                    else {
-                        const customPay = keyData.payment_info_custom.find((c) => c.id === checkoutPayment);
-                        return customPay !== null && customPay !== void 0 ? customPay : {};
-                    }
-                })().shipmentSupport) !== null && _6 !== void 0 ? _6 : [])
-                : [];
-            let subtotal = 0;
-            carData.lineItems.map(item => {
-                var _a;
-                if (item.is_gift) {
-                    item.sale_price = 0;
-                }
-                if (!item.is_gift) {
-                    subtotal += item.count * (item.sale_price - ((_a = item.discount_price) !== null && _a !== void 0 ? _a : 0));
-                }
-            });
-            if (carData.total < 0 || carData.use_rebate > subtotal) {
-                carData.use_rebate = 0;
-                carData.total = subtotal + carData.shipment_fee;
-            }
-            carData.lineItems.map(item => {
-                carData.goodsWeight += item.weight * item.count;
-            });
-            const excludedValuesByTotal = new Set(['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C']);
-            const excludedValuesByWeight = new Set(['normal', 'black_cat']);
-            const isExcludedByTotal = (dd) => {
-                return carData.total > 20000 && excludedValuesByTotal.has(dd.value);
-            };
-            const isExcludedByWeight = (dd) => {
-                return carData.goodsWeight > 20 && excludedValuesByWeight.has(dd.value);
-            };
-            const isIncludedInDesignatedLogistics = (dd) => {
-                return carData.lineItems.every(item => {
-                    return (item.designated_logistics === undefined ||
-                        item.designated_logistics.type === 'all' ||
-                        item.designated_logistics.list.includes(dd.value));
-                });
-            };
-            carData.shipment_selector = carData.shipment_selector
-                .filter((dd) => {
-                return isIncludedInDesignatedLogistics(dd);
-            })
-                .map(dd => {
-                dd.isExcludedByTotal = isExcludedByTotal(dd);
-                dd.isExcludedByWeight = isExcludedByWeight(dd);
-                return dd;
-            });
-            carData.code_array = (carData.code_array || []).filter(code => {
-                return (carData.voucherList || []).find(dd => dd.code === code);
-            });
-            function getCartFormulaPass(keyData) {
-                const data = keyData.cartSetting;
-                if (!data || data.orderFormula === undefined)
-                    return true;
-                const formulaSet = new Set(data.orderFormula);
-                const total = carData.total -
-                    (formulaSet.has('shipment_fee') ? 0 : carData.shipment_fee) +
-                    (formulaSet.has('discount') || !carData.discount ? 0 : carData.discount) +
-                    (formulaSet.has('use_rebate') ? 0 : carData.use_rebate);
-                return (!data.minimumTotal || total >= data.minimumTotal) && (!data.maximumTotal || total <= data.maximumTotal);
-            }
-            carData.payment_setting = glitter_finance_js_1.onlinePayArray.filter((dd) => {
-                const k = keyData[dd.key];
-                if (!k || !k.toggle || !getCartFormulaPass(k))
-                    return false;
-                dd.custome_name = k.custome_name;
-                if (carData.orderSource === 'POS') {
-                    if (dd.key === 'ut_credit_card') {
-                        dd.pwd = k['pwd'];
-                    }
-                    return dd.type === 'pos';
-                }
-                return dd.type !== 'pos';
-            });
-            carData.off_line_support = (_7 = keyData.off_line_support) !== null && _7 !== void 0 ? _7 : {};
-            Object.entries(carData.off_line_support).map(([key, value]) => {
-                if (!value)
-                    return;
-                if (key === 'cash_on_delivery') {
-                    carData.off_line_support[key] = getCartFormulaPass(keyData[key]);
-                }
-                else if (key === 'atm') {
-                    carData.off_line_support[key] = getCartFormulaPass(keyData.payment_info_atm);
-                }
-                else if (key === 'line') {
-                    carData.off_line_support[key] = getCartFormulaPass(keyData.payment_info_line_pay);
-                }
-                else {
-                    const customPay = keyData.payment_info_custom.find((c) => c.id === key);
-                    carData.off_line_support[key] = getCartFormulaPass(customPay !== null && customPay !== void 0 ? customPay : {});
-                }
-            });
-            if (Array.isArray(carData.shipment_support)) {
-                await Promise.all(carData.shipment_support.map(async (sup) => {
-                    return await userClass
-                        .getConfigV2({ key: 'shipment_config_' + sup, user_id: 'manager' })
-                        .then(r => {
-                        return getCartFormulaPass(r);
-                    })
-                        .catch(() => {
-                        return true;
-                    });
-                })).then(dataArray => {
-                    var _a;
-                    carData.shipment_support = (_a = carData.shipment_support) === null || _a === void 0 ? void 0 : _a.filter((_, index) => dataArray[index]);
-                });
-            }
-            checkPoint('return preview');
-            if (type === 'preview' || type === 'manual-preview')
-                return { data: carData };
-            if (userData && userData.userID) {
-                await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
-                    order_id: carData.orderID,
-                });
-                if (carData.voucherList && carData.voucherList.length > 0) {
-                    for (const voucher of carData.voucherList) {
-                        await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
-                    }
-                }
-                const sum = (await database_js_1.default.query(`SELECT sum(money)
-               FROM \`${this.app}\`.t_wallet
-               WHERE status in (1, 2)
-                 and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
-                carData.use_wallet = sum < carData.total ? sum : carData.total;
-            }
-            checkPoint('check user rebate');
-            if (type === 'manual' || type === 'split') {
-                carData.orderSource = type;
-                const voucherTitle = type === 'split' ? '拆分訂單調整折扣' : data.voucher.title;
-                const voucherValue = type === 'split' ? data.discount : data.voucher.value;
-                const voucherTotal = type === 'split' ? data.discount : data.voucher.discount_total;
-                let tempVoucher = {
-                    discount_total: voucherTotal,
-                    end_ISO_Date: '',
-                    for: 'all',
-                    forKey: [],
-                    method: data.voucher.method,
-                    overlay: false,
-                    rebate_total: data.voucher.rebate_total,
-                    reBackType: data.voucher.reBackType,
-                    rule: 'min_price',
-                    ruleValue: 0,
-                    startDate: '',
-                    startTime: '',
-                    start_ISO_Date: '',
-                    status: 1,
-                    target: '',
-                    targetList: [],
-                    title: voucherTitle,
-                    trigger: 'auto',
-                    type: 'voucher',
-                    value: voucherValue,
-                    id: data.voucher.id,
-                    bind: [],
-                    bind_subtotal: 0,
-                    times: 1,
-                    counting: 'single',
-                    conditionType: 'item',
-                    includeDiscount: 'before',
-                    device: ['normal'],
-                    productOffStart: 'price_all',
-                };
-                carData.discount = data.discount;
-                carData.voucherList = [tempVoucher];
-                carData.customer_info = data.customer_info;
-                carData.total = (_8 = data.total) !== null && _8 !== void 0 ? _8 : 0;
-                carData.rebate = tempVoucher.rebate_total;
-                if (tempVoucher.reBackType == 'shipment_free' || type == 'split') {
-                    carData.shipment_fee = 0;
-                }
-                if (type == 'split') {
-                    carData.editRecord.push({
-                        time: new Date().toISOString(),
-                        record: `拆分訂單建立來自\\n {{order=${carData.orderID.slice(0, -1)}}}`,
-                    });
-                }
-                if (tempVoucher.reBackType == 'rebate') {
-                    let customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
-                    if (!customerData) {
-                        await userClass.createUser(data.email, tool_js_1.default.randomString(8), {
-                            email: data.email,
-                            name: data.customer_info.name,
-                            phone: data.customer_info.phone,
-                        }, {}, true);
-                        customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
-                    }
-                }
-                await order_event_js_1.OrderEvent.insertOrder({
-                    cartData: carData,
-                    status: data.pay_status,
-                    app: this.app,
-                });
-                await Promise.all(saveStockArray.map(dd => {
-                    return dd();
-                }));
-                new notify_js_1.ManagerNotify(this.app).checkout({ orderData: carData, status: 0 });
-                const emailList = new Set([carData.customer_info, carData.user_info].map(dd => dd && dd.email));
-                for (const email of emailList) {
-                    if (email) {
-                        await auto_fcm_js_1.AutoFcm.orderChangeInfo({
-                            app: this.app,
-                            tag: 'order-create',
-                            order_id: carData.orderID,
-                            phone_email: email,
-                        });
-                        auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
-                    }
-                }
-                checkPoint('manual order done');
-                return {
-                    data: carData,
-                };
-            }
-            else if (type === 'POS') {
-                carData.orderSource = 'POS';
-                if (checkOutType === 'POS' && Array.isArray(data.voucherList)) {
-                    const manualVoucher = data.voucherList.find((item) => item.id === 0);
-                    if (manualVoucher) {
-                        manualVoucher.discount = (_9 = manualVoucher.discount_total) !== null && _9 !== void 0 ? _9 : 0;
-                        carData.total -= manualVoucher.discount;
-                        carData.discount += manualVoucher.discount;
-                        carData.voucherList.push(manualVoucher);
-                    }
-                }
-                const trans = await database_js_1.default.Transaction.build();
-                if (data.pre_order) {
-                    carData.progress = 'pre_order';
-                    carData.orderStatus = '0';
-                    const payTotal = data.pos_info.payment
-                        .map((dd) => dd.total)
-                        .reduce((acc, val) => acc + val, 0);
-                    if (carData.total <= payTotal) {
-                        data.pay_status = 1;
-                    }
-                    else {
-                        data.pay_status = 3;
-                    }
-                }
-                else if (carData.user_info.shipment === 'now') {
-                    carData.orderStatus = '1';
-                    carData.progress = 'finish';
-                }
-                await order_event_js_1.OrderEvent.insertOrder({
-                    cartData: carData,
-                    status: data.pay_status,
-                    app: this.app,
-                });
-                if (data.invoice_select !== 'nouse') {
-                    carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
-                }
-                await trans.commit();
-                await trans.release();
-                await Promise.all(saveStockArray.map(dd => dd()));
-                await this.releaseCheckout((_10 = data.pay_status) !== null && _10 !== void 0 ? _10 : 0, carData.orderID);
-                checkPoint('release pos checkout');
-                for (const email of new Set([carData.customer_info, carData.user_info].map(dd => {
-                    return dd && dd.email;
-                }))) {
-                    if (email) {
-                        await auto_fcm_js_1.AutoFcm.orderChangeInfo({
-                            app: this.app,
-                            tag: 'order-create',
-                            order_id: carData.orderID,
-                            phone_email: email,
-                        });
-                        auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
-                    }
-                }
-                return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
-            }
-            const id = 'redirect_' + tool_js_1.default.randomString(6);
-            const redirect_url = new URL(data.return_url);
-            redirect_url.searchParams.set('cart_token', carData.orderID);
-            await redis_js_1.default.setValue(id, redirect_url.href);
-            if (carData.use_wallet === carData.total) {
-                await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
-           values (?, ?, ?, ?, ?);`, [
-                    carData.orderID,
-                    userData.userID,
-                    carData.use_wallet * -1,
-                    1,
-                    JSON.stringify({
-                        note: '使用錢包購物',
-                        orderData: carData,
-                    }),
-                ]);
-                carData.method = 'off_line';
-                await order_event_js_1.OrderEvent.insertOrder({
-                    cartData: carData,
-                    status: 1,
-                    app: this.app,
-                });
-                if (carData.use_wallet > 0) {
-                    new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData.orderID, false);
-                }
-                await Promise.all(saveStockArray.map(dd => dd()));
-                checkPoint('insert order & create invoice');
-                return {
-                    is_free: true,
-                    return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                };
-            }
-            else {
-                const keyData = (await private_config_js_1.Private_config.getConfig({
-                    appName: this.app,
-                    key: 'glitter_finance',
-                }))[0].value;
-                let kd = (_11 = keyData[carData.customer_info.payment_select]) !== null && _11 !== void 0 ? _11 : {
-                    ReturnURL: '',
-                    NotifyURL: '',
-                };
-                switch (carData.customer_info.payment_select) {
-                    case 'ecPay':
-                    case 'newWebPay':
-                        const subMitData = await new financial_service_js_1.default(this.app, {
-                            HASH_IV: kd.HASH_IV,
-                            HASH_KEY: kd.HASH_KEY,
-                            ActionURL: kd.ActionURL,
-                            NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`,
-                            ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                            MERCHANT_ID: kd.MERCHANT_ID,
-                            TYPE: carData.customer_info.payment_select,
-                        }).createOrderPage(carData);
-                        await Promise.all(saveStockArray.map(dd => {
-                            return dd();
-                        }));
-                        checkPoint('select newWebPay');
-                        return {
-                            form: subMitData,
-                        };
-                    case 'paypal':
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
-                        await Promise.all(saveStockArray.map(dd => {
-                            return dd();
-                        }));
-                        checkPoint('select paypal');
-                        return await new financial_service_js_1.PayPal(this.app, kd).checkout(carData);
-                    case 'line_pay':
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
-                        await Promise.all(saveStockArray.map(dd => {
-                            return dd();
-                        }));
-                        checkPoint('select linepay');
-                        return await new financial_service_js_1.LinePay(this.app, kd).createOrder(carData);
-                    case 'paynow': {
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true&type=${carData.customer_info.payment_select}`;
-                        await Promise.all(saveStockArray.map(dd => {
-                            return dd();
-                        }));
-                        checkPoint('select paynow');
-                        return await new financial_service_js_1.PayNow(this.app, kd).createOrder(carData);
-                    }
-                    case 'jkopay': {
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&return=${id}`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=jkopay&return=${id}`;
-                        checkPoint('select jkopay');
-                        return await new financial_service_js_1.JKO(this.app, kd).createOrder(carData);
-                    }
-                    default:
-                        carData.method = 'off_line';
-                        await order_event_js_1.OrderEvent.insertOrder({
-                            cartData: carData,
-                            status: 0,
-                            app: this.app,
-                        });
-                        await Promise.all(saveStockArray.map(dd => {
-                            return dd();
-                        }));
-                        new notify_js_1.ManagerNotify(this.app).checkout({
-                            orderData: carData,
-                            status: 0,
-                        });
-                        for (const phone of new Set([carData.customer_info, carData.user_info].map(dd => {
-                            return dd && dd.phone;
-                        }))) {
-                            let sns = new sms_js_1.SMS(this.app);
-                            await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
-                            console.info('訂單簡訊寄送成功');
-                        }
-                        if (carData.customer_info.lineID) {
-                            let line = new line_message_1.LineMessage(this.app);
-                            await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
-                            console.info('訂單line訊息寄送成功');
-                        }
-                        for (const email of new Set([carData.customer_info, carData.user_info].map(dd => {
-                            return dd && dd.email;
-                        }))) {
-                            if (email) {
-                                await auto_fcm_js_1.AutoFcm.orderChangeInfo({
-                                    app: this.app,
-                                    tag: 'order-create',
-                                    order_id: carData.orderID,
-                                    phone_email: email,
-                                });
-                                auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
-                            }
-                        }
-                        await this.releaseVoucherHistory(carData.orderID, 1);
-                        checkPoint('default release checkout');
-                        return {
-                            off_line: true,
-                            return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                        };
-                }
-            }
-        }
-        catch (e) {
-            console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Func Error:' + e, null);
-        }
-    }
     async repayOrder(orderID, return_url) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
         const app = this.app;
         async function getOrder(orderID) {
             try {
                 const result = await database_js_1.default.query(`
-            SELECT *
-            FROM \`${app}\`.t_checkout
-            WHERE cart_token = ?`, [orderID]);
+              SELECT *
+              FROM \`${app}\`.t_checkout
+              WHERE cart_token = ?`, [orderID]);
                 return result[0];
             }
             catch (e) {
@@ -2497,7 +1449,7 @@ class Shopping {
             const strategyFactory = new payment_strategy_factory_js_1.PaymentStrategyFactory(keyData);
             const allPaymentStrategies = strategyFactory.createStrategyRegistry();
             const appName = this.app;
-            const paymentService = new payment_service_1.PaymentService(allPaymentStrategies, appName, carData.customer_info.payment_select);
+            const paymentService = new payment_service_js_1.PaymentService(allPaymentStrategies, appName, carData.customer_info.payment_select);
             try {
                 const paymentResult = await paymentService.processPayment(carData, return_url, carData.customer_info.payment_select);
                 console.log("Controller 收到 Payment Result:", paymentResult);
@@ -2551,12 +1503,6 @@ class Shopping {
                         orderString = 'order by created_time asc';
                         break;
                 }
-            }
-            if (query.archived === 'true') {
-                querySql.push(`(archived="${query.archived}")`);
-            }
-            else if (query.archived === 'false') {
-                querySql.push(`((archived IS NULL) or (archived!='true'))`);
             }
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
@@ -2708,7 +1654,8 @@ class Shopping {
     }
     async splitOrder(obj) {
         try {
-            async function processCheckoutsStaggered(splitOrderArray, orderData, context) {
+            const checkoutEvent = new checkout_event_js_1.CheckoutEvent(this.app, this.token);
+            async function processCheckoutsStaggered(splitOrderArray, orderData) {
                 const promises = splitOrderArray.map((order, index) => {
                     return new Promise((resolve, reject) => {
                         const delay = 1000 * index;
@@ -2726,7 +1673,7 @@ class Shopping {
                                 total: order.total,
                                 pay_status: Number(order.pay_status),
                             };
-                            context
+                            checkoutEvent
                                 .toCheckout(payload, 'split')
                                 .then(() => {
                                 resolve();
@@ -2783,7 +1730,7 @@ class Shopping {
                 cart_token: orderData.orderID,
                 orderData,
             });
-            return await processCheckoutsStaggered(splitOrderArray, orderData, this);
+            return await processCheckoutsStaggered(splitOrderArray, orderData);
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'splitOrder Error:' + e, null);
@@ -2861,6 +1808,8 @@ class Shopping {
             const filterItems = cart.lineItems
                 .filter(item => {
                 switch (caseName) {
+                    case 'manager_tag':
+                        return item.product_customize_tag.some(col => caseList.includes(col));
                     case 'collection':
                         return item.collection.some(col => caseList.includes(col));
                     case 'product':
@@ -3260,13 +2209,26 @@ class Shopping {
                 app_name: this.app,
             });
             const orderCountingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
-            const orderCount = await database_js_1.default.query(`SELECT *
-         FROM \`${this.app}\`.t_checkout
-         WHERE id = ?
-           AND ${orderCountingSQL};
+            const orderCount = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${orderCountingSQL};
         `, [origin.id]);
             if (orderCount[0]) {
                 await this.shareVoucherRebate(orderCount[0]);
+            }
+            const invoiceCountingConfig = await new user_js_1.User(this.app).getInvoiceCountingModeSQL();
+            const invoiceCount = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${invoiceCountingConfig.sql_string};
+        `, [origin.id]);
+            if (invoiceCount[0]) {
+                const cart_token = invoiceCount[0].cart_token;
+                const json = {
+                    tag: 'triggerInvoice',
+                    content: JSON.stringify({ cart_token }),
+                    trigger_time: tool_js_1.default.getCurrentDateTime({
+                        inputDate: new Date().toISOString(),
+                        addSeconds: invoiceCountingConfig.invoice_mode.afterDays * 86400,
+                    }),
+                    status: 0,
+                };
+                await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_triggers SET ?;`, [json]);
             }
             return {
                 result: 'success',
@@ -3830,7 +2792,8 @@ class Shopping {
             }
             const response_data = await new Promise(async (resolve) => {
                 if (query.id) {
-                    const data = (await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+                    const data = (await database_js_1.default.query(`SELECT *
+               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
               `, []))[0];
                     timer.checkPoint('get response_data (has query.id)');
                     resolve({
@@ -3839,12 +2802,14 @@ class Shopping {
                     });
                 }
                 else {
-                    const data = await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+                    const data = await database_js_1.default.query(`SELECT *
+             FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
             `, []);
                     timer.checkPoint('get response_data (not query.id)');
                     resolve({
                         data: data,
-                        total: (await database_js_1.default.query(`SELECT count(1) FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                        total: (await database_js_1.default.query(`SELECT count(1)
+                                    FROM (${sql}) as subqyery`, []))[0]['count(1)'],
                     });
                 }
             });
@@ -3860,7 +2825,10 @@ class Shopping {
                         order.orderData.cash_flow = await new financial_service_js_1.EcPay(this.app).checkPaymentStatus(order.cart_token);
                     }
                     if (order.orderData.customer_info.payment_select === 'paynow') {
-                        order.orderData.cash_flow = (await new financial_service_js_1.PayNow(this.app, keyData['paynow']).confirmAndCaptureOrder(order.orderData.paynow_id)).result;
+                        try {
+                            order.orderData.cash_flow = (await new financial_service_js_1.PayNow(this.app, keyData['paynow']).confirmAndCaptureOrder(order.orderData.paynow_id)).result;
+                        }
+                        catch (e) { }
                     }
                     if (order.orderData.user_info.shipment_refer === 'paynow') {
                         const pay_now = new paynow_logistics_js_1.PayNowLogistics(this.app);
@@ -4008,7 +2976,6 @@ class Shopping {
                 catch (e) {
                     console.error(e);
                 }
-                new invoice_js_1.Invoice(this.app).postCheckoutInvoice(order_id, false);
             }
         }
         catch (error) {
@@ -4179,17 +3146,18 @@ class Shopping {
                 else if (Object.keys(variant.stockList).length === 0) {
                     variant.stockList[storeConfig.list[0].id] = { count: variant.stock };
                 }
-                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants SET ? 
-          `, [
-                    {
-                        content: JSON.stringify(variant),
-                        product_id: content.id,
-                    },
-                ]);
+                const insertObj = {
+                    content: JSON.stringify(variant),
+                    product_id: content.id,
+                };
                 const originalVariant = originVariants.find((item) => JSON.parse(item.spec).join(',') === variant.spec.join(','));
                 if (originalVariant) {
-                    sourceMap[originalVariant.id] = insertData.insertId;
+                    insertObj.id = originalVariant.id;
+                    sourceMap[originalVariant.id] = originalVariant.id;
                 }
+                const insertData = await database_js_1.default.query(`replace INTO \`${this.app}\`.t_variants
+           SET ?
+          `, [insertObj]);
                 return insertData;
             });
             const chunk = 10;
@@ -4670,6 +3638,39 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
         }
     }
+    async removeLogisticGroup(group_key) {
+        try {
+            const getProducts = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_manager_post 
+         WHERE JSON_CONTAINS(JSON_EXTRACT(content, '$.designated_logistics.group'), JSON_QUOTE(?))`, [group_key]);
+            const chunk = 10;
+            const chunkLength = Math.ceil(getProducts.length / chunk);
+            for (let i = 0; i < chunkLength; i++) {
+                const promisesArray = getProducts.slice(i * chunk, (i + 1) * chunk);
+                setTimeout(async () => {
+                    await Promise.all(promisesArray.map(async (product) => {
+                        product.content.designated_logistics.group = product.content.designated_logistics.group.filter((item) => {
+                            return item !== group_key;
+                        });
+                        if (product.content.designated_logistics.group.length === 0) {
+                            delete product.content.designated_logistics.group;
+                            product.content.designated_logistics.type = 'all';
+                        }
+                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?`, [
+                            {
+                                content: JSON.stringify(product.content),
+                            },
+                            product.id,
+                        ]);
+                    }));
+                }, 200);
+            }
+            return true;
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'removeLogisticGroup Error:' + e, null);
+        }
+    }
     async updateCollectionFromUpdateProduct(collection) {
         var _a;
         collection = Array.from(new Set(collection.map(dd => {
@@ -4787,7 +3788,8 @@ class Shopping {
                 return [product.id || null, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
             });
             if (productArray.length) {
-                const data = await database_js_1.default.query(`REPLACE INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
+                const data = await database_js_1.default.query(`REPLACE
+          INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
           `, [
                     productArray.map((product) => {
                         var _a;
@@ -4834,9 +3836,9 @@ class Shopping {
                 const language = await app_js_1.App.getSupportLanguage(this.app);
                 for (const b of language) {
                     const find_conflict = await database_js_1.default.query(`SELECT count(1)
-           FROM \`${this.app}\`.t_manager_post
-           WHERE content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
-             AND id != ${content.id}`, []);
+             FROM \`${this.app}\`.t_manager_post
+             WHERE content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
+               AND id != ${content.id}`, []);
                     if (find_conflict[0]['count(1)'] > 0) {
                         throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
                             message: '網域已被使用',
@@ -4850,7 +3852,9 @@ class Shopping {
                 this.setProductCustomizeTagConifg((_a = content.product_customize_tag) !== null && _a !== void 0 ? _a : []),
                 this.setProductGeneralTagConifg((_c = (_b = content.product_tag) === null || _b === void 0 ? void 0 : _b.language) !== null && _c !== void 0 ? _c : []),
             ]);
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
+         SET ?
+         WHERE id = ?
         `, [
                 {
                     content: JSON.stringify(content),
@@ -5119,7 +4123,7 @@ class Shopping {
                     data.data = data.data.filter((dd) => {
                         var _a;
                         return (_a = query.id_list) === null || _a === void 0 ? void 0 : _a.split(',').find(d1 => {
-                            return d1 === [dd.product_id, ...dd.variant_content.spec].join('-');
+                            return d1 === `${dd.product_id}-${dd.variant_content.spec.join('-')}`;
                         });
                     });
                 }
@@ -5209,8 +4213,8 @@ class Shopping {
            SET ?
            WHERE id = ?`, [{ content: JSON.stringify(data.variant_content) }, data.id]);
                 let variants = (await database_js_1.default.query(`SELECT *
-           FROM \`${this.app}\`.t_variants
-           WHERE product_id = ?`, [data.product_id])).map((dd) => {
+             FROM \`${this.app}\`.t_variants
+             WHERE product_id = ?`, [data.product_id])).map((dd) => {
                     return dd.content;
                 });
                 data.product_content.variants = variants;
