@@ -416,7 +416,7 @@ export class OrderExcel {
 
     const getUserValue = (key: string) => {
       try {
-        return order.user_data.userData[key];
+        return order.user_data.userData[key] || '-';
       } catch (error) {
         return '-';
       }
@@ -424,7 +424,7 @@ export class OrderExcel {
 
     const getCashflowValue = (key: string) => {
       try {
-        return order.orderData.user_info.custom_form_payment[key];
+        return order.orderData.user_info.custom_form_payment[key] || '-';
       } catch (error) {
         return '-';
       }
@@ -432,24 +432,28 @@ export class OrderExcel {
 
     const getShipmentValue = (key: string) => {
       try {
-        return order.orderData.user_info.custom_form_delivery[key];
+        return order.orderData.user_info.custom_form_delivery[key] || '-';
       } catch (error) {
         return '-';
       }
     };
 
-    [...(registerConfig || []), ...(memberConfig || [])].map(item => {
-      customizeMap.set(`會員自訂值 - ${item.title}`, order ? getUserValue(item.key) : '');
+    (registerConfig || []).map((item: any) => {
+      customizeMap.set(`註冊自訂值 - ${item.title}`, order ? getUserValue(item.key) : '-');
+    });
+
+    (memberConfig || []).map((item: any) => {
+      customizeMap.set(`會員自訂值 - ${item.title}`, order ? getUserValue(item.key) : '-');
     });
 
     const cashflowConfig = order ? cashflowConfigObj[order.payment_method] : Object.values(cashflowConfigObj).flat();
     (cashflowConfig || []).map((item: any) => {
-      customizeMap.set(`金流自訂值 - ${item.title}`, order ? getCashflowValue(item.key) : '');
+      customizeMap.set(`金流自訂值 - ${item.title}`, order ? getCashflowValue(item.key) : '-');
     });
 
     const shipmentConfig = order ? shipmentConfigObj[order.shipment_method] : Object.values(shipmentConfigObj).flat();
     (shipmentConfig || []).map((item: any) => {
-      customizeMap.set(`物流自訂值 - ${item.title}`, order ? getShipmentValue(item.key) : '');
+      customizeMap.set(`物流自訂值 - ${item.title}`, order ? getShipmentValue(item.key) : '-');
     });
 
     return customizeMap;
