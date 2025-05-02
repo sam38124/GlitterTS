@@ -12,6 +12,7 @@ import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { UmClass } from '../../public-components/user-manager/um-class.js';
 import { Voucher, VoucherContent } from '../../public-components/user-manager/um-voucher.js';
 import { Language } from '../../glitter-base/global/language.js';
+import { Tool } from '../../modules/tool.js';
 
 const html = String.raw;
 const css = String.raw;
@@ -1093,7 +1094,13 @@ export class PosFunction {
                       'guest',
                   }).then(async res => {
                     if (res.result && res.response.data) {
-                      vm.dataList = res.response.data.filter((item: Voucher) => item.content.trigger === 'code');
+                      vm.dataList = res.response.data.filter((item: Voucher) => {
+                        return (
+                          item.content.status === 1 &&
+                          item.content.trigger === 'code' &&
+                          Tool.isNowBetweenDates(item.content.start_ISO_Date, item.content.end_ISO_Date)
+                        );
+                      });
                     } else {
                       vm.dataList = [];
                     }

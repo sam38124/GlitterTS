@@ -18,6 +18,7 @@ import { PaymentPage } from './payment-page.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { UmClass } from '../../public-components/user-manager/um-class.js';
 import { Language } from '../../glitter-base/global/language.js';
+import { Tool } from '../../modules/tool.js';
 const html = String.raw;
 const css = String.raw;
 const dialogStyle = `
@@ -999,7 +1000,11 @@ export class PosFunction {
                                         'guest',
                                 }).then((res) => __awaiter(this, void 0, void 0, function* () {
                                     if (res.result && res.response.data) {
-                                        vm.dataList = res.response.data.filter((item) => item.content.trigger === 'code');
+                                        vm.dataList = res.response.data.filter((item) => {
+                                            return (item.content.status === 1 &&
+                                                item.content.trigger === 'code' &&
+                                                Tool.isNowBetweenDates(item.content.start_ISO_Date, item.content.end_ISO_Date));
+                                        });
                                     }
                                     else {
                                         vm.dataList = [];

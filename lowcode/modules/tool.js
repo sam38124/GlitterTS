@@ -81,4 +81,13 @@ export class Tool {
             return a + b;
         }
     }
+    static isNowBetweenDates(startIso, endIso) {
+        const now = new Date();
+        const startDate = new Date(startIso);
+        const endDate = new Date(endIso);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            return true;
+        }
+        return now >= startDate && now <= endDate;
+    }
 }
