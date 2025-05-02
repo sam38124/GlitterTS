@@ -53,7 +53,13 @@ export class AutoReply {
                 },
                 {
                   key: '最後更新時間',
-                  value: dd.updated_time ? gvc.glitter.ut.dateFormat(dd.updated_time, 'yyyy-MM-dd') : '系統預設',
+                  value: (() => {
+                    if (!dd.updated_time || isNaN(new Date(dd.updated_time).getTime())) {
+                      return '系統預設';
+                    } else {
+                      return gvc.glitter.ut.dateFormat(dd.updated_time, 'yyyy-MM-dd');
+                    }
+                  })(),
                 },
                 {
                   key: '狀態',
@@ -122,6 +128,7 @@ export class AutoReply {
                       [
                         'auto-email-shipment-arrival',
                         'auto-email-shipment',
+                        'auto-email-in-stock',
                         'auto-email-order-create',
                         'auto-email-payment-successful',
                         'proof-purchase',
@@ -350,6 +357,14 @@ export class AutoReply {
         name: '@{{app_name}}',
         title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 出貨中',
         content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 出貨中',
+        toggle: true,
+      },
+      {
+        tag: 'auto-email-in-stock',
+        tag_name: '商品備貨',
+        name: '@{{app_name}}',
+        title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 備貨中',
+        content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 備貨中',
         toggle: true,
       },
       {

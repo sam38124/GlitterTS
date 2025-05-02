@@ -1312,6 +1312,10 @@ ${hr}
             status: true,
           },
           {
+            key: 'auto-email-in-stock',
+            status: true,
+          },
+          {
             key: 'auto-email-shipment-arrival',
             status: true,
           },
@@ -1391,6 +1395,8 @@ ${hr}
                                 switch (dd.key) {
                                   case 'auto-email-shipment':
                                     return '商品出貨';
+                                  case 'auto-email-in-stock':
+                                    return '商品備貨';
                                   case 'auto-email-shipment-arrival':
                                     return '商品到貨';
                                   case 'auto-email-order-create':
