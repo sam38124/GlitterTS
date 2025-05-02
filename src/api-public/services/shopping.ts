@@ -807,6 +807,7 @@ export class Shopping {
             return dd.content;
           })
           .map((product: any) => {
+            product.content.designated_logistics = product.content.designated_logistics ?? {list: [], type: "all"};
             product.content.collection = Array.from(
               new Set(
                 (() => {
@@ -2642,9 +2643,8 @@ export class Shopping {
         return userData?.id && voucher.targetList.includes(userData.userID);
       }
       if (voucher.target === 'levels') {
-        if (userData?.member) {
-          const trigger = userData.member.find((m: any) => m.trigger);
-          return trigger && voucher.targetList.includes(trigger.id);
+        if (userData.member_level) {
+          return  voucher.targetList.includes(userData.member_level.id);
         }
         return false;
       }

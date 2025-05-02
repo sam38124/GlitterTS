@@ -249,10 +249,10 @@ export class Editor {
           style="word-break: break-word;white-space: nowrap;background:whitesmoke;height:${window.innerHeight}px;"
         >
           <header
-            class="header navbar navbar-expand navbar-light bg-light border-bottom   fixed-top "
+            class="header navbar navbar-expand navbar-light bg-light border-bottom   fixed-top  "
             data-scroll-header
             style="${parseInt(glitter.share.top_inset, 10)
-              ? `padding-top:${glitter.share.top_inset || 0}px;min-height: 56px;`
+              ? `padding-top:${glitter.share.top_inset || 0}px;min-height: 56px;padding-bottom: 0px !important;`
               : `height:56px;`}"
           >
             <div

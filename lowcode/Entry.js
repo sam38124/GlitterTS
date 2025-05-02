@@ -146,7 +146,7 @@ export class Entry {
             }
             window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : createClock();
             console.log(`Entry-time:`, window.renderClock.stop());
-            glitter.share.editerVersion = 'V_21.0.4';
+            glitter.share.editerVersion = 'V_21.1.5';
             glitter.share.start = new Date();
             const vm = { appConfig: [] };
             window.saasConfig = {

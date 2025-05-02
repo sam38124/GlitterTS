@@ -2294,7 +2294,7 @@ export class ShoppingFinanceSetting {
                       .join('');
                   },
                   divCreate: {
-                    class: 'row guide3-3 mt-3 px-1',
+                    class: 'row guide3-3 mt-3 px-1 mx-0',
                   },
                 };
               }),

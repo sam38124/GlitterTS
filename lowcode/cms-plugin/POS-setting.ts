@@ -172,6 +172,8 @@ export class POSSetting {
   }
 
   static initial(gvc: GVC) {
+
+
     gvc.glitter.share.editorViewModel = { app_config_original: {} };
     gvc.glitter.share.shop_config = { shop_name: '' };
 
@@ -188,7 +190,16 @@ export class POSSetting {
     });
   }
 
+  static setSaasBrand(){
+    if (window.location.href.includes('smartshop')) {
+      (window as any).glitterBase = 'hd_saas';
+    } else {
+      (window as any).glitterBase = 'shopnex';
+    }
+    (window as any).saasConfig.config.token = GlobalUser.saas_token;
+  }
   static main(gvc: GVC) {
+    this.setSaasBrand();
     const glitter = gvc.glitter;
     const dialog = new ShareDialog(glitter);
 
@@ -240,11 +251,6 @@ export class POSSetting {
 
     gvc.glitter.share.NormalPageEditor = NormalPageEditor; // 提供給編輯器使用
     gvc.glitter.addStyleLink('./css/editor.css');
-    if (window.location.href.includes('smartshop')) {
-      (window as any).glitterBase = 'hd_saas';
-    } else {
-      (window as any).glitterBase = 'shopnex';
-    }
 
     (window as any).appName = gvc.glitter.getUrlParameter('app-id');
     (window as any).saasConfig.config.token = GlobalUser.saas_token;

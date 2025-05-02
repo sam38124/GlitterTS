@@ -40,22 +40,25 @@ export class CheckoutIndex {
       return '';
     }
     let onlineData: any = {};
-
-    //取得要顯示的購物車
-    let apiCart = (() => {
+    function getCartData(){
       if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
         ApiCart.checkoutCart = ApiCart.globalCart;
         return new ApiCart(ApiCart.globalCart);
       } else {
         return new ApiCart(ApiCart.checkoutCart);
       }
-    })();
+    }
+    //取得要顯示的購物車
+    let apiCart = getCartData()
+
     const check_out_sub = JSON.parse(localStorage.getItem('checkout_sub_' + ApiCart.checkoutCart) ?? '{}');
+
     const ids = {
       page: 'checkout-index',
       cart: glitter.getUUID(),
       shipping: glitter.getUUID(),
     };
+
     const loadings = {
       page: true,
     };
@@ -69,7 +72,6 @@ export class CheckoutIndex {
     };
     const classPrefix = 'cart-prefix';
     PdClass.addSpecStyle(gvc);
-
     function spinner(obj?: {
       container?: {
         class?: string;
@@ -141,6 +143,8 @@ export class CheckoutIndex {
     }
 
     function refreshCartData() {
+      //重取購物車資料
+      apiCart=getCartData()
       const dialog = new ShareDialog(gvc.glitter);
       dialog.dataLoading({ visible: true });
       const beta = false;
@@ -298,7 +302,7 @@ export class CheckoutIndex {
                   src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                 },
                 {
-                  src: `https://js.paynow.com.tw/sdk/v2/index.js`,
+                  src: `https://js.paynow.com.tw/sdk/v2/index.js?v=20250430`,
                 },
               ],
               () => {},
@@ -333,7 +337,7 @@ export class CheckoutIndex {
                 src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
               },
               {
-                src: `https://js.paynow.com.tw/sdk/v1/index.js`,
+                src: `https://js.paynow.com.tw/sdk/v2/index.js`,
               },
             ],
             () => {},
@@ -416,7 +420,6 @@ export class CheckoutIndex {
         refreshCartData();
       };
     }
-
     return (
       gvc.bindView(
         (() => {
@@ -924,7 +927,6 @@ export class CheckoutIndex {
                     </div>
                   `;
                 }
-
                 return html` <div class="w-100" style="margin-top:0 !important;">
                   ${gvc.bindView(
                     (() => {
@@ -1434,6 +1436,7 @@ export class CheckoutIndex {
                                                                           });
                                                                         }
                                                                       );
+                                                                      
                                                                       if (find) {
                                                                         apiCart.setCart(cartItem => {
                                                                           cartItem.line_items.map(dd => {

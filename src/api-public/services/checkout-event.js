@@ -342,14 +342,31 @@ class CheckoutEvent {
                             }
                         }
                         if (variant && item.count > 0) {
+                            const sale_price = (() => {
+                                if (checkOutType === 'POS' && item.custom_price) {
+                                    return item.custom_price;
+                                }
+                                else {
+                                    return variant.sale_price;
+                                }
+                            })();
+                            const origin_price = (() => {
+                                if (checkOutType === 'POS' && item.custom_price) {
+                                    return variant.sale_price;
+                                }
+                                else {
+                                    return variant.origin_price;
+                                }
+                            })();
                             Object.assign(item, {
                                 specs: content.specs,
                                 language_data: content.language_data,
                                 product_category: content.product_category,
                                 preview_image: variant.preview_image || content.preview_image[0],
                                 title: content.title,
-                                sale_price: variant.sale_price,
-                                origin_price: variant.origin_price,
+                                sale_price: sale_price,
+                                variant_sale_price: variant.sale_price,
+                                origin_price: origin_price,
                                 collection: content.collection,
                                 sku: variant.sku,
                                 stock: variant.stock,
@@ -402,7 +419,7 @@ class CheckoutEvent {
                                     variant.sale_price = 0;
                                 }
                                 else {
-                                    carData.total += variant.sale_price * item.count;
+                                    carData.total += sale_price * item.count;
                                 }
                             }
                         }
@@ -596,7 +613,8 @@ class CheckoutEvent {
                 (_1 = carData.voucherList) === null || _1 === void 0 ? void 0 : _1.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
                 gift_product.forEach(dd => {
                     const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
-                    if (dd.count <= max_count) {
+                    if (max_count) {
+                        dd.count = max_count;
                         for (let a = 0; a < dd.count; a++) {
                             can_add_gift = can_add_gift.filter(d1 => !d1.includes(dd.id));
                         }

@@ -202,10 +202,10 @@ export class PaymentPage {
                       ${(() => {
                         if (orderDetail.lineItems.length > 0) {
                           return orderDetail.lineItems
-                            .map((data: any) => {
+                            .map((data: any, index: number) => {
                               return html`
                                 <div class="d-flex" style="">
-                                  <div class="col-9 col-sm-6 d-flex align-items-center">
+                                  <div class="col-12 col-sm-6 d-flex align-items-center">
                                     <div
                                       class="d-flex flex-column align-items-center justify-content-center"
                                       style="gap:5px;width:75px;"
@@ -233,7 +233,16 @@ export class PaymentPage {
                                       </div>
                                     </div>
                                     <div
-                                      class="d-flex flex-column py-2"
+                                      class="d-flex flex-column py-2" onclick="${gvc.event(() => {
+                                      PosFunction.setMoney(
+                                        gvc,
+                                        count => {
+                                          obj.ogOrderData.lineItems[index].count = count;
+                                          refreshOrderView();
+                                        },
+                                        '更改商品數量'
+                                      );
+                                    })}"
                                       style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;"
                                     >
                                       <div class="d-flex justify-content-center flex-column" style="gap:5px;">
@@ -241,7 +250,7 @@ export class PaymentPage {
                                           if (!data.pre_order) {
                                             return ``;
                                           } else {
-                                            return html`<div>${BgWidget.dangerInsignia('需預購')}</div>`;
+                                            return html` <div>${BgWidget.dangerInsignia('需預購')}</div>`;
                                           }
                                         })()}
                                         ${data.title}
@@ -269,15 +278,86 @@ export class PaymentPage {
                                           </div>`
                                         : ``}
                                     </div>
+                                    <div class="flex-fill"></div>
+                                    <div class="d-sm-none d-flex align-items-center justify-content-center flex-column" style="gap:0px;" onclick="${gvc.event(()=>{
+                                      PosFunction.setMoney(
+                                        gvc,
+                                        money => {
+                                          if (money === data.sale_price) {
+                                            delete obj.ogOrderData.lineItems[index].custom_price;
+                                          } else {
+                                            obj.ogOrderData.lineItems[index].custom_price = money;
+                                          }
+                                          refreshOrderView();
+                                        },
+                                        '更改商品單價'
+                                      )
+                                    })}">
+                                      ${(data.sale_price !== data.variant_sale_price) ? `
+                                    <span class="text-decoration-line-through"
+                                      >$${parseInt((data.variant_sale_price * data.count) as any, 10).toLocaleString()}</span
+                                    >
+                                     <span class="text-danger"
+                                      >$${parseInt((data.sale_price * data.count) as any, 10).toLocaleString()}</span
+                                    >
+                                    `:`
+                                    <span
+                                      >$${parseInt((data.sale_price * data.count) as any, 10).toLocaleString()}</span
+                                    >
+                                    `}
+
+                                    </div>
                                   </div>
                                   <div class="col-2 d-none d-sm-flex align-items-center justify-content-start">
                                     $${parseInt(data.sale_price as any, 10).toLocaleString()}
                                   </div>
-                                  <div class="col-3 col-lg-2 d-flex align-items-center justify-content-center">
+                                  <div
+                                    class="col-3 col-lg-2 d-flex align-items-center justify-content-center d-none d-sm-flex"
+                                    style="gap:10px;cursor: pointer;"
+                                    onclick="${gvc.event(() => {
+                                      PosFunction.setMoney(
+                                        gvc,
+                                        count => {
+                                          obj.ogOrderData.lineItems[index].count = count;
+                                          refreshOrderView();
+                                        },
+                                        '更改商品數量'
+                                      );
+                                    })}"
+                                  >
                                     ${Number(data.count as any).toLocaleString()}
                                   </div>
-                                  <div class="col-3 col-lg-2 d-flex align-items-center justify-content-center">
-                                    $${parseInt((data.sale_price * data.count) as any, 10).toLocaleString()}
+                                  <div
+                                    class="col-3 col-lg-2 d-flex align-items-center justify-content-center  d-none d-sm-flex"
+                                    style="gap:10px;cursor: pointer;"
+                                    onclick="${gvc.event(() => {
+                                      PosFunction.setMoney(
+                                        gvc,
+                                        money => {
+                                          if (money === data.sale_price) {
+                                            delete obj.ogOrderData.lineItems[index].custom_price;
+                                          } else {
+                                            obj.ogOrderData.lineItems[index].custom_price = money;
+                                          }
+                                          refreshOrderView();
+                                        },
+                                        '更改商品單價'
+                                      );
+                                    })}"
+                                  >
+                                    ${(data.sale_price !== data.variant_sale_price) ? `
+                                    <span class="text-decoration-line-through"
+                                      >$${parseInt((data.variant_sale_price * data.count) as any, 10).toLocaleString()}</span
+                                    >
+                                     <span class="text-danger"
+                                      >$${parseInt((data.sale_price * data.count) as any, 10).toLocaleString()}</span
+                                    >
+                                    `:`
+                                    <span
+                                      >$${parseInt((data.sale_price * data.count) as any, 10).toLocaleString()}</span
+                                    >
+                                    `}
+                                    
                                   </div>
                                 </div>
                               `;
@@ -2075,25 +2155,24 @@ export class PaymentPage {
             PayConfig.pos_config.pos_support_finction.includes('print_order_receipt') ||
             PayConfig.pos_config.pos_support_finction.includes('print_order_detail')
           ) {
-
             if (PayConfig.deviceType === 'pos') {
               //客戶聯
-              await IminModule.printTransactionDetails(res.response.data.orderID,invoice,glitter.share.staff_title);
+              await IminModule.printTransactionDetails(res.response.data.orderID, invoice, glitter.share.staff_title);
               //如果需要收執聯的話
-              if(
+              if (
                 PayConfig.pos_config.pos_support_finction.includes('print_order_receipt') &&
                 PayConfig.pos_config.pos_support_finction.includes('print_order_detail')
-              ){
+              ) {
                 await new Promise(resolve => {
-                  const dialog=new ShareDialog(glitter)
+                  const dialog = new ShareDialog(glitter);
                   dialog.infoMessage({
-                    text:'請撕取客戶聯，在列印留存聯',
-                    callback:()=>{
-                      resolve(true)
-                    }
-                  })
-                })
-                await IminModule.printTransactionDetails(res.response.data.orderID,invoice,glitter.share.staff_title);
+                    text: '請撕取客戶聯，在列印留存聯',
+                    callback: () => {
+                      resolve(true);
+                    },
+                  });
+                });
+                await IminModule.printTransactionDetails(res.response.data.orderID, invoice, glitter.share.staff_title);
               }
             } else {
               ConnectionMode.sendCommand({

@@ -107,7 +107,7 @@ export class BgCustomerMessage {
                     else {
                         let view = [
                             ` <div class="navbar  d-flex align-items-center justify-content-between w-100  p-3 "
-                     style="background: linear-gradient(135deg, var(--main-orange) 0%, #ff6c02 100%);">
+                     style="background: linear-gradient(135deg, #ffb400 0%, #ff6c02 100%);">
                     <div class="d-flex align-items-center pe-3 w-100"
                          style="gap:10px;display: flex;align-items: center;">
                         <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"

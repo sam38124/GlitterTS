@@ -5,6 +5,7 @@ import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { POSSetting } from '../POS-setting.js';
 import { Swal } from '../../modules/sweetAlert.js';
 import { PaymentPage } from './payment-page.js';
+import { PayConfig } from './pay-config.js';
 
 const html = String.raw;
 
@@ -102,7 +103,7 @@ export class ProductsPage {
     const pVM = {
       pageSize: 0,
       pageIndex: 1,
-      limit: 20,
+      limit: 50,
     };
 
     function loadData() {
@@ -228,7 +229,18 @@ export class ProductsPage {
                         >
                           <div
                             class="w-100"
-                            style="border-radius: 10px 10px 0 0;;padding-bottom: 116px;background: 50%/cover no-repeat url('${data
+                            style="border-radius: 10px 10px 0 0;;padding-bottom: ${
+                              (()=>{
+                                if(PayConfig.pos_config.prdouct_card_layout){
+                                  const wi=PayConfig.pos_config.prdouct_card_layout.split(':').map((dd:any)=>{
+                                    return parseInt(dd,10)
+                                  })
+                                  return  parseInt(`${wi[0] / wi[1] * 100}`,10)
+                                }else{
+                                  return `56`
+                                }
+                              })()
+                            }%;background: 50%/cover no-repeat url('${data
                               .content.preview_image[0] ??
                             image ??
                             image}');"

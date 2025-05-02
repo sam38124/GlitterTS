@@ -16,5 +16,6 @@ export declare class Schedule {
     autoSendLine(sec: number): Promise<void>;
     initialSampleApp(sec: number): Promise<void>;
     currenciesUpdate(sec: number): Promise<void>;
+    visitLogs(sec: number): Promise<void>;
     main(): void;
 }

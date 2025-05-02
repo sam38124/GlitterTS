@@ -177,6 +177,7 @@ async function doAuthAction(req: express.Request, resp: express.Response, next_s
   const refer_app = ApiPublic.checkedApp.find(dd => {
     return (dd.app_name as any) === (req.headers['g-app'] as any);
   });
+
   req.headers['g-app'] = (refer_app && refer_app.refer_app) || ((req.get('g-app') as any) ?? req.query['g-app']);
   req.headers['language'] = await LanguageSetting.getLanguage(
     req.headers['language'] as string,

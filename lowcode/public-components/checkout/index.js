@@ -38,7 +38,7 @@ export class CheckoutIndex {
             return '';
         }
         let onlineData = {};
-        let apiCart = (() => {
+        function getCartData() {
             if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
                 ApiCart.checkoutCart = ApiCart.globalCart;
                 return new ApiCart(ApiCart.globalCart);
@@ -46,7 +46,8 @@ export class CheckoutIndex {
             else {
                 return new ApiCart(ApiCart.checkoutCart);
             }
-        })();
+        }
+        let apiCart = getCartData();
         const check_out_sub = JSON.parse((_a = localStorage.getItem('checkout_sub_' + ApiCart.checkoutCart)) !== null && _a !== void 0 ? _a : '{}');
         const ids = {
             page: 'checkout-index',
@@ -118,6 +119,7 @@ export class CheckoutIndex {
       </div>`;
         }
         function refreshCartData() {
+            apiCart = getCartData();
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ visible: true });
             const beta = false;
@@ -254,7 +256,7 @@ export class CheckoutIndex {
                                 src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                             },
                             {
-                                src: `https://js.paynow.com.tw/sdk/v2/index.js`,
+                                src: `https://js.paynow.com.tw/sdk/v2/index.js?v=20250430`,
                             },
                         ], () => { }, () => { });
                         loadings.page = false;
@@ -282,7 +284,7 @@ export class CheckoutIndex {
                             src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                         },
                         {
-                            src: `https://js.paynow.com.tw/sdk/v1/index.js`,
+                            src: `https://js.paynow.com.tw/sdk/v2/index.js`,
                         },
                     ], () => { }, () => { });
                     loadings.page = false;

@@ -243,10 +243,9 @@ export class UpdatedTableChecked {
       table_name: 't_user_public_config',
       last_version: ['V1.0', ''],
       new_version: 'V1.1',
-      beta: true,
       event: () => {
         return new Promise(async resolve => {
-          const migrateClass = new MigratePublicUserConfig('t_1725992531001');
+          const migrateClass = new MigratePublicUserConfig(app_name);
           await migrateClass.setLogisticsGroup();
           resolve(true);
         });

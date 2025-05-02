@@ -264,7 +264,7 @@ export class ProductCard03 {
         })}
       </div>
       <div class="card-collapse-parent">
-        <div class="card-title-container">
+        <div class="card-title-container" style="min-height:auto;">
           <div class="row gx-0 mb-2">
             <div class="col-12 mb-1">
               <div class="w-100 d-flex ${PdClass.isPad() ? 'justify-content-center' : ''}">

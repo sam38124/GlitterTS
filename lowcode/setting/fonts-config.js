@@ -1,5 +1,4 @@
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 export class FontsConfig {
     static fontsSettingView(gvc, globalValue, detail) {
@@ -17,79 +16,140 @@ export class FontsConfig {
                 bind: vm_c.id,
                 view: () => {
                     if (vm_c.loading) {
-                        return html `<div class="w-100 d-flex align-items-center justify-content-center p-3">
-                            <div class="spinner-border"></div>
-                        </div>`;
+                        return html ` <div class="w-100 d-flex align-items-center justify-content-center p-3">
+              <div class="spinner-border"></div>
+            </div>`;
                     }
                     const array = [
                         html ` <div
-                            class="hoverF2 d-flex align-items-center p-3 ${detail ? `d-none` : ``}"
-                            onclick="${gvc.event(() => {
+              class="hoverF2 d-flex align-items-center p-3 ${detail ? `d-none` : ``}"
+              onclick="${gvc.event(() => {
                             vm_c.toggle = !vm_c.toggle;
                             gvc.notifyDataChange(vm_c.id);
                         })}"
-                        >
-                            <span class="fw-500" style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">字型樣式</span>
-                            <div class="flex-fill"></div>
-                            ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
-                        </div>`,
+            >
+              <span
+                class="fw-500"
+                style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;"
+                >字型樣式</span
+              >
+              <div class="flex-fill"></div>
+              ${vm_c.toggle
+                            ? ` <i class="fa-solid fa-chevron-down"></i>`
+                            : ` <i class="fa-solid fa-chevron-right"></i>`}
+            </div>`,
                     ];
                     if (vm_c.toggle) {
-                        array.push(html ` <div class="row ${globalValue.font_theme.length === 0 ? `d-none` : ``} px-0 pt-2 pb-0 m-0" style="margin: 18px 18px 0px;">
-                                ${globalValue.font_theme
+                        array.push(html ` <div
+                  class="row ${globalValue.font_theme.length === 0 ? `d-none` : ``} px-0 pt-2 pb-0 m-0"
+                  style="margin: 18px 18px 0px;"
+                >
+                  ${globalValue.font_theme
                             .map((dd, index) => {
-                            return html `<div class="col-12 mb-3" style="cursor: pointer;">
-                                            <div class="rounded border p-2 d-flex  w-100 flex-column" style="gap:10px;">
+                            return gvc.bindView(() => {
+                                const id = gvc.glitter.getUUID();
+                                function refresh() {
+                                    gvc.notifyDataChange(id);
+                                }
+                                return {
+                                    bind: id,
+                                    view: () => {
+                                        return ` <div class="rounded border p-2 d-flex  w-100 flex-column" style="gap:10px;">
                                                 ${BgWidget.title(index === 0 ? `預設字型` : dd.value || `字型樣式 ${index}`, 'font-size: 16px;')}
                                                 <div class="d-flex align-items-center" style="gap:10px;">
-                                                    ${EditorElem.searchInput({
-                                title: '',
-                                gvc: gvc,
-                                def: dd.value,
-                                array: vm_c.fonts.map((dd, index) => {
-                                    return dd.title;
-                                }),
-                                callback: (text) => {
-                                    if (vm_c.fonts.find((dd, index) => {
-                                        return dd.title === text;
-                                    })) {
-                                        dd.title = text;
-                                        dd.value = text;
-                                        FontsConfig.reInitialFontTheme(globalValue, gvc);
-                                    }
-                                    gvc.notifyDataChange(vm_c.id);
-                                },
-                                placeHolder: '搜尋字體',
-                            })}
+                                                    <div class="form-control" style="cursor:pointer;" onclick="${gvc.event(() => {
+                                            BgWidget.settingDialog({
+                                                gvc: gvc,
+                                                title: '選擇字型',
+                                                innerHTML: (gvc) => {
+                                                    const input_id = gvc.glitter.getUUID();
+                                                    const container_id = gvc.glitter.getUUID();
+                                                    let search = '';
+                                                    return `<div class="w-100">
+${[
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            default: search,
+                                                            title: `<div class="d-flex align-items-center" style="gap:5px;">快速搜尋${BgWidget.greenNote(`<div onclick="${gvc.event(() => {
+                                                                gvc.glitter.openNewTab('https://fonts.google.com/');
+                                                            })}" style="cursor:pointer;">採用Google Fonts 標準字型</div>`)}</div>`,
+                                                            placeHolder: '快速搜尋',
+                                                            oninput: (text) => {
+                                                                search = text;
+                                                                gvc.notifyDataChange(container_id);
+                                                            },
+                                                            callback: text => { },
+                                                        }),
+                                                        gvc.bindView(() => {
+                                                            return {
+                                                                bind: container_id,
+                                                                view: () => {
+                                                                    return vm_c.fonts
+                                                                        .map((dd, index) => {
+                                                                        return dd.title;
+                                                                    })
+                                                                        .filter((dd) => {
+                                                                        return dd.toLowerCase().includes(search.toLowerCase());
+                                                                    })
+                                                                        .map((d1, index) => {
+                                                                        return html ` <div class="d-flex">
+                                                                          ${BgWidget.title(`${index + 1}. ${d1}`)}
+                                                                          <div class="flex-fill"></div>
+                                                                          ${BgWidget.save(gvc.event(() => {
+                                                                            dd.value = d1;
+                                                                            refresh();
+                                                                            gvc.closeDialog();
+                                                                        }), '選擇')}
+                                                                        </div>`;
+                                                                    }).join('<div class="w-100 my-2 border-top"></div>');
+                                                                },
+                                                            };
+                                                        }),
+                                                    ].join(BgWidget.horizontalLine())}
+</div>`;
+                                                },
+                                                footer_html: (gvc) => {
+                                                    return [].join('');
+                                                },
+                                            });
+                                        })}">
+                                                      ${dd.value || '尚未設定'} 
+                                                    </div>
                                                     ${index !== 0
-                                ? BgWidget.cancel(gvc.event(() => {
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    dialog.checkYesOrNot({
-                                        text: '是否確認刪除此字型?',
-                                        callback: (response) => {
-                                            if (response) {
-                                                globalValue.font_theme.splice(index, 1);
-                                                gvc.notifyDataChange(vm_c.id);
-                                            }
-                                        },
-                                    });
-                                }), '<i class="fa-solid  fa-trash-can"></i>')
-                                : ``}
+                                            ? BgWidget.cancel(gvc.event(() => {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.checkYesOrNot({
+                                                    text: '是否確認刪除此字型?',
+                                                    callback: response => {
+                                                        if (response) {
+                                                            globalValue.font_theme.splice(index, 1);
+                                                            gvc.notifyDataChange(vm_c.id);
+                                                        }
+                                                    },
+                                                });
+                                            }), '<i class="fa-solid  fa-trash-can"></i>')
+                                            : ``}
                                                 </div>
                                             </div>
                                             <div class="d-flex p-2 align-items-center" style="gap:10px;">
                                                 <div class="fs-6">預覽字體:</div>
                                                 <div class="fs-6 bgf6 p-2" style="font-family: '${dd.value}' !important;">字型</div>
                                                 <div class="fs-6 bgf6 p-2" style="font-family: '${dd.value}' !important;">fonts</div>
-                                            </div>
-                                        </div>`;
+                                            </div>`;
+                                    },
+                                    divCreate: {
+                                        class: `col-12 mb-3`,
+                                        style: `cursor: pointer;`,
+                                    },
+                                };
+                            });
                         })
                             .join('')}
-                            </div>
-                            <div class="px-2 mb-2" style="${globalValue.font_theme.length === 0 ? `` : ``}">
-                                <div
-                                    class="bt_border_editor"
-                                    onclick="${gvc.event((e, event) => {
+                </div>
+                <div class="px-2 mb-2" style="${globalValue.font_theme.length === 0 ? `` : ``}">
+                  <div
+                    class="bt_border_editor"
+                    onclick="${gvc.event((e, event) => {
                             event.preventDefault();
                             event.stopPropagation();
                             globalValue.font_theme.push({
@@ -99,10 +159,10 @@ export class FontsConfig {
                             FontsConfig.reInitialFontTheme(globalValue, gvc);
                             gvc.notifyDataChange(vm_c.id);
                         })}"
-                                >
-                                    新增字型
-                                </div>
-                            </div>`);
+                  >
+                    新增字型
+                  </div>
+                </div>`);
                     }
                     return array.join('');
                 },
@@ -124,7 +184,7 @@ export class FontsConfig {
             }
         });
         const element = window.glitter.elementCallback;
-        Object.keys(element).map((dd) => {
+        Object.keys(element).map(dd => {
             try {
                 element[dd].updateAttribute();
             }

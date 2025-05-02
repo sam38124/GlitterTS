@@ -21,6 +21,7 @@ const app_js_1 = require("../../services/app.js");
 const user_update_js_1 = require("./user-update.js");
 const firebase_js_1 = require("../../modules/firebase.js");
 const invoice_js_1 = require("./invoice.js");
+const process_1 = __importDefault(require("process"));
 class Schedule {
     async perload(app) {
         const brand_type = await app_js_1.App.checkBrandAndMemberType(app);
@@ -39,11 +40,11 @@ class Schedule {
     }
     async isDatabasePass(app) {
         const SQL = `
-            SELECT *
-            FROM ${config_1.saasConfig.SAAS_NAME}.app_config
-            WHERE appName = \'${app}\'
-              AND (refer_app is null OR refer_app = appName);
-        `;
+      SELECT *
+      FROM ${config_1.saasConfig.SAAS_NAME}.app_config
+      WHERE appName = \'${app}\'
+        AND (refer_app is null OR refer_app = appName);
+    `;
         return (await database_1.default.query(SQL, [])).length > 0;
     }
     async isTableExists(table, app) {
@@ -69,15 +70,15 @@ class Schedule {
                 if (await this.perload(app)) {
                     const config = await new user_1.User(app).getConfigV2({ key: 'login_config', user_id: 'manager' });
                     if ((config === null || config === void 0 ? void 0 : config.auto_cancel_order_timer) && config.auto_cancel_order_timer > 0) {
-                        const orders = await database_1.default.query(`SELECT * FROM \`${app}\`.t_checkout
-                                WHERE 
-                                    status = 0
-                                  AND order_status='0'
-                                  AND progress='wait'
-                                  AND payment_method != 'cash_on_delivery'
+                        const orders = await database_1.default.query(`SELECT *
+               FROM \`${app}\`.t_checkout
+               WHERE status = 0
+                 AND order_status = '0'
+                 AND progress = 'wait'
+                 AND payment_method != 'cash_on_delivery'
                                     AND created_time < NOW() - INTERVAL ${config.auto_cancel_order_timer} HOUR
-                                    AND (orderData->>'$.proof_purchase' IS NULL)
-                                ORDER BY id DESC;`, []);
+                 AND (orderData->>'$.proof_purchase' IS NULL)
+               ORDER BY id DESC;`, []);
                         await Promise.all(orders.map(async (order) => {
                             order.orderData.orderStatus = '-1';
                             order.orderData.archived = 'true';
@@ -104,7 +105,8 @@ class Schedule {
             for (const app of Schedule.app) {
                 try {
                     if (await this.perload(app)) {
-                        const users = await database_1.default.query(`select * from \`${app}\`.t_user  `, []);
+                        const users = await database_1.default.query(`select *
+               from \`${app}\`.t_user  `, []);
                         for (const user of users) {
                             await new user_1.User(app).checkMember(user, true);
                             await user_update_js_1.UserUpdate.update(app, user.userID);
@@ -152,8 +154,8 @@ class Schedule {
                                 }
                             }
                             const users = await database_1.default.query(`SELECT *
-                             FROM \`${app}\`.t_user
-                             WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`, []);
+                 FROM \`${app}\`.t_user
+                 WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`, []);
                             if (rgs.type === 'base') {
                                 for (const user of users) {
                                     await postUserRebate(user.userID, rgs.value);
@@ -205,8 +207,8 @@ class Schedule {
                             mailType: mailType,
                         });
                         const users = await database_1.default.query(`SELECT *
-                            FROM \`${app}\`.t_user
-                            WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`, []);
+               FROM \`${app}\`.t_user
+               WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`, []);
                         const now = new Date();
                         const oneYearAgo = new Date(now);
                         oneYearAgo.setFullYear(now.getFullYear() - 1);
@@ -262,11 +264,11 @@ class Schedule {
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
-                    const orders = await database_1.default.query(`SELECT * FROM \`${app}\`.t_triggers
-                   WHERE 
-                      tag = 'triggerInvoice' AND 
-                      status = 0 AND
-                      DATE_FORMAT(trigger_time, '%Y-%m-%d %H') = DATE_FORMAT(NOW(), '%Y-%m-%d %H');`, []);
+                    const orders = await database_1.default.query(`SELECT *
+             FROM \`${app}\`.t_triggers
+             WHERE tag = 'triggerInvoice'
+               AND status = 0
+               AND DATE_FORMAT(trigger_time, '%Y-%m-%d %H') = DATE_FORMAT(NOW(), '%Y-%m-%d %H');`, []);
                     for (const order of orders) {
                         if (order.content.cart_token) {
                             new invoice_js_1.Invoice(app).postCheckoutInvoice(order.content.cart_token, false);
@@ -287,11 +289,11 @@ class Schedule {
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
-                    const emails = await database_1.default.query(`SELECT * FROM \`${app}\`.t_triggers
-                     WHERE 
-                        tag = 'sendFCM' AND 
-                        status = 0 AND
-                        DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
+                    const emails = await database_1.default.query(`SELECT *
+             FROM \`${app}\`.t_triggers
+             WHERE tag = 'sendFCM'
+               AND status = 0
+               AND DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
                     for (const email of emails) {
                         if (email.status === 0) {
                             new firebase_js_1.Firebase(app).chunkSendFcm(email.content, email.id);
@@ -312,11 +314,11 @@ class Schedule {
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
-                    const emails = await database_1.default.query(`SELECT * FROM \`${app}\`.t_triggers
-                     WHERE 
-                        tag = 'sendMailBySchedule' AND 
-                        status = 0 AND
-                        DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
+                    const emails = await database_1.default.query(`SELECT *
+             FROM \`${app}\`.t_triggers
+             WHERE tag = 'sendMailBySchedule'
+               AND status = 0
+               AND DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
                     for (const email of emails) {
                         if (email.status === 0) {
                             new mail_js_1.Mail(app).chunkSendMail(email.content, email.id);
@@ -337,10 +339,10 @@ class Schedule {
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
-                    const emails = await database_1.default.query(`SELECT * FROM \`${app}\`.t_triggers
-                     WHERE 
-                        tag = 'sendLineBySchedule' AND 
-                        DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
+                    const emails = await database_1.default.query(`SELECT *
+             FROM \`${app}\`.t_triggers
+             WHERE tag = 'sendLineBySchedule'
+               AND DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
                     for (const email of emails) {
                         if (email.status === 0) {
                             new line_message_1.LineMessage(app).chunkSendLine(email.userList, {
@@ -368,7 +370,9 @@ class Schedule {
         const date_index = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
         let clock = new Date();
         console.log(`currenciesUpdate-Start`);
-        if ((await database_1.default.query(`select count(1) from \`${config_1.saasConfig.SAAS_NAME}\`.currency_config where updated='${date_index}'`, []))[0]['count(1)'] === 0) {
+        if ((await database_1.default.query(`select count(1)
+           from \`${config_1.saasConfig.SAAS_NAME}\`.currency_config
+           where updated = '${date_index}'`, []))[0]['count(1)'] === 0) {
             let config = {
                 method: 'get',
                 maxBodyLength: Infinity,
@@ -378,10 +382,8 @@ class Schedule {
             axios_1.default
                 .request(config)
                 .then(async (response) => {
-                await database_1.default.query(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.currency_config (\`json\`,updated) values (?,?)`, [
-                    JSON.stringify(response.data),
-                    date_index,
-                ]);
+                await database_1.default.query(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.currency_config (\`json\`, updated)
+             values (?, ?)`, [JSON.stringify(response.data), date_index]);
                 setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
             })
                 .catch((error) => {
@@ -394,19 +396,50 @@ class Schedule {
             console.log(`currenciesUpdate-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
         }
     }
+    async visitLogs(sec) {
+        let clock = new Date();
+        function convertTimeZone(date) {
+            return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+        }
+        console.log(`visitLogs`);
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    const count = await database_1.default.query(`  SELECT COUNT(DISTINCT mac_address) as count , CONVERT_TZ(NOW(), '+00:00', '+08:00') as now
+               FROM ${process_1.default.env.GLITTER_DB}.t_monitor
+               WHERE app_name = ${database_1.default.escape(app)}
+                 AND req_type = 'file'
+                 AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
+                   , INTERVAL 1 DAY))
+                 AND ${convertTimeZone('NOW()')}`, []);
+                    await database_1.default.query(`replace into \`${app}\`.visit_logs (date, count,tag_name) values (?, ? , ?)`, [count[0]['now'], count[0]['count'], (`${count[0]['now'].toISOString()}`).substring(0, 10)]);
+                }
+            }
+            catch (e) {
+                console.error('BAD_REQUEST', 'visitLogs Error: ' + e, null);
+            }
+        }
+        setTimeout(() => this.visitLogs(sec), sec * 1000);
+        console.log(`visitLogs-Stop`, (new Date().getTime() - clock.getTime()) / 1000);
+    }
     main() {
-        const scheduleList = [
-            { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
-            { second: 3600, status: true, func: 'birthBlessMail', desc: '生日祝福信件' },
-            { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },
-            { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
-            { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
-            { second: 30, status: true, func: 'autoSendFCM', desc: '自動排程寄送FCM' },
-            { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
-            { second: 3600 * 24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
-            { second: 30, status: true, func: 'autoCancelOrder', desc: '自動取消未付款未出貨訂單' },
-            { second: 30, status: true, func: 'autoTriggerInvoice', desc: '自動開立發票' },
-        ];
+        const scheduleList = config_1.ConfigSetting.is_local
+            ?
+                [{ second: 60 * 5, status: true, func: 'visitLogs', desc: '更新每天造訪人數' },]
+            :
+                [
+                    { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
+                    { second: 3600, status: true, func: 'birthBlessMail', desc: '生日祝福信件' },
+                    { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },
+                    { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
+                    { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
+                    { second: 30, status: true, func: 'autoSendFCM', desc: '自動排程寄送FCM' },
+                    { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
+                    { second: 3600 * 24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
+                    { second: 30, status: true, func: 'autoCancelOrder', desc: '自動取消未付款未出貨訂單' },
+                    { second: 30, status: true, func: 'autoTriggerInvoice', desc: '自動開立發票' },
+                    { second: 60 * 5, status: true, func: 'visitLogs', desc: '更新每天造訪人數' },
+                ];
         try {
             scheduleList.forEach(schedule => {
                 if (schedule.status && typeof this[schedule.func] === 'function') {

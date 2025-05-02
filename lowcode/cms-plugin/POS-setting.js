@@ -158,7 +158,17 @@ export class POSSetting {
             });
         }));
     }
+    static setSaasBrand() {
+        if (window.location.href.includes('smartshop')) {
+            window.glitterBase = 'hd_saas';
+        }
+        else {
+            window.glitterBase = 'shopnex';
+        }
+        window.saasConfig.config.token = GlobalUser.saas_token;
+    }
     static main(gvc) {
+        this.setSaasBrand();
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(glitter);
         gvc.addStyle(`
@@ -207,12 +217,6 @@ export class POSSetting {
         POSSetting.initialStyle(gvc);
         gvc.glitter.share.NormalPageEditor = NormalPageEditor;
         gvc.glitter.addStyleLink('./css/editor.css');
-        if (window.location.href.includes('smartshop')) {
-            window.glitterBase = 'hd_saas';
-        }
-        else {
-            window.glitterBase = 'shopnex';
-        }
         window.appName = gvc.glitter.getUrlParameter('app-id');
         window.saasConfig.config.token = GlobalUser.saas_token;
         localStorage.setItem('on-pos', 'true');

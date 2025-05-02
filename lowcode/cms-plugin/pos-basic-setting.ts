@@ -30,6 +30,7 @@ const dialog=new ShareDialog(gvc.glitter)
             ${[
                         BgWidget.editeInput({
                             gvc: gvc,
+                          
                             title: '商店名稱',
                             default: appData.shop_name || '',
                             placeHolder: '請輸入商店名稱',

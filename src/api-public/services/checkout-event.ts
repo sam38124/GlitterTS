@@ -510,14 +510,31 @@ export class CheckoutEvent {
               }
 
               if (variant && item.count > 0) {
+                const sale_price= (()=>{
+                  //POS允許自訂價格
+                  if(checkOutType === 'POS' &&  (item as any).custom_price){
+                    return  (item as any).custom_price
+                  }else{
+                    return variant.sale_price;
+                  }
+                })()
+                const origin_price= (()=>{
+                  //POS如果有自訂價格，則比較金額改成和原售價相比
+                  if(checkOutType === 'POS' &&  (item as any).custom_price){
+                    return variant.sale_price;
+                  }else{
+                    return variant.origin_price;
+                  }
+                })()
                 Object.assign(item, {
                   specs: content.specs,
                   language_data: content.language_data,
                   product_category: content.product_category,
                   preview_image: variant.preview_image || content.preview_image[0],
                   title: content.title,
-                  sale_price: variant.sale_price,
-                  origin_price: variant.origin_price,
+                  sale_price:sale_price,
+                  variant_sale_price: variant.sale_price,
+                  origin_price: origin_price,
                   collection: content.collection,
                   sku: variant.sku,
                   stock: variant.stock,
@@ -578,7 +595,7 @@ export class CheckoutEvent {
                   if (content.productType.giveaway) {
                     variant.sale_price = 0;
                   } else {
-                    carData.total += variant.sale_price * item.count;
+                    carData.total += sale_price * item.count;
                   }
                 }
               }
@@ -839,7 +856,8 @@ export class CheckoutEvent {
         // 處理每個贈品
         gift_product.forEach(dd => {
           const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
-          if (dd.count <= max_count) {
+          if ( max_count) {
+            dd.count = max_count;
             for (let a = 0; a < dd.count; a++) {
               can_add_gift = can_add_gift.filter(d1 => !d1.includes(dd.id)); // 移除已添加的贈品
             }

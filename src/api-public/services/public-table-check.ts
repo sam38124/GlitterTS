@@ -735,6 +735,19 @@ export class ApiPublic {
   KEY \`index4\` (\`spec\`),
   KEY \`index5\` (\`count\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.1'`,
+        },{
+        scheme:appName,
+          table:`visit_logs`,
+          sql:`(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`date\` DATETIME NOT NULL,
+  \`count\` INT NOT NULL,
+  \`extra\` JSON NULL,
+  \`tag_name\` VARCHAR(45) NULL,
+  PRIMARY KEY (\`id\`),
+  INDEX \`index2\` (\`date\` ASC) VISIBLE,
+  UNIQUE INDEX \`tag_name_UNIQUE\` (\`tag_name\` ASC) VISIBLE);
+          `
         }
       ];
       for (const b of chunkArray(sqlArray, groupSize)) {

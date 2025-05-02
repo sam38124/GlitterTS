@@ -26,20 +26,20 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
           widget[dd].data.refer_app = widget.data.refer_app;
         });
       }
-const app_editor=(['index-app'].includes(gvc.glitter.getUrlParameter('page')) || ApplicationConfig.is_application)
+
+      const app_editor =
+        ['index-app'].includes(gvc.glitter.getUrlParameter('page')) || ApplicationConfig.is_application;
       initialReferData(widget);
       let viewConfig: any = undefined;
       const html = String.raw;
-      const view_container_id = widget.id;
       return {
         view: () => {
-          if(app_editor){
-            widget.mobile_editable=[]
+          if (app_editor) {
+            widget.mobile_editable = [];
           }
           let data: any = undefined;
           let tag = widget.data.tag;
           let carryData = widget.data.carryData;
-
           async function getData(document: any) {
             return new Promise(async (resolve, reject) => {
               try {
@@ -116,11 +116,18 @@ const app_editor=(['index-app'].includes(gvc.glitter.getUrlParameter('page')) ||
                     });
 
                     function getFormData(ref: any) {
+
+
                       //判斷是否有上次的更新資料
-                      ref =
-                        (window.parent as any).glitter.share.updated_form_data[
-                          `${page_request_config.appName}_${tag}`
-                        ] || ref;
+                      ref = (()=>{
+                        if((window as any).glitter.getUrlParameter('select_widget') === 'true'){
+                          return ref;
+                        }else{
+                         return (window.parent as any).glitter.share.updated_form_data[
+                            `${page_request_config.appName}_${tag}`
+                            ] || ref
+                        }
+                      })();
                       let formData = JSON.parse(JSON.stringify(ref || {}));
                       if (widget.data.refer_app) {
                         GlobalWidget.initialShowCaseData({
@@ -866,23 +873,27 @@ const app_editor=(['index-app'].includes(gvc.glitter.getUrlParameter('page')) ||
                                                                 const select_ = glitter.share.findWidgetIndex(
                                                                   glitter.share.editorViewModel.selectItem.id
                                                                 );
-                                                                if (select_.container_cf) {
-                                                                  const gvc_ =
-                                                                    gvc.glitter.document.querySelector('.iframe_view')
-                                                                      .contentWindow.glitter.pageConfig[0].gvc;
-                                                                  gvc_.glitter.htmlGenerate.selectWidget({
-                                                                    widget: select_.container_cf,
-                                                                    widgetComponentID: select_.container_cf.id,
-                                                                    gvc: gvc_,
-                                                                    scroll_to_hover: true,
-                                                                    glitter: glitter,
-                                                                  });
-                                                                } else {
-                                                                  Storage.lastSelect = '';
-                                                                  gvc.glitter.share.editorViewModel.selectItem =
-                                                                    undefined;
-                                                                  gvc.glitter.share.selectEditorItem();
-                                                                }
+                                                                Storage.lastSelect = '';
+                                                                gvc.glitter.share.editorViewModel.selectItem =
+                                                                  undefined;
+                                                                gvc.glitter.share.selectEditorItem();
+                                                                // if (select_.container_cf) {
+                                                                //   const gvc_ =
+                                                                //     gvc.glitter.document.querySelector('.iframe_view')
+                                                                //       .contentWindow.glitter.pageConfig[0].gvc;
+                                                                //   gvc_.glitter.htmlGenerate.selectWidget({
+                                                                //     widget: select_.container_cf,
+                                                                //     widgetComponentID: select_.container_cf.id,
+                                                                //     gvc: gvc_,
+                                                                //     scroll_to_hover: true,
+                                                                //     glitter: glitter,
+                                                                //   });
+                                                                // } else {
+                                                                //   Storage.lastSelect = '';
+                                                                //   gvc.glitter.share.editorViewModel.selectItem =
+                                                                //     undefined;
+                                                                //   gvc.glitter.share.selectEditorItem();
+                                                                // }
                                                               }),
                                                             },
                                                           ],
@@ -1314,8 +1325,8 @@ const app_editor=(['index-app'].includes(gvc.glitter.getUrlParameter('page')) ||
                                                                                                                                         </div>`,
                                                                 ` <div class="mx-n3" style="background: #DDD;height: 1px;"></div>`,
                                                               ].join(`<div style="height:18px;"></div>`);
-                                                              if(app_editor){
-                                                                global_setting_view=``
+                                                              if (app_editor) {
+                                                                global_setting_view = ``;
                                                               }
                                                               if (vm.page === 'editor') {
                                                                 const array_items: any = await filterFormat(dd => {
@@ -1682,12 +1693,14 @@ font-weight: 700;"
                                             view: () => {
                                               return new Promise((resolve, reject) => {
                                                 gvc.glitter.getModule(
-                                                  new URL(gvc.glitter.root_path + `public-components/headers/header-mobile.js`).href,
+                                                  new URL(
+                                                    gvc.glitter.root_path + `public-components/headers/header-mobile.js`
+                                                  ).href,
                                                   res => {
                                                     resolve(
                                                       res.editor({
                                                         gvc: gvc,
-                                                        widget:widget
+                                                        widget: widget,
                                                       })
                                                     );
                                                   }

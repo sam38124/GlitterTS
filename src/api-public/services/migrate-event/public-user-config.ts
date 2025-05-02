@@ -11,9 +11,6 @@ export class MigratePublicUserConfig {
 
   async setLogisticsGroup() {
     const app_name = this.app_name;
-    if (app_name !== 't_1725992531001') {
-      return;
-    }
 
     function compareArray(arr1: string[], arr2: string[]) {
       const slice1 = arr1.slice().sort();
@@ -47,9 +44,9 @@ export class MigratePublicUserConfig {
       []
     );
 
-    if (getData.length === 0) {
-      return;
-    }
+    // if (getData.length === 0) {
+    //   return;
+    // }
 
     const unique_tags_string = getData[0].unique_tags ?? '';
     const unique_tags_json = JSON.parse(`[${unique_tags_string}]`);

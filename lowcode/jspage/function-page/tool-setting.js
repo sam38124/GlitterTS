@@ -11,6 +11,7 @@ import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ApiPageConfig } from '../../api/pageConfig.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { FirstBanner } from "../../public-components/banner/first-banner.js";
+import { GlobalWidget } from '../../editor-components/global-widget/global-widget.js';
 export class ToolSetting {
     static main(gvc) {
         const html = String.raw;
@@ -87,7 +88,6 @@ export class ToolSetting {
                                                         html: ``,
                                                     };
                                                     function loadData() {
-                                                        var _a;
                                                         return __awaiter(this, void 0, void 0, function* () {
                                                             let module_list = (yield ApiPageConfig.getPageTemplate({
                                                                 template_from: 'all',
@@ -168,7 +168,18 @@ export class ToolSetting {
                                                                                     >
                                                                                         <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
                                                                                             <div class="rounded-2 shadow"
-                                                                                                 style="background-position:center;background-repeat: no-repeat;background-size: cover;width:93px;height: 59px;background-image: url('${(_a = refer_widget.template_config.image[0]) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}');">
+                                                                                                 style="background-position:center;background-repeat: no-repeat;background-size: cover;width:93px;height: 59px;background-image: url('${(() => {
+                                                                    switch (dd.tag) {
+                                                                        case '標頭元件':
+                                                                            return `${gvc.glitter.root_path}/editor-components/global-widget/src/header.png`;
+                                                                        case '頁腳元件':
+                                                                            return `${gvc.glitter.root_path}/editor-components/global-widget/src/footer.jpg`;
+                                                                        case '商品卡片':
+                                                                            return `${gvc.glitter.root_path}/editor-components/global-widget/src/product.jpg`;
+                                                                        case '廣告輪播':
+                                                                            return `${gvc.glitter.root_path}/editor-components/global-widget/src/banner.jpg`;
+                                                                    }
+                                                                })()}');">
 
                                                                                             </div>
                                                                                             <div style="flex: 1 1 0; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
@@ -227,97 +238,71 @@ export class ToolSetting {
                                                                                         <div class="bt_border_editor"
                                                                                              data-bs-toggle="dropdown"
                                                                                              aria-haspopup="true"
-                                                                                             aria-expanded="false">變更樣式
-                                                                                        </div>
-                                                                                        <div class="dropdown-menu my-1 p-0 rounded-3 position-fixed  "
-                                                                                             style="overflow: hidden;max-width: 100%;width: 300px;">
-                                                                                            ${(() => {
-                                                                    return `<div class="d-flex flex-column w-100" style="max-height: 300px;overflow-y: auto;">
-${module_list.map((dd, index) => {
-                                                                        var _a;
-                                                                        return html `
-                                                                                                        <div
-                                                                                                                class="position-relative"
-                                                                                                                style="max-width: 100%;width: 300px; padding: 18px 12px;border-radius: 7px; overflow: hidden; flex-direction: column; justify-content: center; align-items: flex-start; gap: 32px; display: inline-flex"
-                                                                                                                onclick="${gvc.event(() => {
-                                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                                            dialog.checkYesOrNot({
-                                                                                text: '是否確認替換樣式?',
-                                                                                callback: (response) => {
-                                                                                    if (response) {
-                                                                                        dialog.dataLoading({ visible: true });
-                                                                                        (window.glitterInitialHelper).getPageData({
-                                                                                            tag: dd.tag,
-                                                                                            appName: dd.appName
-                                                                                        }, (d3) => {
-                                                                                            widget.config[0] = {
-                                                                                                id: gvc.glitter.getUUID(),
-                                                                                                js: './official_view_component/official.js',
-                                                                                                css: {
-                                                                                                    class: {},
-                                                                                                    style: {},
-                                                                                                },
-                                                                                                data: {
-                                                                                                    refer_app: dd.appName,
-                                                                                                    refer_form_data: d3.response.result[0].page_config.formData,
-                                                                                                    tag: dd.tag,
-                                                                                                    list: [],
-                                                                                                    carryData: {},
-                                                                                                },
-                                                                                                type: 'component',
-                                                                                                class: 'w-100',
-                                                                                                index: 0,
-                                                                                                label: dd.name,
-                                                                                                style: '',
-                                                                                                bundle: {},
-                                                                                                global: [],
-                                                                                                toggle: false,
-                                                                                                stylist: [],
-                                                                                                dataType: 'static',
-                                                                                                style_from: 'code',
-                                                                                                classDataType: 'static',
-                                                                                                preloadEvenet: {},
-                                                                                                share: {},
-                                                                                                "gCount": "single"
-                                                                                            };
-                                                                                            ApiPageConfig.setPage({
-                                                                                                id: widget.id,
-                                                                                                appName: widget.appName,
-                                                                                                tag: widget.tag,
-                                                                                                name: widget.name,
-                                                                                                config: widget.config,
-                                                                                                group: widget.group,
-                                                                                                page_config: widget.page_config,
-                                                                                                page_type: widget.page_type,
-                                                                                                preview_image: widget.preview_image,
-                                                                                                favorite: widget.favorite,
-                                                                                            }).then((api) => {
-                                                                                                dialog.dataLoading({ visible: false });
-                                                                                                location.reload();
-                                                                                            });
+                                                                                             aria-expanded="false"
+onclick="${gvc.event(() => {
+                                                                    GlobalWidget.open(gvc, (dd) => {
+                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                        dialog.checkYesOrNot({
+                                                                            text: '是否確認替換樣式?',
+                                                                            callback: (response) => {
+                                                                                if (response) {
+                                                                                    dialog.dataLoading({ visible: true });
+                                                                                    (window.glitterInitialHelper).getPageData({
+                                                                                        tag: dd.tag,
+                                                                                        appName: dd.appName
+                                                                                    }, (d3) => {
+                                                                                        widget.config[0] = {
+                                                                                            id: gvc.glitter.getUUID(),
+                                                                                            js: './official_view_component/official.js',
+                                                                                            css: {
+                                                                                                class: {},
+                                                                                                style: {},
+                                                                                            },
+                                                                                            data: {
+                                                                                                refer_app: dd.appName,
+                                                                                                refer_form_data: d3.response.result[0].page_config.formData,
+                                                                                                tag: dd.tag,
+                                                                                                list: [],
+                                                                                                carryData: {},
+                                                                                            },
+                                                                                            type: 'component',
+                                                                                            class: 'w-100',
+                                                                                            index: 0,
+                                                                                            label: dd.name,
+                                                                                            style: '',
+                                                                                            bundle: {},
+                                                                                            global: [],
+                                                                                            toggle: false,
+                                                                                            stylist: [],
+                                                                                            dataType: 'static',
+                                                                                            style_from: 'code',
+                                                                                            classDataType: 'static',
+                                                                                            preloadEvenet: {},
+                                                                                            share: {},
+                                                                                            "gCount": "single"
+                                                                                        };
+                                                                                        ApiPageConfig.setPage({
+                                                                                            id: widget.id,
+                                                                                            appName: widget.appName,
+                                                                                            tag: widget.tag,
+                                                                                            name: widget.name,
+                                                                                            config: widget.config,
+                                                                                            group: widget.group,
+                                                                                            page_config: widget.page_config,
+                                                                                            page_type: widget.page_type,
+                                                                                            preview_image: widget.preview_image,
+                                                                                            favorite: widget.favorite,
+                                                                                        }).then((api) => {
+                                                                                            dialog.dataLoading({ visible: false });
+                                                                                            location.reload();
                                                                                         });
-                                                                                    }
-                                                                                },
-                                                                            });
-                                                                        })}"
-                                                                                                        >
-                                                                                                            <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-                                                                                                                <div class="rounded-2 shadow"
-                                                                                                                     style="background-position:center;background-repeat: no-repeat;background-size: cover;width:93px;height: 59px;background-image: url('${(_a = dd.template_config.image[0]) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}');">
-
-                                                                                                                </div>
-                                                                                                                <div style="flex: 1 1 0; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
-                                                                                                                    <div style="align-self: stretch; color: #393939; font-size: 15px;  font-weight: 400; word-wrap: break-word">
-                                                                                                                        ${dd.template_config.name}
-                                                                                                                    </div>
-                                                                                                                </div>
-
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                    `;
-                                                                    }).join(`<div class="w-100 border-top"></div>`)}
-</div>`;
-                                                                })()}
+                                                                                    });
+                                                                                }
+                                                                            },
+                                                                        });
+                                                                    });
+                                                                })}"
+                                                                                        >變更樣式
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>

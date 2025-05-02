@@ -12,6 +12,7 @@ import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { POSSetting } from '../POS-setting.js';
 import { Swal } from '../../modules/sweetAlert.js';
 import { PaymentPage } from './payment-page.js';
+import { PayConfig } from './pay-config.js';
 const html = String.raw;
 export class ProductsPage {
     static main(obj) {
@@ -24,7 +25,7 @@ export class ProductsPage {
         const pVM = {
             pageSize: 0,
             pageIndex: 1,
-            limit: 20,
+            limit: 50,
         };
         function loadData() {
             let category = vm.categories.find((category) => category.select == true);
@@ -144,7 +145,17 @@ export class ProductsPage {
                         >
                           <div
                             class="w-100"
-                            style="border-radius: 10px 10px 0 0;;padding-bottom: 116px;background: 50%/cover no-repeat url('${(_b = (_a = data
+                            style="border-radius: 10px 10px 0 0;;padding-bottom: ${(() => {
+                                if (PayConfig.pos_config.prdouct_card_layout) {
+                                    const wi = PayConfig.pos_config.prdouct_card_layout.split(':').map((dd) => {
+                                        return parseInt(dd, 10);
+                                    });
+                                    return parseInt(`${wi[0] / wi[1] * 100}`, 10);
+                                }
+                                else {
+                                    return `56`;
+                                }
+                            })()}%;background: 50%/cover no-repeat url('${(_b = (_a = data
                                 .content.preview_image[0]) !== null && _a !== void 0 ? _a : image) !== null && _b !== void 0 ? _b : image}');"
                           ></div>
                           <div class="d-flex flex-column" style="padding: 12px 10px;gap: 4px;">

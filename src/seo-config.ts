@@ -11,6 +11,7 @@ import { Seo } from './services/seo.js';
 import { Language } from './Language.js';
 import express from 'express';
 import { Private_config } from './services/private_config.js';
+import process from 'process';
 
 const html = String.raw;
 
@@ -727,7 +728,7 @@ export class SeoConfig {
             })
             .join(';\n')}
                             </script>
-                            ${[
+          ${[
             { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
             { src: 'glitterBundle/module/html-generate.js', type: 'module' },
             { src: 'glitterBundle/html-component/widget.js', type: 'module' },
@@ -757,7 +758,7 @@ export class SeoConfig {
                 html` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`
             )
             .join('')}
-                            ${(() => {
+            ${(() => {
             if (req.query.type === 'editor') {
               return ``;
             } else {
@@ -775,7 +776,9 @@ export class SeoConfig {
                 .join('\n')}
                                 `;
             }
-          })()}`,
+          })()}
+
+`
         ].join('');
         return {
           head: head,

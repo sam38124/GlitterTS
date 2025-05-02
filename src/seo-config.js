@@ -657,7 +657,7 @@ class SeoConfig {
                     })
                         .join(';\n')}
                             </script>
-                            ${[
+          ${[
                         { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
                         { src: 'glitterBundle/module/html-generate.js', type: 'module' },
                         { src: 'glitterBundle/html-component/widget.js', type: 'module' },
@@ -681,7 +681,7 @@ class SeoConfig {
                     })
                         .map((dd) => html ` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`)
                         .join('')}
-                            ${(() => {
+            ${(() => {
                         if (req.query.type === 'editor') {
                             return ``;
                         }
@@ -699,7 +699,9 @@ class SeoConfig {
                                 .join('\n')}
                                 `;
                         }
-                    })()}`,
+                    })()}
+
+`
                 ].join('');
                 return {
                     head: head,

@@ -13533,7 +13533,7 @@ html:not([dir=rtl]) .range-slider-ui.noUi-horizontal .noUi-handle {
 }
 
 .dropdown-menu li:hover > .dropdown-item {
-  color: var(--main-orange);
+  color: #ffb400;
 }
 .dropdown-menu .active > .dropdown-item {
   color: #ff6c02;

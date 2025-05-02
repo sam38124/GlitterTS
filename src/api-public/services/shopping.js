@@ -423,6 +423,8 @@ class Shopping {
                 return dd.content;
             })
                 .map((product) => {
+                var _a;
+                product.content.designated_logistics = (_a = product.content.designated_logistics) !== null && _a !== void 0 ? _a : { list: [], type: "all" };
                 product.content.collection = Array.from(new Set((() => {
                     var _a;
                     return ((_a = product.content.collection) !== null && _a !== void 0 ? _a : []).map((dd) => {
@@ -1835,9 +1837,8 @@ class Shopping {
                 return (userData === null || userData === void 0 ? void 0 : userData.id) && voucher.targetList.includes(userData.userID);
             }
             if (voucher.target === 'levels') {
-                if (userData === null || userData === void 0 ? void 0 : userData.member) {
-                    const trigger = userData.member.find((m) => m.trigger);
-                    return trigger && voucher.targetList.includes(trigger.id);
+                if (userData.member_level) {
+                    return voucher.targetList.includes(userData.member_level.id);
                 }
                 return false;
             }

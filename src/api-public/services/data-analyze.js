@@ -8,10 +8,10 @@ const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const moment_1 = __importDefault(require("moment"));
-const config_js_1 = require("../../config.js");
 const shopping_js_1 = require("./shopping.js");
 const user_js_1 = require("./user.js");
 const workers_js_1 = require("./workers.js");
+const ut_timer_js_1 = require("../utils/ut-timer.js");
 function convertTimeZone(date) {
     return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
 }
@@ -23,7 +23,7 @@ class DataAnalyze {
     async workerExample(data) {
         try {
             const jsonData = await database_js_1.default.query(`SELECT *
-                                       FROM \`${this.app}\`.t_voucher_history`, []);
+         FROM \`${this.app}\`.t_voucher_history`, []);
             const t0 = performance.now();
             if (data.type === 0) {
                 for (const record of jsonData) {
@@ -120,15 +120,15 @@ class DataAnalyze {
     async getRecentActiveUser() {
         try {
             const recentSQL = `
-          SELECT *
-          FROM \`${this.app}\`.t_user
-          WHERE online_time BETWEEN DATE_SUB(NOW(), INTERVAL 10 MINUTE) AND NOW();
+        SELECT *
+        FROM \`${this.app}\`.t_user
+        WHERE online_time BETWEEN DATE_SUB(NOW(), INTERVAL 10 MINUTE) AND NOW();
       `;
             const recent_users = await database_js_1.default.query(recentSQL, []);
             const monthSQL = `
-          SELECT *
-          FROM \`${this.app}\`.t_user
-          WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
+        SELECT *
+        FROM \`${this.app}\`.t_user
+        WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
       `;
             const month_users = await database_js_1.default.query(monthSQL, []);
             return { recent: recent_users.length, months: month_users.length };
@@ -141,13 +141,13 @@ class DataAnalyze {
         try {
             const orderCountingSQL = await this.getOrderCountingSQL();
             const getCheckoutsSQL = (monthOffset) => `
-          SELECT *
-          FROM \`${this.app}\`.t_checkout
-          WHERE MONTH (created_time) = MONTH (DATE_SUB(NOW()
-              , INTERVAL ${monthOffset} MONTH))
-            AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-              , INTERVAL ${monthOffset} MONTH))
-            AND (${orderCountingSQL});
+        SELECT *
+        FROM \`${this.app}\`.t_checkout
+        WHERE MONTH (created_time) = MONTH (DATE_SUB(NOW()
+            , INTERVAL ${monthOffset} MONTH))
+          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+            , INTERVAL ${monthOffset} MONTH))
+          AND (${orderCountingSQL});
       `;
             const calculateTotal = (checkouts) => checkouts.reduce((total, checkout) => total + parseInt(checkout.orderData.total, 10), 0);
             const recentMonthCheckouts = await database_js_1.default.query(getCheckoutsSQL(0), []);
@@ -192,16 +192,16 @@ class DataAnalyze {
             }
             const orderCountingSQL = await this.getOrderCountingSQL();
             const checkoutSQL = `
-          SELECT *
-          FROM \`${this.app}\`.t_checkout
-          WHERE ${duration === 'day'
+        SELECT *
+        FROM \`${this.app}\`.t_checkout
+        WHERE ${duration === 'day'
                 ? `created_time BETWEEN NOW() AND NOW() + INTERVAL 1 DAY - INTERVAL 1 SECOND`
                 : duration === 'month'
                     ? `created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()`
                     : sqlConditions.length
                         ? sqlConditions.join(' AND ')
                         : '1=1'}
-            AND (${orderCountingSQL});
+          AND (${orderCountingSQL});
       `;
             const checkouts = await database_js_1.default.query(checkoutSQL, []);
             const productMap = new Map();
@@ -259,13 +259,13 @@ class DataAnalyze {
         try {
             const orderCountingSQL = await this.getOrderCountingSQL();
             const getCheckoutCountSQL = (monthOffset) => `
-          SELECT id
-          FROM \`${this.app}\`.t_checkout
-          WHERE MONTH (created_time) = MONTH (DATE_SUB(NOW()
-              , INTERVAL ${monthOffset} MONTH))
-            AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-              , INTERVAL ${monthOffset} MONTH))
-            AND ${orderCountingSQL};
+        SELECT id
+        FROM \`${this.app}\`.t_checkout
+        WHERE MONTH (created_time) = MONTH (DATE_SUB(NOW()
+            , INTERVAL ${monthOffset} MONTH))
+          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+            , INTERVAL ${monthOffset} MONTH))
+          AND ${orderCountingSQL};
       `;
             const recentMonthCheckouts = await database_js_1.default.query(getCheckoutCountSQL(0), []);
             const previousMonthCheckouts = await database_js_1.default.query(getCheckoutCountSQL(1), []);
@@ -292,10 +292,10 @@ class DataAnalyze {
             const queries = Array.from({ length: 14 }, async (_, index) => {
                 const dayOffset = `DATE_SUB(DATE(NOW()), INTERVAL ${index} DAY)`;
                 const monthCheckoutSQL = `
-            SELECT orderData ->>'$.orderSource' as orderSource, orderData
-            FROM \`${this.app}\`.t_checkout
-            WHERE DATE (${convertTimeZone('created_time')}) = ${dayOffset}
-              AND ${orderCountingSQL};
+          SELECT orderData ->>'$.orderSource' as orderSource, orderData
+          FROM \`${this.app}\`.t_checkout
+          WHERE DATE (${convertTimeZone('created_time')}) = ${dayOffset}
+            AND ${orderCountingSQL};
         `;
                 return database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                     let total = 0, total_pos = 0, total_web = 0, total_store = 0;
@@ -336,10 +336,10 @@ class DataAnalyze {
             const queries = Array.from({ length: 30 }, async (_, index) => {
                 const dayOffset = `DATE_SUB(DATE(NOW()), INTERVAL ${index} DAY)`;
                 const monthCheckoutSQL = `
-            SELECT orderData ->>'$.orderSource' as orderSource, orderData
-            FROM \`${this.app}\`.t_checkout
-            WHERE DATE (${convertTimeZone('created_time')}) = ${dayOffset}
-              AND ${orderCountingSQL};
+          SELECT orderData ->>'$.orderSource' as orderSource, orderData
+          FROM \`${this.app}\`.t_checkout
+          WHERE DATE (${convertTimeZone('created_time')}) = ${dayOffset}
+            AND ${orderCountingSQL};
         `;
                 return database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                     let total = 0, total_pos = 0, total_web = 0, total_store = 0;
@@ -382,10 +382,10 @@ class DataAnalyze {
             const queries = Array.from({ length: days }, async (_, index) => {
                 const dayOffset = `DATE_SUB(DATE("${endDate}"), INTERVAL ${index} DAY)`;
                 const monthCheckoutSQL = `
-            SELECT orderData ->>'$.orderSource' as orderSource, orderData
-            FROM \`${this.app}\`.t_checkout
-            WHERE DATE (${convertTimeZone('created_time')}) = ${dayOffset}
-              AND ${orderCountingSQL};
+          SELECT orderData ->>'$.orderSource' as orderSource, orderData
+          FROM \`${this.app}\`.t_checkout
+          WHERE DATE (${convertTimeZone('created_time')}) = ${dayOffset}
+            AND ${orderCountingSQL};
         `;
                 return database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                     let total = 0, total_pos = 0, total_web = 0, total_store = 0;
@@ -426,11 +426,11 @@ class DataAnalyze {
             const queries = Array.from({ length: 12 }, async (_, index) => {
                 const monthOffset = `DATE_FORMAT(DATE_SUB(${convertTimeZone('NOW()')}, INTERVAL ${index} MONTH), '%Y-%m')`;
                 const monthCheckoutSQL = `
-            SELECT orderData ->>'$.orderSource' as orderSource, orderData
-            FROM \`${this.app}\`.t_checkout
-            WHERE DATE_FORMAT(${convertTimeZone('created_time')}
-                , '%Y-%m') = ${monthOffset}
-              AND ${orderCountingSQL};
+          SELECT orderData ->>'$.orderSource' as orderSource, orderData
+          FROM \`${this.app}\`.t_checkout
+          WHERE DATE_FORMAT(${convertTimeZone('created_time')}
+              , '%Y-%m') = ${monthOffset}
+            AND ${orderCountingSQL};
         `;
                 return database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                     let total = 0, total_pos = 0, total_web = 0, total_store = 0;
@@ -472,14 +472,14 @@ class DataAnalyze {
             await new Promise(resolve => {
                 for (let index = 0; index < 12; index++) {
                     const monthCheckoutSQL = `
-              SELECT orderData
-              FROM \`${this.app}\`.t_checkout
-              WHERE
-                  MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} MONTH))
-                AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} MONTH))
-                AND ${orderCountingSQL};
+            SELECT orderData
+            FROM \`${this.app}\`.t_checkout
+            WHERE
+              MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} MONTH))
+              AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} MONTH))
+              AND ${orderCountingSQL};
           `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
@@ -548,16 +548,16 @@ class DataAnalyze {
             await new Promise(resolve => {
                 for (let index = 0; index < 14; index++) {
                     const monthCheckoutSQL = `
-              SELECT orderData
-              FROM \`${this.app}\`.t_checkout
-              WHERE
-                  DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND ${orderCountingSQL};
+            SELECT orderData
+            FROM \`${this.app}\`.t_checkout
+            WHERE
+              DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND ${orderCountingSQL};
           `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
@@ -626,16 +626,16 @@ class DataAnalyze {
             await new Promise(resolve => {
                 for (let index = 0; index < 30; index++) {
                     const monthCheckoutSQL = `
-              SELECT orderData
-              FROM \`${this.app}\`.t_checkout
-              WHERE
-                  DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND ${orderCountingSQL};
+            SELECT orderData
+            FROM \`${this.app}\`.t_checkout
+            WHERE
+              DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND ${orderCountingSQL};
           `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
@@ -713,16 +713,16 @@ class DataAnalyze {
             await new Promise(resolve => {
                 for (let index = 0; index < days; index++) {
                     const monthCheckoutSQL = `
-              SELECT orderData
-              FROM \`${this.app}\`.t_checkout
-              WHERE
-                  DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone(formatEndDate)}
-                  , INTERVAL ${index} DAY))
-                AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone(formatEndDate)}
-                  , INTERVAL ${index} DAY))
-                AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
-                  , INTERVAL ${index} DAY))
-                AND ${orderCountingSQL};
+            SELECT orderData
+            FROM \`${this.app}\`.t_checkout
+            WHERE
+              DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone(formatEndDate)}
+                , INTERVAL ${index} DAY))
+              AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone(formatEndDate)}
+                , INTERVAL ${index} DAY))
+              AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
+                , INTERVAL ${index} DAY))
+              AND ${orderCountingSQL};
           `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
@@ -791,14 +791,14 @@ class DataAnalyze {
             await new Promise(resolve => {
                 for (let index = 0; index < 12; index++) {
                     const monthCheckoutSQL = `
-              SELECT orderData
-              FROM \`${this.app}\`.t_checkout
-              WHERE
-                  MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} MONTH))
-                AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} MONTH))
-                AND ${orderCountingSQL};
+            SELECT orderData
+            FROM \`${this.app}\`.t_checkout
+            WHERE
+              MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} MONTH))
+              AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} MONTH))
+              AND ${orderCountingSQL};
           `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
@@ -873,16 +873,16 @@ class DataAnalyze {
             await new Promise(resolve => {
                 for (let index = 0; index < 14; index++) {
                     const monthCheckoutSQL = `
-              SELECT orderData
-              FROM \`${this.app}\`.t_checkout
-              WHERE
-                  DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND ${orderCountingSQL};
+            SELECT orderData
+            FROM \`${this.app}\`.t_checkout
+            WHERE
+              DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND ${orderCountingSQL};
           `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
@@ -957,16 +957,16 @@ class DataAnalyze {
             await new Promise(resolve => {
                 for (let index = 0; index < 30; index++) {
                     const monthCheckoutSQL = `
-              SELECT orderData
-              FROM \`${this.app}\`.t_checkout
-              WHERE
-                  DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND ${orderCountingSQL};
+            SELECT orderData
+            FROM \`${this.app}\`.t_checkout
+            WHERE
+              DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND ${orderCountingSQL};
           `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
@@ -1043,16 +1043,16 @@ class DataAnalyze {
             await new Promise(resolve => {
                 for (let index = 0; index < days; index++) {
                     const monthCheckoutSQL = `
-              SELECT orderData
-              FROM \`${this.app}\`.t_checkout
-              WHERE
-                  DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone(formatEndDate)}
-                  , INTERVAL ${index} DAY))
-                AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone(formatEndDate)}
-                  , INTERVAL ${index} DAY))
-                AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
-                  , INTERVAL ${index} DAY))
-                AND ${orderCountingSQL}
+            SELECT orderData
+            FROM \`${this.app}\`.t_checkout
+            WHERE
+              DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone(formatEndDate)}
+                , INTERVAL ${index} DAY))
+              AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone(formatEndDate)}
+                , INTERVAL ${index} DAY))
+              AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
+                , INTERVAL ${index} DAY))
+              AND ${orderCountingSQL}
           `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
@@ -1116,114 +1116,66 @@ class DataAnalyze {
         }
     }
     async getActiveRecentYear() {
-        const endDate = moment_1.default.tz('Asia/Taipei').toDate();
-        endDate.setMonth(endDate.getMonth() + 1, 1);
-        const startDate = moment_1.default.tz('Asia/Taipei').toDate();
-        startDate.setMonth(endDate.getMonth() - 12);
-        const sql = `
-        SELECT mac_address, created_time
-        FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-        WHERE app_name = ${database_js_1.default.escape(this.app)}
-          AND req_type = 'file'
-          AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
-        GROUP BY id, mac_address
-    `;
-        console.log(`sql: ${sql}`);
-        const queryData = await database_js_1.default.query(sql, []);
+        const utTimer = new ut_timer_js_1.UtTimer('GET-RECENT-ACTIVE-USER-YEAR');
+        const checkPoint = utTimer.checkPoint;
         const now = moment_1.default.tz('Asia/Taipei').toDate();
-        const dataList = Array.from({ length: 12 }, (_, index) => {
-            const targetDate = new Date(now.getFullYear(), now.getMonth() - index, 1);
-            const year = targetDate.getFullYear();
-            const month = targetDate.getMonth() + 1;
-            const filteredData = queryData.filter((item) => {
-                const date = moment_1.default.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
-                return date.getFullYear() === year && date.getMonth() + 1 === month;
+        const dataList = await Promise.all(Array.from({ length: 12 }, (_, index) => index).map((dd, index) => {
+            return new Promise(async (resolve, reject) => {
+                const sql = `
+            select sum(count)
+            from \`${this.app}\`.visit_logs where
+              MONTH(${'date'}) = MONTH(DATE_SUB(${convertTimeZone('NOW()')}, INTERVAL ${index} MONTH))
+          `;
+                const queryData = await database_js_1.default.query(sql, []);
+                resolve((queryData[0] && queryData[0]['sum(count)']) || 0);
             });
-            const uniqueMacAddresses = new Set(filteredData.map((item) => item.mac_address));
-            return {
-                year,
-                month,
-                total_count: filteredData.length,
-                unique_count: uniqueMacAddresses.size,
-            };
-        });
-        const result = dataList.map(data => data.unique_count);
+        }));
         return {
-            count_array: result.reverse(),
+            count_array: dataList.reverse().map((dd) => {
+                return (dd && parseInt(dd, 10)) || 0;
+            }),
         };
     }
     async getActiveRecentWeek() {
-        const sql = `
-        SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
-        FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-        WHERE app_name = ${database_js_1.default.escape(this.app)}
-          AND req_type = 'file'
-          AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
-            , INTERVAL 14 DAY))
-            AND ${convertTimeZone('NOW()')}
-        GROUP BY id, mac_address
-    `;
-        const queryData = await database_js_1.default.query(sql, []);
+        const utTimer = new ut_timer_js_1.UtTimer('GET-RECENT-ACTIVE-USER-WEEK');
+        const checkPoint = utTimer.checkPoint;
         const now = moment_1.default.tz('Asia/Taipei').toDate();
-        const dataList = Array.from({ length: 14 }, (_, index) => {
-            const targetDate = new Date(now.getTime());
-            targetDate.setDate(new Date(now.getTime()).getDate() - index);
-            const year = targetDate.getFullYear();
-            const month = targetDate.getMonth() + 1;
-            const day = targetDate.getDate();
-            const filteredData = queryData.filter((item) => {
-                const date = moment_1.default.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
-                return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
+        const dataList = await Promise.all(Array.from({ length: 14 }, (_, index) => index).map((dd, index) => {
+            return new Promise(async (resolve, reject) => {
+                const sql = `
+            select count
+            from \`${this.app}\`.visit_logs where
+              DATE(${'date'}) = DATE(DATE_SUB(${convertTimeZone('NOW()')}, INTERVAL ${index} DAY))
+          `;
+                const queryData = await database_js_1.default.query(sql, []);
+                resolve((queryData[0] && queryData[0]['count']) || 0);
             });
-            const uniqueMacAddresses = new Set(filteredData.map((item) => item.mac_address));
-            return {
-                year,
-                month,
-                day,
-                total_count: filteredData.length,
-                unique_count: uniqueMacAddresses.size,
-            };
-        });
-        const result = dataList.map(data => data.unique_count);
+        }));
         return {
-            count_array: result.reverse(),
+            count_array: dataList.reverse().map((dd) => {
+                return (dd && parseInt(dd, 10)) || 0;
+            }),
         };
     }
     async getActiveRecentMonth() {
-        const sql = `
-        SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
-        FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-        WHERE app_name = ${database_js_1.default.escape(this.app)}
-          AND req_type = 'file'
-          AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
-            , INTERVAL 30 DAY))
-            AND ${convertTimeZone('NOW()')}
-        GROUP BY id, mac_address
-    `;
-        const queryData = await database_js_1.default.query(sql, []);
+        const utTimer = new ut_timer_js_1.UtTimer('GET-RECENT-ACTIVE-USER-WEEK');
+        const checkPoint = utTimer.checkPoint;
         const now = moment_1.default.tz('Asia/Taipei').toDate();
-        const dataList = Array.from({ length: 30 }, (_, index) => {
-            const targetDate = new Date(now.getTime());
-            targetDate.setDate(new Date(now.getTime()).getDate() - index);
-            const year = targetDate.getFullYear();
-            const month = targetDate.getMonth() + 1;
-            const day = targetDate.getDate();
-            const filteredData = queryData.filter((item) => {
-                const date = moment_1.default.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
-                return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
+        const dataList = await Promise.all(Array.from({ length: 30 }, (_, index) => index).map((dd, index) => {
+            return new Promise(async (resolve, reject) => {
+                const sql = `
+            select count
+            from \`${this.app}\`.visit_logs where
+              DATE(${'date'}) = DATE(DATE_SUB(${convertTimeZone('NOW()')}, INTERVAL ${index} DAY))
+          `;
+                const queryData = await database_js_1.default.query(sql, []);
+                resolve((queryData[0] && queryData[0]['count']) || 0);
             });
-            const uniqueMacAddresses = new Set(filteredData.map((item) => item.mac_address));
-            return {
-                year,
-                month,
-                day,
-                total_count: filteredData.length,
-                unique_count: uniqueMacAddresses.size,
-            };
-        });
-        const result = dataList.map(data => data.unique_count);
+        }));
         return {
-            count_array: result.reverse(),
+            count_array: dataList.reverse().map((dd) => {
+                return (dd && parseInt(dd, 10)) || 0;
+            }),
         };
     }
     async getActiveRecentCustom(query) {
@@ -1231,40 +1183,24 @@ class DataAnalyze {
         const formatStartDate = `"${tool_js_1.default.replaceDatetime(qData.start)}"`;
         const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
         const days = this.diffDates(new Date(qData.start), new Date(qData.end));
-        const sql = `
-        SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
-        FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-        WHERE app_name = ${database_js_1.default.escape(this.app)}
-          AND req_type = 'file'
-          AND ${convertTimeZone('created_time')}
-            BETWEEN ${convertTimeZone(formatStartDate)}
-            AND ${convertTimeZone(formatEndDate)}
-        GROUP BY id, mac_address
-    `;
-        const queryData = await database_js_1.default.query(sql, []);
-        const now = (0, moment_1.default)(qData.end).tz('Asia/Taipei').clone().toDate();
-        const dataList = Array.from({ length: days }, (_, index) => {
-            const targetDate = new Date(now.getTime());
-            targetDate.setDate(new Date(now.getTime()).getDate() - index);
-            const year = targetDate.getFullYear();
-            const month = targetDate.getMonth() + 1;
-            const day = targetDate.getDate();
-            const filteredData = queryData.filter((item) => {
-                const date = moment_1.default.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
-                return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
+        const utTimer = new ut_timer_js_1.UtTimer('GET-RECENT-ACTIVE-USER-WEEK');
+        const checkPoint = utTimer.checkPoint;
+        const now = moment_1.default.tz('Asia/Taipei').toDate();
+        const dataList = await Promise.all(Array.from({ length: days }, (_, index) => index).map((dd, index) => {
+            return new Promise(async (resolve, reject) => {
+                const sql = `
+            select count
+            from \`${this.app}\`.visit_logs where
+              DATE(${'date'}) = DATE(DATE_SUB(${convertTimeZone('NOW()')}, INTERVAL ${index} DAY))
+          `;
+                const queryData = await database_js_1.default.query(sql, []);
+                resolve((queryData[0] && queryData[0]['count']) || 0);
             });
-            const uniqueMacAddresses = new Set(filteredData.map((item) => item.mac_address));
-            return {
-                year,
-                month,
-                day,
-                total_count: filteredData.length,
-                unique_count: uniqueMacAddresses.size,
-            };
-        });
-        const result = dataList.map(data => data.unique_count);
+        }));
         return {
-            count_array: result.reverse(),
+            count_array: dataList.reverse().map((dd) => {
+                return (dd && parseInt(dd, 10)) || 0;
+            }),
         };
     }
     async getRegisterMonth() {
@@ -1274,16 +1210,16 @@ class DataAnalyze {
             await new Promise(resolve => {
                 for (let index = 0; index < 30; index++) {
                     const monthCheckoutSQL = `
-              SELECT count(1)
-              FROM \`${this.app}\`.t_user
-              WHERE
-                  DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND status <> 0;
+            SELECT count(1)
+            FROM \`${this.app}\`.t_user
+            WHERE
+              DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND status <> 0;
           `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         countArray[index] = data[0]['count(1)'];
@@ -1320,16 +1256,16 @@ class DataAnalyze {
             await new Promise(resolve => {
                 for (let index = 0; index < days; index++) {
                     const monthCheckoutSQL = `
-              SELECT count(1)
-              FROM \`${this.app}\`.t_user
-              WHERE
-                  DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone(formatEndDate)}
-                  , INTERVAL ${index} DAY))
-                AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone(formatEndDate)}
-                  , INTERVAL ${index} DAY))
-                AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
-                  , INTERVAL ${index} DAY))
-                AND status <> 0;
+            SELECT count(1)
+            FROM \`${this.app}\`.t_user
+            WHERE
+              DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone(formatEndDate)}
+                , INTERVAL ${index} DAY))
+              AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone(formatEndDate)}
+                , INTERVAL ${index} DAY))
+              AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
+                , INTERVAL ${index} DAY))
+              AND status <> 0;
           `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         countArray[index] = data[0]['count(1)'];
@@ -1363,16 +1299,16 @@ class DataAnalyze {
             await new Promise(resolve => {
                 for (let index = 0; index < 14; index++) {
                     const monthCheckoutSQL = `
-              SELECT count(1)
-              FROM \`${this.app}\`.t_user
-              WHERE
-                  DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} DAY))
-                AND status <> 0;
+            SELECT count(1)
+            FROM \`${this.app}\`.t_user
+            WHERE
+              DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} DAY))
+              AND status <> 0;
           `;
                     database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         countArray[index] = data[0]['count(1)'];
@@ -1409,12 +1345,12 @@ class DataAnalyze {
             await new Promise(resolve => {
                 for (let index = 0; index < 12; index++) {
                     const monthRegisterSQL = `
-              SELECT count(1)
-              FROM \`${this.app}\`.t_user
-              WHERE MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} MONTH))
-                AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                  , INTERVAL ${index} MONTH))
+            SELECT count(1)
+            FROM \`${this.app}\`.t_user
+            WHERE MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} MONTH))
+              AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL ${index} MONTH))
           `;
                     database_js_1.default.query(monthRegisterSQL, []).then(data => {
                         pass++;

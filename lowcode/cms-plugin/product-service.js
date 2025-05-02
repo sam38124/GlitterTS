@@ -58,10 +58,11 @@ export class ProductService {
                 {
                     check: (data) => !data.seo.domain,
                     errorMessage: '未設定商品連結',
-                },
+                }
             ];
             for (const languageCode of supportedLanguages) {
                 const currentLanguageData = languageData[languageCode];
+                currentLanguageData.seo.domain = currentLanguageData.seo.domain.replace(/\+/g, '');
                 for (const rule of validationRules) {
                     if (rule.check(currentLanguageData)) {
                         vm.language = languageCode;
