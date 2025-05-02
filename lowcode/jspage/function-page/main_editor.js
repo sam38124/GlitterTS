@@ -1046,14 +1046,7 @@ export class Main_editor {
                 };
             })}
           <div style="height: 60px;"></div>
-          <div
-            class="${document.body.clientWidth < 800
-                ? `position-fixed`
-                : `position-absolute`} w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white "
-            style="height: 60px;${document.body.clientWidth < 800
-                ? `padding-bottom:${parseInt(glitter.share.bottom_inset, 10)}px !important;`
-                : ``}"
-          >
+         
             ${(() => {
                 const view = [];
                 if (viewModel.selectItem.deletable !== 'false') {
@@ -1098,9 +1091,20 @@ export class Main_editor {
                         glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem, () => { });
                     }), '刪除'));
                 }
-                return view.join('<div class="mx-1"></div>');
+                if (!view.join('')) {
+                    return ``;
+                }
+                else {
+                    return ` <div
+            class="${document.body.clientWidth < 800
+                        ? `position-fixed`
+                        : `position-absolute`} w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white "
+            style="height: 60px;${document.body.clientWidth < 800
+                        ? `padding-bottom:${parseInt(glitter.share.bottom_inset, 10)}px !important;`
+                        : ``}"
+          >${view.join('<div class="mx-1"></div>')}</div>`;
+                }
             })()}
-          </div>
         </div>
       `,
             gvc.bindView(() => {

@@ -240,51 +240,6 @@ export class ProductCard01 {
           </div>
         </div>
       </div>
-      <div
-        class="wishBt wish-button ${(window as any).store_info.wishlist === false ? 'd-none' : 'd-flex'}"
-        onclick="${gvc.event((e, event) => {
-          event.stopPropagation();
-          if (CheckInput.isEmpty(GlobalUser.token)) {
-            changePage('login', 'page', {});
-            return;
-          }
-
-          if (vm.wishStatus) {
-            ApiShop.deleteWishList(`${prod.id}`).then(async () => {
-              PdClass.jumpAlert({
-                gvc,
-                text: Language.text('delete_success'),
-                justify: 'top',
-                align: 'center',
-              });
-              vm.wishStatus = !vm.wishStatus;
-              gvc.notifyDataChange(wishId);
-            });
-          } else {
-            ApiShop.postWishList(`${prod.id}`).then(async () => {
-              PdClass.jumpAlert({
-                gvc,
-                text: Language.text('add_success'),
-                justify: 'top',
-                align: 'center',
-              });
-              vm.wishStatus = !vm.wishStatus;
-              gvc.notifyDataChange(wishId);
-            });
-          }
-        })}"
-      >
-        ${gvc.bindView({
-          bind: wishId,
-          view: () => {
-            if (vm.wishStatus) {
-              return html` <i class="fa-solid fa-heart" style="color: #da1313"></i>`;
-            } else {
-              return html` <i class="fa-regular fa-heart"></i>`;
-            }
-          },
-        })}
-      </div>
       <div class="card-collapse-parent cursor_pointer">
         <div>
           <div class="row gx-0 card-title-container mb-1">

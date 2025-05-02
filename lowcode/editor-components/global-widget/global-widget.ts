@@ -37,7 +37,7 @@ export class GlobalWidget {
       left_id: string;
       right_id: string;
     } = {
-      select: '標頭元件',
+      select: obg.def || '標頭元件',
       left_id: gvc.glitter.getUUID(),
       right_id: gvc.glitter.getUUID(),
     };
@@ -54,7 +54,6 @@ export class GlobalWidget {
                   <div class="d-flex flex-column ">
                     ${GlobalWidget.leftSelect
                       .map((dd, index: number) => {
-                        console.log(vm.select);
                         return html`
                           <div class="rounded-3">
                             <div
@@ -136,7 +135,7 @@ export class GlobalWidget {
               return module_list
                 .map((dd: any) => {
                   return `
-<div class="d-flex align-items-center justify-content-center bgf6 hoverHidden position-relative py-4" style="">
+<div class="d-flex align-items-center justify-content-center bgf6 hoverHidden position-relative py-4" style="min-height:200px;">
 <img class="w-100" src="${dd.template_config.image[0]}">
   <div
                                     class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
@@ -253,14 +252,14 @@ export class GlobalWidget {
     </div>`;
   }
 
-  public static open(gvc: GVC,callback?:(app_data: any) => void) {
+  public static open(gvc: GVC,def:string) {
     NormalPageEditor.toggle({
       visible: true,
       title: `全站設計元件`,
       view: GlobalWidget.main({
         gvc: gvc,
         type: 'idea',
-        selectCallback:callback
+       def:def
       }),
       width: document.body.clientWidth < 992 ? document.body.clientWidth : 800,
     });

@@ -1,6 +1,6 @@
 {
   "name": "ts-glitter",
-  "version": "21.1.5",
+  "version": "21.1.7",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -98,3 +98,5 @@
     "terser": "^5.19.2"
   }
 }
+
+

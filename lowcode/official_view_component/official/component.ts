@@ -877,6 +877,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                 gvc.glitter.share.editorViewModel.selectItem =
                                                                   undefined;
                                                                 gvc.glitter.share.selectEditorItem();
+                                                                
                                                                 // if (select_.container_cf) {
                                                                 //   const gvc_ =
                                                                 //     gvc.glitter.document.querySelector('.iframe_view')
