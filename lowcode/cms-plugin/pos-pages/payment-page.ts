@@ -233,16 +233,17 @@ export class PaymentPage {
                                       </div>
                                     </div>
                                     <div
-                                      class="d-flex flex-column py-2" onclick="${gvc.event(() => {
-                                      PosFunction.setMoney(
-                                        gvc,
-                                        count => {
-                                          obj.ogOrderData.lineItems[index].count = count;
-                                          refreshOrderView();
-                                        },
-                                        '更改商品數量'
-                                      );
-                                    })}"
+                                      class="d-flex flex-column py-2"
+                                      onclick="${gvc.event(() => {
+                                        PosFunction.setMoney(
+                                          gvc,
+                                          count => {
+                                            obj.ogOrderData.lineItems[index].count = count;
+                                            refreshOrderView();
+                                          },
+                                          '更改商品數量'
+                                        );
+                                      })}"
                                       style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;"
                                     >
                                       <div class="d-flex justify-content-center flex-column" style="gap:5px;">
@@ -279,33 +280,47 @@ export class PaymentPage {
                                         : ``}
                                     </div>
                                     <div class="flex-fill"></div>
-                                    <div class="d-sm-none d-flex align-items-center justify-content-center flex-column" style="gap:0px;" onclick="${gvc.event(()=>{
-                                      PosFunction.setMoney(
-                                        gvc,
-                                        money => {
-                                          if (money === data.sale_price) {
-                                            delete obj.ogOrderData.lineItems[index].custom_price;
-                                          } else {
-                                            obj.ogOrderData.lineItems[index].custom_price = money;
-                                          }
-                                          refreshOrderView();
-                                        },
-                                        '更改商品單價'
-                                      )
-                                    })}">
-                                      ${(data.sale_price !== data.variant_sale_price) ? `
-                                    <span class="text-decoration-line-through"
-                                      >$${parseInt((data.variant_sale_price * data.count) as any, 10).toLocaleString()}</span
+                                    <div
+                                      class="d-sm-none d-flex align-items-center justify-content-center flex-column"
+                                      style="gap:0px;"
+                                      onclick="${gvc.event(() => {
+                                        PosFunction.setMoney(
+                                          gvc,
+                                          money => {
+                                            if (money === data.sale_price) {
+                                              delete obj.ogOrderData.lineItems[index].custom_price;
+                                            } else {
+                                              obj.ogOrderData.lineItems[index].custom_price = money;
+                                            }
+                                            refreshOrderView();
+                                          },
+                                          '更改商品單價'
+                                        );
+                                      })}"
                                     >
-                                     <span class="text-danger"
-                                      >$${parseInt((data.sale_price * data.count) as any, 10).toLocaleString()}</span
-                                    >
-                                    `:`
-                                    <span
-                                      >$${parseInt((data.sale_price * data.count) as any, 10).toLocaleString()}</span
-                                    >
-                                    `}
-
+                                      ${data.sale_price !== data.variant_sale_price
+                                        ? html`
+                                            <span class="text-decoration-line-through"
+                                              >$${parseInt(
+                                                (data.variant_sale_price * data.count) as any,
+                                                10
+                                              ).toLocaleString()}</span
+                                            >
+                                            <span class="text-danger"
+                                              >$${parseInt(
+                                                (data.sale_price * data.count) as any,
+                                                10
+                                              ).toLocaleString()}</span
+                                            >
+                                          `
+                                        : html`
+                                            <span
+                                              >$${parseInt(
+                                                (data.sale_price * data.count) as any,
+                                                10
+                                              ).toLocaleString()}</span
+                                            >
+                                          `}
                                     </div>
                                   </div>
                                   <div class="col-2 d-none d-sm-flex align-items-center justify-content-start">
@@ -345,19 +360,29 @@ export class PaymentPage {
                                       );
                                     })}"
                                   >
-                                    ${(data.sale_price !== data.variant_sale_price) ? `
-                                    <span class="text-decoration-line-through"
-                                      >$${parseInt((data.variant_sale_price * data.count) as any, 10).toLocaleString()}</span
-                                    >
-                                     <span class="text-danger"
-                                      >$${parseInt((data.sale_price * data.count) as any, 10).toLocaleString()}</span
-                                    >
-                                    `:`
-                                    <span
-                                      >$${parseInt((data.sale_price * data.count) as any, 10).toLocaleString()}</span
-                                    >
-                                    `}
-                                    
+                                    ${data.sale_price !== data.variant_sale_price
+                                      ? html`
+                                          <span class="text-decoration-line-through"
+                                            >$${parseInt(
+                                              (data.variant_sale_price * data.count) as any,
+                                              10
+                                            ).toLocaleString()}</span
+                                          >
+                                          <span class="text-danger"
+                                            >$${parseInt(
+                                              (data.sale_price * data.count) as any,
+                                              10
+                                            ).toLocaleString()}</span
+                                          >
+                                        `
+                                      : html`
+                                          <span
+                                            >$${parseInt(
+                                              (data.sale_price * data.count) as any,
+                                              10
+                                            ).toLocaleString()}</span
+                                          >
+                                        `}
                                   </div>
                                 </div>
                               `;

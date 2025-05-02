@@ -40,7 +40,7 @@ export class CheckoutIndex {
       return '';
     }
     let onlineData: any = {};
-    function getCartData(){
+    function getCartData() {
       if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
         ApiCart.checkoutCart = ApiCart.globalCart;
         return new ApiCart(ApiCart.globalCart);
@@ -49,7 +49,7 @@ export class CheckoutIndex {
       }
     }
     //取得要顯示的購物車
-    let apiCart = getCartData()
+    let apiCart = getCartData();
 
     const check_out_sub = JSON.parse(localStorage.getItem('checkout_sub_' + ApiCart.checkoutCart) ?? '{}');
 
@@ -144,7 +144,7 @@ export class CheckoutIndex {
 
     function refreshCartData() {
       //重取購物車資料
-      apiCart=getCartData()
+      apiCart = getCartData();
       const dialog = new ShareDialog(gvc.glitter);
       dialog.dataLoading({ visible: true });
       const beta = false;
@@ -1442,7 +1442,7 @@ export class CheckoutIndex {
                                                                           });
                                                                         }
                                                                       );
-                                                                      
+
                                                                       if (find) {
                                                                         apiCart.setCart(cartItem => {
                                                                           cartItem.line_items.map(dd => {
