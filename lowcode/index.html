@@ -2981,6 +2981,7 @@
       }, callback);
     },
   };
+
   let clockF = () => {
     return {
       start: new Date(),
@@ -3000,6 +3001,7 @@
   // if (location.pathname.slice(-1) !== '/' && !location.pathname.endsWith("html")) {
   //     location.pathname = location.pathname + "/"
   // }
+
   const loc = new URL(location.href);
   if (loc.searchParams.get('isIframe') === 'true') {
     (window).glitterInitialHelper = (window.parent).glitterInitialHelper;

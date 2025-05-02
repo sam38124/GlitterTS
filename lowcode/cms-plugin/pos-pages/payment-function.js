@@ -107,6 +107,7 @@ export class PaymentFunction {
                 gvc.glitter.runJsInterFace('credit_card', {
                     amount: `${total}`,
                     memo: `訂單ID:${orderDetail.orderID}`,
+                    orderID: orderDetail.orderID,
                     pwd: pwd,
                 }, (res) => {
                     if (res.result) {
@@ -136,6 +137,7 @@ export class PaymentFunction {
                     cmd: 'credit_card',
                     amount: `${total}`,
                     memo: `訂單ID:${orderDetail.orderID}`,
+                    orderID: orderDetail.orderID,
                     pwd: pwd,
                 });
             }

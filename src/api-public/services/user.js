@@ -2330,7 +2330,7 @@ class User {
                     orderStatus: ['1', '0'],
                 });
                 (_d = value.invoice_mode) !== null && _d !== void 0 ? _d : (value.invoice_mode = {
-                    payload: ['1', '3', '0'],
+                    payload: ['1'],
                     progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
                     orderStatus: ['1', '0'],
                     afterDays: 0,

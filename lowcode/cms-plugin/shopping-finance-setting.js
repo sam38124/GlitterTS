@@ -24,7 +24,8 @@ import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { ShoppingShipmentSetting } from './shopping-shipment-setting.js';
 const html = String.raw;
 export class ShoppingFinanceSetting {
-    static main(gvc) {
+    static main(gvc, pos) {
+        pos = (`${pos}` === 'true');
         const dialog = new ShareDialog(gvc.glitter);
         const saasConfig = window.parent.saasConfig;
         const vm = {
@@ -33,7 +34,7 @@ export class ShoppingFinanceSetting {
             posBoxId: gvc.glitter.getUUID(),
             offBoxId: gvc.glitter.getUUID(),
             loading: true,
-            page: 'online',
+            page: pos ? 'pos' : 'online',
         };
         let keyData = { payment_info_custom: [] };
         function refresh() {
@@ -194,7 +195,7 @@ export class ShoppingFinanceSetting {
         }
         return BgWidget.container(html `
       ${[
-            html ` <div class="title-container">
+            html ` <div class="title-container ${pos ? `d-none` : ``}">
           ${BgWidget.title('金流設定')}
           <div class="flex-fill"></div>
         </div>`,
@@ -732,7 +733,7 @@ export class ShoppingFinanceSetting {
                   </div>`;
                         }
                         if (vm.page === 'pos') {
-                            h = html ` <div class="px-md-0 px-2 mb-2">
+                            h = html `<div class="px-md-0 px-2 mb-2">
                     ${BgWidget.normalInsignia('設定實體店面所需串接的付款方式')}
                   </div>
                   <div class="row">
@@ -832,10 +833,9 @@ export class ShoppingFinanceSetting {
                   </div>`;
                         }
                         return [
-                            BgWidget.tab([
+                            pos ? `` : BgWidget.tab([
                                 { key: 'online', title: '線上金流' },
                                 { key: 'offline', title: '線下金流' },
-                                { key: 'pos', title: 'POS付款' },
                             ], gvc, vm.page, (key) => {
                                 vm.page = key;
                                 gvc.notifyDataChange(vm.id);
@@ -871,8 +871,10 @@ export class ShoppingFinanceSetting {
                 },
             }),
         ].join('')}
-      ${BgWidget.mbContainer(240)}
-    `);
+      ${pos ? `` : BgWidget.mbContainer(240)}
+    `, {
+            style: pos ? `margin-top: 0px !important;` : ``,
+        });
     }
     static tabView(gvc, viewList) {
         var _a;
@@ -1392,6 +1394,38 @@ export class ShoppingFinanceSetting {
             title: '基本設定',
             html: BgWidget.editeInput({
                 gvc: gvc,
+                title: '商家ID',
+                default: data.pwd,
+                callback: text => {
+                    data.pwd = text;
+                },
+                placeHolder: '請輸入商家ID',
+            }),
+        };
+        const shipment = {
+            key: 'shipment',
+            title: '指定物流',
+            html: gvc.bindView({
+                bind: gvc.glitter.getUUID(),
+                view: () => ShoppingFinanceSetting.setShipmentSupport(gvc, data),
+            }),
+        };
+        const cartSetting = {
+            key: 'cartSetting',
+            title: '購物車設定',
+            html: gvc.bindView({
+                bind: gvc.glitter.getUUID(),
+                view: () => ShoppingFinanceSetting.setCartSetting(gvc, data),
+            }),
+        };
+        return this.tabView(gvc, [cashflow, shipment, cartSetting]);
+    }
+    static myPayPos(gvc, data) {
+        const cashflow = {
+            key: 'cashflow',
+            title: '基本設定',
+            html: BgWidget.editeInput({
+                gvc: gvc,
                 title: '刷卡機密碼',
                 default: data.pwd,
                 callback: text => {
@@ -1509,7 +1543,7 @@ export class ShoppingFinanceSetting {
                         BgWidget.tab([
                             { title: '基本設定', key: 'delivery_setting' },
                             { title: '物流追蹤', key: 'delivery_track' },
-                            { title: '群組設定', key: 'delivery_group' },
+                            { title: '物流群組', key: 'delivery_group' },
                             { title: '配送備註', key: 'delivery_note' },
                         ], gvc, vm.page, text => {
                             vm.page = text;

@@ -8,5 +8,6 @@ export function onlinePayArray(){
     { key: 'jkopay', name: '街口支付' },
     { key: 'line_pay_scan', name: 'Line Pay', type: 'pos' },
     { key: 'ut_credit_card', name: '聯合信用卡', type: 'pos' },
+    // { key: 'my_pay', name: '高鉅信用卡', type: 'pos' },
   ]
 }  ;

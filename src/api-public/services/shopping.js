@@ -2181,7 +2181,9 @@ class Shopping {
             update.orderData.lineItems = update.orderData.lineItems.filter((item) => item.count > 0);
             this.writeRecord(origin, update);
             const updateData = Object.entries(update).reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: typeof value === 'object' ? JSON.stringify(value) : value })), {});
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
+         SET ?
+         WHERE id = ?;
         `, [updateData, origin.id]);
             if (Array.isArray(update.orderData.tags)) {
                 await this.setOrderCustomizeTagConifg(update.orderData.tags);
@@ -2209,26 +2211,39 @@ class Shopping {
                 app_name: this.app,
             });
             const orderCountingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
-            const orderCount = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${orderCountingSQL};
+            const orderCount = await database_js_1.default.query(`SELECT *
+         FROM \`${this.app}\`.t_checkout
+         WHERE id = ?
+           AND ${orderCountingSQL};
         `, [origin.id]);
             if (orderCount[0]) {
                 await this.shareVoucherRebate(orderCount[0]);
             }
             const invoiceCountingConfig = await new user_js_1.User(this.app).getInvoiceCountingModeSQL();
-            const invoiceCount = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${invoiceCountingConfig.sql_string};
+            const invoiceCount = await database_js_1.default.query(`SELECT *
+         FROM \`${this.app}\`.t_checkout
+         WHERE id = ?
+           AND ${invoiceCountingConfig.sql_string};
         `, [origin.id]);
             if (invoiceCount[0]) {
                 const cart_token = invoiceCount[0].cart_token;
-                const json = {
-                    tag: 'triggerInvoice',
-                    content: JSON.stringify({ cart_token }),
-                    trigger_time: tool_js_1.default.getCurrentDateTime({
-                        inputDate: new Date().toISOString(),
-                        addSeconds: invoiceCountingConfig.invoice_mode.afterDays * 86400,
-                    }),
-                    status: 0,
-                };
-                await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_triggers SET ?;`, [json]);
+                const invoice_trigger_exists = await database_js_1.default.query(`select *
+           from \`${this.app}\`.t_triggers
+           where tag = 'triggerInvoice'
+             and content ->>'$.cart_token'='${cart_token}'`, []);
+                if (invoice_trigger_exists.length == 0) {
+                    const json = {
+                        tag: 'triggerInvoice',
+                        content: JSON.stringify({ cart_token }),
+                        trigger_time: tool_js_1.default.getCurrentDateTime({
+                            inputDate: new Date().toISOString(),
+                            addSeconds: invoiceCountingConfig.invoice_mode.afterDays * 86400,
+                        }),
+                        status: 0,
+                    };
+                    await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_triggers
+             SET ?;`, [json]);
+                }
             }
             return {
                 result: 'success',
@@ -2809,7 +2824,7 @@ class Shopping {
                     resolve({
                         data: data,
                         total: (await database_js_1.default.query(`SELECT count(1)
-                                    FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                 FROM (${sql}) as subqyery`, []))[0]['count(1)'],
                     });
                 }
             });
@@ -3155,7 +3170,8 @@ class Shopping {
                     insertObj.id = originalVariant.id;
                     sourceMap[originalVariant.id] = originalVariant.id;
                 }
-                const insertData = await database_js_1.default.query(`replace INTO \`${this.app}\`.t_variants
+                const insertData = await database_js_1.default.query(`replace
+          INTO \`${this.app}\`.t_variants
            SET ?
           `, [insertObj]);
                 return insertData;

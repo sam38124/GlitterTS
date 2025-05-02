@@ -94,6 +94,7 @@ export class ConnectionMode {
                                             {
                                                 amount: data.function.amount,
                                                 memo: data.function.memo,
+                                              orderID:data.function.orderID,
                                                 pwd:data.function.pwd
                                             },
                                             (res: any) => {

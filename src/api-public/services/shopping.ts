@@ -2418,6 +2418,7 @@ export class Shopping {
   async splitOrder(obj: { orderData: Cart; splitOrderArray: OrderDetail[] }) {
     try {
       const checkoutEvent = new CheckoutEvent(this.app, this.token);
+
       async function processCheckoutsStaggered(
         splitOrderArray: any[],
         orderData: any
@@ -3070,7 +3071,9 @@ export class Shopping {
         {}
       );
       await db.query(
-        `UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
+        `UPDATE \`${this.app}\`.t_checkout
+         SET ?
+         WHERE id = ?;
         `,
         [updateData, origin.id]
       );
@@ -3112,7 +3115,10 @@ export class Shopping {
       // 若符合有效訂單設定，則發放類型為購物金的優惠券
       const orderCountingSQL = await new User(this.app).getCheckoutCountingModeSQL();
       const orderCount = await db.query(
-        `SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${orderCountingSQL};
+        `SELECT *
+         FROM \`${this.app}\`.t_checkout
+         WHERE id = ?
+           AND ${orderCountingSQL};
         `,
         [origin.id]
       );
@@ -3123,24 +3129,40 @@ export class Shopping {
       // 若符合有效訂單設定，則發放類型為購物金的優惠券
       const invoiceCountingConfig = await new User(this.app).getInvoiceCountingModeSQL();
       const invoiceCount = await db.query(
-        `SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${invoiceCountingConfig.sql_string};
+        `SELECT *
+         FROM \`${this.app}\`.t_checkout
+         WHERE id = ?
+           AND ${invoiceCountingConfig.sql_string};
         `,
         [origin.id]
       );
+
       if (invoiceCount[0]) {
         const cart_token = invoiceCount[0].cart_token;
+        const invoice_trigger_exists = await db.query(
+          `select *
+           from \`${this.app}\`.t_triggers
+           where tag = 'triggerInvoice'
+             and content ->>'$.cart_token'='${cart_token}'`,
+          []
+        );
 
-        const json = {
-          tag: 'triggerInvoice',
-          content: JSON.stringify({ cart_token }),
-          trigger_time: Tool.getCurrentDateTime({
-            inputDate: new Date().toISOString(),
-            addSeconds: invoiceCountingConfig.invoice_mode.afterDays * 86400,
-          }),
-          status: 0,
-        };
-
-        await db.query(`INSERT INTO \`${this.app}\`.t_triggers SET ?;`, [json]);
+        if (invoice_trigger_exists.length == 0) {
+          const json = {
+            tag: 'triggerInvoice',
+            content: JSON.stringify({ cart_token }),
+            trigger_time: Tool.getCurrentDateTime({
+              inputDate: new Date().toISOString(),
+              addSeconds: invoiceCountingConfig.invoice_mode.afterDays * 86400,
+            }),
+            status: 0,
+          };
+          await db.query(
+            `INSERT INTO \`${this.app}\`.t_triggers
+             SET ?;`,
+            [json]
+          );
+        }
       }
 
       return {
@@ -3880,7 +3902,7 @@ export class Shopping {
             total: (
               await db.query(
                 `SELECT count(1)
-                                    FROM (${sql}) as subqyery`,
+                 FROM (${sql}) as subqyery`,
                 []
               )
             )[0]['count(1)'],
@@ -4346,7 +4368,8 @@ export class Shopping {
         }
 
         const insertData = await db.query(
-          `replace INTO \`${this.app}\`.t_variants
+          `replace
+          INTO \`${this.app}\`.t_variants
            SET ?
           `,
           [insertObj]

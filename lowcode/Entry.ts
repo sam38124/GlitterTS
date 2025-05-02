@@ -15,8 +15,11 @@ import { ApplicationConfig } from './application-config.js';
 export class Entry {
   // 建立初始函式
   public static onCreate(glitter: Glitter) {
-    const originalReplaceState = history.replaceState
-    let last_replace=''
+    //設定後端路徑API
+    config.url=location.origin;
+    (window as any).glitterBackend=location.origin;
+    const originalReplaceState = history.replaceState;
+    let last_replace='';
     window.history.replaceState = function(data: any, unused: string, url?: string | URL | null) {
       if(last_replace!==url){
         last_replace=`${url}`
@@ -146,7 +149,7 @@ export class Entry {
       }
       (window as any).renderClock = (window as any).renderClock ?? createClock();
       console.log(`Entry-time:`, (window as any).renderClock.stop());
-      glitter.share.editerVersion = 'V_20.8.8';
+      glitter.share.editerVersion = 'V_21.0.4';
       glitter.share.start = new Date();
       const vm = { appConfig: [] };
       (window as any).saasConfig = {

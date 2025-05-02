@@ -13,6 +13,7 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { Currency } from '../glitter-base/global/currency.js';
 import { FilterOptions } from './filter-options.js';
 import { LanguageBackend } from './language-backend.js';
+import { ShoppingFinanceSetting } from './shopping-finance-setting.js';
 const html = String.raw;
 export class PosConfigSetting {
     static main(gvc) {
@@ -307,33 +308,38 @@ ${BgWidget.customButton({
                 const typeMap = {
                     function: () => {
                         var _a;
-                        return BgWidget.mainCard(html `
+                        return [BgWidget.mainCard(html `
               <div class="d-flex flex-column gap-2">
                 ${createSection('POS功能', '系統將根據您勾選的項目，開放相對應的功能')}
                 ${BgWidget.inlineCheckBox({
-                            title: '',
-                            gvc,
-                            def: (_a = vm.data.pos_support_finction) !== null && _a !== void 0 ? _a : [],
-                            array: [
-                                { title: '列印明細', value: 'print_order_detail' },
-                                { title: '列印留存聯', value: 'print_order_receipt' },
-                                { title: '發票開立', value: 'print_invoice' },
-                                { title: '桌號設定', value: 'table_select' },
-                            ],
-                            callback: (array) => {
-                                vm.data.pos_support_finction = array;
-                            },
-                            type: 'multiple',
-                        })}
+                                title: '',
+                                gvc,
+                                def: (_a = vm.data.pos_support_finction) !== null && _a !== void 0 ? _a : [],
+                                array: [
+                                    { title: '列印明細', value: 'print_order_detail' },
+                                    { title: '列印留存聯', value: 'print_order_receipt' },
+                                    { title: '發票開立', value: 'print_invoice' },
+                                    { title: '桌號設定', value: 'table_select' },
+                                ],
+                                callback: (array) => {
+                                    vm.data.pos_support_finction = array;
+                                },
+                                type: 'multiple',
+                            })}
                 ${createPickUpModeDialog('叫號取餐', `針對特店取餐功能，會自動遞增取餐號碼。`)}
               </div>
-            `);
+            `)
+                        ].join('');
                     },
+                    finance: () => {
+                        return ShoppingFinanceSetting.main(gvc, true);
+                    }
                 };
                 return BgWidget.container(html `
           <div class="title-container">${BgWidget.title('全站設定')}</div>
           ${BgWidget.tab([
                     { title: '功能管理', key: 'function' },
+                    { title: '金流設定', key: 'finance' },
                 ], gvc, vm.type, text => {
                     vm.type = text;
                 })}

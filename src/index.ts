@@ -46,6 +46,7 @@ const logger = new Logger();
 
 app.options('/*', (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
   res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app,mac_address,language,currency_code');
   res.status(200).send();

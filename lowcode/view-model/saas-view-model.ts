@@ -998,7 +998,7 @@ ${['選擇初始模板',BgWidget.grayNote('請選擇初始模板，後續可在�
                                 </div>`;
                         },
                         divCreate: {
-                            style: `max-height:calc(${window.innerHeight - gvc.glitter.share.top_inset - gvc.glitter.share.bottom_inset}px - 115px);overflow-y:auto;`,
+                            style: `max-height:calc(${window.innerHeight - gvc.glitter.share.top_inset - gvc.glitter.share.bottom_inset}px - ${document.body.clientWidth>1200 ? `165`:`115`}px);overflow-y:auto;`,
                             class: ``,
                         },
                     };

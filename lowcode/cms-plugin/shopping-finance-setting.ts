@@ -31,7 +31,8 @@ type ShipmentGroupData = {
 const html = String.raw;
 
 export class ShoppingFinanceSetting {
-  static main(gvc: GVC) {
+  static main(gvc: GVC,pos?:boolean) {
+    pos=(`${pos}`==='true')
     const dialog = new ShareDialog(gvc.glitter);
     const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
 
@@ -48,7 +49,7 @@ export class ShoppingFinanceSetting {
       posBoxId: gvc.glitter.getUUID(),
       offBoxId: gvc.glitter.getUUID(),
       loading: true,
-      page: 'online',
+      page: pos ? 'pos':'online',
     };
 
     let keyData: any = { payment_info_custom: [] };
@@ -230,7 +231,7 @@ export class ShoppingFinanceSetting {
 
     return BgWidget.container(html`
       ${[
-        html` <div class="title-container">
+        html` <div class="title-container ${pos ? `d-none`:``}">
           ${BgWidget.title('金流設定')}
           <div class="flex-fill"></div>
         </div>`,
@@ -803,7 +804,7 @@ export class ShoppingFinanceSetting {
 
               // POS
               if (vm.page === 'pos') {
-                h = html` <div class="px-md-0 px-2 mb-2">
+                h = html`<div class="px-md-0 px-2 mb-2">
                     ${BgWidget.normalInsignia('設定實體店面所需串接的付款方式')}
                   </div>
                   <div class="row">
@@ -840,6 +841,8 @@ export class ShoppingFinanceSetting {
                                                 return this.linePayScan(gvc, key_d);
                                               case 'ut_credit_card':
                                                 return this.utCreditCard(gvc, key_d);
+                                                // case 'my_pay':
+                                                //   return this.myPayPos(gvc, key_d); 
                                             }
                                             return ``;
                                           })()}
@@ -907,11 +910,11 @@ export class ShoppingFinanceSetting {
               }
 
               return [
-                BgWidget.tab(
+                pos ? ``: BgWidget.tab(
                   [
                     { key: 'online', title: '線上金流' },
                     { key: 'offline', title: '線下金流' },
-                    { key: 'pos', title: 'POS付款' },
+                    // { key: 'pos', title: 'POS付款' },
                   ],
                   gvc,
                   vm.page,
@@ -919,7 +922,8 @@ export class ShoppingFinanceSetting {
                     vm.page = key;
                     gvc.notifyDataChange(vm.id);
                   }
-                ),
+                )
+               ,
                 h,
               ].join('');
             } catch (e) {
@@ -952,8 +956,10 @@ export class ShoppingFinanceSetting {
           },
         }),
       ].join('')}
-      ${BgWidget.mbContainer(240)}
-    `);
+      ${pos ? ``:BgWidget.mbContainer(240)}
+    `,{
+      style: pos ? `margin-top: 0px !important;` : ``,
+    });
   }
 
   // 分頁模組
@@ -1531,6 +1537,43 @@ export class ShoppingFinanceSetting {
       title: '基本設定',
       html: BgWidget.editeInput({
         gvc: gvc,
+        title: '商家ID',
+        default: data.pwd,
+        callback: text => {
+          data.pwd = text;
+        },
+        placeHolder: '請輸入商家ID',
+      }),
+    };
+
+    const shipment = {
+      key: 'shipment',
+      title: '指定物流',
+      html: gvc.bindView({
+        bind: gvc.glitter.getUUID(),
+        view: () => ShoppingFinanceSetting.setShipmentSupport(gvc, data),
+      }),
+    };
+
+    const cartSetting = {
+      key: 'cartSetting',
+      title: '購物車設定',
+      html: gvc.bindView({
+        bind: gvc.glitter.getUUID(),
+        view: () => ShoppingFinanceSetting.setCartSetting(gvc, data),
+      }),
+    };
+
+    return this.tabView(gvc, [cashflow, shipment, cartSetting]);
+  }
+
+  // 彈窗: MyPay高鉅科技 (POS)
+  static myPayPos(gvc: GVC, data: any) {
+    const cashflow = {
+      key: 'cashflow',
+      title: '基本設定',
+      html: BgWidget.editeInput({
+        gvc: gvc,
         title: '刷卡機密碼',
         default: data.pwd,
         callback: text => {
@@ -1669,7 +1712,7 @@ export class ShoppingFinanceSetting {
               [
                 { title: '基本設定', key: 'delivery_setting' },
                 { title: '物流追蹤', key: 'delivery_track' },
-                { title: '群組設定', key: 'delivery_group' },
+                { title: '物流群組', key: 'delivery_group' },
                 { title: '配送備註', key: 'delivery_note' },
               ],
               gvc,

@@ -27,7 +27,8 @@ class Monitor {
                     user_id: obj.token ? obj.token.userID : 'guest',
                     mac_address: req.get('mac_address') || mac_address,
                     base_url: req.baseUrl,
-                    req_type: obj.req_type
+                    req_type: obj.req_type,
+                    cookies: JSON.stringify(req.cookies),
                 }
             ]);
         }

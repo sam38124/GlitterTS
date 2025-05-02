@@ -3,11 +3,13 @@ import config from '../config';
 import Logger from './logger';
 import exception from './exception';
 import process from 'process';
+import { fa } from '@faker-js/faker';
 
 const TAG = '[Database]';
 let pool: mysql.Pool;
-
+let block_create=false
 const createPool = async () => {
+
   const logger = new Logger();
   console.log(`config.DB_CONN_LIMIT=>`,config.DB_CONN_LIMIT)
   console.log(`config.DB_QUEUE_LIMIT=>`,config.DB_QUEUE_LIMIT)
@@ -18,8 +20,8 @@ const createPool = async () => {
     port: config.DB_PORT,
     user: config.DB_USER,
     password: config.DB_PWD,
-    supportBigNumbers: true
-
+    supportBigNumbers: true,
+waitForConnections:true
     // // 啟用連線保持活躍
     // enableKeepAlive: true,
     // // 每 10 秒發送一次保持活躍訊號
@@ -65,8 +67,8 @@ const execute = async (sql: string, params: any[]): Promise<any> => {
     return results;
   } catch (err) {
     logger.error(TAG, 'Failed to exect statement ' + sql + ' because ' + err);
-    //連線過多重啟應用
-    if(`${err}`.includes('Too many connections')){
+    //連線過多重啟線程池
+    if(`${err}`.includes('Too many connections') || `${err}`.includes('Queue limit reached')){
       process.exit(1)
     }
     throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to exect statement ' + sql + ' because ' + err);
@@ -85,7 +87,7 @@ const query = async (sql: string, params: unknown[]): Promise<any> => {
   } catch (err) {
     logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
     //連線過多重啟應用
-    if(`${err}`.includes('Too many connections')){
+    if(`${err}`.includes('Too many connections') || `${err}`.includes('Queue limit reached')){
       process.exit(1)
     }
     throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to query statement ' + sql + ' because ' + err);

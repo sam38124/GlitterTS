@@ -19,6 +19,7 @@ export class Monitor{
                 mac_address=Tool.randomString(10)
                 req.res?.cookie('mac_address',mac_address)
             }
+
             await db.query(`insert into \`${saasConfig.SAAS_NAME}\`.t_monitor set ?`,[
                 {
                     ip:req.headers['x-real-ip'] || req.ip ,
@@ -26,7 +27,8 @@ export class Monitor{
                     user_id: obj.token ? obj.token.userID : 'guest',
                     mac_address:req.get('mac_address') || mac_address,
                     base_url:req.baseUrl,
-                    req_type:obj.req_type
+                    req_type:obj.req_type,
+                  cookies:JSON.stringify(req.cookies),
                 }
             ]);
         }catch (e) {
