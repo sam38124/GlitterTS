@@ -23,7 +23,7 @@ const firebase_js_1 = require("../../modules/firebase.js");
 const invoice_js_1 = require("./invoice.js");
 const process_1 = __importDefault(require("process"));
 class Schedule {
-    async perload(app) {
+    async preload(app) {
         const brand_type = await app_js_1.App.checkBrandAndMemberType(app);
         if (brand_type.brand === 'shopnex' && brand_type.domain) {
             if (!(await this.isDatabasePass(app)))
@@ -53,7 +53,7 @@ class Schedule {
     async example(sec) {
         try {
             for (const app of Schedule.app) {
-                if (await this.perload(app)) {
+                if (await this.preload(app)) {
                 }
             }
         }
@@ -67,7 +67,7 @@ class Schedule {
         console.log(`autoCancelOrder`);
         for (const app of Schedule.app) {
             try {
-                if (await this.perload(app)) {
+                if (await this.preload(app)) {
                     const config = await new user_1.User(app).getConfigV2({ key: 'login_config', user_id: 'manager' });
                     if ((config === null || config === void 0 ? void 0 : config.auto_cancel_order_timer) && config.auto_cancel_order_timer > 0) {
                         const orders = await database_1.default.query(`SELECT *
@@ -104,7 +104,7 @@ class Schedule {
         try {
             for (const app of Schedule.app) {
                 try {
-                    if (await this.perload(app)) {
+                    if (await this.preload(app)) {
                         const users = await database_1.default.query(`select *
                from \`${app}\`.t_user  `, []);
                         for (const user of users) {
@@ -135,7 +135,7 @@ class Schedule {
         console.log(`resetVoucherHistory`);
         for (const app of Schedule.app) {
             try {
-                if (await this.perload(app)) {
+                if (await this.preload(app)) {
                     const rebateClass = new rebate_1.Rebate(app);
                     const userClass = new user_1.User(app);
                     if (await rebateClass.mainStatus()) {
@@ -195,7 +195,7 @@ class Schedule {
         console.log(`resetVoucherHistory`);
         for (const app of Schedule.app) {
             try {
-                if (await this.perload(app)) {
+                if (await this.preload(app)) {
                     const mailType = 'auto-email-birthday';
                     const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(app, mailType, 'zh-TW');
                     if (customerMail.toggle) {
@@ -247,7 +247,7 @@ class Schedule {
         console.log(`resetVoucherHistory`);
         for (const app of Schedule.app) {
             try {
-                if (await this.perload(app)) {
+                if (await this.preload(app)) {
                     await new shopping_1.Shopping(app).resetVoucherHistory();
                 }
             }
@@ -263,7 +263,7 @@ class Schedule {
         console.log(`autoTriggerInvoice`);
         for (const app of Schedule.app) {
             try {
-                if (await this.perload(app)) {
+                if (await this.preload(app)) {
                     const orders = await database_1.default.query(`SELECT *
              FROM \`${app}\`.t_triggers
              WHERE tag = 'triggerInvoice'
@@ -288,7 +288,7 @@ class Schedule {
         console.log(`autoSendLine`);
         for (const app of Schedule.app) {
             try {
-                if (await this.perload(app)) {
+                if (await this.preload(app)) {
                     const emails = await database_1.default.query(`SELECT *
              FROM \`${app}\`.t_triggers
              WHERE tag = 'sendFCM'
@@ -313,7 +313,7 @@ class Schedule {
         console.log(`autoSendLine`);
         for (const app of Schedule.app) {
             try {
-                if (await this.perload(app)) {
+                if (await this.preload(app)) {
                     const emails = await database_1.default.query(`SELECT *
              FROM \`${app}\`.t_triggers
              WHERE tag = 'sendMailBySchedule'
@@ -338,7 +338,7 @@ class Schedule {
         console.log(`autoSendLine`);
         for (const app of Schedule.app) {
             try {
-                if (await this.perload(app)) {
+                if (await this.preload(app)) {
                     const emails = await database_1.default.query(`SELECT *
              FROM \`${app}\`.t_triggers
              WHERE tag = 'sendLineBySchedule'
@@ -404,7 +404,7 @@ class Schedule {
         console.log(`visitLogs`);
         for (const app of Schedule.app) {
             try {
-                if (await this.perload(app)) {
+                if (await this.preload(app)) {
                     const count = await database_1.default.query(`  SELECT COUNT(DISTINCT mac_address) as count , CONVERT_TZ(NOW(), '+00:00', '+08:00') as now
                FROM ${process_1.default.env.GLITTER_DB}.t_monitor
                WHERE app_name = ${database_1.default.escape(app)}
@@ -412,7 +412,11 @@ class Schedule {
                  AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
                    , INTERVAL 1 DAY))
                  AND ${convertTimeZone('NOW()')}`, []);
-                    await database_1.default.query(`replace into \`${app}\`.visit_logs (date, count,tag_name) values (?, ? , ?)`, [count[0]['now'], count[0]['count'], (`${count[0]['now'].toISOString()}`).substring(0, 10)]);
+                    await database_1.default.query(`replace into \`${app}\`.visit_logs (date, count,tag_name) values (?, ? , ?)`, [
+                        count[0]['now'],
+                        count[0]['count'],
+                        `${count[0]['now'].toISOString()}`.substring(0, 10),
+                    ]);
                 }
             }
             catch (e) {
@@ -425,7 +429,7 @@ class Schedule {
     main() {
         const scheduleList = config_1.ConfigSetting.is_local
             ?
-                [{ second: 60 * 5, status: true, func: 'visitLogs', desc: '更新每天造訪人數' },]
+                [{ second: 60 * 5, status: true, func: 'visitLogs', desc: '更新每天造訪人數' }]
             :
                 [
                     { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },

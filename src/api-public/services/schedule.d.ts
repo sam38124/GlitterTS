@@ -1,6 +1,6 @@
 export declare class Schedule {
     static app: string[];
-    perload(app: string): Promise<boolean>;
+    preload(app: string): Promise<boolean>;
     isDatabaseExists(app: string): Promise<boolean>;
     isDatabasePass(app: string): Promise<boolean>;
     isTableExists(table: string, app: string): Promise<boolean>;

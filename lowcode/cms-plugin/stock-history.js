@@ -1052,6 +1052,7 @@ export class StockHistory {
                                                             gvc: gvc,
                                                             default: dvm.variantIds,
                                                             with_variants: true,
+                                                            right_element_type: 'stock',
                                                             callback: (value) => __awaiter(this, void 0, void 0, function* () {
                                                                 dvm.variantIds = value;
                                                                 gvc.notifyDataChange(dvm.tableId);

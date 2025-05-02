@@ -16,6 +16,7 @@ export type OptionsItem = {
   note?: string;
   sub_title?: string;
   content?: any;
+  variant_index?: number;
 };
 
 type CollectionItem = {
@@ -77,6 +78,7 @@ export class BgProduct {
     filter_visible?: string;
     with_variants?: boolean;
     show_product_type?: boolean;
+    right_element_type?: 'price' | 'stock';
   }) {
     const glitter = (window.parent as any).glitter;
     return (window.parent as any).glitter.innerDialog((gvc: GVC) => {
@@ -225,13 +227,11 @@ export class BgProduct {
                                                 style="text-wrap: auto;"
                                                 onclick="${gvc.event(() => call())}"
                                               >
-                                                ${obj.show_product_type
-                                                  ? BgWidget.infoInsignia(ProductConfig.getName(opt.content))
-                                                  : ''}${opt.value}
+                                                ${opt.value}
                                               </div>
                                               ${opt.sub_title
                                                 ? html`
-                                                    <div class="fw-500" style="color:grey;font-size:13px;">
+                                                    <div class="fw-500" style="color: grey; font-size: 13px;">
                                                       ${opt.sub_title}
                                                     </div>
                                                   `
@@ -239,24 +239,59 @@ export class BgProduct {
                                             </div>
                                           </div>
                                           ${(() => {
+                                            const isVisibleProduct =
+                                              opt.content.visible === 'false' && !obj.show_product_type
+                                                ? BgWidget.warningInsignia('隱形商品', { size: 'sm' })
+                                                : '';
+
+                                            const productCategory = obj.show_product_type
+                                              ? BgWidget.infoInsignia(ProductConfig.getName(opt.content), {
+                                                  size: 'sm',
+                                                })
+                                              : '';
+
                                             const collections = opt.content?.collection
                                               ?.filter(Boolean)
                                               .map((col: string) => BgWidget.normalInsignia(col, { size: 'sm' }))
                                               .join('');
-                                            return collections
-                                              ? html`<div class="d-flex flex-wrap gap-1 mt-2">${collections}</div>`
+
+                                            const renderString = `${isVisibleProduct}${productCategory}${collections}`;
+
+                                            return renderString
+                                              ? html`<div class="d-flex flex-wrap gap-1 mt-2">${renderString}</div>`
                                               : '';
                                           })()}
                                         </div>
                                         <div class="text-end">
                                           <div class="tx_normal_14">
-                                            $${parseInt(
-                                              `${
-                                                opt.content[vm.orderString || 'min_price'] ??
-                                                opt.content.variants[0].sale_price
-                                              }`,
-                                              10
-                                            ).toLocaleString()}
+                                            ${(() => {
+                                              const contentMap: Record<string, () => string> = {
+                                                price: () => {
+                                                  return html`$${parseInt(
+                                                    `${
+                                                      opt.content[vm.orderString || 'min_price'] ??
+                                                      opt.content.variants[opt.variant_index ?? 0].sale_price
+                                                    }`,
+                                                    10
+                                                  ).toLocaleString()}`;
+                                                },
+                                                stock: () => {
+                                                  const variant = opt.content.variants[opt.variant_index ?? 0];
+                                                  if (variant.show_understocking === 'false') {
+                                                    return '不追蹤庫存';
+                                                  }
+
+                                                  const n = Number(opt.content.variants[opt.variant_index ?? 0].stock);
+                                                  return html`庫存 ${(isNaN(n) ? 0 : n).toLocaleString()} 個`;
+                                                },
+                                              };
+
+                                              return (
+                                                obj.right_element_type
+                                                  ? contentMap[obj.right_element_type]
+                                                  : contentMap.price
+                                              )();
+                                            })()}
                                           </div>
                                           ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
                                         </div>
@@ -264,7 +299,7 @@ export class BgProduct {
                                   },
                                   divCreate: {
                                     class: 'd-flex align-items-center',
-                                    style: 'gap: 24px',
+                                    style: `gap: ${document.body.clientWidth > 800 ? 24 : 12}px`,
                                   },
                                 };
                               }) + BgWidget.horizontalLine({ margin: 0.15 })
@@ -332,19 +367,15 @@ export class BgProduct {
                     content: { id: number; title: string; preview_image: string[]; variants: any; visible: string };
                   }) => {
                     const image = product.content.preview_image[0] ?? BgWidget.noImageURL;
-                    const value = [
-                      product.content.visible === 'false' ? BgWidget.warningInsignia('隱形商品') : '',
-                      product.content.title,
-                    ]
-                      .filter(Boolean)
-                      .join('');
+                    const title = product.content.title;
 
                     if (obj.with_variants) {
-                      product.content.variants.map((variant: any) => {
+                      product.content.variants.map((variant: any, index: number) => {
                         vm.options.push({
                           key: `${product.content.id}-${variant.spec.join('-')}`,
                           sub_title: variant.spec.join('-') ? `規格:${variant.spec.join('-')}` : '',
-                          value: value,
+                          variant_index: index,
+                          value: title,
                           content: product.content,
                           image: image,
                         });
@@ -352,7 +383,7 @@ export class BgProduct {
                     } else {
                       vm.options.push({
                         key: product.content.id,
-                        value: value,
+                        value: title,
                         content: product.content,
                         image: image,
                       });

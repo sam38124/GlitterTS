@@ -1138,21 +1138,12 @@ export class StockHistory {
                                           gvc: gvc,
                                           default: dvm.variantIds,
                                           with_variants: true,
+                                          right_element_type: 'stock',
                                           callback: async value => {
                                             dvm.variantIds = value;
                                             gvc.notifyDataChange(dvm.tableId);
-                                            // alert(JSON.stringify(value))
                                           },
                                         });
-                                        // BgWidget.variantDialog({
-                                        //   gvc,
-                                        //   title: '搜尋商品',
-                                        //   default: dvm.variantIds,
-                                        //   callback: resultData => {
-                                        //     dvm.variantIds = resultData;
-                                        //     gvc.notifyDataChange(dvm.tableId);
-                                        //   },
-                                        // });
                                       })}"
                                     >
                                       <div>新增${typeData.name}商品</div>
