@@ -298,29 +298,24 @@ export class PaymentPage {
                                         );
                                       })}"
                                     >
-                                      ${data.sale_price !== data.variant_sale_price
-                                        ? html`
+                                      ${(() => {
+                                        function formatPrice(price: any) {
+                                          return `$${parseInt(`${price}`, 10).toLocaleString()}`;
+                                        }
+
+                                        if (data.variant_sale_price && data.sale_price !== data.variant_sale_price) {
+                                          return html`
                                             <span class="text-decoration-line-through"
-                                              >$${parseInt(
-                                                (data.variant_sale_price * data.count) as any,
-                                                10
-                                              ).toLocaleString()}</span
+                                              >${formatPrice(data.variant_sale_price * data.count)}</span
                                             >
                                             <span class="text-danger"
-                                              >$${parseInt(
-                                                (data.sale_price * data.count) as any,
-                                                10
-                                              ).toLocaleString()}</span
+                                              >${formatPrice(data.sale_price * data.count)}</span
                                             >
-                                          `
-                                        : html`
-                                            <span
-                                              >$${parseInt(
-                                                (data.sale_price * data.count) as any,
-                                                10
-                                              ).toLocaleString()}</span
-                                            >
-                                          `}
+                                          `;
+                                        }
+
+                                        return html` <span>${formatPrice(data.sale_price * data.count)}</span> `;
+                                      })()}
                                     </div>
                                   </div>
                                   <div class="col-2 d-none d-sm-flex align-items-center justify-content-start">
@@ -360,29 +355,22 @@ export class PaymentPage {
                                       );
                                     })}"
                                   >
-                                    ${data.sale_price !== data.variant_sale_price
-                                      ? html`
+                                    ${(() => {
+                                      function formatPrice(price: any) {
+                                        return `$${parseInt(`${price}`, 10).toLocaleString()}`;
+                                      }
+
+                                      if (data.variant_sale_price && data.sale_price !== data.variant_sale_price) {
+                                        return html`
                                           <span class="text-decoration-line-through"
-                                            >$${parseInt(
-                                              (data.variant_sale_price * data.count) as any,
-                                              10
-                                            ).toLocaleString()}</span
+                                            >${formatPrice(data.variant_sale_price * data.count)}</span
                                           >
-                                          <span class="text-danger"
-                                            >$${parseInt(
-                                              (data.sale_price * data.count) as any,
-                                              10
-                                            ).toLocaleString()}</span
-                                          >
-                                        `
-                                      : html`
-                                          <span
-                                            >$${parseInt(
-                                              (data.sale_price * data.count) as any,
-                                              10
-                                            ).toLocaleString()}</span
-                                          >
-                                        `}
+                                          <span class="text-danger">${formatPrice(data.sale_price * data.count)}</span>
+                                        `;
+                                      }
+
+                                      return html` <span>${formatPrice(data.sale_price * data.count)}</span> `;
+                                    })()}
                                   </div>
                                 </div>
                               `;
@@ -2150,7 +2138,6 @@ export class PaymentPage {
         } else {
           PaymentPage.clearHistory();
           const glitter = gvc.glitter;
-          console.log(`res.response.order-data==>`, res.response.data);
           const invoice = res.response.data.invoice;
           if (
             res.response.data.invoice &&

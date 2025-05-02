@@ -27,7 +27,7 @@ type ScheduleItem = {
 export class Schedule {
   static app: string[] = [];
 
-  async perload(app: string) {
+  async preload(app: string) {
     const brand_type = await App.checkBrandAndMemberType(app);
     if (brand_type.brand === 'shopnex' && brand_type.domain) {
       if (!(await this.isDatabasePass(app))) return false;
@@ -59,7 +59,7 @@ export class Schedule {
   async example(sec: number) {
     try {
       for (const app of Schedule.app) {
-        if (await this.perload(app)) {
+        if (await this.preload(app)) {
           // 排程範例
           // await
         }
@@ -75,7 +75,7 @@ export class Schedule {
     console.log(`autoCancelOrder`);
     for (const app of Schedule.app) {
       try {
-        if (await this.perload(app)) {
+        if (await this.preload(app)) {
           const config = await new User(app).getConfigV2({ key: 'login_config', user_id: 'manager' });
           if (config?.auto_cancel_order_timer && config.auto_cancel_order_timer > 0) {
             const orders = await db.query(
@@ -117,7 +117,7 @@ export class Schedule {
     try {
       for (const app of Schedule.app) {
         try {
-          if (await this.perload(app)) {
+          if (await this.preload(app)) {
             const users = await db.query(
               `select *
                from \`${app}\`.t_user  `,
@@ -153,7 +153,7 @@ export class Schedule {
     console.log(`resetVoucherHistory`);
     for (const app of Schedule.app) {
       try {
-        if (await this.perload(app)) {
+        if (await this.preload(app)) {
           const rebateClass = new Rebate(app);
           const userClass = new User(app);
 
@@ -224,7 +224,7 @@ export class Schedule {
     console.log(`resetVoucherHistory`);
     for (const app of Schedule.app) {
       try {
-        if (await this.perload(app)) {
+        if (await this.preload(app)) {
           const mailType = 'auto-email-birthday';
           const customerMail = await AutoSendEmail.getDefCompare(app, mailType, 'zh-TW');
           if (customerMail.toggle) {
@@ -289,7 +289,7 @@ export class Schedule {
     console.log(`resetVoucherHistory`);
     for (const app of Schedule.app) {
       try {
-        if (await this.perload(app)) {
+        if (await this.preload(app)) {
           await new Shopping(app).resetVoucherHistory();
         }
       } catch (e) {
@@ -305,7 +305,7 @@ export class Schedule {
     console.log(`autoTriggerInvoice`);
     for (const app of Schedule.app) {
       try {
-        if (await this.perload(app)) {
+        if (await this.preload(app)) {
           const orders = await db.query(
             `SELECT *
              FROM \`${app}\`.t_triggers
@@ -333,7 +333,7 @@ export class Schedule {
     console.log(`autoSendLine`);
     for (const app of Schedule.app) {
       try {
-        if (await this.perload(app)) {
+        if (await this.preload(app)) {
           const emails = await db.query(
             `SELECT *
              FROM \`${app}\`.t_triggers
@@ -362,7 +362,7 @@ export class Schedule {
     console.log(`autoSendLine`);
     for (const app of Schedule.app) {
       try {
-        if (await this.perload(app)) {
+        if (await this.preload(app)) {
           const emails = await db.query(
             `SELECT *
              FROM \`${app}\`.t_triggers
@@ -390,7 +390,7 @@ export class Schedule {
     console.log(`autoSendLine`);
     for (const app of Schedule.app) {
       try {
-        if (await this.perload(app)) {
+        if (await this.preload(app)) {
           const emails = await db.query(
             `SELECT *
              FROM \`${app}\`.t_triggers
@@ -478,7 +478,7 @@ export class Schedule {
     console.log(`visitLogs`);
     for (const app of Schedule.app) {
       try {
-        if (await this.perload(app)) {
+        if (await this.preload(app)) {
           const count = await db.query(
             `  SELECT COUNT(DISTINCT mac_address) as count , CONVERT_TZ(NOW(), '+00:00', '+08:00') as now
                FROM ${process.env.GLITTER_DB}.t_monitor
@@ -489,7 +489,11 @@ export class Schedule {
                  AND ${convertTimeZone('NOW()')}`,
             []
           );
-          await db.query(`replace into \`${app}\`.visit_logs (date, count,tag_name) values (?, ? , ?)`,[count[0]['now'], count[0]['count'],(`${count[0]['now'].toISOString()}`).substring(0,10)]);
+          await db.query(`replace into \`${app}\`.visit_logs (date, count,tag_name) values (?, ? , ?)`, [
+            count[0]['now'],
+            count[0]['count'],
+            `${count[0]['now'].toISOString()}`.substring(0, 10),
+          ]);
         }
       } catch (e) {
         console.error('BAD_REQUEST', 'visitLogs Error: ' + e, null);
@@ -502,7 +506,7 @@ export class Schedule {
   main() {
     const scheduleList: ScheduleItem[] = ConfigSetting.is_local
       ? //線下測試環境
-        [ { second: 60 * 5, status: true, func: 'visitLogs', desc: '更新每天造訪人數' },]
+        [{ second: 60 * 5, status: true, func: 'visitLogs', desc: '更新每天造訪人數' }]
       : //線上環境
         [
           // { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
