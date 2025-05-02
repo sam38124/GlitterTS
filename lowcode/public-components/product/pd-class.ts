@@ -437,9 +437,13 @@ export class PdClass {
     });
     PdClass.addSpecStyle(obj.gvc);
 
+    // 可顯示與不可顯示產品規格
+    const invisibleVariants = obj.prod.variants.filter(v => v.invisible);
+    const visibleVariants = obj.prod.variants.filter(v => !v.invisible);
+
     // 更新規格
-    if (obj.vm.specs.length === 0) {
-      obj.vm.specs = obj.vm.specs.map((spec: any) => spec.option[0].title);
+    if (obj.vm.specs.length === 0 || invisibleVariants.find(iv => Tool.ObjCompare(iv.spec, obj.vm.specs))) {
+      obj.vm.specs = visibleVariants?.[0].spec ?? [];
     }
 
     // 過濾預覽圖片
@@ -830,6 +834,8 @@ export class PdClass {
           return {
             bind: ids.ids_spec,
             view: () => {
+              const invisibleVariants = prod.variants.filter(v => v.invisible).map(v => v.spec);
+
               return prod.specs
                 .map((spec, index1) => {
                   return html` <div>
@@ -839,6 +845,14 @@ export class PdClass {
                       <div class="d-flex gap-2 flex-wrap">
                         ${gvc.map(
                           spec.option.map((opt: any) => {
+                            // 排除不可顯示的規格選項
+                            const cloneSpecs = vm.specs.slice();
+                            cloneSpecs[index1] = opt.title;
+
+                            if (invisibleVariants.find(iv => Tool.ObjCompare(iv, cloneSpecs))) {
+                              return '';
+                            }
+
                             return html` <div
                               gvc-option="spec-option-${index1}"
                               class="spec-option ${vm.specs[index1] === opt.title ? 'selected-option' : ''}"
@@ -1052,7 +1066,6 @@ export class PdClass {
                           });
                         }
                       );
-                      // gvc.glitter.getModule('',(module)=>{
                     })}"
                   >
                     <i class="fa-brands fa-rocketchat"></i>

@@ -283,6 +283,7 @@ export class PdClass {
         });
     }
     static showSwiper(obj) {
+        var _a;
         const isPhone = document.body.clientWidth < 768;
         obj.gvc.glitter.addStyleLink(['https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css']);
         obj.gvc.glitter.addMtScript([
@@ -300,8 +301,10 @@ export class PdClass {
             }
         });
         PdClass.addSpecStyle(obj.gvc);
-        if (obj.vm.specs.length === 0) {
-            obj.vm.specs = obj.vm.specs.map((spec) => spec.option[0].title);
+        const invisibleVariants = obj.prod.variants.filter(v => v.invisible);
+        const visibleVariants = obj.prod.variants.filter(v => !v.invisible);
+        if (obj.vm.specs.length === 0 || invisibleVariants.find(iv => Tool.ObjCompare(iv.spec, obj.vm.specs))) {
+            obj.vm.specs = (_a = visibleVariants === null || visibleVariants === void 0 ? void 0 : visibleVariants[0].spec) !== null && _a !== void 0 ? _a : [];
         }
         obj.prod.preview_image = obj.prod.preview_image.filter(image => {
             return image !== 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
@@ -648,6 +651,7 @@ export class PdClass {
                 return {
                     bind: ids.ids_spec,
                     view: () => {
+                        const invisibleVariants = prod.variants.filter(v => v.invisible).map(v => v.spec);
                         return prod.specs
                             .map((spec, index1) => {
                             return html ` <div>
@@ -656,6 +660,11 @@ export class PdClass {
                       </h5>
                       <div class="d-flex gap-2 flex-wrap">
                         ${gvc.map(spec.option.map((opt) => {
+                                const cloneSpecs = vm.specs.slice();
+                                cloneSpecs[index1] = opt.title;
+                                if (invisibleVariants.find(iv => Tool.ObjCompare(iv, cloneSpecs))) {
+                                    return '';
+                                }
                                 return html ` <div
                               gvc-option="spec-option-${index1}"
                               class="spec-option ${vm.specs[index1] === opt.title ? 'selected-option' : ''}"

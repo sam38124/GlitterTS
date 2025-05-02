@@ -793,7 +793,7 @@ export class ShoppingProductSetting {
                       <div style="font-weight: 700;">定價</div>
                       <div class="d-flex w-100" style="gap:18px;">
                         <div class="d-flex w-50 flex-column guide5-5" style="gap: 8px;">
-                          <div>售價*</div>
+                          <div>售價</div>
                           <input
                             style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
                             placeholder="請輸入售價"
