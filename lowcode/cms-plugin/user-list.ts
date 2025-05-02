@@ -18,6 +18,7 @@ import { UserExcel } from './module/user-excel.js';
 import { GlobalUser } from '../glitter-base/global/global-user.js';
 import { ListHeaderOption } from './list-header-option.js';
 import { UserModule } from './user/user-module.js';
+import { TableStorage } from './module/table-storage.js';
 
 const html = String.raw;
 
@@ -43,6 +44,7 @@ type ViewModel = {
   headerConfig: string[];
   apiJSON: any;
   checkedData: any[];
+  listLimit: number;
 };
 
 export class UserList {
@@ -89,6 +91,7 @@ export class UserList {
       headerConfig: [],
       apiJSON: {},
       checkedData: [],
+      listLimit: TableStorage.getLimit(),
     };
 
     const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
@@ -369,6 +372,14 @@ export class UserList {
                               vm.query || '',
                               '搜尋所有用戶'
                             ),
+                            BgWidget.countingFilter({
+                              gvc,
+                              callback: value => {
+                                vm.listLimit = value;
+                                gvc.notifyDataChange([vm.barId, vm.tableId]);
+                              },
+                              default: vm.listLimit,
+                            }),
                             BgWidget.funnelFilter({
                               gvc,
                               callback: () => ListComp.showRightMenu(userFunnel),
@@ -433,11 +444,10 @@ export class UserList {
                               vmi = vd;
                               vm.tabLoading = true;
                               UserList.vm.page = vmi.page;
-                              const limit = 20;
 
                               vm.apiJSON = {
                                 page: vmi.page - 1,
-                                limit: limit,
+                                limit: vm.listLimit,
                                 search: vm.query || undefined,
                                 searchType: vm.queryType || 'name',
                                 orderString: vm.orderString || '',
@@ -448,8 +458,8 @@ export class UserList {
 
                               ApiUser.getUserListOrders(vm.apiJSON).then(data => {
                                 vm.dataList = data.response.data;
-                                vmi.limit = limit;
-                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                vmi.limit = vm.listLimit;
+                                vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                                 vmi.originalData = vm.dataList;
                                 vmi.tableData = getUserlist();
 
@@ -588,6 +598,7 @@ export class UserList {
       headerConfig: [],
       apiJSON: {},
       checkedData: [],
+      listLimit: TableStorage.getLimit(),
     };
 
     const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
@@ -660,6 +671,14 @@ export class UserList {
                       vm.query || '',
                       '搜尋會員電話/編號/名稱'
                     ),
+                    BgWidget.countingFilter({
+                      gvc,
+                      callback: value => {
+                        vm.listLimit = value;
+                        gvc.notifyDataChange([vm.barId, vm.tableId]);
+                      },
+                      default: vm.listLimit,
+                    }),
                     BgWidget.funnelFilter({
                       gvc,
                       callback: () => ListComp.showRightMenu(userFunnel),
@@ -687,10 +706,9 @@ export class UserList {
                   gvc: gvc,
                   getData: vd => {
                     vmi = vd;
-                    const limit = 20;
                     vm.apiJSON = {
                       page: vmi.page - 1,
-                      limit: limit,
+                      limit: vm.listLimit,
                       search: vm.query || undefined,
                       searchType: vm.queryType || 'name',
                       orderString: vm.orderString || '',
@@ -700,7 +718,7 @@ export class UserList {
                     };
                     ApiUser.getUserListOrders(vm.apiJSON).then(data => {
                       vm.dataList = data.response.data;
-                      vmi.pageSize = Math.ceil(data.response.total / limit);
+                      vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                       vmi.originalData = vm.dataList;
                       vmi.tableData = getDatalist();
                       vmi.loading = false;

@@ -10,6 +10,7 @@ import { Tool } from '../modules/tool.js';
 import { BgProduct } from './bg-product.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { ShoppingOrderManager } from '../cms-plugin/shopping-order-manager.js';
+import { TableStorage } from '../cms-plugin/module/table-storage.js';
 
 export type OptionsItem = {
   key: number | string;
@@ -354,6 +355,7 @@ export class BgRecommend {
       group: { type: string; title: string; tag: string };
       filter: any;
       orderString: string;
+      listLimit: number;
     } = {
       id: glitter.getUUID(),
       tableId: glitter.getUUID(),
@@ -366,6 +368,7 @@ export class BgRecommend {
       group: { type: 'level', title: '', tag: '' },
       filter: {},
       orderString: 'default',
+      listLimit: TableStorage.getLimit(),
     };
 
     const ListComp = new BgListComponent(gvc, vm, FilterOptions.recommendUserFilterFrame);
@@ -433,8 +436,7 @@ export class BgRecommend {
                               gvc,
                               callback: (value: any) => {
                                 vm.queryType = value;
-                                gvc.notifyDataChange(vm.tableId);
-                                gvc.notifyDataChange(fvm.id);
+                                gvc.notifyDataChange([vm.tableId, fvm.id]);
                               },
                               default: vm.queryType || 'name',
                               options: FilterOptions.recommendUserSelect,
@@ -442,18 +444,24 @@ export class BgRecommend {
                             BgWidget.searchFilter(
                               gvc.event(e => {
                                 vm.query = `${e.value}`.trim();
-                                gvc.notifyDataChange(vm.tableId);
-                                gvc.notifyDataChange(fvm.id);
+                                gvc.notifyDataChange([vm.tableId, fvm.id]);
                               }),
                               vm.query || '',
                               '搜尋推薦人'
                             ),
+                            BgWidget.countingFilter({
+                              gvc,
+                              callback: value => {
+                                vm.listLimit = value;
+                                gvc.notifyDataChange([vm.tableId, fvm.id]);
+                              },
+                              default: vm.listLimit,
+                            }),
                             BgWidget.updownFilter({
                               gvc,
                               callback: (value: any) => {
                                 vm.orderString = value;
-                                gvc.notifyDataChange(vm.tableId);
-                                gvc.notifyDataChange(fvm.id);
+                                gvc.notifyDataChange([vm.tableId, fvm.id]);
                               },
                               default: vm.orderString || 'default',
                               options: FilterOptions.recommendUserOrderBy,
@@ -482,10 +490,9 @@ export class BgRecommend {
                           gvc: gvc,
                           getData: async vd => {
                             vmi = vd;
-                            const limit = 15;
                             ApiRecommend.getUsers({
                               data: {},
-                              limit: limit,
+                              limit: vm.listLimit,
                               page: vmi.page - 1,
                               token: (window.parent as any).config.token,
                               search: vm.query,
@@ -493,7 +500,7 @@ export class BgRecommend {
                               orderBy: vm.orderString,
                             }).then(data => {
                               vm.dataList = data.response.data;
-                              vmi.pageSize = Math.ceil(data.response.total / limit);
+                              vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                               vmi.originalData = vm.dataList;
                               vmi.tableData = getDatalist();
                               vmi.loading = false;

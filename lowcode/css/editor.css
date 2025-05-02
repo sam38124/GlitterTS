@@ -902,7 +902,7 @@ h6 {
   color: var(--main-black);
 }
 
-.c_funnel {
+.c_filter_view {
   display: flex;
   padding: 9px;
   min-width: 40px;
@@ -941,6 +941,7 @@ h6 {
   color: var(--main-black);
   font-size: 16px;
   font-weight: 400;
+  padding-top: 1px;
 }
 
 .c_dropdown {
@@ -1277,9 +1278,9 @@ h6 {
   }
 
   .c_absolute {
-    width: 200px;
-    height: 250px;
-    padding: 12px;
+    width: 220px;
+    height: 280px;
+    padding: 16px;
   }
 
   .btn-gray,

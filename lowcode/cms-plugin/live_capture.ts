@@ -4304,10 +4304,10 @@ export class LiveCapture {
                             value=""
                           />
                         </div>
-                        <div class="c_funnel">
+                        <div class="c_filter_view">
                           <i class="fa-regular fa-filter" aria-hidden="true"></i>
                         </div>
-                        <div class="c_updown">
+                        <div class="c_filter_view">
                           <i class="fa-regular fa-arrow-up-arrow-down" aria-hidden="true"></i>
                         </div>
                       </div>

@@ -8,6 +8,7 @@ import { FilterOptions } from './filter-options.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
 import { ShoppingProductSetting } from './shopping-product-setting.js';
 import { Tool } from '../modules/tool.js';
+import { TableStorage } from './module/table-storage.js';
 
 const html = String.raw;
 
@@ -40,6 +41,7 @@ type VM = {
   stockOriginArray: StockListObj;
   replaceData?: any;
   stockStores: StockStore[];
+  listLimit: number;
 };
 
 type ProductType = 'product' | 'addProduct' | 'giveaway' | 'hidden' | 'all';
@@ -79,6 +81,7 @@ export class StockList {
       stockOriginArray: [],
       replaceData: {},
       stockStores: [],
+      listLimit: TableStorage.getLimit(),
     };
 
     const ListComp = new BgListComponent(gvc, vm, FilterOptions.stockFilterFrame);
@@ -302,8 +305,7 @@ export class StockList {
                               gvc,
                               callback: (value: any) => {
                                 vm.queryType = value;
-                                gvc.notifyDataChange(vm.tableId);
-                                gvc.notifyDataChange(vmlist.id);
+                                gvc.notifyDataChange([vm.tableId, vmlist.id]);
                               },
                               default: vm.queryType || 'name',
                               options: FilterOptions.stockSelect,
@@ -311,12 +313,19 @@ export class StockList {
                             BgWidget.searchFilter(
                               gvc.event(e => {
                                 vm.query = `${e.value}`.trim();
-                                gvc.notifyDataChange(vm.tableId);
-                                gvc.notifyDataChange(vmlist.id);
+                                gvc.notifyDataChange([vm.tableId, vmlist.id]);
                               }),
                               vm.query || '',
                               '搜尋商品'
                             ),
+                            BgWidget.countingFilter({
+                              gvc,
+                              callback: value => {
+                                vm.listLimit = value;
+                                gvc.notifyDataChange([vm.tableId, vmlist.id]);
+                              },
+                              default: vm.listLimit,
+                            }),
                             BgWidget.funnelFilter({
                               gvc,
                               callback: () => ListComp.showRightMenu(FilterOptions.stockFunnel),
@@ -325,8 +334,7 @@ export class StockList {
                               gvc,
                               callback: (value: any) => {
                                 vm.orderString = value;
-                                gvc.notifyDataChange(vm.tableId);
-                                gvc.notifyDataChange(vmlist.id);
+                                gvc.notifyDataChange([vm.tableId, vmlist.id]);
                               },
                               default: vm.orderString || 'default',
                               options: FilterOptions.stockOrderBy,
@@ -354,10 +362,9 @@ export class StockList {
                             gvc: gvc,
                             getData: vd => {
                               vmi = vd;
-                              const limit = 15;
 
                               Promise.all([
-                                new Promise((resolve, reject) => {
+                                new Promise(resolve => {
                                   ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
                                     if (dd.result && dd.response.value && dd.response.value.list) {
                                       resolve(dd.response.value.list);
@@ -366,10 +373,10 @@ export class StockList {
                                     }
                                   });
                                 }),
-                                new Promise((resolve, reject) => {
+                                new Promise(resolve => {
                                   ApiShop.getVariants({
                                     page: vmi.page - 1,
-                                    limit: limit,
+                                    limit: vm.listLimit,
                                     search: vm.query || undefined,
                                     searchType: vm.queryType || 'title',
                                     orderBy: vm.orderString || undefined,
@@ -398,7 +405,7 @@ export class StockList {
                                 });
 
                                 vm.dataList = data.response.data;
-                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                                 vmi.originalData = vm.dataList;
                                 vmi.tableData = getDatalist();
                                 vm.stockOriginArray = JSON.parse(JSON.stringify(vm.stockArray));

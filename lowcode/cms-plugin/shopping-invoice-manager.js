@@ -7,6 +7,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { Tool } from '../modules/tool.js';
 import { ShoppingAllowanceManager } from './shopping-allowance-manager.js';
 import { IminModule } from './pos-pages/imin-module.js';
+import { TableStorage } from './module/table-storage.js';
 const html = String.raw;
 export class ShoppingInvoiceManager {
     static supportShipmentMethod() {
@@ -66,6 +67,7 @@ export class ShoppingInvoiceManager {
             filter: {},
             filterId: glitter.getUUID(),
             filter_type: query.isPOS ? 'pos' : 'normal',
+            listLimit: TableStorage.getLimit(),
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.invoiceFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -281,6 +283,14 @@ export class ShoppingInvoiceManager {
                                             vm.query = `${e.value}`.trim();
                                             gvc.notifyDataChange(vm.id);
                                         }), vm.query || '', '搜尋發票'),
+                                        BgWidget.countingFilter({
+                                            gvc,
+                                            callback: value => {
+                                                vm.listLimit = value;
+                                                gvc.notifyDataChange(vm.id);
+                                            },
+                                            default: vm.listLimit,
+                                        }),
                                         BgWidget.funnelFilter({
                                             gvc,
                                             callback: () => {
@@ -306,10 +316,9 @@ export class ShoppingInvoiceManager {
                             gvc: gvc,
                             getData: vmi => {
                                 var _a;
-                                const limit = 20;
                                 ApiShop.getInvoice({
                                     page: vmi.page - 1,
-                                    limit: limit,
+                                    limit: vm.listLimit,
                                     search: vm.query || '',
                                     searchType: (_a = vm.queryType) !== null && _a !== void 0 ? _a : 'order_number',
                                     orderString: vm.orderString,
@@ -390,7 +399,7 @@ export class ShoppingInvoiceManager {
                                         });
                                     }
                                     vm.dataList = data.response.data;
-                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                    vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                                     vmi.originalData = vm.dataList;
                                     vmi.tableData = getDatalist();
                                     vmi.loading = false;

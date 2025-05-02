@@ -33,6 +33,7 @@ import { FilterOptions } from './filter-options.js';
 import { ListHeaderOption } from './list-header-option.js';
 import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
 import { OrderModule } from './order/order-module.js';
+import { TableStorage } from './module/table-storage.js';
 const html = String.raw;
 const css = String.raw;
 class OrderDetail {
@@ -91,6 +92,7 @@ export class ShoppingOrderManager {
             apiJSON: {},
             checkedData: [],
             headerConfig: [],
+            listLimit: TableStorage.getLimit(),
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.orderFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -242,6 +244,14 @@ export class ShoppingOrderManager {
                             vm.query = `${e.value}`.trim();
                             gvc.notifyDataChange(vm.id);
                         }), vm.query || '', '搜尋訂單'),
+                        BgWidget.countingFilter({
+                            gvc,
+                            callback: value => {
+                                vm.listLimit = value;
+                                gvc.notifyDataChange(vm.id);
+                            },
+                            default: vm.listLimit,
+                        }),
                         BgWidget.funnelFilter({
                             gvc,
                             callback: () => {
@@ -297,10 +307,9 @@ export class ShoppingOrderManager {
                 defPage: ShoppingOrderManager.vm.page,
                 getData: vmi => {
                     ShoppingOrderManager.vm.page = vmi.page;
-                    const limit = 20;
                     vm.apiJSON = {
                         page: vmi.page - 1,
-                        limit: limit,
+                        limit: vm.listLimit,
                         search: vm.query || undefined,
                         searchType: vm.queryType || 'cart_token',
                         orderString: vm.orderString,
@@ -456,7 +465,7 @@ export class ShoppingOrderManager {
                             });
                         }
                         vm.dataList = data.response.data;
-                        vmi.pageSize = Math.ceil(data.response.total / limit);
+                        vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                         vmi.originalData = vm.dataList;
                         vmi.tableData = yield getDatalist();
                         vmi.loading = false;

@@ -223,6 +223,7 @@ interface ViewModel {
   apiJSON: any;
   checkedData: any[];
   headerConfig: string[];
+  listLimit: number;
 }
 
 interface Invoice {

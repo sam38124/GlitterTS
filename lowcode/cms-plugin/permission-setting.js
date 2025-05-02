@@ -6,6 +6,7 @@ import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Setting_editor } from '../jspage/function-page/setting_editor.js';
 import { Tool } from '../modules/tool.js';
+import { TableStorage } from './module/table-storage.js';
 const html = String.raw;
 export class PermissionSetting {
     static main(gvc, edit_mode) {
@@ -41,6 +42,7 @@ export class PermissionSetting {
                     },
                     dataList: [],
                     filter: {},
+                    listLimit: TableStorage.getLimit(),
                 };
                 return a;
             }
@@ -73,6 +75,7 @@ export class PermissionSetting {
                     },
                     dataList: [],
                     filter: {},
+                    listLimit: TableStorage.getLimit(),
                 };
             }
         }
@@ -203,17 +206,23 @@ export class PermissionSetting {
                                             gvc,
                                             callback: (value) => {
                                                 vm.queryType = value;
-                                                gvc.notifyDataChange(vm.tableId);
-                                                gvc.notifyDataChange(id);
+                                                gvc.notifyDataChange([vm.tableId, id]);
                                             },
                                             default: vm.queryType || 'name',
                                             options: FilterOptions.permissionSelect,
                                         }),
                                         BgWidget.searchFilter(gvc.event(e => {
                                             vm.query = `${e.value}`.trim();
-                                            gvc.notifyDataChange(vm.tableId);
-                                            gvc.notifyDataChange(id);
+                                            gvc.notifyDataChange([vm.tableId, id]);
                                         }), vm.query || '', '搜尋所有員工'),
+                                        BgWidget.countingFilter({
+                                            gvc,
+                                            callback: value => {
+                                                vm.listLimit = value;
+                                                gvc.notifyDataChange([vm.tableId, id]);
+                                            },
+                                            default: vm.listLimit,
+                                        }),
                                         BgWidget.funnelFilter({
                                             gvc,
                                             callback: () => ListComp.showRightMenu(FilterOptions.permissionFunnel),
@@ -222,8 +231,7 @@ export class PermissionSetting {
                                             gvc,
                                             callback: (value) => {
                                                 vm.orderString = value;
-                                                gvc.notifyDataChange(vm.tableId);
-                                                gvc.notifyDataChange(id);
+                                                gvc.notifyDataChange([vm.tableId, id]);
                                             },
                                             default: vm.orderString || 'default',
                                             options: FilterOptions.permissionOrderBy,
@@ -241,17 +249,16 @@ export class PermissionSetting {
                                     gvc: gvc,
                                     getData: vd => {
                                         vmi = vd;
-                                        const limit = 10;
                                         ApiUser.getPermission({
                                             page: vmi.page - 1,
-                                            limit: limit,
+                                            limit: vm.listLimit,
                                             queryType: vm.queryType,
                                             query: vm.query,
                                             orderBy: vm.orderString,
                                             filter: vm.filter,
                                         }).then(data => {
                                             vm.dataList = data.response.data;
-                                            vmi.pageSize = Math.ceil(data.response.total / limit);
+                                            vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                                             vmi.originalData = vm.dataList;
                                             vmi.tableData = getDatalist();
                                             vmi.loading = false;

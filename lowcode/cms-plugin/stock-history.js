@@ -20,6 +20,7 @@ import { StockVendors } from './stock-vendors.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
 import { BgProduct } from '../backend-manager/bg-product.js';
+import { TableStorage } from './module/table-storage.js';
 const html = String.raw;
 const typeConfig = {
     restocking: {
@@ -163,6 +164,7 @@ export class StockHistory {
             filter: {},
             orderString: '',
             tabKey: 'all',
+            listLimit: TableStorage.getLimit(),
         };
         return gvc.bindView({
             bind: vm.id,
@@ -402,11 +404,10 @@ export class StockHistory {
                         gvc: gvc,
                         getData: vd => {
                             vmi = vd;
-                            const limit = 100;
                             Promise.all([
                                 ApiStock.getStockHistory({
                                     page: vmi.page - 1,
-                                    limit: limit,
+                                    limit: vm.listLimit,
                                     search: vm.query,
                                     type: vm.type,
                                     queryType: vm.queryType,
@@ -423,7 +424,7 @@ export class StockHistory {
                                 const r = dataArray[0];
                                 if (r.result && r.response) {
                                     vm.dataList = r.response.data;
-                                    vmi.pageSize = Math.ceil(r.response.total / limit);
+                                    vmi.pageSize = Math.ceil(r.response.total / vm.listLimit);
                                     vmi.originalData = vm.dataList;
                                     vmi.tableData = getDatalist();
                                 }
@@ -683,17 +684,23 @@ export class StockHistory {
                         gvc,
                         callback: (value) => {
                             vm.queryType = value;
-                            gvc.notifyDataChange(vm.tableId);
-                            gvc.notifyDataChange(id);
+                            gvc.notifyDataChange([vm.tableId, id]);
                         },
                         default: vm.queryType || 'title',
                         options: FilterOptions.stockHistoryCheckSelect,
                     }),
                     BgWidget.searchFilter(gvc.event(e => {
                         vm.query = `${e.value}`.trim();
-                        gvc.notifyDataChange(vm.tableId);
-                        gvc.notifyDataChange(id);
+                        gvc.notifyDataChange([vm.tableId, id]);
                     }), vm.query || '', '搜尋所有用戶'),
+                    BgWidget.countingFilter({
+                        gvc,
+                        callback: value => {
+                            vm.listLimit = value;
+                            gvc.notifyDataChange([vm.tableId, id]);
+                        },
+                        default: vm.listLimit,
+                    }),
                 ];
                 const filterTags = ListComp.getFilterTags(FilterOptions.stockHistoryCheckFunnel);
                 return BgListComponent.listBarRWD(filterList, filterTags);

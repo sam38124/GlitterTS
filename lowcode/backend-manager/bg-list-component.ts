@@ -457,7 +457,7 @@ export class BgListComponent {
         style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between"
       >
         <div>${filterList[0]}</div>
-        <div style="display: flex; gap: 4px;">${filterList[2] ?? ''} ${filterList[3] ?? ''} ${filterList[4] ?? ''}</div>
+        <div style="display: flex; gap: 4px;">${filterList.slice(2, filterList.length).filter(Boolean).join('')}</div>
       </div>
       <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
       <div>${filterTags}</div>`;

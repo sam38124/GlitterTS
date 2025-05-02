@@ -17,6 +17,7 @@ import { ShoppingSettingBasic } from './shopping-setting-basic.js';
 import { ShoppingSettingAdvance } from './shopping-setting-advance.js';
 import { ActiveSchedule, Product, ProductInitial } from '../public-models/product.js';
 import { IminModule } from './pos-pages/imin-module.js';
+import { TableStorage } from './module/table-storage.js';
 
 const html = String.raw;
 
@@ -49,6 +50,7 @@ export class ShoppingProductSetting {
       ai_initial: any;
       apiJSON: any;
       checkedData: any[];
+      listLimit: number;
     } = {
       id: glitter.getUUID(),
       tableId: glitter.getUUID(),
@@ -63,6 +65,7 @@ export class ShoppingProductSetting {
       ai_initial: {},
       apiJSON: {},
       checkedData: [],
+      listLimit: TableStorage.getLimit(),
     };
 
     const ListComp = new BgListComponent(gvc, vm, FilterOptions.productFilterFrame);
@@ -216,8 +219,7 @@ export class ShoppingProductSetting {
                                     gvc,
                                     callback: (value: any) => {
                                       vm.queryType = value;
-                                      gvc.notifyDataChange(vm.tableId);
-                                      gvc.notifyDataChange(id);
+                                      gvc.notifyDataChange([vm.tableId, id]);
                                     },
                                     default: vm.queryType || 'title',
                                     options: FilterOptions.productSelect,
@@ -226,12 +228,19 @@ export class ShoppingProductSetting {
                                   BgWidget.searchFilter(
                                     gvc.event(e => {
                                       vm.query = `${e.value}`.trim();
-                                      gvc.notifyDataChange(vm.tableId);
-                                      gvc.notifyDataChange(id);
+                                      gvc.notifyDataChange([vm.tableId, id]);
                                     }),
                                     vm.query || '',
                                     '搜尋'
                                   ),
+                                  BgWidget.countingFilter({
+                                    gvc,
+                                    callback: value => {
+                                      vm.listLimit = value;
+                                      gvc.notifyDataChange([vm.tableId, id]);
+                                    },
+                                    default: vm.listLimit,
+                                  }),
                                   BgWidget.funnelFilter({
                                     gvc,
                                     callback: () => ListComp.showRightMenu(productFunnel),
@@ -240,8 +249,7 @@ export class ShoppingProductSetting {
                                     gvc,
                                     callback: (value: any) => {
                                       vm.orderString = value;
-                                      gvc.notifyDataChange(vm.tableId);
-                                      gvc.notifyDataChange(id);
+                                      gvc.notifyDataChange([vm.tableId, id]);
                                     },
                                     default: vm.orderString || 'default',
                                     options: FilterOptions.productListOrderBy,
@@ -256,14 +264,13 @@ export class ShoppingProductSetting {
                           gvc.bindView({
                             bind: vm.tableId,
                             view: () => {
-                              const limit = 20;
                               return BgWidget.tableV3({
                                 gvc: gvc,
                                 getData: vmi => {
                                   function loop() {
                                     vm.apiJSON = {
                                       page: vmi.page - 1,
-                                      limit: limit,
+                                      limit: vm.listLimit,
                                       search: vm.query || undefined,
                                       searchType: vm.queryType || undefined,
                                       orderBy: vm.orderString || undefined,
@@ -404,7 +411,7 @@ export class ShoppingProductSetting {
                                       }
 
                                       vm.dataList = data.response.data;
-                                      vmi.pageSize = Math.ceil(data.response.total / limit);
+                                      vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                                       vmi.originalData = vm.dataList;
                                       vmi.tableData = getDatalist();
                                       vmi.loading = false;

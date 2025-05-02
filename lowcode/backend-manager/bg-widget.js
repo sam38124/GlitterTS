@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var _a;
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { PageSplit } from './splitPage.js';
 import { Tool } from '../modules/tool.js';
@@ -14,10 +15,11 @@ import { ApiShop } from '../glitter-base/route/shopping.js';
 import { Article } from '../glitter-base/route/article.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ApiStock } from '../glitter-base/route/stock.js';
-import { FormModule } from '../cms-plugin/module/form-module.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
-import { FormCheck } from '../cms-plugin/module/form-check.js';
 import { Language } from '../glitter-base/global/language.js';
+import { FormModule } from '../cms-plugin/module/form-module.js';
+import { FormCheck } from '../cms-plugin/module/form-check.js';
+import { TableStorage } from '../cms-plugin/module/table-storage.js';
 import { ProductAi } from '../cms-plugin/ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
 import { Animation } from '../glitterBundle/module/Animation.js';
@@ -64,7 +66,7 @@ export class BgWidget {
     `;
     }
     static customButton(setValue) {
-        var _a, _b, _c, _d;
+        var _b, _c, _d, _e;
         const button = setValue.button;
         const event = setValue.event;
         const text = setValue.text;
@@ -100,12 +102,12 @@ export class BgWidget {
         })();
         return html ` <button
       type="button"
-      class="btn btn-${button.color} ${buttonSize} ${(_a = button.class) !== null && _a !== void 0 ? _a : ''}"
-      style="${(_b = button.style) !== null && _b !== void 0 ? _b : ''}"
+      class="btn btn-${button.color} ${buttonSize} ${(_b = button.class) !== null && _b !== void 0 ? _b : ''}"
+      style="${(_c = button.style) !== null && _c !== void 0 ? _c : ''}"
       onclick="${event}"
     >
       <i class="${icon ? icon.name : 'd-none'}"></i>
-      <span class="${textColor} ${(_c = text.class) !== null && _c !== void 0 ? _c : ''}" style="${textSize} ${(_d = text.style) !== null && _d !== void 0 ? _d : ''}">${text.name}</span>
+      <span class="${textColor} ${(_d = text.class) !== null && _d !== void 0 ? _d : ''}" style="${textSize} ${(_e = text.style) !== null && _e !== void 0 ? _e : ''}">${text.name}</span>
     </button>`;
     }
     static save(event, text = '儲存', customClass) {
@@ -141,36 +143,36 @@ export class BgWidget {
     `;
     }
     static disableButton(text, obj) {
-        var _a;
+        var _b;
         return html ` <button class="btn btn-gray-disable" type="button">
       <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
-      ${text.length > 0 ? html `<span class="tx_700" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>` : ''}
+      ${text.length > 0 ? html `<span class="tx_700" style="${(_b = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _b !== void 0 ? _b : ''}">${text}</span>` : ''}
     </button>`;
     }
     static grayButton(text, event, obj) {
-        var _a;
+        var _b;
         return html ` <button class="btn btn-gray ${(obj === null || obj === void 0 ? void 0 : obj.class) || ''}" type="button" onclick="${event}">
       <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
-      ${text.length > 0 ? html `<span class="tx_700" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>` : ''}
+      ${text.length > 0 ? html `<span class="tx_700" style="${(_b = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _b !== void 0 ? _b : ''}">${text}</span>` : ''}
     </button>`;
     }
     static darkButton(text, event, obj) {
-        var _a, _b, _c;
+        var _b, _c, _d;
         return html ` <button
       type="button"
-      class="btn btn-black ${(_a = obj === null || obj === void 0 ? void 0 : obj.class) !== null && _a !== void 0 ? _a : ''}"
-      style="${(_b = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _b !== void 0 ? _b : ''}"
+      class="btn btn-black ${(_b = obj === null || obj === void 0 ? void 0 : obj.class) !== null && _b !== void 0 ? _b : ''}"
+      style="${(_c = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _c !== void 0 ? _c : ''}"
       onclick="${event}"
     >
       <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
-      <span class="tx_700_white" style="${(_c = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _c !== void 0 ? _c : ''}">${text}</span>
+      <span class="tx_700_white" style="${(_d = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _d !== void 0 ? _d : ''}">${text}</span>
     </button>`;
     }
     static redButton(text, event, obj) {
-        var _a;
+        var _b;
         return html ` <button class="btn btn-red" type="button" onclick="${event}">
       <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
-      <span class="tx_700_white" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>
+      <span class="tx_700_white" style="${(_b = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _b !== void 0 ? _b : ''}">${text}</span>
     </button>`;
     }
     static plusButton(obj) {
@@ -219,19 +221,19 @@ export class BgWidget {
     `;
     }
     static questionButton(event, obj) {
-        var _a;
+        var _b;
         return html `<i
       class="fa-regular fa-circle-question cursor_pointer"
-      style="font-size: ${(_a = obj === null || obj === void 0 ? void 0 : obj.size) !== null && _a !== void 0 ? _a : 18}px"
+      style="font-size: ${(_b = obj === null || obj === void 0 ? void 0 : obj.size) !== null && _b !== void 0 ? _b : 18}px"
       onclick="${event}"
     ></i>`;
     }
     static generateTooltipButton(gvc, innerHTML, obj) {
-        var _a;
+        var _b;
         return html `<i
         class="fa-regular fa-circle-question cursor_pointer"
         data-check="false"
-        style="font-size: ${(_a = obj === null || obj === void 0 ? void 0 : obj.size) !== null && _a !== void 0 ? _a : 18}px"
+        style="font-size: ${(_b = obj === null || obj === void 0 ? void 0 : obj.size) !== null && _b !== void 0 ? _b : 18}px"
         onclick="${gvc.event(e => {
             if (!e.parentElement.classList.contains('position-relative')) {
                 e.parentElement.classList.add('position-relative');
@@ -252,7 +254,7 @@ export class BgWidget {
       </div> `;
     }
     static iconButton(obj) {
-        var _a;
+        var _b;
         const iconClass = (() => {
             switch (obj.icon) {
                 case 'info':
@@ -263,7 +265,7 @@ export class BgWidget {
         })();
         return html `<i
       class="${iconClass} cursor_pointer"
-      style="font-size: ${(_a = obj === null || obj === void 0 ? void 0 : obj.size) !== null && _a !== void 0 ? _a : 18}px"
+      style="font-size: ${(_b = obj === null || obj === void 0 ? void 0 : obj.size) !== null && _b !== void 0 ? _b : 18}px"
       onclick="${obj.event}"
     ></i>`;
     }
@@ -280,9 +282,9 @@ export class BgWidget {
     </div>`;
     }
     static switchTextButton(gvc, def, text, callback) {
-        var _a, _b;
+        var _b, _c;
         return html ` <div style="display: flex; align-items: center;">
-      <div class="tx_normal me-2">${(_a = text.left) !== null && _a !== void 0 ? _a : ''}</div>
+      <div class="tx_normal me-2">${(_b = text.left) !== null && _b !== void 0 ? _b : ''}</div>
       <div
         class="form-check form-switch m-0 cursor_pointer"
         style="margin-top: 10px; display: flex; align-items: center;"
@@ -296,7 +298,7 @@ export class BgWidget {
           ${def ? `checked` : ``}
         />
       </div>
-      <div class="tx_normal">${(_b = text.right) !== null && _b !== void 0 ? _b : ''}</div>
+      <div class="tx_normal">${(_c = text.right) !== null && _c !== void 0 ? _c : ''}</div>
     </div>`;
     }
     static goBack(event) {
@@ -312,8 +314,8 @@ export class BgWidget {
     </div>`;
     }
     static aiChatButton(obj) {
-        var _a;
-        const text = (_a = obj.title) !== null && _a !== void 0 ? _a : (() => {
+        var _b;
+        const text = (_b = obj.title) !== null && _b !== void 0 ? _b : (() => {
             switch (obj.select) {
                 case 'writer':
                     return 'AI助手';
@@ -344,7 +346,7 @@ export class BgWidget {
     </div>`;
     }
     static insignia(className, text, args) {
-        var _a, _b;
+        var _b, _c;
         const typeMap = {
             border: `insignia-border insignia-${className}-border`,
             fill: `insignia-${className}`,
@@ -353,83 +355,83 @@ export class BgWidget {
             sm: 'insignia insignia-sm',
             md: 'insignia',
         };
-        return html ` <div class="${(_a = sizeMap[args.size]) !== null && _a !== void 0 ? _a : sizeMap.md} ${(_b = typeMap[args.type]) !== null && _b !== void 0 ? _b : typeMap.fill}">${text}</div>`;
+        return html ` <div class="${(_b = sizeMap[args.size]) !== null && _b !== void 0 ? _b : sizeMap.md} ${(_c = typeMap[args.type]) !== null && _c !== void 0 ? _c : typeMap.fill}">${text}</div>`;
     }
     static primaryInsignia(text, args) {
-        var _a, _b;
+        var _b, _c;
         return this.insignia('primary', text, {
-            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
-            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+            type: (_b = args === null || args === void 0 ? void 0 : args.type) !== null && _b !== void 0 ? _b : 'fill',
+            size: (_c = args === null || args === void 0 ? void 0 : args.size) !== null && _c !== void 0 ? _c : 'md',
         });
     }
     static successInsignia(text, args) {
-        var _a, _b;
+        var _b, _c;
         return this.insignia('success', text, {
-            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
-            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+            type: (_b = args === null || args === void 0 ? void 0 : args.type) !== null && _b !== void 0 ? _b : 'fill',
+            size: (_c = args === null || args === void 0 ? void 0 : args.size) !== null && _c !== void 0 ? _c : 'md',
         });
     }
     static dangerInsignia(text, args) {
-        var _a, _b;
+        var _b, _c;
         return this.insignia('danger', text, {
-            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
-            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+            type: (_b = args === null || args === void 0 ? void 0 : args.type) !== null && _b !== void 0 ? _b : 'fill',
+            size: (_c = args === null || args === void 0 ? void 0 : args.size) !== null && _c !== void 0 ? _c : 'md',
         });
     }
     static infoInsignia(text, args) {
-        var _a, _b;
+        var _b, _c;
         return this.insignia('info', text, {
-            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
-            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+            type: (_b = args === null || args === void 0 ? void 0 : args.type) !== null && _b !== void 0 ? _b : 'fill',
+            size: (_c = args === null || args === void 0 ? void 0 : args.size) !== null && _c !== void 0 ? _c : 'md',
         });
     }
     static warningInsignia(text, args) {
-        var _a, _b;
+        var _b, _c;
         return this.insignia('warning', text, {
-            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
-            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+            type: (_b = args === null || args === void 0 ? void 0 : args.type) !== null && _b !== void 0 ? _b : 'fill',
+            size: (_c = args === null || args === void 0 ? void 0 : args.size) !== null && _c !== void 0 ? _c : 'md',
         });
     }
     static watchingInsignia(text, args) {
-        var _a, _b;
+        var _b, _c;
         return this.insignia('watching', text, {
-            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
-            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+            type: (_b = args === null || args === void 0 ? void 0 : args.type) !== null && _b !== void 0 ? _b : 'fill',
+            size: (_c = args === null || args === void 0 ? void 0 : args.size) !== null && _c !== void 0 ? _c : 'md',
         });
     }
     static normalInsignia(text, args) {
-        var _a, _b;
+        var _b, _c;
         return this.insignia('normal', text, {
-            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
-            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+            type: (_b = args === null || args === void 0 ? void 0 : args.type) !== null && _b !== void 0 ? _b : 'fill',
+            size: (_c = args === null || args === void 0 ? void 0 : args.size) !== null && _c !== void 0 ? _c : 'md',
         });
     }
     static notifyInsignia(text, args) {
-        var _a, _b;
+        var _b, _c;
         return this.insignia('notify', text, {
-            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
-            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+            type: (_b = args === null || args === void 0 ? void 0 : args.type) !== null && _b !== void 0 ? _b : 'fill',
+            size: (_c = args === null || args === void 0 ? void 0 : args.size) !== null && _c !== void 0 ? _c : 'md',
         });
     }
     static secondaryInsignia(text, args) {
-        var _a, _b;
+        var _b, _c;
         return this.insignia('secondary', text, {
-            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
-            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+            type: (_b = args === null || args === void 0 ? void 0 : args.type) !== null && _b !== void 0 ? _b : 'fill',
+            size: (_c = args === null || args === void 0 ? void 0 : args.size) !== null && _c !== void 0 ? _c : 'md',
         });
     }
     static grayInsignia(text, args) {
-        var _a, _b;
+        var _b, _c;
         return this.insignia('gray', text, {
-            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
-            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+            type: (_b = args === null || args === void 0 ? void 0 : args.type) !== null && _b !== void 0 ? _b : 'fill',
+            size: (_c = args === null || args === void 0 ? void 0 : args.size) !== null && _c !== void 0 ? _c : 'md',
         });
     }
     static darkInsignia(text, args) {
-        var _a, _b;
+        var _b, _c;
         return this.insignia('dark', text, {
-            type: (_a = args === null || args === void 0 ? void 0 : args.type) !== null && _a !== void 0 ? _a : 'fill',
-            size: (_b = args === null || args === void 0 ? void 0 : args.size) !== null && _b !== void 0 ? _b : 'md',
+            type: (_b = args === null || args === void 0 ? void 0 : args.type) !== null && _b !== void 0 ? _b : 'fill',
+            size: (_c = args === null || args === void 0 ? void 0 : args.size) !== null && _c !== void 0 ? _c : 'md',
         });
     }
     static languageInsignia(language, style) {
@@ -708,18 +710,18 @@ export class BgWidget {
         });
     }
     static editeInput(obj) {
-        var _a;
-        obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
+        var _b;
+        obj.title = (_b = obj.title) !== null && _b !== void 0 ? _b : '';
         return obj.gvc.bindView(() => {
-            var _a;
+            var _b;
             const id = obj.gvc.glitter.getUUID();
             return {
                 bind: id,
                 view: () => {
-                    var _a, _b, _c, _d;
+                    var _b, _c, _d, _e;
                     return html `
             ${obj.title
-                        ? html ` <div class="tx_normal fw-normal" style="${(_a = obj.titleStyle) !== null && _a !== void 0 ? _a : ''}">${obj.title}</div>`
+                        ? html ` <div class="tx_normal fw-normal" style="${(_b = obj.titleStyle) !== null && _b !== void 0 ? _b : ''}">${obj.title}</div>`
                         : ``}
             <div
               class="d-flex w-100 align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}"
@@ -744,8 +746,8 @@ export class BgWidget {
               ${obj.startText ? html ` <div class="py-2 ps-3" style="white-space: nowrap">${obj.startText}</div>` : ''}
               <input
                 class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
-                style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}"
-                type="${(_c = obj.type) !== null && _c !== void 0 ? _c : 'text'}"
+                style="${(_c = obj.style) !== null && _c !== void 0 ? _c : ''}"
+                type="${(_d = obj.type) !== null && _d !== void 0 ? _d : 'text'}"
                 placeholder="${obj.placeHolder}"
                 onchange="${obj.gvc.event(e => {
                         obj.default = e.value;
@@ -763,7 +765,7 @@ export class BgWidget {
                         obj.default = e.value;
                         obj.oninput && obj.oninput(e.value);
                     })}"
-                value="${((_d = obj.default) !== null && _d !== void 0 ? _d : '').replace(/"/g, '&quot;')}"
+                value="${((_e = obj.default) !== null && _e !== void 0 ? _e : '').replace(/"/g, '&quot;')}"
                 ${obj.readonly ? `readonly` : ``}
               />
               ${obj.endText ? html ` <div class="py-2 pe-3" style="white-space: nowrap">${obj.endText}</div>` : ''}
@@ -771,14 +773,14 @@ export class BgWidget {
           `;
                 },
                 divCreate: {
-                    style: (_a = obj.divStyle) !== null && _a !== void 0 ? _a : '',
+                    style: (_b = obj.divStyle) !== null && _b !== void 0 ? _b : '',
                 },
             };
         });
     }
     static textArea(obj) {
-        var _a, _b, _c;
-        obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
+        var _b, _c, _d;
+        obj.title = (_b = obj.title) !== null && _b !== void 0 ? _b : '';
         return html `${obj.title ? html ` <div class="tx_normal fw-normal">${obj.title}</div>` : ''}
       <div class="w-100 px-1" style="margin-top:8px;">
         <textarea
@@ -788,10 +790,10 @@ export class BgWidget {
           onchange="${obj.gvc.event(e => {
             obj.callback(e.value);
         })}"
-          placeholder="${(_b = obj.placeHolder) !== null && _b !== void 0 ? _b : ''}"
+          placeholder="${(_c = obj.placeHolder) !== null && _c !== void 0 ? _c : ''}"
           ${obj.readonly ? `readonly` : ``}
         >
-${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
+${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
         >
       </div>`;
     }
@@ -818,8 +820,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     `;
     }
     static linkList(obj) {
-        var _a, _b;
-        obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
+        var _b, _c;
+        obj.title = (_b = obj.title) !== null && _b !== void 0 ? _b : '';
         const vm = {
             id: obj.gvc.glitter.getUUID(),
             loading: true,
@@ -827,7 +829,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         const linkComp = {
             id: obj.gvc.glitter.getUUID(),
             loading: true,
-            text: (_b = obj.default) !== null && _b !== void 0 ? _b : '',
+            text: (_c = obj.default) !== null && _c !== void 0 ? _c : '',
         };
         const dropMenu = {
             id: obj.gvc.glitter.getUUID(),
@@ -945,13 +947,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
               ${obj.gvc.bindView({
                         bind: linkComp.id,
                         view: () => {
-                            var _a, _b;
+                            var _b, _c;
                             if (linkComp.loading) {
                                 return html ` <div
                       class="bgw-input border rounded-3"
                       style="${linkComp.text.length > 0
                                     ? 'padding: 8px 18px; height: 41.75px'
-                                    : 'padding: 9.5px 12px;'} ${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}"
+                                    : 'padding: 9.5px 12px;'} ${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}"
                       id="${dropMenu.elementClass}"
                       onclick="${obj.gvc.event(() => {
                                     componentFresh();
@@ -967,7 +969,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                       <div class="d-flex align-items-center" style="margin-top: 8px;">
                         <input
                           class="form-control"
-                          style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}"
+                          style="${(_c = obj.style) !== null && _c !== void 0 ? _c : ''}"
                           type="text"
                           placeholder="${obj.placeHolder}"
                           onchange="${obj.gvc.event(e => {
@@ -1351,11 +1353,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         });
     }
     static select(obj) {
-        var _a;
+        var _b;
         return html ` ${obj.title ? html ` <div class="tx_normal fw-normal mb-2">${obj.title}</div>` : ``}
       <select
         class="c_select c_select_w_100"
-        style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
+        style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
         onchange="${obj.gvc.event(e => {
             obj.callback(e.value);
         })}"
@@ -1436,20 +1438,20 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
       </div>`;
     }
     static spinner(obj) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+        var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
         const container = {
-            class: `${(_b = (_a = obj === null || obj === void 0 ? void 0 : obj.container) === null || _a === void 0 ? void 0 : _a.class) !== null && _b !== void 0 ? _b : ''}`,
-            style: `margin-top: 2rem;${(_c = obj === null || obj === void 0 ? void 0 : obj.container) === null || _c === void 0 ? void 0 : _c.style}`,
+            class: `${(_c = (_b = obj === null || obj === void 0 ? void 0 : obj.container) === null || _b === void 0 ? void 0 : _b.class) !== null && _c !== void 0 ? _c : ''}`,
+            style: `margin-top: 2rem;${(_d = obj === null || obj === void 0 ? void 0 : obj.container) === null || _d === void 0 ? void 0 : _d.style}`,
         };
         const circleAttr = {
-            visible: ((_d = obj === null || obj === void 0 ? void 0 : obj.circle) === null || _d === void 0 ? void 0 : _d.visible) === false ? false : true,
-            width: (_f = (_e = obj === null || obj === void 0 ? void 0 : obj.circle) === null || _e === void 0 ? void 0 : _e.width) !== null && _f !== void 0 ? _f : 20,
-            borderSize: (_h = (_g = obj === null || obj === void 0 ? void 0 : obj.circle) === null || _g === void 0 ? void 0 : _g.borderSize) !== null && _h !== void 0 ? _h : 16,
+            visible: ((_e = obj === null || obj === void 0 ? void 0 : obj.circle) === null || _e === void 0 ? void 0 : _e.visible) === false ? false : true,
+            width: (_g = (_f = obj === null || obj === void 0 ? void 0 : obj.circle) === null || _f === void 0 ? void 0 : _f.width) !== null && _g !== void 0 ? _g : 20,
+            borderSize: (_j = (_h = obj === null || obj === void 0 ? void 0 : obj.circle) === null || _h === void 0 ? void 0 : _h.borderSize) !== null && _j !== void 0 ? _j : 16,
         };
         const textAttr = {
-            value: (_k = (_j = obj === null || obj === void 0 ? void 0 : obj.text) === null || _j === void 0 ? void 0 : _j.value) !== null && _k !== void 0 ? _k : '載入中...',
-            visible: ((_l = obj === null || obj === void 0 ? void 0 : obj.text) === null || _l === void 0 ? void 0 : _l.visible) === false ? false : true,
-            fontSize: (_o = (_m = obj === null || obj === void 0 ? void 0 : obj.text) === null || _m === void 0 ? void 0 : _m.fontSize) !== null && _o !== void 0 ? _o : 16,
+            value: (_l = (_k = obj === null || obj === void 0 ? void 0 : obj.text) === null || _k === void 0 ? void 0 : _k.value) !== null && _l !== void 0 ? _l : '載入中...',
+            visible: ((_m = obj === null || obj === void 0 ? void 0 : obj.text) === null || _m === void 0 ? void 0 : _m.visible) === false ? false : true,
+            fontSize: (_p = (_o = obj === null || obj === void 0 ? void 0 : obj.text) === null || _o === void 0 ? void 0 : _o.fontSize) !== null && _p !== void 0 ? _p : 16,
         };
         return html ` <div
       class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}"
@@ -1489,7 +1491,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             return {
                 bind: id,
                 view: () => {
-                    var _a, _b;
+                    var _b, _c;
                     if (vm.loading) {
                         return html ` <div class="fs-2 text-center" style="padding:32px;">${vm.stateText}</div>`;
                     }
@@ -1498,9 +1500,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
               <div style="overflow-x:scroll;">
                 <table
                   class="table table-centered table-nowrap  text-center table-hover fw-500 fs-7"
-                  style="overflow-x:scroll;margin-left: 32px;margin-right: 32px;width:calc(100% - 64px);${(_a = obj.table_style) !== null && _a !== void 0 ? _a : ''}"
+                  style="overflow-x:scroll;margin-left: 32px;margin-right: 32px;width:calc(100% - 64px);${(_b = obj.table_style) !== null && _b !== void 0 ? _b : ''}"
                 >
-                  <div style="padding: 16px 32px;">${(_b = obj.filter) !== null && _b !== void 0 ? _b : ''}</div>
+                  <div style="padding: 16px 32px;">${(_c = obj.filter) !== null && _c !== void 0 ? _c : ''}</div>
 
                   <thead>
                     ${vm.data.length === 0
@@ -1508,9 +1510,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             : html ` <tr>
                           ${vm.data[0]
                                 .map((dd, index) => {
-                                var _a;
+                                var _b;
                                 return html ` <th
-                                  class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal fw-bold"
+                                  class="${(_b = dd.position) !== null && _b !== void 0 ? _b : 'text-start'} tx_normal fw-bold"
                                   style="white-space:nowrap;border:none;padding-bottom: 30px;color:#393939 !important;${obj.style &&
                                     obj.style[index]
                                     ? obj.style[index]
@@ -1542,9 +1544,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             >
                               ${dd
                                     .map((d3, index) => {
-                                    var _a;
+                                    var _b;
                                     return html ` <td
-                                      class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'}  tx_normal"
+                                      class="${(_b = d3.position) !== null && _b !== void 0 ? _b : 'text-start'}  tx_normal"
                                       style="color:#393939 !important;border:none; ${obj.style && obj.style[index]
                                         ? obj.style[index]
                                         : ``}"
@@ -1619,12 +1621,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             return {
                 bind: id,
                 view: () => {
-                    var _a;
+                    var _b;
                     if (vm.loading) {
                         return html ` <div class="fs-2 text-center" style="padding: 32px;">${vm.stateText}</div>`;
                     }
                     else {
-                        return html ` <div class="m-0 p-0" style="${(_a = obj.table_style) !== null && _a !== void 0 ? _a : ''}">
+                        return html ` <div class="m-0 p-0" style="${(_b = obj.table_style) !== null && _b !== void 0 ? _b : ''}">
               ${obj.filter ? html ` <div class="m-0">${obj.filter}</div>` : ''}
               <div style="margin-top: 4px; overflow-x: scroll; z-index: 1;">
                 <table
@@ -1637,9 +1639,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             : html ` <tr>
                           ${vm.data[0]
                                 .map((dd, index) => {
-                                var _a;
+                                var _b;
                                 return html ` <th
-                                  class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_700 px-1"
+                                  class="${(_b = dd.position) !== null && _b !== void 0 ? _b : 'text-start'} tx_700 px-1"
                                   style="white-space:nowrap;border:none; color:#393939 !important; ${obj.style &&
                                     obj.style[index]
                                     ? obj.style[index]
@@ -1673,9 +1675,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             >
                               ${dd
                                     .map((d3, index) => {
-                                    var _a;
+                                    var _b;
                                     return html ` <td
-                                      class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal px-1"
+                                      class="${(_b = d3.position) !== null && _b !== void 0 ? _b : 'text-start'} tx_normal px-1"
                                       style="color:#393939 !important;border:none;vertical-align: middle;${obj.style &&
                                         obj.style[index]
                                         ? obj.style[index]
@@ -1783,10 +1785,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
       }
     `);
         return gvc.bindView(() => {
-            var _a;
+            var _b;
             const vm = {
                 loading: true,
-                page: (_a = obj.defPage) !== null && _a !== void 0 ? _a : 1,
+                page: (_b = obj.defPage) !== null && _b !== void 0 ? _b : 1,
                 pageSize: 0,
                 tableData: [],
                 originalData: [],
@@ -1808,7 +1810,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             return html `<div class="system-info-text">暫無資料</div>`;
                         }
                         function renderRowCheckbox(result) {
-                            var _a;
+                            var _b;
                             const checkboxSelector = result ? 'i.fa-square' : 'i.fa-square-check';
                             vm.originalData.forEach((item, index) => {
                                 const checkboxParent = gvc.glitter.document.querySelector(`[gvc-checkbox="checkbox${index}"]`);
@@ -1816,13 +1818,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 checkboxIcon === null || checkboxIcon === void 0 ? void 0 : checkboxIcon.click();
                             });
                             gvc.notifyDataChange(ids.filter);
-                            (_a = obj.itemSelect) === null || _a === void 0 ? void 0 : _a.call(obj);
+                            (_b = obj.itemSelect) === null || _b === void 0 ? void 0 : _b.call(obj);
                             changeHeaderStyle();
                         }
                         function changeHeaderStyle() {
-                            var _a;
+                            var _b;
                             const key = `[gvc-id="${gvc.id(ids.header)}"]`;
-                            const target = ((_a = obj.windowTarget) !== null && _a !== void 0 ? _a : window).document.querySelector(key);
+                            const target = ((_b = obj.windowTarget) !== null && _b !== void 0 ? _b : window).document.querySelector(key);
                             if (!target)
                                 return;
                             const checked = vm.originalData.some((dd) => dd.checked);
@@ -1847,7 +1849,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         obj.itemSelect && obj.itemSelect();
                                     }
                                     vm.tableData.forEach((item, index) => {
-                                        var _a;
+                                        var _b;
                                         Object.assign(item, [
                                             {
                                                 key: EditorElem.checkBoxOnly({
@@ -1859,7 +1861,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                 }),
                                                 value: EditorElem.checkBoxOnly({
                                                     gvc: gvc,
-                                                    def: (_a = checkedMap.get(`${vm.page}-${index}`)) === null || _a === void 0 ? void 0 : _a.checked,
+                                                    def: (_b = checkedMap.get(`${vm.page}-${index}`)) === null || _b === void 0 ? void 0 : _b.checked,
                                                     callback: result => checkEvent(index, result),
                                                     style: 'justify-content: end !important;',
                                                 }),
@@ -2163,10 +2165,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         });
     }
     static container(htmlString, obj) {
-        var _a;
+        var _b;
         return html ` <div
       class="mb-0 ${document.body.clientWidth > 768 ? 'mx-auto mt-3' : 'w-100 mx-0'}"
-      style="max-width: 100%; width: ${this.getContainerWidth()}px; ${(_a = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _a !== void 0 ? _a : ''}"
+      style="max-width: 100%; width: ${this.getContainerWidth()}px; ${(_b = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _b !== void 0 ? _b : ''}"
     >
       ${htmlString}
     </div>`;
@@ -2181,7 +2183,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     </div>`;
     }
     static duringInputContainer(gvc, obj, def, callback) {
-        var _a, _b, _c, _d;
+        var _b, _c, _d, _e;
         const defualt = (def && def.length) > 1 ? def : ['', ''];
         if (obj.list.length > 1) {
             const first = obj.list[0];
@@ -2190,9 +2192,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">
           <input
             class="form-control"
-            type="${(_a = first.type) !== null && _a !== void 0 ? _a : 'text'}"
+            type="${(_b = first.type) !== null && _b !== void 0 ? _b : 'text'}"
             style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-            placeholder="${(_b = first.placeHolder) !== null && _b !== void 0 ? _b : ''}"
+            placeholder="${(_c = first.placeHolder) !== null && _c !== void 0 ? _c : ''}"
             onchange="${gvc.event((e, ele) => {
                 defualt[0] = e.value;
                 callback(defualt);
@@ -2202,9 +2204,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
           <span>${obj.centerText}</span>
           <input
             class="form-control"
-            type="${(_c = second.type) !== null && _c !== void 0 ? _c : 'text'}"
+            type="${(_d = second.type) !== null && _d !== void 0 ? _d : 'text'}"
             style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-            placeholder="${(_d = second.placeHolder) !== null && _d !== void 0 ? _d : ''}"
+            placeholder="${(_e = second.placeHolder) !== null && _e !== void 0 ? _e : ''}"
             onchange="${gvc.event((e, ele) => {
                 defualt[1] = e.value;
                 callback(defualt);
@@ -2224,7 +2226,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             view: () => {
                 let radioInputHTML = '';
                 data.map(item => {
-                    var _a, _b;
+                    var _b, _c;
                     radioInputHTML += html `
             <div class="m-1">
               <div class="form-check ps-0">
@@ -2246,9 +2248,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
               <div class="d-flex align-items-center border rounded-3">
                 <input
                   class="form-control border-0 bg-transparent shadow-none"
-                  type="${(_a = item.type) !== null && _a !== void 0 ? _a : 'text'}"
+                  type="${(_b = item.type) !== null && _b !== void 0 ? _b : 'text'}"
                   style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                  placeholder="${(_b = item.placeHolder) !== null && _b !== void 0 ? _b : ''}"
+                  placeholder="${(_c = item.placeHolder) !== null && _c !== void 0 ? _c : ''}"
                   onchange="${gvc.event(e => {
                         def.value = e.value;
                         callback(def);
@@ -2310,7 +2312,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         });
     }
     static multiCheckboxContainer(gvc, data, def, callback, obj) {
-        var _a;
+        var _b;
         const id = gvc.glitter.getUUID();
         const inputColor = obj && obj.readonly ? '#808080' : undefined;
         const randomString = obj && obj.single ? this.getWhiteDotClass(gvc, inputColor) : this.getCheckedClass(gvc, inputColor);
@@ -2320,11 +2322,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             view: () => {
                 let checkboxHTML = '';
                 data.map(item => {
-                    var _a;
+                    var _b;
                     checkboxHTML += html `
             <div>
               <div
-                class="form-check ${(_a = item === null || item === void 0 ? void 0 : item.customerClass) !== null && _a !== void 0 ? _a : ''}"
+                class="form-check ${(_b = item === null || item === void 0 ? void 0 : item.customerClass) !== null && _b !== void 0 ? _b : ''}"
                 onclick="${gvc.event((e, evt) => {
                         if (obj && obj.readonly) {
                             evt.preventDefault();
@@ -2372,7 +2374,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 return html ` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
             },
             divCreate: {
-                style: (_a = obj === null || obj === void 0 ? void 0 : obj.containerStyle) !== null && _a !== void 0 ? _a : '',
+                style: (_b = obj === null || obj === void 0 ? void 0 : obj.containerStyle) !== null && _b !== void 0 ? _b : '',
             },
         });
     }
@@ -2438,8 +2440,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         });
     }
     static inlineCheckBox(obj) {
-        var _a;
-        obj.type = (_a = obj.type) !== null && _a !== void 0 ? _a : 'single';
+        var _b;
+        obj.type = (_b = obj.type) !== null && _b !== void 0 ? _b : 'single';
         const gvc = obj.gvc;
         const inputColor = undefined;
         const randomString = obj.type === 'single' ? this.getWhiteDotClass(gvc, inputColor) : this.getCheckedClass(gvc, inputColor);
@@ -2591,7 +2593,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     </div>`;
     }
     static selNavbar(data) {
-        var _a;
+        var _b;
         const navbarStyle = `
       display: flex;
       justify-content: space-between;
@@ -2610,19 +2612,19 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             .trim()}"
       >
         <div style="display: flex; align-items: center; font-size: 14px; color: #393939;">
-          ${(_a = data.checkbox) !== null && _a !== void 0 ? _a : ''}
+          ${(_b = data.checkbox) !== null && _b !== void 0 ? _b : ''}
           <span style="margin-left: 0.5rem; font-weight: 700;">已選取${data.count}項</span>
           ${data.allSelectCallback
             ? html `<span
                 style="margin-left: 0.75rem; cursor: pointer; color: #4D86DB;"
-                onclick="${data.allSelectCallback.gvc.event(() => { var _a; return (_a = data.allSelectCallback) === null || _a === void 0 ? void 0 : _a.event(); })}"
+                onclick="${data.allSelectCallback.gvc.event(() => { var _b; return (_b = data.allSelectCallback) === null || _b === void 0 ? void 0 : _b.event(); })}"
                 >全選</span
               >`
             : ''}
           ${data.cancelCallback
             ? html `<span
                 style="margin-left: 0.75rem; cursor: pointer; color: #4D86DB;"
-                onclick="${data.cancelCallback.gvc.event(() => { var _a; return (_a = data.cancelCallback) === null || _a === void 0 ? void 0 : _a.event(); })}"
+                onclick="${data.cancelCallback.gvc.event(() => { var _b; return (_b = data.cancelCallback) === null || _b === void 0 ? void 0 : _b.event(); })}"
                 >取消選取</span
               >`
             : ''}
@@ -2688,10 +2690,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             .join(this.horizontalLine());
     }
     static openBoxContainer(obj) {
-        var _a;
+        var _b;
         const bvid = Tool.randomString(5);
         const text = Tool.randomString(5);
-        const height = (_a = obj.height) !== null && _a !== void 0 ? _a : 500;
+        const height = (_b = obj.height) !== null && _b !== void 0 ? _b : 500;
         const closeHeight = 56;
         obj.gvc.addStyle(`
             .box-container-${text} {
@@ -2749,10 +2751,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return obj.gvc.bindView({
             bind: bvid,
             view: () => {
-                var _a;
+                var _b;
                 return html ` <div class="box-tag-${obj.tag} box-container-${text}">
           <div
-            class="box-navbar-${text} ${(_a = obj.guideClass) !== null && _a !== void 0 ? _a : ''}"
+            class="box-navbar-${text} ${(_b = obj.guideClass) !== null && _b !== void 0 ? _b : ''}"
             onclick="${obj.gvc.event(e => {
                     if (!obj.autoClose) {
                         const boxes = document.querySelectorAll(`.box-tag-${obj.tag}`);
@@ -2895,10 +2897,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     </div>`;
     }
     static selectFilter(obj) {
-        var _a;
+        var _b;
         return html `<select
       class="c_select"
-      style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}"
+      style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}"
       onchange="${obj.gvc.event(e => {
             obj.callback(e.value);
         })}"
@@ -2925,71 +2927,126 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     </div>`;
     }
     static columnFilter(obj) {
+        const id = 'columnFilter';
         return html ` <div
-      class="c_funnel"
+      class="c_filter_view"
       onclick="${obj.gvc.event(() => {
-            obj.callback('c_funnel');
+            obj.callback();
+            this.setActiveFilter(obj.gvc, this.activeFilter === id ? '' : id);
         })}"
     >
       <i class="fa-regular fa-columns-3"></i>
     </div>`;
     }
     static funnelFilter(obj) {
+        const id = 'funnelFilter';
         return html ` <div
-      class="c_funnel"
+      class="c_filter_view"
       onclick="${obj.gvc.event(() => {
-            obj.callback('c_funnel');
+            obj.callback();
+            this.setActiveFilter(obj.gvc, this.activeFilter === id ? '' : id);
         })}"
     >
       <i class="fa-regular fa-filter"></i>
     </div>`;
     }
-    static updownFilter(obj) {
+    static countingFilter(obj) {
         const vm = {
-            id: obj.gvc.glitter.getUUID(),
+            id: 'countingFilter',
             checkClass: this.getDarkDotClass(obj.gvc),
             show: false,
         };
-        return html `<div class="d-flex">
-      <div
-        class="c_updown"
-        onclick="${obj.gvc.event(() => {
-            vm.show = !vm.show;
-            obj.gvc.notifyDataChange(vm.id);
+        const countingList = TableStorage.limitList.map(n => {
+            return { key: n, value: `顯示 ${n} 個` };
+        });
+        return html `<div
+      class="d-flex"
+      onclick="${obj.gvc.event(() => {
+            setTimeout(() => {
+                this.setActiveFilter(obj.gvc, this.activeFilter === vm.id ? '' : vm.id);
+            }, 50);
         })}"
-      >
+    >
+      <div class="c_filter_view">
+        <i class="fa-solid fa-list-ol"></i>
+      </div>
+      ${obj.gvc.bindView({
+            bind: vm.id,
+            view: () => {
+                if (!(this.activeFilter === vm.id)) {
+                    return '';
+                }
+                return html ` <div class="c_absolute" style="top: 20px; right: 20px;">
+            <div class="form-check d-flex flex-column" style="gap: 16px">
+              ${obj.gvc.map(countingList.map(opt => {
+                    return html ` <div>
+                    <input
+                      class="form-check-input ${vm.checkClass}"
+                      type="radio"
+                      id="${opt.key}"
+                      name="radio_${vm.id}"
+                      onclick="${obj.gvc.event(() => {
+                        TableStorage.setLimit(opt.key);
+                        obj.callback(opt.key);
+                        this.setActiveFilter(obj.gvc, '');
+                    })}"
+                      ${obj.default === opt.key ? 'checked' : ''}
+                    />
+                    <label class="form-check-label c_updown_label" for="${opt.key}">${opt.value}</label>
+                  </div>`;
+                }))}
+            </div>
+          </div>`;
+            },
+            divCreate: {
+                style: 'position: relative;',
+            },
+        })}
+    </div>`;
+    }
+    static updownFilter(obj) {
+        const vm = {
+            id: 'updownFilter',
+            checkClass: this.getDarkDotClass(obj.gvc),
+            show: false,
+        };
+        return html `<div
+      class="d-flex"
+      onclick="${obj.gvc.event(() => {
+            setTimeout(() => {
+                this.setActiveFilter(obj.gvc, this.activeFilter === vm.id ? '' : vm.id);
+            }, 50);
+        })}"
+    >
+      <div class="c_filter_view">
         <i class="fa-regular fa-arrow-up-arrow-down"></i>
       </div>
       ${obj.gvc.bindView({
             bind: vm.id,
             view: () => {
-                if (vm.show) {
-                    if (obj.options.length === 0) {
-                        return '';
-                    }
-                    return html ` <div class="c_absolute" style="top: 20px; right: 20px;">
-              <div class="form-check d-flex flex-column" style="gap: 16px">
-                ${obj.gvc.map(obj.options.map(opt => {
-                        return html ` <div>
-                      <input
-                        class="form-check-input ${vm.checkClass}"
-                        type="radio"
-                        id="${opt.key}"
-                        name="radio_${vm.id}"
-                        onclick="${obj.gvc.event(e => {
-                            vm.show = !vm.show;
-                            obj.callback(e.id);
-                            obj.gvc.notifyDataChange(vm.id);
-                        })}"
-                        ${obj.default === opt.key ? 'checked' : ''}
-                      />
-                      <label class="form-check-label c_updown_label" for="${opt.key}">${opt.value}</label>
-                    </div>`;
-                    }))}
-              </div>
-            </div>`;
+                if (!(this.activeFilter === vm.id) || obj.options.length === 0) {
+                    return '';
                 }
-                return '';
+                return html ` <div class="c_absolute" style="top: 20px; right: 20px;">
+            <div class="form-check d-flex flex-column" style="gap: 16px">
+              ${obj.gvc.map(obj.options.map(opt => {
+                    return html ` <div>
+                    <input
+                      class="form-check-input ${vm.checkClass}"
+                      type="radio"
+                      id="${opt.key}"
+                      name="radio_${vm.id}"
+                      onclick="${obj.gvc.event(e => {
+                        obj.callback(e.id);
+                        this.setActiveFilter(obj.gvc, '');
+                    })}"
+                      ${obj.default === opt.key ? 'checked' : ''}
+                    />
+                    <label class="form-check-label c_updown_label" for="${opt.key}">${opt.value}</label>
+                  </div>`;
+                }))}
+            </div>
+          </div>`;
             },
             divCreate: {
                 style: 'position: relative;',
@@ -3008,11 +3065,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return obj.gvc.bindView({
             bind: vm.id,
             view: () => {
-                var _a, _b;
+                var _b, _c;
                 const defLine = obj.options.filter(item => {
                     return obj.default.includes(item.key);
                 });
-                return html ` <div class="c_select" style="position: relative; ${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}">
+                return html ` <div class="c_select" style="position: relative; ${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}">
           <div
             class="w-100 h-100 d-flex align-items-center"
             onclick="${obj.gvc.event(() => {
@@ -3032,7 +3089,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         return item.value;
                     })
                         .join(' / ')
-                    : BgWidget.grayNote((_b = obj.placeholder) !== null && _b !== void 0 ? _b : '（點擊選擇項目）', 'font-size: 16px;')}
+                    : BgWidget.grayNote((_c = obj.placeholder) !== null && _c !== void 0 ? _c : '（點擊選擇項目）', 'font-size: 16px;')}
             </div>
           </div>
           ${vm.show
@@ -3112,11 +3169,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return obj.gvc.bindView({
             bind: vm.id,
             view: () => {
-                var _a, _b;
+                var _b, _c;
                 const defData = obj.options.find(item => {
                     return obj.default === item.key;
                 });
-                return html ` <div class="c_select" style="position: relative; ${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}">
+                return html ` <div class="c_select" style="position: relative; ${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}">
             <div
               class="w-100 h-100 d-flex align-items-center"
               onclick="${obj.gvc.event(() => {
@@ -3130,7 +3187,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
               <div style="font-size: 15px; cursor: pointer; color: #393939;">
                 ${defData
                     ? defData.value
-                    : BgWidget.grayNote((_b = obj.placeholder) !== null && _b !== void 0 ? _b : '（點擊選擇項目）', 'font-size: 16px;')}
+                    : BgWidget.grayNote((_c = obj.placeholder) !== null && _c !== void 0 ? _c : '（點擊選擇項目）', 'font-size: 16px;')}
               </div>
             </div>
             ${vm.show
@@ -3160,10 +3217,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                               class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
                               style="color: #36B; font-size: 16px; font-weight: 400;"
                               onclick="${obj.gvc.event(() => {
-                            var _a;
+                            var _b;
                             vm.show = !vm.show;
                             obj.gvc.notifyDataChange(vm.id);
-                            (_a = obj.clickElement) === null || _a === void 0 ? void 0 : _a.event(obj.gvc);
+                            (_b = obj.clickElement) === null || _b === void 0 ? void 0 : _b.event(obj.gvc);
                         })}"
                             >
                               ${obj.clickElement.html}
@@ -3374,13 +3431,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         ${obj.gvc.bindView({
                 bind: vm.id,
                 view: () => {
-                    var _a, _b;
+                    var _b, _c;
                     if (vm.loading) {
                         return html ` <div class="my-4">${this.spinner()}</div>`;
                     }
                     return html ` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
               <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
+                <div class="tx_700">${(_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表'}</div>
                 <div class="flex-fill"></div>
                 <i
                   class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
@@ -3394,7 +3451,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
               </div>
               <div class="c_dialog">
                 <div class="c_dialog_body">
-                  <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">${(_b = obj.innerHTML) !== null && _b !== void 0 ? _b : ''}</div>
+                  <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">${(_c = obj.innerHTML) !== null && _c !== void 0 ? _c : ''}</div>
                 </div>
               </div>
             </div>`;
@@ -3416,11 +3473,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             })(),
                         }).then(data => {
                             vm.options = data.response.data.map((product) => {
-                                var _a;
+                                var _b;
                                 return {
                                     key: product.content.id,
                                     value: product.content.title,
-                                    image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
+                                    image: (_b = product.content.preview_image[0]) !== null && _b !== void 0 ? _b : BgWidget.noImageURL,
                                 };
                             });
                             vm.loading = false;
@@ -3445,7 +3502,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 orderString: '',
             };
             function printOptionVa(opt) {
-                var _a;
+                var _b;
                 const id = Tool.randomString(7);
                 opt.key = `${opt.key}`;
                 function call() {
@@ -3475,7 +3532,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 })}
           ${BgWidget.validImageBox({
                     gvc,
-                    image: (_a = opt.image) !== null && _a !== void 0 ? _a : '',
+                    image: (_b = opt.image) !== null && _b !== void 0 ? _b : '',
                     width: 40,
                     height: 40,
                     events: [
@@ -3499,13 +3556,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         ${obj.gvc.bindView({
                 bind: vm.id,
                 view: () => {
-                    var _a;
+                    var _b;
                     if (vm.loading) {
                         return html ` <div class="my-4">${this.spinner()}</div>`;
                     }
                     return html ` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
               <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
+                <div class="tx_700">${(_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表'}</div>
                 <div class="flex-fill"></div>
                 <i
                   class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
@@ -3556,11 +3613,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             productType: 'all',
                         }).then(data => {
                             vm.options = data.response.data.map((v) => {
-                                var _a;
+                                var _b;
                                 return {
                                     key: v.id,
                                     value: v.product_content.title,
-                                    image: (_a = v.variant_content.preview_image) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
+                                    image: (_b = v.variant_content.preview_image) !== null && _b !== void 0 ? _b : BgWidget.noImageURL,
                                     note: v.variant_content.spec ? v.variant_content.spec.join('/') : '單一規格',
                                 };
                             });
@@ -3616,7 +3673,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 orderString: '',
             };
             function printOptionSt(opt) {
-                var _a;
+                var _b;
                 const id = Tool.randomString(7);
                 opt.key = `${opt.key}`;
                 function call() {
@@ -3647,7 +3704,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 })}
             ${BgWidget.validImageBox({
                     gvc,
-                    image: (_a = opt.image) !== null && _a !== void 0 ? _a : '',
+                    image: (_b = opt.image) !== null && _b !== void 0 ? _b : '',
                     width: 40,
                     height: 40,
                 })}
@@ -3671,13 +3728,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         ${obj.gvc.bindView({
                 bind: vm.id,
                 view: () => {
-                    var _a;
+                    var _b;
                     if (vm.loading) {
                         return html ` <div class="my-4">${this.spinner()}</div>`;
                     }
                     return html ` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
               <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
+                <div class="tx_700">${(_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表'}</div>
                 <div class="flex-fill"></div>
                 <i
                   class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
@@ -3722,11 +3779,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             search: obj.store_id,
                         }).then(r => {
                             vm.options = r.response.data.map((v) => {
-                                var _a;
+                                var _b;
                                 return {
                                     key: v.id,
                                     value: v.product_content.title,
-                                    image: (_a = v.content.preview_image) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
+                                    image: (_b = v.content.preview_image) !== null && _b !== void 0 ? _b : BgWidget.noImageURL,
                                     note: v.content.spec ? v.content.spec.join('/') : '單一規格',
                                     stock: v.content.stockList[obj.store_id].count,
                                 };
@@ -3779,7 +3836,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             return glitter;
         })();
         return glitter.innerDialog((gvc) => {
-            var _a;
+            var _b;
             const vm = {
                 id: obj.gvc.glitter.getUUID(),
                 loading: false,
@@ -3787,20 +3844,20 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             return html ` <div
           class="bg-white shadow rounded-3"
           style="overflow-y: auto; ${document.body.clientWidth > 768
-                ? `width: ${(_a = obj.width) !== null && _a !== void 0 ? _a : 600}px;max-width:calc(100vw - 20px);`
+                ? `width: ${(_b = obj.width) !== null && _b !== void 0 ? _b : 600}px;max-width:calc(100vw - 20px);`
                 : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
         >
           ${gvc.bindView({
                 bind: vm.id,
                 view: () => {
-                    var _a, _b, _c;
-                    const footer = (_a = obj.footer_html(gvc)) !== null && _a !== void 0 ? _a : '';
+                    var _b, _c, _d;
+                    const footer = (_b = obj.footer_html(gvc)) !== null && _b !== void 0 ? _b : '';
                     if (vm.loading) {
                         return html ` <div class="my-4">${this.spinner()}</div>`;
                     }
                     return html ` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
                 <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                  <div class="tx_700">${(_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表'}</div>
+                  <div class="tx_700">${(_c = obj.title) !== null && _c !== void 0 ? _c : '產品列表'}</div>
                   <div class="flex-fill"></div>
                   <i
                     class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
@@ -3820,7 +3877,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         ? `height:${obj.height}px;max-height: 100vh;`
                         : `height:auto;max-height: 500px;`} "
                     >
-                      ${(_c = obj.innerHTML(gvc)) !== null && _c !== void 0 ? _c : ''}
+                      ${(_d = obj.innerHTML(gvc)) !== null && _d !== void 0 ? _d : ''}
                     </div>
                     ${footer ? `<div class="c_dialog_bar">${footer}</div>` : ``}
                   </div>
@@ -3838,11 +3895,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             obj.gvc = window.parent.glitter.pageConfig[0].gvc;
         }
         return obj.gvc.glitter.innerDialog((gvc) => {
-            var _a, _b, _c;
+            var _b, _c, _d;
             return html ` <div
         class="bg-white shadow rounded-3"
         style="overflow-y: auto; ${document.body.clientWidth > 768
-                ? `min-width: 400px; width: ${(_a = obj.width) !== null && _a !== void 0 ? _a : 600}px;`
+                ? `min-width: 400px; width: ${(_b = obj.width) !== null && _b !== void 0 ? _b : 600}px;`
                 : 'min-width: 90vw; max-width: 92.5vw;'}"
       >
         <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
@@ -3880,24 +3937,24 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 <div class="c_dialog_bar">
                   ${obj.cancel
                     ? BgWidget.cancel(gvc.event(() => {
-                        var _a, _b;
-                        if ((_a = obj.cancel) === null || _a === void 0 ? void 0 : _a.event) {
-                            (_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event(gvc).then(response => {
+                        var _b, _c;
+                        if ((_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event) {
+                            (_c = obj.cancel) === null || _c === void 0 ? void 0 : _c.event(gvc).then(response => {
                                 response && gvc.closeDialog();
                             });
                         }
                         else {
                             gvc.closeDialog();
                         }
-                    }), (_b = obj.cancel.text) !== null && _b !== void 0 ? _b : '取消')
+                    }), (_c = obj.cancel.text) !== null && _c !== void 0 ? _c : '取消')
                     : ''}
                   ${obj.save
                     ? BgWidget.save(gvc.event(() => {
-                        var _a;
-                        (_a = obj.save) === null || _a === void 0 ? void 0 : _a.event(gvc).then(response => {
+                        var _b;
+                        (_b = obj.save) === null || _b === void 0 ? void 0 : _b.event(gvc).then(response => {
                             response && gvc.closeDialog();
                         });
-                    }), (_c = obj.save.text) !== null && _c !== void 0 ? _c : '確認')
+                    }), (_d = obj.save.text) !== null && _d !== void 0 ? _d : '確認')
                     : ''}
                 </div>
               `
@@ -3911,7 +3968,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             obj.gvc = window.parent.glitter.pageConfig[0].gvc;
         }
         return obj.gvc.glitter.innerDialog((gvc) => {
-            var _a, _b, _c;
+            var _b, _c, _d;
             return html `
         <div
           style="height: 100vh;width: 100vw;"
@@ -3923,7 +3980,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
           <div
             class="shadow rounded-3"
             style="background-color: #393939;overflow-y: auto; ${document.body.clientWidth > 768
-                ? `min-width: 400px; width: ${(_a = obj.width) !== null && _a !== void 0 ? _a : 600}px;`
+                ? `min-width: 400px; width: ${(_b = obj.width) !== null && _b !== void 0 ? _b : 600}px;`
                 : 'min-width: 90vw; max-width: 92.5vw;'}"
           >
             <div class=" shadow rounded-3" style="width: 100%; overflow-y: auto;">
@@ -3944,24 +4001,24 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     <div class="c_dialog_bar">
                       ${obj.cancel
                     ? BgWidget.cancel(gvc.event(() => {
-                        var _a, _b;
-                        if ((_a = obj.cancel) === null || _a === void 0 ? void 0 : _a.event) {
-                            (_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event(gvc).then(response => {
+                        var _b, _c;
+                        if ((_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event) {
+                            (_c = obj.cancel) === null || _c === void 0 ? void 0 : _c.event(gvc).then(response => {
                                 response && gvc.closeDialog();
                             });
                         }
                         else {
                             gvc.closeDialog();
                         }
-                    }), (_b = obj.cancel.text) !== null && _b !== void 0 ? _b : '取消')
+                    }), (_c = obj.cancel.text) !== null && _c !== void 0 ? _c : '取消')
                     : ''}
                       ${obj.save
                     ? BgWidget.save(gvc.event(() => {
-                        var _a;
-                        (_a = obj.save) === null || _a === void 0 ? void 0 : _a.event(gvc).then(response => {
+                        var _b;
+                        (_b = obj.save) === null || _b === void 0 ? void 0 : _b.event(gvc).then(response => {
                             response && gvc.closeDialog();
                         });
-                    }), (_c = obj.save.text) !== null && _c !== void 0 ? _c : '確認')
+                    }), (_d = obj.save.text) !== null && _d !== void 0 ? _d : '確認')
                     : ''}
                     </div>
                   `
@@ -3977,7 +4034,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             obj.gvc = window.parent.glitter.pageConfig[0].gvc;
         }
         return obj.gvc.glitter.innerDialog((gvc) => {
-            var _a, _b;
+            var _b, _c;
             return html ` <div class="bg-white shadow rounded-3" style="overflow-y: auto;width:414px;">
         <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
           <div class="w-100 d-flex align-items-center p-3 border-bottom">
@@ -3986,9 +4043,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             <i
               class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
               onclick="${gvc.event(() => {
-                var _a, _b;
-                if ((_a = obj.cancel) === null || _a === void 0 ? void 0 : _a.event) {
-                    (_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event(gvc).then(response => {
+                var _b, _c;
+                if ((_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event) {
+                    (_c = obj.cancel) === null || _c === void 0 ? void 0 : _c.event(gvc).then(response => {
                         response && gvc.closeDialog();
                     });
                 }
@@ -4015,24 +4072,24 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 <div class="c_dialog_bar">
                   ${obj.cancel
                     ? BgWidget.cancel(gvc.event(() => {
-                        var _a, _b;
-                        if ((_a = obj.cancel) === null || _a === void 0 ? void 0 : _a.event) {
-                            (_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event(gvc).then(response => {
+                        var _b, _c;
+                        if ((_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event) {
+                            (_c = obj.cancel) === null || _c === void 0 ? void 0 : _c.event(gvc).then(response => {
                                 response && gvc.closeDialog();
                             });
                         }
                         else {
                             gvc.closeDialog();
                         }
-                    }), (_a = obj.cancel.text) !== null && _a !== void 0 ? _a : '取消')
+                    }), (_b = obj.cancel.text) !== null && _b !== void 0 ? _b : '取消')
                     : ''}
                   ${obj.save
                     ? BgWidget.save(gvc.event(() => {
-                        var _a;
-                        (_a = obj.save) === null || _a === void 0 ? void 0 : _a.event(gvc).then(response => {
+                        var _b;
+                        (_b = obj.save) === null || _b === void 0 ? void 0 : _b.event(gvc).then(response => {
                             response && gvc.closeDialog();
                         });
-                    }), (_b = obj.save.text) !== null && _b !== void 0 ? _b : '確認')
+                    }), (_c = obj.save.text) !== null && _c !== void 0 ? _c : '確認')
                     : ''}
                 </div>
               `
@@ -4042,7 +4099,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         }, Tool.randomString(7));
     }
     static jumpAlert(obj) {
-        var _a, _b;
+        var _b, _c;
         const className = 'bg-widget-class';
         const fixedStyle = (() => {
             let style = '';
@@ -4075,7 +4132,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 color: white;
                 padding: 10px;
                 border-radius: 8px;
-                width: ${(_a = obj.width) !== null && _a !== void 0 ? _a : 120}px;
+                width: ${(_b = obj.width) !== null && _b !== void 0 ? _b : 120}px;
                 text-align: center;
                 z-index: 11;
                 transform: translateX(${transX});
@@ -4097,7 +4154,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             if (element) {
                 element.remove();
             }
-        }, (_b = obj.timeout) !== null && _b !== void 0 ? _b : 2000);
+        }, (_c = obj.timeout) !== null && _c !== void 0 ? _c : 2000);
     }
     static fullDialog(obj) {
         const glitter = (() => {
@@ -4122,8 +4179,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         ${gvc.bindView({
                 bind: vm.id,
                 view: () => {
-                    var _a, _b, _c;
-                    const footer = (_a = obj.footer_html(gvc)) !== null && _a !== void 0 ? _a : '';
+                    var _b, _c, _d;
+                    const footer = (_b = obj.footer_html(gvc)) !== null && _b !== void 0 ? _b : '';
                     if (vm.loading) {
                         return html ` <div class="my-4">${this.spinner()}</div>`;
                     }
@@ -4136,7 +4193,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 style="position: sticky; top: 0; z-index: 2; background: #fff;"
               >
                 <div class="tx_700">
-                  ${typeof obj.title === 'function' ? obj.title(gvc) : ((_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表')}
+                  ${typeof obj.title === 'function' ? obj.title(gvc) : ((_c = obj.title) !== null && _c !== void 0 ? _c : '產品列表')}
                 </div>
                 <div class="flex-fill"></div>
                 <i
@@ -4155,7 +4212,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     class="c_dialog_main h-100"
                     style="max-height: 100%; padding: 0; gap: 24px; z-index: 1; position: relative;"
                   >
-                    ${(_c = obj.innerHTML(gvc)) !== null && _c !== void 0 ? _c : ''}
+                    ${(_d = obj.innerHTML(gvc)) !== null && _d !== void 0 ? _d : ''}
                   </div>
                   ${footer ? html ` <div class="c_dialog_bar" style="z-index: 2;">${footer}</div>` : ``}
                 </div>
@@ -4270,7 +4327,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         });
     }
     static validImageBox(obj) {
-        var _a, _b;
+        var _b, _c;
         const imageVM = {
             id: obj.gvc.glitter.getUUID(),
             loading: true,
@@ -4279,9 +4336,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         const wh = `
       display: flex;
       min-width: ${obj.width}px;
-      min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
+      min-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
       max-width: ${obj.width}px;
-      max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
+      max-height: ${(_c = obj.height) !== null && _c !== void 0 ? _c : obj.width}px;
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -4292,7 +4349,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             view: () => {
                 if (imageVM.loading) {
                     return obj.gvc.bindView(() => {
-                        var _a, _b;
+                        var _b, _c;
                         return {
                             bind: obj.gvc.glitter.getUUID(),
                             view: () => {
@@ -4303,8 +4360,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 });
                             },
                             divCreate: {
-                                style: `${wh}${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}`,
-                                class: (_b = obj.class) !== null && _b !== void 0 ? _b : '',
+                                style: `${wh}${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}`,
+                                class: (_c = obj.class) !== null && _c !== void 0 ? _c : '',
                             },
                         };
                     });
@@ -4320,7 +4377,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         option.push(...obj.events);
                     }
                     return obj.gvc.bindView(() => {
-                        var _a, _b;
+                        var _b, _c;
                         return {
                             bind: obj.gvc.glitter.getUUID(),
                             view: () => {
@@ -4328,8 +4385,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             },
                             divCreate: {
                                 elem: 'img',
-                                style: `${wh}${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}`,
-                                class: (_b = obj.class) !== null && _b !== void 0 ? _b : '',
+                                style: `${wh}${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}`,
+                                class: (_c = obj.class) !== null && _c !== void 0 ? _c : '',
                                 option,
                             },
                         };
@@ -4462,7 +4519,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return obj.gvc.bindView({
             bind: imageVM.id,
             view: () => {
-                var _a;
+                var _b;
                 if (imageVM.loading) {
                     return this.spinner({
                         container: { class: 'mt-0' },
@@ -4472,7 +4529,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 else {
                     return html ` <div
             class="d-flex align-items-center justify-content-center rounded-3 shadow"
-            style="min-width: ${obj.width}px; width: ${obj.width}px; height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px; cursor:pointer; background: 50%/cover url('${imageVM.url}');"
+            style="min-width: ${obj.width}px; width: ${obj.width}px; height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px; cursor:pointer; background: 50%/cover url('${imageVM.url}');"
           >
             <div class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image">
               ${obj.create
@@ -4549,13 +4606,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         ${gvc.bindView({
                 bind: vm.id,
                 view: () => {
-                    var _a, _b, _c;
+                    var _b, _c, _d;
                     if (vm.loading) {
                         return html ` <div class="my-4">${this.spinner()}</div>`;
                     }
                     return html ` <div class="bg-white shadow rounded-3 h-100 d-flex flex-column" style="width: 100%; ">
               <div class="w-100 d-flex align-items-center p-3 border-bottom" style="background: #F2F2F2;">
-                <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
+                <div class="tx_700">${(_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表'}</div>
                 <div class="flex-fill"></div>
 
                 <i
@@ -4571,9 +4628,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
               <div class="c_dialog flex-fill">
                 <div class="c_dialog_body d-flex flex-column h-100">
                   <div class="c_dialog_main flex-fill" style="gap: 24px;max-height:100%; ">
-                    ${(_b = obj.innerHTML(gvc)) !== null && _b !== void 0 ? _b : ''}
+                    ${(_c = obj.innerHTML(gvc)) !== null && _c !== void 0 ? _c : ''}
                   </div>
-                  <div class="c_dialog_bar">${(_c = obj.footer_html(gvc)) !== null && _c !== void 0 ? _c : ''}</div>
+                  <div class="c_dialog_bar">${(_d = obj.footer_html(gvc)) !== null && _d !== void 0 ? _d : ''}</div>
                 </div>
               </div>
             </div>`;
@@ -4829,10 +4886,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     style: 'display: flex;gap: 8px;flex-direction: column;',
                 },
                 onCreate: () => {
-                    var _a;
+                    var _b;
                     let enterPass = true;
                     const inputElement = document.getElementById(vm.enterId);
-                    gvc.glitter.share.keyDownEvent = (_a = gvc.glitter.share.keyDownEvent) !== null && _a !== void 0 ? _a : {};
+                    gvc.glitter.share.keyDownEvent = (_b = gvc.glitter.share.keyDownEvent) !== null && _b !== void 0 ? _b : {};
                     keyboard === 'Enter' && inputElement && inputElement.focus();
                     inputElement.addEventListener('compositionupdate', function () {
                         enterPass = false;
@@ -4859,6 +4916,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     </div>`;
     }
 }
+_a = BgWidget;
 BgWidget.richTextQuickList = [
     {
         title: '商家名稱',
@@ -4912,6 +4970,12 @@ BgWidget.getContainerWidth = (obj) => {
         return clientWidth * rateForPhone;
     })();
     return Math.floor(width);
+};
+BgWidget.activeFilter = '';
+BgWidget.setActiveFilter = (gvc, key) => {
+    const keyList = ['updownFilter', 'funnelFilter', 'countingFilter'];
+    _a.activeFilter = key;
+    gvc.notifyDataChange(keyList);
 };
 BgWidget.noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
 window.glitter.setModule(import.meta.url, BgWidget);
