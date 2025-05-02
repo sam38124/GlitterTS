@@ -753,6 +753,7 @@ export class OrderExcel {
                 yield ApiUser.getPublicConfig('customer_form_user_setting', 'manager').then(r => {
                     return Array.isArray(r.response.value.list) ? r.response.value.list : [];
                 }),
+                (yield ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager')).response.value
             ]);
             return dataArray;
         });
@@ -825,7 +826,7 @@ OrderExcel.headerColumn = () => __awaiter(void 0, void 0, void 0, function* () {
     };
 });
 OrderExcel.getCustomizeMap = (order) => __awaiter(void 0, void 0, void 0, function* () {
-    const [cashflowConfigObj, shipmentConfigObj, registerConfig, memberConfig] = yield OrderExcel.customizePromise();
+    const [cashflowConfigObj, shipmentConfigObj, registerConfig, memberConfig, receipt] = yield OrderExcel.customizePromise();
     const customizeMap = new Map();
     const getUserValue = (key) => {
         try {
@@ -864,6 +865,19 @@ OrderExcel.getCustomizeMap = (order) => __awaiter(void 0, void 0, void 0, functi
     const shipmentConfig = order ? shipmentConfigObj[order.shipment_method] : Object.values(shipmentConfigObj).flat();
     (shipmentConfig || []).map((item) => {
         customizeMap.set(`物流自訂值 - ${item.title}`, order ? getShipmentValue(item.key) : '-');
+    });
+    let viewModel = [
+        ['姓名', 'name'],
+        ['電話', 'phone'],
+        ['信箱', 'email'],
+    ];
+    receipt.list.map((d1) => {
+        var _b;
+        if (!viewModel.find(dd => {
+            return dd[1] === d1.key;
+        })) {
+            customizeMap.set(`收件人資訊 - ${d1.title}`, order ? ((_b = order.orderData.user_info[d1.key]) !== null && _b !== void 0 ? _b : '-') : '-');
+        }
     });
     return customizeMap;
 });

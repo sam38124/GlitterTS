@@ -410,8 +410,7 @@ export class OrderExcel {
 
   // 取得客製化資訊
   static getCustomizeMap = async (order?: any) => {
-    const [cashflowConfigObj, shipmentConfigObj, registerConfig, memberConfig] = await OrderExcel.customizePromise();
-
+    const [cashflowConfigObj, shipmentConfigObj, registerConfig, memberConfig ,receipt] = await OrderExcel.customizePromise();
     const customizeMap = new Map();
 
     const getUserValue = (key: string) => {
@@ -456,6 +455,20 @@ export class OrderExcel {
       customizeMap.set(`物流自訂值 - ${item.title}`, order ? getShipmentValue(item.key) : '-');
     });
 
+    let viewModel = [
+      ['姓名', 'name'],
+      ['電話', 'phone'],
+      ['信箱', 'email'],
+    ];
+    receipt.list.map((d1: any) => {
+      if (
+        !viewModel.find(dd => {
+          return dd[1] === d1.key;
+        })
+      ) {
+        customizeMap.set(`收件人資訊 - ${d1.title}`, order ? (order.orderData.user_info[d1.key] ?? '-') : '-');
+      }
+    })
     return customizeMap;
   };
 
@@ -1010,6 +1023,13 @@ export class OrderExcel {
       await ApiUser.getPublicConfig('customer_form_user_setting', 'manager').then(r => {
         return Array.isArray(r.response.value.list) ? r.response.value.list : [];
       }),
+      //收件人資料
+      (
+        await ApiUser.getPublicConfig(
+          'custom_form_checkout_recipient',
+          'manager'
+        )
+      ).response.value
     ]);
 
     return dataArray;

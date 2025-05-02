@@ -127,9 +127,10 @@ export class ProductSelect {
               }
             })();
             resolve(
-              html` <div class="d-flex flex-column py-2 my-2 border-top" style="gap: 18px;">
+              html` <div class="d-flex flex-column py-2" style="">
+                <div class="mx-n3  border-top" ></div>
                 <div
-                  class="d-flex align-items-center gray-bottom-line-18 pb-2"
+                  class="d-flex align-items-center  pb-2"
                   style="gap: 10px; justify-content: space-between;"
                 >
                   <div class="flex-fill ">
@@ -156,15 +157,7 @@ export class ProductSelect {
                     class="${bundle.formData[bundle.key].select === 'all' ? `d-none` : ``}"
                     style="margin-top: 30px;"
                   >
-                    ${BgWidget.grayButton(
-                      (() => {
-                        switch (bundle.formData[bundle.key].select) {
-                          case 'product':
-                          case 'collection':
-                            return `選取`;
-                        }
-                        return ``;
-                      })(),
+                    ${BgWidget.save(
                       gvc.event(() => {
                         if (bundle.formData[bundle.key].select === 'product') {
                           bundle.formData[bundle.key].value = bundle.formData[bundle.key].value ?? [];
@@ -190,7 +183,15 @@ export class ProductSelect {
                           });
                         }
                       }),
-                      { textStyle: 'font-weight: 400;' }
+                      (() => {
+                        switch (bundle.formData[bundle.key].select) {
+                          case 'product':
+                          case 'collection':
+                            return `選取`;
+                        }
+                        return ``;
+                      })(),
+                      
                     )}
                   </div>
                 </div>
@@ -241,6 +242,7 @@ export class ProductSelect {
                     })
                   )}
                 </div>
+                <div class="mx-n3  border-top" ></div>
               </div>`
             );
           });
