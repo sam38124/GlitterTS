@@ -588,6 +588,10 @@ h6 {
   background: var(--background-orange);
 }
 
+.form-switch .form-check-input {
+  box-shadow: 1px 1px 2.5px rgba(0, 0, 0, 0.2);
+}
+
 .form-switch .form-check-input:checked {
   background-color: var(--main-black) !important;
   box-shadow: 1px 1px 2.5px rgba(0, 0, 0, 0.2);
