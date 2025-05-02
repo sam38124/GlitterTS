@@ -334,6 +334,7 @@ export class SeoConfig {
             })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '${FBCode.pixel}');
             fbq('track', 'PageView');
+            window.fb_pixel_id = '${FBCode.pixel}';
           </script>
           <noscript
             ><img

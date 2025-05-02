@@ -11,6 +11,7 @@ import { PayConfig } from './cms-plugin/pos-pages/pay-config.js';
 import { ApiCart } from './glitter-base/route/api-cart.js';
 import { ApiUser } from './glitter-base/route/user.js';
 import { ApplicationConfig } from './application-config.js';
+import { TriggerEvent } from './glitterBundle/plugins/trigger-event.js';
 
 export class Entry {
   // 建立初始函式
@@ -595,6 +596,17 @@ export class Entry {
 
   // 跳轉至一般頁面
   public static toNormalRender(glitter: Glitter, vm: any, callback: () => void) {
+    ApiUser.getUserData(GlobalUser.token,'me').then(async (r) => {
+      try {
+        if (!r.result) {
+          GlobalUser.token = ''
+        } else {
+          GlobalUser.userInfo = r.response
+          GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response))
+         }
+      } catch (e) {
+       }
+    })
     glitter.addStyleLink([`https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css`]);
     glitter.addMtScript(
       [

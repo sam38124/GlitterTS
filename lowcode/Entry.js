@@ -547,6 +547,19 @@ export class Entry {
         callback();
     }
     static toNormalRender(glitter, vm, callback) {
+        ApiUser.getUserData(GlobalUser.token, 'me').then((r) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!r.result) {
+                    GlobalUser.token = '';
+                }
+                else {
+                    GlobalUser.userInfo = r.response;
+                    GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response));
+                }
+            }
+            catch (e) {
+            }
+        }));
         glitter.addStyleLink([`https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css`]);
         glitter.addMtScript([
             {
