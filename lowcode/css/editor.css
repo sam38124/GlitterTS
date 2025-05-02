@@ -590,12 +590,12 @@ h6 {
 
 .form-switch .form-check-input:checked {
   background-color: var(--main-black) !important;
-  box-shadow: 0 0.5rem 1.125rem -0.5rem var(--main-black);
+  box-shadow: 1px 1px 2.5px rgba(0, 0, 0, 0.2);
 }
 
 .form-switch .form-check-input-success:checked {
   background-color: var(--item-success) !important;
-  box-shadow: 0 0.5rem 1.125rem -0.5rem var(--main-black);
+  box-shadow: 1px 1px 2.5px rgba(0, 0, 0, 0.2);
 }
 
 .bt_border_editor {
