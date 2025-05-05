@@ -1,6 +1,6 @@
-import { Cart } from "./shopping.js";
-import express from "express";
-import { IToken } from "../models/Auth.js";
+import { Cart } from './shopping.js';
+import express from 'express';
+import { IToken } from '../models/Auth.js';
 export declare class FbApi {
     app_name: string;
     token?: IToken;
@@ -9,6 +9,7 @@ export declare class FbApi {
         link: string;
         api_token: any;
     }>;
+    register(data: any, req: express.Request): Promise<boolean | undefined>;
     checkOut(data: Cart): Promise<boolean | undefined>;
     post(data: any, req: express.Request): Promise<boolean | undefined>;
     OAuth(url: any): Promise<void>;

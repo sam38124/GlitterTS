@@ -19,43 +19,38 @@ class Firebase {
     static async initial() {
         console.log(`fireBaseInitial:${firebase_admin_1.default.credential.cert(path_1.default.resolve(config_1.ConfigSetting.config_path, `../${process.env.firebase}`))}`);
         firebase_admin_1.default.initializeApp({
-            credential: firebase_admin_1.default.credential.cert(path_1.default.resolve(config_1.ConfigSetting.config_path, `../${process.env.firebase}`))
+            credential: firebase_admin_1.default.credential.cert(path_1.default.resolve(config_1.ConfigSetting.config_path, `../${process.env.firebase}`)),
         }, 'glitter');
         firebase_admin_1.default.initializeApp({
-            credential: firebase_admin_1.default.credential.cert(path_1.default.resolve(config_1.ConfigSetting.config_path, `../${process.env.firebase}`))
+            credential: firebase_admin_1.default.credential.cert(path_1.default.resolve(config_1.ConfigSetting.config_path, `../${process.env.firebase}`)),
         });
     }
     static async appRegister(cf) {
         try {
             if (cf.type === 'ios') {
-                await firebase_admin_1.default
-                    .projectManagement().createIosApp(cf.appID, cf.appName);
+                await firebase_admin_1.default.projectManagement().createIosApp(cf.appID, cf.appName);
             }
             else {
-                await firebase_admin_1.default
-                    .projectManagement().createAndroidApp(cf.appID, cf.appName);
+                await firebase_admin_1.default.projectManagement().createAndroidApp(cf.appID, cf.appName);
             }
         }
-        catch (e) {
-        }
+        catch (e) { }
     }
     static async getConfig(cf) {
         try {
             if (cf.type === 'ios') {
-                for (const b of (await (firebase_admin_1.default
-                    .projectManagement().listIosApps()))) {
+                for (const b of await firebase_admin_1.default.projectManagement().listIosApps()) {
                     if ((await b.getMetadata()).bundleId === cf.appID) {
                         await b.setDisplayName(cf.appDomain);
-                        return (await b.getConfig());
+                        return await b.getConfig();
                     }
                 }
             }
             else {
-                for (const b of (await (firebase_admin_1.default
-                    .projectManagement().listAndroidApps()))) {
+                for (const b of await firebase_admin_1.default.projectManagement().listAndroidApps()) {
                     if ((await b.getMetadata()).packageName === cf.appID) {
                         await b.setDisplayName(cf.appDomain);
-                        return (await b.getConfig());
+                        return await b.getConfig();
                     }
                 }
             }
@@ -66,35 +61,35 @@ class Firebase {
         }
     }
     async sendMessage(cf) {
+        console.log('sendMessage', cf);
         cf.body = cf.body.replace(/<br\s*\/?>/gi, '\n');
         if (cf.userID) {
-            web_socket_js_1.WebSocket.noticeChangeMem[cf.userID] && web_socket_js_1.WebSocket.noticeChangeMem[cf.userID].map((d2) => {
-                d2.callback({
-                    type: 'notice_count_change',
+            web_socket_js_1.WebSocket.noticeChangeMem[cf.userID] &&
+                web_socket_js_1.WebSocket.noticeChangeMem[cf.userID].map(d2 => {
+                    d2.callback({
+                        type: 'notice_count_change',
+                    });
                 });
-            });
         }
         return new Promise(async (resolve, reject) => {
             var _a;
             if (cf.userID) {
                 cf.token = (await database_1.default.query(`SELECT deviceToken
-                                            FROM \`${cf.app || this.app}\`.t_fcm
-                                            where userID = ?;`, [cf.userID])).map((dd) => {
+                                    FROM \`${cf.app || this.app}\`.t_fcm
+                                    where userID = ?;`, [cf.userID])).map((dd) => {
                     return dd.deviceToken;
                 });
-                const user_cf = ((_a = ((await database_1.default.query(`select \`value\`
-                                                   from \`${cf.app || this.app}\`.t_user_public_config
-                                                   where \`key\` ='notify_setting' and user_id=?`, [cf.userID]))[0])) !== null && _a !== void 0 ? _a : { value: {} }).value;
+                console.log(`sendMessage:${cf.userID}`, `SELECT deviceToken
+                                                 FROM \`${cf.app || this.app}\`.t_fcm
+                                                 where userID = ${database_1.default.escape(cf.userID)};`);
+                const user_cf = ((_a = (await database_1.default.query(`select \`value\`
+                                           from \`${cf.app || this.app}\`.t_user_public_config
+                                           where \`key\` = 'notify_setting'
+                                             and user_id = ?`, [cf.userID]))[0]) !== null && _a !== void 0 ? _a : { value: {} }).value;
                 if (`${user_cf[cf.tag]}` !== 'false') {
                     if (cf.userID && cf.tag && cf.title && cf.body && cf.link && !cf.pass_store) {
                         await database_1.default.query(`insert into \`${cf.app || this.app}\`.t_notice (user_id, tag, title, content, link)
-                                        values (?, ?, ?, ?, ?)`, [
-                            cf.userID,
-                            cf.tag,
-                            cf.title,
-                            cf.body,
-                            cf.link
-                        ]);
+                            values (?, ?, ?, ?, ?)`, [cf.userID, cf.tag, cf.title, cf.body, cf.link]);
                     }
                 }
                 else {
@@ -106,40 +101,58 @@ class Firebase {
                 cf.token = [cf.token];
             }
             if (Array.isArray(cf.token)) {
-                for (const token of cf.token) {
-                    try {
-                        firebase_admin_1.default.apps.find((dd) => {
-                            return (dd === null || dd === void 0 ? void 0 : dd.name) === 'glitter';
-                        }).messaging().send({
-                            notification: {
-                                title: cf.title,
-                                body: cf.body.replace(/<br>/g, ''),
-                            },
-                            android: {
+                let error_token = [];
+                await Promise.all(cf.token.map(token => {
+                    return new Promise(async (resolve, reject) => {
+                        try {
+                            firebase_admin_1.default.apps
+                                .find(dd => {
+                                return (dd === null || dd === void 0 ? void 0 : dd.name) === 'glitter';
+                            })
+                                .messaging()
+                                .send({
                                 notification: {
-                                    sound: 'default'
+                                    title: cf.title,
+                                    body: cf.body.replace(/<br>/g, ''),
                                 },
-                            },
-                            apns: {
-                                payload: {
-                                    aps: {
-                                        sound: 'default'
+                                android: {
+                                    notification: {
+                                        sound: 'default',
                                     },
                                 },
-                            },
-                            data: {
-                                link: `${cf.link || ''}`
-                            },
-                            "token": token
-                        }).then((response) => {
-                            console.log('成功發送推播：', response);
-                        }).catch((error) => {
-                            console.error('發送推播時發生錯誤：', error);
-                        });
-                    }
-                    catch (e) {
-                        caught_error_js_1.CaughtError.warning('fcm', `firebase->74`, `${e}`);
-                    }
+                                apns: {
+                                    payload: {
+                                        aps: {
+                                            sound: 'default',
+                                        },
+                                    },
+                                },
+                                data: {
+                                    link: `${cf.link || ''}`,
+                                },
+                                token: token,
+                            })
+                                .then((response) => {
+                                console.log(`成功發送推播：${token}`, response);
+                                resolve(true);
+                            })
+                                .catch((error) => {
+                                if (error.errorInfo.code === 'messaging/registration-token-not-registered') {
+                                    error_token.push(token);
+                                }
+                                resolve(true);
+                            });
+                        }
+                        catch (e) {
+                            caught_error_js_1.CaughtError.warning('fcm', `firebase->74`, `${e}`);
+                            resolve(true);
+                        }
+                    });
+                }));
+                if (error_token.length > 0) {
+                    await database_1.default.query(`delete 
+             FROM \`${cf.app || this.app}\`.t_fcm
+             where userID = ? and deviceToken in (${error_token.map(d => database_1.default.escape(d)).join(',')});`, [cf.userID]);
                 }
             }
             resolve(true);
@@ -153,7 +166,7 @@ class Firebase {
                     return { result: false, message: '排定發送的時間需大於現在時間' };
                 }
                 const insertData = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
-                                           SET ?;`, [
+           SET ?;`, [
                     {
                         tag: 'sendFCM',
                         content: JSON.stringify(data),
@@ -165,7 +178,7 @@ class Firebase {
             }
             else {
                 const insertData = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
-                                           SET ?;`, [
+           SET ?;`, [
                     {
                         tag: 'sendFCM',
                         content: JSON.stringify(data),
@@ -227,14 +240,16 @@ class Firebase {
                 whereList.push(`(JSON_EXTRACT(content, '$.type') in (${maiTypeString}))`);
             }
             const whereSQL = `(tag = 'sendFCM') AND ${whereList.join(' AND ')}`;
-            const emails = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
-                 WHERE ${whereSQL}
-                 ORDER BY id DESC
-                 ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`, []);
-            const total = await database_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_triggers
-                 WHERE ${whereSQL};`, []);
+            const emails = await database_1.default.query(`SELECT *
+         FROM \`${this.app}\`.t_triggers
+         WHERE ${whereSQL}
+         ORDER BY id DESC
+           ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`, []);
+            const total = await database_1.default.query(`SELECT count(id) as c
+         FROM \`${this.app}\`.t_triggers
+         WHERE ${whereSQL};`, []);
             for (const email of emails) {
-                email.content.typeName = "手動發送";
+                email.content.typeName = '手動發送';
             }
             return { data: emails, total: total[0].c };
         }

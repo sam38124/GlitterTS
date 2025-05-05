@@ -34,6 +34,8 @@ import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
 import { PhoneVerify } from './phone-verify.js';
 import { StackTracker, Stack } from '../../update-progress-track.js';
 import { InitialFakeData } from './initial-fake-data.js';
+import { FbApi } from './fb-api.js';
+import express from 'express';
 
 interface UserQuery {
   page?: number;
@@ -292,7 +294,7 @@ export class User {
         ]
       );
 
-      await this.createUserHook(userID);
+      await this.createUserHook(userID,req);
 
       const usData: any = await this.getUserData(userID, 'userID');
       usData.pwd = undefined;
@@ -315,7 +317,7 @@ export class User {
   }
 
   // 用戶初次建立的initial函式
-  async createUserHook(userID: string) {
+  async createUserHook(userID: string,req: express.Request) {
     // 發送歡迎信件
     const usData: any = await this.getUserData(userID, 'userID');
     usData.userData.repeatPwd = undefined;
@@ -350,6 +352,8 @@ export class User {
     //發送用戶註冊通知
     new ManagerNotify(this.app).userRegister({ user_id: userID });
     await UserUpdate.update(this.app, userID);
+    //註冊事件
+    await new FbApi(this.app).register(usData,req)
   }
 
   async updateAccount(account: string, userID: string): Promise<any> {
@@ -409,7 +413,7 @@ export class User {
     }
   }
 
-  async loginWithFb(token: string) {
+  async loginWithFb(token: string,req: express.Request) {
     let config = {
       method: 'get',
       maxBodyLength: Infinity,
@@ -455,7 +459,7 @@ export class User {
           1,
         ]
       );
-      await this.createUserHook(userID);
+      await this.createUserHook(userID,req);
     }
     const data: any = (
       (await db.execute(
@@ -484,7 +488,7 @@ export class User {
     return usData;
   }
 
-  async loginWithLine(code: string, redirect: string) {
+  async loginWithLine(code: string, redirect: string,req: express.Request) {
     try {
       const lineData = await this.getConfigV2({
         key: 'login_line_setting',
@@ -586,7 +590,7 @@ export class User {
             1,
           ]
         );
-        await this.createUserHook(userID);
+        await this.createUserHook(userID,req);
         findList = await getUsData();
       }
       const data = findList[0];
@@ -612,7 +616,7 @@ export class User {
     }
   }
 
-  async loginWithGoogle(code: string, redirect: string) {
+  async loginWithGoogle(code: string, redirect: string,req: express.Request) {
     try {
       const config = await this.getConfigV2({
         key: 'login_google_setting',
@@ -685,7 +689,7 @@ export class User {
             1,
           ]
         );
-        await this.createUserHook(userID);
+        await this.createUserHook(userID,req);
       }
       const data: any = (
         (await db.execute(
@@ -754,7 +758,7 @@ export class User {
     }
   }
 
-  async loginWithApple(token: string) {
+  async loginWithApple(token: string,req: express.Request) {
     try {
       const config = await this.getConfigV2({
         key: 'login_apple_setting',
@@ -823,7 +827,7 @@ export class User {
             1,
           ]
         );
-        await this.createUserHook(userID);
+        await this.createUserHook(userID,req);
       }
       const data: any = (
         (await db.execute(

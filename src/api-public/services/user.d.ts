@@ -1,4 +1,5 @@
 import { IToken } from '../models/Auth.js';
+import express from 'express';
 interface UserQuery {
     page?: number;
     limit?: number;
@@ -78,14 +79,14 @@ export declare class User {
         out_limit?: undefined;
     }>;
     createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean): Promise<any>;
-    createUserHook(userID: string): Promise<void>;
+    createUserHook(userID: string, req: express.Request): Promise<void>;
     updateAccount(account: string, userID: string): Promise<any>;
     login(account: string, pwd: string): Promise<any>;
-    loginWithFb(token: string): Promise<any>;
-    loginWithLine(code: string, redirect: string): Promise<any>;
-    loginWithGoogle(code: string, redirect: string): Promise<any>;
+    loginWithFb(token: string, req: express.Request): Promise<any>;
+    loginWithLine(code: string, redirect: string, req: express.Request): Promise<any>;
+    loginWithGoogle(code: string, redirect: string, req: express.Request): Promise<any>;
     loginWithPin(user_id: string, pin: string): Promise<any>;
-    loginWithApple(token: string): Promise<any>;
+    loginWithApple(token: string, req: express.Request): Promise<any>;
     getUserData(query: string, type?: 'userID' | 'account' | 'email_or_phone'): Promise<any>;
     checkMember(userData: any, trigger: boolean): Promise<{
         id: string;

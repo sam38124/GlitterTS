@@ -141,6 +141,7 @@ export declare class PayPal {
         approveLink: any;
     }>;
     createOrderPage(accessToken: string, orderData: {
+        discount: number;
         lineItems: {
             id: string;
             spec: string[];

@@ -8,6 +8,7 @@ import { GlobalWidget } from '../../glitterBundle/html-component/global-widget.j
 import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 import { RenderValue } from '../../glitterBundle/html-component/render-value.js';
 import { ApplicationConfig } from '../../application-config.js';
+import { ApiPageConfig } from '../../api/pageConfig.js';
 
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
   return {
@@ -40,6 +41,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
           let data: any = undefined;
           let tag = widget.data.tag;
           let carryData = widget.data.carryData;
+
           async function getData(document: any) {
             return new Promise(async (resolve, reject) => {
               try {
@@ -116,16 +118,16 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                     });
 
                     function getFormData(ref: any) {
-
-
-                      //判斷是否有上次的更新資料
-                      ref = (()=>{
-                        if((window as any).glitter.getUrlParameter('select_widget') === 'true'){
+                      //判斷是否有上次的更新資料，並且為單例元素
+                      ref = (() => {
+                        if ((window as any).glitter.getUrlParameter('select_widget') === 'true') {
                           return ref;
-                        }else{
-                         return (window.parent as any).glitter.share.updated_form_data[
-                            `${page_request_config.appName}_${tag}`
+                        } else {
+                          return (
+                            (window.parent as any).glitter.share.updated_form_data[
+                              `${page_request_config.appName}_${tag}`
                             ] || ref
+                          );
                         }
                       })();
                       let formData = JSON.parse(JSON.stringify(ref || {}));
@@ -190,8 +192,21 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                       const ref = widget.data.refer_app
                         ? widget.data.refer_form_data || data.page_config.formData
                         : data.page_config.formData;
-                      (window.parent as any).glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] =
-                        ref;
+                      try {
+                        if (
+                          (window.parent as any).glitter.share._global_component
+                            .map((dd: any) => {
+                              return `${dd.appName}_${dd.tag}`;
+                            })
+                            .includes(`${page_request_config.appName}_${tag}`)
+                        ) {
+                          (window.parent as any).glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] =
+                            ref;
+                        }
+                      }catch (e) {
+
+                      }
+
                       viewConfig.formData = getFormData(ref);
                       const view = getView();
                       (window.parent as any).glitter.share.loading_dialog.dataLoading({ visible: true });
@@ -877,7 +892,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                 gvc.glitter.share.editorViewModel.selectItem =
                                                                   undefined;
                                                                 gvc.glitter.share.selectEditorItem();
-                                                                
+
                                                                 // if (select_.container_cf) {
                                                                 //   const gvc_ =
                                                                 //     gvc.glitter.document.querySelector('.iframe_view')

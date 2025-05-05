@@ -260,10 +260,10 @@ router.post('/login', async (req, resp) => {
         const user = new user_1.User(req.get('g-app'), req.body.token);
         const { login_type, fb_token, line_token, redirect, google_token, user_id, pin, account, pwd } = req.body;
         const loginMethods = {
-            fb: async () => user.loginWithFb(fb_token),
-            line: async () => user.loginWithLine(line_token, redirect),
-            google: async () => user.loginWithGoogle(google_token, redirect),
-            apple: async () => user.loginWithApple(req.body.token),
+            fb: async () => user.loginWithFb(fb_token, req),
+            line: async () => user.loginWithLine(line_token, redirect, req),
+            google: async () => user.loginWithGoogle(google_token, redirect, req),
+            apple: async () => user.loginWithApple(req.body.token, req),
             pin: async () => user.loginWithPin(user_id, pin),
             default: async () => user.login(account, pwd),
         };

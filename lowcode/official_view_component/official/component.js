@@ -132,7 +132,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                         return ref;
                                                     }
                                                     else {
-                                                        return window.parent.glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] || ref;
+                                                        return (window.parent.glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] || ref);
                                                     }
                                                 })();
                                                 let formData = JSON.parse(JSON.stringify(ref || {}));
@@ -179,8 +179,18 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                 const ref = widget.data.refer_app
                                                     ? widget.data.refer_form_data || data.page_config.formData
                                                     : data.page_config.formData;
-                                                window.parent.glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] =
-                                                    ref;
+                                                try {
+                                                    if (window.parent.glitter.share._global_component
+                                                        .map((dd) => {
+                                                        return `${dd.appName}_${dd.tag}`;
+                                                    })
+                                                        .includes(`${page_request_config.appName}_${tag}`)) {
+                                                        window.parent.glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] =
+                                                            ref;
+                                                    }
+                                                }
+                                                catch (e) {
+                                                }
                                                 viewConfig.formData = getFormData(ref);
                                                 const view = getView();
                                                 window.parent.glitter.share.loading_dialog.dataLoading({ visible: true });

@@ -506,7 +506,9 @@ export class Schedule {
   main() {
     const scheduleList: ScheduleItem[] = ConfigSetting.is_local
       ? //線下測試環境
-        [{ second: 60 * 5, status: true, func: 'visitLogs', desc: '更新每天造訪人數' }]
+        [
+          // { second: 60 * 5, status: true, func: 'visitLogs', desc: '更新每天造訪人數' }
+        ]
       : //線上環境
         [
           // { second: 10, status: false, func: 'example', desc: '排程啟用範例' },

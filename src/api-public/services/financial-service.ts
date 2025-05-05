@@ -19,7 +19,6 @@ interface KeyData {
   CreditCheckCode?: string;
 }
 
-
 const html = String.raw;
 
 export default class FinancialService {
@@ -735,8 +734,14 @@ export class PayPal {
   ) {
     this.keyData = keyData;
     this.appName = appName;
-    this.PAYPAL_CLIENT_ID = keyData.BETA == 'true' ?"ATz7uJryxmGA2SmR5PxQ_IFXFYKeWd_R1SIzsr_bDrJQMYgRR5z_TXEnjcBh2P4DQDDYnLdHu0aNfugX":keyData.PAYPAL_CLIENT_ID; // 替換為您的 Client ID
-    this.PAYPAL_SECRET = keyData.BETA == 'true' ?"ENb25ujfYB0GBzv6GvzDW2a7gx-KgsVZwxOBqF0WSH3Zr7SU1BBdI8KQ_XRpcgcjj8VWTOWwo83NxK5d":keyData.PAYPAL_SECRET; // 替換為您的 Secret Key
+    this.PAYPAL_CLIENT_ID =
+      keyData.BETA == 'true'
+        ? 'ATz7uJryxmGA2SmR5PxQ_IFXFYKeWd_R1SIzsr_bDrJQMYgRR5z_TXEnjcBh2P4DQDDYnLdHu0aNfugX'
+        : keyData.PAYPAL_CLIENT_ID; // 替換為您的 Client ID
+    this.PAYPAL_SECRET =
+      keyData.BETA == 'true'
+        ? 'ENb25ujfYB0GBzv6GvzDW2a7gx-KgsVZwxOBqF0WSH3Zr7SU1BBdI8KQ_XRpcgcjj8VWTOWwo83NxK5d'
+        : keyData.PAYPAL_SECRET; // 替換為您的 Secret Key
     this.PAYPAL_BASE_URL = keyData.BETA == 'true' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com'; // 沙箱環境
     // const PAYPAL_BASE_URL = "https://api-m.paypal.com"; // 正式環境
   }
@@ -759,8 +764,8 @@ export class PayPal {
           grant_type: 'client_credentials',
         }).toString(),
       };
-      console.log("this.PAYPAL_CLIENT_ID -- " , this.PAYPAL_CLIENT_ID);
-      console.log("this.PAYPAL_SECRET -- " , this.PAYPAL_SECRET);
+      console.log('this.PAYPAL_CLIENT_ID -- ', this.PAYPAL_CLIENT_ID);
+      console.log('this.PAYPAL_SECRET -- ', this.PAYPAL_SECRET);
       const response = await axios.request(config);
       return response.data.access_token;
     } catch (error: any) {
@@ -782,6 +787,7 @@ export class PayPal {
   async createOrderPage(
     accessToken: string,
     orderData: {
+      discount: number;
       lineItems: {
         id: string;
         spec: string[];
@@ -813,32 +819,49 @@ export class PayPal {
         },
         data: {
           intent: 'CAPTURE', // 訂單目標: CAPTURE (立即支付) 或 AUTHORIZE (授權後支付)
-          purchase_units: [
-            {
-              reference_id: orderData.orderID, // 訂單參考 ID，可自定義
-              amount: {
-                currency_code: 'TWD', // 貨幣
-                value: itemPrice, // 總金額
-                breakdown: {
-                  item_total: {
-                    currency_code: 'TWD',
-                    value: itemPrice,
+          purchase_units: (() => {
+            let unit_array = [
+              {
+                reference_id: orderData.orderID, // 訂單參考 ID，可自定義
+                amount: {
+                  currency_code: 'TWD', // 貨幣
+                  value: orderData.total, // 總金額
+                  breakdown: {
+                    item_total: {
+                      currency_code: 'TWD',
+                      value: orderData.total+orderData.discount ,
+                    },
+                    discount: { value: orderData.discount, currency_code: "TWD" }
                   },
                 },
+                items: orderData.lineItems
+                  .map(item => {
+                    return {
+                      name: item.title, // 商品名稱
+                      unit_amount: {
+                        currency_code: 'TWD',
+                        value: item.sale_price,
+                      },
+                      quantity: item.count, // 商品數量
+                      description: item.spec.join(',') ?? '',
+                    };
+                  })
+                  .concat([
+                    {
+                      name: 'Shipment fee', // 商品名稱
+                      unit_amount: {
+                        currency_code: 'TWD',
+                        value: orderData.shipment_fee,
+                      },
+                      quantity: 1, // 商品數量
+                      description: 'shipment_fee',
+                    }
+                  ])
+                  ,
               },
-              items: orderData.lineItems.map(item => {
-                return {
-                  name: item.title, // 商品名稱
-                  unit_amount: {
-                    currency_code: 'TWD',
-                    value: item.sale_price,
-                  },
-                  quantity: item.count, // 商品數量
-                  description: item.spec.join(',') ?? '',
-                };
-              }),
-            },
-          ],
+            ];
+            return unit_array;
+          })(),
 
           application_context: {
             brand_name: this.appName, // 商店名稱
@@ -850,6 +873,19 @@ export class PayPal {
         },
       };
 
+      // body.packages.push({
+      //   id: 'shipping',
+      //   amount: orderData.shipment_fee,
+      //   products: [
+      //     {
+      //       id: 'shipping',
+      //       name: 'shipping',
+      //       imageUrl: '',
+      //       quantity: 1,
+      //       price: orderData.shipment_fee,
+      //     },
+      //   ],
+      // })
       const response = await axios.request(config);
       await OrderEvent.insertOrder({
         cartData: orderData,
@@ -1013,7 +1049,7 @@ export class LinePay {
     user_email: string;
     method: string;
     discount?: any;
-    use_rebate?:number
+    use_rebate?: number;
   }) {
     const confirm_url = `${this.keyData.ReturnURL}&LinePay=true&appName=${this.appName}&orderID=${orderData.orderID}`;
     const cancel_url = `${this.keyData.ReturnURL}&payment=false`;
@@ -1032,7 +1068,8 @@ export class LinePay {
               .map(data => {
                 return data.count * data.sale_price;
               })
-              .reduce((a, b) => a + b, 0) - (orderData.discount+parseInt(`${orderData.use_rebate || 0}`,10)),
+              .reduce((a, b) => a + b, 0) -
+            (orderData.discount + parseInt(`${orderData.use_rebate || 0}`, 10)),
           products: orderData.lineItems
             .map(data => {
               return {
@@ -1049,7 +1086,7 @@ export class LinePay {
                 name: '折扣',
                 imageUrl: '',
                 quantity: 1,
-                price: (orderData.discount+parseInt(`${orderData.use_rebate || 0}`,10)) * -1,
+                price: (orderData.discount + parseInt(`${orderData.use_rebate || 0}`, 10)) * -1,
               },
             ]),
         },
@@ -1182,7 +1219,7 @@ export class PayNow {
   //取得並綁定商戶金鑰匙
   async bindKey() {
     if (this.keyData.BETA == 'true') {
-      return { private_key: 'bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv', public_key: 'sm22610RIIwOTz4STCFf0dF22G067lnd' }
+      return { private_key: 'bES1o13CUQJhZzcOkkq2BRoSa8a4f0Kv', public_key: 'sm22610RIIwOTz4STCFf0dF22G067lnd' };
     }
     const keyData = (
       await Private_config.getConfig({
@@ -1304,7 +1341,7 @@ export class PayNow {
       });
       await redis.setValue('paynow' + orderData.orderID, response.data.result.id);
       return {
-        returnUrl:this.keyData.ReturnURL,
+        returnUrl: this.keyData.ReturnURL,
         data: response.data,
         publicKey: key_.public_key,
         BETA: this.keyData.BETA,

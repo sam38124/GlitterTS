@@ -546,19 +546,23 @@ export class CheckoutIndex {
                                                 </div>`}
                                           `;
                                                         }
+                                                        let voucher = '';
                                                         return html `<div class="d-flex flex-column flex-sm-row align-items-center">
                                             <div class="d-flex align-items-center w-100">
                                               <input
                                                 class="${gClass('input')}"
                                                 type="text"
                                                 style="border-top-right-radius: 0;border-bottom-right-radius: 0px;"
+                                                onchange="${gvc.event(e => {
+                                                            voucher = e.value;
+                                                        })}"
                                                 placeholder="${Language.text('enter_promo_code')}"
                                               />
                                               <button
                                                 class="${gClass('button-bgr')}"
                                                 style="width:100px;border-top-left-radius: 0;border-bottom-left-radius: 0px;"
                                                 onclick="${gvc.event(e => {
-                                                            checkCodeValue(e.value);
+                                                            checkCodeValue(voucher);
                                                         })}"
                                               >
                                                 <span class="${gClass('button-text')}"
