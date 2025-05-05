@@ -17,7 +17,7 @@ class Mail {
         try {
             for (const b of chunkArray(Array.from(new Set(data.email)), 10)) {
                 let check = b.length;
-                await new Promise((resolve) => {
+                await new Promise(resolve => {
                     for (const d of b) {
                         (0, ses_js_1.sendmail)(`${data.name} <${process.env.smtp}>`, d, data.title, data.content, () => {
                             check--;
@@ -64,9 +64,9 @@ class Mail {
             const total = await database_js_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_triggers
                  WHERE ${whereSQL};`, []);
             let n = 0;
-            await new Promise((resolve) => {
+            await new Promise(resolve => {
                 for (const email of emails) {
-                    auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, email.content.type, 'zh-TW').then((dd) => {
+                    auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, email.content.type, 'zh-TW').then(dd => {
                         email.content.typeName = dd && dd.tag_name ? dd.tag_name : '手動發送';
                         n++;
                     });
