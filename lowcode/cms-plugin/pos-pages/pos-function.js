@@ -313,7 +313,6 @@ export class PosFunction {
           `;
                 },
                 divCreate: {
-                    class: '',
                     style: `width: 338px; max-height: 400px; overflow-y: auto; padding: 25px 20px; background: white; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15); border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;`,
                 },
             }));
@@ -435,82 +434,122 @@ export class PosFunction {
             });
         }, 'selectStoreSwitch');
     }
-    static setMoney(gvc, callback, title) {
+    static setMoney(gvc, def, callback, title) {
         gvc.glitter.innerDialog(gvc => {
             const c_vm = {
-                text: '',
                 id: gvc.glitter.getUUID(),
+                addListener: false,
+                text: def ? `${def}` : '',
             };
             const numberButtons = [
-                [1, 2, 3],
-                [4, 5, 6],
                 [7, 8, 9],
-                ['<i class="fa-regular fa-delete-left"></i>', 0, '確認'],
+                [4, 5, 6],
+                [1, 2, 3],
+                ['C', 0, '<i class="fa-regular fa-delete-left"></i>'],
             ];
             const handleButtonClick = (value) => {
-                if (value === '確認') {
-                    callback(parseInt(c_vm.text, 10));
-                    gvc.closeDialog();
+                if (value === '確認' || value === 'Enter') {
+                    saveEvent();
                 }
                 else if (value === '取消') {
-                    gvc.closeDialog();
+                    closeEvent();
                 }
-                else if (typeof value === 'string' && value.includes('fa-regular')) {
+                else if (value === 'Backspace' || (typeof value === 'string' && value.includes('fa-regular'))) {
                     c_vm.text = c_vm.text.slice(0, -1);
+                    gvc.notifyDataChange(c_vm.id);
+                }
+                else if (value === 'c' || value === 'C') {
+                    c_vm.text = '';
                     gvc.notifyDataChange(c_vm.id);
                 }
                 else {
                     c_vm.text += value;
+                    if (c_vm.text[0] === '0') {
+                        c_vm.text = c_vm.text.slice(1, c_vm.text.length);
+                    }
                     gvc.notifyDataChange(c_vm.id);
                 }
             };
+            const numberBoardClickEvent = (e) => {
+                const key = e.key;
+                if (/^[0-9]$/.test(key) || key === 'Backspace' || key === 'Enter' || key.toLowerCase() === 'c') {
+                    handleButtonClick(key);
+                }
+            };
+            const closeEvent = () => {
+                document.removeEventListener('keydown', numberBoardClickEvent);
+                gvc.closeDialog();
+            };
+            const saveEvent = () => {
+                callback(parseInt(c_vm.text, 10));
+                closeEvent();
+            };
             return gvc.bindView(() => ({
                 bind: c_vm.id,
-                view: () => html `
-          <div
-            style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex"
-          >
-            <div style="align-self: stretch; display: inline-flex; justify-content: center;">
-              <div class="fw-bold" style="text-align: center; color: #585858; font-size: 28px;">
-                ${title || '輸入收款金額'}
-              </div>
-            </div>
-            <div class="border w-100 p-3 rounded-3 d-flex align-items-center justify-content-end" style="gap: 20px;">
-              <span style="font-size: 28px;">${c_vm.text || 0}</span>
-            </div>
+                view: () => {
+                    return html `
             <div
-              style="background: white; flex-direction: column; justify-content: flex-start; align-items: center; gap: 32px; display: flex"
+              style="flex-direction: column; justify-content: flex-start; align-items: flex-end; gap: 20px; display: inline-flex"
             >
-              <div
-                style="align-self: stretch; border-radius: 10px; border: 1px solid #DDD; display: flex; flex-direction: column;"
-              >
-                ${numberButtons
-                    .map(row => html `
-                      <div style="display: inline-flex; justify-content: flex-start; align-items: center;">
-                        ${row
-                    .map(value => html `
-                              <div
-                                style="height: 56px; width: 95px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;"
-                                onclick="${gvc.event(() => handleButtonClick(value))}"
-                              >
-                                <div
-                                  style="align-self: stretch; text-align: center; color: #393939; font-size: 20px; font-weight: 700; line-height: 28px;"
-                                >
-                                  ${value}
-                                </div>
-                              </div>
-                            `)
-                    .join('<div style="border-right: 1px #DDDDDD solid; height: 56px;"></div>')}
-                      </div>
-                    `)
-                    .join('<div style="border-top: 1px #DDDDDD solid; height: 1px; width: 100%;"></div>')}
+              <div style="align-self: stretch; display: inline-flex; justify-content: center;">
+                <div class="fw-bold" style="text-align: center; color: #585858; font-size: 28px;">
+                  ${title || '輸入收款金額'}
+                </div>
               </div>
+              <div class="border w-100 p-3 rounded-3 d-flex align-items-center justify-content-end" style="gap: 20px;">
+                <span style="font-size: 28px;">${c_vm.text || 0}</span>
+              </div>
+              <div
+                style="background: white; flex-direction: column; justify-content: flex-start; align-items: center; gap: 32px; display: flex"
+              >
+                <div
+                  style="align-self: stretch; border-radius: 10px; border: 1px solid #DDD; display: flex; flex-direction: column;"
+                >
+                  ${numberButtons
+                        .map(row => html `
+                        <div style="display: inline-flex; justify-content: flex-start; align-items: center;">
+                          ${row
+                        .map(value => html `
+                                <div
+                                  style="height: 56px; width: 95px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;"
+                                  onclick="${gvc.event(() => handleButtonClick(value))}"
+                                >
+                                  <div
+                                    style="align-self: stretch; text-align: center; color: #393939; font-size: 20px; font-weight: 700; line-height: 28px;"
+                                  >
+                                    ${value}
+                                  </div>
+                                </div>
+                              `)
+                        .join('<div style="border-right: 1px #DDDDDD solid; height: 56px;"></div>')}
+                        </div>
+                      `)
+                        .join('<div style="border-top: 1px #DDDDDD solid; height: 1px; width: 100%;"></div>')}
+                </div>
+              </div>
+              <div>${BgWidget.save(gvc.event(saveEvent), '確認')}</div>
             </div>
-          </div>
-        `,
+          `;
+                },
                 divCreate: {
-                    class: '',
-                    style: `width: 338px; padding: 25px 20px; background: white; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; align-items: center; gap: 10px;`,
+                    style: `
+            width: 338px;
+            padding: 25px 20px;
+            background: white;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+          `,
+                },
+                onCreate: () => {
+                    if (!c_vm.addListener) {
+                        c_vm.addListener = true;
+                        document.addEventListener('keydown', numberBoardClickEvent);
+                    }
                 },
             }));
         }, 'setMoney');
@@ -555,11 +594,12 @@ export class PosFunction {
                     }
                 };
                 const handlePaymentAmountClick = (method, id, gvc, dialog) => {
+                    console.log(method);
                     if (method.paied) {
                         dialog.errorMessage({ text: '此付款金額已結清，無法進行調整' });
                         return;
                     }
-                    PosFunction.setMoney(gvc, money => {
+                    PosFunction.setMoney(gvc, method.total, money => {
                         method.total = money || 0;
                         gvc.notifyDataChange(id);
                     });
@@ -658,16 +698,23 @@ export class PosFunction {
                                     });
                                     return btnArray
                                         .map(btn => {
-                                        return `
-                                                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px; border-radius: 10px; background: #F6F6F6; ${method.method === btn.value ? 'color: #393939; border: 3px solid #393939; box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.20);' : 'color: #8D8D8D;'}"
-                                                    onclick="${gvc.event(() => {
+                                        return html `
+                          <div
+                            style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px; border-radius: 10px; background: #F6F6F6; ${method.method ===
+                                            btn.value
+                                            ? 'color: #393939; border: 3px solid #393939; box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.20);'
+                                            : 'color: #8D8D8D;'}"
+                            onclick="${gvc.event(() => {
                                             method = { method: btn.value, total: 0 };
                                             gvc.notifyDataChange(id);
-                                        })}">
-                                                    <div style="width: 28px; height: 28px;">${drawIcon(method.method === btn.value, btn.value)}</div>
-                                                    <div style="font-size: 16px; font-weight: 500;">${btn.title}</div>
-                                                </div>
-                                            `;
+                                        })}"
+                          >
+                            <div style="width: 28px; height: 28px;">
+                              ${drawIcon(method.method === btn.value, btn.value)}
+                            </div>
+                            <div style="font-size: 16px; font-weight: 500;">${btn.title}</div>
+                          </div>
+                        `;
                                     })
                                         .join('');
                                 })()}

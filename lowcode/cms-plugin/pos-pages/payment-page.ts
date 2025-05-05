@@ -235,8 +235,11 @@ export class PaymentPage {
                                     <div
                                       class="d-flex flex-column py-2"
                                       onclick="${gvc.event(() => {
+                                        const def = obj.ogOrderData.lineItems?.[index]?.count || 0;
+
                                         PosFunction.setMoney(
                                           gvc,
+                                          def,
                                           count => {
                                             obj.ogOrderData.lineItems[index].count = count;
                                             refreshOrderView();
@@ -284,8 +287,11 @@ export class PaymentPage {
                                       class="d-sm-none d-flex align-items-center justify-content-center flex-column"
                                       style="gap:0px;"
                                       onclick="${gvc.event(() => {
+                                        const n = obj.ogOrderData.lineItems?.[index]?.custom_price || 0;
+
                                         PosFunction.setMoney(
                                           gvc,
+                                          n,
                                           money => {
                                             if (money === data.sale_price) {
                                               delete obj.ogOrderData.lineItems[index].custom_price;
@@ -325,8 +331,11 @@ export class PaymentPage {
                                     class="col-3 col-lg-2 d-flex align-items-center justify-content-center d-none d-sm-flex"
                                     style="gap:10px;cursor: pointer;"
                                     onclick="${gvc.event(() => {
+                                      const def = obj.ogOrderData.lineItems?.[index]?.count || 0;
+
                                       PosFunction.setMoney(
                                         gvc,
+                                        def,
                                         count => {
                                           obj.ogOrderData.lineItems[index].count = count;
                                           refreshOrderView();
@@ -341,8 +350,11 @@ export class PaymentPage {
                                     class="col-3 col-lg-2 d-flex align-items-center justify-content-center  d-none d-sm-flex"
                                     style="gap:10px;cursor: pointer;"
                                     onclick="${gvc.event(() => {
+                                      const def = obj.ogOrderData.lineItems?.[index]?.custom_price || 0;
+
                                       PosFunction.setMoney(
                                         gvc,
+                                        def,
                                         money => {
                                           if (money === data.sale_price) {
                                             delete obj.ogOrderData.lineItems[index].custom_price;
@@ -1442,7 +1454,7 @@ export class PaymentPage {
                                                 dialog.errorMessage({ text: '此付款金額已結清，無法進行調整' });
                                                 return;
                                               }
-                                              PosFunction.setMoney(gvc, money => {
+                                              PosFunction.setMoney(gvc, dd.total, money => {
                                                 dd.total = money || 0;
                                                 refreshOrderView();
                                               });
@@ -1555,7 +1567,8 @@ export class PaymentPage {
                                 class="ms-auto"
                                 value="${obj.ogOrderData.pos_info.payment[0].total}"
                                 onclick="${gvc.event(() => {
-                                  PosFunction.setMoney(gvc, money => {
+                                  const def = obj.ogOrderData.pos_info.payment?.[0]?.total;
+                                  PosFunction.setMoney(gvc, def, money => {
                                     obj.ogOrderData.pos_info.payment[0].total = money || 0;
                                     PaymentPage.storeHistory(obj.ogOrderData);
                                     gvc.notifyDataChange(vm_id);
