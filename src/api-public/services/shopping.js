@@ -135,7 +135,8 @@ class Shopping {
                 updated_time_desc: `ORDER BY updated_time DESC`,
                 updated_time_asc: `ORDER BY updated_time ASC`,
                 sales_desc: `ORDER BY content->>'$.total_sales' DESC , id DESC`,
-                default: `ORDER BY content->>'$.sort_weight' DESC , id DESC`,
+                sort_weight: `ORDER BY content->>'$.sort_weight' DESC , id DESC`,
+                default: query.is_manger ? `ORDER BY id DESC` : `ORDER BY content->>'$.sort_weight' DESC , id DESC`,
                 stock_desc: '',
                 stock_asc: '',
             };
@@ -424,7 +425,7 @@ class Shopping {
             })
                 .map((product) => {
                 var _a;
-                product.content.designated_logistics = (_a = product.content.designated_logistics) !== null && _a !== void 0 ? _a : { list: [], type: "all" };
+                product.content.designated_logistics = (_a = product.content.designated_logistics) !== null && _a !== void 0 ? _a : { list: [], type: 'all' };
                 product.content.collection = Array.from(new Set((() => {
                     var _a;
                     return ((_a = product.content.collection) !== null && _a !== void 0 ? _a : []).map((dd) => {
@@ -1454,11 +1455,11 @@ class Shopping {
             const paymentService = new payment_service_js_1.PaymentService(allPaymentStrategies, appName, carData.customer_info.payment_select);
             try {
                 const paymentResult = await paymentService.processPayment(carData, return_url, carData.customer_info.payment_select);
-                console.log("Controller 收到 Payment Result:", paymentResult);
+                console.log('Controller 收到 Payment Result:', paymentResult);
                 return paymentResult;
             }
             catch (error) {
-                console.error("Controller 捕獲到錯誤:", error);
+                console.error('Controller 捕獲到錯誤:', error);
             }
         }
     }

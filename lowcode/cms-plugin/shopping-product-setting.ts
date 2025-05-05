@@ -303,6 +303,7 @@ export class ShoppingProductSetting {
                                         return undefined;
                                       })(),
                                     };
+
                                     ApiShop.getProduct(vm.apiJSON).then(data => {
                                       function getDatalist() {
                                         return data.response.data.map((dd: any) => {
@@ -858,12 +859,18 @@ export class ShoppingProductSetting {
                         const vm = {
                           id: gvc.glitter.getUUID(),
                         };
+
+                        if (obj.vm.type === 'add') {
+                          variant.shipment_type = 'none';
+                        }
+
                         return {
                           bind: vm.id,
                           view: () => {
                             if (postMD.product_category === 'weighing') {
                               variant.shipment_type = 'none';
                             }
+
                             return html` <div style="font-weight: 700;margin-bottom: 6px;">運費計算</div>
                               ${BgWidget.multiCheckboxContainer(
                                 gvc,
@@ -1044,7 +1051,7 @@ export class ShoppingProductSetting {
                                         />
                                       `;
                                     })
-                                    .join(``)}
+                                    .join('')}
                                 </div>
                               </div>`;
                             }
@@ -1057,7 +1064,7 @@ export class ShoppingProductSetting {
                               <div class="flex-fill d-flex flex-column" style="gap: 8px">
                                 <div>庫存數量</div>
                                 <div
-                                  class="w-100 ${(postMD as any).shopee_id ? `` : `d-none`}"
+                                  class="w-100 ${(postMD as any).shopee_id ? '' : `d-none`}"
                                   style="font-size: 14px;font-weight: 400;color: #8D8D8D;"
                                 >
                                   此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
@@ -1261,7 +1268,7 @@ export class ShoppingProductSetting {
               })()}
               ${document.body.clientWidth > 768 && obj.single === undefined ? BgWidget.mbContainer(120) : ''}
             </div>
-            <div class="${obj.single ? `d-none` : ``}" style="min-width:300px; max-width:100%;">
+            <div class="${obj.single ? `d-none` : ''}" style="min-width:300px; max-width:100%;">
               ${BgWidget.summaryCard(
                 gvc.bindView({
                   bind: 'right',
@@ -1310,7 +1317,7 @@ export class ShoppingProductSetting {
                             </div>
                           `;
                         } else {
-                          return ``;
+                          return '';
                         }
                       })
                       .join('');
@@ -1330,7 +1337,7 @@ export class ShoppingProductSetting {
           style: obj.vm.type === 'editSpec' ? '' : 'margin-top: 0 !important;',
         }
       )}
-      <div class="update-bar-container ${obj.single ? `d-none` : ``}">
+      <div class="update-bar-container ${obj.single ? `d-none` : ''}">
         ${BgWidget.cancel(
           obj.gvc.event(() => {
             checkStore(
@@ -1522,7 +1529,7 @@ export class ShoppingProductSetting {
           const languageData = (postMD.language_data as any)[vm.language] || {};
 
           // 如果沒有塞入預設值，則使用預設值
-          languageData.title = languageData.title?.trim() ? languageData.title : postMD?.title || 'Default Title';
+          languageData.title = languageData.title?.trim() ? languageData.title : postMD?.title || '';
           languageData.content = languageData.content ?? postMD.content;
           languageData.content_array = languageData.content_array ?? postMD.content_array;
           languageData.content_json = languageData.content_json ?? postMD.content_json;

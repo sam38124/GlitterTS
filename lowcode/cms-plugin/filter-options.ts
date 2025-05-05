@@ -600,6 +600,7 @@ export class FilterOptions {
     { key: 'created_time_asc', value: '建立時間舊 > 新' },
     { key: 'updated_time_desc', value: '更新時間新 > 舊' },
     { key: 'updated_time_asc', value: '更新時間舊 > 新' },
+    { key: 'sort_weight', value: '商品顯示權重高 > 低' },
     // { key: 'stock_desc', value: '庫存數量多 > 少' },
     // { key: 'stock_asc', value: '庫存數量少 > 多' },
   ];

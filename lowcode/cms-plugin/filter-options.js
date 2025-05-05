@@ -574,6 +574,7 @@ FilterOptions.productListOrderBy = [
     { key: 'created_time_asc', value: '建立時間舊 > 新' },
     { key: 'updated_time_desc', value: '更新時間新 > 舊' },
     { key: 'updated_time_asc', value: '更新時間舊 > 新' },
+    { key: 'sort_weight', value: '商品顯示權重高 > 低' },
 ];
 FilterOptions.imageLibraryOrderBy = [
     { key: 'default', value: '預設' },

@@ -593,7 +593,7 @@ async function redirect_link(req, resp) {
                 console.error(`提供的字串不是有效的 URL: "${originalUrl}"`, error);
             }
             else {
-                console.error("處理 URL 時發生預期外的錯誤:", error);
+                console.error('處理 URL 時發生預期外的錯誤:', error);
             }
             return null;
         }
@@ -625,7 +625,7 @@ async function redirect_link(req, resp) {
         </html> `);
     }
     try {
-        const order_id = (_b = (_a = req.query) === null || _a === void 0 ? void 0 : _a.orderID) !== null && _b !== void 0 ? _b : "";
+        const order_id = (_b = (_a = req.query) === null || _a === void 0 ? void 0 : _a.orderID) !== null && _b !== void 0 ? _b : '';
         req.query.appName = req.query.appName || req.get('g-app') || req.query['g-app'];
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
         const old_order_id = await redis_js_1.default.getValue(order_id);
@@ -657,7 +657,7 @@ async function redirect_link(req, resp) {
                 console.log(`line-response==>`, data);
                 if (data.returnCode == '0000' && data.info.orderId === order_id) {
                     await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, idToQuery);
-                    console.log("return_url.href -- ", return_url.href);
+                    console.log('return_url.href -- ', return_url.href);
                 }
             }
         }
@@ -692,7 +692,7 @@ async function redirect_link(req, resp) {
             return_url = updatedUrl;
         }
         else {
-            console.error("無法更新 return_url，因為 setQueryParameter 回傳了 null。");
+            console.error('無法更新 return_url，因為 setQueryParameter 回傳了 null。');
         }
         return returnResult(return_url);
     }

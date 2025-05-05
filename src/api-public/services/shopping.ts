@@ -459,7 +459,8 @@ export class Shopping {
         updated_time_desc: `ORDER BY updated_time DESC`,
         updated_time_asc: `ORDER BY updated_time ASC`,
         sales_desc: `ORDER BY content->>'$.total_sales' DESC , id DESC`,
-        default: `ORDER BY content->>'$.sort_weight' DESC , id DESC`,
+        sort_weight: `ORDER BY content->>'$.sort_weight' DESC , id DESC`,
+        default: query.is_manger ? `ORDER BY id DESC` : `ORDER BY content->>'$.sort_weight' DESC , id DESC`,
         stock_desc: '',
         stock_asc: '',
       };
@@ -807,7 +808,7 @@ export class Shopping {
             return dd.content;
           })
           .map((product: any) => {
-            product.content.designated_logistics = product.content.designated_logistics ?? {list: [], type: "all"};
+            product.content.designated_logistics = product.content.designated_logistics ?? { list: [], type: 'all' };
             product.content.collection = Array.from(
               new Set(
                 (() => {
@@ -2056,7 +2057,7 @@ export class Shopping {
       })();
 
       //現在是new一個新的版本
-      const newOrderID = 'repay'+Date.now();
+      const newOrderID = 'repay' + Date.now();
       const carData: Cart = {
         orderID: `${newOrderID}`,
         discount: orderData.discount ?? 0,
@@ -2104,25 +2105,26 @@ export class Shopping {
         editRecord: [],
       };
       // 紀錄新舊訂單
-      await redis.setValue(newOrderID , `${orderData.orderID}`)
+      await redis.setValue(newOrderID, `${orderData.orderID}`);
       //把我的所有付款方式初始化好
       const strategyFactory = new PaymentStrategyFactory(keyData);
 
       const allPaymentStrategies: Map<string, IPaymentStrategy> = strategyFactory.createStrategyRegistry();
       const appName = this.app;
-      const paymentService = new PaymentService(allPaymentStrategies, appName , carData.customer_info.payment_select);
+      const paymentService = new PaymentService(allPaymentStrategies, appName, carData.customer_info.payment_select);
 
       try {
-        const paymentResult = await paymentService.processPayment(carData, return_url , carData.customer_info.payment_select!);
-        console.log("Controller 收到 Payment Result:", paymentResult);
+        const paymentResult = await paymentService.processPayment(
+          carData,
+          return_url,
+          carData.customer_info.payment_select!
+        );
+        console.log('Controller 收到 Payment Result:', paymentResult);
         return paymentResult;
-
-      } catch(error) {
-        console.error("Controller 捕獲到錯誤:", error);
+      } catch (error) {
+        console.error('Controller 捕獲到錯誤:', error);
         // 回應錯誤給前端
       }
-
-
 
       // const result = await new PaymentTransaction(this.app, orderData.customer_info.payment_select as string).processPayment(
       //   carData,
@@ -2644,7 +2646,7 @@ export class Shopping {
       }
       if (voucher.target === 'levels') {
         if (userData.member_level) {
-          return  voucher.targetList.includes(userData.member_level.id);
+          return voucher.targetList.includes(userData.member_level.id);
         }
         return false;
       }
@@ -5930,4 +5932,3 @@ export class Shopping {
     }
   }
 }
-

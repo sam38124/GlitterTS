@@ -747,6 +747,9 @@ export class ShoppingProductSetting {
                     const vm = {
                         id: gvc.glitter.getUUID(),
                     };
+                    if (obj.vm.type === 'add') {
+                        variant.shipment_type = 'none';
+                    }
                     return {
                         bind: vm.id,
                         view: () => {
@@ -918,7 +921,7 @@ export class ShoppingProductSetting {
                                         />
                                       `;
                             })
-                                .join(``)}
+                                .join('')}
                                 </div>
                               </div>`;
                         }
@@ -930,7 +933,7 @@ export class ShoppingProductSetting {
                               <div class="flex-fill d-flex flex-column" style="gap: 8px">
                                 <div>庫存數量</div>
                                 <div
-                                  class="w-100 ${postMD.shopee_id ? `` : `d-none`}"
+                                  class="w-100 ${postMD.shopee_id ? '' : `d-none`}"
                                   style="font-size: 14px;font-weight: 400;color: #8D8D8D;"
                                 >
                                   此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
@@ -1086,7 +1089,7 @@ export class ShoppingProductSetting {
         })()}
               ${document.body.clientWidth > 768 && obj.single === undefined ? BgWidget.mbContainer(120) : ''}
             </div>
-            <div class="${obj.single ? `d-none` : ``}" style="min-width:300px; max-width:100%;">
+            <div class="${obj.single ? `d-none` : ''}" style="min-width:300px; max-width:100%;">
               ${BgWidget.summaryCard(gvc.bindView({
             bind: 'right',
             view: () => {
@@ -1132,7 +1135,7 @@ export class ShoppingProductSetting {
                           `;
                     }
                     else {
-                        return ``;
+                        return '';
                     }
                 })
                     .join('');
@@ -1148,7 +1151,7 @@ export class ShoppingProductSetting {
         `, {
             style: obj.vm.type === 'editSpec' ? '' : 'margin-top: 0 !important;',
         })}
-      <div class="update-bar-container ${obj.single ? `d-none` : ``}">
+      <div class="update-bar-container ${obj.single ? `d-none` : ''}">
         ${BgWidget.cancel(obj.gvc.event(() => {
             checkStore(obj && obj.goBackEvent
                 ? obj.goBackEvent.cancel
@@ -1271,7 +1274,7 @@ export class ShoppingProductSetting {
                     view: () => {
                         var _b, _c, _d, _e, _f;
                         const languageData = postMD.language_data[vm.language] || {};
-                        languageData.title = ((_b = languageData.title) === null || _b === void 0 ? void 0 : _b.trim()) ? languageData.title : (postMD === null || postMD === void 0 ? void 0 : postMD.title) || 'Default Title';
+                        languageData.title = ((_b = languageData.title) === null || _b === void 0 ? void 0 : _b.trim()) ? languageData.title : (postMD === null || postMD === void 0 ? void 0 : postMD.title) || '';
                         languageData.content = (_c = languageData.content) !== null && _c !== void 0 ? _c : postMD.content;
                         languageData.content_array = (_d = languageData.content_array) !== null && _d !== void 0 ? _d : postMD.content_array;
                         languageData.content_json = (_e = languageData.content_json) !== null && _e !== void 0 ? _e : postMD.content_json;

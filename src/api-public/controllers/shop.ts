@@ -705,17 +705,16 @@ async function redirect_link(req: express.Request, resp: express.Response) {
       url.searchParams.set(paramName, newValue);
 
       return url; // 或者使用 url.href
-
     } catch (error) {
       if (error instanceof TypeError) {
         console.error(`提供的字串不是有效的 URL: "${originalUrl}"`, error);
       } else {
-        console.error("處理 URL 時發生預期外的錯誤:", error);
+        console.error('處理 URL 時發生預期外的錯誤:', error);
       }
       return null;
     }
   }
-  function returnResult(return_url:URL){
+  function returnResult(return_url: URL) {
     const html = String.raw;
     return resp.send(
       html`<!DOCTYPE html>
@@ -745,7 +744,7 @@ async function redirect_link(req: express.Request, resp: express.Response) {
   }
 
   try {
-    const order_id = req.query?.orderID??"";
+    const order_id = req.query?.orderID ?? '';
 
     req.query.appName = req.query.appName || (req.get('g-app') as string) || (req.query['g-app'] as string);
     let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
@@ -791,10 +790,9 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         //判斷付款成功且Receipt單據ID為相同的orderID
         if (data.returnCode == '0000' && data.info.orderId === order_id) {
           await new Shopping(req.query.appName as string).releaseCheckout(1, idToQuery as string);
-          console.log("return_url.href -- " , return_url.href);
+          console.log('return_url.href -- ', return_url.href);
         }
       }
-
     }
     if (req.query.payment && req.query.payment == 'true') {
       const check_id = await redis.getValue(`paypal` + order_id);
@@ -840,12 +838,12 @@ async function redirect_link(req: express.Request, resp: express.Response) {
     }
 
     const updatedUrl = setQueryParameter(return_url.toString(), 'cart_token', idToQuery);
-    if (updatedUrl){
+    if (updatedUrl) {
       return_url = updatedUrl;
-    }else {
-      console.error("無法更新 return_url，因為 setQueryParameter 回傳了 null。");
+    } else {
+      console.error('無法更新 return_url，因為 setQueryParameter 回傳了 null。');
     }
-    return returnResult(return_url)
+    return returnResult(return_url);
   } catch (err) {
     console.error(err);
     return response.fail(resp, err);
@@ -910,7 +908,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
       const data: any = await payNow.confirmAndCaptureOrder(check_id as string);
       if (data.type == 'success' && data.result.status === 'success') {
         const old_order_id = await redis.getValue(req.query.orderID as string);
-        const idToQuery: string = old_order_id ? (old_order_id as string) :req.query.orderID as string;
+        const idToQuery: string = old_order_id ? (old_order_id as string) : (req.query.orderID as string);
         await new Shopping(req.query.appName as string).releaseCheckout(1, idToQuery as string);
       }
     }
@@ -959,7 +957,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
       }
       // 執行付款完成之訂單事件
       const old_order_id = await redis.getValue(decodeData['Result']['MerchantOrderNo'] as string);
-      const idToQuery: string = old_order_id ? (old_order_id as string) :decodeData['Result']['MerchantOrderNo'];
+      const idToQuery: string = old_order_id ? (old_order_id as string) : decodeData['Result']['MerchantOrderNo'];
 
       if (decodeData['Status'] === 'SUCCESS') {
         await new Shopping(appName).releaseCheckout(1, idToQuery);
