@@ -1177,6 +1177,7 @@ export class CheckoutIndex {
                                             return d1.reBackType === 'giveaway';
                                         })
                                             .map((dd) => {
+                                            dd.add_on_products = dd.add_on_products.filter(Boolean);
                                             let isSelected = already_add.find(d2 => {
                                                 return dd.add_on_products.find((d1) => {
                                                     return d1.id === d2.id;
@@ -1292,7 +1293,7 @@ export class CheckoutIndex {
                                                                 callback: () => {
                                                                     let find = vm.cartData.lineItems.find((d1) => {
                                                                         return dd.add_on_products.find((d2) => {
-                                                                            return d2.id === d1.id;
+                                                                            return d2 && d2.id === d1.id;
                                                                         });
                                                                     });
                                                                     if (find) {
@@ -1347,14 +1348,14 @@ export class CheckoutIndex {
                                       `;
                                         })
                                             .join('');
-                                        return giftHtml && `<div class="rounded-3 bg-white p-3 mt-3">${giftHtml}</div>`;
+                                        return giftHtml && html `<div class="rounded-3 bg-white p-3 mt-3">${giftHtml}</div>`;
                                     })()}
                                 <!--加購品-->
                                 ${(() => {
                                         let add_on = [];
                                         vm.cartData.voucherList.filter((dd) => {
                                             if (dd.reBackType === 'add_on_items') {
-                                                add_on = add_on.concat(dd.add_on_products);
+                                                add_on = add_on.concat(dd.add_on_products).filter(Boolean);
                                             }
                                         });
                                         if (add_on.length) {
@@ -1468,6 +1469,7 @@ export class CheckoutIndex {
                                                                         is_gift: true,
                                                                         callback: () => {
                                                                             gvc.closeDialog();
+                                                                            console.log(5);
                                                                             let find = vm.cartData.lineItems.find((d1) => {
                                                                                 return dd.add_on_products.find((d2) => {
                                                                                     return d2.id === d1.id;
