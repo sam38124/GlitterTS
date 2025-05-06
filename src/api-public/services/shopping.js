@@ -863,9 +863,9 @@ class Shopping {
         const tagConfig = (_a = (await new user_js_1.User(this.app).getConfigV2({ key: 'product_general_tags', user_id: 'manager' }))) !== null && _a !== void 0 ? _a : (await this.initProductGeneralTagConifg());
         (_b = tagConfig.list) !== null && _b !== void 0 ? _b : (tagConfig.list = {});
         Language_js_1.Language.locationList.map(lang => {
-            var _a;
+            var _a, _b;
             const originList = (_a = tagConfig.list[lang]) !== null && _a !== void 0 ? _a : [];
-            const updateList = add_tags[lang];
+            const updateList = (_b = add_tags[lang]) !== null && _b !== void 0 ? _b : [];
             tagConfig.list[lang] = [...new Set([...originList, ...updateList])];
         });
         await new user_js_1.User(this.app).setConfig({
@@ -3621,7 +3621,7 @@ class Shopping {
         });
     }
     async postProduct(content) {
-        var _a, _b;
+        var _a, _b, _c, _d, _e;
         content.seo = (_a = content.seo) !== null && _a !== void 0 ? _a : {};
         content.seo.domain = content.seo.domain || content.title;
         const language = await app_js_1.App.getSupportLanguage(this.app);
@@ -3659,6 +3659,10 @@ class Shopping {
                 content.id,
             ]);
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
+            await Promise.all([
+                this.setProductCustomizeTagConifg((_c = content.product_customize_tag) !== null && _c !== void 0 ? _c : []),
+                this.setProductGeneralTagConifg((_e = (_d = content.product_tag) === null || _d === void 0 ? void 0 : _d.language) !== null && _e !== void 0 ? _e : []),
+            ]);
             return data.insertId;
         }
         catch (e) {
@@ -3793,8 +3797,7 @@ class Shopping {
             }));
             async function getNextId(app) {
                 var _a, _b;
-                const query = `SELECT MAX(id) AS max_id
-                       FROM \`${app}\`.t_manager_post`;
+                const query = `SELECT MAX(id) AS max_id FROM \`${app}\`.t_manager_post`;
                 try {
                     const result = await database_js_1.default.query(query, []);
                     const maxId = (_b = (_a = result === null || result === void 0 ? void 0 : result[0]) === null || _a === void 0 ? void 0 : _a.max_id) !== null && _b !== void 0 ? _b : 0;
@@ -3803,6 +3806,36 @@ class Shopping {
                 catch (error) {
                     console.error('取得最大 ID 時發生錯誤:', error);
                     return 1;
+                }
+            }
+            function entriesProductsTag(products) {
+                const tempTags = {
+                    general: {},
+                    customize: [],
+                };
+                try {
+                    products.map((product) => {
+                        if (product.product_tag.language) {
+                            Object.entries(product.product_tag.language).map(tag => {
+                                var _a;
+                                tempTags.general[tag[0]] = ((_a = tempTags.general[tag[0]]) !== null && _a !== void 0 ? _a : []).concat(tag[1]);
+                            });
+                        }
+                        if (Array.isArray(product.product_customize_tag)) {
+                            product.product_customize_tag.map((tag) => {
+                                tempTags.customize = tempTags.customize.concat(tag);
+                            });
+                        }
+                    });
+                    Object.keys(tempTags.general).map(key => {
+                        tempTags.general[key] = [...new Set(tempTags.general[key])];
+                    });
+                    tempTags.customize = [...new Set(tempTags.customize)];
+                    return tempTags;
+                }
+                catch (error) {
+                    console.error(error);
+                    return tempTags;
                 }
             }
             let max_id = await getNextId(this.app);
@@ -3816,6 +3849,11 @@ class Shopping {
                 return [product.id || null, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
             });
             if (productArray.length) {
+                const tempTags = entriesProductsTag(productArray);
+                await Promise.all([
+                    this.setProductCustomizeTagConifg(tempTags.customize),
+                    this.setProductGeneralTagConifg(tempTags.general),
+                ]);
                 const data = await database_js_1.default.query(`REPLACE
           INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
           `, [

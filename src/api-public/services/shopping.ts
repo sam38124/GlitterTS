@@ -810,8 +810,8 @@ export class Shopping {
           })
           .map((product: any) => {
             product.content.designated_logistics = product.content.designated_logistics ?? { list: [], type: 'all' };
-            if(product.content.designated_logistics.group==='' && !product.content.designated_logistics.type){
-              product.content.designated_logistics={ list: [], type: 'all' };
+            if (product.content.designated_logistics.group === '' && !product.content.designated_logistics.type) {
+              product.content.designated_logistics = { list: [], type: 'all' };
             }
             product.content.collection = Array.from(
               new Set(
@@ -1321,7 +1321,7 @@ export class Shopping {
 
     Language.locationList.map(lang => {
       const originList = tagConfig.list[lang] ?? [];
-      const updateList = add_tags[lang];
+      const updateList = add_tags[lang] ?? [];
       tagConfig.list[lang] = [...new Set([...originList, ...updateList])];
     });
 
@@ -4987,6 +4987,13 @@ export class Shopping {
         ]
       );
       await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
+
+      // 重新設置管理員標籤
+      await Promise.all([
+        this.setProductCustomizeTagConifg(content.product_customize_tag ?? []),
+        this.setProductGeneralTagConifg(content.product_tag?.language ?? []),
+      ]);
+
       return data.insertId;
     } catch (e) {
       console.error(e);
@@ -5171,8 +5178,7 @@ export class Shopping {
       );
 
       async function getNextId(app: string): Promise<number> {
-        const query = `SELECT MAX(id) AS max_id
-                       FROM \`${app}\`.t_manager_post`;
+        const query = `SELECT MAX(id) AS max_id FROM \`${app}\`.t_manager_post`;
 
         try {
           const result = await db.query(query, []);
@@ -5181,6 +5187,40 @@ export class Shopping {
         } catch (error) {
           console.error('取得最大 ID 時發生錯誤:', error);
           return 1; // 若發生錯誤，回傳預設 ID = 1
+        }
+      }
+
+      function entriesProductsTag(products: any) {
+        const tempTags: any = {
+          general: {}, // 商品標籤（包含語言）
+          customize: [], // 管理員標籤
+        };
+
+        try {
+          products.map((product: any) => {
+            if (product.product_tag.language) {
+              Object.entries(product.product_tag.language).map(tag => {
+                tempTags.general[tag[0]] = (tempTags.general[tag[0]] ?? []).concat(tag[1]);
+              });
+            }
+
+            if (Array.isArray(product.product_customize_tag)) {
+              product.product_customize_tag.map((tag: string) => {
+                tempTags.customize = tempTags.customize.concat(tag);
+              });
+            }
+          });
+
+          Object.keys(tempTags.general).map(key => {
+            tempTags.general[key] = [...new Set(tempTags.general[key])];
+          });
+
+          tempTags.customize = [...new Set(tempTags.customize)];
+
+          return tempTags;
+        } catch (error) {
+          console.error(error);
+          return tempTags;
         }
       }
 
@@ -5196,6 +5236,13 @@ export class Shopping {
       });
 
       if (productArray.length) {
+        // 重新設置管理員標籤
+        const tempTags: any = entriesProductsTag(productArray);
+        await Promise.all([
+          this.setProductCustomizeTagConifg(tempTags.customize),
+          this.setProductGeneralTagConifg(tempTags.general),
+        ]);
+
         const data = await db.query(
           `REPLACE
           INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
