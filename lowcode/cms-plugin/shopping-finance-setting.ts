@@ -1139,6 +1139,7 @@ export class ShoppingFinanceSetting {
     data.cartSetting = {
       minimumTotal: 0,
       maximumTotal: 0,
+      freeShipmnetTarget: 0,
       orderFormula: [],
       ...(data.cartSetting ?? {}),
     };
@@ -1154,11 +1155,15 @@ export class ShoppingFinanceSetting {
       );
     }
 
-    function checkTotalNumber(text: string, type: 'min' | 'max') {
+    function checkTotalNumber(text: string, type: 'min' | 'max' | 'freeShipmnet') {
       const n = parseInt(`${text}`, 10);
       if (isNaN(n) || n < 0) {
         dialog.errorMessage({ text: '請輸入正整數' });
         gvc.notifyDataChange(id);
+      }
+
+      if (type === 'freeShipmnet') {
+        data.cartSetting.freeShipmnetTarget = n;
       }
 
       if (type === 'min') {
@@ -1248,6 +1253,23 @@ export class ShoppingFinanceSetting {
             type: 'number',
             callback: text => {
               checkTotalNumber(text, 'max');
+            },
+            placeHolder: '請輸入金額',
+          }),
+          BgWidget.horizontalLine(),
+          BgWidget.editeInput({
+            gvc: gvc,
+            title: html`<div class="d-flex align-items-center mt-2 gap-2">
+              <div style="white-space: break-spaces;">達指定消費金額，訂單免運費（輸入0則不設定此功能）</div>
+              ${questionDialog(
+                html`未含運費之消費金額若達到輸入的指定值，使用此物流則免運<br />所有商品小計(A) - 購物金折抵(B) -
+                  優惠券折抵(C) = 未含運費之消費金額`
+              )}
+            </div>`,
+            default: `${data.cartSetting.freeShipmnetTarget}`,
+            type: 'number',
+            callback: text => {
+              checkTotalNumber(text, 'freeShipmnet');
             },
             placeHolder: '請輸入金額',
           }),

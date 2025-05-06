@@ -326,6 +326,15 @@ type Collection = {
 
 type MultiSaleType = 'store' | 'level' | 'tags';
 
+type ShipmentSetting = {
+  cartSetting: {
+    minimumTotal: number;
+    maximumTotal: number;
+    freeShipmnetTarget: number;
+    orderFormula: string[];
+  };
+};
+
 export type Cart = {
   archived?: string;
   customer_info: any;
@@ -375,6 +384,7 @@ export type Cart = {
   combineOrderID?: number;
   splitOrders?: string[];
   parentOrder?: string;
+  select_shipment_setting?: ShipmentSetting;
 };
 
 export type Order = {

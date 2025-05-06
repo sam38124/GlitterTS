@@ -510,29 +510,29 @@ export class CheckoutEvent {
               }
 
               if (variant && item.count > 0) {
-                const sale_price= (()=>{
+                const sale_price = (() => {
                   //POS允許自訂價格
-                  if(checkOutType === 'POS' &&  (item as any).custom_price){
-                    return  (item as any).custom_price
-                  }else{
+                  if (checkOutType === 'POS' && (item as any).custom_price) {
+                    return (item as any).custom_price;
+                  } else {
                     return variant.sale_price;
                   }
-                })()
-                const origin_price= (()=>{
+                })();
+                const origin_price = (() => {
                   //POS如果有自訂價格，則比較金額改成和原售價相比
-                  if(checkOutType === 'POS' &&  (item as any).custom_price){
+                  if (checkOutType === 'POS' && (item as any).custom_price) {
                     return variant.sale_price;
-                  }else{
+                  } else {
                     return variant.origin_price;
                   }
-                })()
+                })();
                 Object.assign(item, {
                   specs: content.specs,
                   language_data: content.language_data,
                   product_category: content.product_category,
                   preview_image: variant.preview_image || content.preview_image[0],
                   title: content.title,
-                  sale_price:sale_price,
+                  sale_price: sale_price,
                   variant_sale_price: variant.sale_price,
                   origin_price: origin_price,
                   collection: content.collection,
@@ -856,7 +856,7 @@ export class CheckoutEvent {
         // 處理每個贈品
         gift_product.forEach(dd => {
           const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
-          if ( max_count) {
+          if (max_count) {
             dd.count = max_count;
             for (let a = 0; a < dd.count; a++) {
               can_add_gift = can_add_gift.filter(d1 => !d1.includes(dd.id)); // 移除已添加的贈品
@@ -940,6 +940,7 @@ export class CheckoutEvent {
 
       // 防止帶入購物金時，總計小於0
       let subtotal = 0;
+
       carData.lineItems.map(item => {
         if (item.is_gift) {
           item.sale_price = 0;
@@ -952,6 +953,18 @@ export class CheckoutEvent {
       if (carData.total < 0 || carData.use_rebate > subtotal) {
         carData.use_rebate = 0;
         carData.total = subtotal + carData.shipment_fee;
+      }
+
+      // 商家設定物流達免運費條件之判斷
+      carData.select_shipment_setting = await userClass.getConfigV2({
+        key: 'shipment_config_' + data.user_info.shipment,
+        user_id: 'manager',
+      });
+
+      const freeShipmnetNum = carData.select_shipment_setting?.cartSetting?.freeShipmnetTarget ?? 0;
+      if (freeShipmnetNum > 0 && carData.total - carData.shipment_fee >= freeShipmnetNum) {
+        carData.total -= carData.shipment_fee;
+        carData.shipment_fee = 0;
       }
 
       // 商品材積重量與物流使用限制

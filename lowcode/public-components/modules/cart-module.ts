@@ -431,6 +431,12 @@ export class CartModule {
         color: #ff5353ff;
       }
 
+      .${classPrefix}-danger-text {
+        color: #ff5353ff;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
       .img-106px {
         width: 106px;
         min-width: 106px;

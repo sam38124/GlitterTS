@@ -617,7 +617,7 @@ export class CheckoutIndex {
                                           `;
                                         }
 
-                                        let voucher=''
+                                        let voucher = '';
                                         return html`<div class="d-flex flex-column flex-sm-row align-items-center">
                                             <div class="d-flex align-items-center w-100">
                                               <input
@@ -1714,7 +1714,7 @@ export class CheckoutIndex {
                                   }
                                 })()}
                                 <!--配送資訊-->
-                                <div class="rounded-3 bg-white w-100 p-1 mt-3">
+                                <div class="rounded-3 bg-white w-100 p-2 mt-3">
                                   ${html` <section>
                                     <div class="${gClass('banner-text')} px-2 pt-3">
                                       ${Language.text('payment_and_shipping_methods')}
@@ -1757,7 +1757,26 @@ export class CheckoutIndex {
                                         ${gvc.bindView({
                                           bind: ids.shipping,
                                           view: () => {
-                                            return html` <div>
+                                            const shipmentTargetNotification = () => {
+                                              try {
+                                                const target =
+                                                  vm.cartData.select_shipment_setting.cartSetting.freeShipmnetTarget;
+                                                if (target) {
+                                                  return html`
+                                                    <div class="${gClass('danger-text')}">
+                                                      ${vm.cartData.shipment_fee === 0
+                                                        ? '已達成免運費'
+                                                        : `此物流消費滿 $${Number(target).toLocaleString()} 即可享免運費`}
+                                                    </div>
+                                                  `;
+                                                }
+                                                return '';
+                                              } catch (error) {
+                                                return '';
+                                              }
+                                            };
+
+                                            return html` <div class="d-flex flex-column gap-1">
                                               <select
                                                 class="w-100 ${gClass('select')}"
                                                 onchange="${gvc.event(e => {
@@ -1794,6 +1813,7 @@ export class CheckoutIndex {
                                                       .join('')
                                                   : html` <option selected>(${Language.text('disable_ship')})</option>`}
                                               </select>
+                                              ${shipmentTargetNotification()}
                                             </div>`;
                                           },
                                         })}
@@ -2206,7 +2226,7 @@ export class CheckoutIndex {
                                   </section>`}
                                 </div>
                                 <!--顧客資訊-->
-                                <div class="rounded-3 bg-white w-100 p-1 mt-3">
+                                <div class="rounded-3 bg-white w-100 p-2 mt-3">
                                   <div class="${gClass('banner-text')} px-3 pt-3 w-100 d-flex align-items-center">
                                     ${Language.text('customer_info')}
                                     <div class="flex-fill"></div>
@@ -2356,7 +2376,7 @@ export class CheckoutIndex {
                                   })}
                                 </div>
                                 <!--收件人資料-->
-                                <div class="rounded-3 bg-white w-100 p-1 mt-3">
+                                <div class="rounded-3 bg-white w-100 p-2 mt-3">
                                   <div class="${gClass('banner-text')} px-3 pt-3 d-flex align-items-center">
                                     ${Language.text('recipient_info')}
                                     <div class="flex-fill"></div>
