@@ -582,7 +582,7 @@ router.delete('/voucher', async (req, resp) => {
     }
 });
 async function redirect_link(req, resp) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c;
     function setQueryParameter(originalUrl, paramName, newValue) {
         try {
             const url = new URL(originalUrl);
@@ -626,18 +626,18 @@ async function redirect_link(req, resp) {
         </html> `);
     }
     try {
-        const order_id = (_b = (_a = req.query) === null || _a === void 0 ? void 0 : _a.orderID) !== null && _b !== void 0 ? _b : '';
         req.query.appName = req.query.appName || req.get('g-app') || req.query['g-app'];
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
+        const order_id = ((_a = req.query) === null || _a === void 0 ? void 0 : _a.orderID) || (return_url.searchParams.get('cart_token')) || '';
         const old_order_id = await redis_js_1.default.getValue(order_id);
-        const idToQuery = old_order_id ? old_order_id : ((_c = order_id) !== null && _c !== void 0 ? _c : '');
+        const idToQuery = old_order_id ? old_order_id : ((_b = order_id) !== null && _b !== void 0 ? _b : '');
         if (req.query.LinePay && req.query.LinePay === 'true') {
             let order_data = {};
             try {
                 const queryResult = await database_js_1.default.query(`SELECT *
            FROM \`${req.query.appName}\`.t_checkout
            WHERE cart_token = ?`, [idToQuery]);
-                order_data = (_d = queryResult === null || queryResult === void 0 ? void 0 : queryResult[0]) !== null && _d !== void 0 ? _d : undefined;
+                order_data = (_c = queryResult === null || queryResult === void 0 ? void 0 : queryResult[0]) !== null && _c !== void 0 ? _c : undefined;
                 if (!order_data) {
                     console.log(`找不到 cart_token 為 ${idToQuery} 的訂單資料。`);
                 }

@@ -426,6 +426,9 @@ class Shopping {
                 .map((product) => {
                 var _a;
                 product.content.designated_logistics = (_a = product.content.designated_logistics) !== null && _a !== void 0 ? _a : { list: [], type: 'all' };
+                if (product.content.designated_logistics.group === '' && !product.content.designated_logistics.type) {
+                    product.content.designated_logistics = { list: [], type: 'all' };
+                }
                 product.content.collection = Array.from(new Set((() => {
                     var _a;
                     return ((_a = product.content.collection) !== null && _a !== void 0 ? _a : []).map((dd) => {

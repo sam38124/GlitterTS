@@ -809,6 +809,9 @@ export class Shopping {
           })
           .map((product: any) => {
             product.content.designated_logistics = product.content.designated_logistics ?? { list: [], type: 'all' };
+            if(product.content.designated_logistics.group==='' && !product.content.designated_logistics.type){
+              product.content.designated_logistics={ list: [], type: 'all' };
+            }
             product.content.collection = Array.from(
               new Set(
                 (() => {

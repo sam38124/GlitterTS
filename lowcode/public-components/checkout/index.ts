@@ -1307,14 +1307,15 @@ export class CheckoutIndex {
                                 </div>
                                 <!--贈品-->
                                 ${(() => {
-                                  let already_add: any[] = vm.cartData.lineItems.filter((dd: any) => {
-                                    return dd.is_gift;
-                                  });
+                              
                                   const giftHtml = vm.cartData.voucherList
                                     .filter((d1: any) => {
                                       return d1.reBackType === 'giveaway';
                                     })
                                     .map((dd: any) => {
+                                      let already_add: any[] = vm.cartData.lineItems.filter((dd: any) => {
+                                        return dd.is_gift;
+                                      });
                                       dd.add_on_products = dd.add_on_products.filter(Boolean);
 
                                       let isSelected = already_add.find(d2 => {
@@ -1359,10 +1360,10 @@ export class CheckoutIndex {
                                                     <button
                                                       class="${gClass('button-bgr')} mb-0 mt-2"
                                                       style="${isSelected
-                                                        ? isSelected.id === pd.id
-                                                          ? `background: gray !important;`
-                                                          : ''
-                                                        : ''}"
+                                                ? isSelected.id === pd.id
+                                                ? `background: gray !important;`
+                                                : ``
+                                                : `background: orangered !important;`}"
                                                       onclick="${gvc.event(() => {
                                                         if (isSelected && isSelected.id === pd.id) {
                                                           return;
@@ -1487,6 +1488,11 @@ export class CheckoutIndex {
                                                       })}"
                                                     >
                                                       <span class="${gClass('button-text')}"
+                                                            style="${isSelected
+                                                              ? isSelected.id === pd.id
+                                                                ? ``
+                                                                : `color: white;`
+                                                              : ``}"
                                                         >${isSelected
                                                           ? isSelected.id === pd.id
                                                             ? Language.text('selected')

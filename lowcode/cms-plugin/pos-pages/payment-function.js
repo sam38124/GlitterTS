@@ -110,27 +110,29 @@ export class PaymentFunction {
                     orderID: orderDetail.orderID,
                     pwd: pwd,
                 }, (res) => {
-                    if (res.result) {
+                    var _a;
+                    const response = JSON.parse(res.result.data);
+                    if (response.code === "250") {
                         gvc.closeDialog();
                         callback(true);
                     }
                     else {
                         gvc.closeDialog();
-                        callback(false);
-                        dialog.errorMessage({ text: '交易失敗' });
+                        dialog.errorMessage({ text: `交易失敗，失敗原因:${(_a = response.msg) !== null && _a !== void 0 ? _a : ''}` });
                     }
                 });
             }
             else if (ConnectionMode.on_connected_device) {
                 gvc.glitter.share.credit_card_callback = (res) => {
-                    if (res.result) {
+                    var _a;
+                    const response = JSON.parse(res.result.data);
+                    if (response.code === "250") {
                         gvc.closeDialog();
                         callback(true);
                     }
                     else {
                         gvc.closeDialog();
-                        callback(false);
-                        dialog.errorMessage({ text: '交易失敗' });
+                        dialog.errorMessage({ text: `交易失敗，失敗原因:${(_a = response.msg) !== null && _a !== void 0 ? _a : ''}` });
                     }
                 };
                 ConnectionMode.sendCommand({

@@ -1173,14 +1173,14 @@ export class CheckoutIndex {
                                 </div>
                                 <!--贈品-->
                                 ${(() => {
-                                        let already_add = vm.cartData.lineItems.filter((dd) => {
-                                            return dd.is_gift;
-                                        });
                                         const giftHtml = vm.cartData.voucherList
                                             .filter((d1) => {
                                             return d1.reBackType === 'giveaway';
                                         })
                                             .map((dd) => {
+                                            let already_add = vm.cartData.lineItems.filter((dd) => {
+                                                return dd.is_gift;
+                                            });
                                             dd.add_on_products = dd.add_on_products.filter(Boolean);
                                             let isSelected = already_add.find(d2 => {
                                                 return dd.add_on_products.find((d1) => {
@@ -1224,8 +1224,8 @@ export class CheckoutIndex {
                                                       style="${isSelected
                                                         ? isSelected.id === pd.id
                                                             ? `background: gray !important;`
-                                                            : ''
-                                                        : ''}"
+                                                            : ``
+                                                        : `background: orangered !important;`}"
                                                       onclick="${gvc.event(() => {
                                                         var _a;
                                                         if (isSelected && isSelected.id === pd.id) {
@@ -1333,6 +1333,11 @@ export class CheckoutIndex {
                                                     })}"
                                                     >
                                                       <span class="${gClass('button-text')}"
+                                                            style="${isSelected
+                                                        ? isSelected.id === pd.id
+                                                            ? ``
+                                                            : `color: white;`
+                                                        : ``}"
                                                         >${isSelected
                                                         ? isSelected.id === pd.id
                                                             ? Language.text('selected')
