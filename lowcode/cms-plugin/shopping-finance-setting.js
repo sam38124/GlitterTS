@@ -1572,7 +1572,7 @@ export class ShoppingFinanceSetting {
                                     let form = undefined;
                                     BgWidget.settingDialog({
                                         gvc: gvc,
-                                        title: '新增自訂物流',
+                                        title: '設定自訂表單',
                                         innerHTML: gvc => {
                                             form = BgWidget.customForm(gvc, [
                                                 {
@@ -1705,7 +1705,7 @@ export class ShoppingFinanceSetting {
                                         }))
                                             .map(dd => {
                                             return html `
-                          <div class="col-12 col-md-4 p-0 p-md-2">
+                          <div class="col-12 col-lg-4 col-md-6 p-0 p-md-2">
                             <div
                               class="w-100 position-relative main-card"
                               style="padding: 24px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
@@ -1761,7 +1761,7 @@ export class ShoppingFinanceSetting {
                                                             size: 'sm',
                                                         },
                                                         text: {
-                                                            name: `物流設定`,
+                                                            name: html `<i class="fa-regular fa-gear me-1"></i>物流`,
                                                         },
                                                         event: gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                                                             const log_config = (yield ApiUser.getPublicConfig('shipment_config_' + dd.value, 'manager', saasConfig.config.appName)).response.value;
@@ -1847,7 +1847,7 @@ export class ShoppingFinanceSetting {
                                                             size: 'sm',
                                                         },
                                                         text: {
-                                                            name: `購物車設定`,
+                                                            name: html `<i class="fa-regular fa-gear me-1"></i>購物車`,
                                                         },
                                                         event: gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                                                             const vm = {
@@ -1911,7 +1911,7 @@ export class ShoppingFinanceSetting {
                                                                 size: 'sm',
                                                             },
                                                             text: {
-                                                                name: `自訂表單`,
+                                                                name: html `<i class="fa-regular fa-gear me-1"></i>自訂表單`,
                                                             },
                                                             event: gvc.event(() => {
                                                                 updateCustomShipment({
@@ -1926,7 +1926,7 @@ export class ShoppingFinanceSetting {
                                                                 size: 'sm',
                                                             },
                                                             text: {
-                                                                name: `運費設定`,
+                                                                name: html `<i class="fa-regular fa-gear me-1"></i>運費`,
                                                             },
                                                             event: gvc.event(() => {
                                                                 const vm = {
@@ -1963,7 +1963,7 @@ export class ShoppingFinanceSetting {
                                                         }),
                                                     ]);
                                                     return html `
-                                      <div class="d-flex" style="cursor:pointer;gap:5px;">
+                                      <div class="d-flex flex-wrap justify-content-end gap-1 cursor_pointer">
                                         <div class="flex-fill"></div>
                                         ${button_action.join('')}
                                       </div>
@@ -1977,7 +1977,7 @@ export class ShoppingFinanceSetting {
                                                                 size: 'sm',
                                                             },
                                                             text: {
-                                                                name: `運費設定`,
+                                                                name: html `<i class="fa-regular fa-gear me-1"></i>運費`,
                                                             },
                                                             event: gvc.event(() => {
                                                                 const vm = {
@@ -2013,7 +2013,7 @@ export class ShoppingFinanceSetting {
                                                             }),
                                                         }),
                                                     ]);
-                                                    return html ` <div class="d-flex" style="cursor:pointer;gap:5px;">
+                                                    return html ` <div class="d-flex flex-wrap justify-content-end gap-1 cursor_pointer">
                                       <div class="flex-fill"></div>
                                       ${button_action.join('')}
                                     </div>`;
@@ -2027,7 +2027,7 @@ export class ShoppingFinanceSetting {
                                         })
                                             .concat([
                                             html ` <div
-                          class="col-12 col-md-4 p-0 p-md-2"
+                          class="col-12 col-lg-4 col-md-6 p-0 p-md-2"
                           style="cursor: pointer;"
                           onclick="${gvc.event(() => {
                                                 updateCustomShipment({ function: 'plus' });
@@ -2057,143 +2057,134 @@ export class ShoppingFinanceSetting {
                         ]);
                     }
                     else if (vm.page === 'delivery_note') {
-                        view.push(BgWidget.mbContainer(24));
-                        view.push(BgWidget.mainCard([
-                            html ` <div class="title-container px-0">
-                    <div class="d-flex d-md-block gap-2 align-items-center">
-                      <div class="tx_700">配送說明${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
-                      ${document.body.clientWidth > 768
-                                ? BgWidget.grayNote('於結帳頁面中顯示，告知顧客配送所需要注意的事項')
-                                : BgWidget.iconButton({
-                                    icon: 'info',
-                                    event: gvc.event(() => {
-                                        BgWidget.jumpAlert({
-                                            gvc,
-                                            text: '於結帳頁面中顯示，告知顧客配送所需要注意的事項',
-                                            justify: 'top',
-                                            align: 'center',
-                                            width: 220,
-                                        });
-                                    }),
+                        view.push([
+                            html ` <div class="px-md-0 px-2">
+                  ${BgWidget.normalInsignia('於結帳頁面中顯示，告知顧客配送所需要注意的事項')}
+                </div>`,
+                            BgWidget.mainCard([
+                                html ` <div class="title-container px-0">
+                      <div class="d-flex align-items-center gap-1">
+                        <div class="tx_700">配送說明</div>
+                        ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
+                      </div>
+                      <div class="flex-fill"></div>
+                      ${LanguageBackend.switchBtn({
+                                    gvc: gvc,
+                                    language: vm.language,
+                                    callback: language => {
+                                        vm.language = language;
+                                        gvc.notifyDataChange(vm.id);
+                                    },
                                 })}
-                    </div>
-                    <div class="flex-fill"></div>
-                    ${LanguageBackend.switchBtn({
-                                gvc: gvc,
-                                language: vm.language,
-                                callback: language => {
-                                    vm.language = language;
-                                    gvc.notifyDataChange(vm.id);
-                                },
-                            })}
-                  </div>`,
-                            ,
-                            BgWidget.mbContainer(18),
-                            html ` <div class="guide3-4">
-                    ${gvc.bindView((() => {
-                                const id = gvc.glitter.getUUID();
-                                return {
-                                    bind: id,
-                                    view: () => {
-                                        return html ` <div
-                              class="d-flex justify-content-between align-items-center gap-3 mb-1"
-                              style="cursor: pointer;"
-                              onclick="${gvc.event(() => {
-                                            const originContent = `${language_data.info}`;
-                                            BgWidget.fullDialog({
-                                                gvc: gvc,
-                                                title: gvc2 => {
-                                                    return html `<div class="d-flex align-items-center" style="gap:10px;">
-                                      ${'配送資訊' +
-                                                        BgWidget.aiChatButton({
+                    </div>`,
+                                ,
+                                BgWidget.mbContainer(18),
+                                html ` <div class="guide3-4">
+                      ${gvc.bindView((() => {
+                                    const id = gvc.glitter.getUUID();
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            return html ` <div
+                                class="d-flex justify-content-between align-items-center gap-3 mb-1"
+                                style="cursor: pointer;"
+                                onclick="${gvc.event(() => {
+                                                const originContent = `${language_data.info}`;
+                                                BgWidget.fullDialog({
+                                                    gvc: gvc,
+                                                    title: gvc2 => {
+                                                        return html `<div class="d-flex align-items-center" style="gap:10px;">
+                                        ${'配送資訊' +
+                                                            BgWidget.aiChatButton({
+                                                                gvc: gvc2,
+                                                                select: 'writer',
+                                                                click: () => {
+                                                                    ProductAi.generateRichText(gvc, text => {
+                                                                        language_data.info += text;
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                        gvc2.recreateView();
+                                                                    });
+                                                                },
+                                                            })}
+                                      </div>`;
+                                                    },
+                                                    innerHTML: gvc2 => {
+                                                        return html ` <div>
+                                        ${EditorElem.richText({
                                                             gvc: gvc2,
-                                                            select: 'writer',
-                                                            click: () => {
-                                                                ProductAi.generateRichText(gvc, text => {
-                                                                    language_data.info += text;
-                                                                    gvc.notifyDataChange(vm.id);
-                                                                    gvc2.recreateView();
+                                                            def: language_data.info,
+                                                            setHeight: '100vh',
+                                                            hiddenBorder: true,
+                                                            insertImageEvent: editor => {
+                                                                const mark = `{{${Tool.randomString(8)}}}`;
+                                                                editor.selection.setAtEnd(editor.$el.get(0));
+                                                                editor.html.insert(mark);
+                                                                editor.undo.saveStep();
+                                                                imageLibrary.selectImageLibrary(gvc, urlArray => {
+                                                                    if (urlArray.length > 0) {
+                                                                        const imgHTML = urlArray
+                                                                            .map(url => {
+                                                                            return html ` <img src="${url.data}" />`;
+                                                                        })
+                                                                            .join('');
+                                                                        editor.html.set(editor.html
+                                                                            .get(0)
+                                                                            .replace(mark, html ` <div class="d-flex flex-column">${imgHTML}</div>`));
+                                                                        editor.undo.saveStep();
+                                                                    }
+                                                                    else {
+                                                                        dialog.errorMessage({ text: '請選擇至少一張圖片' });
+                                                                    }
+                                                                }, html ` <div
+                                                class="d-flex flex-column"
+                                                style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                              >
+                                                圖片庫
+                                              </div>`, {
+                                                                    mul: true,
+                                                                    cancelEvent: () => {
+                                                                        editor.html.set(editor.html.get(0).replace(mark, ''));
+                                                                        editor.undo.saveStep();
+                                                                    },
                                                                 });
                                                             },
+                                                            callback: text => {
+                                                                language_data.info = text;
+                                                            },
+                                                            rich_height: `calc(${window.parent.innerHeight}px - 70px - 58px - 49px - 64px - 40px + ${document.body.clientWidth < 800 ? `70` : `0`}px)`,
                                                         })}
-                                    </div>`;
-                                                },
-                                                innerHTML: gvc2 => {
-                                                    return html ` <div>
-                                      ${EditorElem.richText({
-                                                        gvc: gvc2,
-                                                        def: language_data.info,
-                                                        setHeight: '100vh',
-                                                        hiddenBorder: true,
-                                                        insertImageEvent: editor => {
-                                                            const mark = `{{${Tool.randomString(8)}}}`;
-                                                            editor.selection.setAtEnd(editor.$el.get(0));
-                                                            editor.html.insert(mark);
-                                                            editor.undo.saveStep();
-                                                            imageLibrary.selectImageLibrary(gvc, urlArray => {
-                                                                if (urlArray.length > 0) {
-                                                                    const imgHTML = urlArray
-                                                                        .map(url => {
-                                                                        return html ` <img src="${url.data}" />`;
-                                                                    })
-                                                                        .join('');
-                                                                    editor.html.set(editor.html
-                                                                        .get(0)
-                                                                        .replace(mark, html ` <div class="d-flex flex-column">${imgHTML}</div>`));
-                                                                    editor.undo.saveStep();
-                                                                }
-                                                                else {
-                                                                    dialog.errorMessage({ text: '請選擇至少一張圖片' });
-                                                                }
-                                                            }, html ` <div
-                                              class="d-flex flex-column"
-                                              style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
-                                            >
-                                              圖片庫
-                                            </div>`, {
-                                                                mul: true,
-                                                                cancelEvent: () => {
-                                                                    editor.html.set(editor.html.get(0).replace(mark, ''));
-                                                                    editor.undo.saveStep();
-                                                                },
-                                                            });
-                                                        },
-                                                        callback: text => {
-                                                            language_data.info = text;
-                                                        },
-                                                        rich_height: `calc(${window.parent.innerHeight}px - 70px - 58px - 49px - 64px - 40px + ${document.body.clientWidth < 800 ? `70` : `0`}px)`,
-                                                    })}
-                                    </div>`;
-                                                },
-                                                footer_html: (gvc2) => {
-                                                    return [
-                                                        BgWidget.cancel(gvc2.event(() => {
-                                                            language_data.info = originContent;
-                                                            gvc2.closeDialog();
-                                                        })),
-                                                        BgWidget.save(gvc2.event(() => {
-                                                            gvc2.closeDialog();
-                                                            gvc.notifyDataChange(id);
-                                                            save();
-                                                        })),
-                                                    ].join('');
-                                                },
-                                                closeCallback: () => {
-                                                    language_data.info = originContent;
-                                                },
-                                            });
-                                        })}"
-                            >
-                              ${(() => {
-                                            const text = gvc.glitter.utText.removeTag(language_data.info);
-                                            return BgWidget.richTextView(Tool.truncateString(text, 100));
-                                        })()}
-                            </div>`;
-                                    },
-                                };
-                            })())}
-                  </div>`,
-                        ].join('')));
+                                      </div>`;
+                                                    },
+                                                    footer_html: (gvc2) => {
+                                                        return [
+                                                            BgWidget.cancel(gvc2.event(() => {
+                                                                language_data.info = originContent;
+                                                                gvc2.closeDialog();
+                                                            })),
+                                                            BgWidget.save(gvc2.event(() => {
+                                                                gvc2.closeDialog();
+                                                                gvc.notifyDataChange(id);
+                                                                save();
+                                                            })),
+                                                        ].join('');
+                                                    },
+                                                    closeCallback: () => {
+                                                        language_data.info = originContent;
+                                                    },
+                                                });
+                                            })}"
+                              >
+                                ${(() => {
+                                                const text = gvc.glitter.utText.removeTag(language_data.info);
+                                                return BgWidget.richTextView(Tool.truncateString(text, 100));
+                                            })()}
+                              </div>`;
+                                        },
+                                    };
+                                })())}
+                    </div>`,
+                            ].join('')),
+                        ].join(BgWidget.mbContainer(24)));
                     }
                     else if (vm.page === 'delivery_track') {
                         view = view.concat([
