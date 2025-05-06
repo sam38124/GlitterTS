@@ -1182,9 +1182,7 @@ export class PdClass {
                   style=" flex: 1;height:44px;"
                   onclick="${gvc.event(() => {
                     if (document.body.clientWidth < 800) {
-                      this.addProductPopUp(obj, 'addCart', () => {
-                        refreshAll();
-                      });
+                      this.addProductPopUp(obj, 'addCart', () => refreshAll());
                       return;
                     }
                     if (obj.only_select) {

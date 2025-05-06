@@ -1,4 +1,4 @@
-import { BaseApi } from "../../glitterBundle/api/base.js";
+import { BaseApi } from '../../glitterBundle/api/base.js';
 export class ApiTrack {
     static track(json) {
         json.event_source_url = location.href;
@@ -11,7 +11,7 @@ export class ApiTrack {
                 Authorization: getConfig().config.token,
             },
             data: JSON.stringify({
-                data: json
+                data: json,
             }),
         });
     }
