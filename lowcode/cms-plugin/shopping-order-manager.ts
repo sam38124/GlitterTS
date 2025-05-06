@@ -1745,12 +1745,15 @@ export class ShoppingOrderManager {
                             return {
                               bind: gvc.glitter.getUUID(),
                               view: async () => {
-                                const needAddress = [
-                                  'normal',
-                                  'black_cat',
-                                  'black_cat_freezing',
-                                  'black_cat_ice',
-                                  'global_express',
+                                const noNeedAddress = [
+                                  'now',
+                                  'shop',
+                                  'UNIMARTC2C',
+                                  'FAMIC2C',
+                                  'HILIFEC2C',
+                                  'OKMARTC2C',
+                                  'UNIMARTFREEZE',
+                                  'FAMIC2CFREEZE',
                                 ].includes(orderData.orderData.user_info.shipment);
 
                                 const viewModel = [
@@ -1761,7 +1764,7 @@ export class ShoppingOrderManager {
                                   ['鄉鎮', 'area'],
                                   ['地址', 'address'],
                                 ].filter(item => {
-                                  return needAddress || !['city', 'area', 'address'].includes(item[1]);
+                                  return !noNeedAddress || !['city', 'area', 'address'].includes(item[1]);
                                 });
 
                                 const receipt = (
