@@ -1767,7 +1767,7 @@ export class ShoppingFinanceSetting {
                   let form: any = undefined;
                   BgWidget.settingDialog({
                     gvc: gvc,
-                    title: '設定自訂表單',
+                    title: custom_delivery.name ? `「${custom_delivery.name}」自訂表單設定` : '新增自訂物流',
                     innerHTML: gvc => {
                       form = BgWidget.customForm(gvc, [
                         {
@@ -1826,8 +1826,6 @@ export class ShoppingFinanceSetting {
                                 form.view,
                               ].join(BgWidget.mbContainer(12));
                             },
-                            divCreate: {},
-                            onCreate: () => {},
                           };
                         })()
                       );
@@ -1973,7 +1971,7 @@ export class ShoppingFinanceSetting {
                                         size: 'sm',
                                       },
                                       text: {
-                                        name: html`<i class="fa-regular fa-gear me-1"></i>物流`,
+                                        name: html`<i class="fa-regular fa-gear me-1"></i>配送`,
                                       },
                                       event: gvc.event(async () => {
                                         const log_config = (
@@ -1985,7 +1983,7 @@ export class ShoppingFinanceSetting {
                                         ).response.value;
                                         BgWidget.settingDialog({
                                           gvc: gvc,
-                                          title: '物流設定',
+                                          title: `「${dd.title}」配送設定`,
                                           innerHTML: gvc => {
                                             const view: string[] = [];
                                             if (
@@ -2087,7 +2085,7 @@ export class ShoppingFinanceSetting {
 
                                         BgWidget.settingDialog({
                                           gvc: gvc,
-                                          title: '物流設定',
+                                          title: `「${dd.title}」購物車設定`,
                                           innerHTML: gvc => {
                                             return gvc.bindView({
                                               bind: id,
@@ -2102,7 +2100,6 @@ export class ShoppingFinanceSetting {
                                                   );
                                                 }
                                               },
-                                              divCreate: {},
                                               onCreate: async () => {
                                                 if (vm.loading) {
                                                   const r = await ApiUser.getPublicConfig(
@@ -2145,8 +2142,56 @@ export class ShoppingFinanceSetting {
                                     }),
                                   ];
 
+                                  const shipment_fee = () => {
+                                    return BgWidget.customButton({
+                                      button: {
+                                        color: 'gray',
+                                        size: 'sm',
+                                      },
+                                      text: {
+                                        name: html`<i class="fa-regular fa-gear me-1"></i>運費`,
+                                      },
+                                      event: gvc.event(() => {
+                                        const vm = {
+                                          gvc: gvc,
+                                          key: dd.value,
+                                          save_event: () => {
+                                            return new Promise(resolve => resolve(true));
+                                          },
+                                        };
+                                        BgWidget.settingDialog({
+                                          gvc: gvc,
+                                          width: 1200,
+                                          height: document.body.clientHeight - 100,
+                                          title: `「${dd.title}」運費設定`,
+                                          d_main_style:
+                                            document.body.clientWidth < 768 ? 'padding:0px !important;' : '',
+                                          innerHTML: (gvc: GVC) => {
+                                            vm.gvc = gvc;
+                                            return ShoppingShipmentSetting.main(vm);
+                                          },
+                                          footer_html: gvc => {
+                                            return [
+                                              BgWidget.cancel(
+                                                gvc.event(() => {
+                                                  gvc.closeDialog();
+                                                })
+                                              ),
+                                              BgWidget.save(
+                                                gvc.event(() => {
+                                                  vm.save_event().then(() => {});
+                                                })
+                                              ),
+                                            ].join('');
+                                          },
+                                        });
+                                      }),
+                                    });
+                                  };
+
                                   if ((dd as any).custom) {
                                     button_action = button_action.concat([
+                                      shipment_fee(),
                                       BgWidget.customButton({
                                         button: {
                                           color: 'gray',
@@ -2162,52 +2207,6 @@ export class ShoppingFinanceSetting {
                                           });
                                         }),
                                       }),
-                                      BgWidget.customButton({
-                                        button: {
-                                          color: 'gray',
-                                          size: 'sm',
-                                        },
-                                        text: {
-                                          name: html`<i class="fa-regular fa-gear me-1"></i>運費`,
-                                        },
-                                        event: gvc.event(() => {
-                                          const vm = {
-                                            gvc: gvc,
-                                            key: dd.value,
-                                            save_event: () => {
-                                              return new Promise(resolve => {
-                                                resolve(true);
-                                              });
-                                            },
-                                          };
-                                          BgWidget.settingDialog({
-                                            gvc: gvc,
-                                            width: 1200,
-                                            height: document.body.clientHeight - 100,
-                                            title: `『 ${dd.title} 』運費設定`,
-                                            d_main_style:
-                                              document.body.clientWidth < 768 ? 'padding:0px !important;' : '',
-                                            innerHTML: (gvc: GVC) => {
-                                              vm.gvc = gvc;
-                                              return ShoppingShipmentSetting.main(vm);
-                                            },
-                                            footer_html: gvc => {
-                                              return [
-                                                BgWidget.cancel(
-                                                  gvc.event(() => {
-                                                    gvc.closeDialog();
-                                                  })
-                                                ),
-                                                BgWidget.save(
-                                                  gvc.event(() => {
-                                                    vm.save_event().then(() => {});
-                                                  })
-                                                ),
-                                              ].join('');
-                                            },
-                                          });
-                                        }),
-                                      }),
                                     ]);
                                     return html`
                                       <div class="d-flex flex-wrap justify-content-end gap-1 cursor_pointer">
@@ -2216,54 +2215,7 @@ export class ShoppingFinanceSetting {
                                       </div>
                                     `;
                                   } else {
-                                    button_action = button_action.concat([
-                                      BgWidget.customButton({
-                                        button: {
-                                          color: 'gray',
-                                          size: 'sm',
-                                        },
-                                        text: {
-                                          name: html`<i class="fa-regular fa-gear me-1"></i>運費`,
-                                        },
-                                        event: gvc.event(() => {
-                                          const vm = {
-                                            gvc: gvc,
-                                            key: dd.value,
-                                            save_event: () => {
-                                              return new Promise((resolve, reject) => {
-                                                resolve(true);
-                                              });
-                                            },
-                                          };
-                                          BgWidget.settingDialog({
-                                            gvc: gvc,
-                                            width: 1200,
-                                            height: document.body.clientHeight - 100,
-                                            title: `『 ${dd.title} 』運費設定`,
-                                            d_main_style:
-                                              document.body.clientWidth < 768 ? 'padding:0px !important;' : '',
-                                            innerHTML: (gvc: GVC) => {
-                                              vm.gvc = gvc;
-                                              return ShoppingShipmentSetting.main(vm);
-                                            },
-                                            footer_html: gvc => {
-                                              return [
-                                                BgWidget.cancel(
-                                                  gvc.event(() => {
-                                                    gvc.closeDialog();
-                                                  })
-                                                ),
-                                                BgWidget.save(
-                                                  gvc.event(() => {
-                                                    vm.save_event().then(() => {});
-                                                  })
-                                                ),
-                                              ].join('');
-                                            },
-                                          });
-                                        }),
-                                      }),
-                                    ]);
+                                    button_action = button_action.concat([shipment_fee()]);
                                     return html` <div class="d-flex flex-wrap justify-content-end gap-1 cursor_pointer">
                                       <div class="flex-fill"></div>
                                       ${button_action.join('')}
@@ -2615,8 +2567,6 @@ export class ShoppingFinanceSetting {
                                                       })(),
                                                     ].join(BgWidget.mbContainer(12));
                                                   },
-                                                  divCreate: {},
-                                                  onCreate: () => {},
                                                 };
                                               })()
                                             );
@@ -2829,8 +2779,6 @@ export class ShoppingFinanceSetting {
                                                       })(),
                                                     ].join(BgWidget.mbContainer(12));
                                                   },
-                                                  divCreate: {},
-                                                  onCreate: () => {},
                                                 };
                                               })()
                                             );
@@ -3404,8 +3352,7 @@ export class ShoppingFinanceSetting {
                                 `;
                               },
                               divCreate: {
-                                style: '',
-                                class: `w-100`,
+                                class: 'w-100',
                               },
                             };
                           })
