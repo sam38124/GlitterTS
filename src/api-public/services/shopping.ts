@@ -1,4 +1,3 @@
-import { IToken } from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
 import e from 'express';
@@ -7,7 +6,8 @@ import axios from 'axios';
 import app from '../../app';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
-import FinancialService, { EcPay, JKO, LinePay, PayNow, PayPal } from './financial-service.js';
+import { IToken } from '../models/Auth.js';
+import { EcPay, PayNow } from './financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from './user.js';
 import { Invoice } from './invoice.js';
@@ -15,14 +15,12 @@ import { Rebate } from './rebate.js';
 import { CustomCode } from '../services/custom-code.js';
 import { ManagerNotify } from './notify.js';
 import { AutoSendEmail } from './auto-send-email.js';
-import { Recommend } from './recommend.js';
 import { DeliveryData } from './delivery.js';
 import { saasConfig } from '../../config.js';
 import { SMS } from './sms.js';
 import { LineMessage } from './line-message';
 import { EcInvoice } from './EcInvoice';
 import { App } from '../../services/app.js';
-import { Stock } from './stock';
 import { OrderEvent } from './order-event.js';
 import { SeoConfig } from '../../seo-config.js';
 import { sendmail } from '../../services/ses.js';
@@ -33,13 +31,11 @@ import { CheckoutService } from './checkout.js';
 import { ProductInitial } from './product-initial.js';
 import { UtTimer } from '../utils/ut-timer.js';
 import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
-import PaymentTransaction from './model/handlePaymentTransaction.js';
 import { Language, LanguageLocation } from '../../Language.js';
 import { PaymentStrategyFactory } from './factories/payment-strategy-factory.js';
 import { IPaymentStrategy } from './interface/payment-strategy-interface.js';
 import { PaymentService } from './payment-service.js';
 import { CartItem, CheckoutEvent } from './checkout-event.js';
-import { onlinePayArray } from '../models/glitter-finance';
 
 type BindItem = {
   id: string;
@@ -64,57 +60,61 @@ type InvoiceData = {
 };
 
 type VoucherForType = 'all' | 'collection' | 'product' | 'manager_tag';
+type RebackType = 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
+type Trigger = 'auto' | 'code' | 'distribution';
+type ProductOffStart = 'price_asc' | 'price_desc' | 'price_all';
+type Device = 'normal' | 'pos';
+type Method = 'fixed' | 'percent';
+type Rule = 'min_price' | 'min_count';
+type ConditionType = 'item' | 'order';
+type Counting = 'single' | 'each';
+type IncludeDiscount = 'before' | 'after';
+type SelectShipmentType = 'all' | 'select';
 
 export interface VoucherData {
-  id: number;
+  // default-value
+  id: string;
+  type: 'voucher';
+  status: 0 | 1 | -1;
   title: string;
   code?: string;
-  method: 'percent' | 'fixed';
-  reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
-  add_on_products?: string[] | ProductItem[];
-  trigger: 'auto' | 'code' | 'distribution';
+  reBackType: RebackType;
+  method: Method;
+  trigger: Trigger;
+  device: Device[];
   value: string;
+  add_on_products?: string[];
   for: VoucherForType;
-  rule: 'min_price' | 'min_count';
-  productOffStart: 'price_asc' | 'price_desc' | 'price_all';
-  conditionType: 'order' | 'item';
-  includeDiscount: 'before' | 'after';
-  counting: 'each' | 'single';
-  forKey: string[];
+  rule: Rule;
+  counting: Counting;
+  conditionType: ConditionType;
+  includeDiscount: IncludeDiscount;
+  productOffStart: ProductOffStart;
+  forKey: (number | string)[];
   ruleValue: number;
   startDate: string;
   startTime: string;
   endDate?: string;
   endTime?: string;
-  status: 0 | 1 | -1;
-  type: 'voucher';
   overlay: boolean;
+  start_ISO_Date: string;
+  end_ISO_Date: string;
+  targetList: (number | string)[];
+  target: string;
+  rebateEndDay: string;
+  macroLimited: number;
+  microLimited: number;
+  selectShipment: {
+    type: SelectShipmentType;
+    list: string[];
+  };
+
+  // backend-value
   bind: BindItem[];
   bind_subtotal: number;
   times: number;
-  start_ISO_Date: string;
-  end_ISO_Date: string;
   discount_total: number;
   rebate_total: number;
-  target: string;
-  targetList: string[];
-  device: ('normal' | 'pos')[];
-}
-
-interface ShipmentConfig {
-  volume: { key: string; value: string }[];
-  weight: { key: string; value: string }[];
-  selectCalc: 'volume' | 'weight';
-}
-
-interface ProductItem {
-  id: number;
-  userID: number;
-  content: any;
-  created_time: Date | string;
-  updated_time: Date | string;
-  status: number;
-  total_sales?: number;
 }
 
 interface seo {
@@ -190,15 +190,6 @@ interface orderVoucherData {
   rebate_total: number;
   target: string;
   targetList: string[];
-}
-
-interface KeyData {
-  HASH_IV: string;
-  HASH_KEY: string;
-  ActionURL: string;
-  NotifyURL: string;
-  ReturnURL: string;
-  MERCHANT_ID: string;
 }
 
 class OrderDetail {
@@ -1411,7 +1402,7 @@ export class Shopping {
     // 處理需 async and await 的驗證
     const validVouchers = await Promise.all(
       allVoucher.map(async (voucher: VoucherData) => {
-        const isLimited = await this.checkVoucherLimited(userID, voucher.id);
+        const isLimited = await this.checkVoucherLimited(userID, Number(voucher.id));
         return isLimited ? voucher : null;
       })
     );
@@ -2669,15 +2660,24 @@ export class Shopping {
     // 判斷符合商品類型
     function setBindProduct(voucher: VoucherData): Boolean {
       voucher.bind = [];
+      voucher.forKey ??= [];
       voucher.productOffStart = voucher.productOffStart ?? 'price_all';
 
       switch (voucher.trigger) {
         case 'auto': // 自動填入
-          voucher.bind = switchValidProduct(voucher.for, voucher.forKey, voucher.productOffStart);
+          voucher.bind = switchValidProduct(
+            voucher.for,
+            voucher.forKey.map(k => k.toString()),
+            voucher.productOffStart
+          );
           break;
         case 'code': // 輸入代碼
           if (voucher.code === `${cart.code}` || (cart.code_array || []).includes(`${voucher.code}`)) {
-            voucher.bind = switchValidProduct(voucher.for, voucher.forKey, voucher.productOffStart);
+            voucher.bind = switchValidProduct(
+              voucher.for,
+              voucher.forKey.map(k => k.toString()),
+              voucher.productOffStart
+            );
           }
           break;
         case 'distribution': // 分銷優惠
@@ -2730,8 +2730,18 @@ export class Shopping {
             cartValue += item.count;
           });
         }
+
         if (voucher.reBackType === 'shipment_free') {
-          return cartValue >= ruleValue; // 回傳免運費判斷
+          // 判斷使用的物流是否為優惠券所指定
+          const isSelectShipment: () => boolean = () => {
+            if (voucher.selectShipment.type === 'all') {
+              return true;
+            }
+            return voucher.selectShipment.list.includes(cart.user_info.shipment);
+          };
+
+          // 回傳免運費判斷
+          return cart.shipment_fee > 0 && isSelectShipment() && cartValue >= ruleValue;
         }
         if (cartValue >= ruleValue) {
           if (voucher.counting === 'each') {

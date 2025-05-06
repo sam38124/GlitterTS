@@ -778,11 +778,28 @@ export class CheckoutEvent {
 
       checkPoint('set max product');
 
-      carData.shipment_fee = this.shopping.getShipmentFee(data.user_info, carData.lineItems, shipment);
+      // 商家設定物流達免運費條件之判斷
+      carData.select_shipment_setting = data?.user_info?.shipment
+        ? await userClass.getConfigV2({
+            key: 'shipment_config_' + data.user_info.shipment,
+            user_id: 'manager',
+          })
+        : {};
+      const freeShipmnetNum = carData.select_shipment_setting?.cartSetting?.freeShipmnetTarget ?? 0;
+      const isFreeShipment = freeShipmnetNum > 0 && carData.total >= freeShipmnetNum;
+
+      // 計算運費
+      carData.shipment_fee = isFreeShipment
+        ? 0
+        : this.shopping.getShipmentFee(data.user_info, carData.lineItems, shipment);
       carData.total += carData.shipment_fee;
+
+      // 驗證購物金
       const f_rebate = await this.shopping.formatUseRebate(carData.total, carData.use_rebate);
       carData.useRebateInfo = f_rebate;
       carData.use_rebate = f_rebate.point;
+
+      // 調整總金額
       carData.total -= carData.use_rebate;
       carData.code = data.code;
       carData.voucherList = [];
@@ -955,18 +972,6 @@ export class CheckoutEvent {
         carData.total = subtotal + carData.shipment_fee;
       }
 
-      // 商家設定物流達免運費條件之判斷
-      carData.select_shipment_setting = await userClass.getConfigV2({
-        key: 'shipment_config_' + data.user_info.shipment,
-        user_id: 'manager',
-      });
-
-      const freeShipmnetNum = carData.select_shipment_setting?.cartSetting?.freeShipmnetTarget ?? 0;
-      if (freeShipmnetNum > 0 && carData.total - carData.shipment_fee >= freeShipmnetNum) {
-        carData.total -= carData.shipment_fee;
-        carData.shipment_fee = 0;
-      }
-
       // 商品材積重量與物流使用限制
       carData.lineItems.map(item => {
         carData.goodsWeight += item.weight * item.count;
@@ -1097,6 +1102,10 @@ export class CheckoutEvent {
           includeDiscount: 'before',
           device: ['normal'],
           productOffStart: 'price_all',
+          rebateEndDay: '30',
+          macroLimited: 0,
+          microLimited: 0,
+          selectShipment: { type: 'all', list: [] },
         };
         carData.discount = data.discount;
         carData.voucherList = [tempVoucher];

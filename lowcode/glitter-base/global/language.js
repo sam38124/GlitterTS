@@ -155,6 +155,18 @@ export class Language {
             { key: 'buy_it_now', tw: '立即購買', cn: '立即购买', en: `Buy it now` },
             { key: 'cart', tw: '購物車', cn: '购物车', en: `Cart` },
             {
+                key: 'free_shipping_achieved',
+                tw: '已達成免運費',
+                cn: '已达成免运费',
+                en: 'Free shipping achieved',
+            },
+            {
+                key: 'free_shipping_threshold',
+                tw: '再消費 $_p_ 即可享免運費',
+                cn: '再消费 $_p_ 即可享免运费',
+                en: 'Spend $_p_ more to enjoy free shipping',
+            },
+            {
                 key: 'min_p_count_d',
                 tw: '_p_ 最少購買數量為_c_件',
                 cn: '_p_ 最少购买数量为_c_件',

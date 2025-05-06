@@ -69,7 +69,7 @@ class CheckoutEvent {
         return JSON.parse(JSON.stringify((0, glitter_finance_js_1.onlinePayArray)()));
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15;
         try {
             const utTimer = new ut_timer_js_1.UtTimer('TO-CHECKOUT');
             const checkPoint = utTimer.checkPoint;
@@ -566,7 +566,17 @@ class CheckoutEvent {
                 }
             }
             checkPoint('set max product');
-            carData.shipment_fee = this.shopping.getShipmentFee(data.user_info, carData.lineItems, shipment);
+            carData.select_shipment_setting = ((_1 = data === null || data === void 0 ? void 0 : data.user_info) === null || _1 === void 0 ? void 0 : _1.shipment)
+                ? await userClass.getConfigV2({
+                    key: 'shipment_config_' + data.user_info.shipment,
+                    user_id: 'manager',
+                })
+                : {};
+            const freeShipmnetNum = (_4 = (_3 = (_2 = carData.select_shipment_setting) === null || _2 === void 0 ? void 0 : _2.cartSetting) === null || _3 === void 0 ? void 0 : _3.freeShipmnetTarget) !== null && _4 !== void 0 ? _4 : 0;
+            const isFreeShipment = freeShipmnetNum > 0 && carData.total >= freeShipmnetNum;
+            carData.shipment_fee = isFreeShipment
+                ? 0
+                : this.shopping.getShipmentFee(data.user_info, carData.lineItems, shipment);
             carData.total += carData.shipment_fee;
             const f_rebate = await this.shopping.formatUseRebate(carData.total, carData.use_rebate);
             carData.useRebateInfo = f_rebate;
@@ -620,7 +630,7 @@ class CheckoutEvent {
                 await this.shopping.checkVoucher(carData);
                 checkPoint('check voucher');
                 let can_add_gift = [];
-                (_1 = carData.voucherList) === null || _1 === void 0 ? void 0 : _1.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
+                (_5 = carData.voucherList) === null || _5 === void 0 ? void 0 : _5.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
                 gift_product.forEach(dd => {
                     const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
                     if (max_count) {
@@ -632,7 +642,7 @@ class CheckoutEvent {
                     }
                 });
                 for (const giveawayData of carData.voucherList.filter(dd => dd.reBackType === 'giveaway')) {
-                    if (!((_2 = giveawayData.add_on_products) === null || _2 === void 0 ? void 0 : _2.length))
+                    if (!((_6 = giveawayData.add_on_products) === null || _6 === void 0 ? void 0 : _6.length))
                         continue;
                     const productPromises = giveawayData.add_on_products
                         .map(async (id) => {
@@ -660,7 +670,7 @@ class CheckoutEvent {
                 appName: this.app,
                 key: 'glitter_finance',
             });
-            const keyData = (_3 = configData[0]) === null || _3 === void 0 ? void 0 : _3.value;
+            const keyData = (_7 = configData[0]) === null || _7 === void 0 ? void 0 : _7.value;
             if (keyData) {
                 carData.payment_info_custom = keyData.payment_info_custom;
             }
@@ -690,10 +700,10 @@ class CheckoutEvent {
                 }
             });
             checkPoint('set payment');
-            keyData.cash_on_delivery = (_4 = keyData.cash_on_delivery) !== null && _4 !== void 0 ? _4 : { shipmentSupport: [] };
+            keyData.cash_on_delivery = (_8 = keyData.cash_on_delivery) !== null && _8 !== void 0 ? _8 : { shipmentSupport: [] };
             carData.payment_info_line_pay = keyData.payment_info_line_pay;
             carData.payment_info_atm = keyData.payment_info_atm;
-            keyData.cash_on_delivery.shipmentSupport = (_5 = keyData.cash_on_delivery.shipmentSupport) !== null && _5 !== void 0 ? _5 : [];
+            keyData.cash_on_delivery.shipmentSupport = (_9 = keyData.cash_on_delivery.shipmentSupport) !== null && _9 !== void 0 ? _9 : [];
             await this.setPaymentSetting({ carData: carData, checkoutPayment: checkoutPayment, keyData: keyData });
             let subtotal = 0;
             carData.lineItems.map(item => {
@@ -709,22 +719,13 @@ class CheckoutEvent {
                 carData.use_rebate = 0;
                 carData.total = subtotal + carData.shipment_fee;
             }
-            carData.select_shipment_setting = await userClass.getConfigV2({
-                key: 'shipment_config_' + data.user_info.shipment,
-                user_id: 'manager',
-            });
-            const freeShipmnetNum = (_8 = (_7 = (_6 = carData.select_shipment_setting) === null || _6 === void 0 ? void 0 : _6.cartSetting) === null || _7 === void 0 ? void 0 : _7.freeShipmnetTarget) !== null && _8 !== void 0 ? _8 : 0;
-            if (freeShipmnetNum > 0 && carData.total - carData.shipment_fee >= freeShipmnetNum) {
-                carData.total -= carData.shipment_fee;
-                carData.shipment_fee = 0;
-            }
             carData.lineItems.map(item => {
                 carData.goodsWeight += item.weight * item.count;
             });
             const excludedValuesByTotal = new Set(['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C']);
             const excludedValuesByWeight = new Set(['normal', 'black_cat']);
             const logisticsGroupResult = await userClass.getConfig({ key: 'logistics_group', user_id: 'manager' });
-            const logisticsGroup = (_10 = (_9 = logisticsGroupResult[0]) === null || _9 === void 0 ? void 0 : _9.value) !== null && _10 !== void 0 ? _10 : [];
+            const logisticsGroup = (_11 = (_10 = logisticsGroupResult[0]) === null || _10 === void 0 ? void 0 : _10.value) !== null && _11 !== void 0 ? _11 : [];
             const isExcludedByTotal = (dd) => {
                 return carData.total > 20000 && excludedValuesByTotal.has(dd.value);
             };
@@ -822,11 +823,15 @@ class CheckoutEvent {
                     includeDiscount: 'before',
                     device: ['normal'],
                     productOffStart: 'price_all',
+                    rebateEndDay: '30',
+                    macroLimited: 0,
+                    microLimited: 0,
+                    selectShipment: { type: 'all', list: [] },
                 };
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_11 = data.total) !== null && _11 !== void 0 ? _11 : 0;
+                carData.total = (_12 = data.total) !== null && _12 !== void 0 ? _12 : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free' || type == 'split') {
                     carData.shipment_fee = 0;
@@ -870,7 +875,7 @@ class CheckoutEvent {
                 if (checkOutType === 'POS' && Array.isArray(data.voucherList)) {
                     const manualVoucher = data.voucherList.find((item) => item.id === 0);
                     if (manualVoucher) {
-                        manualVoucher.discount = (_12 = manualVoucher.discount_total) !== null && _12 !== void 0 ? _12 : 0;
+                        manualVoucher.discount = (_13 = manualVoucher.discount_total) !== null && _13 !== void 0 ? _13 : 0;
                         carData.total -= manualVoucher.discount;
                         carData.discount += manualVoucher.discount;
                         carData.voucherList.push(manualVoucher);
@@ -905,7 +910,7 @@ class CheckoutEvent {
                 await trans.commit();
                 await trans.release();
                 await Promise.all(saveStockArray.map(dd => dd()));
-                await this.shopping.releaseCheckout((_13 = data.pay_status) !== null && _13 !== void 0 ? _13 : 0, carData.orderID);
+                await this.shopping.releaseCheckout((_14 = data.pay_status) !== null && _14 !== void 0 ? _14 : 0, carData.orderID);
                 checkPoint('release pos checkout');
                 for (const email of new Set([carData.customer_info, carData.user_info].map(dd => {
                     return dd && dd.email;
@@ -959,7 +964,7 @@ class CheckoutEvent {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                let kd = (_14 = keyData[carData.customer_info.payment_select]) !== null && _14 !== void 0 ? _14 : {
+                let kd = (_15 = keyData[carData.customer_info.payment_select]) !== null && _15 !== void 0 ? _15 : {
                     ReturnURL: '',
                     NotifyURL: '',
                 };

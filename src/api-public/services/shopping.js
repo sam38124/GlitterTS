@@ -928,7 +928,7 @@ class Shopping {
             return status && startDate < now && now < endDate;
         });
         const validVouchers = await Promise.all(allVoucher.map(async (voucher) => {
-            const isLimited = await this.checkVoucherLimited(userID, voucher.id);
+            const isLimited = await this.checkVoucherLimited(userID, Number(voucher.id));
             return isLimited ? voucher : null;
         }));
         return validVouchers.filter(Boolean);
@@ -1849,16 +1849,17 @@ class Shopping {
             return true;
         }
         function setBindProduct(voucher) {
-            var _a;
+            var _a, _b;
             voucher.bind = [];
-            voucher.productOffStart = (_a = voucher.productOffStart) !== null && _a !== void 0 ? _a : 'price_all';
+            (_a = voucher.forKey) !== null && _a !== void 0 ? _a : (voucher.forKey = []);
+            voucher.productOffStart = (_b = voucher.productOffStart) !== null && _b !== void 0 ? _b : 'price_all';
             switch (voucher.trigger) {
                 case 'auto':
-                    voucher.bind = switchValidProduct(voucher.for, voucher.forKey, voucher.productOffStart);
+                    voucher.bind = switchValidProduct(voucher.for, voucher.forKey.map(k => k.toString()), voucher.productOffStart);
                     break;
                 case 'code':
                     if (voucher.code === `${cart.code}` || (cart.code_array || []).includes(`${voucher.code}`)) {
-                        voucher.bind = switchValidProduct(voucher.for, voucher.forKey, voucher.productOffStart);
+                        voucher.bind = switchValidProduct(voucher.for, voucher.forKey.map(k => k.toString()), voucher.productOffStart);
                     }
                     break;
                 case 'distribution':
@@ -1898,7 +1899,13 @@ class Shopping {
                     });
                 }
                 if (voucher.reBackType === 'shipment_free') {
-                    return cartValue >= ruleValue;
+                    const isSelectShipment = () => {
+                        if (voucher.selectShipment.type === 'all') {
+                            return true;
+                        }
+                        return voucher.selectShipment.list.includes(cart.user_info.shipment);
+                    };
+                    return cart.shipment_fee > 0 && isSelectShipment() && cartValue >= ruleValue;
                 }
                 if (cartValue >= ruleValue) {
                     if (voucher.counting === 'each') {

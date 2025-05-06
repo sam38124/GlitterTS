@@ -1140,8 +1140,7 @@ export class ShoppingFinanceSetting {
                         gvc: gvc,
                         title: html `<div class="d-flex align-items-center mt-2 gap-2">
               <div style="white-space: break-spaces;">達指定消費金額，訂單免運費（輸入0則不設定此功能）</div>
-              ${questionDialog(html `未含運費之消費金額若達到輸入的指定值，使用此物流則免運<br />所有商品小計(A) - 購物金折抵(B) -
-                  優惠券折抵(C) = 未含運費之消費金額`)}
+              ${questionDialog(html `訂單中「所有商品小計(A)」若達到輸入的指定值，使用此物流則免運`)}
             </div>`,
                         default: `${data.cartSetting.freeShipmnetTarget}`,
                         type: 'number',

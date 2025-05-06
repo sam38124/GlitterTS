@@ -1644,7 +1644,6 @@ export class CheckoutIndex {
                                                                         is_gift: true,
                                                                         callback: () => {
                                                                           gvc.closeDialog();
-                                                                          console.log(5);
                                                                           let find = vm.cartData.lineItems.find(
                                                                             (d1: any) => {
                                                                               return dd.add_on_products.find(
@@ -1765,8 +1764,17 @@ export class CheckoutIndex {
                                                   return html`
                                                     <div class="${gClass('danger-text')}">
                                                       ${vm.cartData.shipment_fee === 0
-                                                        ? '已達成免運費'
-                                                        : `此物流消費滿 $${Number(target).toLocaleString()} 即可享免運費`}
+                                                        ? Language.text('free_shipping_achieved')
+                                                        : Language.text('free_shipping_threshold').replace(
+                                                            '_p_',
+                                                            Number(
+                                                              target -
+                                                                (vm.cartData.total -
+                                                                  vm.cartData.shipment_fee +
+                                                                  vm.cartData.discount +
+                                                                  vm.cartData.use_rebate)
+                                                            ).toLocaleString()
+                                                          )}
                                                     </div>
                                                   `;
                                                 }
