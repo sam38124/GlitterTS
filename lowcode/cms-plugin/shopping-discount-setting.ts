@@ -1317,36 +1317,6 @@ export class ShoppingDiscountSetting {
                                     readonly: voucherData.reBackType === 'shipment_free',
                                   }
                                 )}`,
-                              html` ${BgWidget.horizontalLine()}
-                                <div class="tx_700">消費金額於其他折扣觸發時機</div>
-                                ${BgWidget.mbContainer(18)}
-                                ${BgWidget.multiCheckboxContainer(
-                                  gvc,
-                                  [
-                                    {
-                                      key: 'before',
-                                      name: '觸發前',
-                                      innerHtml: BgWidget.grayNote(
-                                        '在其他折扣觸發前，訂單的消費金額將做為達成消費條件的金額，來判斷是否可使用此優惠券'
-                                      ),
-                                    },
-                                    {
-                                      key: 'after',
-                                      name: '觸發後',
-                                      innerHtml: BgWidget.grayNote(
-                                        '將訂單的消費金額包含其他折扣後，做為達成消費條件的金額，來判斷是否可使用此優惠券'
-                                      ),
-                                    },
-                                  ],
-                                  [voucherData.includeDiscount],
-                                  text => {
-                                    voucherData.includeDiscount = text[0] as 'before' | 'after';
-                                    gvc.notifyDataChange(pageVM.conditionId);
-                                  },
-                                  {
-                                    single: true,
-                                  }
-                                )}`,
                               gvc.bindView({
                                 bind: pageVM.countingId,
                                 view: () => {
@@ -1449,28 +1419,66 @@ export class ShoppingDiscountSetting {
                         return {
                           bind: id,
                           view: () => {
-                            return html` <div class="tx_700">是否與其他優惠券疊加使用</div>
-                              ${BgWidget.mbContainer(18)}
-                              ${BgWidget.multiCheckboxContainer(
-                                gvc,
-                                [
-                                  {
-                                    key: 'false',
-                                    name: '不可疊加',
-                                    innerHtml: BgWidget.grayNote('系統將以最大優惠排序進行判定'),
+                            return [
+                              html` <div class="tx_700">是否與其他優惠券疊加使用</div>
+                                ${BgWidget.mbContainer(18)}
+                                ${BgWidget.multiCheckboxContainer(
+                                  gvc,
+                                  [
+                                    {
+                                      key: 'false',
+                                      name: '不可疊加',
+                                      innerHtml: BgWidget.grayNote('系統將以最大優惠排序進行判定'),
+                                    },
+                                    {
+                                      key: 'true',
+                                      name: '可以疊加',
+                                    },
+                                  ],
+                                  [voucherData.overlay ? 'true' : 'false'],
+                                  text => {
+                                    voucherData.overlay = text[0] === 'true';
+                                    gvc.notifyDataChange(id);
                                   },
-                                  {
-                                    key: 'true',
-                                    name: '可以疊加',
-                                  },
-                                ],
-                                [voucherData.overlay ? 'true' : 'false'],
-                                text => {
-                                  voucherData.overlay = text[0] === 'true';
-                                  gvc.notifyDataChange(id);
-                                },
-                                { single: true }
-                              )}`;
+                                  { single: true }
+                                )}`,
+                              (() => {
+                                if (!voucherData.overlay) {
+                                  return '';
+                                }
+                                return html` <div class="tx_700">消費金額於其他折扣觸發時機</div>
+                                  ${BgWidget.mbContainer(18)}
+                                  ${BgWidget.multiCheckboxContainer(
+                                    gvc,
+                                    [
+                                      {
+                                        key: 'before',
+                                        name: '觸發前',
+                                        innerHtml: BgWidget.grayNote(
+                                          '在其他折扣觸發前，訂單的消費金額將做為達成消費條件的金額，來判斷是否可使用此優惠券'
+                                        ),
+                                      },
+                                      {
+                                        key: 'after',
+                                        name: '觸發後',
+                                        innerHtml: BgWidget.grayNote(
+                                          '將訂單的消費金額包含其他折扣後，做為達成消費條件的金額，來判斷是否可使用此優惠券'
+                                        ),
+                                      },
+                                    ],
+                                    [voucherData.includeDiscount],
+                                    text => {
+                                      voucherData.includeDiscount = text[0] as 'before' | 'after';
+                                      gvc.notifyDataChange(pageVM.conditionId);
+                                    },
+                                    {
+                                      single: true,
+                                    }
+                                  )}`;
+                              })(),
+                            ]
+                              .filter(Boolean)
+                              .join(BgWidget.horizontalLine());
                           },
                         };
                       })
