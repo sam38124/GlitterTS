@@ -6,4 +6,5 @@ export declare class Monitor {
         token?: IToken;
         req_type: 'api' | 'file';
     }): Promise<void>;
+    static userIP(req: express.Request): string | string[];
 }

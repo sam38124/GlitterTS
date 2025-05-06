@@ -6,6 +6,7 @@ import tool from '../../services/tool.js';
 import express from 'express';
 import { IToken } from '../models/Auth.js';
 import exception from '../../modules/exception.js';
+import { Monitor } from './monitor.js';
 
 export class FbApi {
   public app_name: string;
@@ -43,7 +44,7 @@ export class FbApi {
                     fbc: req.cookies._fbc,
                     fbp: req.cookies._fbp,
                     external_id:`${data.userID}`,
-                    client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip) as string,
+                    client_ip_address: Monitor.userIP(req),
                     "event_name": "CompleteRegistration",
                     "event_time": new Date().getTime() / 1000,
                     "event_id": `${data.userID}`,
@@ -140,7 +141,7 @@ export class FbApi {
       console.log(`cf.api_token=>`, cf.api_token);
       if (cf.link && cf.api_token) {
         data.user_data = {
-          client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip) as string,
+          client_ip_address: Monitor.userIP(req),
           fbc: req.cookies._fbc,
           fbp: req.cookies._fbp,
         };

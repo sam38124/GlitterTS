@@ -9,6 +9,7 @@ import { User } from '../services/user';
 import { UtPermission } from '../utils/ut-permission.js';
 import { SharePermission } from '../services/share-permission';
 import { FilterProtectData } from '../services/filter-protect-data.js';
+import { Monitor } from '../services/monitor.js';
 
 const router: express.Router = express.Router();
 
@@ -682,7 +683,7 @@ router.delete('/batch/tag', async (req: express.Request, resp: express.Response)
 // ip
 router.get('/ip/info', async (req: express.Request, resp: express.Response) => {
   try {
-    const ip: any = req.query.ip || req.headers['x-real-ip'] || req.ip;
+    const ip: any = req.query.ip || Monitor.userIP(req);
     return resp.send(await User.ipInfo(ip));
   } catch (err) {
     return response.fail(resp, err);

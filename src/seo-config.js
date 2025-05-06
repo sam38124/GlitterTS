@@ -414,7 +414,7 @@ class SeoConfig {
                     key: 'login_config',
                     user_id: 'manager',
                 }),
-                user_js_1.User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip)),
+                user_js_1.User.ipInfo(monitor_js_1.Monitor.userIP(req)),
             ]);
             const language = await SeoConfig.language(store_info, req);
             monitor_js_1.Monitor.insertHistory({

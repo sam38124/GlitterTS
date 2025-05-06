@@ -19,6 +19,7 @@ import { Pos } from '../services/pos.js';
 import { ShopnexLineMessage } from '../services/model/shopnex-line-message';
 import { CaughtError } from '../../modules/caught-error.js';
 import { CheckoutEvent } from '../services/checkout-event.js';
+import { Monitor } from '../services/monitor.js';
 
 const router: express.Router = express.Router();
 export = router;
@@ -160,7 +161,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
       code_array: req.body.code_array,
       give_away: req.body.give_away,
       language: req.headers['language'] as any,
-      client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip) as string,
+      client_ip_address: Monitor.userIP(req) as string,
       fbc: req.cookies._fbc,
       fbp: req.cookies._fbp,
       temp_cart_id: req.body.temp_cart_id,

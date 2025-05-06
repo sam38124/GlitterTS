@@ -13,6 +13,7 @@ const user_1 = require("../services/user");
 const ut_permission_js_1 = require("../utils/ut-permission.js");
 const share_permission_1 = require("../services/share-permission");
 const filter_protect_data_js_1 = require("../services/filter-protect-data.js");
+const monitor_js_1 = require("../services/monitor.js");
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
@@ -655,7 +656,7 @@ router.delete('/batch/tag', async (req, resp) => {
 });
 router.get('/ip/info', async (req, resp) => {
     try {
-        const ip = req.query.ip || req.headers['x-real-ip'] || req.ip;
+        const ip = req.query.ip || monitor_js_1.Monitor.userIP(req);
         return resp.send(await user_1.User.ipInfo(ip));
     }
     catch (err) {

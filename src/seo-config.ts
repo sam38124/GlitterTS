@@ -481,7 +481,7 @@ export class SeoConfig {
           key: 'login_config',
           user_id: 'manager',
         }),
-        User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip) as string),
+        User.ipInfo(Monitor.userIP(req) as string),
       ]);
       //取得多國語言
       const language: any = await SeoConfig.language(store_info, req);

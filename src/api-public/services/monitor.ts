@@ -11,7 +11,7 @@ export class Monitor{
     }){
         try {
             const req=obj.req
-            if(['::ffff:172.17.0.1','ffff:127.0.0.1','::ffff:127.0.0.1'].includes((req.headers['x-real-ip'] || req.ip) as string) ){
+            if(['::ffff:172.17.0.1','ffff:127.0.0.1','::ffff:127.0.0.1'].includes(Monitor.userIP(req) as string) ){
                 return
             }
             let mac_address = req.cookies.mac_address;
@@ -22,7 +22,7 @@ export class Monitor{
 
             await db.query(`insert into \`${saasConfig.SAAS_NAME}\`.t_monitor set ?`,[
                 {
-                    ip:req.headers['x-real-ip'] || req.ip ,
+                    ip:Monitor.userIP(req) ,
                     app_name:req.get('g-app') || 'unknown',
                     user_id: obj.token ? obj.token.userID : 'guest',
                     mac_address:req.get('mac_address') || mac_address,
@@ -37,4 +37,7 @@ export class Monitor{
   }
 
 
+  public static userIP(req:express.Request){
+      return req.headers['cf-connecting-ip'] || (req.headers['x-real-ip'] || req.ip) || ''
+  }
 }

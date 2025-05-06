@@ -8,6 +8,7 @@ const user_js_1 = require("./user.js");
 const axios_1 = __importDefault(require("axios"));
 const tool_js_1 = __importDefault(require("../../services/tool.js"));
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
+const monitor_js_1 = require("./monitor.js");
 class FbApi {
     constructor(app_name, token) {
         this.app_name = app_name;
@@ -36,7 +37,7 @@ class FbApi {
                                 fbc: req.cookies._fbc,
                                 fbp: req.cookies._fbp,
                                 external_id: `${data.userID}`,
-                                client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip),
+                                client_ip_address: monitor_js_1.Monitor.userIP(req),
                                 "event_name": "CompleteRegistration",
                                 "event_time": new Date().getTime() / 1000,
                                 "event_id": `${data.userID}`,
@@ -126,7 +127,7 @@ class FbApi {
             console.log(`cf.api_token=>`, cf.api_token);
             if (cf.link && cf.api_token) {
                 data.user_data = {
-                    client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip),
+                    client_ip_address: monitor_js_1.Monitor.userIP(req),
                     fbc: req.cookies._fbc,
                     fbp: req.cookies._fbp,
                 };

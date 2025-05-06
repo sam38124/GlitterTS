@@ -22,6 +22,7 @@ const pos_js_1 = require("../services/pos.js");
 const shopnex_line_message_1 = require("../services/model/shopnex-line-message");
 const caught_error_js_1 = require("../../modules/caught-error.js");
 const checkout_event_js_1 = require("../services/checkout-event.js");
+const monitor_js_1 = require("../services/monitor.js");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
@@ -158,7 +159,7 @@ router.post('/checkout', async (req, resp) => {
             code_array: req.body.code_array,
             give_away: req.body.give_away,
             language: req.headers['language'],
-            client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip),
+            client_ip_address: monitor_js_1.Monitor.userIP(req),
             fbc: req.cookies._fbc,
             fbp: req.cookies._fbp,
             temp_cart_id: req.body.temp_cart_id,
