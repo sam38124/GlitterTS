@@ -25,7 +25,7 @@ import { ShoppingShipmentSetting } from './shopping-shipment-setting.js';
 const html = String.raw;
 export class ShoppingFinanceSetting {
     static main(gvc, pos) {
-        pos = (`${pos}` === 'true');
+        pos = `${pos}` === 'true';
         const dialog = new ShareDialog(gvc.glitter);
         const saasConfig = window.parent.saasConfig;
         const vm = {
@@ -194,11 +194,11 @@ export class ShoppingFinanceSetting {
             });
         }
         return BgWidget.container(html `
-      ${[
-            html ` <div class="title-container ${pos ? `d-none` : ``}">
-          ${BgWidget.title('金流設定')}
-          <div class="flex-fill"></div>
-        </div>`,
+        ${[
+            html ` <div class="title-container ${pos ? `d-none` : ''}">
+            ${BgWidget.title('金流設定')}
+            <div class="flex-fill"></div>
+          </div>`,
             gvc.bindView({
                 bind: vm.id,
                 view: () => {
@@ -223,21 +223,21 @@ export class ShoppingFinanceSetting {
                         const cloneData = structuredClone(keyData);
                         if (vm.page === 'online') {
                             h = html ` <div class="px-md-0 px-2 mb-2">
-                    ${BgWidget.normalInsignia('透過線上金流，消費者可於線上進行結帳付款')}
-                  </div>
-                  <div class="row">
-                    ${PaymentConfig.onlinePay
+                      ${BgWidget.normalInsignia('透過線上金流，消費者可於線上進行結帳付款')}
+                    </div>
+                    <div class="row">
+                      ${PaymentConfig.onlinePay
                                 .filter(item => item.type !== 'pos')
                                 .map(dd => {
                                 var _a;
                                 keyData[dd.key] = (_a = keyData[dd.key]) !== null && _a !== void 0 ? _a : {};
                                 return html ` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
-                          <div
-                            class="w-100 position-relative main-card"
-                            style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
-                          >
-                            <div class="position-absolute fw-500" style="cursor:pointer;right:15px;top:15px;">
-                              ${BgWidget.customButton({
+                            <div
+                              class="w-100 position-relative main-card"
+                              style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
+                            >
+                              <div class="position-absolute fw-500" style="cursor:pointer;right:15px;top:15px;">
+                                ${BgWidget.customButton({
                                     button: {
                                         color: 'gray',
                                         size: 'sm',
@@ -260,8 +260,8 @@ export class ShoppingFinanceSetting {
                                                         html: html ` ${BgWidget.editeInput({
                                                             gvc: gvc,
                                                             title: html `<div>
-                                                自訂金流名稱 ${BgWidget.grayNote('未輸入則參照預設')}
-                                              </div>`,
+                                                  自訂金流名稱 ${BgWidget.grayNote('未輸入則參照預設')}
+                                                </div>`,
                                                             default: key_d.custome_name,
                                                             callback: text => {
                                                                 key_d.custome_name = text;
@@ -269,8 +269,8 @@ export class ShoppingFinanceSetting {
                                                             placeHolder: '請輸入自訂顯示名稱',
                                                             global_language: true,
                                                         })}
-                                            <div style="margin-top: 8px;">
-                                              ${(() => {
+                                              <div style="margin-top: 8px;">
+                                                ${(() => {
                                                             switch (payData.key) {
                                                                 case 'newWebPay':
                                                                 case 'ecPay':
@@ -519,9 +519,9 @@ export class ShoppingFinanceSetting {
                                                                         }),
                                                                     ].join('');
                                                             }
-                                                            return ``;
+                                                            return '';
                                                         })()}
-                                            </div>`,
+                                              </div>`,
                                                     };
                                                     const shipment = {
                                                         key: 'shipment',
@@ -553,10 +553,12 @@ export class ShoppingFinanceSetting {
                                                         gvc.closeDialog();
                                                     })),
                                                     BgWidget.save(gvc.event(() => {
-                                                        if (payData.key == "ecPay" && key_d.ActionURL == "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5") {
-                                                            key_d.MERCHANT_ID = "3002607";
-                                                            key_d.HASH_KEY = "pwFHCqoQZGmho4w6";
-                                                            key_d.HASH_IV = "EkRm7iFT261dpevs";
+                                                        if (payData.key == 'ecPay' &&
+                                                            key_d.ActionURL ==
+                                                                'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5') {
+                                                            key_d.MERCHANT_ID = '3002607';
+                                                            key_d.HASH_KEY = 'pwFHCqoQZGmho4w6';
+                                                            key_d.HASH_IV = 'EkRm7iFT261dpevs';
                                                         }
                                                         keyData[payData.key] = key_d;
                                                         saveData();
@@ -570,38 +572,38 @@ export class ShoppingFinanceSetting {
                                         });
                                     }),
                                 })}
-                            </div>
-                            <div
-                              style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
-                            >
-                              <div style="min-width: 46px;max-width: 46px;">
-                                <img src="${dd.img || BgWidget.noImageURL}" />
                               </div>
                               <div
-                                style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
                               >
-                                <div class="tx_normal">${dd.name}</div>
-                                <div class="d-flex align-items-center" style="gap:4px;">
-                                  <div class="tx_normal">${keyData[dd.key].toggle ? `開啟` : `關閉`}</div>
-                                  <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
-                                    <input
-                                      class="form-check-input"
-                                      type="checkbox"
-                                      onchange="${gvc.event((e, event) => {
+                                <div style="min-width: 46px;max-width: 46px;">
+                                  <img src="${dd.img || BgWidget.noImageURL}" />
+                                </div>
+                                <div
+                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                >
+                                  <div class="tx_normal">${dd.name}</div>
+                                  <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="tx_normal">${keyData[dd.key].toggle ? `開啟` : `關閉`}</div>
+                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
+                                      <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        onchange="${gvc.event((e, event) => {
                                     keyData[dd.key].toggle = !keyData[dd.key].toggle;
                                     saveData();
                                 })}"
-                                      ${keyData[dd.key].toggle ? `checked` : ``}
-                                    />
+                                        ${keyData[dd.key].toggle ? `checked` : ''}
+                                      />
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </div>`;
+                          </div>`;
                             })
                                 .join('')}
-                  </div>`;
+                    </div>`;
                         }
                         if (vm.page === 'offline') {
                             const offlinePayArray = [
@@ -615,21 +617,21 @@ export class ShoppingFinanceSetting {
                                 }),
                             ];
                             h = html ` <div class="px-md-0 px-2 mb-2">
-                    ${BgWidget.normalInsignia('透過設定線下金流，結帳後訂單將進入手動核款的流程，亦可使用超商取貨付款')}
-                  </div>
-                  <div class="row">
-                    ${offlinePayArray
+                      ${BgWidget.normalInsignia('透過設定線下金流，結帳後訂單將進入手動核款的流程，亦可使用超商取貨付款')}
+                    </div>
+                    <div class="row">
+                      ${offlinePayArray
                                 .map((dd) => {
                                 return html ` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
-                          <div
-                            class="w-100 position-relative main-card"
-                            style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
-                          >
                             <div
-                              class="position-absolute fw-500 ${dd.hide_setting ? `d-none` : ``}"
-                              style="cursor:pointer;right:15px;top:15px;"
+                              class="w-100 position-relative main-card"
+                              style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
                             >
-                              ${BgWidget.customButton({
+                              <div
+                                class="position-absolute fw-500 ${dd.hide_setting ? `d-none` : ''}"
+                                style="cursor:pointer;right:15px;top:15px;"
+                              >
+                                ${BgWidget.customButton({
                                     button: {
                                         color: 'gray',
                                         size: 'sm',
@@ -675,78 +677,78 @@ export class ShoppingFinanceSetting {
                                         });
                                     }),
                                 })}
-                            </div>
-                            <div
-                              style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
-                            >
-                              <div style="min-width: 46px;max-width: 46px;">
-                                ${dd.img
-                                    ? html ` <img class="rounded-2" src="${dd.img}" />`
-                                    : html `<i class="fa-regular fa-puzzle-piece-simple fs-4" aria-hidden="true"></i>`}
                               </div>
                               <div
-                                style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
                               >
-                                <div class="tx_normal">${dd.name}</div>
-                                <div class="d-flex align-items-center" style="gap:4px;">
-                                  <div class="tx_normal">
-                                    ${keyData.off_line_support[dd.key] ? `開啟` : `關閉`}
-                                  </div>
-                                  <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
-                                    <input
-                                      class="form-check-input"
-                                      type="checkbox"
-                                      onchange="${gvc.event((e, event) => {
+                                <div style="min-width: 46px;max-width: 46px;">
+                                  ${dd.img
+                                    ? html `<img class="rounded-2" src="${dd.img}" />`
+                                    : html `<i class="fa-regular fa-puzzle-piece-simple fs-4" aria-hidden="true"></i>`}
+                                </div>
+                                <div
+                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                >
+                                  <div class="tx_normal">${dd.name}</div>
+                                  <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="tx_normal">
+                                      ${keyData.off_line_support[dd.key] ? `開啟` : `關閉`}
+                                    </div>
+                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
+                                      <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        onchange="${gvc.event((e, event) => {
                                     keyData.off_line_support[dd.key] = !keyData.off_line_support[dd.key];
                                     saveData();
                                 })}"
-                                      ${keyData.off_line_support[dd.key] ? `checked` : ``}
-                                    />
+                                        ${keyData.off_line_support[dd.key] ? `checked` : ''}
+                                      />
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </div>`;
+                          </div>`;
                             })
                                 .join('')}
-                    <div
-                      class="col-12 col-lg-3 col-md-4 p-0 p-md-2"
-                      style="cursor: pointer;"
-                      onclick="${gvc.event(() => {
+                      <div
+                        class="col-12 col-lg-3 col-md-4 p-0 p-md-2"
+                        style="cursor: pointer;"
+                        onclick="${gvc.event(() => {
                                 updateCustomFinance({ function: 'plus' });
                             })}"
-                    >
-                      <div
-                        class="w-100 main-card"
-                        style="min-height:119.09px;padding: 24px; background: white; overflow: hidden; flex-direction: column; justify-content: center; align-items: center; gap: 18px; display: inline-flex"
                       >
                         <div
-                          class="fw-bold"
-                          style="align-self: stretch; justify-content: center; align-items: center; gap: 14px; display: inline-flex;color:#4D86DB;"
+                          class="w-100 main-card"
+                          style="min-height:119.09px;padding: 24px; background: white; overflow: hidden; flex-direction: column; justify-content: center; align-items: center; gap: 18px; display: inline-flex"
                         >
-                          <i class="fa-regular fa-circle-plus fs-5"></i>
-                          <div class="fs-5">新增自訂付款</div>
+                          <div
+                            class="fw-bold"
+                            style="align-self: stretch; justify-content: center; align-items: center; gap: 14px; display: inline-flex;color:#4D86DB;"
+                          >
+                            <i class="fa-regular fa-circle-plus fs-5"></i>
+                            <div class="fs-5">新增自訂付款</div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>`;
+                    </div>`;
                         }
                         if (vm.page === 'pos') {
                             h = html `<div class="px-md-0 px-2 mb-2">
-                    ${BgWidget.normalInsignia('設定實體店面所需串接的付款方式')}
-                  </div>
-                  <div class="row">
-                    ${PaymentConfig.onlinePay
+                      ${BgWidget.normalInsignia('設定實體店面所需串接的付款方式')}
+                    </div>
+                    <div class="row">
+                      ${PaymentConfig.onlinePay
                                 .filter(item => item.type === 'pos')
                                 .map(dd => {
                                 return html ` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
-                          <div
-                            class="w-100 position-relative main-card"
-                            style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
-                          >
-                            <div class="position-absolute fw-500" style="cursor:pointer;right:15px;top:15px;">
-                              ${BgWidget.customButton({
+                            <div
+                              class="w-100 position-relative main-card"
+                              style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
+                            >
+                              <div class="position-absolute fw-500" style="cursor:pointer;right:15px;top:15px;">
+                                ${BgWidget.customButton({
                                     button: {
                                         color: 'gray',
                                         size: 'sm',
@@ -764,16 +766,16 @@ export class ShoppingFinanceSetting {
                                             innerHTML: (gvc) => {
                                                 try {
                                                     return html `<div>
-                                          ${(() => {
+                                            ${(() => {
                                                         switch (payData.key) {
                                                             case 'line_pay_scan':
                                                                 return this.linePayScan(gvc, key_d);
                                                             case 'ut_credit_card':
                                                                 return this.utCreditCard(gvc, key_d);
                                                         }
-                                                        return ``;
+                                                        return '';
                                                     })()}
-                                        </div>`;
+                                          </div>`;
                                                 }
                                                 catch (error) {
                                                     console.error(error);
@@ -799,47 +801,49 @@ export class ShoppingFinanceSetting {
                                         });
                                     }),
                                 })}
-                            </div>
-                            <div
-                              style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
-                            >
-                              <div style="min-width: 46px;max-width: 46px;">
-                                <img src="${dd.img || BgWidget.noImageURL}" />
                               </div>
                               <div
-                                style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
                               >
-                                <div class="tx_normal">${dd.name}</div>
-                                <div class="d-flex align-items-center" style="gap:4px;">
-                                  <div class="tx_normal">${keyData[dd.key].toggle ? `開啟` : `關閉`}</div>
-                                  <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
-                                    <input
-                                      class="form-check-input"
-                                      type="checkbox"
-                                      onchange="${gvc.event(() => {
+                                <div style="min-width: 46px;max-width: 46px;">
+                                  <img src="${dd.img || BgWidget.noImageURL}" />
+                                </div>
+                                <div
+                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                >
+                                  <div class="tx_normal">${dd.name}</div>
+                                  <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="tx_normal">${keyData[dd.key].toggle ? `開啟` : `關閉`}</div>
+                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
+                                      <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        onchange="${gvc.event(() => {
                                     keyData[dd.key].toggle = !keyData[dd.key].toggle;
                                     saveData();
                                 })}"
-                                      ${keyData[dd.key].toggle ? `checked` : ``}
-                                    />
+                                        ${keyData[dd.key].toggle ? `checked` : ''}
+                                      />
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </div>`;
+                          </div>`;
                             })
                                 .join('')}
-                  </div>`;
+                    </div>`;
                         }
                         return [
-                            pos ? `` : BgWidget.tab([
-                                { key: 'online', title: '線上金流' },
-                                { key: 'offline', title: '線下金流' },
-                            ], gvc, vm.page, (key) => {
-                                vm.page = key;
-                                gvc.notifyDataChange(vm.id);
-                            }),
+                            pos
+                                ? ''
+                                : BgWidget.tab([
+                                    { key: 'online', title: '線上金流' },
+                                    { key: 'offline', title: '線下金流' },
+                                ], gvc, vm.page, (key) => {
+                                    vm.page = key;
+                                    gvc.notifyDataChange(vm.id);
+                                }),
                             h,
                         ].join('');
                     }
@@ -871,9 +875,9 @@ export class ShoppingFinanceSetting {
                 },
             }),
         ].join('')}
-      ${pos ? `` : BgWidget.mbContainer(240)}
-    `, {
-            style: pos ? `margin-top: 0px !important;` : ``,
+        ${pos ? '' : BgWidget.mbContainer(240)}
+      `, {
+            style: pos ? `margin-top: 0px !important;` : '',
         });
     }
     static tabView(gvc, viewList) {
@@ -1742,7 +1746,7 @@ export class ShoppingFinanceSetting {
                                                 return dd.value === d1;
                                             })
                                                 ? `checked`
-                                                : ``}
+                                                : ''}
                                       />
                                     </div>
                                   </div>
@@ -1789,7 +1793,7 @@ export class ShoppingFinanceSetting {
                                                                                 log_config.bulk = !log_config.bulk;
                                                                                 gvc.recreateView();
                                                                             })}"
-                                                            ${log_config.bulk ? `checked` : ``}
+                                                            ${log_config.bulk ? `checked` : ''}
                                                           />
                                                         </div>
                                                       </div>
@@ -1939,7 +1943,7 @@ export class ShoppingFinanceSetting {
                                                                     width: 1200,
                                                                     height: document.body.clientHeight - 100,
                                                                     title: `『 ${dd.title} 』運費設定`,
-                                                                    d_main_style: document.body.clientWidth < 768 ? 'padding:0px !important;' : ``,
+                                                                    d_main_style: document.body.clientWidth < 768 ? 'padding:0px !important;' : '',
                                                                     innerHTML: (gvc) => {
                                                                         vm.gvc = gvc;
                                                                         return ShoppingShipmentSetting.main(vm);
@@ -1990,7 +1994,7 @@ export class ShoppingFinanceSetting {
                                                                     width: 1200,
                                                                     height: document.body.clientHeight - 100,
                                                                     title: `『 ${dd.title} 』運費設定`,
-                                                                    d_main_style: document.body.clientWidth < 768 ? 'padding:0px !important;' : ``,
+                                                                    d_main_style: document.body.clientWidth < 768 ? 'padding:0px !important;' : '',
                                                                     innerHTML: (gvc) => {
                                                                         vm.gvc = gvc;
                                                                         return ShoppingShipmentSetting.main(vm);
@@ -2595,7 +2599,7 @@ export class ShoppingFinanceSetting {
                                                 saveDelivery();
                                                 gvc.notifyDataChange(id);
                                             })}"
-                                        ${vm.delivery[dd.value].toggle ? `checked` : ``}
+                                        ${vm.delivery[dd.value].toggle ? `checked` : ''}
                                       />
                                     </div>
                                   </div>
@@ -3064,7 +3068,7 @@ export class ShoppingFinanceSetting {
                                 `;
                                             },
                                             divCreate: {
-                                                style: ``,
+                                                style: '',
                                                 class: `w-100`,
                                             },
                                         };
